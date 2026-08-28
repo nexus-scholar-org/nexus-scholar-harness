@@ -1,0 +1,43 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+\usepackage{nexus_theme}
+
+\title{Building a Reproducible Scholarly Search Toolkit}
+\subtitle{Episode 14: Crossref \& Bibliographic Validation}
+\author{Nexus Scholar Suite}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{Crossref Works \& Validation}
+  \begin{center}
+  \resizebox{0.85\linewidth}{!}{
+  \begin{tikzpicture}[node distance=0.8cm and 1.5cm]
+    \node[primarycard] (raw) {\textbf{Unformatted String}\\"Vaswani et al., 2017..."};
+    \node[card, right=of raw] (crossref) {\textbf{Crossref Engine}\\\texttt{query.bibliographic}};
+    \node[successcard, right=of crossref] (doi) {\textbf{Official DOI Record}\\\texttt{10.48550/arXiv.1706.03762}};
+
+    \draw[flowarrow] (raw) -- (crossref);
+    \draw[accentarrow] (crossref) -- (doi);
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Crossref Provider Implementation}
+\begin{lstlisting}[style=nexuspython]
+class CrossrefProvider(BaseProvider):
+    def validate_reference(self, citation: str) -> dict | None:
+        url = "https://api.crossref.org/works"
+        params = {"query.bibliographic": citation, "rows": 1}
+        resp = self.http.get(url, params=params).json()
+        items = resp.get("message", {}).get("items", [])
+        return items[0] if items else None
+\end{lstlisting}
+\end{frame}
+
+\end{document}

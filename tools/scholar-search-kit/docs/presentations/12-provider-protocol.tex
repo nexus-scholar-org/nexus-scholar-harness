@@ -1,0 +1,50 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+\usepackage{nexus_theme}
+
+\title{Building a Reproducible Scholarly Search Toolkit}
+\subtitle{Episode 12: The SearchProvider Protocol}
+\author{Nexus Scholar Suite}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{The \texttt{SearchProvider} Contract}
+  \begin{center}
+  \resizebox{0.85\linewidth}{!}{
+  \begin{tikzpicture}[node distance=0.8cm and 1.5cm]
+    \node[primarycard] (proto) {\textbf{\texttt{SearchProvider} Protocol}\\\texttt{name: str}\\\texttt{search(query: Query) -> Iterator[Document]}};
+    
+    \node[card, below left=1.2cm and -0.8cm of proto] (oa) {OpenAlexProvider};
+    \node[card, below=1.2cm of proto] (crossref) {CrossrefProvider};
+    \node[card, below right=1.2cm and -0.8cm of proto] (arxiv) {ArXivProvider};
+
+    \draw[flowarrow] (proto) -- (oa);
+    \draw[flowarrow] (proto) -- (crossref);
+    \draw[flowarrow] (proto) -- (arxiv);
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Base Provider Architecture}
+\begin{lstlisting}[style=nexuspython]
+class SearchProvider(Protocol):
+    name: str
+    def search(self, query: Query) -> Iterator[Document]: ...
+
+class BaseProvider(ABC):
+    def __init__(self, name: str, rate_limit: float = 5.0):
+        self.name = name
+        self.http = AcademicHttpClient(name=name, rate_limit=rate_limit)
+
+    @abstractmethod
+    def search(self, query: Query) -> Iterator[Document]: ...
+\end{lstlisting}
+\end{frame}
+
+\end{document}

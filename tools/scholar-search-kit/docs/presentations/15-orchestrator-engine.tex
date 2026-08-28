@@ -1,0 +1,53 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+\usepackage{nexus_theme}
+
+\title{Building a Reproducible Scholarly Search Toolkit}
+\subtitle{Episode 15: The Federated SearchEngine}
+\author{Nexus Scholar Suite}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{Federated Search Architecture}
+  \begin{center}
+  \resizebox{0.9\linewidth}{!}{
+  \begin{tikzpicture}[node distance=0.8cm and 1.2cm]
+    \node[primarycard] (engine) {\textbf{\texttt{SearchEngine}}\\Federated Orchestration};
+    
+    \node[card, above right=0.2cm and 1.2cm of engine] (p1) {OpenAlex $\cdot$ Crossref};
+    \node[card, right=1.2cm of engine] (p2) {PubMed $\cdot$ Semantic Scholar};
+    \node[card, below right=0.2cm and 1.2cm of engine] (p3) {arXiv $\cdot$ bioRxiv};
+    
+    \node[successcard, right=of p2] (dedup) {\textbf{\texttt{Deduplicator}}\\2-Phase Clustered \& Merged};
+
+    \draw[accentarrow] (engine.east) -- (p1.west);
+    \draw[accentarrow] (engine.east) -- (p2.west);
+    \draw[accentarrow] (engine.east) -- (p3.west);
+    \draw[flowarrow] (p1.east) -- (dedup.west);
+    \draw[flowarrow] (p2.east) -- (dedup.west);
+    \draw[flowarrow] (p3.east) -- (dedup.west);
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Federation & Snowballing API}
+\begin{lstlisting}[style=nexuspython]
+# 1. Multi-Provider Discovery
+engine = SearchEngine(providers=["openalex", "crossref", "arxiv"])
+query = Query("quantum error correction", max_results=50)
+results = engine.search(query)  # Deduplicated Document list
+
+# 2. Citation Snowballing
+citing_works = engine.snowball(
+    paper_id="W2741809807", direction="forward", provider="openalex"
+)
+\end{lstlisting}
+\end{frame}
+
+\end{document}
