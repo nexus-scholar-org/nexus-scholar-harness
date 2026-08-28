@@ -95,8 +95,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 2. Clone the Repository
 ```bash
-git clone <repository-url> harness-agri
-cd harness-agri
+git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
+cd nexus-scholar-harness
 ```
 
 ### 3. Synchronize Tool Virtual Environments
