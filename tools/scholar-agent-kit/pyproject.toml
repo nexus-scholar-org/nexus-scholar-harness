@@ -13,11 +13,11 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-scholar-search-kit = { path = "../scholar-search-kit" }
-scholar-bib-kit = { path = "../scholar-bib-kit" }
-scholar-pdf-kit = { path = "../scholar-pdf-kit" }
-scholar-rag-kit = { path = "../scholar-rag-kit" }
-scholar-graph-kit = { path = "../scholar-graph-kit" }
+scholar-search-kit = { path = "../../scholar-search-kit", editable = true }
+scholar-bib-kit = { path = "../../scholar-bib-kit", editable = true }
+scholar-pdf-kit = { path = "../../scholar-pdf-kit", editable = true }
+scholar-rag-kit = { path = "../../scholar-rag-kit", editable = true }
+scholar-graph-kit = { path = "../../scholar-graph-kit", editable = true }
 
 [project.scripts]
 scholar-agent = "scholar_agent.server:main"

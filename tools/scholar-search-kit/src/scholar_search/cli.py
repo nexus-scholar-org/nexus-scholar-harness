@@ -386,6 +386,72 @@ def dedup(
 
 
 @app.command()
+def verify(
+    input_file: Path = typer.Argument(
+        ..., help="Path to input JSON, JSONL, or RIS file", exists=True
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Filepath to save verified documents"
+    ),
+    format: str = typer.Option(
+        "json", "--format", "-f", help="Output format: json, jsonl, csv"
+    ),
+    enrich: bool = typer.Option(
+        False,
+        "--enrich",
+        "-e",
+        help="Hydrate missing abstracts, venues, and citations from OpenAlex",
+    ),
+):
+    """Verify citation authenticity against Crossref and OpenAlex, resolve canonical DOIs, and hydrate metadata."""
+    suffix = input_file.suffix.lower()
+    if suffix == ".ris":
+        documents = list(RISImporter().parse(input_file))
+    elif suffix == ".jsonl":
+        documents = list(JSONLImporter().parse(input_file))
+    else:
+        documents = list(JSONImporter().parse(input_file))
+
+    console.print(f"[bold]Loaded {len(documents)} records from {input_file}[/bold]")
+
+    async def run_verify():
+        verifier = DocumentVerifier(
+            crossref_provider=CrossrefProvider(),
+            openalex_provider=OpenAlexProvider(),
+        )
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            progress.add_task(
+                description="Verifying and hydrating document metadata...", total=None
+            )
+            docs, aud = await verifier.process_batch(
+                documents, verify=True, enrich=enrich
+            )
+            await verifier.crossref.client.close()
+            await verifier.openalex.client.close()
+            return docs, aud
+
+    documents, audit = asyncio.run(run_verify())
+
+    verified_count = sum(1 for a in audit if a["verified"])
+    console.print(
+        f"[green]Verified: {verified_count}/{len(documents)} documents confirmed real.[/green]"
+    )
+    if verified_count < len(documents):
+        console.print(
+            f"[yellow]Warning: {len(documents) - verified_count} records could not be verified in Crossref/OpenAlex.[/yellow]"
+        )
+
+    _display_documents_table(documents, title=f"Verified Documents ({input_file.name})")
+
+    if output:
+        _save_output(documents, output, format)
+
+
+@app.command()
 def export(
     input_file: Path = typer.Argument(
         ..., help="Input file path (.json, .jsonl, .ris)", exists=True
