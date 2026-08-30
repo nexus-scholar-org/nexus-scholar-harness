@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "organization": "nexus-scholar-org",
+  "plugins": [
+    {
+      "name": "scholar-search-kit",
+      "description": "Federated academic search, deduplication, verification, and export toolkit.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-search-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-search",
+      "extras": ["dev"]
+    },
+    {
+      "name": "scholar-pdf-kit",
+      "description": "Open Access discovery, resilient downloading, magic-byte validation, and fulltext extraction.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-pdf-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-pdf",
+      "extras": ["extract"]
+    },
+    {
+      "name": "scholar-bib-kit",
+      "description": "BibTeX parser, linter, deduplicator, and Crossref/OpenAlex metadata resolver.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-bib-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-bib",
+      "extras": []
+    },
+    {
+      "name": "scholar-graph-kit",
+      "description": "Citation graph construction, centrality metrics, and PyVis interactive network visualization.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-graph-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-graph",
+      "extras": []
+    },
+    {
+      "name": "scholar-rag-kit",
+      "description": "Local dense retrieval, Chroma vector database indexing, and RAG synthesis over extracted literature.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-rag-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-rag",
+      "extras": []
+    },
+    {
+      "name": "scholar-agent-kit",
+      "description": "Model Context Protocol (MCP) server exposing all Nexus Scholar tools to Claude Code and AI agents.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-agent-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-agent",
+      "extras": []
+    }
+  ]
+}

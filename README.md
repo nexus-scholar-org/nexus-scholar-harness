@@ -99,16 +99,39 @@ git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
 ```
 
-### 3. Synchronize Tool Virtual Environments
-The harness includes self-contained Python tool packages under `tools/`. Synchronize their dependencies using `uv`:
+### 3. Install Nexus Scholar Plugins
+Plugins are installed into a shared root virtual environment (`.venv`) using the unified installer:
 
 ```bash
-# Set up scholar-search-kit
-uv sync --project tools/scholar-search-kit
+# Automatic plugin discovery (local checkouts preferred, Git fallback)
+python scripts/install_plugins.py
 
-# Set up scholar-pdf-kit
-uv sync --project tools/scholar-pdf-kit
+# Or, if you only have Git repos available (no local checkouts):
+python scripts/install_plugins.py --git-only
+
+# To force editable installs from local developer checkouts:
+python scripts/install_plugins.py --dev-path ~/nexus-scholar-dev
+
+# Clean up legacy per-tool .venv directories (one-time cleanup):
+python scripts/install_plugins.py --clean
 ```
+
+The installer reads `.agents/plugins/nexus-scholar/plugins.json` and:
+1. **Searches for local checkouts** in priority order: `--dev-path`, `$NEXUS_PLUGIN_PATH`, `tools/`, `../`, `../../`
+2. **Installs editable** (`-e`) if found locally → single source of truth for development
+3. **Falls back to Git** if no local checkout exists → uses remote repo at specified branch/tag
+4. **Installs in dependency order** → `scholar-search-kit` first, then dependents
+
+After installation, all console scripts are available via `uv run`:
+```bash
+uv run scholar-search --help
+uv run scholar-pdf --help
+uv run scholar-bib --help
+uv run scholar-graph --help
+uv run scholar-rag --help
+uv run scholar-agent --help
+```
+
 
 ---
 
@@ -143,7 +166,8 @@ workspaces/my-research-project/
 ### Step 2: Federated Literature Discovery
 Search academic databases using multi-query clusters:
 ```bash
-uv run --project tools/scholar-search-kit python -m scholar_search.cli search \
+# Run scholar-search via unified environment
+uv run scholar-search query \
   --query "multispectral weed segmentation" \
   --providers openalex semanticscholar crossref arxiv \
   --year-min 2018 \
@@ -154,7 +178,7 @@ uv run --project tools/scholar-search-kit python -m scholar_search.cli search \
 
 Deduplicate candidates:
 ```bash
-uv run --project tools/scholar-search-kit python -m scholar_search.cli dedup \
+uv run scholar-search dedup \
   --input workspaces/my-research-project/literature/raw_search.json \
   --output workspaces/my-research-project/literature/deduped.json \
   --export csv \
@@ -166,7 +190,7 @@ uv run --project tools/scholar-search-kit python -m scholar_search.cli dedup \
 ### Step 3: Verification & Abstract Hydration
 Verify citation authenticity against Crossref and OpenAlex, resolve canonical DOIs, and hydrate full abstracts:
 ```bash
-uv run --project tools/scholar-search-kit python -m scholar_search.cli verify \
+uv run scholar-search verify \
   --input workspaces/my-research-project/literature/deduped.json \
   --output workspaces/my-research-project/literature/verified.json \
   --export csv \
@@ -187,7 +211,7 @@ Screen verified candidates against `criteria.md` and research questions using LL
 ### Step 5: Open Access PDF Harvesting
 Download full-text Open Access PDFs concurrently with magic byte validation:
 ```bash
-uv run --project tools/scholar-pdf-kit python -m scholar_pdf.cli download \
+uv run scholar-pdf download \
   --input workspaces/my-research-project/literature/included.json \
   --output workspaces/my-research-project/pdfs/ \
   --smart-names \
@@ -199,7 +223,7 @@ uv run --project tools/scholar-pdf-kit python -m scholar_pdf.cli download \
 ### Step 6: Full-Text Structured Markdown Extraction
 Extract section-indexed Markdown documents from harvested PDFs:
 ```bash
-uv run --project tools/scholar-pdf-kit python -m scholar_pdf.cli extract \
+uv run scholar-pdf extract \
   --input workspaces/my-research-project/pdfs/ \
   --output workspaces/my-research-project/extracted/ \
   --engine pymupdf
@@ -253,22 +277,27 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py \
 ## 📁 Repository Structure
 
 ```text
-harness-agri/
+nexus-scholar-harness/
 ├── .agents/
 │   ├── plugins/
-│   │   └── nexus-scholar/      # Bundled plugin manifest & skills
+│   │   └── nexus-scholar/      # Plugin registry manifest & console scripts config
 │   └── skills/
 │       ├── methodology-copilot/ # Socratic research advisor & criteria generator
-│       ├── scholar-search-kit/ # Federated search documentation & skill spec
-│       ├── scholar-pdf-kit/    # PDF download & extraction skill spec
 │       └── workspace-manager/  # Project scaffolder & audit event logger
-├── tools/
-│   ├── scholar-search-kit/     # Python package for federated literature search
-│   └── scholar-pdf-kit/        # Python package for PDF download & extraction
+├── scripts/
+│   └── install_plugins.py      # Unified plugin installer (searches local → Git fallback)
 ├── brainstorming/              # Research design notes and architecture specs
-├── .gitignore                  # Ignores generated workspaces and scratch files
+├── workspaces/                 # Generated research project workspaces
+├── .gitignore                  # Ignores generated workspaces and external plugins
+├── pyproject.toml              # Harness orchestrator dependencies
 └── README.md                   # This documentation file
 ```
+
+**Note**: External plugin packages (`scholar-search-kit`, `scholar-pdf-kit`, etc.) are **not vendored** in this repository.
+They are installed into the shared `.venv/` by `scripts/install_plugins.py`, which supports:
+- Local development clones (editable installs) in `tools/` or custom paths
+- Remote Git repository fallback
+- Single shared environment for all tools (no per-tool virtual environments)
 
 ---
 

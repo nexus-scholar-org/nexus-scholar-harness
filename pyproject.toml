@@ -1,0 +1,26 @@
+[project]
+name = "nexus-scholar-harness"
+version = "1.0.0"
+description = "Harness for systematic literature reviews: skills, plugin registry, and unified tool environment."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# The harness itself is a thin orchestrator. The scholar-* kits are NOT vendored here;
+# they live in their own repositories and are installed into the shared .venv by
+# scripts/install_plugins.py (which reads .agents/plugins/nexus-scholar/plugins.json).
+# This keeps one source of truth for each kit and one shared environment for the harness.
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
