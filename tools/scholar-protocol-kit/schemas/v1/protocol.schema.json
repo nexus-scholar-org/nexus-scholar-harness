@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schemas/v1/protocol.schema.json",
+  "title": "ResearchProtocol",
+  "description": "Phase 0 research protocol contract for the Nexus Scholar harness. Generated from scholar_protocol.models.ResearchProtocol (Pydantic v2). Do not edit by hand — regenerate with: python scripts/generate_schema.py",
+  "type": "object",
+  "required": [
+    "$schema",
+    "protocol_id",
+    "created_at",
+    "project_slug",
+    "playbook_type",
+    "epistemology",
+    "research_questions",
+    "search_strategy",
+    "screening_criteria"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI of the JSON Schema (relative kit path, resolved locally by the validator)",
+      "const": "schemas/v1/protocol.schema.json"
+    },
+    "protocol_id": {
+      "type": "string",
+      "description": "Unique protocol identifier, e.g. 'proto-20260901-ai-dev'"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO-8601 timestamp of protocol creation (UTC)"
+    },
+    "project_slug": {
+      "type": "string",
+      "description": "Workspace directory slug, e.g. 'ai-developer-productivity'"
+    },
+    "playbook_type": {
+      "type": "string",
+      "enum": [
+        "PRISMA_SLR",
+        "SCOPING_REVIEW",
+        "RAPID_EVIDENCE",
+        "DESIGN_SCIENCE",
+        "STUDENT_DISSERTATION"
+      ],
+      "description": "Canonical research archetype driving default parameters"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Freeform project metadata",
+      "properties": {
+        "title": { "type": "string" },
+        "lead_researcher": { "type": "string" },
+        "target_venue_type": { "type": "string" },
+        "timeline_weeks": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "epistemology": {
+      "$ref": "#/definitions/EpistemologyConfig"
+    },
+    "research_questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/ResearchQuestion" },
+      "description": "At least one research question is required"
+    },
+    "search_strategy": {
+      "$ref": "#/definitions/SearchStrategy"
+    },
+    "screening_criteria": {
+      "$ref": "#/definitions/ScreeningCriteria"
+    },
+    "matrix_dimensions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/MatrixDimension" },
+      "default": [],
+      "description": "Custom extraction dimensions"
+    },
+    "verification": {
+      "$ref": "#/definitions/VerificationConfig"
+    }
+  },
+  "definitions": {
+    "ResearchQuestion": {
+      "type": "object",
+      "required": ["id", "text", "target_facet", "required_evidence_type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "target_facet": { "type": "string" },
+        "synthesis_type": { "type": "string", "default": "Comparative Matrix" },
+        "required_evidence_type": { "type": "string" }
+      }
+    },
+    "ConceptCluster": {
+      "type": "object",
+      "required": ["concept"],
+      "additionalProperties": false,
+      "properties": {
+        "concept": { "type": "string" },
+        "synonyms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "boolean_operator": {
+          "type": "string",
+          "enum": ["OR", "AND"],
+          "default": "OR"
+        }
+      }
+    },
+    "SearchStrategy": {
+      "type": "object",
+      "required": ["core_concepts"],
+      "additionalProperties": false,
+      "properties": {
+        "core_concepts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/ConceptCluster" }
+        },
+        "target_databases": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["openalex", "semanticscholar", "crossref", "arxiv"]
+        },
+        "date_range": {
+          "type": "object",
+          "properties": {
+            "end_year": { "type": ["integer", "null"] },
+            "start_year": { "type": ["integer", "null"] }
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["en"]
+        },
+        "open_access_preferred": { "type": "boolean", "default": true },
+        "target_candidate_pool_size": {
+          "type": "object",
+          "properties": {
+            "max": { "type": "integer" },
+            "min": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "ScreeningCriterion": {
+      "type": "object",
+      "required": ["id", "criterion"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "criterion": { "type": "string" },
+        "maps_to_rqs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "reason_category": { "type": ["string", "null"] }
+      }
+    },
+    "ScreeningCriteria": {
+      "type": "object",
+      "required": ["inclusion", "exclusion"],
+      "additionalProperties": false,
+      "properties": {
+        "inclusion": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/ScreeningCriterion" }
+        },
+        "exclusion": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/ScreeningCriterion" }
+        },
+        "two_tier_screening": { "type": "boolean", "default": true }
+      }
+    },
+    "MatrixDimension": {
+      "type": "object",
+      "required": ["id", "name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "target_section_category": {
+          "type": ["string", "null"],
+          "enum": [
+            "methodology",
+            "results_empirical",
+            "discussion_limitations",
+            "abstract_intro",
+            null
+          ]
+        },
+        "data_type": {
+          "type": "string",
+          "enum": ["free_text", "numeric", "categorical", "list"],
+          "default": "free_text"
+        },
+        "required": { "type": "boolean", "default": false },
+        "fallback_value": { "type": "string", "default": "Not Reported" }
+      }
+    },
+    "EpistemologyConfig": {
+      "type": "object",
+      "required": [
+        "primary_paradigm",
+        "unit_of_analysis",
+        "trustworthiness_framework",
+        "epistemological_rationale"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "primary_paradigm": {
+          "type": "string",
+          "enum": ["Positivist", "Interpretivist", "Design Science", "Pragmatist / Mixed Methods"]
+        },
+        "secondary_paradigm": {
+          "type": ["string", "null"],
+          "enum": ["Positivist", "Interpretivist", "Design Science", "Pragmatist / Mixed Methods", null]
+        },
+        "unit_of_analysis": { "type": "string" },
+        "trustworthiness_framework": { "type": "string" },
+        "epistemological_rationale": { "type": "string" },
+        "incompatible_concepts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      }
+    },
+    "VerificationConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "retraction_check_required": { "type": "boolean", "default": true },
+        "coi_and_funding_audit_required": { "type": "boolean", "default": true },
+        "reproducibility_das_cas_check": { "type": "boolean", "default": true },
+        "minimum_trust_score_threshold": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 10.0,
+          "default": 5.0
+        }
+      }
+    }
+  }
+}
