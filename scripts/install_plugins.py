@@ -76,6 +76,7 @@ DEFAULT_MANIFEST_PATH = Path(".agents/plugins/nexus-scholar/plugins.json")
 
 # Install order: base kit first, then dependents. `scholar-agent-kit` depends on all others.
 INSTALL_ORDER = [
+    "scholar-protocol-kit",
     "scholar-search-kit",
     "scholar-pdf-kit",
     "scholar-bib-kit",
@@ -230,6 +231,8 @@ def verify_installation(plugins: list[dict[str, Any]]) -> dict[str, bool]:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 check=False,
             )
             if res.returncode == 0:

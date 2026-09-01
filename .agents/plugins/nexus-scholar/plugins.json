@@ -4,6 +4,14 @@
   "organization": "nexus-scholar-org",
   "plugins": [
     {
+      "name": "scholar-protocol-kit",
+      "description": "Deterministic research protocol compiler, JSON-schema contract, and intent specification.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-protocol-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-protocol",
+      "extras": ["dev"]
+    },
+    {
       "name": "scholar-search-kit",
       "description": "Federated academic search, deduplication, verification, and export toolkit.",
       "repo": "https://github.com/nexus-scholar-org/scholar-search-kit.git",
