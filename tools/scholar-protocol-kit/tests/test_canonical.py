@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import pathlib
 
@@ -14,10 +15,77 @@ FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 VALID_DIR = FIXTURES / "valid"
 CANONICAL_DIR = FIXTURES / "canonical"
 
+# All valid golden fixtures that have .sha256 sibling files.
+_GOLDEN_FIXTURES = [
+    "design_science_min.json",
+    "prisma_slr_full.json",
+    "scoping_empty_matrix.json",
+    "interpretivist_min.json",
+]
+
 
 def _load_protocol(path: pathlib.Path) -> ResearchProtocol:
     raw = json.loads(path.read_text(encoding="utf-8"))
     return ResearchProtocol.model_validate(raw)
+
+
+def _read_expected_fingerprint(sha256_path: pathlib.Path) -> str:
+    """Read the expected fingerprint from a .sha256 sibling file."""
+    return sha256_path.read_text(encoding="utf-8").strip()
+
+
+# ---------------------------------------------------------------------------
+# Gap #1 fix: Pinned .sha256 golden fingerprints (byte-drift CI gate)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("fixture_name", _GOLDEN_FIXTURES)
+def test_pinned_golden_fingerprint(fixture_name: str) -> None:
+    """Canonical fingerprint must match the checked-in .sha256 sibling file.
+
+    This is the hard CI gate: if any byte of the serializer, models, or fixture
+    changes, this test fails.  To update intentionally:
+        1. Re-run: scholar-protocol fingerprint <fixture_path>
+        2. Update the .sha256 sibling file.
+        3. Commit both files together with a rationale.
+    """
+    fixture_path = VALID_DIR / fixture_name
+    sha256_path = VALID_DIR / f"{fixture_name}.sha256"
+
+    assert sha256_path.exists(), (
+        f".sha256 sibling not found for {fixture_name}. "
+        f"Generate with: scholar-protocol fingerprint {fixture_path}"
+    )
+
+    protocol = _load_protocol(fixture_path)
+    actual = canonical_fingerprint(protocol)
+    expected = _read_expected_fingerprint(sha256_path)
+
+    assert actual == expected, (
+        f"Fingerprint mismatch for {fixture_name}!\n"
+        f"  Expected (checked-in): {expected}\n"
+        f"  Actual (computed):     {actual}\n"
+        "This means the canonical serialization has changed since the golden "
+        "was pinned.  If intentional, update the .sha256 sibling file."
+    )
+
+
+def test_pinned_canonical_fixture_fingerprint() -> None:
+    """canonical/unordered_dims.json must match its .sha256 sibling."""
+    fixture_path = CANONICAL_DIR / "unordered_dims.json"
+    sha256_path = CANONICAL_DIR / "unordered_dims.json.sha256"
+
+    assert sha256_path.exists(), f".sha256 sibling not found at {sha256_path}"
+
+    protocol = _load_protocol(fixture_path)
+    actual = canonical_fingerprint(protocol)
+    expected = _read_expected_fingerprint(sha256_path)
+
+    assert actual == expected, (
+        f"Fingerprint mismatch for canonical/unordered_dims.json!\n"
+        f"  Expected: {expected}\n"
+        f"  Actual:   {actual}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -169,17 +237,61 @@ def test_canonical_json_is_utf8() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Canonical fixture: idempotent round-trip
+# Gap #3 fix: canonical/ fixture proves mis-ordered input → same bytes
 # ---------------------------------------------------------------------------
 
 
 def test_canonical_fixture_roundtrip() -> None:
-    """The canonical/unordered_dims.json fixture must round-trip identically."""
+    """canonical/unordered_dims.json must round-trip identically."""
     protocol = _load_protocol(CANONICAL_DIR / "unordered_dims.json")
     first = canonical_json(protocol)
     protocol2 = ResearchProtocol.model_validate(json.loads(first))
     second = canonical_json(protocol2)
     assert first == second
+
+
+def test_canonical_fixture_shuffled_metadata_same_bytes() -> None:
+    """A protocol with shuffled metadata keys must canonicalize to the same bytes.
+
+    This is the actual guarantee the canonical/ fixture is named for:
+    mis-ordered input → byte-identical output after canonicalization.
+    """
+    fixture_path = CANONICAL_DIR / "unordered_dims.json"
+    raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    # Reverse the metadata key order.
+    raw_shuffled = copy.deepcopy(raw)
+    meta_items = list(raw["metadata"].items())
+    meta_items.reverse()
+    raw_shuffled["metadata"] = dict(meta_items)
+
+    protocol_normal = ResearchProtocol.model_validate(raw)
+    protocol_shuffled = ResearchProtocol.model_validate(raw_shuffled)
+
+    assert canonical_json(protocol_normal) == canonical_json(protocol_shuffled), (
+        "Shuffled metadata keys produced different canonical bytes — "
+        "the metadata key-sort rule is broken."
+    )
+
+
+def test_canonical_fixture_shuffled_date_range_same_bytes() -> None:
+    """Shuffled date_range keys must canonicalize to the same bytes."""
+    fixture_path = CANONICAL_DIR / "unordered_dims.json"
+    raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+
+    # Reverse date_range key order (end_year, start_year) vs (start_year, end_year).
+    raw_shuffled = copy.deepcopy(raw)
+    dr_items = list(raw["search_strategy"]["date_range"].items())
+    dr_items.reverse()
+    raw_shuffled["search_strategy"]["date_range"] = dict(dr_items)
+
+    protocol_normal = ResearchProtocol.model_validate(raw)
+    protocol_shuffled = ResearchProtocol.model_validate(raw_shuffled)
+
+    assert canonical_json(protocol_normal) == canonical_json(protocol_shuffled), (
+        "Shuffled date_range keys produced different canonical bytes — "
+        "the date_range key-sort rule is broken."
+    )
 
 
 # ---------------------------------------------------------------------------
