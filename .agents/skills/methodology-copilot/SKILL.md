@@ -1,6 +1,6 @@
 ---
 name: methodology-copilot
-description: Expert Socratic advisor for epistemological paradigm selection, question refinement, rigor criteria formulation, and automated project workspace inception. Optimized for batch processing and agent-native integration.
+description: Interactive Socratic advisor that guides researchers through epistemological paradigm selection, question refinement, rigor criteria formulation, and automated project workspace inception.
 ---
 
 # `methodology-copilot` Skill Instructions
@@ -10,33 +10,8 @@ You are an expert PhD advisor and methodological architect. When a researcher pr
 ## Core Capabilities
 1. **Epistemological Refraction**: Refracts unformed ideas across 4 academic paradigms: *Positivist (Quantitative)*, *Interpretivist (Qualitative)*, *Pragmatist (Mixed Methods)*, and *Design Science (Engineering)*.
 2. **Socratic Interviewing**: Probes research goals, units of analysis, validation standards, and boundary criteria.
-3. **Protocol & Criteria Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, and `criteria.md` (Inclusion / Exclusion).
-4. **Project Scaffolding**: Interacts with `workspace-manager` to initialize `workspaces/<project-slug>/` with manifests and initial notes.
-
----
-
-## Quick CLI Workflow
-
-### Single Project Initialization
-```bash
-# Interactive Socratic interview (guided step-by-step)
-uv run python .agents/skills/methodology-copilot/scripts/interview.py
-
-# Output: Writes findings to workspaces/<project-slug>/project.json and literature/criteria.md
-```
-
-### Batch Paradigm Refraction
-For multiple research ideas at once:
-```bash
-# Create input.jsonl with multiple ideas
-cat > ideas.jsonl << EOF
-{"title": "Weed segmentation in multispectral imagery", "domain": "agriculture"}
-{"title": "Patient retention in telehealth", "domain": "healthcare"}
-EOF
-
-# Batch refract across all 4 paradigms
-uv run python .agents/skills/methodology-copilot/scripts/batch_refract.py --input ideas.jsonl --output paradigm_choices.json
-```
+3. **Intent Packet Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, concept clusters, and the `intent.json` packet.
+4. **Deterministic Protocol Inception**: Interacts with `workspace-manager` and `scholar-protocol` to initialize `workspaces/<project-slug>/`, compile canonical `protocol.json`, and render `SCREENING_CRITERIA.md`.
 
 ---
 
@@ -56,127 +31,90 @@ Present the 4 paradigm refractions side-by-side:
 ```
 
 ### Step 2: Socratic Alignment
-Ask the researcher:
-- Which paradigm aligns best with your target contribution and audience?
-- What is your primary unit of analysis?
-- What are your temporal, linguistic, or domain boundaries?
+Engage the researcher to align on:
+- **Target Paradigm**: Which epistemological stance aligns best with the intended contribution?
+- **Unit of Analysis**: What is the core artifact, population, or process being evaluated?
+- **Boundary Conditions**: What are the temporal, linguistic, domain, or dataset constraints?
+- **Research Questions & Facets**: What specific empirical facets must each RQ address?
 
 ### Step 3: Scaffold Project Workspace
-Once the user confirms the paradigm and questions, initialize the project using `workspace-manager`:
+Once the user confirms the paradigm and questions, scaffold the project workspace:
 ```bash
 uv run python .agents/skills/workspace-manager/scripts/init_project.py \
-  --title "Your Research Title" \
-  --slug "my-research-project" \
-  --description "Abstract" \
-  --paradigm "Design Science" \
-  --rq "RQ1: ..." \
-  --rq "RQ2: ..."
-```
-This automatically writes:
-- `workspaces/<project-slug>/project.json` with metadata and RQs
-- `workspaces/<project-slug>/literature/criteria.md` with explicit Inclusion/Exclusion rules
-- `workspaces/<project-slug>/audit/journal.jsonl` with PROJECT_INITIALIZED event
-
----
-
-## Programmatic Python API
-
-> **CRITICAL RULE**: Batch paradigm refraction and criteria generation are async-compatible. For high-throughput scenarios (multiple ideas), use the async API with `asyncio.gather()` to process in parallel.
-
-### Interactive Socratic Interview (Async-Ready)
-```python
-import asyncio
-from methodology_copilot import SocraticInterviewer, ParadigmRefractor
-
-async def main():
-    # 1. Initialize interviewer
-    interviewer = SocraticInterviewer()
-    
-    # 2. Conduct multi-turn conversation
-    raw_idea = "Weed segmentation in crop fields using multispectral satellite imagery"
-    responses = []
-    
-    responses.append(await interviewer.probe("goal", raw_idea))      # Goal clarification
-    responses.append(await interviewer.probe("scope", raw_idea))     # Scope & boundaries  
-    responses.append(await interviewer.probe("validation", raw_idea)) # Validation standards
-    
-    # 3. Refract across 4 paradigms (Async)
-    refractor = ParadigmRefractor()
-    paradigm_options = await refractor.refract_all(raw_idea, interviewer.context)
-    
-    # 4. Return all 4 paradigm options to researcher for alignment
-    for paradigm, rqs in paradigm_options.items():
-        print(f"\n{paradigm}:")
-        for rq in rqs:
-            print(f"  - {rq}")
-    
-    # 5. Generate criteria after paradigm selection
-    selected_paradigm = "Design Science"  # User selection
-    criteria = await refractor.generate_criteria(
-        raw_idea, paradigm=selected_paradigm, rqs=paradigm_options[selected_paradigm]
-    )
-    
-    return criteria
-
-if __name__ == "__main__":
-    criteria = asyncio.run(main())
+  --title "<Project Title>" \
+  --slug "<project-slug>" \
+  --paradigm "<Selected Paradigm>" \
+  --rq "RQ1: <Question 1>" \
+  --rq "RQ2: <Question 2>"
 ```
 
-### Batch Refraction (High-Throughput)
-```python
-import asyncio
-from methodology_copilot import ParadigmRefractor
-import json
-
-async def batch_refract(ideas_jsonl_path: str):
-    """Refract multiple ideas in parallel."""
-    refractor = ParadigmRefractor()
-    
-    # Load ideas
-    ideas = []
-    with open(ideas_jsonl_path) as f:
-        for line in f:
-            ideas.append(json.loads(line))
-    
-    # Refract all in parallel (concurrent)
-    tasks = [refractor.refract_all(idea["title"], idea.get("domain")) for idea in ideas]
-    results = await asyncio.gather(*tasks)
-    
-    # Output paradigm choices
-    with open("paradigm_choices.json", "w") as f:
-        json.dump(
-            [{"idea": idea["title"], "paradigm_options": result} 
-             for idea, result in zip(ideas, results)],
-            f, indent=2
-        )
-    
-    return results
-
-if __name__ == "__main__":
-    asyncio.run(batch_refract("ideas.jsonl"))
+### Step 4: Emit `intent.json` and Compile `protocol.json`
+Write `workspaces/<project-slug>/intent.json` adhering to the `IntentPacket` specification:
+```json
+{
+  "protocol_id": "proto-20260901-<project-slug>",
+  "genesis_timestamp": "2026-09-01T00:00:00+00:00",
+  "project_slug": "<project-slug>",
+  "playbook_type": "DESIGN_SCIENCE",
+  "title": "<Project Title>",
+  "lead_researcher": "<Researcher Name>",
+  "unit_of_analysis": "<Unit of Analysis>",
+  "epistemological_rationale": "<Rationale>",
+  "research_questions": [
+    {
+      "text": "<RQ1 Text>",
+      "target_facet": "evaluation_metrics",
+      "required_evidence_type": "Quantitative Benchmark"
+    }
+  ],
+  "core_concepts": [
+    {
+      "concept": "<Concept 1>",
+      "synonyms": ["<synonym 1>", "<synonym 2>"]
+    }
+  ],
+  "inclusion_criteria": [
+    {
+      "criterion": "<Inclusion criterion text>",
+      "maps_to_rqs": ["RQ1"]
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "criterion": "<Exclusion criterion text>",
+      "reason_category": "OUT_OF_SCOPE",
+      "maps_to_rqs": ["RQ1"]
+    }
+  ],
+  "matrix_dimensions": [
+    {
+      "id": "sample_size",
+      "name": "Sample Size",
+      "description": "Number of samples / evaluation benchmarks"
+    }
+  ]
+}
 ```
 
----
+Then compile and render the canonical artifacts:
+```bash
+# Compile canonical protocol with SHA-256 fingerprinting
+uv run scholar-protocol compile \
+  -i workspaces/<project-slug>/intent.json \
+  -o workspaces/<project-slug>/protocol.json \
+  --fingerprint
 
-## Agent Integration Guidelines & Best Practices
-
-- **Paradigm Caching**: The 4 paradigm templates are cached in `.cache/paradigms/` (TTL: 30 days) to avoid regeneration. Delete cache if you update `paradigm_refraction_guide.md`.
-
-- **Handoff to Workspace-Manager**: Always use `workspace-manager` to scaffold projects after paradigm selection:
-  ```bash
-  uv run python .agents/skills/workspace-manager/scripts/init_project.py \
-    --title "<User Title>" --paradigm "<Selected Paradigm>" --rq "<RQ1>" --rq "<RQ2>"
-  ```
-
-- **Batch vs. Single**: Use single-idea mode for interactive refinement; use batch mode for bulk idea screening or portfolio assessment.
-
-- **Error Recovery**: If SOCRATIC_INTERVIEW fails, retry with `--verbose` to debug interview flow.
+# Render human-readable screening criteria
+uv run scholar-protocol render-criteria \
+  workspaces/<project-slug>/protocol.json \
+  -o workspaces/<project-slug>/SCREENING_CRITERIA.md
+```
 
 ---
 
 ## Detailed References
 
-- [Paradigm Refraction Guide](references/paradigm_refraction_guide.md): Deep-dive into Positivist, Interpretivist, Pragmatist, and Design Science stances and vocabulary rules. Includes performance optimization for bulk refraction.
-- [Socratic Interview Framework](references/socratic_interview_framework.md): Questioning strategies, protocol generation steps, and conversation state machine.
-- [Criteria Generator Specification](references/criteria_generator_spec.md): Standard formatting for `criteria.md`. Supports both human-written and LLM-generated criteria with validation rules.
-- [Performance & Caching Strategy](references/performance_caching.md): Batch processing, async paradigm refraction, cache management, and optimization tuning.
+- [Paradigm Refraction Guide](references/paradigm_refraction_guide.md): Deep-dive into Positivist, Interpretivist, Pragmatist, and Design Science stances and vocabulary rules.
+- [Socratic Interview Framework](references/socratic_interview_framework.md): Questioning strategies and protocol generation steps.
+- [Intent Generator Specification](references/intent_generator_spec.md): Standard schema formatting for `intent.json`.
+- [Criteria Generator Specification](references/criteria_generator_spec.md): Structure and rendering conventions for `SCREENING_CRITERIA.md`.

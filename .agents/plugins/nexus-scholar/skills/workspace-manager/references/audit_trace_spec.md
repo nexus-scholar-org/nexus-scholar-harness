@@ -39,7 +39,7 @@ Each line in `journal.jsonl` is a valid JSON object adhering to this schema:
     "providers": ["openalex", "semanticscholar", "crossref", "arxiv"]
   },
   "inputs": [
-    "workspaces/avarel-fuse-multispectral/SCREENING_CRITERIA.md"
+    "workspaces/avarel-fuse-multispectral/literature/criteria.md"
   ],
   "outputs": [
     "workspaces/avarel-fuse-multispectral/literature/raw_search.json",
@@ -59,11 +59,11 @@ Each line in `journal.jsonl` is a valid JSON object adhering to this schema:
 
 ## 3. Standard Action Enums
 
-- `PROJECT_INITIALIZED`: Project workspace created with `project.json` and `SCREENING_CRITERIA.md`.
+- `PROJECT_INITIALIZED`: Project workspace created with `project.json` and `criteria.md`.
 - `DISCOVERY_SEARCH`: Raw queries executed across academic providers.
 - `DEDUPLICATION`: Merging title/DOI clusters into canonical representatives.
 - `VERIFICATION_HYDRATION`: Crossref/OpenAlex DOI resolution and abstract hydration.
-- `SCREENING_TITLE_ABSTRACT`: AI/manual screening against `SCREENING_CRITERIA.md`.
+- `SCREENING_TITLE_ABSTRACT`: AI/manual screening against `criteria.md`.
 - `PDF_DISCOVERY_DOWNLOAD`: Fetching Open Access PDFs with magic byte validation.
 - `FULLTEXT_EXTRACTION`: Parsing PDFs into Markdown via Docling / Grobid.
 - `RAG_INDEXING`: Chunking and vector indexing into ChromaDB.
@@ -94,7 +94,7 @@ Each line in `journal.jsonl` is a valid JSON object adhering to this schema:
 | :--- | :--- | :--- | :--- |
 | `project.json` | Project manifest and global research questions | 2026-08-28 | Active |
 | `audit/journal.jsonl` | Append-only provenance event journal | 2026-08-28 | Synced |
-| `SCREENING_CRITERIA.md` | PRISMA Inclusion / Exclusion screening rules | 2026-08-28 | Ready |
+| `literature/criteria.md` | PRISMA Inclusion / Exclusion screening rules | 2026-08-28 | Ready |
 | `literature/verified.json` | Hydrated & verified bibliographic records | 2026-08-28 | 239 verified |
 | `exports/verified_summary.csv` | Clean tabular bibliography export | 2026-08-28 | Ready |
 ```

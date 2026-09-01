@@ -31,7 +31,7 @@ def refresh_index_md(project_dir: Path) -> Path:
         ("project.json", "Project manifest, metadata, and research questions", "Active"),
         ("INDEX.md", "Master project directory and status catalog", "Synced"),
         ("audit/journal.jsonl", "Append-only provenance event ledger", "Active"),
-        ("SCREENING_CRITERIA.md", "Rendered PRISMA Inclusion / Exclusion screening rules", "Configured"),
+        ("literature/criteria.md", "PRISMA Inclusion / Exclusion screening rules", "Configured"),
         ("literature/raw_search.json", "Raw federated literature search hits", "Discovered"),
         ("literature/deduped.json", "Deduplicated unique candidate papers", "Deduplicated"),
         ("literature/verified.json", "Hydrated bibliographic records with DOIs & abstracts", "Verified"),

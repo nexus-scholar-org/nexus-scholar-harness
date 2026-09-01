@@ -18,7 +18,8 @@ def init_project(
     slug: str | None = None,
     description: str = "",
     research_questions: list[str] | None = None,
-    keywords: list[str] | None = None
+    keywords: list[str] | None = None,
+    paradigm: str = ""
 ) -> Path:
     project_slug = slug or slugify(title)
     project_dir = workspace_root / "workspaces" / project_slug
@@ -38,6 +39,7 @@ def init_project(
         "created_at": now,
         "updated_at": now,
         "status": "active",
+        "paradigm": paradigm,
         "research_questions": research_questions or [],
         "keywords": keywords or [],
         "stats": {
@@ -81,6 +83,7 @@ if __name__ == "__main__":
     parser.add_argument("title", help="Human-readable project title")
     parser.add_argument("--slug", "-s", help="Optional custom project directory slug")
     parser.add_argument("--description", "-d", default="", help="Project description")
+    parser.add_argument("--paradigm", "-p", default="", help="Epistemological paradigm (e.g., 'Design Science & Quantitative Benchmark')")
     parser.add_argument("--rq", action="append", help="Research question (can be repeated)")
     parser.add_argument("--keyword", "-k", action="append", help="Project keyword (can be repeated)")
     parser.add_argument("--root", default=".", help="Root repository directory (default: current directory)")
@@ -91,6 +94,7 @@ if __name__ == "__main__":
         title=args.title,
         slug=args.slug,
         description=args.description,
+        paradigm=args.paradigm,
         research_questions=args.rq,
         keywords=args.keyword
     )

@@ -10,8 +10,8 @@ You are an expert PhD advisor and methodological architect. When a researcher pr
 ## Core Capabilities
 1. **Epistemological Refraction**: Refracts unformed ideas across 4 academic paradigms: *Positivist (Quantitative)*, *Interpretivist (Qualitative)*, *Pragmatist (Mixed Methods)*, and *Design Science (Engineering)*.
 2. **Socratic Interviewing**: Probes research goals, units of analysis, validation standards, and boundary criteria.
-3. **Protocol & Criteria Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, and the `intent.json` packet.
-4. **Project Scaffolding**: Interacts with `workspace-manager` and `scholar-protocol` to initialize `workspaces/<project-slug>/` with compiled protocols and screening criteria.
+3. **Intent Packet Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, concept clusters, and the `intent.json` packet.
+4. **Deterministic Protocol Inception**: Interacts with `workspace-manager` and `scholar-protocol` to initialize `workspaces/<project-slug>/`, compile canonical `protocol.json`, and render `SCREENING_CRITERIA.md`.
 
 ---
 
@@ -31,21 +31,83 @@ Present the 4 paradigm refractions side-by-side:
 ```
 
 ### Step 2: Socratic Alignment
-Ask the researcher:
-- Which paradigm aligns best with your target contribution and audience?
-- What is your primary unit of analysis?
-- What are your temporal, linguistic, or domain boundaries?
+Engage the researcher to align on:
+- **Target Paradigm**: Which epistemological stance aligns best with the intended contribution?
+- **Unit of Analysis**: What is the core artifact, population, or process being evaluated?
+- **Boundary Conditions**: What are the temporal, linguistic, domain, or dataset constraints?
+- **Research Questions & Facets**: What specific empirical facets must each RQ address?
 
 ### Step 3: Scaffold Project Workspace
-Once the user confirms the paradigm and questions, initialize the project using `workspace-manager`:
+Once the user confirms the paradigm and questions, scaffold the project workspace:
 ```bash
-uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project Title>" --slug <project-slug> --description "<Abstract>" --rq "<RQ1>" --rq "<RQ2>" --keyword "<k1>" --keyword "<k2>"
+uv run python .agents/skills/workspace-manager/scripts/init_project.py \
+  --title "<Project Title>" \
+  --slug "<project-slug>" \
+  --paradigm "<Selected Paradigm>" \
+  --rq "RQ1: <Question 1>" \
+  --rq "RQ2: <Question 2>"
 ```
-Write `workspaces/<project-slug>/intent.json` with explicit Inclusion and Exclusion criteria.
-Then compile and render the protocol:
+
+### Step 4: Emit `intent.json` and Compile `protocol.json`
+Write `workspaces/<project-slug>/intent.json` adhering to the `IntentPacket` specification:
+```json
+{
+  "protocol_id": "proto-20260901-<project-slug>",
+  "genesis_timestamp": "2026-09-01T00:00:00+00:00",
+  "project_slug": "<project-slug>",
+  "playbook_type": "DESIGN_SCIENCE",
+  "title": "<Project Title>",
+  "lead_researcher": "<Researcher Name>",
+  "unit_of_analysis": "<Unit of Analysis>",
+  "epistemological_rationale": "<Rationale>",
+  "research_questions": [
+    {
+      "text": "<RQ1 Text>",
+      "target_facet": "evaluation_metrics",
+      "required_evidence_type": "Quantitative Benchmark"
+    }
+  ],
+  "core_concepts": [
+    {
+      "concept": "<Concept 1>",
+      "synonyms": ["<synonym 1>", "<synonym 2>"]
+    }
+  ],
+  "inclusion_criteria": [
+    {
+      "criterion": "<Inclusion criterion text>",
+      "maps_to_rqs": ["RQ1"]
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "criterion": "<Exclusion criterion text>",
+      "reason_category": "OUT_OF_SCOPE",
+      "maps_to_rqs": ["RQ1"]
+    }
+  ],
+  "matrix_dimensions": [
+    {
+      "id": "sample_size",
+      "name": "Sample Size",
+      "description": "Number of samples / evaluation benchmarks"
+    }
+  ]
+}
+```
+
+Then compile and render the canonical artifacts:
 ```bash
-scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
-scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+# Compile canonical protocol with SHA-256 fingerprinting
+uv run scholar-protocol compile \
+  -i workspaces/<project-slug>/intent.json \
+  -o workspaces/<project-slug>/protocol.json \
+  --fingerprint
+
+# Render human-readable screening criteria
+uv run scholar-protocol render-criteria \
+  workspaces/<project-slug>/protocol.json \
+  -o workspaces/<project-slug>/SCREENING_CRITERIA.md
 ```
 
 ---
@@ -54,4 +116,5 @@ scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > works
 
 - [Paradigm Refraction Guide](references/paradigm_refraction_guide.md): Deep-dive into Positivist, Interpretivist, Pragmatist, and Design Science stances and vocabulary rules.
 - [Socratic Interview Framework](references/socratic_interview_framework.md): Questioning strategies and protocol generation steps.
-- [Intent Generator Specification](references/intent_generator_spec.md): Standard formatting for `intent.json`.
+- [Intent Generator Specification](references/intent_generator_spec.md): Standard schema formatting for `intent.json`.
+- [Criteria Generator Specification](references/criteria_generator_spec.md): Structure and rendering conventions for `SCREENING_CRITERIA.md`.
