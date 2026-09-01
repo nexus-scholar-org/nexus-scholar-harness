@@ -24,7 +24,7 @@ workspaces/<project-slug>/
 ├── INDEX.md                # Master human-readable index and status catalog
 ├── project.json            # Project manifest (title, RQs, keywords, stats)
 ├── audit/                  # Append-only journal.jsonl & verification audit logs
-│   └── journal.jsonl       # Immutable event ledger of all executed actions
+│   └── SCREENING_CRITERIA.md # Rendered PRISMA Inclusion / Exclusion rulesdger of all executed actions
 ├── literature/             # Search results (raw_search.json, deduped.json, verified.json)
 ├── pdfs/                   # Downloaded PDFs & download_summary.json
 ├── extracted/              # Markdown (Docling) or TEI XML (Grobid)

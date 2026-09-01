@@ -16,6 +16,22 @@ scholar-protocol canon <path>
     Print canonical JSON bytes to stdout.  Useful for diffing generator output
     against golden fixtures.
     Exit 0 = success.  Exit 2 = read/parse failure.
+
+scholar-protocol compile <intent_path>
+    Compile an intent packet into a canonical protocol.json, printed to stdout.
+    Exit 0 = success.  Exit 2 = read/parse failure.
+
+scholar-protocol render-criteria <path>
+    Render a valid protocol.json into a Markdown SCREENING_CRITERIA.md document.
+    Outputs to stdout. Exit 0 = success. Exit 2 = read/parse failure.
+
+scholar-protocol extraction-schema <path>
+    Generate the JSON Schema for matrix dimension row extraction.
+    Outputs to stdout. Exit 0 = success. Exit 2 = read/parse failure.
+
+scholar-protocol extraction-prompt <path>
+    Generate the Markdown prompt instructions for matrix dimension extraction.
+    Outputs to stdout. Exit 0 = success. Exit 2 = read/parse failure.
 """
 
 from __future__ import annotations
@@ -32,6 +48,10 @@ from rich.text import Text
 from scholar_protocol.canonical import canonical_fingerprint, canonical_json
 from scholar_protocol.models import ResearchProtocol
 from scholar_protocol.validate import validate_protocol
+from scholar_protocol.compiler import compile_from_file
+from scholar_protocol.render import render_screening_criteria
+from scholar_protocol.extraction import build_extraction_model, generate_extraction_prompt
+import json
 
 app = typer.Typer(
     name="scholar-protocol",
@@ -138,6 +158,83 @@ def canon(
     protocol = _load_protocol(path)
     # Write bytes directly to stdout buffer; no trailing newline per spec.
     sys.stdout.buffer.write(canonical_json(protocol))
+
+
+@app.command()
+def compile(
+    path: pathlib.Path = typer.Argument(..., help="Path to intent.json packet"),
+) -> None:
+    """Compile an intent packet into a canonical protocol.json.
+
+    The compiled protocol.json is printed directly to stdout as canonical bytes.
+    """
+    if not path.exists():
+        console.print(f"[bold red]Error:[/] File not found: {path}")
+        raise typer.Exit(2)
+
+    try:
+        protocol = compile_from_file(path)
+    except Exception as exc:
+        console.print(f"[bold red]Error:[/] Cannot compile {path}: {exc}")
+        raise typer.Exit(2) from exc
+
+    # Write bytes directly to stdout buffer; no trailing newline per spec.
+    sys.stdout.buffer.write(canonical_json(protocol))
+
+
+@app.command()
+def render_criteria(
+    path: pathlib.Path = typer.Argument(..., help="Path to protocol.json"),
+) -> None:
+    """Render a protocol.json into a human-readable SCREENING_CRITERIA.md document.
+
+    The Markdown document is printed to stdout.
+    """
+    if not path.exists():
+        console.print(f"[bold red]Error:[/] File not found: {path}")
+        raise typer.Exit(2)
+
+    protocol = _load_protocol(path)
+    md = render_screening_criteria(protocol)
+    print(md)
+
+
+@app.command()
+def extraction_schema(
+    path: pathlib.Path = typer.Argument(..., help="Path to protocol.json"),
+) -> None:
+    """Generate the JSON Schema for matrix dimension row extraction.
+
+    Outputs the raw JSON Schema to stdout.
+    """
+    if not path.exists():
+        console.print(f"[bold red]Error:[/] File not found: {path}")
+        raise typer.Exit(2)
+
+    protocol = _load_protocol(path)
+    model = build_extraction_model(protocol)
+    # output the JSON schema
+    schema = model.model_json_schema()
+    # Pydantic schema doesn't guarantee stable field ordering in all versions,
+    # but we just dump it as json.
+    print(json.dumps(schema, indent=2))
+
+
+@app.command()
+def extraction_prompt(
+    path: pathlib.Path = typer.Argument(..., help="Path to protocol.json"),
+) -> None:
+    """Generate the Markdown prompt instructions for matrix dimension extraction.
+
+    Outputs the markdown prompt to stdout.
+    """
+    if not path.exists():
+        console.print(f"[bold red]Error:[/] File not found: {path}")
+        raise typer.Exit(2)
+
+    protocol = _load_protocol(path)
+    prompt = generate_extraction_prompt(protocol)
+    print(prompt)
 
 
 if __name__ == "__main__":

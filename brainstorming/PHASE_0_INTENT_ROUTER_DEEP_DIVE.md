@@ -105,7 +105,7 @@ To ensure complete downstream automation for `scholar-search-kit` and `scholar-p
 
 ```json
 {
-  "$schema": "https://nexus-scholar.org/schemas/v1/protocol.json",
+  "$schema": "schemas/v1/protocol.schema.json",
   "protocol_id": "proto-20260830-ai-dev-productivity",
   "version": "1.0.0",
   "created_at": "2026-08-30T22:45:00Z",

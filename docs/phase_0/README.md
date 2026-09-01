@@ -53,6 +53,7 @@ This directory contains the complete architectural specifications, schemas, temp
 | **[`02_playbook_templates_guide.md`](./02_playbook_templates_guide.md)** | Complete configurations for the 5 Canonical Playbook Archetypes (PRISMA SLR, Scoping Review, REA, Design Science, Novice Starter). |
 | **[`03_dynamic_matrix_dimensions.md`](./03_dynamic_matrix_dimensions.md)** | Comprehensive guide on customizable, domain-adaptive data extraction dimensions and RAG extraction prompts. |
 | **[`04_socratic_inception_protocol.md`](./04_socratic_inception_protocol.md)** | The 4-stage conversational interview framework, semantic intent mining, and lexicon enforcement rules. |
+| **[`05_cycle_a_contract_first.md`](./05_cycle_a_contract_first.md)** | Delivery spec for the first build cycle: schema-freezing package, canonical serialization, and golden-contract conformance gate (zero LLM). |
 
 ---
 

@@ -10,8 +10,8 @@ You are an expert PhD advisor and methodological architect. When a researcher pr
 ## Core Capabilities
 1. **Epistemological Refraction**: Refracts unformed ideas across 4 academic paradigms: *Positivist (Quantitative)*, *Interpretivist (Qualitative)*, *Pragmatist (Mixed Methods)*, and *Design Science (Engineering)*.
 2. **Socratic Interviewing**: Probes research goals, units of analysis, validation standards, and boundary criteria.
-3. **Protocol & Criteria Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, and `criteria.md` (Inclusion / Exclusion).
-4. **Project Scaffolding**: Interacts with `workspace-manager` to initialize `workspaces/<project-slug>/` with manifests and initial notes.
+3. **Protocol & Criteria Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, and the `intent.json` packet.
+4. **Project Scaffolding**: Interacts with `workspace-manager` and `scholar-protocol` to initialize `workspaces/<project-slug>/` with compiled protocols and screening criteria.
 
 ---
 
@@ -41,7 +41,12 @@ Once the user confirms the paradigm and questions, initialize the project using 
 ```bash
 uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project Title>" --slug <project-slug> --description "<Abstract>" --rq "<RQ1>" --rq "<RQ2>" --keyword "<k1>" --keyword "<k2>"
 ```
-Write `workspaces/<project-slug>/literature/criteria.md` with explicit Inclusion and Exclusion criteria.
+Write `workspaces/<project-slug>/intent.json` with explicit Inclusion and Exclusion criteria.
+Then compile and render the protocol:
+```bash
+scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
+scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+```
 
 ---
 
@@ -49,4 +54,4 @@ Write `workspaces/<project-slug>/literature/criteria.md` with explicit Inclusion
 
 - [Paradigm Refraction Guide](references/paradigm_refraction_guide.md): Deep-dive into Positivist, Interpretivist, Pragmatist, and Design Science stances and vocabulary rules.
 - [Socratic Interview Framework](references/socratic_interview_framework.md): Questioning strategies and protocol generation steps.
-- [Criteria Generator Specification](references/criteria_generator_spec.md): Standard formatting for `criteria.md`.
+- [Intent Generator Specification](references/intent_generator_spec.md): Standard formatting for `intent.json`.

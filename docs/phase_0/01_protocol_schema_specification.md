@@ -168,7 +168,7 @@ class ResearchProtocol(BaseModel):
 
 ```json
 {
-  "$schema": "https://nexus-scholar.org/schemas/v1/protocol.json",
+  "$schema": "schemas/v1/protocol.schema.json",
   "protocol_id": "proto-20260901-llm-code-bench",
   "created_at": "2026-09-01T01:30:00Z",
   "project_slug": "llm-code-benchmarks",

@@ -11,7 +11,7 @@
 flowchart TD
     subgraph Inception [1. Socratic Inception & Scaffolding]
         A["Vague Research Idea / Draft"] --> B["methodology-copilot\n(Socratic Interview & Paradigm Refraction)"]
-        B --> C["Generate RQs, PRISMA criteria.md & Scaffold Project Workspace"]
+        B --> C["Generate intent.json, compile protocol.json & Scaffold Workspace"]
     end
 
     subgraph Discovery [2. Federated Discovery & Verification]
@@ -22,7 +22,7 @@ flowchart TD
 
     subgraph Screening [3. LLM Batch Screening]
         F --> G["Batch Partitioning (batch_01 .. batch_N)"]
-        G --> H["LLM Semantic Reasoning against criteria.md & RQs"]
+        G --> H["LLM Semantic Reasoning against SCREENING_CRITERIA.md & RQs"]
         H --> I["included.json, excluded.json, CSV & PRISMA Report"]
     end
 
@@ -49,7 +49,7 @@ The harness provides four agent-native skills located in `.agents/skills/` (and 
 - **Key Modules**:
   - `paradigm_refraction_guide.md`: Mapping research problems to appropriate methodological designs.
   - `socratic_interview_framework.md`: 4-phase elicitation protocol (Core Tension, Target Artifact, Baseline Contrast, Empirical Protocol).
-  - `criteria_generator_spec.md`: Generates structured `criteria.md` with explicit RQ mappings.
+  - `intent_generator_spec.md`: Generates structured `intent.json` for deterministic protocol compilation.
 
 ### 2. `scholar-search-kit`
 - **Purpose**: High-throughput federated search, citation snowballing, deduplication, and verification across 4 academic APIs.
@@ -124,6 +124,7 @@ The installer reads `.agents/plugins/nexus-scholar/plugins.json` and:
 
 After installation, all console scripts are available via `uv run`:
 ```bash
+uv run scholar-protocol --help
 uv run scholar-search --help
 uv run scholar-pdf --help
 uv run scholar-bib --help
@@ -149,12 +150,12 @@ uv run python .agents/skills/workspace-manager/scripts/init_project.py \
 This generates:
 ```text
 workspaces/my-research-project/
-├── project.json              # Project manifest and research questions
+├── intent.json               # Socratic LLM protocol generation intent
+├── protocol.json             # Canonical deterministic research protocol
+├── SCREENING_CRITERIA.md     # Rendered PRISMA inclusion/exclusion criteria
 ├── INDEX.md                  # Master project index catalog
 ├── audit/
 │   └── journal.jsonl         # Append-only provenance event ledger
-├── literature/
-│   └── criteria.md           # PRISMA inclusion/exclusion criteria
 ├── exports/                  # CSV and JSON tabular exports
 ├── pdfs/                     # Harvested Open Access PDFs
 ├── extracted/                # Full-text structured Markdown extracts
@@ -200,7 +201,7 @@ uv run scholar-search verify \
 ---
 
 ### Step 4: Semantic LLM Screening
-Screen verified candidates against `criteria.md` and research questions using LLM batch evaluation, outputting:
+Screen verified candidates against `SCREENING_CRITERIA.md` and research questions using LLM batch evaluation, outputting:
 - `literature/included.json` (Eligible papers with assigned RQs and reasoning)
 - `literature/excluded.json` (Excluded papers with logged rejection reasons)
 - `literature/prisma_screening_report.md` (PRISMA 2020 flow breakdown)
@@ -250,7 +251,7 @@ Every action executed in this harness is recorded to `workspaces/<project>/audit
   "agent_or_tool": "methodology-copilot",
   "description": "Generated comprehensive literature review synthesis across 4 RQs and curated BibTeX library.",
   "parameters": {},
-  "inputs": ["literature/included.json", "extracted/*.md", "literature/criteria.md"],
+  "inputs": ["literature/included.json", "extracted/*.md", "SCREENING_CRITERIA.md"],
   "outputs": ["synthesis/literature_review.md", "synthesis/references.bib"],
   "metrics": {
     "included_studies_synthesized": 129,

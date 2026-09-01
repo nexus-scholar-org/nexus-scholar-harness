@@ -20,10 +20,11 @@ sequenceDiagram
     A->>R: Questions on unit of analysis, scope & metrics
     R->>A: Clarifications & boundaries
     Note over A: Phase 3: Protocol & Criteria Synthesis
-    A->>R: Formulates RQs, search terms & criteria.md
+    A->>R: Formulates RQs, search terms & intent.json
     R->>A: Approves protocol
     Note over A: Phase 4: Project Scaffolding
-    A->>W: Calls init_project script & writes criteria.md
+    A->>W: Calls init_project script & writes intent.json
+    A->>W: Compiles protocol.json & renders SCREENING_CRITERIA.md
 ```
 
 ---
@@ -48,11 +49,16 @@ Once the researcher selects a paradigm, probe on 3 core dimensions:
 Generate a clean research bundle comprising:
 - **Research Questions**: 2 to 4 structured, numbered questions (`RQ1`, `RQ2`, `RQ3`).
 - **Target Keywords & Boolean Queries**: Formatted for `scholar-search-kit`.
-- **Inclusion & Exclusion Criteria (`criteria.md`)**: Formatted for systematic screening.
+- **Inclusion & Exclusion Criteria**: Formatted as an `IntentPacket` schema in `intent.json`.
 
 ### Phase 4: Automated Scaffolding
 Invoke the `init_project.py` script from `workspace-manager`:
 ```bash
 uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project Title>" --slug <project-slug> --description "<Abstract>" --rq "<RQ1>" --rq "<RQ2>" --keyword "<k1>" --keyword "<k2>"
 ```
-And write `criteria.md` directly into `workspaces/<project-slug>/literature/criteria.md`.
+Write `intent.json` directly into `workspaces/<project-slug>/intent.json`.
+Then compile the deterministic protocol and render criteria:
+```bash
+scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
+scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+```
