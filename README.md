@@ -42,37 +42,30 @@ flowchart TD
 
 ## 🧠 Specialized Skills & Capabilities
 
-The harness provides four agent-native skills located in `.agents/skills/` (and `.agents/plugins/nexus-scholar/`):
+The harness provides six agent-native skills located in `.agents/skills/` (and `.agents/plugins/nexus-scholar/`):
 
-### 1. `methodology-copilot`
-- **Purpose**: Socratic advisor that guides researchers through epistemological paradigm selection (Positivist, Constructivist, Critical Realist, Design Science), question refinement, and PRISMA criteria generation.
-- **Key Modules**:
-  - `paradigm_refraction_guide.md`: Mapping research problems to appropriate methodological designs.
-  - `socratic_interview_framework.md`: 4-phase elicitation protocol (Core Tension, Target Artifact, Baseline Contrast, Empirical Protocol).
-  - `intent_generator_spec.md`: Generates structured `intent.json` for deterministic protocol compilation.
+### 1. `methodology-copilot` / `scholar-protocol-kit`
+- **Purpose**: Socratic advisor and deterministic protocol compiler. Guides researchers through epistemological paradigm selection (Positivist, Constructivist, Critical Realist, Design Science), research question formulation, PRISMA criteria generation, and compiles `intent.json` into canonical `protocol.json` with SHA-256 fingerprinting.
+- **Key CLI**: `uv run scholar-protocol compile -i intent.json -o protocol.json --fingerprint`
 
 ### 2. `scholar-search-kit`
-- **Purpose**: High-throughput federated search, citation snowballing, deduplication, and verification across 4 academic APIs.
-- **Capabilities**:
-  - Multi-source query clustering across OpenAlex, Semantic Scholar, Crossref, and arXiv.
-  - Title normalization & DOI cluster deduplication.
-  - Crossref JATS XML markup tag stripping (`<scp>`, `<i>`, `<b>`) and multiline whitespace normalization.
-  - arXiv DataCite DOI fallback resolution via OpenAlex.
+- **Purpose**: High-throughput federated search, citation snowballing, deduplication, and PRISMA 2020 screening across OpenAlex, Semantic Scholar, Crossref, and arXiv.
+- **Key CLI**: `uv run scholar-search query`, `uv run scholar-search dedup`, `uv run scholar-search verify`, `uv run scholar-search screen`
 
 ### 3. `scholar-pdf-kit`
-- **Purpose**: Automated Open Access full-text discovery, concurrent downloading, and structured section Markdown extraction.
-- **Capabilities**:
-  - Multi-source OA resolution (OpenAlex primary & alternate locations, Unpaywall, bioRxiv/medRxiv CSHL, arXiv direct links).
-  - Automatic `%PDF-` magic byte inspection (pruning HTML login/paywall redirect traps).
-  - Smart filename formatting: `{year}_{author}_{title}.pdf`.
-  - `PyMuPDFEngine` / `DoclingEngine`: Converts PDFs into clean, heading-structured GitHub Markdown with tables and equations preserved.
+- **Purpose**: Automated Open Access full-text discovery, concurrent downloading, and structured section Markdown extraction with YAML frontmatter.
+- **Key CLI**: `uv run scholar-pdf download`, `uv run scholar-pdf extract --engine pymupdf`
 
-### 4. `workspace-manager`
-- **Purpose**: Standardized research workspace initialization, data routing, and append-only provenance auditing.
-- **Capabilities**:
-  - Scaffolds canonical project structures under `workspaces/<project_slug>/`.
-  - Append-only event journaling in `audit/journal.jsonl` tracking timestamps, actions, agents, inputs, outputs, and metrics.
-  - Automatic `INDEX.md` catalog synchronization after every workflow event.
+### 4. `scholar-rag-kit`
+- **Purpose**: Structural AST sectional chunking, local ChromaDB vector indexing, dynamic protocol extraction matrix generation, and grounded synthesis with claim entailment verification.
+- **Key CLI**: `uv run scholar-rag index`, `uv run scholar-rag query`, `uv run scholar-rag matrix --protocol protocol.json`, `uv run scholar-rag synthesize`
+
+### 5. `scholar-graph-kit`
+- **Purpose**: Constructs citation and co-citation knowledge networks from OpenAlex, computes normalized PageRank centrality metrics, and generates interactive PyVis HTML visualizations.
+- **Key CLI**: `uv run scholar-graph build --input included.json --output graph.html --json-output graph.json`, `uv run scholar-graph pagerank graph.json`
+
+### 6. `workspace-manager`
+- **Purpose**: Standardized research workspace initialization, data routing, and append-only provenance auditing (`audit/journal.jsonl`).
 
 ---
 

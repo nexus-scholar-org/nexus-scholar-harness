@@ -23,4 +23,11 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = [
+    "tools/scholar-protocol-kit/src",
+    "tools/scholar-search-kit/src",
+    "tools/scholar-pdf-kit/src",
+    "tools/scholar-rag-kit/src",
+    "tools/scholar-graph-kit/src",
+]
 addopts = "-q"

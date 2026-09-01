@@ -48,11 +48,17 @@ uv run scholar-rag synthesize "<research question>" \
   --output workspaces/<project-slug>/synthesis/literature_review.md
 ```
 
-### 4. Generate Methodology Comparison Matrix
+### 4. Generate Dynamic Protocol Extraction Matrix
 ```bash
+# Extract dynamic dimensions from protocol.json
 uv run scholar-rag matrix \
-  --output-md workspaces/<project-slug>/synthesis/matrix.md \
-  --output-json workspaces/<project-slug>/synthesis/matrix.json
+  --protocol workspaces/<project-slug>/protocol.json \
+  --output-dir workspaces/<project-slug>/literature/
+
+# Or generate standard 7-dimension methodology matrix
+uv run scholar-rag matrix \
+  --output-md workspaces/<project-slug>/literature/matrix.md \
+  --output-json workspaces/<project-slug>/literature/matrix.json
 ```
 
 ---
