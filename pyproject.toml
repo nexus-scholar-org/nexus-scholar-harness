@@ -21,13 +21,19 @@ dev = [
     "ruff>=0.4.0",
 ]
 
+[project.scripts]
+scholar-harness = "scholar_harness.cli:app"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [
+    "src",
     "tools/scholar-protocol-kit/src",
     "tools/scholar-search-kit/src",
     "tools/scholar-pdf-kit/src",
+    "tools/scholar-bib-kit/src",
     "tools/scholar-rag-kit/src",
     "tools/scholar-graph-kit/src",
+    "tools/scholar-agent-kit/src",
 ]
 addopts = "-q"
