@@ -1,0 +1,68 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+\usepackage{nexus_theme}
+
+\title{Building a Reproducible Scholarly Search Toolkit}
+\subtitle{Episode 3: Persistent Identifiers (\texttt{ExternalIds})}
+\author{Nexus Scholar Suite}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{The Identifier Zoo}
+  \begin{alertblock}{The Problem of Identity}
+    A single paper may arrive with wildly differing identifier representations across databases.
+  \end{alertblock}
+  \vspace{0.4cm}
+  \begin{center}
+  \resizebox{0.8\linewidth}{!}{
+  \begin{tikzpicture}[node distance=0.4cm and 1.8cm]
+    \node[card] (doi1) {\texttt{https://doi.org/10.1000/182}};
+    \node[card, below=of doi1] (doi2) {\texttt{http://dx.doi.org/10.1000/182}};
+    \node[card, below=of doi2] (doi3) {\texttt{doi: 10.1000/182}};
+    \node[card, below=of doi3] (doi4) {\texttt{HTTPS://DOI.ORG/10.1000/182}};
+
+    \node[successcard, right=of doi2, minimum height=2.2cm] (norm) {\textbf{Normalized Canonical DOI}\\\texttt{10.1000/182}};
+
+    \draw[flowarrow] (doi1.east) -- (norm.west);
+    \draw[flowarrow] (doi2.east) -- (norm.west);
+    \draw[flowarrow] (doi3.east) -- (norm.west);
+    \draw[flowarrow] (doi4.east) -- (norm.west);
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{The \texttt{ExternalIds} Contract}
+\begin{lstlisting}[style=nexuspython]
+@dataclass
+class ExternalIds:
+    doi: str | None = None
+    arxiv_id: str | None = None
+    pubmed_id: str | None = None
+    openalex_id: str | None = None
+    s2_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.doi:
+            val = self.doi.strip().lower()
+            for p in ("https://doi.org/", "http://doi.org/", "doi:"):
+                if val.startswith(p): val = val[len(p):]
+            self.doi = val.strip() or None
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Invariants \& Guarantees}
+  \begin{itemize}
+    \item \textbf{Case-Insensitive}: Lowercases all DOI strings deterministically.
+    \item \textbf{Prefix Stripping}: URL schemes and URN prefixes are stripped.
+    \item \textbf{Whitespace Cleansing}: Blank strings become \texttt{None}.
+    \item \textbf{No Cross-Contamination}: Separate fields for DOI, arXiv, PubMed, OpenAlex, and S2 Corpus IDs.
+  \end{itemize}
+\end{frame}
+
+\end{document}

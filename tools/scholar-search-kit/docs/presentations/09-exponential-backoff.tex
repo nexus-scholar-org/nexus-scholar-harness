@@ -1,0 +1,56 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+\usepackage{nexus_theme}
+
+\title{Building a Reproducible Scholarly Search Toolkit}
+\subtitle{Episode 9: Exponential Backoff \& SQLite Caching}
+\author{Nexus Scholar Suite}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{\texttt{AcademicHttpClient} Architecture}
+  \begin{center}
+  \resizebox{0.9\linewidth}{!}{
+  \begin{tikzpicture}[node distance=0.8cm and 1.2cm]
+    \node[primarycard] (req) {\textbf{Client Request}};
+    
+    \node[card, right=of req] (limiter) {\textbf{Token Bucket}\\Polite Rate Check};
+    \node[successcard, right=of limiter] (cache) {\textbf{SQLite Cache}\\Hit? Return in $<$1ms};
+    \node[accentcard, right=of cache] (net) {\textbf{urllib3 Retry}\\429, 5xx Backoff (2s, 4s, 8s)\\30s Timeout};
+
+    \draw[flowarrow] (req) -- (limiter);
+    \draw[flowarrow] (limiter) -- (cache);
+    \draw[accentarrow] (cache) -- node[above, font=\scriptsize\bfseries] {Miss} (net);
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{HTTP Client Implementation}
+\begin{lstlisting}[style=nexuspython]
+class AcademicHttpClient:
+    DEFAULT_TIMEOUT: float = 30.0
+
+    def __init__(self, name: str, rate_limit: float, cache_enabled: bool = True):
+        self.name = name
+        self.rate_limiter = RateLimiter(rate_limit)
+        
+        # 1. SQLite Caching Session
+        if cache_enabled:
+            self.session = requests_cache.CachedSession(
+                backend='sqlite', expire_after=timedelta(days=30)
+            )
+        
+        # 2. Exponential Retry Strategy
+        retry = Retry(total=4, backoff_factor=2.0, 
+                      status_forcelist=[429, 500, 502, 503, 504])
+        self.session.mount("https://", HTTPAdapter(max_retries=retry))
+\end{lstlisting}
+\end{frame}
+
+\end{document}

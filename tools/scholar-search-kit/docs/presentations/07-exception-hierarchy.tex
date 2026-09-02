@@ -1,0 +1,58 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{metropolis}
+\usepackage{nexus_theme}
+
+\title{Building a Reproducible Scholarly Search Toolkit}
+\subtitle{Episode 7: Typed Exception Hierarchy}
+\author{Nexus Scholar Suite}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{The Exception Hierarchy}
+  \begin{center}
+  \resizebox{0.85\linewidth}{!}{
+  \begin{tikzpicture}[node distance=0.8cm and 1.5cm]
+    \node[primarycard] (base) {\textbf{ScholarSearchError}\\(Base Exception)};
+    
+    \node[card, below left=1.2cm and -0.8cm of base] (prov) {\textbf{ProviderError}\\\texttt{provider: str}\\\texttt{status\_code: int}};
+    \node[card, below=1.2cm of base] (query) {\textbf{InvalidQueryError}\\Lexing \& Syntax Failures};
+    \node[card, below right=1.2cm and -0.8cm of base] (verif) {\textbf{VerificationError}\\Validation \& Hydration};
+
+    \node[alertcard, below=0.8cm of prov] (rate) {\textbf{RateLimitExceededError}\\HTTP 429};
+
+    \draw[flowarrow] (base) -- (prov);
+    \draw[flowarrow] (base) -- (query);
+    \draw[flowarrow] (base) -- (verif);
+    \draw[flowarrow] (prov) -- (rate);
+  \end{tikzpicture}
+  }
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Exception Implementation}
+\begin{lstlisting}[style=nexuspython]
+class ScholarSearchError(Exception):
+    """Base exception for all scholar-search errors."""
+    pass
+
+class ProviderError(ScholarSearchError):
+    """Raised when an external academic provider returns an error."""
+    def __init__(self, provider: str, message: str, status_code: int | None = None):
+        self.provider = provider
+        self.status_code = status_code
+        super().__init__(f"[{provider}] {message}" + 
+                         (f" (HTTP {status_code})" if status_code else ""))
+
+class RateLimitExceededError(ProviderError):
+    """Raised when an API rate limit is exceeded (HTTP 429)."""
+    def __init__(self, provider: str, message: str = "Rate limit exceeded"):
+        super().__init__(provider=provider, message=message, status_code=429)
+\end{lstlisting}
+\end{frame}
+
+\end{document}

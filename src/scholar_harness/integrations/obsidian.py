@@ -36,7 +36,19 @@ class ObsidianVaultExporter:
             doi = p.get("doi", "")
             abstract = p.get("abstract", "No abstract available.")
 
-            authors_str = ", ".join(authors) if isinstance(authors, list) else str(authors)
+            if isinstance(authors, list):
+                author_names = []
+                for a in authors:
+                    if isinstance(a, dict):
+                        fn = a.get("family_name", "")
+                        gn = a.get("given_name", "")
+                        name = f"{gn} {fn}".strip() if gn else fn
+                        author_names.append(name or "Unknown")
+                    else:
+                        author_names.append(str(a))
+                authors_str = ", ".join(author_names)
+            else:
+                authors_str = str(authors)
 
             note_content = (
                 f"---\n"

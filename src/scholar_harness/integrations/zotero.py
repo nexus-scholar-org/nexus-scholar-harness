@@ -42,11 +42,18 @@ class ZoteroBridge:
             creators = []
             if isinstance(authors, list):
                 for a in authors:
-                    parts = a.split(" ", 1)
-                    if len(parts) == 2:
-                        creators.append({"creatorType": "author", "firstName": parts[0], "lastName": parts[1]})
+                    if isinstance(a, dict):
+                        creators.append({
+                            "creatorType": "author",
+                            "firstName": a.get("given_name", ""),
+                            "lastName": a.get("family_name", ""),
+                        })
                     else:
-                        creators.append({"creatorType": "author", "name": a})
+                        parts = str(a).split(" ", 1)
+                        if len(parts) == 2:
+                            creators.append({"creatorType": "author", "firstName": parts[0], "lastName": parts[1]})
+                        else:
+                            creators.append({"creatorType": "author", "name": str(a)})
 
             first_author = (creators[0].get("lastName") or "author").lower() if creators else "author"
             cite_key = f"{first_author}{year}{title[:10].replace(' ', '').lower()}"

@@ -14,7 +14,10 @@ from scholar_search.protocol_adapter import compile_protocol_search
 from scholar_search.engine import SearchEngine
 from scholar_search.dedup import Deduplicator
 from scholar_search.verifier import DocumentVerifier
-from scholar_search.screening import evaluate_heuristic_screening, partition_screening_results
+from scholar_search.screening import (
+    evaluate_heuristic_screening,
+    partition_screening_results,
+)
 from scholar_pdf.downloader import AsyncPDFDownloader
 from scholar_pdf.extract import PyMuPDFEngine
 from scholar_rag.indexer import ScholarIndexer
@@ -187,6 +190,11 @@ class ResearchOrchestrator:
         discovered_docs = await engine.search_all(query, dedup=False)
         await engine.close()
 
+        # Save both combined raw and first-provider raw for reference
+        (lit_dir / "all_raw_search.json").write_text(
+            json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in discovered_docs], indent=2, default=str),
+            encoding="utf-8"
+        )
         (lit_dir / "raw_search.json").write_text(
             json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in discovered_docs], indent=2, default=str),
             encoding="utf-8"
@@ -195,22 +203,41 @@ class ResearchOrchestrator:
 
         # -------------------------------------------------------------
         # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
+        # Bug fix: Dedup now runs on ALL discovered_docs combined (not a subset).
+        # workspace_ids (SCI-XXXXXX) are assigned by the Deduplicator here.
         # -------------------------------------------------------------
         deduplicator = Deduplicator()
         clusters = deduplicator.deduplicate(discovered_docs)
         unique_docs = [c.representative for c in clusters]
+        dupes_removed = len(discovered_docs) - len(unique_docs)
 
         (lit_dir / "deduped.json").write_text(
             json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in unique_docs], indent=2, default=str),
             encoding="utf-8"
         )
-        results["stages"]["deduplication"] = len(unique_docs)
+        results["stages"]["deduplication"] = {"unique": len(unique_docs), "duplicates_removed": dupes_removed}
 
         # -------------------------------------------------------------
         # Stage 3: Verification & Abstract Hydration
+        # Bug fix: After verification, copy workspace_ids back from deduped docs
+        # because verify_document() may return a freshly normalized Document that
+        # loses the workspace_id set by the Deduplicator.
         # -------------------------------------------------------------
         verifier = DocumentVerifier()
         verified_docs, audit = await verifier.process_batch(unique_docs, verify=True, enrich=True)
+
+        # Restore workspace_ids on verified docs using DOI as bridge
+        wsid_by_doi: dict[str, str] = {
+            d.external_ids.doi: d.workspace_id
+            for d in unique_docs
+            if d.external_ids.doi and d.workspace_id
+        }
+        for vd in verified_docs:
+            if not vd.workspace_id and vd.external_ids.doi:
+                vd.workspace_id = wsid_by_doi.get(vd.external_ids.doi)
+            if not vd.workspace_id:
+                # Last resort: assign a temporary sequential ID
+                vd.workspace_id = f"SCI-{verified_docs.index(vd)+1:06d}"
 
         (lit_dir / "verified.json").write_text(
             json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in verified_docs], indent=2, default=str),
@@ -219,22 +246,38 @@ class ResearchOrchestrator:
         results["stages"]["verification"] = len(verified_docs)
 
         # -------------------------------------------------------------
-        # Stage 4: Systematic PRISMA 2020 Screening
+        # Stage 4: Systematic PRISMA 2020 Screening — Agent-in-the-loop
+        #
+        # The harness itself IS the LLM. No external API required.
+        # The pipeline prepares batch files (20 papers each) in literature/screening/.
+        # The harness agent reads each batch and writes a decisions file.
+        # Run `agent_screen.py collect <workspace>` after agent finishes.
         # -------------------------------------------------------------
-        protocol_data = json.loads(p_path.read_text(encoding="utf-8"))
-        decisions = [evaluate_heuristic_screening(d, protocol_data) for d in verified_docs]
-        inc_docs, exc_docs, conflicts, report = partition_screening_results(verified_docs, decisions)
+        from scholar_harness.agent_screen import cmd_prepare as _prepare_batches
 
-        (lit_dir / "included.json").write_text(
-            json.dumps(inc_docs, indent=2, default=str),
-            encoding="utf-8"
+        protocol_data = json.loads(p_path.read_text(encoding="utf-8"))
+        _prepare_batches(self.workspace_dir, batch_size=20, force=True)
+
+        screening_dir = lit_dir / "screening"
+        total_batches = len([f for f in screening_dir.glob("batch_*.json") if "_decisions" not in f.name])
+
+        (lit_dir / "prisma_screening_report.md").write_text(
+            f"# PRISMA Screening \u2014 IN PROGRESS\n\n"
+            f"{total_batches} batch files prepared in `literature/screening/`.\n\n"
+            f"**Next step**: Ask the agent to screen the batches, then run:\n"
+            f"```\npython src/scholar_harness/agent_screen.py collect {self.workspace_dir}\n```\n",
+            encoding="utf-8",
         )
-        (lit_dir / "excluded.json").write_text(
-            json.dumps(exc_docs, indent=2, default=str),
-            encoding="utf-8"
-        )
-        (lit_dir / "prisma_screening_report.md").write_text(report.to_markdown() if hasattr(report, "to_markdown") else str(report), encoding="utf-8")
-        results["stages"]["screening"] = {"included": len(inc_docs), "excluded": len(exc_docs)}
+        results["stages"]["screening"] = {
+            "status": "PENDING_AGENT_REVIEW",
+            "batch_files_prepared": total_batches,
+            "papers_to_screen": len(verified_docs),
+        }
+        # inc_docs is empty until the agent screens and collect is run
+        inc_docs: list[dict] = []
+        exc_docs: list[dict] = []
+        conflicts: list[dict] = []
+
 
         # -------------------------------------------------------------
         # Stage 5: Open Access PDF Harvesting & Markdown Extraction
