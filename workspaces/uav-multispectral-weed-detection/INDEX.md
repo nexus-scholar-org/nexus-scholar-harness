@@ -65,7 +65,7 @@ workspaces/uav-multispectral-weed-detection/
 │   ├── rq2_supplemental_register.md  # edge benchmarks (Jetson Nano/Xavier, TensorRT INT8, FPS frontier)
 │   ├── rq3_supplemental_register.md  # +3 RQ3 domain-shift sources (1 ingested, 2 catalogued)
 │   ├── prisma_screening_report.md
-│   ├── references.bib               # 25-entry BibTeX (keys = stem, UTF-8 verified)
+│   ├── references.bib               # 30-entry BibTeX (25 empirical + 5 supplemental, UTF-8 verified)
 │   ├── synthesis_matrix.csv/.json/.md # 25-study × 8-dim protocol matrix (80.0% filled, accuracy_vs_rgb complete)
 │   ├── data_quality_report.md       # task-type classification, gaps, attribution checks
 │   └── knowledge_graph.html/.json   # citation network + PageRank (25 nodes / 9 edges, 100% corpus parity)

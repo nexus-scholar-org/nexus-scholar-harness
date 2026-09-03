@@ -31,6 +31,7 @@ RQ3, three domain-generalization / cross-domain papers were identified and added
 ## 2. Catalogued as Supplementary (closed access — full text not obtainable)
 
 ### Zuo et al. (2026) — Cross-Date Generalization (temporal domain shift)
+- **BibTeX Key:** `@zuo-2026-cross-date` (in `literature/references.bib`)
 - **Title:** Improving Cross-Date Generalization in Multispectral Crop-Weed Segmentation via Shallow Feature-Statistics Mixing
 - **DOI:** `10.1007/978-981-92-3531-5_10` (Springer, closed)
 - **Authors:** Bingxin Zuo, Qinghao Shao, Jing Bi
@@ -39,6 +40,7 @@ RQ3, three domain-generalization / cross-domain papers were identified and added
 - **Status:** catalogued for citation/synthesis; full text N/A (subscription).
 
 ### Weyler et al. (2023) — Domain Generalization in Crop-Weed Segmentation
+- **BibTeX Key:** `@weyler-2023-domain-generalization` (in `literature/references.bib`)
 - **Title:** Towards Domain Generalization in Crop and Weed Segmentation for Precision Farming Robots
 - **DOI:** `10.1109/lra.2023.3262417` (IEEE Robotics and Automation Letters, closed)
 - **Authors:** Jan Weyler, Thomas Läbe, Federico Magistri, Jens Behley, Cyrill Stachniss

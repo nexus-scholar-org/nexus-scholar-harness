@@ -11,7 +11,7 @@ downstream writing, submission, or external review.
 
 | File | Source (canonical path) | Description |
 |---|---|---|
-| `references.bib` | `literature/references.bib` | 25-entry BibTeX database (keys = lowercased stems; UTF-8 author names verified) |
+| `references.bib` | `literature/references.bib` | 30-entry BibTeX database (25 empirical corpus + 5 catalogued supplemental registers; UTF-8 verified) |
 | `synthesis_matrix.csv` | `literature/synthesis_matrix.csv` | Cross-study matrix of 8 protocol dimensions across all 25 papers (80.0% populated with verified values) |
 | `literature_review.md` | `synthesis/literature_review.md` | Grounded RQ1–RQ3 narrative with 16/16 verified atomic citation tokens |
 | `evidence_matrix.md` | `synthesis/evidence_matrix.md` | Manually-verified per-paper headline metrics (mIoU/params/FPS) |

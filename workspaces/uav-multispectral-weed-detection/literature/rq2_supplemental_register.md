@@ -20,6 +20,7 @@ To establish the performance-efficiency Pareto frontier for RQ2, this supplement
 ## 2. Catalogued Edge Deployment Benchmarks
 
 ### A. Assunção et al. (2022) — TensorRT Optimization on NVIDIA Jetson Nano
+- **BibTeX Key:** `@assuncao-2022-rs14174217` (in `literature/references.bib`)
 - **Title:** Real-Time Weed Control Application Using a Jetson Nano Edge Device and a Spray Mechanism
 - **DOI:** `10.3390/rs14174217` (*Remote Sensing*, MDPI)
 - **Authors:** E. Assunção, P. Gaspar, R. Mesquita, R. Simões, K. Alibabaei, A. Veiros, A. Proença
@@ -34,6 +35,7 @@ To establish the performance-efficiency Pareto frontier for RQ2, this supplement
     - Reduced resolution ($513 \times 513$ with output stride 32): Reached **0.04 s latency (25.0 FPS)**, crossing into real-time operational territory.
 
 ### B. Wang et al. (2026) — TensorRT-INT8 YOLO-EMA on NVIDIA Jetson Xavier NX
+- **BibTeX Key:** `@wang-2026-atech101924` (in `literature/references.bib`)
 - **Title:** YOLO-EMA: Efficient mamba attention enhanced YOLOv10 for real-time detection and segmentation of winter wheat weeds on edge AI platforms
 - **DOI:** `10.1016/j.atech.2026.101924` (*Smart Agricultural Technology*, Elsevier)
 - **Authors:** H. Wang, Z. Zhao, X. Li, J. Yan, Y. Cao, X. Liu
@@ -46,6 +48,7 @@ To establish the performance-efficiency Pareto frontier for RQ2, this supplement
   - Evaluated the impact of flight altitude (10m–30m), dynamic shadows, wind-induced canopy motion blur, and weed density on edge inference stability.
 
 ### C. Le et al. (2019) — FPGA Hardware Acceleration
+- **BibTeX Key:** `@le-2019-access2911709` (in `literature/references.bib`)
 - **Title:** Low-Power and High-Speed Deep FPGA Inference Engines for Weed Classification at the Edge
 - **DOI:** `10.1109/access.2019.2911709` (*IEEE Access*)
 - **Edge Target:** Xilinx Zynq UltraScale+ MPSoC FPGA
