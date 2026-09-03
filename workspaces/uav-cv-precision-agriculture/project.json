@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project_id": "uav-cv-precision-agriculture",
+  "title": "UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review",
+  "description": "Systematic literature review and empirical benchmark evaluation for UAV deep learning segmentation and edge inference in precision agriculture",
+  "created_at": "2026-09-03T21:06:04.266000+00:00",
+  "updated_at": "2026-09-03T21:26:39.787014+00:00",
+  "status": "active",
+  "paradigm": "Positivist (Empirical Benchmark Synthesis)",
+  "research_questions": [
+    "RQ1: What is the comparative segmentation performance (mIoU, F1-score) of CNNs, Transformers, and Hybrid architectures on agricultural UAV crop-weed imagery, specifically in paired intra-study benchmarks?",
+    "RQ2: How do edge hardware constraints (thermal design power, compute capacity in TOPS) and execution configurations (quantization precision, input resolution) impact real-time inference throughput (FPS, latency) for UAV segmentation models?"
+  ],
+  "keywords": [
+    "UAV",
+    "precision agriculture",
+    "deep learning",
+    "semantic segmentation",
+    "crop-weed",
+    "edge inference",
+    "Jetson",
+    "mIoU",
+    "FPS"
+  ],
+  "stats": {
+    "discovered_papers": 0,
+    "verified_papers": 0,
+    "downloaded_pdfs": 0,
+    "extracted_markdowns": 0
+  }
+}
