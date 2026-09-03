@@ -77,6 +77,10 @@ workspaces/uav-multispectral-weed-detection/
 │   ├── literature_review.md  # Grounded RQ1-RQ3 narrative w/ atomic citation tokens
 │   ├── evidence_matrix.md   # Curated per-paper mIoU/params/FPS (RQ2 insights)
 │   └── evidence_matrix_raw.json # raw regex extraction (unreliable, flagged)
+├── writing/                 # Publication drafts and technical specifications
+│   ├── manuscript_draft.md  # Comprehensive publication draft (PRISMA methods + results)
+│   ├── ssfnet_architecture.md # SSFNet technical specification & mathematical formulation
+│   └── appendix.md          # PRISMA flow, empirical tables, parameter justification
 └── exports/                 # Exported deliverables (EXPORTS.md manifest)
 ```
 
@@ -115,6 +119,11 @@ workspaces/uav-multispectral-weed-detection/
 | 2026-09-03T04:49:00+00:00 | CITATION_GRAPH_ENRICHED (25 nodes / 9 edges, 100% corpus parity) | scholar-graph-kit + agent | SUCCESS |
 | 2026-09-03T04:52:00+00:00 | MATRIX_RGB_POPULATED (accuracy_vs_rgb filled across 25 studies, 80.0% total fill) | agent | SUCCESS |
 | 2026-09-03T04:53:00+00:00 | RQ2_SUPPLEMENTAL_REGISTER_BUILT (targeted edge benchmarks: Jetson Nano/Xavier, TensorRT INT8) | scholar-search-kit + agent | SUCCESS |
+| 2026-09-03T05:04:00+00:00 | EXPORTS_EVIDENCE_FIXED (restored exports/evidence_matrix.md to mirror canonical synthesis) | agent | SUCCESS |
+| 2026-09-03T05:08:00+00:00 | RAG_EMBEDDER_BUG_FIXED (resolved mock vs sentence-transformers conflict in stats/matrix) | scholar-rag-kit + agent | SUCCESS |
+| 2026-09-03T05:09:00+00:00 | BIB_SUPPLEMENTAL_REGISTERED (added 5 outside-corpus benchmarks to references.bib, 30 total) | scholar-bib-kit + agent | SUCCESS |
+| 2026-09-03T05:13:00+00:00 | MANUSCRIPT_DRAFTED (publication-grade draft with PRISMA methods, results, SSFNet spec) | agent | SUCCESS |
+| 2026-09-03T05:10:00+00:00 | APPENDIX_CREATED (PRISMA flow, empirical evidence table w/ vector tokens, parameter justifications) | agent | SUCCESS |
 
 ---
 
@@ -127,4 +136,4 @@ workspaces/uav-multispectral-weed-detection/
 
 ---
 
-*Last updated: 2026-09-02T21:00:00+00:00*
+*Last updated: 2026-09-03T05:14:00+00:00*
