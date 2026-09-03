@@ -74,4 +74,3 @@ Positivist empirical benchmark synthesis. Evaluates comparative pixel-wise segme
 - [x] Conflict of Interest & Funding audit required
 - [x] Reproducibility (Data/Code Availability) check required
 - Minimum Trust Score: 6.0
-

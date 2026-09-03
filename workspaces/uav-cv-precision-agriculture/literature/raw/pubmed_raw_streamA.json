@@ -1,0 +1,3072 @@
+[
+  {
+    "title": "CamelinaWeed: an expert-agronomist-annotated UAV RGB and multispectral dataset for weed and crop monitoring in",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42662386",
+    "external_ids": {
+      "doi": "10.5281/zenodo.20148697",
+      "arxiv_id": null,
+      "pubmed_id": "42662386",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This dataset provides UAV-based RGB and multispectral imagery for crop monitoring, weed mapping, and field-level analysis in",
+    "authors": [
+      {
+        "family_name": "Rallis",
+        "given_name": "Ioannis N",
+        "orcid": null
+      },
+      {
+        "family_name": "Kempapidis",
+        "given_name": "Kyriakos",
+        "orcid": null
+      },
+      {
+        "family_name": "Raptis",
+        "given_name": "Panagiotis",
+        "orcid": null
+      },
+      {
+        "family_name": "Raptis",
+        "given_name": "Emmanuel K",
+        "orcid": null
+      },
+      {
+        "family_name": "Kapoutsis",
+        "given_name": "Athanasios Ch",
+        "orcid": null
+      }
+    ],
+    "venue": "Data in brief",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42662386/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42662386"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.339028+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42588761",
+    "external_ids": {
+      "doi": "10.3390/diagnostics15020118",
+      "arxiv_id": null,
+      "pubmed_id": "42588761",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Weed segmentation in soybean fields is essential to improving herbicide use efficiency and supporting precision variable-rate spraying. This study developed an SiLU-CPCA-Gate U-Net (SCG-UNet) using fused UAV RGB and multispectral imagery to improve the delineation of small and partially occluded weeds under complex canopy conditions. SCG-UNet integrates channel-spatial feature enhancement, attention-guided skip-feature fusion, and smooth nonlinear activation within a U-Net framework. A total of 400 spatially aligned RGB-multispectral image groups collected from a soybean field in Henan Province, China, were manually annotated for model development and evaluation. Paired bootstrap comparisons showed that RGB+NIR achieved the highest numerical performance among the tested inputs and significantly outperformed RGB, RGB+R, and RGB+G in mIoU after Holm correction, while remaining statistically comparable to RGB+REdge and RGB+NIR+REdge. With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%, exceeding the baseline U-Net by 0.71, 1.50, 2.19, and 2.09 percentage points, respectively. Five-fold spatial block cross-validation yielded an mIoU of 82.92 \u00b1 0.29% and an F1-score of 80.06 \u00b1 0.40%, indicating stable performance across different regions of the same field. SCG-UNet also achieved the highest numerical mIoU among the evaluated convolutional, high-resolution, and Transformer-based models, exceeding TransUNet and LeViT-UNet by 0.90 and 0.71 percentage points, respectively, while requiring fewer parameters and lower reported memory consumption. The segmentation results were further converted into a conceptual variable-rate spraying prescription map with five spray volume levels ranging from 220 to 300 L/ha. These results demonstrate the potential of RGB-multispectral fusion for soybean weed mapping, although field validation of prescription execution, weed control efficacy, and economic benefits remains necessary.",
+    "authors": [
+      {
+        "family_name": "Li",
+        "given_name": "He",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Qianyi",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Zishang",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhang",
+        "given_name": "Xiuyuan",
+        "orcid": null
+      },
+      {
+        "family_name": "Ding",
+        "given_name": "Qiming",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Lele",
+        "orcid": null
+      }
+    ],
+    "venue": "Plants (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42588761/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42588761"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.339266+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A review: research progress on intelligent technologies for orchard yield monitoring.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42453736",
+    "external_ids": {
+      "doi": "10.3390/agriculture12111785",
+      "arxiv_id": null,
+      "pubmed_id": "42453736",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate yield estimation and crop load monitoring are essential for precision orchard management, supporting targeted fertilization, pruning, thinning, harvest planning, and marketing decisions. However, reliable",
+    "authors": [
+      {
+        "family_name": "Zhao",
+        "given_name": "Shengyi",
+        "orcid": null
+      },
+      {
+        "family_name": "Lin",
+        "given_name": "Han",
+        "orcid": null
+      },
+      {
+        "family_name": "Jiang",
+        "given_name": "Yong",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Jizhan",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42453736/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42453736"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.339405+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A Physics-Informed Dual-Branch LSTM Network for UAV Position and Attitude Estimation.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42451529",
+    "external_ids": {
+      "doi": "10.1177/0278364915620033",
+      "arxiv_id": null,
+      "pubmed_id": "42451529",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "To mitigate error accumulation and long-term drift in unmanned aerial vehicle (UAV) position and attitude estimation using purely inertial measurement unit (IMU) data, this paper presents a dual-branch physics-informed long short-term memory (DPI-LSTM) network incorporating shared temporal encoding, a dual-branch structured regression framework, and physical consistency constraints. The model employs a long short-term memory (LSTM)-based temporal encoder to extract temporal features from IMU time-window sequences. Established inertial kinematic relationships are embedded into the dual-branch LSTM framework as loss constraints, providing physics-based regularisation to guide the network during training. By modelling translational and rotational states separately through the position and attitude branches, the model improves stability and physical interpretability while retaining the advantages of task decoupling. Systematic experiments were conducted on the University of Zurich First-Person View (UZH-FPV) Drone Racing dataset, and comparisons were made with traditional inertial navigation methods and representative deep learning-based inertial odometry approaches. The experimental results indicate that the proposed model demonstrates a measurable reduction in positional root mean square error (RMSE) on the evaluated test sequences, decreasing the RMSE to 0.0654 m, which represents a reduction of more than 20% when compared with inertial odometry network (IONet), convolutional neural network-long short-term memory (CNN-LSTM), and robust neural inertial navigation (RoNIN). Further ablation studies and cross-sequence evaluation indicate that the physical consistency constraints and the dual-branch architecture contribute to improved position estimation stability under the evaluated benchmark sequences. The proposed kinematically constrained framework provides a viable IMU-only position and attitude estimation module, laying the groundwork for future UAV digital twin and precision-agriculture applications where continuous and physically consistent position and attitude information is required.",
+    "authors": [
+      {
+        "family_name": "Liang",
+        "given_name": "Weizheng",
+        "orcid": null
+      },
+      {
+        "family_name": "Meng",
+        "given_name": "Siqi",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhang",
+        "given_name": "Ruicheng",
+        "orcid": null
+      },
+      {
+        "family_name": "Luo",
+        "given_name": "Qianda",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42451529/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42451529"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.339593+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Deblurring-aware semantic segmentation of crops and weeds in UAV sorghum imagery via a UNet-ResNet architecture.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42374096",
+    "external_ids": {
+      "doi": "10.1038/s41598-026-58738-x",
+      "arxiv_id": null,
+      "pubmed_id": "42374096",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Automated monitoring of weed infestation is essential for precision agriculture, where reliable crop-weed discrimination underpins site-specific intervention. This study presents a semantic segmentation framework based on UNet with a ResNet encoder backbone that delineates three semantic categories-background, crop (sorghum), and weed-within a single inference pass. A systematic comparison across four ResNet encoder variants (ResNet-18, ResNet-34, ResNet-50, and ResNet-101) reveals that ResNet-34 achieves the highest mean Dice Score of 0.9198 and that accuracy does not increase with depth-the deeper ResNet-50 and ResNet-101 score slightly lower, consistent with capacity saturation and mild overfitting on the limited training set. To address image quality degradation prevalent in UAV-based agricultural imaging, an explicit deblurring module based on NAFNet is integrated prior to segmentation through a restoration-aware training protocol, improving the mean Dice Score on the motion-blurred test subset by 27.7% in relative terms over the strongest baseline without restoration and yielding the best combined-set accuracy (0.8223 mDS). Comprehensive ablation experiments identify decoder depth (full-resolution progressive upsampling) and encoder-decoder skip connections as the two most critical components, whose removal lowers the mean Dice Score by 5.18 and 3.51 percentage points respectively, whereas ImageNet pre-training and dropout have negligible effect at this dataset scale. A complexity analysis based on parameter count and multiply-accumulate operations (MACs) shows that the segmentation network (24.4 M parameters, 1.97 GMACs) is comparable to standard CNN segmentation baselines, suggesting the plausibility of deployment on resource-constrained UAV platforms; a direct on-device throughput validation on embedded NVIDIA Jetson hardware was not performed and is left for future work.",
+    "authors": [
+      {
+        "family_name": "Li",
+        "given_name": "Qiyue",
+        "orcid": null
+      },
+      {
+        "family_name": "Zou",
+        "given_name": "Shenshen",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42374096/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42374096"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.339774+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Class imbalance aware deep semantic segmentation framework for weed and tobacco crops in UAV imagery.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42325281",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2021.106242",
+      "arxiv_id": null,
+      "pubmed_id": "42325281",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "For accurate pesticide application in precision farming, weeds and tobacco plants must be detected to efficiently apply pesticides to weedy areas. There is potential for automated, precise weed and tobacco detection using unmanned aerial vehicle (UAV)-based imaging. Semantic segmentation is a challenge that can be applied to accurately detect weeds in crop field images. Deep learning-based semantic segmentation techniques promise higher accuracy than prior approaches for pixel-level categorization in classical machine learning. In this study, we introduce a novel approach that enhances the accuracy of pixel-level crop-weed interclass classification. We suggested a DeepLabV3Plus ResNeSt model that was trained using the Lov\u00e1sz cross-entropy combined loss and inverse square root frequency weighted class using the tobacco weed UAV-based dataset, achieving a mean average accuracy (aAcc) of 95.93%, a mean intersection over union (mIoU) of 84.99%, and a mean accuracy (mAcc) score of 90.20%. Due to the limited number of pixels identified as weeds, the aerial images used constitute a limited dataset. Therefore, we adjusted class weights using the inverse square root frequency model, which simplified the segmentation process. We observed that the proposed model achieved the highest mean mIoU, indicating that it can accurately detect weeds and tobacco plants.",
+    "authors": [
+      {
+        "family_name": "Khan",
+        "given_name": "Ahmad Jaffar",
+        "orcid": null
+      },
+      {
+        "family_name": "Abu Bakr",
+        "given_name": "Muhammad",
+        "orcid": null
+      },
+      {
+        "family_name": "Khan",
+        "given_name": "Sultan Daud",
+        "orcid": null
+      },
+      {
+        "family_name": "Ullah",
+        "given_name": "Habib",
+        "orcid": null
+      },
+      {
+        "family_name": "Ullah",
+        "given_name": "Mohib",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in artificial intelligence",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42325281/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42325281"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.339980+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Improved leaf area index estimation in Jujube trees by fusing spatial-temporal features from UAV RGB time-series with a deep learning framework.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42231899",
+    "external_ids": {
+      "doi": "10.3389/fpls.2022.957870",
+      "arxiv_id": null,
+      "pubmed_id": "42231899",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "To achieve high-precision and high-efficiency estimation of the Leaf Area Index (LAI) of jujube trees using drone remote sensing, and to overcome the limitations of traditional vegetation index methods, such as saturation in the later stages of crop growth, sensitivity to background noise, and difficulty in capturing temporal dynamics, this study proposes a parallel hybrid deep learning framework using CNN-GRU. The model adaptively extracts spatial-spectral local features from drone RGB images through a convolutional neural network (CNN) branch, while a gated recurrent unit (GRU) branch learns the sequential evolution of LAI during key phenological periods. Finally, a meta-learner integrates spatial-temporal information for decision-making. To verify the model's effectiveness and prediction performance, the study systematically collected multi-temporal ground-measured LAI data and synchronized drone remote sensing images during critical growth stages of jujube trees in two independent years: 2024 (Bachu, Xinjiang) and 2025 (Alaer, Xinjiang). A series of spectral and texture indices were extracted as model inputs. The experimental results show that the proposed CNN-GRU model exhibits excellent learning and fitting capabilities on the training set, with an",
+    "authors": [
+      {
+        "family_name": "Liu",
+        "given_name": "Yaxing",
+        "orcid": null
+      },
+      {
+        "family_name": "Gao",
+        "given_name": "Yonglin",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Jianting",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Dongdong",
+        "orcid": null
+      },
+      {
+        "family_name": "Zheng",
+        "given_name": "Zhong",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42231899/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42231899"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.340173+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A Multi-Head UNet++ Framework with Fractional Differential Output Refinement for UAV Multispectral Crop Stress Mapping.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42198036",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2025.110587",
+      "arxiv_id": null,
+      "pubmed_id": "42198036",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This study presents a unified semantic segmentation framework for UAV-based multispectral crop stress mapping, focusing on the integration of water stress and rust disease conditions within a common label space. Unlike conventional approaches that address individual stress factors independently, the proposed framework harmonizes heterogeneous datasets with different annotation schemes into a single multi-class segmentation problem. To achieve this, UAV multispectral orthomosaics are processed using a patch-based strategy and a multi-head UNet++ architecture incorporating segmentation, edge-aware, and Signed Distance Transform (SDT) branches. In addition, a physics-informed output-space refinement module based on fractional partial differential equations (FPDE) is introduced to enhance spatial coherence and boundary preservation in the predicted maps. Experimental results demonstrate the effectiveness of the proposed framework within the evaluated dataset setting, particularly in terms of boundary delineation, spatial consistency, and minority-class detection. The study highlights the feasibility of integrating heterogeneous stress conditions into a unified segmentation framework and provides a foundation for future research on scalable multi-source agricultural monitoring systems.",
+    "authors": [
+      {
+        "family_name": "Sui\u00e7mez",
+        "given_name": "\u00c7a\u011fr\u0131",
+        "orcid": null
+      },
+      {
+        "family_name": "Y\u0131lmaz",
+        "given_name": "Cemal",
+        "orcid": null
+      },
+      {
+        "family_name": "Kahraman",
+        "given_name": "Hamdi Tolga",
+        "orcid": null
+      },
+      {
+        "family_name": "S\u00f6nmez",
+        "given_name": "Yusuf",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42198036/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42198036"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.340345+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "MFD-YOLO: an efficient instance segmentation model for precision monitoring of UAV-based lychee orchards.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "42040273",
+    "external_ids": {
+      "doi": "10.1007/978-3-030-00889-5_1",
+      "arxiv_id": null,
+      "pubmed_id": "42040273",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate instance segmentation of lychee canopy regions is fundamental for precision orchard management. UAV-based monitoring faces a critical dilemma: the heavy computation required for complex canopy features conflicts with the limited resources of edge devices. To resolve this accuracy-efficiency trade-off, we propose MFD-YOLO (Multi-scale-Downsampling Decoupling), a model designed for real-time UAV monitoring in orchard environments that addresses the limitations of conventional models, namely single-scale feature representation and insufficient inference efficiency. The main contributions are as follows: (1) Addressing the challenge of indistinct canopy boundaries and complex textures, we design the Multi-scale Feature Extraction (MFE) block. By employing a multi-branch parallel structure during training to capture both global contours and fine-grained leaf details, and re-parameterizing them into a single layer for inference, we enhance feature representation without incurring extra latency. (2) Addressing the issue where fine edge details are lost during standard downsampling, we introduce the Spatial-Channel Decoupled (SD) module. Unlike traditional strided convolutions that compress dimensions simultaneously, SD prioritizes channel information adaptation before spatial reduction, effectively preserving small-object features while reducing redundancy. (3) Evaluated by mAP50, precision, and recall metrics, the MFD-YOLO model performs excellently in lychee canopy segmentation tasks. It simultaneously outputs bounding box coordinates for real-time coarse localization and pixel-level masks for precise canopy delineation in complex orchard scenarios, effectively addressing practical issues in complex orchard field environments while achieving low latency on the server side. The dataset is randomly partitioned into training and validation sets at a ratio of 7:3. This model provides reliable technical support for key links including scientific pesticide application, targeted pruning, and efficient harvesting.",
+    "authors": [
+      {
+        "family_name": "Zhi",
+        "given_name": "Sihua",
+        "orcid": null
+      },
+      {
+        "family_name": "Zheng",
+        "given_name": "Jiaqi",
+        "orcid": null
+      },
+      {
+        "family_name": "Tan",
+        "given_name": "Yangyi",
+        "orcid": null
+      },
+      {
+        "family_name": "Hu",
+        "given_name": "Minjie",
+        "orcid": null
+      },
+      {
+        "family_name": "Feng",
+        "given_name": "Yumeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Wanjia",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Lin",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/42040273/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "42040273"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.340510+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A drone imagery dataset for semantic segmentation of urban garden ground covers in biodiversity studies.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "41951620",
+    "external_ids": {
+      "doi": "10.1109/mgrs.2017.2762307",
+      "arxiv_id": null,
+      "pubmed_id": "41951620",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Urban gardens promote urban biodiversity by providing diverse ground covers that support habitat provision, pollination, pest control, and soil functions. However, lacking high spatial resolution images, their spatial heterogeneity remains poorly mapped, limiting our understanding of how these features support ecosystem services. This study presents a high-resolution dataset derived from unmanned aerial vehicle (UAV) RGB imagery for the semantic segmentation of diverse ground covers in urban community gardens. The dataset consists of 2,521 images processed into 24 orthomosaics, acquired in 2021-2022 at five garden locations in Munich, Germany. Each image (18.9-146.4 M px; 3.2-7.9 mm resolution) is manually annotated into eight ground-cover classes (grass, herb, litter, soil, stone, straw, wood, and woodchip). We evaluated deep-learning segmentation models, including UNet and DeepLabV3+. The DeepLabV3+ (overall accuracy = 93.2% and Intersection over Union = 69.4) achieved high classification accuracy in distinguishing these complex classes. This dataset is intended to support research on urban biodiversity, habitat modelling, garden management, remote sensing research, and can be integrated with other fine-scale datasets to advance sustainable urban green planning.",
+    "authors": [
+      {
+        "family_name": "Afrasiabian",
+        "given_name": "Yasamin",
+        "orcid": null
+      },
+      {
+        "family_name": "Lu",
+        "given_name": "Chenghao",
+        "orcid": null
+      },
+      {
+        "family_name": "Belwalkar",
+        "given_name": "Anirudh",
+        "orcid": null
+      },
+      {
+        "family_name": "Elsharawy",
+        "given_name": "Hany",
+        "orcid": null
+      },
+      {
+        "family_name": "Song",
+        "given_name": "Xiaoxin",
+        "orcid": null
+      },
+      {
+        "family_name": "Yuan",
+        "given_name": "Ying",
+        "orcid": null
+      },
+      {
+        "family_name": "Wu",
+        "given_name": "Fei",
+        "orcid": null
+      },
+      {
+        "family_name": "Su",
+        "given_name": "Xiang",
+        "orcid": null
+      },
+      {
+        "family_name": "Van Cleemput",
+        "given_name": "Elisa",
+        "orcid": null
+      },
+      {
+        "family_name": "Egerer",
+        "given_name": "Monika",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Kang",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific data",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41951620/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41951620"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Biodiversity",
+      "Gardens",
+      "Unmanned Aerial Devices",
+      "Germany",
+      "Cities",
+      "Ecosystem",
+      "Remote Sensing Technology",
+      "Semantics"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.340695+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Design and implementation of a deep learning framework for automated crop classification and health diagnosis in precision agriculture.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "41764261",
+    "external_ids": {
+      "doi": "10.1007/s10586-023-04246-w",
+      "arxiv_id": null,
+      "pubmed_id": "41764261",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This paper presents a three-phase deep learning framework comprising (i) multi-modal data acquisition from drones and satellites, (ii) standardized pre-processing including interpolation for missing temporal data, and (iii) CNN-based feature extraction for real-time health classification. This framework relies on a mathematical model based on neural networks that classifies and detects the condition of agriculture, removing the reliance on manual tasks and subjective diagnosis. This paper focuses on three main aspects of our framework: data acquisition, training and prediction. Data is collected using sensors like drones, cameras, and satellite imagery and is pre-processed to filter out noise and improve quality. The training part uses CNN to learn features from the data and become more meaningful. The prediction part of the task classifies, and diagnoses crop health through the trained model using the features. The framework accuracy for crops such as maize, potato, and wheat has been tested and yielded over 90% accuracy. The novelty of this work resides in the development of a multi-modal deep learning architecture that fuses macro-scale satellite imagery with micro-scale drone and IoT sensor data to improve diagnostic reliability. The framework was validated on a multi-source agricultural dataset using a 70% training, 15% validation, and 15% testing protocol. Experimental results demonstrate an accuracy exceeding 90% for staple crops. Using this framework can increase the visibility and quality of information maintained for crop health and improve the decision-making routine of farmers in real time. Additionally, automation of this process can significantly reduce labor costs and increase productivity per crop. Implementing this framework can contribute to precision agriculture and sustainable management practices.",
+    "authors": [
+      {
+        "family_name": "Pal",
+        "given_name": "Atul Kumar",
+        "orcid": null
+      },
+      {
+        "family_name": "Patro",
+        "given_name": "B D K",
+        "orcid": null
+      },
+      {
+        "family_name": "Chaube",
+        "given_name": "Shshank",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41764261/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41764261"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Deep Learning",
+      "Crops, Agricultural",
+      "Agriculture",
+      "Convolutional Neural Networks",
+      "Humans",
+      "Satellite Imagery",
+      "Classification Algorithms",
+      "Neural Networks, Computer"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.340869+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "BaleUAVision: Hay Bales UAV Captured Dataset.",
+    "year": 2026,
+    "provider": "pubmed",
+    "provider_id": "41611722",
+    "external_ids": {
+      "doi": "10.1038/sdata.2016.18",
+      "arxiv_id": null,
+      "pubmed_id": "41611722",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Efficient hay bale detection and counting are essential tasks within modern precision agriculture, significantly impacting yield estimation, logistics, and sustainable resource management. To address current limitations in dataset quality and environmental representation, we introduce BaleUAVision, a comprehensive dataset consisting of 2,599 high-resolution RGB images, each containing numerous human-annotated hay bales. Captured by Unmanned Aerial Vehicles (UAVs) across 16 diverse agricultural fields in Northern Greece, the dataset includes varying flight altitudes (50-100 meters), diverse speeds (3.7-5 m/s), and overlapping strategies to ensure robust data representation. BaleUAVision provides rich annotations through polygon-based semantic segmentation in multiple formats (COCO, CSV, JSON, YOLO, segmentation masks) and high-quality orthomosaics for precise spatial analysis. Technical validation demonstrated the dataset's effectiveness in training robust hay bale detection models using YOLOv11, achieving high precision and recall under varying geographic and altitude conditions. Specifically, the dataset supported effective generalization across geographically distinct areas (Xanthi and Drama regions) and varying altitudes, highlighting its utility in real-world UAV operations. The dataset and supplementary tools, scripts, and analyses are publicly available on Zenodo and GitHub respectively, following FAIR principles to support wide-reaching applicability within the research community.",
+    "authors": [
+      {
+        "family_name": "Karatzinis",
+        "given_name": "Georgios D",
+        "orcid": null
+      },
+      {
+        "family_name": "Gkelios",
+        "given_name": "Socratis",
+        "orcid": null
+      },
+      {
+        "family_name": "Kapoutsis",
+        "given_name": "Athanasios Ch",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific data",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41611722/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41611722"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341002+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Multiscale CNN-state space model with feature fusion for crop disease detection from UAV imagery.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "41479535",
+    "external_ids": {
+      "doi": "10.3389/fpls.2024.1435016",
+      "arxiv_id": null,
+      "pubmed_id": "41479535",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate detection of crop diseases from unmanned aerial vehicle (UAV) imagery is critical for precision agriculture. This task remains challenging due to the complex backgrounds, variable scales of lesions, and the need to model both fine-grained spot details and long-range spatial dependencies within large field scenes. To address these issues, this paper proposes a novel Multiscale CNNState Space Model with Feature Fusion (MSCNN-VSS). The model is specifically designed to hierarchically extract and integrate multi-level features for UAVbased analysis: a dilated multi-scale Inception module is introduced to capture diverse local lesion patterns across different scales without sacrificing spatial detail; a Visual State Space (VSS) block serves as the core component to efficiently model global contextual relationships across the canopy with linear computational complexity, effectively overcoming the limitations of Transformers on high-resolution UAV images; and a hybrid attention module is subsequently applied to refine the fused features and accentuate subtle diseased regions. Extensive experiments on a UAV-based crop disease dataset demonstrate that MSCNN-VSS achieves state-of-the-art performance, with a Pixel Accuracy (PA) of 0.9421 and a mean Intersection over Union (mIoU) of 0.9152, significantly outperforming existing CNN and Transformer-based benchmarks. This work provides a balanced and effective solution for automated crop disease detection in practical agricultural scenarios.",
+    "authors": [
+      {
+        "family_name": "Zhang",
+        "given_name": "Ting",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Dengwu",
+        "orcid": null
+      },
+      {
+        "family_name": "Chen",
+        "given_name": "Wen",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41479535/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41479535"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341146+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Modeling and simulation of dual-battery FANET system using MADRL for energy optimization.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "41420081",
+    "external_ids": {
+      "doi": "10.1109/tcsii.2022.3181442",
+      "arxiv_id": null,
+      "pubmed_id": "41420081",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Uncrewed Aerial Vehicles (UAVs), or drones, are revolutionizing applications such as surveillance, search and rescue (SAR), precision agriculture, and disaster response. In these applications, Flying Ad-Hoc Networks (FANETs)-dynamic networks of interconnected UAVs-are essential for enabling rapid and adaptive deployments. However, the limited battery life of UAVs remains a critical challenge, particularly in extended missions like SAR, where operational longevity and reliable performance are paramount. This paper addresses two key challenges in FANET-based UAV operations: optimizing energy consumption and ensuring stable communication links. We propose a novel strategy that models energy-efficient UAV behavior by focusing on the three primary drivers of power consumption: flight dynamics, payload operations, and continuous wireless communication, which collectively account for 80-85% of the UAV's energy usage. Leveraging a multi-agent deep reinforcement learning (MADRL) framework that intelligently manages a dedicated dual-battery system: one battery (B1) optimized for flight dynamics and payload operations, and the other (B2) for processor/sensor and continuous wireless communication. The MADRL agents (Proximal Policy Optimization: PPO) are modeled to handle battery B2, which dynamically establishes communication between UAVs regarding energy usage and other environmental conditions during SAR operations, thereby efficiently conserving available energy to extend the battery life of each UAV within the FANET system. Experimental results demonstrate that MADRL enhances network connectivity and significantly reduces energy wastage, enabling sustained operations over longer durations. This research lays the foundation for developing energy-efficient UAV systems, which are crucial for large-scale and autonomous deployments in mission-critical scenarios.",
+    "authors": [
+      {
+        "family_name": "Mary",
+        "given_name": "A Sophia",
+        "orcid": null
+      },
+      {
+        "family_name": "Kumar",
+        "given_name": "T S Pradeep",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41420081/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41420081"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341297+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "AI-driven drone technology and computer vision for early detection of crop disease in large agricultural areas.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "41408386",
+    "external_ids": {
+      "doi": "10.1016/j.adhoc.2022.102982",
+      "arxiv_id": null,
+      "pubmed_id": "41408386",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Timely detection of crop diseases in large, heterogeneous agricultural fields is difficult, as aerial imagery is often corrupted by illumination, weather, and crop-stage variations. This paper introduces AgroVisionNet, an AI-powered drone and computer vision approach that synthesises high-resolution drone imagery with in-field IoT/environmental sensor data to enhance early disease detection. The core of the proposed model is a hybrid CNN-Transformer backbone to extract spatial and contextual data from drone images, and an adaptive fusion layer to fuse time-aligned sensor readings and to make a decision, using visual and environmental evidence. Particularly, a multimodal drone\u2013sensor dataset is collected across multiple crops and field conditions. Beyond widely used deep models for plant/crop disease identification, such as VGG16, ResNet50, Inception V3, and DenseNet121, experiments are conducted using the same training and evaluation framework. It is shown that AgroVisionNet achieves higher classification accuracy and F1-score, while inference remains feasible on an NVIDIA Jetson Nano using TensorFlow Lite. Moreover, by generating Grad-CAM plots, the study demonstrates that the proposed approach identifies disease-affected areas and, in this sense, provides interpretable information required by agronomists. These outcomes suggest that AI-based crop health tracking can be robust and field-ready by integrating drone imagery, sensor fusion, and edge computing.",
+    "authors": [
+      {
+        "family_name": "Manoj",
+        "given_name": "H M",
+        "orcid": null
+      },
+      {
+        "family_name": "Shanthi",
+        "given_name": "D L",
+        "orcid": null
+      },
+      {
+        "family_name": "Lakshmi",
+        "given_name": "B N",
+        "orcid": null
+      },
+      {
+        "family_name": "Archana",
+        "given_name": "K J",
+        "orcid": null
+      },
+      {
+        "family_name": "Venkata Naga Jyothi",
+        "given_name": "Endluri",
+        "orcid": null
+      },
+      {
+        "family_name": "Archana",
+        "given_name": "Kande",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41408386/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41408386"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Crops, Agricultural",
+      "Plant Diseases",
+      "Intelligent Systems",
+      "Agriculture",
+      "Convolutional Neural Networks",
+      "Artificial Intelligence",
+      "Remote Sensing Technology",
+      "Image Processing, Computer-Assisted",
+      "Algorithms"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341518+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A dataset of aligned RGB and multispectral UAV imagery for semantic segmentation of weedy rice.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "41342006",
+    "external_ids": {
+      "doi": "10.1109/iccv51070.2023.00371",
+      "arxiv_id": null,
+      "pubmed_id": "41342006",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This article introduces a curated UAV dataset for detecting and segmenting weedy rice in cultivated fields. It includes 734 high-resolution RGB images along with their geospatially aligned multispectral (MS) counterparts, which feature four spectral bands: Green, Red, Red Edge, and Near-Infrared. The RGB images were annotated with polygon masks created by a fine-tuned Segment Anything model, then reviewed and corrected by experts. All images were resized to 1280 \u00d7 960 pixels and further processed to remove samples with missing or excessively extensive annotations (>90 %). The final dataset reflects various infestation levels, with weedy rice coverage ranging from under 5 % to nearly 90 %, supporting the development of robust models in diverse field conditions. All images were acquired in rice fields across Vietnam's Mekong Delta region during three consecutive cropping seasons using consumer-grade UAVs equipped with both RGB and MS sensors. This dataset provides extensive spectral and spatial information, making it a valuable resource for research in precision agriculture, including multimodal semantic segmentation, vegetation classification, and weed detection. It also facilitates benchmarking and domain adaptation studies to improve model generalization across different modalities.",
+    "authors": [
+      {
+        "family_name": "Nguyen",
+        "given_name": "Van-Hoa",
+        "orcid": null
+      },
+      {
+        "family_name": "Le",
+        "given_name": "Cong-Doan",
+        "orcid": null
+      },
+      {
+        "family_name": "Truong",
+        "given_name": "Minh-Tuyen",
+        "orcid": null
+      },
+      {
+        "family_name": "Bui",
+        "given_name": "Mai-Phung Thi",
+        "orcid": null
+      },
+      {
+        "family_name": "Le",
+        "given_name": "Thanh-Phong",
+        "orcid": null
+      }
+    ],
+    "venue": "Data in brief",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41342006/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41342006"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341654+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Improved Weighted Quantum Whale Optimization with vision transformer for intrusion detection, atmospheric monitoring and recommendation in smart agriculture.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "41254081",
+    "external_ids": {
+      "doi": "10.1109/access.2023.3349287",
+      "arxiv_id": null,
+      "pubmed_id": "41254081",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Precision farming enables farmers to make informed decisions regarding fertilization, irrigation, and harvesting by leveraging IoT-enabled sensors that collect real-time data on moisture, temperature, soil nutrients, and other environmental factors. Wireless Sensor Networks (WSNs) in agriculture face challenges such as high energy consumption, security vulnerabilities, and limited real-time data processing capabilities. To address these issues, this paper proposes an Improved Weighted Quantum Whale Optimization (IWQWO) integrated with a Vision Transformer (ViT) for secure and efficient environmental monitoring and intrusion detection in smart agriculture. The IWQWO algorithm combines quantum-inspired techniques with adaptive weighting to optimize node clustering, routing efficiency, and anomaly detection, enhancing energy efficiency and system security. Concurrently, the Vision Transformer captures spatial-temporal relationships in sensor data, ensuring high-precision monitoring, improved intrusion detection, and reduced false alarms. The framework also facilitates resource management, supply-demand prediction, and integration of modern IoT technologies with traditional agricultural practices, including automated irrigation, drone-assisted monitoring, and plant disease detection. Extensive evaluations demonstrate that the proposed IWQWO-ViT model surpasses existing approaches in detection accuracy, cost-effectiveness, and network reliability, offering a robust solution for intelligent, secure, and sustainable agricultural automation.",
+    "authors": [
+      {
+        "family_name": "Menaka",
+        "given_name": "A",
+        "orcid": null
+      },
+      {
+        "family_name": "Sakthivel",
+        "given_name": "K",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41254081/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41254081"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341780+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Deep Learning-Driven Automatic Segmentation of Weeds and Crops in UAV Imagery.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "41228798",
+    "external_ids": {
+      "doi": "10.1016/j.image.2018.09.007",
+      "arxiv_id": null,
+      "pubmed_id": "41228798",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate segmentation of crops and weeds is essential for enhancing crop yield, optimizing herbicide usage, and mitigating environmental impacts. Traditional weed management practices, such as manual weeding or broad-spectrum herbicide application, are labor-intensive, environmentally harmful, and economically inefficient. In response, this study introduces a novel precision agriculture framework integrating Unmanned Aerial Vehicle (UAV)-based remote sensing with advanced deep learning techniques, combining Super-Resolution Reconstruction (SRR) and semantic segmentation. This study is the first to integrate UAV-based SRR and semantic segmentation for tobacco fields, systematically evaluate recent Transformer and Mamba-based models alongside traditional CNNs, and release an annotated dataset that not only ensures reproducibility but also provides a resource for the research community to develop and benchmark future models. Initially, SRR enhanced the resolution of low-quality UAV imagery, significantly improving detailed feature extraction. Subsequently, to identify the optimal segmentation model for the proposed framework, semantic segmentation models incorporating CNN, Transformer, and Mamba architectures were used to differentiate crops from weeds. Among evaluated SRR methods, RCAN achieved the optimal reconstruction performance, reaching a Peak Signal-to-Noise Ratio (PSNR) of 24.98 dB and a Structural Similarity Index (SSIM) of 69.48%. In semantic segmentation, the ensemble model integrating Transformer (DPT with DINOv2) and Mamba-based architectures achieved the highest mean Intersection over Union (mIoU) of 90.75%, demonstrating superior robustness across diverse field conditions. Additionally, comprehensive experiments quantified the impact of magnification factors, Gaussian blur, and Gaussian noise, identifying an optimal magnification factor of 4\u00d7, proving that the method was robust to common environmental disturbances at optimal parameters. Overall, this research established an efficient, precise framework for crop cultivation management, offering valuable insights for precision agriculture and sustainable farming practices.",
+    "authors": [
+      {
+        "family_name": "Tao",
+        "given_name": "Jianghan",
+        "orcid": null
+      },
+      {
+        "family_name": "Qiao",
+        "given_name": "Qian",
+        "orcid": null
+      },
+      {
+        "family_name": "Song",
+        "given_name": "Jian",
+        "orcid": null
+      },
+      {
+        "family_name": "Sun",
+        "given_name": "Shan",
+        "orcid": null
+      },
+      {
+        "family_name": "Chen",
+        "given_name": "Yijia",
+        "orcid": null
+      },
+      {
+        "family_name": "Wu",
+        "given_name": "Qingyang",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Yongying",
+        "orcid": null
+      },
+      {
+        "family_name": "Xue",
+        "given_name": "Feng",
+        "orcid": null
+      },
+      {
+        "family_name": "Wu",
+        "given_name": "Hao",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhao",
+        "given_name": "Fan",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41228798/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "41228798"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.341968+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A Detection Approach for Wheat Spike Recognition and Counting Based on UAV Images and Improved Faster R-CNN.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40872097",
+    "external_ids": {
+      "doi": "10.1109/ccwc.2018.8301729",
+      "arxiv_id": null,
+      "pubmed_id": "40872097",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This study presents an innovative unmanned aerial vehicle (UAV)-based intelligent detection method utilizing an improved Faster Region-based Convolutional Neural Network (Faster R-CNN) architecture to address the inefficiency and inaccuracy inherent in manual wheat spike counting. We systematically collected a high-resolution image dataset (2000 images, 4096 \u00d7 3072 pixels) covering key growth stages (heading, grain filling, and maturity) of winter wheat (",
+    "authors": [
+      {
+        "family_name": "Wang",
+        "given_name": "Donglin",
+        "orcid": null
+      },
+      {
+        "family_name": "Shi",
+        "given_name": "Longfei",
+        "orcid": null
+      },
+      {
+        "family_name": "Yin",
+        "given_name": "Huiqing",
+        "orcid": null
+      },
+      {
+        "family_name": "Cheng",
+        "given_name": "Yuhan",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Shaobo",
+        "orcid": null
+      },
+      {
+        "family_name": "Wu",
+        "given_name": "Siyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Guangguang",
+        "orcid": null
+      },
+      {
+        "family_name": "Dong",
+        "given_name": "Qinge",
+        "orcid": null
+      },
+      {
+        "family_name": "Ge",
+        "given_name": "Jiankun",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Yanbin",
+        "orcid": null
+      }
+    ],
+    "venue": "Plants (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40872097/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40872097"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.342089+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Detection of weeds in teff crops using deep learning and UAV imagery for precision herbicide application.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40841734",
+    "external_ids": {
+      "doi": "10.1016/j.heliyon.2023.e21388",
+      "arxiv_id": null,
+      "pubmed_id": "40841734",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "In Ethiopia, Teff is a vital staple crop, yet its productivity is significantly challenges due to inefficient weed and fertilizer management, threatening food security. Traditional weed control methods rely on manual labor and the indiscriminate application of herbicides, resulting in inaccurate targeting, inefficient distribution, excessive labor, and reduced yields. Non-selective weed management often leads to herbicide misuse, compounded by the difficulty in distinguishing Teff from visually similar weeds, particularly on large farms. This study introduces an optimized deep learning model for weed detection in Teff fields, enabling selective and efficient herbicide application through unmanned aerial vehicles (UAVs). A dataset of 1308 high-resolution drone-captured images was collected across various growth stages and weather conditions from the University of Gondar Agricultural Research Farm and surrounding farms. Key shape-based features such as aspect ratio (AR) and solidity were utilized to enhance model performance. Further, we applied data augmentations at different ratios of the original dataset and experimented with various optimizers to enhance the model's adaptabliy to different data characteristics and minimize overfitting problems. Deep learning models, such as MobileNetV2, InceptionResNetV2, DenseNet201, VGG16, Resnet50, Fast R-CNN, and YOLOv8, were evaluated with and without fine-tuning. Among the models, fine-tuned MobileNetV2 achieved the highest accuracy (96.40%), demonstrating its potential for practical implementation in UAV-assisted precision agriculture. This work highlights the transformative role of AI-driven solutions in enhancing weed management and improving Teff crop productivity.",
+    "authors": [
+      {
+        "family_name": "Kebede",
+        "given_name": "Alemu Setargew",
+        "orcid": null
+      },
+      {
+        "family_name": "Muluneh",
+        "given_name": "Tsehay Wasihun",
+        "orcid": null
+      },
+      {
+        "family_name": "Adege",
+        "given_name": "Abebe Belay",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40841734/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40841734"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Deep Learning",
+      "Herbicides",
+      "Plant Weeds",
+      "Crops, Agricultural",
+      "Weed Control",
+      "Unmanned Aerial Devices",
+      "Ethiopia",
+      "Agriculture",
+      "Remote Sensing Technology"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.342333+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "An Ultra Lightweight Interpretable Convolution-Vision Transformer Fusion Model for Plant Disease Identification: ConViTX.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40811232",
+    "external_ids": {
+      "doi": "10.1109/tcbbio.2024.3515149",
+      "arxiv_id": null,
+      "pubmed_id": "40811232",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Plant diseases have been detrimental for the agriculture industry, as they cause substantial crop loss globally. To overcome this, IoT and AI-based smart agriculture solutions are being deployed for plant disease detection. However, a diverse range of crops and their diseases pose enormous challenges to these methods. Additionally, limited generalizability and the black-box nature of existing deep learning models, together with the scarcity of in-field datasets, are the main bottlenecks in developing efficient and acceptable solutions for large-scale applications. In the present work, a lightweight model 'ConViTX' is proposed for plant disease classification that demonstrates improved generalizability and explainability. The compact architecture of ConViTX uses a fusion of convolutional neural networks and vision transformers to simultaneously capture local and global features. Remarkably, ConViTX outperforms nine state-of-the-art deep learning methods on four publicly available datasets and a self-collected in-field maize dataset. Furthermore, the model demonstrates explainable prediction through Gradient Weighted Class Activation Maps and Locally Interpretable Model-Agnostic Evaluations. ConViTX attains 98.8% accuracy on the maize dataset and 61.42% on drone camera-captured raw images. With only 0.7 million parameters and 0.647 billion operations per second, the proposed model has the potential for deployment on resource-constrained precision agriculture setups.",
+    "authors": [
+      {
+        "family_name": "Thakur",
+        "given_name": "Poornima Singh",
+        "orcid": null
+      },
+      {
+        "family_name": "Chaturvedi",
+        "given_name": "Shubhangi",
+        "orcid": null
+      },
+      {
+        "family_name": "Seal",
+        "given_name": "Ayan",
+        "orcid": null
+      },
+      {
+        "family_name": "Khanna",
+        "given_name": "Pritee",
+        "orcid": null
+      },
+      {
+        "family_name": "Sheorey",
+        "given_name": "Tanuja",
+        "orcid": null
+      },
+      {
+        "family_name": "Ojha",
+        "given_name": "Aparajita",
+        "orcid": null
+      }
+    ],
+    "venue": "IEEE transactions on computational biology and bioinformatics",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40811232/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40811232"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.342526+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "DASNet a dual branch multi level attention sheep counting network.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40603607",
+    "external_ids": {
+      "doi": "10.1109/tpami.2022.3164083",
+      "arxiv_id": null,
+      "pubmed_id": "40603607",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Grassland sheep counting is essential for both animal husbandry and ecological balance. Accurate population statistics help optimize livestock management and sustain grassland ecosystems. However, traditional counting methods are time-consuming and costly, especially for dense sheep herds. Computer vision offers a cost-effective and labor-efficient alternative, but existing methods still face challenges. Object detection-based counting often leads to overcounts or missed detections, while instance segmentation requires extensive annotation efforts. To better align with the practical task of counting sheep on grasslands, we collected the Sheep1500 UAV Dataset using drones in real-world settings. The varying flight altitudes, diverse scenes, and different density levels captured by the drones endow our dataset with a high degree of diversity. To address the challenge of inaccurate counting caused by background object interference in this dataset, we propose a dual-branch multi-level attention network based on density map regression. DASNet is built on a modified VGG-19 architecture, where a dual-branch structure is employed to integrate both shallow and deep features. A Conv Convolutional Block Attention Layer (CCBL) is incorporated into the network to more effectively focus on sheep regions, alongside a Multi-Level Attention Module (MAM) in the deep feature branch. The MAM, consisting of three Light Channel and Pixel Attention Modules (LCPM), is designed to refine feature representation at both the channel and pixel levels, improving the accuracy of density map generation for sheep counting. In addition, a residual structure connects each module, facilitating feature fusion across different levels and offering increased flexibility in handling diverse information. The LCPM leverages the advantages of attention mechanisms to more effectively extract multi-scale global features of the sheep regions, thereby helping the network to reduce the loss of deep feature information. Experiments conducted on our Sheep1500 UAV Dataset have demonstrated that DASNet significantly outperforms the baseline MAN network, with a Mean Absolute Error (MAE) of 3.95 and a Mean Squared Error (MSE) of 4.87, compared to the baseline's MAE of 5.39 and MSE of 6.50. DASNet is shown to be effective in handling challenging scenarios, such as dense flocks and background noise, due to its dual-branch feature enhancement and global multi-level feature fusion. DASNet has shown promising results in accuracy and computational efficiency, making it an ideal solution for practical sheep counting in precision agriculture.",
+    "authors": [
+      {
+        "family_name": "Chen",
+        "given_name": "Yini",
+        "orcid": null
+      },
+      {
+        "family_name": "Gao",
+        "given_name": "Ronghua",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Qifeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhao",
+        "given_name": "Hongtao",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Rong",
+        "orcid": null
+      },
+      {
+        "family_name": "Ding",
+        "given_name": "Luyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Xuwen",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40603607/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40603607"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Animals",
+      "Sheep",
+      "Animal Husbandry",
+      "Grassland",
+      "Neural Networks, Computer",
+      "Unmanned Aerial Devices",
+      "Deep Learning"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.342733+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Unified estimation of rice canopy leaf area index over multiple periods based on UAV multispectral imagery and deep learning.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40442795",
+    "external_ids": {
+      "doi": "10.1080/1343943x.2023.2299641",
+      "arxiv_id": null,
+      "pubmed_id": "40442795",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Rice is one of the major food crops in the world, and the monitoring of its growth condition is of great significance for guaranteeing food security and promoting sustainable agricultural development. Leaf area index (LAI) is a key indicator for assessing the growth condition and yield potential of rice, and the traditional methods for obtaining LAI have problems such as low efficiency and large error. With the development of remote sensing technology, unmanned aerial multispectral remote sensing combined with deep learning technology provides a new way for efficient and accurate estimation of LAI in rice. In this study, a multispectral camera mounted on a UAV was utilized to acquire rice canopy image data, and rice LAI was uniformly estimated over multiple periods by the multilayer perceptron (MLP) and convolutional neural network (CNN) models in deep learning. The results showed that the CNN model based on five-band reflectance images (490, 550, 670, 720, and 850 nm) as input after feature screening exhibited high estimation accuracy at different growth stages. Compared with the traditional MLP model with multiple vegetation indices as inputs, the CNN model could better process the original multispectral image data, effectively avoiding the problem of vegetation index saturation, and improving the accuracies by 4.89, 5.76, 10.96, 1.84 and 6.01% in the rice tillering, jointing, booting, and heading periods, respectively, and the overall accuracy was improved by 6.01%. Moreover, the model accuracies (MLP and CNN) before and after variable screening showed noticeable changes. Conducting variable screening contributed to a substantial improvement in the accuracy of rice LAI estimation. UAV multispectral remote sensing combined with CNN technology provides an efficient and accurate method for the unified multi-period estimation of rice LAI. Moreover, the generalization ability and adaptability of the model were further improved by rational variable screening and data enhancement techniques. This study can provide a technical support for precision agriculture and a more accurate solution for rice growth monitoring. More feature extraction and variable screening methods can be further explored in future studies by optimizing the model structure to improve the accuracy and stability of the model.",
+    "authors": [
+      {
+        "family_name": "Li",
+        "given_name": "Haixia",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Qian",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Chunlai",
+        "orcid": null
+      },
+      {
+        "family_name": "Luo",
+        "given_name": "Shanjun",
+        "orcid": null
+      }
+    ],
+    "venue": "Plant methods",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40442795/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40442795"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.342935+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Apple Yield Estimation Method Based on CBAM-ECA-Deeplabv3+ Image Segmentation and Multi-Source Feature Fusion.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40431931",
+    "external_ids": {
+      "doi": "10.3390/horticulturae8020109",
+      "arxiv_id": null,
+      "pubmed_id": "40431931",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Apple yield estimation is a critical task in precision agriculture, challenged by complex tree canopy structures, growth stage variability, and orchard heterogeneity. In this study, we apply multi-source feature fusion by combining vegetation indices from UAV remote sensing imagery, structural feature ratios from ground-based fruit tree images, and leaf chlorophyll content (SPAD) to improve apple yield estimation accuracy. The DeepLabv3+ network, optimized with Convolutional Block Attention Module (CBAM) and Efficient Channel Attention (ECA), improved fruit tree image segmentation accuracy. Four structural feature ratios were extracted, visible-light and multispectral vegetation indices were calculated, and feature selection was performed using Pearson's correlation coefficient analysis. Yield estimation models were constructed using k-nearest neighbors (KNN), partial least squares (PLS), random forest (RF), and support vector machine (SVM) algorithms under both single feature sets and combined feature sets (including vegetation indices, structural feature ratios, SPAD, vegetation indices + SPAD, vegetation indices + structural feature ratios, structural feature ratios + SPAD, and the combination of all three). The optimized CBAM-ECA-DeepLabv3+ model achieved a mean Intersection over Union (mIoU) of 0.89, an 8% improvement over the baseline DeepLabv3+, and outperformed U2Net and PSPNet. The SVM model based on multi-source feature fusion achieved the highest apple yield estimation accuracy in small-scale orchard sample plots (R",
+    "authors": [
+      {
+        "family_name": "Cui",
+        "given_name": "Wenhao",
+        "orcid": null
+      },
+      {
+        "family_name": "Lan",
+        "given_name": "Yubin",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Jingqian",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Lei",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhou",
+        "given_name": "Qi",
+        "orcid": null
+      },
+      {
+        "family_name": "Han",
+        "given_name": "Guotao",
+        "orcid": null
+      },
+      {
+        "family_name": "Xiao",
+        "given_name": "Xiao",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhao",
+        "given_name": "Jing",
+        "orcid": null
+      },
+      {
+        "family_name": "Qiao",
+        "given_name": "Yongliang",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40431931/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40431931"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Malus",
+      "Algorithms",
+      "Support Vector Machine",
+      "Fruit",
+      "Image Processing, Computer-Assisted",
+      "Remote Sensing Technology",
+      "Least-Squares Analysis",
+      "Plant Leaves",
+      "Agriculture",
+      "Chlorophyll"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.343092+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "DM_CorrMatch: a semi-supervised semantic segmentation framework for rapeseed flower coverage estimation using UAV imagery.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40281599",
+    "external_ids": {
+      "doi": "10.1186/s13007-023-01017-x",
+      "arxiv_id": null,
+      "pubmed_id": "40281599",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Rapeseed (Brassica napus L.) inflorescence coverage is a crucial phenotypic parameter for assessing crop growth and estimating yield. Accurate crop cover assessment is typically performed using Unmanned Aerial Vehicles (UAVs) in combination with semantic segmentation methods. However, the irregular and variable morphology of rapeseed inflorescences presents significant challenges in segmentation. To address these challenges, advanced methods that can improve segmentation accuracy, particularly under limited data conditions, are needed. In this study, we propose a cost-effective and high-throughput approach using a semi-supervised learning framework, DM_CorrMatch. This method enhances input images through strong and weak data augmentation techniques, while leveraging the Denoising Diffusion Probabilistic Model (DDPM) to generate additional samples in data-scarce scenarios. We propose an automatic update strategy for labeled data to dilute the proportion of erroneous labels in manual segmentation. Furthermore, a novel network architecture, Mamba-Deeplabv3+, is proposed, combining the strengths of Mamba and Convolutional Neural Networks (CNNs) for both global and local feature extraction. This architecture effectively captures key inflorescence features, even under varying poses, while reducing the influence of complex backgrounds. The proposed method is validated on the Rapeseed Flower Segmentation Dataset (RFSD), which consists of 720 UAV images from the Yangluo experimental station of the Oil Crops Research Institute of the Chinese Academy of Agricultural Sciences (CAAS). The experimental results showed that our method outperforms four traditional segmentation methods and eleven deep learning methods, achieving an Intersection over Union (IoU) of 0.886, Precision of 0.942, and Recall of 0.940. The proposed semi-supervised learning-based method, combined with the Mamba-Deeplabv3+ architecture, demonstrates superior performance in accurately segmenting rapeseed inflorescences under challenging conditions. Our approach effectively handles complex backgrounds and various poses of inflorescences, providing a reliable tool for rapeseed flower cover estimation. This method can aid in the development of high-yield cultivars and improve crop monitoring through UAV-based technologies.",
+    "authors": [
+      {
+        "family_name": "Li",
+        "given_name": "Jie",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhu",
+        "given_name": "Chengyong",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Chenbo",
+        "orcid": null
+      },
+      {
+        "family_name": "Zheng",
+        "given_name": "Quan",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Binhui",
+        "orcid": null
+      },
+      {
+        "family_name": "Tu",
+        "given_name": "Jingmin",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhang",
+        "given_name": "Qian",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Sheng",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Xinfa",
+        "orcid": null
+      },
+      {
+        "family_name": "Qiao",
+        "given_name": "Jiangwei",
+        "orcid": null
+      }
+    ],
+    "venue": "Plant methods",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40281599/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40281599"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.343283+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "CMTNet: a hybrid CNN-transformer network for UAV-based hyperspectral crop classification in precision agriculture.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40216979",
+    "external_ids": {
+      "doi": "10.1109/jstars.2024.3452494",
+      "arxiv_id": null,
+      "pubmed_id": "40216979",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Hyperspectral imaging acquired from unmanned aerial vehicles (UAVs) offers detailed spectral and spatial data that holds transformative potential for precision agriculture applications, such as crop classification, health monitoring, and yield estimation. However, traditional methods struggle to effectively capture both local and global features, particularly in complex agricultural environments with diverse crop types, varying growth stages, and imbalanced data distributions. To address these challenges, we propose CMTNet, an innovative deep learning framework that integrates convolutional neural networks (CNNs) and Transformers for hyperspectral crop classification. The model combines a spectral-spatial feature extraction module to capture shallow features, a dual-branch architecture that extracts both local and global features simultaneously, and a multi-output constraint module to enhance classification accuracy through cross-constraints among multiple feature levels. Extensive experiments were conducted on three UAV-acquired datasets: WHU-Hi-LongKou, WHU-Hi-HanChuan, and WHU-Hi-HongHu. The experimental results demonstrate that CMTNet achieved overall accuracy (OA) values of 99.58%, 97.29%, and 98.31% on these three datasets, surpassing the current state-of-the-art method (CTMixer) by 0.19% (LongKou), 1.75% (HanChuan), and 2.52% (HongHu) in OA values, respectively. These findings indicate its superior potential for UAV-based agricultural monitoring in complex environments. These results advance the precision and reliability of hyperspectral crop classification, offering a valuable solution for precision agriculture challenges.",
+    "authors": [
+      {
+        "family_name": "Guo",
+        "given_name": "Xihong",
+        "orcid": null
+      },
+      {
+        "family_name": "Feng",
+        "given_name": "Quan",
+        "orcid": null
+      },
+      {
+        "family_name": "Guo",
+        "given_name": "Faxu",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40216979/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40216979"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.343491+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Deep learning based abiotic crop stress assessment for precision agriculture: A comprehensive review.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "40203709",
+    "external_ids": {
+      "doi": "10.1016/j.jenvman.2025.125158",
+      "arxiv_id": null,
+      "pubmed_id": "40203709",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Abiotic stresses are a leading cause of crop loss and a severe peril to global food security. Precise and prompt identification of abiotic stresses in crops is crucial for effective mitigation strategies. In recent years, Deep learning (DL) techniques have demonstrated remarkable promise for high-throughput crop stress phenotyping using remote sensing and field data. This study offers a comprehensive review of the applications of DL models like artificial neural networks (ANN), convolutional neural networks (CNN), recurrent neural networks (RNN), vision transformers (ViT), and other advanced deep learning architectures for abiotic crop stress assessment using different modalities like IoT sensor data, thermal, spectral, RGB with field, UAV and satellite based imagery. The study comprehensively analyses the abiotic stress conditions due to (a) water (b) nutrients (c) salinity (d) temperature and (e) heavy metal. Key contributions in the literature on stress classification, localization, and quantification using deep learning approaches are discussed in detail. The study also covers the principles of deep learning models, and their unique capabilities for handling complex, high-dimensional datasets inherent in abiotic crop stress assessment. The review also highlights important challenges and future directions in deep learning based abiotic crop stress assessment like limited labelled data, model interpretability, and interoperability for robust stress phenotyping. This study critically examines the research pertaining to the abiotic crop stress assessment, and provides a comprehensive view of the role deep learning plays in advancing abiotic crop stress assessment for data-driven precision agriculture.",
+    "authors": [
+      {
+        "family_name": "Subeesh",
+        "given_name": "A",
+        "orcid": null
+      },
+      {
+        "family_name": "Chauhan",
+        "given_name": "Naveen",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of environmental management",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/40203709/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "40203709"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Deep Learning",
+      "Crops, Agricultural",
+      "Agriculture",
+      "Neural Networks, Computer",
+      "Stress, Physiological"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.343645+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "SugarViT-Multi-objective regression of UAV images with Vision Transformers and Deep Label Distribution Learning demonstrated on disease severity prediction in sugar beet.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "39946488",
+    "external_ids": {
+      "doi": "10.3390/app12031047",
+      "arxiv_id": null,
+      "pubmed_id": "39946488",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Remote sensing and artificial intelligence are pivotal technologies of precision agriculture nowadays. The efficient retrieval of large-scale field imagery combined with machine learning techniques shows success in various tasks like phenotyping, weeding, cropping, and disease control. This work will introduce a machine learning framework for automatized large-scale plant-specific trait annotation for the use case of disease severity scoring for CLS in sugar beet. With concepts of DLDL, special loss functions, and a tailored model architecture, we develop an efficient Vision Transformer based model for disease severity scoring called SugarViT. One novelty in this work is the combination of remote sensing data with environmental parameters of the experimental sites for disease severity prediction. Although the model is evaluated on this special use case, it is held as generic as possible to also be applicable to various image-based classification and regression tasks. With our framework, it is even possible to learn models on multi-objective problems, as we show by a pretraining on environmental metadata. Furthermore, we perform several comparison experiments with state-of-the-art methods and models to constitute our modeling and preprocessing choices.",
+    "authors": [
+      {
+        "family_name": "G\u00fcnder",
+        "given_name": "Maurice",
+        "orcid": null
+      },
+      {
+        "family_name": "Yamati",
+        "given_name": "Facundo Ram\u00f3n Ispizua",
+        "orcid": null
+      },
+      {
+        "family_name": "Barreto",
+        "given_name": "Abel",
+        "orcid": null
+      },
+      {
+        "family_name": "Mahlein",
+        "given_name": "Anne-Katrin",
+        "orcid": null
+      },
+      {
+        "family_name": "Sifa",
+        "given_name": "Rafet",
+        "orcid": null
+      },
+      {
+        "family_name": "Bauckhage",
+        "given_name": "Christian",
+        "orcid": null
+      }
+    ],
+    "venue": "PloS one",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39946488/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "39946488"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Beta vulgaris",
+      "Plant Diseases",
+      "Remote Sensing Technology",
+      "Deep Learning",
+      "Machine Learning",
+      "Unmanned Aerial Devices",
+      "Image Processing, Computer-Assisted",
+      "Artificial Intelligence"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.343781+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Cyberinfrastructure for machine learning applications in agriculture: experiences, analysis, and vision.",
+    "year": 2024,
+    "provider": "pubmed",
+    "provider_id": "39917547",
+    "external_ids": {
+      "doi": "10.1007/s00778-022-00775-9",
+      "arxiv_id": null,
+      "pubmed_id": "39917547",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Advancements in machine learning (ML) algorithms that make predictions from data without being explicitly programmed and the increased computational speeds of graphics processing units (GPUs) over the last decade have led to remarkable progress in the capabilities of ML. In many fields, including agriculture, this progress has outpaced the availability of sufficiently diverse and high-quality datasets, which now serve as a limiting factor. While many agricultural use cases appear feasible with current compute resources and ML algorithms, the lack of reusable hardware and software components, referred to as cyberinfrastructure (CI), for collecting, transmitting, cleaning, labeling, and training datasets is a major hindrance toward developing solutions to address agricultural use cases. This study focuses on addressing these challenges by exploring the collection, processing, and training of ML models using a multimodal dataset and providing a vision for agriculture-focused CI to accelerate innovation in the field. Data were collected during the 2023 growing season from three agricultural research locations across Ohio. The dataset includes 1 terabyte (TB) of multimodal data, comprising Unmanned Aerial System (UAS) imagery (RGB and multispectral), as well as soil and weather sensor data. The two primary crops studied were corn and soybean, which are the state's most widely cultivated crops. The data collected and processed from this study were used to train ML models to make predictions of crop growth stage, soil moisture, and final yield. The exercise of processing this dataset resulted in four CI components that can be used to provide higher accuracy predictions in the agricultural domain. These components included (1) a UAS imagery pipeline that reduced processing time and improved image quality over standard methods, (2) a tabular data pipeline that aggregated data from multiple sources and temporal resolutions and aligned it with a common temporal resolution, (3) an approach to adapting the model architecture for a vision transformer (ViT) that incorporates agricultural domain expertise, and (4) a data visualization prototype that was used to identify outliers and improve trust in the data. Further work will be aimed at maturing the CI components and implementing them on high performance computing (HPC). There are open questions as to how CI components like these can best be leveraged to serve the needs of the agricultural community to accelerate the development of ML applications in agriculture.",
+    "authors": [
+      {
+        "family_name": "Waltz",
+        "given_name": "Lucas",
+        "orcid": null
+      },
+      {
+        "family_name": "Katari",
+        "given_name": "Sushma",
+        "orcid": null
+      },
+      {
+        "family_name": "Hong",
+        "given_name": "Chaeun",
+        "orcid": null
+      },
+      {
+        "family_name": "Anup",
+        "given_name": "Adit",
+        "orcid": null
+      },
+      {
+        "family_name": "Colbert",
+        "given_name": "Julian",
+        "orcid": null
+      },
+      {
+        "family_name": "Potlapally",
+        "given_name": "Anirudh",
+        "orcid": null
+      },
+      {
+        "family_name": "Dill",
+        "given_name": "Taylor",
+        "orcid": null
+      },
+      {
+        "family_name": "Porter",
+        "given_name": "Canaan",
+        "orcid": null
+      },
+      {
+        "family_name": "Engle",
+        "given_name": "John",
+        "orcid": null
+      },
+      {
+        "family_name": "Stewart",
+        "given_name": "Christopher",
+        "orcid": null
+      },
+      {
+        "family_name": "Subramoni",
+        "given_name": "Hari",
+        "orcid": null
+      },
+      {
+        "family_name": "Shearer",
+        "given_name": "Scott",
+        "orcid": null
+      },
+      {
+        "family_name": "Machiraju",
+        "given_name": "Raghu",
+        "orcid": null
+      },
+      {
+        "family_name": "Ortez",
+        "given_name": "Osler",
+        "orcid": null
+      },
+      {
+        "family_name": "Lindsey",
+        "given_name": "Laura",
+        "orcid": null
+      },
+      {
+        "family_name": "Nandi",
+        "given_name": "Arnab",
+        "orcid": null
+      },
+      {
+        "family_name": "Khanal",
+        "given_name": "Sami",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in artificial intelligence",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39917547/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "39917547"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.343984+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A Review of CNN Applications in Smart Agriculture Using Multimodal Data.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "39860841",
+    "external_ids": {
+      "doi": "10.3390/s21041110",
+      "arxiv_id": null,
+      "pubmed_id": "39860841",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This review explores the applications of Convolutional Neural Networks (CNNs) in smart agriculture, highlighting recent advancements across various applications including weed detection, disease detection, crop classification, water management, and yield prediction. Based on a comprehensive analysis of more than 115 recent studies, coupled with a bibliometric study of the broader literature, this paper contextualizes the use of CNNs within Agriculture 5.0, where technological integration optimizes agricultural efficiency. Key approaches analyzed involve image classification, image segmentation, regression, and object detection methods that use diverse data types ranging from RGB and multispectral images to radar and thermal data. By processing UAV and satellite data with CNNs, real-time and large-scale crop monitoring can be achieved, supporting advanced farm management. A comparative analysis shows how CNNs perform with respect to other techniques that involve traditional machine learning and recent deep learning models in image processing, particularly when applied to high-dimensional or temporal data. Future directions point toward integrating IoT and cloud platforms for real-time data processing and leveraging large language models for regulatory insights. Potential research advancements emphasize improving increased data accessibility and hybrid modeling to meet the agricultural demands of climate variability and food security, positioning CNNs as pivotal tools in sustainable agricultural practices. A related repository that contains the reviewed articles along with their publication links is made available.",
+    "authors": [
+      {
+        "family_name": "El Sakka",
+        "given_name": "Mohammad",
+        "orcid": null
+      },
+      {
+        "family_name": "Ivanovici",
+        "given_name": "Mihai",
+        "orcid": null
+      },
+      {
+        "family_name": "Chaari",
+        "given_name": "Lotfi",
+        "orcid": null
+      },
+      {
+        "family_name": "Mothe",
+        "given_name": "Josiane",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39860841/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "39860841"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Agriculture",
+      "Neural Networks, Computer",
+      "Image Processing, Computer-Assisted",
+      "Crops, Agricultural",
+      "Humans",
+      "Machine Learning",
+      "Deep Learning"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.344177+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Plant Detection in RGB Images from Unmanned Aerial Vehicles Using Segmentation by Deep Learning and an Impact of Model Accuracy on Downstream Analysis.",
+    "year": 2025,
+    "provider": "pubmed",
+    "provider_id": "39852341",
+    "external_ids": {
+      "doi": "10.3390/rs10020285",
+      "arxiv_id": null,
+      "pubmed_id": "39852341",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Crop field monitoring using unmanned aerial vehicles (UAVs) is one of the most important technologies for plant growth control in modern precision agriculture. One of the important and widely used tasks in field monitoring is plant stand counting. The accurate identification of plants in field images provides estimates of plant number per unit area, detects missing seedlings, and predicts crop yield. Current methods are based on the detection of plants in images obtained from UAVs by means of computer vision algorithms and deep learning neural networks. These approaches depend on image spatial resolution and the quality of plant markup. The performance of automatic plant detection may affect the efficiency of downstream analysis of a field cropping pattern. In the present work, a method is presented for detecting the plants of five species in images acquired via a UAV on the basis of image segmentation by deep learning algorithms (convolutional neural networks). Twelve orthomosaics were collected and marked at several sites in Russia to train and test the neural network algorithms. Additionally, 17 existing datasets of various spatial resolutions and markup quality levels from the Roboflow service were used to extend training image sets. Finally, we compared several texture features between manually evaluated and neural-network-estimated plant masks. It was demonstrated that adding images to the training sample (even those of lower resolution and markup quality) improves plant stand counting significantly. The work indicates how the accuracy of plant detection in field images may affect their cropping pattern evaluation by means of texture characteristics. For some of the characteristics (GLCM mean, GLRM long run, GLRM run ratio) the estimates between images marked manually and automatically are close. For others, the differences are large and may lead to erroneous conclusions about the properties of field cropping patterns. Nonetheless, overall, plant detection algorithms with a higher accuracy show better agreement with the estimates of texture parameters obtained from manually marked images.",
+    "authors": [
+      {
+        "family_name": "Kozhekin",
+        "given_name": "Mikhail V",
+        "orcid": null
+      },
+      {
+        "family_name": "Genaev",
+        "given_name": "Mikhail A",
+        "orcid": null
+      },
+      {
+        "family_name": "Komyshev",
+        "given_name": "Evgenii G",
+        "orcid": null
+      },
+      {
+        "family_name": "Zavyalov",
+        "given_name": "Zakhar A",
+        "orcid": null
+      },
+      {
+        "family_name": "Afonnikov",
+        "given_name": "Dmitry A",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of imaging",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39852341/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "39852341"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.344403+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "An instance segmentation dataset of cabbages over the whole growing season for UAV imagery.",
+    "year": 2024,
+    "provider": "pubmed",
+    "provider_id": "39044907",
+    "external_ids": {
+      "doi": "10.5281/zenodo.7961758",
+      "arxiv_id": null,
+      "pubmed_id": "39044907",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Crop growth monitoring is essential for both crop and supply chain management. Conventional manual sampling is not feasible for assessing the spatial variability of crop growth within an entire field or across all fields. Meanwhile, UAV-based remote sensing enables the efficient and nondestructive investigation of crop growth. A variety of crop-specific training image datasets are needed to detect crops from UAV imagery using a deep learning model. Specifically, the training dataset of cabbage is limited. This data article includes annotated cabbage images in the fields to recognize cabbages using machine learning models. This dataset contains 458 images with 17,621 annotated cabbages. Image sizes are approximately 500 to 1000 pixel squares. Since these cabbage images were collected from different cultivars during the whole growing season over the years, deep learning models trained with this dataset will be able to recognize a wide variety of cabbage shapes. In the future, this dataset can be used not only in UAVs but also in land-based robot applications for crop sensing or associated plant-specific management.",
+    "authors": [
+      {
+        "family_name": "Yokoyama",
+        "given_name": "Yui",
+        "orcid": null
+      },
+      {
+        "family_name": "Matsui",
+        "given_name": "Tsutomu",
+        "orcid": null
+      },
+      {
+        "family_name": "Tanaka",
+        "given_name": "Takashi S T",
+        "orcid": null
+      }
+    ],
+    "venue": "Data in brief",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39044907/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "39044907"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.344521+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Research on Segmentation Method of Maize Seedling Plant Instances Based on UAV Multispectral Remote Sensing Images.",
+    "year": 2024,
+    "provider": "pubmed",
+    "provider_id": "38999682",
+    "external_ids": {
+      "doi": "10.1016/0034-4257(92)90132-4",
+      "arxiv_id": null,
+      "pubmed_id": "38999682",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "The accurate instance segmentation of individual crop plants is crucial for achieving a high-throughput phenotypic analysis of seedlings and smart field management in agriculture. Current crop monitoring techniques employing remote sensing predominantly focus on population analysis, thereby lacking precise estimations for individual plants. This study concentrates on maize, a critical staple crop, and leverages multispectral remote sensing data sourced from unmanned aerial vehicles (UAVs). A large-scale SAM image segmentation model is employed to efficiently annotate maize plant instances, thereby constructing a dataset for maize seedling instance segmentation. The study evaluates the experimental accuracy of six instance segmentation algorithms: Mask R-CNN, Cascade Mask R-CNN, PointRend, YOLOv5, Mask Scoring R-CNN, and YOLOv8, employing various combinations of multispectral bands for a comparative analysis. The experimental findings indicate that the YOLOv8 model exhibits exceptional segmentation accuracy, notably in the NRG band, with bbox_mAP50 and segm_mAP50 accuracies reaching 95.2% and 94%, respectively, surpassing other models. Furthermore, YOLOv8 demonstrates robust performance in generalization experiments, indicating its adaptability across diverse environments and conditions. Additionally, this study simulates and analyzes the impact of different resolutions on the model's segmentation accuracy. The findings reveal that the YOLOv8 model sustains high segmentation accuracy even at reduced resolutions (1.333 cm/px), meeting the phenotypic analysis and field management criteria.",
+    "authors": [
+      {
+        "family_name": "Geng",
+        "given_name": "Tingting",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Haiyang",
+        "orcid": null
+      },
+      {
+        "family_name": "Yuan",
+        "given_name": "Xinru",
+        "orcid": null
+      },
+      {
+        "family_name": "Ma",
+        "given_name": "Ruopu",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Pengao",
+        "orcid": null
+      }
+    ],
+    "venue": "Plants (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/38999682/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "38999682"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.344749+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Identifying pests in precision agriculture using low-cost image data acquisition.",
+    "year": 2024,
+    "provider": "pubmed",
+    "provider_id": "38747863",
+    "external_ids": {
+      "doi": "10.1590/1519-6984.281671",
+      "arxiv_id": null,
+      "pubmed_id": "38747863",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Unmanned Aerial Vehicles (UAVs), often called drones, have gained progressive prevalence for their swift operational ability as well as their extensive applicability in diverse real-world situations. Of late, UAV usage in precision agriculture has attracted much interest from scientific community. This study will look at drone aid in precise farming. Big data has the ability to analyze enormous amounts of data. Due to this, it is one of the diverse crucial technologies of Information and Communication Technology (ICT) which had applied in precision agriculture for the abstraction of critical information as well as for assisting agricultural practitioners in the comprehension of the most feasible farming practices, and also for better decision-making. This work analyses communication protocols, as well as their application toward the challenge of commanding a drone fleet for protecting crops from infestations of parasites. For computer-vision tasks as well as data-intensive applications, the method of deep learning has shown much potential. Due to its vast potential, it can also be used in the field of agriculture. This research will employ several schemes to assess the efficacy of models includes Visual Geometry Group (VGG-16), the Convolutional Neural Network (CNN) as well as the Fully-Convolutional Network (FCN) in plant disease detection. The methods of Artificial Immune Systems (AIS) can be used in order to adapt deep neural networks to the immediate situation. Simulated outcomes demonstrate that the proposed method is providing superior performance over various other technologically-advanced methods.",
+    "authors": [
+      {
+        "family_name": "Hemalatha",
+        "given_name": "S",
+        "orcid": null
+      },
+      {
+        "family_name": "Sangeetha",
+        "given_name": "M",
+        "orcid": null
+      }
+    ],
+    "venue": "Brazilian journal of biology = Revista brasleira de biologia",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/38747863/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "38747863"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Agriculture",
+      "Animals",
+      "Unmanned Aerial Devices",
+      "Crops, Agricultural",
+      "Neural Networks, Computer",
+      "Plant Diseases"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.344900+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "In-Season Cotton Yield Prediction with Scale-Aware Convolutional Neural Network Models and Unmanned Aerial Vehicle RGB Imagery.",
+    "year": 2024,
+    "provider": "pubmed",
+    "provider_id": "38676047",
+    "external_ids": {
+      "doi": "10.3390/rs15102511",
+      "arxiv_id": null,
+      "pubmed_id": "38676047",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "In the pursuit of sustainable agriculture, efficient water management remains crucial, with growers relying on advanced techniques for informed decision-making. Cotton yield prediction, a critical aspect of agricultural planning, benefits from cutting-edge technologies. However, traditional methods often struggle to capture the nuanced complexities of crop health and growth. This study introduces a novel approach to cotton yield prediction, leveraging the synergy between Unmanned Aerial Vehicles (UAVs) and scale-aware convolutional neural networks (CNNs). The proposed model seeks to harness the spatiotemporal dynamics inherent in high-resolution UAV imagery to improve the accuracy of the cotton yield prediction. The CNN component adeptly extracts spatial features from UAV-derived imagery, capturing intricate details related to crop health and growth, modeling temporal dependencies, and facilitating the recognition of trends and patterns over time. Research experiments were carried out in a cotton field at the USDA-ARS Cropping Systems Research Laboratory (CSRL) in Lubbock, Texas, with three replications evaluating four irrigation treatments (rainfed, full irrigation, percent deficit of full irrigation, and time delay of full irrigation) on cotton yield. The prediction revealed that the proposed CNN regression models outperformed conventional CNN models, such as AlexNet, CNN-3D, CNN-LSTM, ResNet. The proposed CNN model showed state-of-art performance at different image scales, with the R2 exceeding 0.9. At the cotton row level, the mean absolute error (MAE) and mean absolute percentage error (MAPE) were 3.08 pounds per row and 7.76%, respectively. At the cotton grid level, the MAE and MAPE were 0.05 pounds and 10%, respectively. This shows the proposed model's adaptability to the dynamic interplay between spatial and temporal factors that affect cotton yield. The authors conclude that integrating UAV-derived imagery and CNN regression models is a potent strategy for advancing precision agriculture, providing growers with a powerful tool to optimize cultivation practices and enhance overall cotton productivity.",
+    "authors": [
+      {
+        "family_name": "Niu",
+        "given_name": "Haoyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Peddagudreddygari",
+        "given_name": "Janvita Reddy",
+        "orcid": null
+      },
+      {
+        "family_name": "Bhandari",
+        "given_name": "Mahendra",
+        "orcid": null
+      },
+      {
+        "family_name": "Landivar",
+        "given_name": "Juan A",
+        "orcid": null
+      },
+      {
+        "family_name": "Bednarz",
+        "given_name": "Craig W",
+        "orcid": null
+      },
+      {
+        "family_name": "Duffield",
+        "given_name": "Nick",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/38676047/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "38676047"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.345106+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Inversion of winter wheat leaf area index from UAV multispectral images: classical vs. deep learning approaches.",
+    "year": 2024,
+    "provider": "pubmed",
+    "provider_id": "38550285",
+    "external_ids": {
+      "doi": "10.1016/j.biosystemseng.2021.01.017",
+      "arxiv_id": null,
+      "pubmed_id": "38550285",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Precise and timely leaf area index (LAI) estimation for winter wheat is crucial for precision agriculture. The emergence of high-resolution unmanned aerial vehicle (UAV) data and machine learning techniques offers a revolutionary approach for fine-scale estimation of wheat LAI at the low cost. While machine learning has proven valuable for LAI estimation, there are still model limitations and variations that impede accurate and efficient LAI inversion. This study explores the potential of classical machine learning models and deep learning model for estimating winter wheat LAI using multispectral images acquired by drones. Initially, the texture features and vegetation indices served as inputs for the partial least squares regression (PLSR) model and random forest (RF) model. Then, the ground-measured LAI data were combined to invert winter wheat LAI. In contrast, this study also employed a convolutional neural network (CNN) model that solely utilizes the cropped original image for LAI estimation. The results show that vegetation indices outperform the texture features in terms of correlation analysis with LAI and estimation accuracy. However, the highest accuracy is achieved by combining both vegetation indices and texture features to invert LAI in both conventional machine learning methods. Among the three models, the CNN approach yielded the highest LAI estimation accuracy (",
+    "authors": [
+      {
+        "family_name": "Zu",
+        "given_name": "Jiaxing",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Hailong",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Jiali",
+        "orcid": null
+      },
+      {
+        "family_name": "Cai",
+        "given_name": "Wenhua",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Yuanzheng",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/38550285/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "38550285"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.345340+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Visual Intelligence in Precision Agriculture: Exploring Plant Disease Detection via Efficient Vision Transformers.",
+    "year": 2023,
+    "provider": "pubmed",
+    "provider_id": "37571732",
+    "external_ids": {
+      "doi": "10.32604/csse.2023.034475",
+      "arxiv_id": null,
+      "pubmed_id": "37571732",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "In order for a country's economy to grow, agricultural development is essential. Plant diseases, however, severely hamper crop growth rate and quality. In the absence of domain experts and with low contrast information, accurate identification of these diseases is very challenging and time-consuming. This leads to an agricultural management system in need of a method for automatically detecting disease at an early stage. As a consequence of dimensionality reduction, CNN-based models use pooling layers, which results in the loss of vital information, including the precise location of the most prominent features. In response to these challenges, we propose a fine-tuned technique,",
+    "authors": [
+      {
+        "family_name": "Parez",
+        "given_name": "Sana",
+        "orcid": null
+      },
+      {
+        "family_name": "Dilshad",
+        "given_name": "Naqqash",
+        "orcid": null
+      },
+      {
+        "family_name": "Alghamdi",
+        "given_name": "Norah Saleh",
+        "orcid": null
+      },
+      {
+        "family_name": "Alanazi",
+        "given_name": "Turki M",
+        "orcid": null
+      },
+      {
+        "family_name": "Lee",
+        "given_name": "Jong Weon",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/37571732/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "37571732"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Plant Diseases",
+      "Agriculture",
+      "Neural Networks, Computer",
+      "Algorithms",
+      "Image Processing, Computer-Assisted",
+      "Crops, Agricultural",
+      "Artificial Intelligence"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.345449+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Tree-level almond yield estimation from high resolution aerial imagery with convolutional neural network.",
+    "year": 2023,
+    "provider": "pubmed",
+    "provider_id": "36875622",
+    "external_ids": {
+      "doi": "10.1016/j.foodchem.2022.133563",
+      "arxiv_id": null,
+      "pubmed_id": "36875622",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Estimating and understanding the yield variability within an individual field is critical for precision agriculture resource management of high value tree crops. Recent advancements in sensor technologies and machine learning make it possible to monitor orchards at very high spatial resolution and estimate yield at individual tree level. This study evaluates the potential of utilizing deep learning methods to predict tree-level almond yield with multi-spectral imagery. We focused on an almond orchard with the 'Independence' cultivar in California, where individual tree harvesting and yield monitoring was conducted for ~2,000 trees and summer aerial imagery at 30cm was acquired for four spectral bands in 2021. We developed a Convolutional Neural Network (CNN) model with a spatial attention module to take the multi-spectral reflectance imagery directly for almond fresh weight estimation at the tree level. The deep learning model was shown to predict the tree level yield very well, with a R2 of 0.96 (\u00b10.002) and Normalized Root Mean Square Error (NRMSE) of 6.6% (\u00b10.2%), based on 5-fold cross validation. The CNN estimation captured well the patterns of yield variation between orchard rows, along the transects, and from tree to tree, when compared to the harvest data. The reflectance at the red edge band was found to play the most important role in the CNN yield estimation. This study demonstrates the significant improvement of deep learning over traditional linear regression and machine learning methods for accurate and robust tree level yield estimation, highlighting the potential for data-driven site-specific resource management to ensure agriculture sustainability.",
+    "authors": [
+      {
+        "family_name": "Tang",
+        "given_name": "Minmeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Sadowski",
+        "given_name": "Dennis Lee",
+        "orcid": null
+      },
+      {
+        "family_name": "Peng",
+        "given_name": "Chen",
+        "orcid": null
+      },
+      {
+        "family_name": "Vougioukas",
+        "given_name": "Stavros G",
+        "orcid": null
+      },
+      {
+        "family_name": "Klever",
+        "given_name": "Brandon",
+        "orcid": null
+      },
+      {
+        "family_name": "Khalsa",
+        "given_name": "Sat Darshan S",
+        "orcid": null
+      },
+      {
+        "family_name": "Brown",
+        "given_name": "Patrick H",
+        "orcid": null
+      },
+      {
+        "family_name": "Jin",
+        "given_name": "Yufang",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/36875622/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "36875622"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.345658+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Automatic instance segmentation of orchard canopy in unmanned aerial vehicle imagery using deep learning.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "36531373",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2020.105369",
+      "arxiv_id": null,
+      "pubmed_id": "36531373",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "The widespread use of unmanned aerial vehicles (UAV) is significant for the effective management of orchards in the context of precision agriculture. To reduce the traditional mode of continuous spraying, variable target spraying machines require detailed information about tree canopy. Although deep learning methods have been widely used in the fields of identifying individual trees, there are still phenomena of branches extending and shadows preventing segmenting edges of tree canopy precisely. Hence, a methodology (MPAPR R-CNN) for the high-precision segment method of apple trees in high-density cultivation orchards by low-altitude visible light images captured is proposed. Mask R-CNN with a path augmentation feature pyramid network (PAFPN) and PointRend algorithm was used as the base segmentation algorithm to output the precise boundaries of the apple tree canopy, which addresses the over- and under-sampling issues encountered in the pixel labeling tasks. The proposed method was tested on another miniature map of the orchard. The average precision (AP) was selected to evaluate the metric of the proposed model. The results showed that with the help of training with the PAFPN and PointRend backbone head that AP_seg and AP_box score improved by 8.96% and 8.37%, respectively. It can be concluded that our algorithm could better capture features of the canopy edges, it could improve the accuracy of the edges of canopy segmentation results.",
+    "authors": [
+      {
+        "family_name": "Zhang",
+        "given_name": "Weirong",
+        "orcid": null
+      },
+      {
+        "family_name": "Chen",
+        "given_name": "Xuegeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Qi",
+        "given_name": "Jiangtao",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Sisi",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/36531373/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "36531373"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.345794+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Use of synthetic images for training a deep learning model for weed detection and biomass estimation in cotton.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "36379963",
+    "external_ids": {
+      "doi": "10.1109/lra.2018.2846289",
+      "arxiv_id": null,
+      "pubmed_id": "36379963",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Site-specific treatment of weeds in agricultural landscapes has been gaining importance in recent years due to economic savings and minimal impact on the environment. Different detection methods have been developed and tested for precision weed management systems, but recent developments in neural networks have offered great prospects. However, a major limitation with the neural network models is the requirement of high volumes of data for training. The current study aims at exploring an alternative approach to the use of real images to address this issue. In this study, synthetic images were generated with various strategies using plant instances clipped from UAV-borne real images. In addition, the Generative Adversarial Networks (GAN) technique was used to generate fake plant instances which were used in generating synthetic images. These images were used to train a powerful convolutional neural network (CNN) known as \"Mask R-CNN\" for weed detection and segmentation in a transfer learning mode. The study was conducted on morningglories (MG) and grass weeds (Grass) infested in cotton. The biomass for individual weeds was also collected in the field for biomass modeling using detection and segmentation results derived from model inference. Results showed a comparable performance between the real plant-based synthetic image (mean average precision for mask-mAP",
+    "authors": [
+      {
+        "family_name": "Sapkota",
+        "given_name": "Bishwa B",
+        "orcid": null
+      },
+      {
+        "family_name": "Popescu",
+        "given_name": "Sorin",
+        "orcid": null
+      },
+      {
+        "family_name": "Rajan",
+        "given_name": "Nithya",
+        "orcid": null
+      },
+      {
+        "family_name": "Leon",
+        "given_name": "Ramon G",
+        "orcid": null
+      },
+      {
+        "family_name": "Reberg-Horton",
+        "given_name": "Chris",
+        "orcid": null
+      },
+      {
+        "family_name": "Mirsky",
+        "given_name": "Steven",
+        "orcid": null
+      },
+      {
+        "family_name": "Bagavathiannan",
+        "given_name": "Muthukumar V",
+        "orcid": null
+      }
+    ],
+    "venue": "Scientific reports",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/36379963/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "36379963"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Deep Learning",
+      "Biomass",
+      "Neural Networks, Computer",
+      "Plant Weeds",
+      "Crops, Agricultural",
+      "Poaceae",
+      "Gossypium",
+      "Image Processing, Computer-Assisted"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.345965+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "CoFly-WeedDB: A UAV image dataset for weed detection and species identification.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "36131952",
+    "external_ids": {
+      "doi": "10.13031/trans.59.11831",
+      "arxiv_id": null,
+      "pubmed_id": "36131952",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "The CoFly-WeedDB contains 201 RGB images (\u223c436 MB) from the attached camera of DJI Phantom Pro 4 from a cotton field in Larissa, Greece during the first stages of plant growth. The 1280 \u00d7 720 RGB images were collected while the Unmanned Aerial Vehicle (UAV) was performing a coverage mission over the field's area. During the designed mission, the camera angle was adjusted to -87\u00b0, vertically with the field. The flight altitude and speed of the UAV were equal to 5 m and 3 m/s, respectively, aiming to provide a close and clear view of the weed instances. All images have been annotated by expert agronomists using the LabelMe annotation tool, providing the exact boundaries of 3 types of common weeds in this type of crop, namely (i) Johnson grass, (ii) Field bindweed, and (iii) Purslane. The dataset can be used alone and in combination with other datasets to develop AI-based methodologies for automatic weed segmentation and classification purposes.",
+    "authors": [
+      {
+        "family_name": "Krestenitis",
+        "given_name": "Marios",
+        "orcid": null
+      },
+      {
+        "family_name": "Raptis",
+        "given_name": "Emmanuel K",
+        "orcid": null
+      },
+      {
+        "family_name": "Kapoutsis",
+        "given_name": "Athanasios Ch",
+        "orcid": null
+      },
+      {
+        "family_name": "Ioannidis",
+        "given_name": "Konstantinos",
+        "orcid": null
+      },
+      {
+        "family_name": "Kosmatopoulos",
+        "given_name": "Elias B",
+        "orcid": null
+      },
+      {
+        "family_name": "Vrochidis",
+        "given_name": "Stefanos",
+        "orcid": null
+      },
+      {
+        "family_name": "Kompatsiaris",
+        "given_name": "Ioannis",
+        "orcid": null
+      }
+    ],
+    "venue": "Data in brief",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/36131952/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "36131952"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.346105+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Semi-supervised Learning for Weed and Crop Segmentation Using UAV Imagery.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "35845704",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2020.105750",
+      "arxiv_id": null,
+      "pubmed_id": "35845704",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Weed control has received great attention due to its significant influence on crop yield and food production. Accurate mapping of crop and weed is a prerequisite for the development of an automatic weed management system. In this paper, we propose a weed and crop segmentation method, SemiWeedNet, to accurately identify the weed with varying size in complex environment, where semi-supervised learning is employed to reduce the requirement of a large amount of labelled data. SemiWeedNet takes the labelled and unlabelled images into account when generating a unified semi-supervised architecture based on semantic segmentation model. A multiscale enhancement module is created by integrating the encoded feature with the selective kernel attention, to highlight the significant features of the weed and crop while alleviating the influence of complex background. To address the problem caused by the similarity and overlapping between crop and weed, an online hard example mining (OHEM) is introduced to refine the labelled data training. This forces the model to focus more on pixels that are not easily distinguished, and thus effectively improve the image segmentation. To further exploit the meaningful information of unlabelled data, consistency regularisation is introduced by maintaining the context consistency during training, making the representations robust to the varying environment. Comparative experiments are conducted on a publicly available dataset. The results show the SemiWeedNet outperforms the state-of-the-art methods, and its components have promising potential in improving segmentation.",
+    "authors": [
+      {
+        "family_name": "Nong",
+        "given_name": "Chunshi",
+        "orcid": null
+      },
+      {
+        "family_name": "Fan",
+        "given_name": "Xijian",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Junling",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/35845704/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "35845704"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.346238+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Improved Real-Time Semantic Segmentation Network Model for Crop Vision Navigation Line Detection.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "35720554",
+    "external_ids": {
+      "doi": "10.1145/3368961",
+      "arxiv_id": null,
+      "pubmed_id": "35720554",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Field crops are generally planted in rows to improve planting efficiency and facilitate field management. Therefore, automatic detection of crop planting rows is of great significance for achieving autonomous navigation and precise spraying in intelligent agricultural machinery and is an important part of smart agricultural management. To study the visual navigation line extraction technology of unmanned aerial vehicles (UAVs) in farmland environments and realize real-time precise farmland UAV operations, we propose an improved ENet semantic segmentation network model to perform row segmentation of farmland images. Considering the lightweight and low complexity requirements of the network for crop row detection, the traditional network is compressed and replaced by convolution. Based on the residual network, we designed a network structure of the shunting process, in which low-dimensional boundary information in the feature extraction process is passed backward using the residual stream, allowing efficient extraction of low-dimensional information and significantly improving the accuracy of boundary locations and row-to-row segmentation of farmland crops. According to the characteristics of the segmented image, an improved random sampling consensus algorithm is proposed to extract the navigation line, define a new model-scoring index, find the best point set, and use the least-squares method to fit the navigation line. The experimental results showed that the proposed algorithm allows accurate and efficient extraction of farmland navigation lines, and it has the technical advantages of strong robustness and high applicability. The algorithm can provide technical support for the subsequent quasi-flight of agricultural UAVs in farmland operations.",
+    "authors": [
+      {
+        "family_name": "Cao",
+        "given_name": "Maoyong",
+        "orcid": null
+      },
+      {
+        "family_name": "Tang",
+        "given_name": "Fangfang",
+        "orcid": null
+      },
+      {
+        "family_name": "Ji",
+        "given_name": "Peng",
+        "orcid": null
+      },
+      {
+        "family_name": "Ma",
+        "given_name": "Fengying",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/35720554/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "35720554"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.346374+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Detecting Intra-Field Variation in Rice Yield With Unmanned Aerial Vehicle Imagery and Deep Learning.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "35401643",
+    "external_ids": {
+      "doi": "10.1016/j.fcr.2019.02.022",
+      "arxiv_id": null,
+      "pubmed_id": "35401643",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Unmanned aerial vehicles (UAVs) equipped with multispectral sensors offer high spatial and temporal resolution imagery for monitoring crop stress at early stages of development. Analysis of UAV-derived data with advanced machine learning models could improve real-time management in agricultural systems, but guidance for this integration is currently limited. Here we compare two deep learning-based strategies for early warning detection of crop stress, using multitemporal imagery throughout the growing season to predict field-scale yield in irrigated rice in eastern Arkansas. Both deep learning strategies showed improvements upon traditional statistical learning approaches including linear regression and gradient boosted decision trees. First, we explicitly accounted for variation across developmental stages using a 3D convolutional neural network (CNN) architecture that captures both spatial and temporal dimensions of UAV images from multiple time points throughout one growing season. 3D-CNNs achieved low prediction error on the test set, with a Root Mean Squared Error (RMSE) of 8.8% of the mean yield. For the second strategy, a 2D-CNN, we considered only spatial relationships among pixels for image features acquired during a single flyover. 2D-CNNs trained on images from a single day were most accurate when images were taken during booting stage or later, with RMSE ranging from 7.4 to 8.2% of the mean yield. A primary benefit of convolutional autoencoder-like models (based on analyses of prediction maps and feature importance) is the spatial denoising effect that corrects yield predictions for individual pixels based on the values of vegetation index and thermal features for nearby pixels. Our results highlight the promise of convolutional autoencoders for UAV-based yield prediction in rice.",
+    "authors": [
+      {
+        "family_name": "Bellis",
+        "given_name": "Emily S",
+        "orcid": null
+      },
+      {
+        "family_name": "Hashem",
+        "given_name": "Ahmed A",
+        "orcid": null
+      },
+      {
+        "family_name": "Causey",
+        "given_name": "Jason L",
+        "orcid": null
+      },
+      {
+        "family_name": "Runkle",
+        "given_name": "Benjamin R K",
+        "orcid": null
+      },
+      {
+        "family_name": "Moreno-Garc\u00eda",
+        "given_name": "Beatriz",
+        "orcid": null
+      },
+      {
+        "family_name": "Burns",
+        "given_name": "Brayden W",
+        "orcid": null
+      },
+      {
+        "family_name": "Green",
+        "given_name": "V Steven",
+        "orcid": null
+      },
+      {
+        "family_name": "Burcham",
+        "given_name": "Timothy N",
+        "orcid": null
+      },
+      {
+        "family_name": "Reba",
+        "given_name": "Michele L",
+        "orcid": null
+      },
+      {
+        "family_name": "Huang",
+        "given_name": "Xiuzhen",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/35401643/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "35401643"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.346532+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Deep learning techniques to classify agricultural crops through UAV imagery: a review.",
+    "year": 2022,
+    "provider": "pubmed",
+    "provider_id": "35281624",
+    "external_ids": {
+      "doi": "10.1016/j.rse.2020.112012",
+      "arxiv_id": null,
+      "pubmed_id": "35281624",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "During the last few years, Unmanned Aerial Vehicles (UAVs) technologies are widely used to improve agriculture productivity while reducing drudgery, inspection time, and crop management cost. Moreover, they are able to cover large areas in a matter of a few minutes. Due to the impressive technological advancement, UAV-based remote sensing technologies are increasingly used to collect valuable data that could be used to achieve many precision agriculture applications, including crop/plant classification. In order to process these data accurately, we need powerful tools and algorithms such as Deep Learning approaches. Recently, Convolutional Neural Network (CNN) has emerged as a powerful tool for image processing tasks achieving remarkable results making it the state-of-the-art technique for vision applications. In the present study, we reviewed the recent CNN-based methods applied to the UAV-based remote sensing image analysis for crop/plant classification to help researchers and farmers to decide what algorithms they should use accordingly to their studied crops and the used hardware. Fusing different UAV-based data and deep learning approaches have emerged as a powerful tool to classify different crop types accurately. The readers of the present review could acquire the most challenging issues facing researchers to classify different crop types from UAV imagery and their potential solutions to improve the performance of deep learning-based algorithms.",
+    "authors": [
+      {
+        "family_name": "Bouguettaya",
+        "given_name": "Abdelmalek",
+        "orcid": null
+      },
+      {
+        "family_name": "Zarzour",
+        "given_name": "Hafed",
+        "orcid": null
+      },
+      {
+        "family_name": "Kechida",
+        "given_name": "Ahmed",
+        "orcid": null
+      },
+      {
+        "family_name": "Taberkit",
+        "given_name": "Amine Mohammed",
+        "orcid": null
+      }
+    ],
+    "venue": "Neural computing & applications",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/35281624/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "35281624"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.346713+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Whole-Field Reinforcement Learning: A Fully Autonomous Aerial Scouting Method for Precision Agriculture.",
+    "year": 2020,
+    "provider": "pubmed",
+    "provider_id": "33218000",
+    "external_ids": {
+      "doi": "10.1016/j.biosystemseng.2012.08.009",
+      "arxiv_id": null,
+      "pubmed_id": "33218000",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Unmanned aerial systems (UAS) are increasingly used in precision agriculture to collect crop health related data. UAS can capture data more often and more cost-effectively than sending human scouts into the field. However, in large crop fields, flight time, and hence data collection, is limited by battery life. In a conventional UAS approach, human operators are required to exchange depleted batteries many times, which can be costly and time consuming. In this study, we developed a novel, fully autonomous aerial scouting approach that preserves battery life by sampling sections of a field for sensing and predicting crop health for the whole field. Our approach uses reinforcement learning (RL) and convolutional neural networks (CNN) to accurately and autonomously sample the field. To develop and test the approach, we ran flight simulations on an aerial image dataset collected from an 80-acre corn field. The excess green vegetation Index was used as a proxy for crop health condition. Compared to the conventional UAS scouting approach, the proposed scouting approach sampled 40% of the field, predicted crop health with 89.8% accuracy, reduced labor cost by 4.8\u00d7 and increased agricultural profits by 1.36\u00d7.",
+    "authors": [
+      {
+        "family_name": "Zhang",
+        "given_name": "Zichen",
+        "orcid": null
+      },
+      {
+        "family_name": "Boubin",
+        "given_name": "Jayson",
+        "orcid": null
+      },
+      {
+        "family_name": "Stewart",
+        "given_name": "Christopher",
+        "orcid": null
+      },
+      {
+        "family_name": "Khanal",
+        "given_name": "Sami",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors (Basel, Switzerland)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/33218000/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "33218000"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [
+      "Agriculture",
+      "Aircraft",
+      "Machine Learning",
+      "Neural Networks, Computer",
+      "Zea mays"
+    ],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.346853+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Rapeseed Stand Count Estimation at Leaf Development Stages With UAV Imagery and Convolutional Neural Networks.",
+    "year": 2020,
+    "provider": "pubmed",
+    "provider_id": "32587594",
+    "external_ids": {
+      "doi": "10.3389/fpls.2016.00365",
+      "arxiv_id": null,
+      "pubmed_id": "32587594",
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Rapeseed is an important oil crop in China. Timely estimation of rapeseed stand count at early growth stages provides useful information for precision fertilization, irrigation, and yield prediction. Based on the nature of rapeseed, the number of tillering leaves is strongly related to its growth stages. However, no field study has been reported on estimating rapeseed stand count by the number of leaves recognized with convolutional neural networks (CNNs) in unmanned aerial vehicle (UAV) imagery. The objectives of this study were to provide a case for rapeseed stand counting with reference to the existing knowledge of the number of leaves per plant and to determine the optimal timing for counting after rapeseed emergence at leaf development stages with one to seven leaves. A CNN model was developed to recognize leaves in UAV-based imagery, and rapeseed stand count was estimated with the number of recognized leaves. The performance of leaf detection was compared using sample sizes of 16, 24, 32, 40, and 48 pixels. Leaf overcounting occurred when a leaf was much bigger than others as this bigger leaf was recognized as several smaller leaves. Results showed CNN-based leaf count achieved the best performance at the four- to six-leaf stage with F-scores greater than 90% after calibration with overcounting rate. On average, 806 out of 812 plants were correctly estimated on 53 days after planting (DAP) at the four- to six-leaf stage, which was considered as the optimal observation timing. For the 32-pixel patch size, root mean square error (RMSE) was 9 plants with relative RMSE (rRMSE) of 2.22% on 53 DAP, while the mean RMSE was 12 with mean rRMSE of 2.89% for all patch sizes. A sample size of 32 pixels was suggested to be optimal accounting for balancing performance and efficiency. The results of this study confirmed that it was feasible to estimate rapeseed stand count in field automatically, rapidly, and accurately. This study provided a special perspective in phenotyping and cultivation management for estimating seedling count for crops that have recognizable leaves at their early growth stage, such as soybean and potato.",
+    "authors": [
+      {
+        "family_name": "Zhang",
+        "given_name": "Jian",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhao",
+        "given_name": "Biquan",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Chenghai",
+        "orcid": null
+      },
+      {
+        "family_name": "Shi",
+        "given_name": "Yeyin",
+        "orcid": null
+      },
+      {
+        "family_name": "Liao",
+        "given_name": "Qingxi",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhou",
+        "given_name": "Guangsheng",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Chufeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Xie",
+        "given_name": "Tianjin",
+        "orcid": null
+      },
+      {
+        "family_name": "Jiang",
+        "given_name": "Zhao",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhang",
+        "given_name": "Dongyan",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Wanneng",
+        "orcid": null
+      },
+      {
+        "family_name": "Huang",
+        "given_name": "Chenglong",
+        "orcid": null
+      },
+      {
+        "family_name": "Xie",
+        "given_name": "Jing",
+        "orcid": null
+      }
+    ],
+    "venue": "Frontiers in plant science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/32587594/",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "pubmed",
+        "id": "32587594"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ1-ALGO-pubmed",
+    "retrieved_at": "2026-09-03 21:56:37.347099+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  }
+]

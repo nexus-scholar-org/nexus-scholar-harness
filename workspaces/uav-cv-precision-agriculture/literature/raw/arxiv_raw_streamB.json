@@ -1,0 +1,1967 @@
+[
+  {
+    "title": "SkySeg: Collaborative Onboard Semantic Segmentation with Heterogeneous UAVs in the Wild",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2605.24014",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2605.24014",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "The demand for unmanned aerial vehicle (UAV)-based image acquisition and analysis has surged, with UAVs increasingly utilized for semantic segmentation tasks. To meet the real-time analysis requirements of UAV remote sensing missions, performing onboard computation and making decisions based on the results is a natural approach. However, deploying semantic segmentation on resource-constrained UAV platforms presents two significant challenges: 1) hardware constraints limit the ability of UAVs to perform real-time semantic segmentation, and 2) environmental variations during flight cause data distribution shifts, deviating from the original training data. To address these issues, this paper introduces SkySeg, a heterogeneous multi-UAV air-air cooperation framework that integrates computer vision and flight pattern to enable onboard semantic segmentation using low-cost sensors. SkySeg employs an efficient information fusion inference method, combining low-definition, wide-area images with high-definition, focused-area images. Additionally, it incorporates a cross-device test-time adaptation (TTA) strategy to enhance segmentation performance in dynamic environments by collaboratively addressing distribution shifts of test data streams across UAVs. Experimental results demonstrate that our SkySeg framework accelerates inference latency by approximately 3.6x, improves onboard segmentation accuracy by 5.91\\%, and achieves a 10.91\\% average accuracy gain in the wild.",
+    "authors": [
+      {
+        "family_name": "Lu",
+        "given_name": "Anqi",
+        "orcid": null
+      },
+      {
+        "family_name": "Cheng",
+        "given_name": "Yun",
+        "orcid": null
+      },
+      {
+        "family_name": "Hu",
+        "given_name": "Youbing",
+        "orcid": null
+      },
+      {
+        "family_name": "Cao",
+        "given_name": "Zhiqiang",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Jie",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Zhijun",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2605.24014v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2605.24014"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.403961+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "S3M: Semantic Segmentation Sparse Mapping for UAVs with RGB-D Camera",
+    "year": 2024,
+    "provider": "arxiv",
+    "provider_id": "2401.08134",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2401.08134",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Unmanned Aerial Vehicles (UAVs) hold immense potential for critical applications, such as search and rescue operations, where accurate perception of indoor environments is paramount. However, the concurrent amalgamation of localization, 3D reconstruction, and semantic segmentation presents a notable hurdle, especially in the context of UAVs equipped with constrained power and computational resources. This paper presents a novel approach to address challenges in semantic information extraction and utilization within UAV operations. Our system integrates state-of-the-art visual SLAM to estimate a comprehensive 6-DoF pose and advanced object segmentation methods at the back end. To improve the computational and storage efficiency of the framework, we adopt a streamlined voxel-based 3D map representation - OctoMap to build a working system. Furthermore, the fusion algorithm is incorporated to obtain the semantic information of each frame from the front-end SLAM task, and the corresponding point. By leveraging semantic information, our framework enhances the UAV's ability to perceive and navigate through indoor spaces, addressing challenges in pose estimation accuracy and uncertainty reduction. Through Gazebo simulations, we validate the efficacy of our proposed system and successfully embed our approach into a Jetson Xavier AGX unit for real-world applications.",
+    "authors": [
+      {
+        "family_name": "Canh",
+        "given_name": "Thanh Nguyen",
+        "orcid": null
+      },
+      {
+        "family_name": "Nguyen",
+        "given_name": "Van-Truong",
+        "orcid": null
+      },
+      {
+        "family_name": "HoangVan",
+        "given_name": "Xiem",
+        "orcid": null
+      },
+      {
+        "family_name": "Elibol",
+        "given_name": "Armagan",
+        "orcid": null
+      },
+      {
+        "family_name": "Chong",
+        "given_name": "Nak Young",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2401.08134v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2401.08134"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.404318+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "UVid-Net: Enhanced Semantic Segmentation of UAV Aerial Videos by Embedding Temporal Information",
+    "year": 2020,
+    "provider": "arxiv",
+    "provider_id": "2011.14284",
+    "external_ids": {
+      "doi": "10.1109/jstars.2021.3069909",
+      "arxiv_id": "2011.14284",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Semantic segmentation of aerial videos has been extensively used for decision making in monitoring environmental changes, urban planning, and disaster management. The reliability of these decision support systems is dependent on the accuracy of the video semantic segmentation algorithms. The existing CNN based video semantic segmentation methods have enhanced the image semantic segmentation methods by incorporating an additional module such as LSTM or optical flow for computing temporal dynamics of the video which is a computational overhead. The proposed research work modifies the CNN architecture by incorporating temporal information to improve the efficiency of video semantic segmentation. In this work, an enhanced encoder-decoder based CNN architecture (UVid-Net) is proposed for UAV video semantic segmentation. The encoder of the proposed architecture embeds temporal information for temporally consistent labelling. The decoder is enhanced by introducing the feature-refiner module, which aids in accurate localization of the class labels. The proposed UVid-Net architecture for UAV video semantic segmentation is quantitatively evaluated on extended ManipalUAVid dataset. The performance metric mIoU of 0.79 has been observed which is significantly greater than the other state-of-the-art algorithms. Further, the proposed work produced promising results even for the pre-trained model of UVid-Net on urban street scene with fine tuning the final layer on UAV aerial videos.",
+    "authors": [
+      {
+        "family_name": "S",
+        "given_name": "Girisha",
+        "orcid": null
+      },
+      {
+        "family_name": "Verma",
+        "given_name": "Ujjwal",
+        "orcid": null
+      },
+      {
+        "family_name": "M",
+        "given_name": "Manohara Pai M",
+        "orcid": null
+      },
+      {
+        "family_name": "Pai",
+        "given_name": "Radhika",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2011.14284v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2011.14284"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.404662+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Enhanced Neuromorphic Semantic Segmentation Latency through Stream Event",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2502.18982",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2502.18982",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Achieving optimal semantic segmentation with frame-based vision sensors poses significant challenges for real-time systems like UAVs and self-driving cars, which require rapid and precise processing. Traditional frame-based methods often struggle to balance latency, accuracy, and energy efficiency. To address these challenges, we leverage event streams from event-based cameras-bio-inspired sensors that trigger events in response to changes in the scene. Specifically, we analyze the number of events triggered between successive frames, with a high number indicating significant changes and a low number indicating minimal changes. We exploit this event information to solve the semantic segmentation task by employing a Spiking Neural Network (SNN), a bio-inspired computing paradigm known for its low energy consumption. Our experiments on the DSEC dataset show that our approach significantly reduces latency with only a limited drop in accuracy. Additionally, by using SNNs, we achieve low power consumption, making our method suitable for energy-constrained real-time applications. To the best of our knowledge, our approach is the first to effectively balance reduced latency, minimal accuracy loss, and energy efficiency using events stream to enhance semantic segmentation in dynamic and resource-limited environments.",
+    "authors": [
+      {
+        "family_name": "Hareb",
+        "given_name": "D.",
+        "orcid": null
+      },
+      {
+        "family_name": "Martinet",
+        "given_name": "J.",
+        "orcid": null
+      },
+      {
+        "family_name": "Miramond",
+        "given_name": "B.",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2502.18982v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2502.18982"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.404955+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Real-Time Multi-Modal Semantic Fusion on Unmanned Aerial Vehicles",
+    "year": 2021,
+    "provider": "arxiv",
+    "provider_id": "2108.06608",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2108.06608",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Unmanned aerial vehicles (UAVs) equipped with multiple complementary sensors have tremendous potential for fast autonomous or remote-controlled semantic scene analysis, e.g., for disaster examination. In this work, we propose a UAV system for real-time semantic inference and fusion of multiple sensor modalities. Semantic segmentation of LiDAR scans and RGB images, as well as object detection on RGB and thermal images, run online onboard the UAV computer using lightweight CNN architectures and embedded inference accelerators. We follow a late fusion approach where semantic information from multiple modalities augments 3D point clouds and image segmentation masks while also generating an allocentric semantic map. Our system provides augmented semantic images and point clouds with $\\approx\\,$9$\\,$Hz. We evaluate the integrated system in real-world experiments in an urban environment.",
+    "authors": [
+      {
+        "family_name": "Bultmann",
+        "given_name": "Simon",
+        "orcid": null
+      },
+      {
+        "family_name": "Quenzel",
+        "given_name": "Jan",
+        "orcid": null
+      },
+      {
+        "family_name": "Behnke",
+        "given_name": "Sven",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2108.06608v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2108.06608"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.405193+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Prototype-Based Low Altitude UAV Semantic Segmentation",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2604.01550",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2604.01550",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Semantic segmentation of low-altitude UAV imagery presents unique challenges due to extreme scale variations, complex object boundaries, and limited computational resources on edge devices. Existing transformer-based segmentation methods achieve remarkable performance but incur high computational overhead, while lightweight approaches struggle to capture fine-grained details in high-resolution aerial scenes. To address these limitations, we propose PBSeg, an efficient prototype-based segmentation framework tailored for UAV applications. PBSeg introduces a novel prototype-based cross-attention (PBCA) that exploits feature redundancy to reduce computational complexity while maintaining segmentation quality. The framework incorporates an efficient multi-scale feature extraction module that combines deformable convolutions (DConv) with context-aware modulation (CAM) to capture both local details and global semantics. Experiments on two challenging UAV datasets demonstrate the effectiveness of the proposed approach. PBSeg achieves 71.86\\% mIoU on UAVid and 80.92\\% mIoU on UDD6, establishing competitive performance while maintaining computational efficiency. Code is available at https://github.com/zhangda1018/PBSeg.",
+    "authors": [
+      {
+        "family_name": "Zhang",
+        "given_name": "Da",
+        "orcid": null
+      },
+      {
+        "family_name": "Junyu",
+        "given_name": "Gao",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhiyuan",
+        "given_name": "Zhao",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2604.01550v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2604.01550"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.405454+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Efficient Semantic Segmentation on Edge Devices",
+    "year": 2022,
+    "provider": "arxiv",
+    "provider_id": "2212.13691",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2212.13691",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Semantic segmentation works on the computer vision algorithm for assigning each pixel of an image into a class. The task of semantic segmentation should be performed with both accuracy and efficiency. Most of the existing deep FCNs yield to heavy computations and these networks are very power hungry, unsuitable for real-time applications on portable devices. This project analyzes current semantic segmentation models to explore the feasibility of applying these models for emergency response during catastrophic events. We compare the performance of real-time semantic segmentation models with non-real-time counterparts constrained by aerial images under oppositional settings. Furthermore, we train several models on the Flood-Net dataset, containing UAV images captured after Hurricane Harvey, and benchmark their execution on special classes such as flooded buildings vs. non-flooded buildings or flooded roads vs. non-flooded roads. In this project, we developed a real-time UNet based model and deployed that network on Jetson AGX Xavier module.",
+    "authors": [
+      {
+        "family_name": "Safavi",
+        "given_name": "Farshad",
+        "orcid": null
+      },
+      {
+        "family_name": "Ali",
+        "given_name": "Irfan",
+        "orcid": null
+      },
+      {
+        "family_name": "Dasari",
+        "given_name": "Venkatesh",
+        "orcid": null
+      },
+      {
+        "family_name": "Song",
+        "given_name": "Guanqun",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhu",
+        "given_name": "Ting",
+        "orcid": null
+      },
+      {
+        "family_name": "Rahnemoonfar",
+        "given_name": "Maryam",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2212.13691v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2212.13691"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.405725+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "BAWSeg: A UAV Multispectral Benchmark for Barley Weed Segmentation",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2603.01932",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2603.01932",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate weed mapping in cereal fields requires pixel-level segmentation from UAV imagery that remains reliable across fields, seasons, and illumination. Existing multispectral pipelines often depend on thresholded vegetation indices, which are brittle under radiometric drift and mixed crop--weed pixels, or on single-stream CNN and Transformer backbones that ingest stacked bands and indices, where radiance cues and normalized index cues interfere and reduce sensitivity to small weed clusters embedded in crop canopy. We propose VISA, a two-stream segmentation network that decouples these cues and fuses them at native resolution. The radiance stream learns from calibrated five-band reflectance using local residual convolutions, channel recalibration, spatial gating, and skip-connected decoding, which preserve fine textures, row boundaries, and small weed structures that are often weakened after ratio-based index compression. The index stream operates on vegetation-index maps with windowed self-attention to model local structure efficiently, state-space layers to propagate field-scale context without quadratic attention cost, and Slot Attention to form stable region descriptors that improve discrimination of sparse weeds under canopy mixing. To support supervised training and deployment-oriented evaluation, we introduce BAWSeg, a four-year UAV multispectral dataset collected over commercial barley paddocks in Western Australia, providing radiometrically calibrated blue, green, red, red edge, and near-infrared orthomosaics, derived vegetation indices, and dense crop, weed, and other labels with leakage-free block splits. On BAWSeg, VISA achieves 75.6% mIoU and 63.5% weed IoU with 22.8 M parameters, outperforming a multispectral SegFormer-B1 baseline by 1.2 mIoU and 1.9 weed IoU. Under cross-plot and cross-year protocols, VISA maintains 71.2% and 69.2% mIoU, respectively.",
+    "authors": [
+      {
+        "family_name": "Wang",
+        "given_name": "Haitian",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Xinyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Ibrahim",
+        "given_name": "Muhammad",
+        "orcid": null
+      },
+      {
+        "family_name": "Severtson",
+        "given_name": "Dustin",
+        "orcid": null
+      },
+      {
+        "family_name": "Mian",
+        "given_name": "Ajmal",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2603.01932v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2603.01932"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.406089+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Exploration of Optimized Semantic Segmentation Architectures for edge-Deployment on Drones",
+    "year": 2020,
+    "provider": "arxiv",
+    "provider_id": "2007.02839",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2007.02839",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "In this paper, we present an analysis on the impact of network parameters for semantic segmentation architectures in context of UAV data processing. We present the analysis on the DroneDeploy Segmentation benchmark. Based on the comparative analysis we identify the optimal network architecture to be FPN-EfficientNetB3 with pretrained encoder backbones based on Imagenet Dataset. The network achieves IoU score of 0.65 and F1-score of 0.71 over the validation dataset. We also compare the various architectures in terms of their memory footprint and inference latency with further exploration of the impact of TensorRT based optimizations. We achieve memory savings of ~4.1x and latency improvement of 10% compared to Model: FPN and Backbone: InceptionResnetV2.",
+    "authors": [
+      {
+        "family_name": "Parmar",
+        "given_name": "Vivek",
+        "orcid": null
+      },
+      {
+        "family_name": "Bhatia",
+        "given_name": "Narayani",
+        "orcid": null
+      },
+      {
+        "family_name": "Negi",
+        "given_name": "Shubham",
+        "orcid": null
+      },
+      {
+        "family_name": "Suri",
+        "given_name": "Manan",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2007.02839v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2007.02839"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.406326+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Vision-Language Semantic Grounding for Multi-Domain Crop-Weed Segmentation",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2602.23677",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2602.23677",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Fine-grained crop-weed segmentation is essential for enabling targeted herbicide application in precision agriculture. However, existing deep learning models struggle to generalize across heterogeneous agricultural environments due to reliance on dataset-specific visual features. We propose Vision-Language Weed Segmentation (VL-WS), a novel framework that addresses this limitation by grounding pixel-level segmentation in semantically aligned, domain-invariant representations. Our architecture employs a dual-encoder design, where frozen Contrastive Language-Image Pretraining (CLIP) embeddings and task-specific spatial features are fused and modulated via Feature-wise Linear Modulation (FiLM) layers conditioned on natural language captions. This design enables image level textual descriptions to guide channel-wise feature refinement while preserving fine-grained spatial localization. Unlike prior works restricted to training and evaluation on single-source datasets, VL-WS is trained on a unified corpus that includes close-range ground imagery (robotic platforms) and high-altitude UAV imagery, covering diverse crop types, weed species, growth stages, and sensing conditions. Experimental results across four benchmark datasets demonstrate the effectiveness of our framework, with VL-WS achieving a mean Dice score of 91.64% and outperforming the CNN baseline by 4.98%. The largest gains occur on the most challenging weed class, where VL-WS attains 80.45% Dice score compared to 65.03% for the best baseline, representing a 15.42% improvement. VL-WS further maintains stable weed segmentation performance under limited target-domain supervision, indicating improved generalization and data efficiency. These findings highlight the potential of vision-language alignment to enable scalable, label-efficient segmentation models deployable across diverse real-world agricultural domains.",
+    "authors": [
+      {
+        "family_name": "Hossain",
+        "given_name": "Nazia",
+        "orcid": null
+      },
+      {
+        "family_name": "Jiang",
+        "given_name": "Xintong",
+        "orcid": null
+      },
+      {
+        "family_name": "Tian",
+        "given_name": "Yu",
+        "orcid": null
+      },
+      {
+        "family_name": "Seguin",
+        "given_name": "Philippe",
+        "orcid": null
+      },
+      {
+        "family_name": "Clark",
+        "given_name": "O. Grant",
+        "orcid": null
+      },
+      {
+        "family_name": "Sun",
+        "given_name": "Shangpeng",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2602.23677v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2602.23677"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.406690+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Lightweight Multispectral Crop-Weed Segmentation for Precision Agriculture",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2505.07444",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2505.07444",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Efficient crop-weed segmentation is critical for site-specific weed control in precision agriculture. Conventional CNN-based methods struggle to generalize and rely on RGB imagery, limiting performance under complex field conditions. To address these challenges, we propose a lightweight transformer-CNN hybrid. It processes RGB, Near-Infrared (NIR), and Red-Edge (RE) bands using specialized encoders and dynamic modality integration. Evaluated on the WeedsGalore dataset, the model achieves a segmentation accuracy (mean IoU) of 78.88%, outperforming RGB-only models by 15.8 percentage points. With only 8.7 million parameters, the model offers high accuracy, computational efficiency, and potential for real-time deployment on Unmanned Aerial Vehicles (UAVs) and edge devices, advancing precision weed management.",
+    "authors": [
+      {
+        "family_name": "Galymzhankyzy",
+        "given_name": "Zeynep",
+        "orcid": null
+      },
+      {
+        "family_name": "Martinson",
+        "given_name": "Eric",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2505.07444v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2505.07444"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.406904+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Real-Time Multi-Modal Semantic Fusion on Unmanned Aerial Vehicles with Label Propagation for Cross-Domain Adaptation",
+    "year": 2022,
+    "provider": "arxiv",
+    "provider_id": "2210.09739",
+    "external_ids": {
+      "doi": "10.1016/j.robot.2022.104286",
+      "arxiv_id": "2210.09739",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Unmanned aerial vehicles (UAVs) equipped with multiple complementary sensors have tremendous potential for fast autonomous or remote-controlled semantic scene analysis, e.g., for disaster examination. Here, we propose a UAV system for real-time semantic inference and fusion of multiple sensor modalities. Semantic segmentation of LiDAR scans and RGB images, as well as object detection on RGB and thermal images, run online onboard the UAV computer using lightweight CNN architectures and embedded inference accelerators. We follow a late fusion approach where semantic information from multiple sensor modalities augments 3D point clouds and image segmentation masks while also generating an allocentric semantic map. Label propagation on the semantic map allows for sensor-specific adaptation with cross-modality and cross-domain supervision. Our system provides augmented semantic images and point clouds with $\\approx$ 9 Hz. We evaluate the integrated system in real-world experiments in an urban environment and at a disaster test site.",
+    "authors": [
+      {
+        "family_name": "Bultmann",
+        "given_name": "Simon",
+        "orcid": null
+      },
+      {
+        "family_name": "Quenzel",
+        "given_name": "Jan",
+        "orcid": null
+      },
+      {
+        "family_name": "Behnke",
+        "given_name": "Sven",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2210.09739v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2210.09739"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.407169+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Co-SemDepth: Fast Joint Semantic Segmentation and Depth Estimation on Aerial Images",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2503.17982",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2503.17982",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Understanding the geometric and semantic properties of the scene is crucial in autonomous navigation and particularly challenging in the case of Unmanned Aerial Vehicle (UAV) navigation. Such information may be by obtained by estimating depth and semantic segmentation maps of the surrounding environment and for their practical use in autonomous navigation, the procedure must be performed as close to real-time as possible. In this paper, we leverage monocular cameras on aerial robots to predict depth and semantic maps in low-altitude unstructured environments. We propose a joint deep-learning architecture that can perform the two tasks accurately and rapidly, and validate its effectiveness on MidAir and Aeroscapes benchmark datasets. Our joint-architecture proves to be competitive or superior to the other single and joint architecture methods while performing its task fast predicting 20.2 FPS on a single NVIDIA quadro p5000 GPU and it has a low memory footprint. All codes for training and prediction can be found on this link: https://github.com/Malga-Vision/Co-SemDepth",
+    "authors": [
+      {
+        "family_name": "AlaaEldin",
+        "given_name": "Yara",
+        "orcid": null
+      },
+      {
+        "family_name": "Odone",
+        "given_name": "Francesca",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2503.17982v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2503.17982"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.407422+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Beyond Classification: Directly Training Spiking Neural Networks for Semantic Segmentation",
+    "year": 2021,
+    "provider": "arxiv",
+    "provider_id": "2110.07742",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2110.07742",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Spiking Neural Networks (SNNs) have recently emerged as the low-power alternative to Artificial Neural Networks (ANNs) because of their sparse, asynchronous, and binary event-driven processing. Due to their energy efficiency, SNNs have a high possibility of being deployed for real-world, resource-constrained systems such as autonomous vehicles and drones. However, owing to their non-differentiable and complex neuronal dynamics, most previous SNN optimization methods have been limited to image recognition. In this paper, we explore the SNN applications beyond classification and present semantic segmentation networks configured with spiking neurons. Specifically, we first investigate two representative SNN optimization techniques for recognition tasks (i.e., ANN-SNN conversion and surrogate gradient learning) on semantic segmentation datasets. We observe that, when converted from ANNs, SNNs suffer from high latency and low performance due to the spatial variance of features. Therefore, we directly train networks with surrogate gradient learning, resulting in lower latency and higher performance than ANN-SNN conversion. Moreover, we redesign two fundamental ANN segmentation architectures (i.e., Fully Convolutional Networks and DeepLab) for the SNN domain. We conduct experiments on two public semantic segmentation benchmarks including the PASCAL VOC2012 dataset and the DDD17 event-based dataset. In addition to showing the feasibility of SNNs for semantic segmentation, we show that SNNs can be more robust and energy-efficient compared to their ANN counterparts in this domain.",
+    "authors": [
+      {
+        "family_name": "Kim",
+        "given_name": "Youngeun",
+        "orcid": null
+      },
+      {
+        "family_name": "Chough",
+        "given_name": "Joshua",
+        "orcid": null
+      },
+      {
+        "family_name": "Panda",
+        "given_name": "Priyadarshini",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2110.07742v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2110.07742"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.407739+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Memory-Constrained Semantic Segmentation for Ultra-High Resolution UAV Imagery",
+    "year": 2023,
+    "provider": "arxiv",
+    "provider_id": "2310.04721",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2310.04721",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Amidst the swift advancements in photography and sensor technologies, high-definition cameras have become commonplace in the deployment of Unmanned Aerial Vehicles (UAVs) for diverse operational purposes. Within the domain of UAV imagery analysis, the segmentation of ultra-high resolution images emerges as a substantial and intricate challenge, especially when grappling with the constraints imposed by GPU memory-restricted computational devices. This paper delves into the intricate problem of achieving efficient and effective segmentation of ultra-high resolution UAV imagery, while operating under stringent GPU memory limitation. The strategy of existing approaches is to downscale the images to achieve computationally efficient segmentation. However, this strategy tends to overlook smaller, thinner, and curvilinear regions. To address this problem, we propose a GPU memory-efficient and effective framework for local inference without accessing the context beyond local patches. In particular, we introduce a novel spatial-guided high-resolution query module, which predicts pixel-wise segmentation results with high quality only by querying nearest latent embeddings with the guidance of high-resolution information. Additionally, we present an efficient memory-based interaction scheme to correct potential semantic bias of the underlying high-resolution information by associating cross-image contextual semantics. For evaluation of our approach, we perform comprehensive experiments over public benchmarks and achieve superior performance under both conditions of small and large GPU memory usage limitations. We will release the model and codes in the future.",
+    "authors": [
+      {
+        "family_name": "Li",
+        "given_name": "Qi",
+        "orcid": null
+      },
+      {
+        "family_name": "Cai",
+        "given_name": "Jiaxin",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Yuanlong",
+        "orcid": null
+      },
+      {
+        "family_name": "Gu",
+        "given_name": "Jason",
+        "orcid": null
+      },
+      {
+        "family_name": "Pan",
+        "given_name": "Jia",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Wenxi",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2310.04721v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2310.04721"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.408083+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Real-Time Video Inference on Edge Devices via Adaptive Model Streaming",
+    "year": 2020,
+    "provider": "arxiv",
+    "provider_id": "2006.06628",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2006.06628",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Real-time video inference on edge devices like mobile phones and drones is challenging due to the high computation cost of Deep Neural Networks. We present Adaptive Model Streaming (AMS), a new approach to improving performance of efficient lightweight models for video inference on edge devices. AMS uses a remote server to continually train and adapt a small model running on the edge device, boosting its performance on the live video using online knowledge distillation from a large, state-of-the-art model. We discuss the challenges of over-the-network model adaptation for video inference, and present several techniques to reduce communication cost of this approach: avoiding excessive overfitting, updating a small fraction of important model parameters, and adaptive sampling of training frames at edge devices. On the task of video semantic segmentation, our experimental results show 0.4--17.8 percent mean Intersection-over-Union improvement compared to a pre-trained model across several video datasets. Our prototype can perform video segmentation at 30 frames-per-second with 40 milliseconds camera-to-label latency on a Samsung Galaxy S10+ mobile phone, using less than 300 Kbps uplink and downlink bandwidth on the device.",
+    "authors": [
+      {
+        "family_name": "Khani",
+        "given_name": "Mehrdad",
+        "orcid": null
+      },
+      {
+        "family_name": "Hamadanian",
+        "given_name": "Pouya",
+        "orcid": null
+      },
+      {
+        "family_name": "Nasr-Esfahany",
+        "given_name": "Arash",
+        "orcid": null
+      },
+      {
+        "family_name": "Alizadeh",
+        "given_name": "Mohammad",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2006.06628v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2006.06628"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.408376+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "FBSNet: A Fast Bilateral Symmetrical Network for Real-Time Semantic Segmentation",
+    "year": 2021,
+    "provider": "arxiv",
+    "provider_id": "2109.00699",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2109.00699",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Real-time semantic segmentation, which can be visually understood as the pixel-level classification task on the input image, currently has broad application prospects, especially in the fast-developing fields of autonomous driving and drone navigation. However, the huge burden of calculation together with redundant parameters are still the obstacles to its technological development. In this paper, we propose a Fast Bilateral Symmetrical Network (FBSNet) to alleviate the above challenges. Specifically, FBSNet employs a symmetrical encoder-decoder structure with two branches, semantic information branch and spatial detail branch. The Semantic Information Branch (SIB) is the main branch with semantic architecture to acquire the contextual information of the input image and meanwhile acquire sufficient receptive field. While the Spatial Detail Branch (SDB) is a shallow and simple network used to establish local dependencies of each pixel for preserving details, which is essential for restoring the original resolution during the decoding phase. Meanwhile, a Feature Aggregation Module (FAM) is designed to effectively combine the output of these two branches. Experimental results of Cityscapes and CamVid show that the proposed FBSNet can strike a good balance between accuracy and efficiency. Specifically, it obtains 70.9\\% and 68.9\\% mIoU along with the inference speed of 90 fps and 120 fps on these two test datasets, respectively, with only 0.62 million parameters on a single RTX 2080Ti GPU. The code is available at https://github.com/IVIPLab/FBSNet.",
+    "authors": [
+      {
+        "family_name": "Gao",
+        "given_name": "Guangwei",
+        "orcid": null
+      },
+      {
+        "family_name": "Xu",
+        "given_name": "Guoan",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Juncheng",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Yi",
+        "orcid": null
+      },
+      {
+        "family_name": "Lu",
+        "given_name": "Huimin",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Jian",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2109.00699v3",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2109.00699"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.408763+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Hyperbolic Uncertainty Aware Semantic Segmentation",
+    "year": 2022,
+    "provider": "arxiv",
+    "provider_id": "2203.08881",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2203.08881",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Semantic segmentation (SS) aims to classify each pixel into one of the pre-defined classes. This task plays an important role in self-driving cars and autonomous drones. In SS, many works have shown that most misclassified pixels are commonly near object boundaries with high uncertainties. However, existing SS loss functions are not tailored to handle these uncertain pixels during training, as these pixels are usually treated equally as confidently classified pixels and cannot be embedded with arbitrary low distortion in Euclidean space, thereby degenerating the performance of SS. To overcome this problem, this paper designs a \"Hyperbolic Uncertainty Loss\" (HyperUL), which dynamically highlights the misclassified and high-uncertainty pixels in Hyperbolic space during training via the hyperbolic distances. The proposed HyperUL is model agnostic and can be easily applied to various neural architectures. After employing HyperUL to three recent SS models, the experimental results on Cityscapes and UAVid datasets reveal that the segmentation performance of existing SS models can be consistently improved.",
+    "authors": [
+      {
+        "family_name": "Chen",
+        "given_name": "Bike",
+        "orcid": null
+      },
+      {
+        "family_name": "Peng",
+        "given_name": "Wei",
+        "orcid": null
+      },
+      {
+        "family_name": "Cao",
+        "given_name": "Xiaofeng",
+        "orcid": null
+      },
+      {
+        "family_name": "R\u00f6ning",
+        "given_name": "Juha",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2203.08881v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2203.08881"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.409353+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Compressing Vision Transformers for Low-Resource Visual Learning",
+    "year": 2023,
+    "provider": "arxiv",
+    "provider_id": "2309.02617",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2309.02617",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Vision transformer (ViT) and its variants have swept through visual learning leaderboards and offer state-of-the-art accuracy in tasks such as image classification, object detection, and semantic segmentation by attending to different parts of the visual input and capturing long-range spatial dependencies. However, these models are large and computation-heavy. For instance, the recently proposed ViT-B model has 86M parameters making it impractical for deployment on resource-constrained devices. As a result, their deployment on mobile and edge scenarios is limited. In our work, we aim to take a step toward bringing vision transformers to the edge by utilizing popular model compression techniques such as distillation, pruning, and quantization. Our chosen application environment is an unmanned aerial vehicle (UAV) that is battery-powered and memory-constrained, carrying a single-board computer on the scale of an NVIDIA Jetson Nano with 4GB of RAM. On the other hand, the UAV requires high accuracy close to that of state-of-the-art ViTs to ensure safe object avoidance in autonomous navigation, or correct localization of humans in search-and-rescue. Inference latency should also be minimized given the application requirements. Hence, our target is to enable rapid inference of a vision transformer on an NVIDIA Jetson Nano (4GB) with minimal accuracy loss. This allows us to deploy ViTs on resource-constrained devices, opening up new possibilities in surveillance, environmental monitoring, etc. Our implementation is made available at https://github.com/chensy7/efficient-vit.",
+    "authors": [
+      {
+        "family_name": "Youn",
+        "given_name": "Eric",
+        "orcid": null
+      },
+      {
+        "family_name": "J",
+        "given_name": "Sai Mitheran",
+        "orcid": null
+      },
+      {
+        "family_name": "Prabhu",
+        "given_name": "Sanjana",
+        "orcid": null
+      },
+      {
+        "family_name": "Chen",
+        "given_name": "Siyuan",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2309.02617v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2309.02617"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.410083+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "MSCFNet: A Lightweight Network With Multi-Scale Context Fusion for Real-Time Semantic Segmentation",
+    "year": 2021,
+    "provider": "arxiv",
+    "provider_id": "2103.13044",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2103.13044",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "In recent years, how to strike a good trade-off between accuracy and inference speed has become the core issue for real-time semantic segmentation applications, which plays a vital role in real-world scenarios such as autonomous driving systems and drones. In this study, we devise a novel lightweight network using a multi-scale context fusion (MSCFNet) scheme, which explores an asymmetric encoder-decoder architecture to dispose this problem. More specifically, the encoder adopts some developed efficient asymmetric residual (EAR) modules, which are composed of factorization depth-wise convolution and dilation convolution. Meanwhile, instead of complicated computation, simple deconvolution is applied in the decoder to further reduce the amount of parameters while still maintaining high segmentation accuracy. Also, MSCFNet has branches with efficient attention modules from different stages of the network to well capture multi-scale contextual information. Then we combine them before the final classification to enhance the expression of the features and improve the segmentation efficiency. Comprehensive experiments on challenging datasets have demonstrated that the proposed MSCFNet, which contains only 1.15M parameters, achieves 71.9\\% Mean IoU on the Cityscapes testing dataset and can run at over 50 FPS on a single Titan XP GPU configuration.",
+    "authors": [
+      {
+        "family_name": "Gao",
+        "given_name": "Guangwei",
+        "orcid": null
+      },
+      {
+        "family_name": "Xu",
+        "given_name": "Guoan",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Yi",
+        "orcid": null
+      },
+      {
+        "family_name": "Xie",
+        "given_name": "Jin",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Jian",
+        "orcid": null
+      },
+      {
+        "family_name": "Yue",
+        "given_name": "Dong",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2103.13044v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2103.13044"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.410820+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "CarboFormer: A Lightweight Semantic Segmentation Architecture for Efficient Carbon Dioxide Detection Using Optical Gas Imaging",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2506.05360",
+    "external_ids": {
+      "doi": "10.1007/978-3-032-14495-9_1",
+      "arxiv_id": "2506.05360",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Carbon dioxide (CO$_2$) emissions are critical indicators of both environmental impact and various industrial processes, including livestock management. We introduce CarboFormer, a lightweight semantic segmentation framework for Optical Gas Imaging (OGI), designed to detect and quantify CO$_2$ emissions across diverse applications. Our approach integrates an optimized encoder-decoder architecture with specialized multi-scale feature fusion and auxiliary supervision strategies to effectively model both local details and global relationships in gas plume imagery while achieving competitive accuracy with minimal computational overhead for resource-constrained environments. We contribute two novel datasets: (1) the Controlled Carbon Dioxide Release (CCR) dataset, which simulates gas leaks with systematically varied flow rates (10-100 SCCM), and (2) the Real Time Ankom (RTA) dataset, focusing on emissions from dairy cow rumen fluid in vitro experiments. Extensive evaluations demonstrate that CarboFormer achieves competitive performance with 84.88\\% mIoU on CCR and 92.98\\% mIoU on RTA, while maintaining computational efficiency with only 5.07M parameters and operating at 84.68 FPS. The model shows particular effectiveness in challenging low-flow scenarios and significantly outperforms other lightweight methods like SegFormer-B0 (83.36\\% mIoU on CCR) and SegNeXt (82.55\\% mIoU on CCR), making it suitable for real-time monitoring on resource-constrained platforms such as programmable drones. Our work advances both environmental sensing and precision livestock management by providing robust and efficient tools for CO$_2$ emission analysis.",
+    "authors": [
+      {
+        "family_name": "Islam",
+        "given_name": "Taminul",
+        "orcid": null
+      },
+      {
+        "family_name": "Sarker",
+        "given_name": "Toqi Tahamid",
+        "orcid": null
+      },
+      {
+        "family_name": "Embaby",
+        "given_name": "Mohamed G",
+        "orcid": null
+      },
+      {
+        "family_name": "Ahmed",
+        "given_name": "Khaled R",
+        "orcid": null
+      },
+      {
+        "family_name": "AbuGhazaleh",
+        "given_name": "Amer",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2506.05360v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2506.05360"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.411605+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "DAS-SK: An Adaptive Model Integrating Dual Atrous Separable and Selective Kernel CNN for Agriculture Semantic Segmentation",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2602.08168",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2602.08168",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Semantic segmentation in high-resolution agricultural imagery demands models that strike a careful balance between accuracy and computational efficiency to enable deployment in practical systems. In this work, we propose DAS-SK, a novel lightweight architecture that retrofits selective kernel convolution (SK-Conv) into the dual atrous separable convolution (DAS-Conv) module to strengthen multi-scale feature learning. The model further enhances the atrous spatial pyramid pooling (ASPP) module, enabling the capture of fine-grained local structures alongside global contextual information. Built upon a modified DeepLabV3 framework with two complementary backbones - MobileNetV3-Large and EfficientNet-B3, the DAS-SK model mitigates limitations associated with large dataset requirements, limited spectral generalization, and the high computational cost that typically restricts deployment on UAVs and other edge devices. Comprehensive experiments across three benchmarks: LandCover.ai, VDD, and PhenoBench, demonstrate that DAS-SK consistently achieves state-of-the-art performance, while being more efficient than CNN-, transformer-, and hybrid-based competitors. Notably, DAS-SK requires up to 21x fewer parameters and 19x fewer GFLOPs than top-performing transformer models. These findings establish DAS-SK as a robust, efficient, and scalable solution for real-time agricultural robotics and high-resolution remote sensing, with strong potential for broader deployment in other vision domains.",
+    "authors": [
+      {
+        "family_name": "Chee",
+        "given_name": "Mei Ling",
+        "orcid": null
+      },
+      {
+        "family_name": "Akilan",
+        "given_name": "Thangarajah",
+        "orcid": null
+      },
+      {
+        "family_name": "Phalke",
+        "given_name": "Aparna Ravindra",
+        "orcid": null
+      },
+      {
+        "family_name": "Keisham",
+        "given_name": "Kanchan",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2602.08168v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2602.08168"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.412305+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "ArmFormer: Lightweight Transformer Architecture for Real-Time Multi-Class Weapon Segmentation and Classification",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2510.16854",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2510.16854",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "The escalating threat of weapon-related violence necessitates automated detection systems capable of pixel-level precision for accurate threat assessment in real-time security applications. Traditional weapon detection approaches rely on object detection frameworks that provide only coarse bounding box localizations, lacking the fine-grained segmentation required for comprehensive threat analysis. Furthermore, existing semantic segmentation models either sacrifice accuracy for computational efficiency or require excessive computational resources incompatible with edge deployment scenarios. This paper presents ArmFormer, a lightweight transformer-based semantic segmentation framework that strategically integrates Convolutional Block Attention Module (CBAM) with MixVisionTransformer architecture to achieve superior accuracy while maintaining computational efficiency suitable for resource-constrained edge devices. Our approach combines CBAM-enhanced encoder backbone with attention-integrated hamburger decoder to enable multi-class weapon segmentation across five categories: handgun, rifle, knife, revolver, and human. Comprehensive experiments demonstrate that ArmFormer achieves state-of-the-art performance with 80.64% mIoU and 89.13% mFscore while maintaining real-time inference at 82.26 FPS. With only 4.886G FLOPs and 3.66M parameters, ArmFormer outperforms heavyweight models requiring up to 48x more computation, establishing it as the optimal solution for deployment on portable security cameras, surveillance drones, and embedded AI accelerators in distributed security infrastructure.",
+    "authors": [
+      {
+        "family_name": "Kambhatla",
+        "given_name": "Akhila",
+        "orcid": null
+      },
+      {
+        "family_name": "Islam",
+        "given_name": "Taminul",
+        "orcid": null
+      },
+      {
+        "family_name": "Ahmed",
+        "given_name": "Khaled R",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2510.16854v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2510.16854"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.413014+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A Case Study on Energy-Efficient Edge AI Crack Segmentation",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2604.13933",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2604.13933",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Crack segmentation on edge devices can support continuous infrastructure monitoring and maintenance and thereby help to preserve public safety. Furthermore, autonomous infrastructure monitoring by using Unmanned Aerial Vehicles (UAVs) can reduce inspection risks, as human operators no longer need to enter hazardous areas. Edge processing reduces the cost of inspection by eliminating the need for high resolution image storage for offline processing and mitigates the security risks and bandwidth requirements of streaming to cloud servers. Edge inference is difficult due to the limited memory and computational capabilities of edge devices, which can affect both accuracy and latency. Furthermore, battery-powered devices are subject to strict power and energy constraints. Together, these limitations impose restrictions on the model size and computational complexity that can be deployed close to the sensor. In recent years, Transformers have achieved state-of-the-art accuracy in a variety of applications, including semantic segmentation. However, Transformer-based models are typically large and computationally intensive, making efficient edge deployment difficult. To address this, we first apply knowledge distillation to enhance the performance of the base models. We then use PTQ to compress the models further. Additionally, we consider the deployment of these models across multiple edge platforms. To maximize energy efficiency, we design and implement a custom hardware architecture for the models on an FPGA. Our results show that Knowledge Distillation (KD) improves all tested U-Net variants. Among the evaluated platforms, the selected FPGA implementation achieves 398 FPS at 204.99 Frames/J while maintaining a mean IoU of 69.42%. In addition, our best model reaches 71.92% mean IoU, which is 8.82 percentage points (pps) higher than the previously reported result on the CrackVision12K dataset.",
+    "authors": [
+      {
+        "family_name": "Tschope",
+        "given_name": "Matthias",
+        "orcid": null
+      },
+      {
+        "family_name": "Moursi",
+        "given_name": "Mohamed",
+        "orcid": null
+      },
+      {
+        "family_name": "Rybalkin",
+        "given_name": "Vladimir",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhou",
+        "given_name": "Bo",
+        "orcid": null
+      },
+      {
+        "family_name": "Wehn",
+        "given_name": "Norbert",
+        "orcid": null
+      },
+      {
+        "family_name": "Lukowicz",
+        "given_name": "Paul",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2604.13933v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2604.13933"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.413854+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "TSJNet: A Multi-modality Target and Semantic Awareness Joint-driven Image Fusion Network",
+    "year": 2024,
+    "provider": "arxiv",
+    "provider_id": "2402.01212",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2402.01212",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "This study aims to address the problem of incomplete information in unimodal images for semantic segmentation and object detection tasks. Existing multimodal fusion methods suffer from limited capability in discriminative modeling of multi-scale semantic structures and salient target regions, which further restricts the effective fusion of task-related semantic details and target information across modalities. To tackle these challenges, this paper proposes a novel fusion network termed TSJNet, which leverages the semantic information output by high-level tasks in a joint manner to guide the fusion process. Specifically, we design a multi-dimensional feature extraction module with dual parallel branches to capture multi-scale and salient features. Meanwhile, a data-agnostic spatial attention module embedded in the decoder dynamically calibrates attention allocation across different data domains, significantly enhancing the model's generalization ability. To optimize both fusion and advanced visual tasks, we balance performance by combining fusion loss with semantic losses. Additionally, we have developed a multimodal unmanned aerial vehicle (UAV) dataset covering multiple scenarios (UMS). Extensive experiments demonstrate that TSJNet achieves outstanding performance on five public datasets (MSRS, M\\textsuperscript{3}FD, RoadScene, LLVIP, and TNO) and our UMS dataset. The generated fusion results exhibit favorable visual effects, and compared to state-of-the-art methods, the mean average precision (mAP@0.5) and mean intersection over union (mIoU) for object detection and segmentation, respectively, improve by 7.97\\% and 10.88\\%.The code and the dataset has been publicly released at https://github.com/XylonXu01/TSJNet.",
+    "authors": [
+      {
+        "family_name": "Jie",
+        "given_name": "Yuchan",
+        "orcid": null
+      },
+      {
+        "family_name": "Xu",
+        "given_name": "Yushen",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Xiaosong",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Huafeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Tan",
+        "given_name": "Haishu",
+        "orcid": null
+      },
+      {
+        "family_name": "Nie",
+        "given_name": "Feiping",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2402.01212v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2402.01212"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.414462+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "H2O-Net: Self-Supervised Flood Segmentation via Adversarial Domain Adaptation and Label Refinement",
+    "year": 2020,
+    "provider": "arxiv",
+    "provider_id": "2010.05309",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2010.05309",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate flood detection in near real time via high resolution, high latency satellite imagery is essential to prevent loss of lives by providing quick and actionable information. Instruments and sensors useful for flood detection are only available in low resolution, low latency satellites with region re-visit periods of up to 16 days, making flood alerting systems that use such satellites unreliable. This work presents H2O-Network, a self supervised deep learning method to segment floods from satellites and aerial imagery by bridging domain gap between low and high latency satellite and coarse-to-fine label refinement. H2O-Net learns to synthesize signals highly correlative with water presence as a domain adaptation step for semantic segmentation in high resolution satellite imagery. Our work also proposes a self-supervision mechanism, which does not require any hand annotation, used during training to generate high quality ground truth data. We demonstrate that H2O-Net outperforms the state-of-the-art semantic segmentation methods on satellite imagery by 10% and 12% pixel accuracy and mIoU respectively for the task of flood segmentation. We emphasize the generalizability of our model by transferring model weights trained on satellite imagery to drone imagery, a highly different sensor and domain.",
+    "authors": [
+      {
+        "family_name": "Akiva",
+        "given_name": "Peri",
+        "orcid": null
+      },
+      {
+        "family_name": "Purri",
+        "given_name": "Matthew",
+        "orcid": null
+      },
+      {
+        "family_name": "Dana",
+        "given_name": "Kristin",
+        "orcid": null
+      },
+      {
+        "family_name": "Tellman",
+        "given_name": "Beth",
+        "orcid": null
+      },
+      {
+        "family_name": "Anderson",
+        "given_name": "Tyler",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2010.05309v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2010.05309"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.415347+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Lightweight Transformer-Driven Segmentation of Hotspots and Snail Trails in Solar PV Thermal Imagery",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2507.20680",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2507.20680",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate detection of defects such as hotspots and snail trails in photovoltaic modules is essential for maintaining energy efficiency and system reliablility. This work presents a supervised deep learning framework for segmenting thermal infrared images of PV panels, using a dataset of 277 aerial thermographic images captured by zenmuse XT infrared camera mounted on a DJI Matrice 100 drone. The preprocessing pipeline includes image resizing, CLAHE based contrast enhancement, denoising, and normalisation. A lightweight semantic segmentation model based on SegFormer is developed, featuring a customised Transformwer encoder and streamlined decoder, and fine-tuned on annotated images with manually labeled defect regions. To evaluate performance, we benchmark our model against U-Net, DeepLabV3, PSPNet, and Mask2Former using consistent preprocessing and augmentation. Evaluation metrices includes per-class Dice score, F1-score, Cohen's kappa, mean IoU, and pixel accuracy. The SegFormer-based model outperforms baselines in accuracy and efficiency, particularly for segmenting small and irregular defects. Its lightweight design real-time deployment on edge devices and seamless integration with drone-based systems for automated inspection of large-scale solar farms.",
+    "authors": [
+      {
+        "family_name": "Joshi",
+        "given_name": "Deepak",
+        "orcid": null
+      },
+      {
+        "family_name": "Pal",
+        "given_name": "Mayukha",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2507.20680v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2507.20680"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.415755+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "PLGAN: Generative Adversarial Networks for Power-Line Segmentation in Aerial Images",
+    "year": 2022,
+    "provider": "arxiv",
+    "provider_id": "2204.07243",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2204.07243",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Accurate segmentation of power lines in various aerial images is very important for UAV flight safety. The complex background and very thin structures of power lines, however, make it an inherently difficult task in computer vision. This paper presents PLGAN, a simple yet effective method based on generative adversarial networks, to segment power lines from aerial images with different backgrounds. Instead of directly using the adversarial networks to generate the segmentation, we take their certain decoding features and embed them into another semantic segmentation network by considering more context, geometry, and appearance information of power lines. We further exploit the appropriate form of the generated images for high-quality feature embedding and define a new loss function in the Hough-transform parameter space to enhance the segmentation of very thin power lines. Extensive experiments and comprehensive analysis demonstrate that our proposed PLGAN outperforms the prior state-of-the-art methods for semantic segmentation and line detection.",
+    "authors": [
+      {
+        "family_name": "Abdelfattah",
+        "given_name": "Rabab",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Xiaofeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Song",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2204.07243v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2204.07243"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.416111+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "From DeepSense to Open RAN: AI/ML Advancements in Dynamic Spectrum Sensing and Their Applications",
+    "year": 2025,
+    "provider": "arxiv",
+    "provider_id": "2502.02889",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2502.02889",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "The integration of Artificial Intelligence (AI) and Machine Learning (ML) in next-generation wireless communication systems has become a cornerstone for advancing intelligent, adaptive, and scalable networks. This reading report examines key innovations in dynamic spectrum sensing (DSS), beginning with the foundational DeepSense framework, which uses convolutional neural networks (CNNs) and spectrogram-based analysis for real-time wideband spectrum monitoring. Building on this groundwork, it highlights advancements such as DeepSweep and Wideband Signal Stitching, which address the challenges of scalability, latency, and dataset diversity through parallel processing, semantic segmentation, and robust data augmentation strategies. The report then explores Open Radio Access Networks (ORAN), focusing on AI/ML-driven enhancements for UAV experimentation, digital twin-based optimization, network slicing, and self-healing xApp development. By bridging AI-based DSS methodologies with ORAN's open, vendor-neutral architecture, these studies underscore the potential of software-defined, intelligent infrastructures in enabling efficient, resilient, and self-optimizing networks for 5G/6G ecosystems. Through this synthesis, the report highlights AI's transformative role in shaping the future of wireless communication and autonomous systems.",
+    "authors": [
+      {
+        "family_name": "Barker",
+        "given_name": "Ryan",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2502.02889v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2502.02889"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.416425+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "SafeLand: Safe Autonomous Landing in Unknown Environments with Bayesian Semantic Mapping",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2603.17430",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2603.17430",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Autonomous landing of uncrewed aerial vehicles (UAVs) in unknown, dynamic environments poses significant safety challenges, particularly near people and infrastructure, as UAVs transition to routine urban and rural operations. Existing methods often rely on prior maps, heavy sensors like LiDAR, static markers, or fail to handle non-cooperative dynamic obstacles like humans, limiting generalization and real-time performance. To address these challenges, we introduce SafeLand, a lean, vision-based system for safe autonomous landing (SAL) that requires no prior information and operates only with a camera and a lightweight height sensor. Our approach constructs an online semantic ground map via deep learning-based semantic segmentation, optimized for embedded deployment and trained on a consolidation of seven curated public aerial datasets (achieving 70.22% mIoU across 20 classes), which is further refined through Bayesian probabilistic filtering with temporal semantic decay to robustly identify metric-scale landing spots. A behavior tree then governs adaptive landing, iteratively validates the spot, and reacts in real time to dynamic obstacles by pausing, climbing, or rerouting to alternative spots, maximizing human safety. We extensively evaluate our method in 200 simulations and 60 end-to-end field tests across industrial, urban, and rural environments at altitudes up to 100m, demonstrating zero false negatives for human detection. Compared to the state of the art, SafeLand achieves sub-second response latency, substantially lower than previous methods, while maintaining a superior success rate of 95%. To facilitate further research in aerial robotics, we release SafeLand's segmentation model as a plug-and-play ROS package, available at https://github.com/markus-42/SafeLand.",
+    "authors": [
+      {
+        "family_name": "Gross",
+        "given_name": "Markus",
+        "orcid": null
+      },
+      {
+        "family_name": "Greiner",
+        "given_name": "Andreas",
+        "orcid": null
+      },
+      {
+        "family_name": "Matha",
+        "given_name": "Sai Bharadhwaj",
+        "orcid": null
+      },
+      {
+        "family_name": "Soest",
+        "given_name": "Felix",
+        "orcid": null
+      },
+      {
+        "family_name": "Cremers",
+        "given_name": "Daniel",
+        "orcid": null
+      },
+      {
+        "family_name": "Mee\u00df",
+        "given_name": "Henri",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2603.17430v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2603.17430"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.416813+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "A Multi-Stage Multi-Task Neural Network for Aerial Scene Interpretation and Geolocalization",
+    "year": 2018,
+    "provider": "arxiv",
+    "provider_id": "1804.01322",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "1804.01322",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Semantic segmentation and vision-based geolocalization in aerial images are challenging tasks in computer vision. Due to the advent of deep convolutional nets and the availability of relatively low cost UAVs, they are currently generating a growing attention in the field. We propose a novel multi-task multi-stage neural network that is able to handle the two problems at the same time, in a single forward pass. The first stage of our network predicts pixelwise class labels, while the second stage provides a precise location using two branches. One branch uses a regression network, while the other is used to predict a location map trained as a segmentation task. From a structural point of view, our architecture uses encoder-decoder modules at each stage, having the same encoder structure re-used. Furthermore, its size is limited to be tractable on an embedded GPU. We achieve commercial GPS-level localization accuracy from satellite images with spatial resolution of 1 square meter per pixel in a city-wide area of interest. On the task of semantic segmentation, we obtain state-of-the-art results on two challenging datasets, the Inria Aerial Image Labeling dataset and Massachusetts Buildings.",
+    "authors": [
+      {
+        "family_name": "Marcu",
+        "given_name": "Alina",
+        "orcid": null
+      },
+      {
+        "family_name": "Costea",
+        "given_name": "Dragos",
+        "orcid": null
+      },
+      {
+        "family_name": "Slusanschi",
+        "given_name": "Emil",
+        "orcid": null
+      },
+      {
+        "family_name": "Leordeanu",
+        "given_name": "Marius",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/1804.01322v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "1804.01322"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.417112+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "3D Instance Segmentation of MVS Buildings",
+    "year": 2021,
+    "provider": "arxiv",
+    "provider_id": "2112.09902",
+    "external_ids": {
+      "doi": "10.1109/tgrs.2022.3183567",
+      "arxiv_id": "2112.09902",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "We present a novel 3D instance segmentation framework for Multi-View Stereo (MVS) buildings in urban scenes. Unlike existing works focusing on semantic segmentation of urban scenes, the emphasis of this work lies in detecting and segmenting 3D building instances even if they are attached and embedded in a large and imprecise 3D surface model. Multi-view RGB images are first enhanced to RGBH images by adding a heightmap and are segmented to obtain all roof instances using a fine-tuned 2D instance segmentation neural network. Instance masks from different multi-view images are then clustered into global masks. Our mask clustering accounts for spatial occlusion and overlapping, which can eliminate segmentation ambiguities among multi-view images. Based on these global masks, 3D roof instances are segmented out by mask back-projections and extended to the entire building instances through a Markov random field optimization. A new dataset that contains instance-level annotation for both 3D urban scenes (roofs and buildings) and drone images (roofs) is provided. To the best of our knowledge, it is the first outdoor dataset dedicated to 3D instance segmentation with much more annotations of attached 3D buildings than existing datasets. Quantitative evaluations and ablation studies have shown the effectiveness of all major steps and the advantages of our multi-view framework over the orthophoto-based method.",
+    "authors": [
+      {
+        "family_name": "Chen",
+        "given_name": "Jiazhou",
+        "orcid": null
+      },
+      {
+        "family_name": "Xu",
+        "given_name": "Yanghui",
+        "orcid": null
+      },
+      {
+        "family_name": "Lu",
+        "given_name": "Shufang",
+        "orcid": null
+      },
+      {
+        "family_name": "Liang",
+        "given_name": "Ronghua",
+        "orcid": null
+      },
+      {
+        "family_name": "Nan",
+        "given_name": "Liangliang",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2112.09902v2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2112.09902"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.417445+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "Improving Network Slimming with Nonconvex Regularization",
+    "year": 2020,
+    "provider": "arxiv",
+    "provider_id": "2010.01242",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2010.01242",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Convolutional neural networks (CNNs) have developed to become powerful models for various computer vision tasks ranging from object detection to semantic segmentation. However, most of the state-of-the-art CNNs cannot be deployed directly on edge devices such as smartphones and drones, which need low latency under limited power and memory bandwidth. One popular, straightforward approach to compressing CNNs is network slimming, which imposes $\\ell_1$ regularization on the channel-associated scaling factors via the batch normalization layers during training. Network slimming thereby identifies insignificant channels that can be pruned for inference. In this paper, we propose replacing the $\\ell_1$ penalty with an alternative nonconvex, sparsity-inducing penalty in order to yield a more compressed and/or accurate CNN architecture. We investigate $\\ell_p (0 < p < 1)$, transformed $\\ell_1$ (T$\\ell_1$), minimax concave penalty (MCP), and smoothly clipped absolute deviation (SCAD) due to their recent successes and popularity in solving sparse optimization problems, such as compressed sensing and variable selection. We demonstrate the effectiveness of network slimming with nonconvex penalties on three neural network architectures -- VGG-19, DenseNet-40, and ResNet-164 -- on standard image classification datasets. Based on the numerical experiments, T$\\ell_1$ preserves model accuracy against channel pruning, $\\ell_{1/2, 3/4}$ yield better compressed models with similar accuracies after retraining as $\\ell_1$, and MCP and SCAD provide more accurate models after retraining with similar compression as $\\ell_1$. Network slimming with T$\\ell_1$ regularization also outperforms the latest Bayesian modification of network slimming in compressing a CNN architecture in terms of memory storage while preserving its model accuracy after channel pruning.",
+    "authors": [
+      {
+        "family_name": "Bui",
+        "given_name": "Kevin",
+        "orcid": null
+      },
+      {
+        "family_name": "Park",
+        "given_name": "Fredrick",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhang",
+        "given_name": "Shuai",
+        "orcid": null
+      },
+      {
+        "family_name": "Qi",
+        "given_name": "Yingyong",
+        "orcid": null
+      },
+      {
+        "family_name": "Xin",
+        "given_name": "Jack",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2010.01242v4",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2010.01242"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.417840+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "CARLA2Real: a tool for reducing the sim2real appearance gap in CARLA simulator",
+    "year": 2024,
+    "provider": "arxiv",
+    "provider_id": "2410.18238",
+    "external_ids": {
+      "doi": "10.1109/tits.2025.3597010",
+      "arxiv_id": "2410.18238",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Simulators are indispensable for research in autonomous systems such as self-driving cars, autonomous robots, and drones. Despite significant progress in various simulation aspects, such as graphical realism, an evident gap persists between the virtual and real-world environments. Since the ultimate goal is to deploy the autonomous systems in the real world, reducing the sim2real gap is of utmost importance. In this paper, we employ a state-of-the-art approach to enhance the photorealism of simulated data, aligning them with the visual characteristics of real-world datasets. Based on this, we developed CARLA2Real, an easy-to-use, publicly available tool (plug-in) for the widely used and open-source CARLA simulator. This tool enhances the output of CARLA in near real-time, achieving a frame rate of 13 FPS, translating it to the visual style and realism of real-world datasets such as Cityscapes, KITTI, and Mapillary Vistas. By employing the proposed tool, we generated synthetic datasets from both the simulator and the enhancement model outputs, including their corresponding ground truth annotations for tasks related to autonomous driving. Then, we performed a number of experiments to evaluate the impact of the proposed approach on feature extraction and semantic segmentation methods when trained on the enhanced synthetic data. The results demonstrate that the sim2real appearance gap is significant and can indeed be reduced by the introduced approach. Comparisons with a state-of-the-art image-to-image translation approach are also provided. The tool, pre-trained models, and associated data for this work are available for download at: https://github.com/stefanos50/CARLA2Real.",
+    "authors": [
+      {
+        "family_name": "Pasios",
+        "given_name": "Stefanos",
+        "orcid": null
+      },
+      {
+        "family_name": "Nikolaidis",
+        "given_name": "Nikos",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2410.18238v4",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2410.18238"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.418183+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  },
+  {
+    "title": "CAWM-Mamba: A unified model for infrared-visible image fusion and compound adverse weather restoration",
+    "year": 2026,
+    "provider": "arxiv",
+    "provider_id": "2603.02560",
+    "external_ids": {
+      "doi": null,
+      "arxiv_id": "2603.02560",
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Multimodal Image Fusion (MMIF) integrates complementary information from various modalities to produce clearer and more informative fused images. MMIF under adverse weather is particularly crucial in autonomous driving and UAV monitoring applications. However, existing adverse weather fusion methods generally only tackle single types of degradation such as haze, rain, or snow, and fail when multiple degradations coexist (e.g., haze+rain, rain+snow). To address this challenge, we propose Compound Adverse Weather Mamba (CAWM-Mamba), the first end-to-end framework that jointly performs image fusion and compound weather restoration with unified shared weights. Our network contains three key components: (1) a Weather-Aware Preprocess Module (WAPM) to enhance degraded visible features and extracts global weather embeddings; (2) a Cross-modal Feature Interaction Module (CFIM) to facilitate the alignment of heterogeneous modalities and exchange of complementary features across modalities; and (3) a Wavelet Space State Block (WSSB) that leverages wavelet-domain decomposition to decouple multi-frequency degradations. WSSB includes Freq-SSM, a module that models anisotropic high-frequency degradation without redundancy, and a unified degradation representation mechanism to further improve generalization across complex compound weather conditions. Extensive experiments on the AWMM-100K benchmark and three standard fusion datasets demonstrate that CAWM-Mamba consistently outperforms state-of-the-art methods in both compound and single-weather scenarios. In addition, our fusion results excel in downstream tasks covering semantic segmentation and object detection, confirming the practical value in real-world adverse weather perception. The source code will be available at https://github.com/Feecuin/CAWM-Mamba.",
+    "authors": [
+      {
+        "family_name": "Liu",
+        "given_name": "Huichun",
+        "orcid": null
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Xiaosong",
+        "orcid": null
+      },
+      {
+        "family_name": "Huang",
+        "given_name": "Zhuangfan",
+        "orcid": null
+      },
+      {
+        "family_name": "Ye",
+        "given_name": "Tao",
+        "orcid": null
+      },
+      {
+        "family_name": "Liu",
+        "given_name": "Yang",
+        "orcid": null
+      },
+      {
+        "family_name": "Tan",
+        "given_name": "Haishu",
+        "orcid": null
+      }
+    ],
+    "venue": "arXiv Preprint",
+    "url": "https://arxiv.org/pdf/2603.02560v1",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "arxiv",
+        "id": "2603.02560"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": null,
+    "references_count": null,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": "Q-RQ2-EDGE-arxiv",
+    "retrieved_at": "2026-09-03 21:57:12.418561+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  }
+]
