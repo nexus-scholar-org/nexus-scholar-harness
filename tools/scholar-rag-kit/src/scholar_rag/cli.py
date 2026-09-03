@@ -258,13 +258,18 @@ def matrix(
     output_dir: Path = typer.Option(Path("literature"), "--output-dir", "-o", help="Output directory to save matrices"),
     output_md: Path | None = typer.Option(None, "--output-md", help="Explicit path to save markdown matrix"),
     output_json: Path | None = typer.Option(None, "--output-json", help="Explicit path to save JSON matrix"),
+    embedder: str = typer.Option(
+        "sentence-transformers", "--embedder", "-e", help="Embedder provider: mock or sentence-transformers"
+    ),
 ):
     """Generate dynamic Protocol Extraction Matrix or 7-dimension Methodology Comparison Matrix."""
     if protocol and protocol.exists():
         from scholar_rag.matrix import MatrixExtractor
 
         console.print(f"[bold cyan]Extracting protocol matrix for {protocol.name}...[/bold cyan]")
-        extractor = MatrixExtractor(protocol=protocol, db_path=db_path, collection_name=collection)
+        extractor = MatrixExtractor(
+            protocol=protocol, db_path=db_path, collection_name=collection, embedder_kwargs={"provider": embedder}
+        )
         rows, csv_path, json_path = extractor.extract_all(output_dir=output_dir)
 
         console.print(f"[bold green]Matrix extraction complete![/bold green]")
@@ -275,7 +280,7 @@ def matrix(
         return
 
     # Fallback to standard 7-dimension methodology matrix
-    indexer = ScholarIndexer(db_path=db_path, collection_name=collection, embedder_kwargs={"provider": "mock"})
+    indexer = ScholarIndexer(db_path=db_path, collection_name=collection, embedder_kwargs={"provider": embedder})
     rows, md_table = generate_methodology_matrix(indexer=indexer)
 
     if not rows:
@@ -300,9 +305,12 @@ def matrix(
 def stats(
     db_path: str = typer.Option("./chroma_db", help="Path to ChromaDB vector store"),
     collection: str = typer.Option("scholar_docs", help="Collection name"),
+    embedder: str = typer.Option(
+        "sentence-transformers", "--embedder", "-e", help="Embedder provider: mock or sentence-transformers"
+    ),
 ):
     """Display vector database summary statistics and section distribution."""
-    indexer = ScholarIndexer(db_path=db_path, collection_name=collection, embedder_kwargs={"provider": "mock"})
+    indexer = ScholarIndexer(db_path=db_path, collection_name=collection, embedder_kwargs={"provider": embedder})
     count = indexer.get_collection_count()
     console.print(f"[bold cyan]Database Path:[/bold cyan] {db_path}")
     console.print(f"[bold cyan]Collection Name:[/bold cyan] {collection}")
