@@ -62,10 +62,11 @@ workspaces/uav-multispectral-weed-detection/
 │   ├── llm_conflicts.json   # 0 (resolved)
 │   ├── conflicts.json       # 49 keyword conflicts (tentative 21 IN / 28 EX)
 │   ├── conflict_adjudication_log.md  # per-paper keep/exclude rationale + kappa
+│   ├── rq2_supplemental_register.md  # edge benchmarks (Jetson Nano/Xavier, TensorRT INT8, FPS frontier)
 │   ├── rq3_supplemental_register.md  # +3 RQ3 domain-shift sources (1 ingested, 2 catalogued)
 │   ├── prisma_screening_report.md
 │   ├── references.bib               # 25-entry BibTeX (keys = stem, UTF-8 verified)
-│   ├── synthesis_matrix.csv/.json/.md # 25-study × 8-dim protocol matrix (68% filled)
+│   ├── synthesis_matrix.csv/.json/.md # 25-study × 8-dim protocol matrix (80.0% filled, accuracy_vs_rgb complete)
 │   ├── data_quality_report.md       # task-type classification, gaps, attribution checks
 │   └── knowledge_graph.html/.json   # citation network + PageRank (25 nodes / 9 edges, 100% corpus parity)
 ├── pdfs/                    # 25 matched PDFs
@@ -112,6 +113,8 @@ workspaces/uav-multispectral-weed-detection/
 | 2026-09-02T21:00:00+00:00 | EXPORTS (10 deliverables + manifest) | agent | SUCCESS |
 | 2026-09-03T04:47:00+00:00 | CITATION_TOKENS_VERIFIED (16/16 atomic tokens resolve to ChromaDB chunks) | agent | SUCCESS |
 | 2026-09-03T04:49:00+00:00 | CITATION_GRAPH_ENRICHED (25 nodes / 9 edges, 100% corpus parity) | scholar-graph-kit + agent | SUCCESS |
+| 2026-09-03T04:52:00+00:00 | MATRIX_RGB_POPULATED (accuracy_vs_rgb filled across 25 studies, 80.0% total fill) | agent | SUCCESS |
+| 2026-09-03T04:53:00+00:00 | RQ2_SUPPLEMENTAL_REGISTER_BUILT (targeted edge benchmarks: Jetson Nano/Xavier, TensorRT INT8) | scholar-search-kit + agent | SUCCESS |
 
 ---
 
