@@ -77,12 +77,12 @@ Across the 25 included studies, multispectral bands consistently outperformed un
 
 | Study ID | Architecture | Spectral Input | Headline Accuracy | RGB Baseline Comparison | Citation Token |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Wei et al. (2026)** | SCG-UNet | RGB + NIR | mIoU: **83.43%**, F1: 80.77% | **+1.50 pp mIoU**, **+2.09 pp F1** over RGB (Holm $p < 0.05$) | `chk-1033-9b1e0e-conc-00` |
-| **Celikkan et al. (2025)** | DeepLabv3+ | RGB + RE + NIR | mIoU: **80.27%** | **+8.40 pp mIoU** over RGB baseline on WeedsGalore | `chk-1011-eec56c-conc-00` |
-| **Hernández Ludeña et al. (2026)**| U-Net / SegNet | RGB + RE + NIR + 5 VIs | Weed F1: **0.5833**, IoU: 0.4117 | **+6.40 pp weed F1** over unimodal RGB (0.5193) | `chk-1021-a3f2b6-disc-00` |
-| **Bouhadjer et al. (2026)** | Dual CNN-ViT | RGB + RE + NIR + VIs | Dice: **91.73%**, IoU: 85.22% | Dual-branch spatial/spectral outperforms raw RGB | `chk-1043-979929-disc-00` |
-| **Dong et al. (2026)** | ASVLB-Net | RGB + NIR + NDVI | mIoU: **86.50%** | Resolves weed/canopy morphological leaf mimicry | `chk-1010-3a54df-abst-00` |
-| **Fawakherji et al. (2021)** | CycleGAN-UNet | RGB + NIR | mIoU: **82.10%** | Synthetic 4-channel fusion adds **+2.0 to +5.0 pp mIoU** | `chk-1010-3a54df-abst-00` |
+| **Wei et al. (2026)** | SCG-UNet | RGB + NIR | mIoU: **83.43%**, F1: 80.77% | **+1.50 pp mIoU**, **+2.09 pp F1** over RGB (Holm $p < 0.05$) | `chk-1033-9b1e0e-abstract-intro-41` |
+| **Celikkan et al. (2025)** | DeepLabv3+ | RGB + RE + NIR | mIoU: **82.90%**, Weed IoU: 77.31% | **+3.57 pp mIoU**, **+5.23 pp weed IoU** over RGB on WeedsGalore | `chk-1011-3d0671-abstract-intro-21` |
+| **Hernández Ludeña et al. (2026)**| U-Net / SegNet | RGB + RE + NIR + 5 VIs | Weed F1: **0.5833**, IoU: 0.4117 | **+6.40 pp weed F1** over unimodal RGB (0.5193) | `chk-1021-91498f-abstract-intro-23` |
+| **Bouhadjer et al. (2026)** | Dual CNN-ViT | RGB + RE + NIR + 5 VIs | Dice: **91.73%**, IoU: 85.22% | Dual-branch spatial/spectral outperforms raw RGB | `chk-1043-bf41a3-abstract-intro-38` |
+| **Dong et al. (2026)** | ASVLB-Net | RGB + NIR + NDVI | mIoU: **86.50%** | 0.47M params, 55.5 FPS; outperforms RGB baseline | `chk-1010-3a54df-conclusion-04` |
+| **Fawakherji et al. (2021)** | SegNet / U-Net / Bonnet | RGB + NIR (Synthetic) | Relative mIoU gain: **+9%** | 4-channel RGB+NIR synthesis boosts mIoU by **+9%** over baseline | `chk-1010-dd898e-of-images-where-46` |
 
 **Key Finding 1**: The integration of NIR and Red-Edge spectral bands reliably resolves morphological mimicry between crops and weeds, delivering $+1.50$ to $+8.47$ percentage points mIoU gain. However, naive channel concatenation of derived vegetation indices (e.g., NDVI, NDRE, VARI) introduces high inter-channel covariance and model parameter bloat without commensurate accuracy gains. Dynamic, gated spatial-spectral feature fusion is necessary to realize multispectral benefits efficiently.
 

@@ -55,14 +55,14 @@ The table below summarizes key empirical studies from the 25-paper corpus, cross
 
 | Study / Citation Key | Authors & Year | Architecture | Sensor Bands | Segmentation Accuracy | Edge Throughput & Parameters | Vector Chunk Token |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **SCG-UNet** <br>`plants-15-02257-v2` | Wei et al. (2026) | SCG-UNet (Strip-Context Gating) | RGB + NIR (4 bands) | **mIoU: 83.43%** <br>mPA: 92.35% <br>F1: 80.77% | Unspecified edge latency; $+1.50$ pp mIoU over RGB baseline | `chk-1033-9b1e0e-conc-00` |
-| **ASVLB-Net** <br>`10.1002/ps.70881` | Dong et al. (2026) | ASVLB-Net (Adaptive Spatial-Visual) | RGB + NIR + NDVI | **mIoU: 86.5%** | **0.47M params**, **16.15 GFLOPs**, **55.52 FPS** ($512\times 512$), **84.75 FPS** ($224\times 224$) | `chk-1010-3a54df-abst-00` |
-| **SSRN-7345639** <br>`ssrn-7345639` | Hernández Ludeña et al. (2026) | Multi-scale U-Net / SegNet | RGB + RE + NIR + VIs (8 bands) | Weed F1: **0.5833** <br>Weed IoU: **0.4117** | Few-shot transfer ($63$ patches) restores F1 from $0.0534$ to $0.6274$ | `chk-1021-a3f2b6-disc-00` |
-| **BAWSeg** <br>`remotesensing-18-00915-v2` | Wang et al. (2026) | VISA (ViT-Spatial Attention) | RGB + RE + NIR (5 bands) | **mIoU: 75.6%** <br>Weed IoU: 63.5% | **22.8M params**, **33.6 GFLOPs**, **78.0 FPS** (Desktop RTX 4090) | `chk-1033-b9be97-disc-00` |
-| **WeedFormer** <br>`weedformer` | Krishna et al. (2026) | WeedFormer (Transformer) | RGB + NIR (4 bands) | **mIoU: 80.27%** | ViT edge latency reported; $+8.47$ pp gain over SegFormer baseline | `chk-1011-eec56c-conc-00` |
-| **Kucharski et al.** <br>`Full+Text` | Kucharski et al. (2024) | YOLOv8-nano + RT-DETR | RGB + RE + NIR + NDVI | mAP50: **0.843** | Real-time onboard Jetson Orin NX; TensorRT INT8 verified | `chk-1068-18e4fe-abst-00` |
-| **BOUHADJER et al.** <br>`aece_2026_2_5` | Bouhadjer et al. (2026) | Dual-Branch CNN-ViT | RGB + NIR + RE + 5 VIs | **Dice: 91.73%** <br>IoU: 85.22% | Dual-branch spatial/spectral feature separation | `chk-1043-979929-disc-00` |
-| **Gao et al.** <br>`2023_Gao_Transfer` | Gao et al. (2023) | Cross-Domain ResNet-UNet | Ground RGB $\rightarrow$ UAV MSI | **mOA: 0.859** <br>mIoU: 0.767 | Ground-to-air cross-platform domain transfer | `chk-1010-e51c88-meth-00` |
+| **SCG-UNet** <br>`plants-15-02257-v2` | Wei et al. (2026) | SCG-UNet (Strip-Context Gating) | RGB + NIR (4 bands) | **mIoU: 83.43%** <br>mPA: 92.35% <br>F1: 80.77% | Unspecified edge latency; $+1.50$ pp mIoU over RGB baseline | `chk-1033-9b1e0e-abstract-intro-41` |
+| **ASVLB-Net** <br>`10.1002/ps.70881` | Dong et al. (2026) | ASVLB-Net (Adaptive Spatial-Visual) | RGB + NIR + NDVI | **mIoU: 86.5%** | **0.47M params**, **16.15 GFLOPs**, **55.52 FPS** ($512\times 512$), **84.75 FPS** ($224\times 224$) | `chk-1010-3a54df-conclusion-04` |
+| **SSRN-7345639** <br>`ssrn-7345639` | Hernández Ludeña et al. (2026) | Multi-scale U-Net / SegNet | RGB + RE + NIR + VIs (8 bands) | Weed F1: **0.5833** <br>Weed IoU: **0.4117** | Few-shot transfer ($63$ patches) restores F1 from $0.0534$ to $0.6274$ | `chk-1021-91498f-abstract-intro-23` |
+| **BAWSeg** <br>`remotesensing-18-00915-v2` | Wang et al. (2026) | VISA (ViT-Spatial Attention) | RGB + RE + NIR (5 bands) | **mIoU: 75.6%** <br>Weed IoU: 63.5% | **22.8M params**, **33.6 GFLOPs**, **78.0 FPS** (Desktop RTX 4090) | `chk-1033-c65635-abstract-intro-45` |
+| **WeedFormer** <br>`weedformer` | Krishna et al. (2026) | WeedFormer (Transformer) | RGB + NIR (4 bands) | **mIoU: 80.27%** | ViT edge latency reported; $+8.47$ pp gain over SegFormer baseline | `chk-1011-552a0b-abstract-intro-21` |
+| **Kucharski et al.** <br>`Full+Text` | Kucharski et al. (2024) | YOLOv8-nano + RT-DETR | RGB + RE + NIR + NDVI | mAP50: **0.843** | Real-time onboard Jetson Orin NX; TensorRT INT8 verified | `chk-1068-09f2e6-abstract-intro-16` |
+| **BOUHADJER et al.** <br>`aece_2026_2_5` | Bouhadjer et al. (2026) | Dual-Branch CNN-ViT | RGB + NIR + RE + 5 VIs | **Dice: 91.73%** <br>IoU: 85.22% | Dual-branch spatial/spectral feature separation | `chk-1043-bf41a3-abstract-intro-38` |
+| **Gao et al.** <br>`2023_Gao_Transfer` | Gao et al. (2023) | Cross-Domain ResNet-UNet | Ground RGB $\rightarrow$ UAV MSI | **mOA: 0.859** <br>mIoU: 0.767 | Ground-to-air cross-platform domain transfer | `chk-1010-1713c4-abstract-intro-16` |
 
 ---
 
