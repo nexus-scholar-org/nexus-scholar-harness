@@ -451,11 +451,23 @@ def cmd_collect(workspace_dir: Path) -> None:
     if fallback_count:
         logger.warning("%d papers fell back to heuristic screening.", fallback_count)
 
+    # Look for raw provenance manifest to get exact total_identified and duplicates_removed
+    manifest_raw = lit_dir / "raw" / "provenance_manifest.json"
+    total_identified = len(docs)
+    duplicates_removed = 0
+    if manifest_raw.exists():
+        try:
+            m = json.loads(manifest_raw.read_text(encoding="utf-8"))
+            total_identified = m.get("total_raw_harvested", len(docs))
+            duplicates_removed = max(0, total_identified - len(docs))
+        except Exception:
+            pass
+
     # Partition
     inc_docs, exc_docs, conflicts, report = partition_screening_results(
         docs, all_decisions,
-        total_identified=len(docs),
-        duplicates_removed=0,
+        total_identified=total_identified,
+        duplicates_removed=duplicates_removed,
     )
 
     # Write outputs
@@ -470,6 +482,9 @@ def cmd_collect(workspace_dir: Path) -> None:
     )
     (lit_dir / "prisma_screening_report.md").write_text(
         report.to_markdown(), encoding="utf-8"
+    )
+    (lit_dir / "prisma_report.json").write_text(
+        json.dumps(asdict(report), indent=2), encoding="utf-8"
     )
 
     # Update manifest statuses

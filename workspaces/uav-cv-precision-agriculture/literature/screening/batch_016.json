@@ -1,0 +1,312 @@
+{
+  "batch_index": 16,
+  "total_batches": 60,
+  "batch_size": 25,
+  "status": "PENDING",
+  "protocol": {
+    "title": "UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review",
+    "research_questions": [
+      {
+        "id": "RQ1",
+        "text": "What is the comparative segmentation performance (mIoU, F1-score) of CNNs, Transformers, and Hybrid architectures on agricultural UAV crop-weed imagery, specifically in paired intra-study benchmarks?",
+        "target_facet": "algorithmic_accuracy",
+        "synthesis_type": "Comparative Matrix",
+        "required_evidence_type": "Quantitative Benchmark"
+      },
+      {
+        "id": "RQ2",
+        "text": "How do edge hardware constraints (thermal design power, compute capacity in TOPS) and execution configurations (quantization precision, input resolution) impact real-time inference throughput (FPS, latency) for UAV segmentation models?",
+        "target_facet": "hardware_efficiency",
+        "synthesis_type": "Comparative Matrix",
+        "required_evidence_type": "Quantitative Benchmark"
+      }
+    ],
+    "screening_criteria": {
+      "inclusion": [
+        {
+          "id": "INC-01",
+          "criterion": "Focuses on deep learning architectures (CNN, Transformer, or Hybrid) applied to UAV aerial imagery for agricultural crop/weed pixel-level segmentation.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-02",
+          "criterion": "Reports quantitative pixel-wise segmentation accuracy metrics (e.g., mIoU, class IoU, Dice/F1-score) on agricultural benchmark or custom UAV datasets.",
+          "maps_to_rqs": [
+            "RQ1"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-03",
+          "criterion": "Reports on-device empirical hardware execution metrics (e.g., FPS, latency in ms, power in Watts, memory footprint) on physical edge platforms or embedded accelerators.",
+          "maps_to_rqs": [
+            "RQ2"
+          ],
+          "reason_category": null
+        }
+      ],
+      "exclusion": [
+        {
+          "id": "EXC-01",
+          "criterion": "Non-UAV imaging modalities (satellite-only, ground-vehicle/tractor-only, or laboratory bench-top setups without aerial flight context).",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2"
+          ],
+          "reason_category": "OUT_OF_SCOPE_MODALITY"
+        },
+        {
+          "id": "EXC-02",
+          "criterion": "Bounding-box object detection or whole-image classification without pixel-level semantic or instance segmentation masks.",
+          "maps_to_rqs": [
+            "RQ1"
+          ],
+          "reason_category": "OUT_OF_SCOPE_TASK"
+        },
+        {
+          "id": "EXC-03",
+          "criterion": "Agricultural domains outside crop and weed management (e.g., orchard fruit counting, forestry canopy height, livestock tracking, soil moisture estimation).",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2"
+          ],
+          "reason_category": "OUT_OF_SCOPE_DOMAIN"
+        },
+        {
+          "id": "EXC-04",
+          "criterion": "Exclusively non-deep learning methods (e.g., classical vegetation indices like ExG/NDVI with Otsu thresholding or shallow SVM without learned features).",
+          "maps_to_rqs": [
+            "RQ1"
+          ],
+          "reason_category": "METHODOLOGICAL_MISMATCH"
+        },
+        {
+          "id": "EXC-05",
+          "criterion": "Secondary literature without primary empirical benchmarks (surveys, systematic reviews, viewpoint letters, or tutorials).",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2"
+          ],
+          "reason_category": "SECONDARY_LITERATURE"
+        },
+        {
+          "id": "EXC-06",
+          "criterion": "Non-English text or records lacking retrievable quantitative results.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2"
+          ],
+          "reason_category": "INSUFFICIENT_DATA"
+        }
+      ],
+      "two_tier_screening": true
+    }
+  },
+  "papers": [
+    {
+      "workspace_id": "SCI-000376",
+      "title": "Semantic Segmentation of Aerial Imagery via Split-Attention Networks with Disentangled Nonlocal and Edge Supervision",
+      "year": 2021,
+      "abstract": "In this work, we propose a new deep convolution neural network (DCNN) architecture for semantic segmentation of aerial imagery. Taking advantage of recent research, we use split-attention networks (ResNeSt) as the backbone for high-quality feature expression. Additionally, a disentangled nonlocal (DNL) block is integrated into our pipeline to express the inter-pixel long-distance dependence and highlight the edge pixels simultaneously. Moreover, the depth-wise separable convolution and atrous spatial pyramid pooling (ASPP) modules are combined to extract and fuse multiscale contextual features. Finally, an auxiliary edge detection task is designed to provide edge constraints for semantic segmentation. Evaluation of algorithms is conducted on two benchmarks provided by the International Society for Photogrammetry and Remote Sensing (ISPRS). Extensive experiments demonstrate the effectiveness of each module of our architecture. Precision evaluation based on the Potsdam benchmark shows that the proposed DCNN achieves competitive performance over the state-of-the-art methods.",
+      "venue": "Remote Sensing",
+      "doi": "10.3390/rs13061176"
+    },
+    {
+      "workspace_id": "SCI-000377",
+      "title": "Vdd: Varied Drone Dataset for Semantic Segmentation",
+      "year": 2024,
+      "abstract": "No abstract available.",
+      "venue": "SSRN Electronic Journal",
+      "doi": "10.2139/ssrn.4902735"
+    },
+    {
+      "workspace_id": "SCI-000378",
+      "title": "Mean-field inference",
+      "year": 2023,
+      "abstract": "No abstract available.",
+      "venue": "High-Order Models in Semantic Image Segmentation",
+      "doi": "10.1016/b978-0-12-805320-1.00008-7"
+    },
+    {
+      "workspace_id": "SCI-000379",
+      "title": "Lightweight Multiscale Attention-Aware Method for Semantic Segmentation of Urban Structural Buildings in Drone Aerial Imagery",
+      "year": 2023,
+      "abstract": "Every year, the lives of millions of people all over the world are affected by natural disasters such as floods, earthquakes and hurricanes. Urban and under-development communities are often hit the most during disasters. Disaster resilience requires proper planning and timely response. Recently, there has been growing interest in the potentials of computer vision and artificial intelligence to tackle challenges related to disaster resilience and emergency preparedness. Compared to cities, detecting structural buildings in urban environments is a more challenging task. Within this context, this paper presents a novel lightweight multiscale attention-aware method for semantic segmentation of urban structural buildings in drone aerial imagery. Detailed experiments were conducted to evaluate our proposed method using drone aerial images from Zanzibar city, Tanzania. Despite being lightweight, significant performance gains were achieved compared to relevant state-of-the-art methods in the literature.",
+      "venue": "2023 International Mobile, Intelligent, and Ubiquitous Computing Conference (MIUCC)",
+      "doi": "10.1109/miucc58832.2023.10278371"
+    },
+    {
+      "workspace_id": "SCI-000380",
+      "title": "EGBNet: a real-time edge-guided bilateral network for nighttime semantic segmentation",
+      "year": 2023,
+      "abstract": "No abstract available.",
+      "venue": "Signal, Image and Video Processing",
+      "doi": "10.1007/s11760-023-02539-6"
+    },
+    {
+      "workspace_id": "SCI-000381",
+      "title": "Semantic Segmentation of UAV Aerial Videos using Convolutional Neural Networks",
+      "year": 2019,
+      "abstract": "Semantic segmentation of complex aerial videos enables a better understanding of scene and context. This enhances the performance of automated video processing techniques like anomaly detection, object detection, event detection and other applications. But, there is a limited study of semantic segmentation in aerial videos due to non-availability of the relevant dataset. To address this, an aerial video dataset is captured using DJI Phantom 3 professional drone and is annotated manually. In addition, the proposed research work investigates the performance of semantic segmentation algorithms for aerial videos implemented using Fully Convolution Networks (FCN) and U-net architectures. In this study, two classes (greenery, road) are considered for semantic segmentation. It is observed that both architectures perform competitively on the aerial videos of Unmanned Aerial Vehicle (UAV) with a pixel accuracy of 89.7% and 87.31% respectively.",
+      "venue": "2019 IEEE Second International Conference on Artificial Intelligence and Knowledge Engineering (AIKE)",
+      "doi": "10.1109/aike.2019.00012"
+    },
+    {
+      "workspace_id": "SCI-000382",
+      "title": "BFBE-Net: deep bilateral fusion and bilateral embedded network for real-time semantic segmentation",
+      "year": 2023,
+      "abstract": "Abstract. Real-time semantic segmentation has been challenging, and the fusion of features from different branches remains crucial to improvement. The two-branch structure has shown promising results in real-time semantic segmentation. However, upsampling feature maps from the semantic branch to match the detail branch leads to a loss of object feature information and compromises segmentation accuracy. We propose a deep bilateral fusion and bilateral embedded network (BFBE-Net) based on the encoder–decoder structure for real-time semantic segmentation to address these issues. The BFBE-Net adopts a two-branch design in the encoder, with a top-down fusion module and a bottom-up fusion module designed to integrate multi-scale context information in the channel dimension, and assigns different weights to detailed information and semantic information to enhance information characteristics. In the decoder, a bilateral embedded attention module under the guidance of spatial and channel attention integrates semantic and spatial features, gradually upsampling feature maps to reduce the loss of feature information. In addition, an enhanced aggregation pyramid pooling module is designed to efficiently extract contextual information by combining depth-wise asymmetric convolution. The proposed algorithm is evaluated on two benchmark datasets, Cityscapes and CamVid, achieving 78.5% mean intersection over union (mIoU) at 82 frames per second (FPS) on the Cityscapes test set and 79.2% mIoU at 131 FPS on the CamVid test set. The proposed BFBE-Net not only improves segmentation accuracy but also ensures real-time performance.",
+      "venue": "Journal of Electronic Imaging",
+      "doi": "10.1117/1.jei.32.4.043031"
+    },
+    {
+      "workspace_id": "SCI-000383",
+      "title": "Unmanned Aerial Vehicle (UAV)-Based Pavement Image Stitching Without Occlusion, Crack Semantic Segmentation, and Quantification",
+      "year": 2024,
+      "abstract": "Unmanned Aerial Vehicle (UAV)-based pavement distress detection offers efficient and safe advantages. However, obstructions from road vehicles and the slender shape of cracks in UAV images challenge accuracy. To address this, this study established specific flight parameters, proposed the Historical Best Matching Image (HBMI) approach for data loss due to obstructions, and created the UAV-Crack500 dataset with 500 finely annotated crack images. Three algorithms with different loss functions were investigated, finding that the U-Net network combined with our Completely Asymmetric Loss (CAL) achieved the best performance, resolving the issue of class imbalance. Morphological analysis of the semantically segmented images provided precise crack morphology features. In complex scenarios, errors in features like crack area, length, mean width, and maximum width remained within 16%. This study establishes a comprehensive UAV-based pavement distress detection system, overcoming obstructions for accurate assessment.",
+      "venue": "IEEE Transactions on Intelligent Transportation Systems",
+      "doi": "10.1109/tits.2024.3424525"
+    },
+    {
+      "workspace_id": "SCI-000384",
+      "title": "DuFNet: Dual Flow Network of Real-Time Semantic Segmentation for Unmanned Driving Application of Internet of Things",
+      "year": 2023,
+      "abstract": "The application of unmanned driving in the Internet of Things is one of the concrete manifestations of the application of artificial intelligence technology. Image semantic segmentation can help the unmanned driving system by achieving road accessibility analysis. Semantic segmentation is also a challenging technology for image understanding and scene parsing. We focused on the challenging task of real-time semantic segmentation in this paper. In this paper, we proposed a novel fast architecture for real-time semantic segmentation named DuFNet. Starting from the existing work of Bilateral Segmentation Network (BiSeNet), DuFNet proposes a novel Semantic Information Flow (SIF) structure for context information and a novel Fringe Information Flow (FIF) structure for spatial information. We also proposed two kinds of SIF with cascaded and paralleled structures, respectively. The SIF encodes the input stage by stage in the ResNet18 backbone and provides context information for the feature fusion module. Features from previous stages usually contain rich low-level details but high-level semantics for later stages. The multiple convolutions embed in Parallel SIF aggregate the corresponding features among different stages and generate a powerful global context representation with less computational cost. The FIF consists of a pooling layer and an upsampling operator followed by projection convolution layer. The concise component provides more spatial details for the network. Compared with BiSeNet, our work achieved faster speed and comparable performance with 72.34% mIoU accuracy and 78 FPS on Cityscapes Dataset based on the ResNet18 backbone.",
+      "venue": "Computer Modeling in Engineering & Sciences",
+      "doi": "10.32604/cmes.2023.024742"
+    },
+    {
+      "workspace_id": "SCI-000385",
+      "title": "Cross-Layer Attentive Feature Upsampling for Low-latency Semantic Segmentation",
+      "year": 2024,
+      "abstract": "Abstract Semantic segmentation is a fundamental problem in computer vision and it requires high-resolution feature maps for dense prediction. Current coordinate-guided low-resolution feature interpolation methods, e.g., bilinear interpolation, produce coarse high-resolution features which suffer from feature misalignment and insufficient context information. Moreover, enriching semantics to high-resolution features requires a high computation burden, so that it is challenging to meet the requirement of lowlatency inference. We propose a novel Guided Attentive Interpolation (GAI) method to adaptively interpolate fine-grained high-resolution features with semantic features to tackle these issues. Guided Attentive Interpolation determines both spatial and semantic relations of pixels from features of different resolutions and then leverages these relations to interpolate high-resolution features with rich semantics. GAI can be integrated with any deep convolutional network for efficient semantic segmentation. In experiments, the GAI-based semantic segmentation networks, i.e., GAIN, can achieve 78.8 mIoU with 22.3 FPS on Cityscapes and 80.6 mIoU with 64.5 on CamVid using an NVIDIA 1080Ti GPU, which are the new state-of-the-art results of low-latency semantic segmentation. Code and models will be available.",
+      "venue": null,
+      "doi": "10.21203/rs.3.rs-4915410/v1"
+    },
+    {
+      "workspace_id": "SCI-000386",
+      "title": "Edge-Centric Real-Time Segmentation for Autonomous Underwater Cave Exploration",
+      "year": 2024,
+      "abstract": "This paper addresses the challenge of deploying machine learning (ML)-based segmentation models on edge platforms to facilitate real-time scene segmentation for Autonomous Underwater Vehicles (AUVs) in underwater cave exploration and mapping scenarios. We focus on three ML models-U-Net, CaveSeg, and YOLOv8n-deployed on four edge platforms: Raspberry Pi-4, Intel Neural Compute Stick 2 (NCS2), Google Edge TPU, and NVIDIA Jetson Nano. Experimental results reveal that mobile models with modern architectures, such as YOLOv8n, and specialized models for semantic segmentation, like U-Net, offer higher accuracy with lower latency. YOLOv8n emerged as the most accurate model, achieving a 72.5 Intersection Over Union (IoU) score. Meanwhile, the U-Net model deployed on the Coral Dev board delivered the highest speed at 79.24 FPS and the lowest energy consumption at 6.23 mJ. The detailed quantitative analyses and comparative results presented in this paper offer critical insights for deploying cave segmentation systems on underwater robots, ensuring safe and reliable AUV navigation during cave exploration and mapping missions.",
+      "venue": null,
+      "doi": "10.36227/techrxiv.172841681.15142027/v1"
+    },
+    {
+      "workspace_id": "SCI-000387",
+      "title": "Hybrid evaluation for HW-NAS on embedded heterogeneous SoCs: A case study in semantic segmentation on Nvidia Jetson Orin",
+      "year": 2026,
+      "abstract": "No abstract available.",
+      "venue": "Journal of Systems Architecture",
+      "doi": "10.1016/j.sysarc.2026.103849"
+    },
+    {
+      "workspace_id": "SCI-000388",
+      "title": "Automatic Segmentation of Mauritia flexuosa in Unmanned Aerial Vehicle (UAV) Imagery Using Deep Learning",
+      "year": 2018,
+      "abstract": "One of the most important ecosystems in the Amazon rainforest is the Mauritia flexuosa swamp or “aguajal”. However, deforestation of its dominant species, the Mauritia flexuosa palm, also known as “aguaje”, is a common issue, and conservation is poorly monitored because of the difficult access to these swamps. The contribution of this paper is twofold: the presentation of a dataset called MauFlex, and the proposal of a segmentation and measurement method for areas covered in Mauritia flexuosa palms using high-resolution aerial images acquired by UAVs. The method performs a semantic segmentation of Mauritia flexuosa using an end-to-end trainable Convolutional Neural Network (CNN) based on the Deeplab v3+ architecture. Images were acquired under different environment and light conditions using three different RGB cameras. The MauFlex dataset was created from these images and it consists of 25,248 image patches of 512 × 512 pixels and their respective ground truth masks. The results over the test set achieved an accuracy of 98.143%, specificity of 96.599%, and sensitivity of 95.556%. It is shown that our method is able not only to detect full-grown isolated Mauritia flexuosa palms, but also young palms or palms partially covered by other types of vegetation.",
+      "venue": "Forests",
+      "doi": "10.3390/f9120736"
+    },
+    {
+      "workspace_id": "SCI-000389",
+      "title": "Real-Time Semantic Segmentation via Multiply Spatial Fusion Network",
+      "year": 2020,
+      "abstract": "Real-time semantic segmentation plays a significant role in industry applications, such as autonomous driving, robotics and so on. It is a challenging task as both efficiency and performance need to be considered simultaneously. To address such a complex task, this paper proposes an efficient CNN called Multiply Spatial Fusion Network (MSFNet) to achieve fast and accurate perception. The proposed MSFNet uses Class Boundary Supervision to process the relevant boundary information based on our proposed Multi-features Fusion Module which can obtain spatial information and enlarge receptive field. Therefore, the final upsampling of the feature maps of 1/8 original image size can achieve impressive results while maintaining a high speed. Experiments on Cityscapes and Camvid datasets show an obvious advantage of the proposed approach compared with the existing approaches. Specifically, it achieves 77.1% Mean IOU on the Cityscapes test dataset with the speed of 41 FPS for a 1024*2048 input, and 75.4% Mean IOU with the speed of 91 FPS on the Camvid test dataset.",
+      "venue": "Proceedings of the British Machine Vision Conference 2020",
+      "doi": "10.5244/c.34.153"
+    },
+    {
+      "workspace_id": "SCI-000390",
+      "title": "Entropy-Based Feature Extraction for Real-Time Semantic Segmentation",
+      "year": 2022,
+      "abstract": "This paper introduces an efficient patch-based computational module, coined Entropy-based Patch Encoder (EPE) module, for resource-constrained semantic segmentation. The EPE module consists of three lightweight fully-convolutional encoders, each extracting features from image patches with a different amount of entropy. Patches with high entropy are being processed by the encoder with the largest number of parameters, patches with moderate entropy are processed by the encoder with a moderate number of parameters, and patches with low entropy are processed by the smallest encoder. The intuition behind the module is the following: as patches with high entropy contain more information, they need an encoder with more parameters, unlike low entropy patches, which can be processed using a small encoder. Consequently, processing part of the patches via the smaller encoder can significantly reduce the computational cost of the module. Experiments show that EPE can boost the performance of existing real-time semantic segmentation models with a slight increase in the computational cost. Specifically, EPE increases the mIOU performance of DFANet A by 0.9% with only 1.2% increase in the number of parameters and the mIOU performance of EDANet by 1% with 10% increase of the model parameters.",
+      "venue": "2022 IEEE International Conference on Image Processing (ICIP)",
+      "doi": "10.1109/icip46576.2022.9897398"
+    },
+    {
+      "workspace_id": "SCI-000391",
+      "title": "Lightweight Semantic Segmentation for Real-Time Obstacle Avoidance in Unmanned Surface Vehicles Using Embedded AI",
+      "year": 2027,
+      "abstract": "No abstract available.",
+      "venue": "Lecture Notes in Networks and Systems",
+      "doi": "10.1007/978-3-032-25652-2_34"
+    },
+    {
+      "workspace_id": "SCI-000392",
+      "title": "SFVNet: Stable and Fast Network for Real-Time Video Semantic Segmentation",
+      "year": 2022,
+      "abstract": "Real-time video semantic segmentation in dynamic scenes is a dense prediction task. This task is computationally expensive but has high requirements for speed and stability, especially on mobile devices. In this paper, a stable and fast real-time video semantic segmentation network (SFVNet) is presented to deal with the above problems. Each module of SFVNet can be designed or selected freely. SFVNet propagates temporal information and extracts spatial information through several lightweight modules instead of large general networks. The temporal features and spatial features are aggregated under the guidance of inter-frame discontiguous features. An end-to-end training is implemented with a joint loss function, including temporal consistency constraint and sparsely annotated video frame supervision. A new metric is proposed for more appropriate evaluation of video semantic segmentation. It takes both temporal consistency and semantic accuracy into account. Experiments on Cityscapes dataset and various devices demonstrate that SFVNet achieves faster speed and higher consistency with controllable accuracy degradation than the baseline methods. SFVNet shows state-of-the-art efficiency in real-time video semantic segmentation.",
+      "venue": "2022 41st Chinese Control Conference (CCC)",
+      "doi": "10.23919/ccc55666.2022.9902264"
+    },
+    {
+      "workspace_id": "SCI-000393",
+      "title": "Dynamic pooling network with hierarchical rectification and sparse context for real-time semantic segmentation",
+      "year": 2025,
+      "abstract": "No abstract available.",
+      "venue": "SSRN Electronic Journal",
+      "doi": "10.2139/ssrn.5704127"
+    },
+    {
+      "workspace_id": "SCI-000394",
+      "title": "Real-time Semantic Segmentation-based Depth Upsampling using Deep Learning",
+      "year": 2018,
+      "abstract": "We propose a new real-time depth upsampling method based on convolutional neural networks (CNNs) that uses the local context provided by semantic information. Two solutions based on convolutional networks are introduced, modeled according to the level of sparsity given by the depth sensor. While first CNN upsamples data from a partial-dense input, the second one uses dilated convolutions as means to cope with sparse inputs from cost-effective depth sensors. Experiments over data extracted from Kitti dataset highlight the performance of our methods while running in real-time (11 ms for the first case and 17 ms for the second) on a regular GPU.",
+      "venue": "2018 IEEE Intelligent Vehicles Symposium (IV)",
+      "doi": "10.1109/ivs.2018.8500555"
+    },
+    {
+      "workspace_id": "SCI-000395",
+      "title": "SASPP: strip-attention for real-time semantic segmentation of aerial imagery",
+      "year": 2026,
+      "abstract": "Semantic segmentation of high-resolution aerial imagery necessitates a balance between capturing fine-grained ground object details and global contextual information. While dual-pooling encoders have improved multi-scale representation, they often lack adaptive weighting of spatial and channel-wise cues, limiting accuracy on complex and anisotropic objects. To address this, we propose a novel plug-and-play Attention Dual-Pooling module that integrates multi-scale statistics with attention mechanisms. Specifically, Coordinate Attention is embedded into the average-pooling branch to model channel dependencies, while a lightweight Transformer is incorporated into the max-pooling branch to capture long-range context. A rigorous 5-fold cross-validation protocol with 3 random seeds was adopted to ensure statistical reliability. Compared to the baseline (67.88% mIoU(mean Intersection over Union)), the Coordinate-Attention-enhanced variant achieves 68.45% mIoU with only a 6.1% parameter increase, and the Transformer-enhanced variant reaches 69.43% mIoU. These improvements are statistically significant (paired t-test, p=0.024) and surpass competing structures like separable convolutions. The GPU peak memory consumption increases modestly from 103 MB to between 121–197 MB, and the most accurate model maintains an inference speed of 28.08 FPS(frames per second), meeting the requirements for real-time mobile deployment.",
+      "venue": "Second International Conference on Artificial Intelligence and Remote Sensing Applications (AIRSA 2026)",
+      "doi": "10.1117/12.3117962"
+    },
+    {
+      "workspace_id": "SCI-000396",
+      "title": "StrawNet-Edge: A Precision-Oriented Lightweight Semantic Segmentation Framework for Crop Residue Detection on Edge Devices",
+      "year": 2026,
+      "abstract": "Crop residue identification and coverage estimation are essential for conservation tillage assessment and farmland quality monitoring. However, in ground-level RGB imagery, residues are sparsely distributed and visually similar to soil, leading to soil-induced false positives and overestimation of coverage. To address this issue, we propose StrawNet-Edge, a precision-focused lightweight semantic segmentation method for reliable residue extraction and coverage estimation. Built upon a U-Net architecture with a ResNet-34 encoder, the model integrates foreground-aware sampling, multi-scale feature modeling, and a validation-driven threshold selection strategy to reduce soilinduced misclassification. Experimental results show that, under a unified evaluation protocol, StrawNet-Edge achieves lower CRC errors and significantly lower CRC bias, providing more stable area-based estimation than generic segmentation models. Its compact design also supports deployment on resource-constrained agricultural edge devices.",
+      "venue": "2026 6th International Conference on Electrical, Computer and Energy Technologies (ICECET)",
+      "doi": "10.1109/icecet65726.2026.11632628"
+    },
+    {
+      "workspace_id": "SCI-000397",
+      "title": "Semantic segmentation performance of aerial image segmentation using weighted ensemble trained networks CNNs",
+      "year": 2026,
+      "abstract": "No abstract available.",
+      "venue": "Multimedia Tools and Applications",
+      "doi": "10.1007/s11042-026-21299-2"
+    },
+    {
+      "workspace_id": "SCI-000398",
+      "title": "Unmanned Aerial Vehicle (UAV)-Based Hyperspectral Imaging System for Precision Agriculture and Forest Management",
+      "year": 2020,
+      "abstract": "No abstract available.",
+      "venue": "Unmanned Aerial Vehicle: Applications in Agriculture and Environment",
+      "doi": "10.1007/978-3-030-27157-2_3"
+    },
+    {
+      "workspace_id": "SCI-000399",
+      "title": "Unmanned Aerial Vehicle (UAV) Applications in Cotton Production",
+      "year": 2022,
+      "abstract": "No abstract available.",
+      "venue": "Smart Agriculture",
+      "doi": "10.1007/978-981-19-2027-1_3"
+    },
+    {
+      "workspace_id": "SCI-000400",
+      "title": "Edge Computing-Driven Real-Time Drone Detection Using YOLOv9 and NVIDIA Jetson Nano",
+      "year": 2024,
+      "abstract": "Drones, with their ability to vertically take off and land with their stable hovering performance, are becoming favorable in both civilian and military domains. However, this introduces risks of its misuse, which may include security threats to airports, institutes of national importance, VIP security, drug trafficking, privacy breaches, etc. To address these issues, automated drone detection systems are essential for preventing unauthorized drone activities. Real-time detection requires high-performance devices such as GPUs. For our experiments, we utilized the NVIDIA Jetson Nano to support YOLOv9-based drone detection. The performance evaluation of YOLOv9 to detect drones is based on metrics like mean average precision (mAP), frames per second (FPS), precision, recall, and F1-score. Experimental data revealed significant improvements over previous models, with a mAP of 95.7%, a precision of 0.946, a recall of 0.864, and an F1-score of 0.903, marking a 4.6% enhancement over YOLOv8. This paper utilizes YOLOv9, optimized with pre-trained weights and transfer learning, achieving significant accuracy in real-time drone detection. Integrated with the NVIDIA Jetson Nano, the system effectively identifies drones at altitudes ranging from 15 feet to 110 feet while adapting to various environmental conditions. The model’s precision and adaptability make it particularly suitable for deployment in security-sensitive areas, where quick and accurate detection is crucial. This research establishes a solid foundation for future counter-drone applications and shows great promise for enhancing situational awareness in critical, high-risk environments.",
+      "venue": "Drones",
+      "doi": "10.3390/drones8110680"
+    }
+  ],
+  "agent_instructions": "# PRISMA 2020 Screening — Batch 16/60\n\nYou are performing a systematic literature review screening step.\nEvaluate EACH paper below against the protocol criteria.\n\n## Research Questions\n- **RQ1**: What is the comparative segmentation performance (mIoU, F1-score) of CNNs, Transformers, and Hybrid architectures on agricultural UAV crop-weed imagery, specifically in paired intra-study benchmarks?\n- **RQ2**: How do edge hardware constraints (thermal design power, compute capacity in TOPS) and execution configurations (quantization precision, input resolution) impact real-time inference throughput (FPS, latency) for UAV segmentation models?\n\n## Inclusion Criteria (must match to INCLUDE)\n- **INC-01**: Focuses on deep learning architectures (CNN, Transformer, or Hybrid) applied to UAV aerial imagery for agricultural crop/weed pixel-level segmentation.\n- **INC-02**: Reports quantitative pixel-wise segmentation accuracy metrics (e.g., mIoU, class IoU, Dice/F1-score) on agricultural benchmark or custom UAV datasets.\n- **INC-03**: Reports on-device empirical hardware execution metrics (e.g., FPS, latency in ms, power in Watts, memory footprint) on physical edge platforms or embedded accelerators.\n\n## Exclusion Criteria (any match → EXCLUDE)\n- **EXC-01** (OUT_OF_SCOPE_MODALITY): Non-UAV imaging modalities (satellite-only, ground-vehicle/tractor-only, or laboratory bench-top setups without aerial flight context).\n- **EXC-02** (OUT_OF_SCOPE_TASK): Bounding-box object detection or whole-image classification without pixel-level semantic or instance segmentation masks.\n- **EXC-03** (OUT_OF_SCOPE_DOMAIN): Agricultural domains outside crop and weed management (e.g., orchard fruit counting, forestry canopy height, livestock tracking, soil moisture estimation).\n- **EXC-04** (METHODOLOGICAL_MISMATCH): Exclusively non-deep learning methods (e.g., classical vegetation indices like ExG/NDVI with Otsu thresholding or shallow SVM without learned features).\n- **EXC-05** (SECONDARY_LITERATURE): Secondary literature without primary empirical benchmarks (surveys, systematic reviews, viewpoint letters, or tutorials).\n- **EXC-06** (INSUFFICIENT_DATA): Non-English text or records lacking retrievable quantitative results.\n\n## Papers to Screen\n```json\n[\n  {\n    \"workspace_id\": \"SCI-000376\",\n    \"title\": \"Semantic Segmentation of Aerial Imagery via Split-Attention Networks with Disentangled Nonlocal and Edge Supervision\",\n    \"year\": 2021,\n    \"abstract\": \"In this work, we propose a new deep convolution neural network (DCNN) architecture for semantic segmentation of aerial imagery. Taking advantage of recent research, we use split-attention networks (ResNeSt) as the backbone for high-quality feature expression. Additionally, a disentangled nonlocal (DNL) block is integrated into our pipeline to express the inter-pixel long-distance dependence and highlight the edge pixels simultaneously. Moreover, the depth-wise separable convolution and atrous spatial pyramid pooling (ASPP) modules are combined to extract and fuse multiscale contextual features. Finally, an auxiliary edge detection task is designed to provide edge constraints for semantic segmentation. Evaluation of algorithms is conducted on two benchmarks provided by the International Society for Photogrammetry and Remote Sensing (ISPRS). Extensive experiments demonstrate the effectiveness of each module of our architecture. Precision evaluation based on the Potsdam benchmark shows that the proposed DCNN achieves competitive performance over the state-of-the-art methods.\",\n    \"venue\": \"Remote Sensing\",\n    \"doi\": \"10.3390/rs13061176\"\n  },\n  {\n    \"workspace_id\": \"SCI-000377\",\n    \"title\": \"Vdd: Varied Drone Dataset for Semantic Segmentation\",\n    \"year\": 2024,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"SSRN Electronic Journal\",\n    \"doi\": \"10.2139/ssrn.4902735\"\n  },\n  {\n    \"workspace_id\": \"SCI-000378\",\n    \"title\": \"Mean-field inference\",\n    \"year\": 2023,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"High-Order Models in Semantic Image Segmentation\",\n    \"doi\": \"10.1016/b978-0-12-805320-1.00008-7\"\n  },\n  {\n    \"workspace_id\": \"SCI-000379\",\n    \"title\": \"Lightweight Multiscale Attention-Aware Method for Semantic Segmentation of Urban Structural Buildings in Drone Aerial Imagery\",\n    \"year\": 2023,\n    \"abstract\": \"Every year, the lives of millions of people all over the world are affected by natural disasters such as floods, earthquakes and hurricanes. Urban and under-development communities are often hit the most during disasters. Disaster resilience requires proper planning and timely response. Recently, there has been growing interest in the potentials of computer vision and artificial intelligence to tackle challenges related to disaster resilience and emergency preparedness. Compared to cities, detecting structural buildings in urban environments is a more challenging task. Within this context, this paper presents a novel lightweight multiscale attention-aware method for semantic segmentation of urban structural buildings in drone aerial imagery. Detailed experiments were conducted to evaluate our proposed method using drone aerial images from Zanzibar city, Tanzania. Despite being lightweight, significant performance gains were achieved compared to relevant state-of-the-art methods in the literature.\",\n    \"venue\": \"2023 International Mobile, Intelligent, and Ubiquitous Computing Conference (MIUCC)\",\n    \"doi\": \"10.1109/miucc58832.2023.10278371\"\n  },\n  {\n    \"workspace_id\": \"SCI-000380\",\n    \"title\": \"EGBNet: a real-time edge-guided bilateral network for nighttime semantic segmentation\",\n    \"year\": 2023,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"Signal, Image and Video Processing\",\n    \"doi\": \"10.1007/s11760-023-02539-6\"\n  },\n  {\n    \"workspace_id\": \"SCI-000381\",\n    \"title\": \"Semantic Segmentation of UAV Aerial Videos using Convolutional Neural Networks\",\n    \"year\": 2019,\n    \"abstract\": \"Semantic segmentation of complex aerial videos enables a better understanding of scene and context. This enhances the performance of automated video processing techniques like anomaly detection, object detection, event detection and other applications. But, there is a limited study of semantic segmentation in aerial videos due to non-availability of the relevant dataset. To address this, an aerial video dataset is captured using DJI Phantom 3 professional drone and is annotated manually. In addition, the proposed research work investigates the performance of semantic segmentation algorithms for aerial videos implemented using Fully Convolution Networks (FCN) and U-net architectures. In this study, two classes (greenery, road) are considered for semantic segmentation. It is observed that both architectures perform competitively on the aerial videos of Unmanned Aerial Vehicle (UAV) with a pixel accuracy of 89.7% and 87.31% respectively.\",\n    \"venue\": \"2019 IEEE Second International Conference on Artificial Intelligence and Knowledge Engineering (AIKE)\",\n    \"doi\": \"10.1109/aike.2019.00012\"\n  },\n  {\n    \"workspace_id\": \"SCI-000382\",\n    \"title\": \"BFBE-Net: deep bilateral fusion and bilateral embedded network for real-time semantic segmentation\",\n    \"year\": 2023,\n    \"abstract\": \"Abstract. Real-time semantic segmentation has been challenging, and the fusion of features from different branches remains crucial to improvement. The two-branch structure has shown promising results in real-time semantic segmentation. However, upsampling feature maps from the semantic branch to match the detail branch leads to a loss of object feature information and compromises segmentation accuracy. We propose a deep bilateral fusion and bilateral embedded network (BFBE-Net) based on the encoder–decoder structure for real-time semantic segmentation to address these issues. The BFBE-Net adopts a two-branch design in the encoder, with a top-down fusion module and a bottom-up fusion module designed to integrate multi-scale context information in the channel dimension, and assigns different weights to detailed information and semantic information to enhance information characteristics. In the decoder, a bilateral embedded attention module under the guidance of spatial and channel attention integrates semantic and spatial features, gradually upsampling feature maps to reduce the loss of feature information. In addition, an enhanced aggregation pyramid pooling module is designed to efficiently extract contextual information by combining depth-wise asymmetric convolution. The proposed algorithm is evaluated on two benchmark datasets, Cityscapes and CamVid, achieving 78.5% mean intersection over union (mIoU) at 82 frames per second (FPS) on the Cityscapes test set and 79.2% mIoU at 131 FPS on the CamVid test set. The proposed BFBE-Net not only improves segmentation accuracy but also ensures real-time performance.\",\n    \"venue\": \"Journal of Electronic Imaging\",\n    \"doi\": \"10.1117/1.jei.32.4.043031\"\n  },\n  {\n    \"workspace_id\": \"SCI-000383\",\n    \"title\": \"Unmanned Aerial Vehicle (UAV)-Based Pavement Image Stitching Without Occlusion, Crack Semantic Segmentation, and Quantification\",\n    \"year\": 2024,\n    \"abstract\": \"Unmanned Aerial Vehicle (UAV)-based pavement distress detection offers efficient and safe advantages. However, obstructions from road vehicles and the slender shape of cracks in UAV images challenge accuracy. To address this, this study established specific flight parameters, proposed the Historical Best Matching Image (HBMI) approach for data loss due to obstructions, and created the UAV-Crack500 dataset with 500 finely annotated crack images. Three algorithms with different loss functions were investigated, finding that the U-Net network combined with our Completely Asymmetric Loss (CAL) achieved the best performance, resolving the issue of class imbalance. Morphological analysis of the semantically segmented images provided precise crack morphology features. In complex scenarios, errors in features like crack area, length, mean width, and maximum width remained within 16%. This study establishes a comprehensive UAV-based pavement distress detection system, overcoming obstructions for accurate assessment.\",\n    \"venue\": \"IEEE Transactions on Intelligent Transportation Systems\",\n    \"doi\": \"10.1109/tits.2024.3424525\"\n  },\n  {\n    \"workspace_id\": \"SCI-000384\",\n    \"title\": \"DuFNet: Dual Flow Network of Real-Time Semantic Segmentation for Unmanned Driving Application of Internet of Things\",\n    \"year\": 2023,\n    \"abstract\": \"The application of unmanned driving in the Internet of Things is one of the concrete manifestations of the application of artificial intelligence technology. Image semantic segmentation can help the unmanned driving system by achieving road accessibility analysis. Semantic segmentation is also a challenging technology for image understanding and scene parsing. We focused on the challenging task of real-time semantic segmentation in this paper. In this paper, we proposed a novel fast architecture for real-time semantic segmentation named DuFNet. Starting from the existing work of Bilateral Segmentation Network (BiSeNet), DuFNet proposes a novel Semantic Information Flow (SIF) structure for context information and a novel Fringe Information Flow (FIF) structure for spatial information. We also proposed two kinds of SIF with cascaded and paralleled structures, respectively. The SIF encodes the input stage by stage in the ResNet18 backbone and provides context information for the feature fusion module. Features from previous stages usually contain rich low-level details but high-level semantics for later stages. The multiple convolutions embed in Parallel SIF aggregate the corresponding features among different stages and generate a powerful global context representation with less computational cost. The FIF consists of a pooling layer and an upsampling operator followed by projection convolution layer. The concise component provides more spatial details for the network. Compared with BiSeNet, our work achieved faster speed and comparable performance with 72.34% mIoU accuracy and 78 FPS on Cityscapes Dataset based on the ResNet18 backbone.\",\n    \"venue\": \"Computer Modeling in Engineering & Sciences\",\n    \"doi\": \"10.32604/cmes.2023.024742\"\n  },\n  {\n    \"workspace_id\": \"SCI-000385\",\n    \"title\": \"Cross-Layer Attentive Feature Upsampling for Low-latency Semantic Segmentation\",\n    \"year\": 2024,\n    \"abstract\": \"Abstract Semantic segmentation is a fundamental problem in computer vision and it requires high-resolution feature maps for dense prediction. Current coordinate-guided low-resolution feature interpolation methods, e.g., bilinear interpolation, produce coarse high-resolution features which suffer from feature misalignment and insufficient context information. Moreover, enriching semantics to high-resolution features requires a high computation burden, so that it is challenging to meet the requirement of lowlatency inference. We propose a novel Guided Attentive Interpolation (GAI) method to adaptively interpolate fine-grained high-resolution features with semantic features to tackle these issues. Guided Attentive Interpolation determines both spatial and semantic relations of pixels from features of different resolutions and then leverages these relations to interpolate high-resolution features with rich semantics. GAI can be integrated with any deep convolutional network for efficient semantic segmentation. In experiments, the GAI-based semantic segmentation networks, i.e., GAIN, can achieve 78.8 mIoU with 22.3 FPS on Cityscapes and 80.6 mIoU with 64.5 on CamVid using an NVIDIA 1080Ti GPU, which are the new state-of-the-art results of low-latency semantic segmentation. Code and models will be available.\",\n    \"venue\": null,\n    \"doi\": \"10.21203/rs.3.rs-4915410/v1\"\n  },\n  {\n    \"workspace_id\": \"SCI-000386\",\n    \"title\": \"Edge-Centric Real-Time Segmentation for Autonomous Underwater Cave Exploration\",\n    \"year\": 2024,\n    \"abstract\": \"This paper addresses the challenge of deploying machine learning (ML)-based segmentation models on edge platforms to facilitate real-time scene segmentation for Autonomous Underwater Vehicles (AUVs) in underwater cave exploration and mapping scenarios. We focus on three ML models-U-Net, CaveSeg, and YOLOv8n-deployed on four edge platforms: Raspberry Pi-4, Intel Neural Compute Stick 2 (NCS2), Google Edge TPU, and NVIDIA Jetson Nano. Experimental results reveal that mobile models with modern architectures, such as YOLOv8n, and specialized models for semantic segmentation, like U-Net, offer higher accuracy with lower latency. YOLOv8n emerged as the most accurate model, achieving a 72.5 Intersection Over Union (IoU) score. Meanwhile, the U-Net model deployed on the Coral Dev board delivered the highest speed at 79.24 FPS and the lowest energy consumption at 6.23 mJ. The detailed quantitative analyses and comparative results presented in this paper offer critical insights for deploying cave segmentation systems on underwater robots, ensuring safe and reliable AUV navigation during cave exploration and mapping missions.\",\n    \"venue\": null,\n    \"doi\": \"10.36227/techrxiv.172841681.15142027/v1\"\n  },\n  {\n    \"workspace_id\": \"SCI-000387\",\n    \"title\": \"Hybrid evaluation for HW-NAS on embedded heterogeneous SoCs: A case study in semantic segmentation on Nvidia Jetson Orin\",\n    \"year\": 2026,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"Journal of Systems Architecture\",\n    \"doi\": \"10.1016/j.sysarc.2026.103849\"\n  },\n  {\n    \"workspace_id\": \"SCI-000388\",\n    \"title\": \"Automatic Segmentation of Mauritia flexuosa in Unmanned Aerial Vehicle (UAV) Imagery Using Deep Learning\",\n    \"year\": 2018,\n    \"abstract\": \"One of the most important ecosystems in the Amazon rainforest is the Mauritia flexuosa swamp or “aguajal”. However, deforestation of its dominant species, the Mauritia flexuosa palm, also known as “aguaje”, is a common issue, and conservation is poorly monitored because of the difficult access to these swamps. The contribution of this paper is twofold: the presentation of a dataset called MauFlex, and the proposal of a segmentation and measurement method for areas covered in Mauritia flexuosa palms using high-resolution aerial images acquired by UAVs. The method performs a semantic segmentation of Mauritia flexuosa using an end-to-end trainable Convolutional Neural Network (CNN) based on the Deeplab v3+ architecture. Images were acquired under different environment and light conditions using three different RGB cameras. The MauFlex dataset was created from these images and it consists of 25,248 image patches of 512 × 512 pixels and their respective ground truth masks. The results over the test set achieved an accuracy of 98.143%, specificity of 96.599%, and sensitivity of 95.556%. It is shown that our method is able not only to detect full-grown isolated Mauritia flexuosa palms, but also young palms or palms partially covered by other types of vegetation.\",\n    \"venue\": \"Forests\",\n    \"doi\": \"10.3390/f9120736\"\n  },\n  {\n    \"workspace_id\": \"SCI-000389\",\n    \"title\": \"Real-Time Semantic Segmentation via Multiply Spatial Fusion Network\",\n    \"year\": 2020,\n    \"abstract\": \"Real-time semantic segmentation plays a significant role in industry applications, such as autonomous driving, robotics and so on. It is a challenging task as both efficiency and performance need to be considered simultaneously. To address such a complex task, this paper proposes an efficient CNN called Multiply Spatial Fusion Network (MSFNet) to achieve fast and accurate perception. The proposed MSFNet uses Class Boundary Supervision to process the relevant boundary information based on our proposed Multi-features Fusion Module which can obtain spatial information and enlarge receptive field. Therefore, the final upsampling of the feature maps of 1/8 original image size can achieve impressive results while maintaining a high speed. Experiments on Cityscapes and Camvid datasets show an obvious advantage of the proposed approach compared with the existing approaches. Specifically, it achieves 77.1% Mean IOU on the Cityscapes test dataset with the speed of 41 FPS for a 1024*2048 input, and 75.4% Mean IOU with the speed of 91 FPS on the Camvid test dataset.\",\n    \"venue\": \"Proceedings of the British Machine Vision Conference 2020\",\n    \"doi\": \"10.5244/c.34.153\"\n  },\n  {\n    \"workspace_id\": \"SCI-000390\",\n    \"title\": \"Entropy-Based Feature Extraction for Real-Time Semantic Segmentation\",\n    \"year\": 2022,\n    \"abstract\": \"This paper introduces an efficient patch-based computational module, coined Entropy-based Patch Encoder (EPE) module, for resource-constrained semantic segmentation. The EPE module consists of three lightweight fully-convolutional encoders, each extracting features from image patches with a different amount of entropy. Patches with high entropy are being processed by the encoder with the largest number of parameters, patches with moderate entropy are processed by the encoder with a moderate number of parameters, and patches with low entropy are processed by the smallest encoder. The intuition behind the module is the following: as patches with high entropy contain more information, they need an encoder with more parameters, unlike low entropy patches, which can be processed using a small encoder. Consequently, processing part of the patches via the smaller encoder can significantly reduce the computational cost of the module. Experiments show that EPE can boost the performance of existing real-time semantic segmentation models with a slight increase in the computational cost. Specifically, EPE increases the mIOU performance of DFANet A by 0.9% with only 1.2% increase in the number of parameters and the mIOU performance of EDANet by 1% with 10% increase of the model parameters.\",\n    \"venue\": \"2022 IEEE International Conference on Image Processing (ICIP)\",\n    \"doi\": \"10.1109/icip46576.2022.9897398\"\n  },\n  {\n    \"workspace_id\": \"SCI-000391\",\n    \"title\": \"Lightweight Semantic Segmentation for Real-Time Obstacle Avoidance in Unmanned Surface Vehicles Using Embedded AI\",\n    \"year\": 2027,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"Lecture Notes in Networks and Systems\",\n    \"doi\": \"10.1007/978-3-032-25652-2_34\"\n  },\n  {\n    \"workspace_id\": \"SCI-000392\",\n    \"title\": \"SFVNet: Stable and Fast Network for Real-Time Video Semantic Segmentation\",\n    \"year\": 2022,\n    \"abstract\": \"Real-time video semantic segmentation in dynamic scenes is a dense prediction task. This task is computationally expensive but has high requirements for speed and stability, especially on mobile devices. In this paper, a stable and fast real-time video semantic segmentation network (SFVNet) is presented to deal with the above problems. Each module of SFVNet can be designed or selected freely. SFVNet propagates temporal information and extracts spatial information through several lightweight modules instead of large general networks. The temporal features and spatial features are aggregated under the guidance of inter-frame discontiguous features. An end-to-end training is implemented with a joint loss function, including temporal consistency constraint and sparsely annotated video frame supervision. A new metric is proposed for more appropriate evaluation of video semantic segmentation. It takes both temporal consistency and semantic accuracy into account. Experiments on Cityscapes dataset and various devices demonstrate that SFVNet achieves faster speed and higher consistency with controllable accuracy degradation than the baseline methods. SFVNet shows state-of-the-art efficiency in real-time video semantic segmentation.\",\n    \"venue\": \"2022 41st Chinese Control Conference (CCC)\",\n    \"doi\": \"10.23919/ccc55666.2022.9902264\"\n  },\n  {\n    \"workspace_id\": \"SCI-000393\",\n    \"title\": \"Dynamic pooling network with hierarchical rectification and sparse context for real-time semantic segmentation\",\n    \"year\": 2025,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"SSRN Electronic Journal\",\n    \"doi\": \"10.2139/ssrn.5704127\"\n  },\n  {\n    \"workspace_id\": \"SCI-000394\",\n    \"title\": \"Real-time Semantic Segmentation-based Depth Upsampling using Deep Learning\",\n    \"year\": 2018,\n    \"abstract\": \"We propose a new real-time depth upsampling method based on convolutional neural networks (CNNs) that uses the local context provided by semantic information. Two solutions based on convolutional networks are introduced, modeled according to the level of sparsity given by the depth sensor. While first CNN upsamples data from a partial-dense input, the second one uses dilated convolutions as means to cope with sparse inputs from cost-effective depth sensors. Experiments over data extracted from Kitti dataset highlight the performance of our methods while running in real-time (11 ms for the first case and 17 ms for the second) on a regular GPU.\",\n    \"venue\": \"2018 IEEE Intelligent Vehicles Symposium (IV)\",\n    \"doi\": \"10.1109/ivs.2018.8500555\"\n  },\n  {\n    \"workspace_id\": \"SCI-000395\",\n    \"title\": \"SASPP: strip-attention for real-time semantic segmentation of aerial imagery\",\n    \"year\": 2026,\n    \"abstract\": \"Semantic segmentation of high-resolution aerial imagery necessitates a balance between capturing fine-grained ground object details and global contextual information. While dual-pooling encoders have improved multi-scale representation, they often lack adaptive weighting of spatial and channel-wise cues, limiting accuracy on complex and anisotropic objects. To address this, we propose a novel plug-and-play Attention Dual-Pooling module that integrates multi-scale statistics with attention mechanisms. Specifically, Coordinate Attention is embedded into the average-pooling branch to model channel dependencies, while a lightweight Transformer is incorporated into the max-pooling branch to capture long-range context. A rigorous 5-fold cross-validation protocol with 3 random seeds was adopted to ensure statistical reliability. Compared to the baseline (67.88% mIoU(mean Intersection over Union)), the Coordinate-Attention-enhanced variant achieves 68.45% mIoU with only a 6.1% parameter increase, and the Transformer-enhanced variant reaches 69.43% mIoU. These improvements are statistically significant (paired t-test, p=0.024) and surpass competing structures like separable convolutions. The GPU peak memory consumption increases modestly from 103 MB to between 121–197 MB, and the most accurate model maintains an inference speed of 28.08 FPS(frames per second), meeting the requirements for real-time mobile deployment.\",\n    \"venue\": \"Second International Conference on Artificial Intelligence and Remote Sensing Applications (AIRSA 2026)\",\n    \"doi\": \"10.1117/12.3117962\"\n  },\n  {\n    \"workspace_id\": \"SCI-000396\",\n    \"title\": \"StrawNet-Edge: A Precision-Oriented Lightweight Semantic Segmentation Framework for Crop Residue Detection on Edge Devices\",\n    \"year\": 2026,\n    \"abstract\": \"Crop residue identification and coverage estimation are essential for conservation tillage assessment and farmland quality monitoring. However, in ground-level RGB imagery, residues are sparsely distributed and visually similar to soil, leading to soil-induced false positives and overestimation of coverage. To address this issue, we propose StrawNet-Edge, a precision-focused lightweight semantic segmentation method for reliable residue extraction and coverage estimation. Built upon a U-Net architecture with a ResNet-34 encoder, the model integrates foreground-aware sampling, multi-scale feature modeling, and a validation-driven threshold selection strategy to reduce soilinduced misclassification. Experimental results show that, under a unified evaluation protocol, StrawNet-Edge achieves lower CRC errors and significantly lower CRC bias, providing more stable area-based estimation than generic segmentation models. Its compact design also supports deployment on resource-constrained agricultural edge devices.\",\n    \"venue\": \"2026 6th International Conference on Electrical, Computer and Energy Technologies (ICECET)\",\n    \"doi\": \"10.1109/icecet65726.2026.11632628\"\n  },\n  {\n    \"workspace_id\": \"SCI-000397\",\n    \"title\": \"Semantic segmentation performance of aerial image segmentation using weighted ensemble trained networks CNNs\",\n    \"year\": 2026,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"Multimedia Tools and Applications\",\n    \"doi\": \"10.1007/s11042-026-21299-2\"\n  },\n  {\n    \"workspace_id\": \"SCI-000398\",\n    \"title\": \"Unmanned Aerial Vehicle (UAV)-Based Hyperspectral Imaging System for Precision Agriculture and Forest Management\",\n    \"year\": 2020,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"Unmanned Aerial Vehicle: Applications in Agriculture and Environment\",\n    \"doi\": \"10.1007/978-3-030-27157-2_3\"\n  },\n  {\n    \"workspace_id\": \"SCI-000399\",\n    \"title\": \"Unmanned Aerial Vehicle (UAV) Applications in Cotton Production\",\n    \"year\": 2022,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": \"Smart Agriculture\",\n    \"doi\": \"10.1007/978-981-19-2027-1_3\"\n  },\n  {\n    \"workspace_id\": \"SCI-000400\",\n    \"title\": \"Edge Computing-Driven Real-Time Drone Detection Using YOLOv9 and NVIDIA Jetson Nano\",\n    \"year\": 2024,\n    \"abstract\": \"Drones, with their ability to vertically take off and land with their stable hovering performance, are becoming favorable in both civilian and military domains. However, this introduces risks of its misuse, which may include security threats to airports, institutes of national importance, VIP security, drug trafficking, privacy breaches, etc. To address these issues, automated drone detection systems are essential for preventing unauthorized drone activities. Real-time detection requires high-performance devices such as GPUs. For our experiments, we utilized the NVIDIA Jetson Nano to support YOLOv9-based drone detection. The performance evaluation of YOLOv9 to detect drones is based on metrics like mean average precision (mAP), frames per second (FPS), precision, recall, and F1-score. Experimental data revealed significant improvements over previous models, with a mAP of 95.7%, a precision of 0.946, a recall of 0.864, and an F1-score of 0.903, marking a 4.6% enhancement over YOLOv8. This paper utilizes YOLOv9, optimized with pre-trained weights and transfer learning, achieving significant accuracy in real-time drone detection. Integrated with the NVIDIA Jetson Nano, the system effectively identifies drones at altitudes ranging from 15 feet to 110 feet while adapting to various environmental conditions. The model’s precision and adaptability make it particularly suitable for deployment in security-sensitive areas, where quick and accurate detection is crucial. This research establishes a solid foundation for future counter-drone applications and shows great promise for enhancing situational awareness in critical, high-risk environments.\",\n    \"venue\": \"Drones\",\n    \"doi\": \"10.3390/drones8110680\"\n  }\n]\n```\n\n## Required Output\nWrite a JSON array (one object per paper, same order) to the decision file.\nEach object MUST have these exact fields:\n```json\n[\n  {\n    \"workspace_id\": \"SCI-XXXXXX\",\n    \"decision\": \"INCLUDE or EXCLUDE\",\n    \"confidence\": 0.0,\n    \"matched_inclusion_criteria\": [\n      \"INC-01\"\n    ],\n    \"violated_exclusion_criteria\": [],\n    \"relevant_rqs\": [\n      \"RQ1\"\n    ],\n    \"screening_reasoning\": \"One or two sentences explaining the decision.\"\n  }\n]\n```\n\nWrite your response to: `literature/screening/batch_016_decisions.json`"
+}

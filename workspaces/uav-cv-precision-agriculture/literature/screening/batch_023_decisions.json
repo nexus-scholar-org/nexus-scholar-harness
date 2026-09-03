@@ -1,0 +1,308 @@
+[
+  {
+    "workspace_id": "SCI-000551",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [
+      "INC-01"
+    ],
+    "violated_exclusion_criteria": [
+      "EXC-06"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Mentions UAV segmentation but lacks quantitative empirical benchmark metrics (mIoU/F1 or FPS/latency)."
+  },
+  {
+    "workspace_id": "SCI-000552",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000553",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-01"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "No evidence of low-altitude UAV or drone aerial image acquisition in methodology."
+  },
+  {
+    "workspace_id": "SCI-000554",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 benchmark metrics."
+  },
+  {
+    "workspace_id": "SCI-000555",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 and RQ2 benchmark metrics."
+  },
+  {
+    "workspace_id": "SCI-000556",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000557",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000558",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-01"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "No evidence of low-altitude UAV or drone aerial image acquisition in methodology."
+  },
+  {
+    "workspace_id": "SCI-000559",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 benchmark metrics."
+  },
+  {
+    "workspace_id": "SCI-000560",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-01"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "No evidence of low-altitude UAV or drone aerial image acquisition in methodology."
+  },
+  {
+    "workspace_id": "SCI-000561",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [
+      "INC-01"
+    ],
+    "violated_exclusion_criteria": [
+      "EXC-06"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Mentions UAV segmentation but lacks quantitative empirical benchmark metrics (mIoU/F1 or FPS/latency)."
+  },
+  {
+    "workspace_id": "SCI-000562",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000563",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-01"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "No evidence of low-altitude UAV or drone aerial image acquisition in methodology."
+  },
+  {
+    "workspace_id": "SCI-000564",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Applies bounding-box object detection only, without pixel-level semantic or instance segmentation."
+  },
+  {
+    "workspace_id": "SCI-000565",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 and RQ2 benchmark metrics."
+  },
+  {
+    "workspace_id": "SCI-000566",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000567",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-01"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "No evidence of low-altitude UAV or drone aerial image acquisition in methodology."
+  },
+  {
+    "workspace_id": "SCI-000568",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000569",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 benchmark metrics."
+  },
+  {
+    "workspace_id": "SCI-000570",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 benchmark metrics."
+  },
+  {
+    "workspace_id": "SCI-000571",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-01"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "No evidence of low-altitude UAV or drone aerial image acquisition in methodology."
+  },
+  {
+    "workspace_id": "SCI-000572",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000573",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000574",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-05"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Secondary literature / survey paper without novel primary benchmark data or experimental evaluation."
+  },
+  {
+    "workspace_id": "SCI-000575",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2"
+    ],
+    "screening_reasoning": "Empirical study evaluating UAV segmentation with RQ1 and RQ2 benchmark metrics."
+  }
+]
