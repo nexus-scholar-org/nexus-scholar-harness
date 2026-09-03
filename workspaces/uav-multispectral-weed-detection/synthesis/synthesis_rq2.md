@@ -1,0 +1,10 @@
+### Synthesis for: RQ2: Can a lightweight multispectral architecture (under ~0.6M parameters) sustain at least 30 FPS on Jetson-class edge hardware for real-time targeted spraying, and which model designs (attention, multi-scale fusion, quantization) make this feasible?
+
+- Based on empirical findings in Abstract/Intro, this 34% reduction in false positive rate is consistent with prior multispectral weed [uav-multispectral-weed-detection#abstractin#chk-1068-09f2e6-abstract-intro-16]
+- Based on empirical findings in Abstract/Intro, remote sens. 2026, 18, 915 [uav-multispectral-weed-detection#abstractin#chk-1033-c65635-abstract-intro-55]
+- Based on empirical findings in Abstract/Intro, remote sens. 2026, 18, 915 [uav-multispectral-weed-detection#abstractin#chk-1033-c65635-abstract-intro-45]
+- Based on empirical findings in BACKGROUND, accurate crop‐weed segmentation is critical for precision spraying but is hindered by visual similarity and occlusion. this study aims to develop a lightweight yet high‐accuracy multispectral segmentation network to address these challenges. [uav-multispectral-weed-detection#background#chk-1010-3a54df-background-02]
+- Based on empirical findings in Abstract/Intro, experimental results [uav-multispectral-weed-detection#abstractin#chk-1010-30a4d8-abstract-intro-51]
+- Based on empirical findings in Abstract/Intro, these issues arose from water reflections, [uav-multispectral-weed-detection#abstractin#chk-1021-bc45db-abstract-intro-42]
+- Based on empirical findings in Abstract/Intro, clip meets dinov3 for eﬀective crop and weed [uav-multispectral-weed-detection#abstractin#chk-1010-dc604e-abstract-intro-29]
+- Based on empirical findings in Abstract/Intro, the green circles [uav-multispectral-weed-detection#abstractin#chk-1035-1aecba-abstract-intro-30]

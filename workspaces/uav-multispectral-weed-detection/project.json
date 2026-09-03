@@ -1,0 +1,36 @@
+{
+  "title": "Lightweight Multispectral UAV Vision Architecture for Real-Time Weed Detection and Precision Targeted Spraying",
+  "slug": "uav-multispectral-weed-detection",
+  "paradigm": "Design Science",
+  "lead_researcher": "AI PhD Researcher",
+  "protocol_fingerprint": "sha256:d4536274648be8fa2a0d64965d9d193e5925c76f77d9742146129a008dc62747",
+  "created_at": "2026-09-01T17:17:00+00:00",
+  "research_questions": [
+    "RQ1: How does a lightweight multispectral feature fusion architecture compare to standard unimodal RGB and heavier baselines in distinguishing weed species from crop canopies on open agricultural UAV datasets?",
+    "RQ2: What trade-offs between parameter efficiency, inference latency (FPS/ms), FLOPs, and segmentation accuracy (mIoU, F1-score) are achieved when optimizing for edge hardware representative of onboard UAV spraying controllers?",
+    "RQ3: How robust is the multispectral weed detection model against domain shifts caused by varying lighting conditions, crop phenological stages, and sensor band calibrations across benchmark datasets?"
+  ],
+  "core_concepts": [
+    "Multispectral UAV Imagery",
+    "Weed Detection",
+    "Lightweight Vision Models",
+    "Agricultural Benchmark Datasets"
+  ],
+  "stats": {
+    "papers_discovered": 116,
+    "papers_deduped": 116,
+    "papers_verified": 116,
+    "papers_screened": 116,
+    "papers_included": 26,
+    "papers_excluded": 90,
+    "papers_conflicts": 0,
+    "pdfs_downloaded": 25,
+    "extracted_documents": 25,
+    "rq3_supplemental_catalogued": 2,
+    "screening_conflicts_adjudicated": 49,
+    "inter_annotator_kappa": 0.115,
+    "vector_chunks": 1185,
+    "matrix_rows": 25,
+    "graph_nodes": 25
+  }
+}

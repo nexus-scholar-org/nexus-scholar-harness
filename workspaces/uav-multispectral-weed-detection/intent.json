@@ -1,0 +1,188 @@
+{
+  "protocol_id": "proto-20260902-uav-multispectral-weed-detection-v2",
+  "genesis_timestamp": "2026-09-02T00:00:00+00:00",
+  "project_slug": "uav-multispectral-weed-detection",
+  "playbook_type": "DESIGN_SCIENCE",
+  "title": "SSFNet: Lightweight Multispectral UAV Vision Architecture for Real-Time Weed Detection and Precision Targeted Spraying",
+  "lead_researcher": "AI PhD Researcher",
+  "target_venue_type": "Agricultural Engineering / Remote Sensing venue",
+  "timeline_weeks": 4,
+  "primary_paradigm": "Design Science",
+  "unit_of_analysis": "Multispectral deep learning segmentation architectures and their dual-branch spectral-visible fusion designs evaluated under empirical benchmark quantification",
+  "trustworthiness_framework": "Hevner DSR",
+  "epistemological_rationale": "Design Science paradigm with empirical benchmark quantification across open agricultural datasets, requiring reported numeric segmentation accuracy and edge-side efficiency metrics on reproducible benchmarks.",
+  "incompatible_concepts": [
+    "satellite-only macro remote sensing",
+    "non-imaging spectroscopy",
+    "pest/disease entomology without weed focus"
+  ],
+  "research_questions": [
+    {
+      "text": "Does a dual-branch spatial-spectral cross-attention architecture (SSFNet) outperform unimodal RGB and channel-stacked early-fusion multi-band baselines in weed-vs-crop segmentation accuracy (mIoU, weed IoU, weed F1) on open agricultural UAV datasets?",
+      "target_facet": "spectral_fusion_accuracy",
+      "required_evidence_type": "Quantitative Benchmark"
+    },
+    {
+      "text": "Can the multispectral fusion architecture sustain the real-time targeted-spraying threshold (>=30 FPS on NVIDIA Jetson-class edge) while keeping parameter count under 0.6M, and what is the measured latency (ms), FLOPs, and throughput trade-off against accuracy?",
+      "target_facet": "computational_efficiency_edge",
+      "required_evidence_type": "Latency & Resource Profiling"
+    },
+    {
+      "text": "How robust is the multispectral weed segmentation model to domain shifts from lighting variation, crop phenological stage, and sensor band calibration when evaluated across multiple agricultural benchmark datasets?",
+      "target_facet": "cross_dataset_robustness",
+      "required_evidence_type": "Generalization Evaluation"
+    }
+  ],
+  "core_concepts": [
+    {
+      "concept": "Multispectral UAV Weed Imagery",
+      "synonyms": ["multispectral UAV weed detection", "UAS weed detection multispectral", "aerial multispectral weed segmentation", "drone RedEdge weed classification", "NIR weed crop segmentation"],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "Weed Segmentation Models",
+      "synonyms": ["weed semantic segmentation", "crop-weed classification network", "site-specific weed management", "precision targeted spraying", "weed-CNN"],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "Spectral Fusion and Edge Architectures",
+      "synonyms": ["dual-branch spectral fusion", "multispectral feature fusion segmentation", "cross-attention spectral", "edge inference UAV Jetson", "lightweight semantic segmentation agriculture"],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "Agricultural Benchmark Datasets",
+      "synonyms": ["WeedMap dataset", "Agriculture-Vision dataset", "SugarBeet2016 line dataset", "DeepWeeds benchmark", "UAV crop weed benchmark"],
+      "boolean_operator": "OR"
+    }
+  ],
+  "start_year": 2015,
+  "end_year": 2026,
+  "languages": ["en"],
+  "open_access_preferred": true,
+  "pool_min": 40,
+  "pool_max": 120,
+  "inclusion_criteria": [
+    {
+      "criterion": "Reports empirical segmentation, detection, or classification results (numeric mIoU, F1, Precision/Recall, IoU, mAP) specifically for weed-vs-crop discrimination in agricultural imagery.",
+      "maps_to_rqs": ["RQ1", "RQ2"]
+    },
+    {
+      "criterion": "Uses multispectral, hyperspectral, or multi-band aerial imagery (including at least one of NIR, RedEdge, NDVI, NDRE, or vegetation-index fusion) OR explicitly evaluates spectral band fusion against a visible/RGB baseline.",
+      "maps_to_rqs": ["RQ1", "RQ3"]
+    },
+    {
+      "criterion": "Deployment or evaluation context is a UAV / UAS platform, aerial platform, or edge/embedded agricultural hardware; or the study reports edge-side efficiency metrics (latency ms, FPS, GFLOPs, parameter count).",
+      "maps_to_rqs": ["RQ1", "RQ2"]
+    },
+    {
+      "criterion": "Evaluates on an open, public, or specifically identifiable agricultural benchmark dataset (e.g., WeedMap, Agriculture-Vision, SugarBeet2016, DeepWeeds) or a described reproducible experimental dataset with named crop/weed classes.",
+      "maps_to_rqs": ["RQ1", "RQ3"]
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "criterion": "No weed detection/segmentation outcome: studies on pest or disease classification, grain/crop quality grading, or general vegetation mapping without weed-crop discrimination.",
+      "reason_category": "WRONG_OUTCOME",
+      "maps_to_rqs": ["RQ1"]
+    },
+    {
+      "criterion": "Includes only satellite-scale or fixed-wing macro remote sensing without usable UAV-resolution (aerial close-range) weed imagery or edge/embedded context.",
+      "reason_category": "OUT_OF_SCOPE_RESOLUTION",
+      "maps_to_rqs": ["RQ1"]
+    },
+    {
+      "criterion": "Strictly RGB-only vision with no spectral/band-fusion component and no weed-specific segmentation or detection architecture.",
+      "reason_category": "OUT_OF_SCOPE_MODALITY",
+      "maps_to_rqs": ["RQ1"]
+    },
+    {
+      "criterion": "Non-empirical meta-publications: surveys, review letters, position papers, or editorials without algorithmic implementation and benchmark numbers.",
+      "reason_category": "NO_EMPIRICAL_EVALUATION",
+      "maps_to_rqs": ["RQ1", "RQ2"]
+    },
+    {
+      "criterion": "Non-English text, unverified abstract-only records, or records lacking retrievable full text for code/data availability verification.",
+      "reason_category": "LANGUAGE_OR_FORMAT",
+      "maps_to_rqs": ["RQ1", "RQ2", "RQ3"]
+    }
+  ],
+  "two_tier_screening": true,
+  "matrix_dimensions": [
+    {
+      "id": "model_architecture",
+      "name": "Model Architecture & Fusion Strategy",
+      "description": "Backbone and detection/segmentation head; fusion mechanism is early (channel stack), late, or dual-branch cross-attention. Capture the exact network name and fusion design.",
+      "target_section_category": "abstract_intro",
+      "data_type": "free_text",
+      "required": true,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "benchmark_dataset",
+      "name": "Benchmark Dataset",
+      "description": "Exact name of the open agricultural dataset used (e.g., WeedMap, Agriculture-Vision, SugarBeet2016, DeepWeeds) and the number of images/classes.",
+      "target_section_category": "methodology",
+      "data_type": "free_text",
+      "required": true,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "sensor_bands",
+      "name": "Sensor Bands & Input Modality",
+      "description": "Bands and channels fused as input (e.g., RGB, NIR, RedEdge, NDVI, NDRE, Thermal). State the input channel count and acquisition platform (UAV/UAS).",
+      "target_section_category": "methodology",
+      "data_type": "free_text",
+      "required": true,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "segmentation_accuracy",
+      "name": "Segmentation Accuracy Metrics",
+      "description": "Reported numeric accuracy: mIoU (%), weed IoU (%), weed F1 (%), mAP@50. Capture numbers as-is with units and note the class each refers to.",
+      "target_section_category": "results_empirical",
+      "data_type": "numeric",
+      "required": true,
+      "fallback_value": "0"
+    },
+    {
+      "id": "edge_efficiency",
+      "name": "Computational Efficiency & Edge Profiling",
+      "description": "Reported latency (ms), throughput (FPS), GFLOPs, parameter count (M), and the target edge hardware (e.g., NVIDIA Jetson Orin). Capture numeric values with units.",
+      "target_section_category": "results_empirical",
+      "data_type": "numeric",
+      "required": false,
+      "fallback_value": "0"
+    },
+    {
+      "id": "accuracy_vs_rgb",
+      "name": "Accuracy Gain vs RGB Baseline",
+      "description": "Reported numeric improvement of the multispectral/spectral method over the RGB-only baseline in mIoU or F1 (e.g., +X.X points). Capture signed numeric value.",
+      "target_section_category": "discussion_limitations",
+      "data_type": "numeric",
+      "required": false,
+      "fallback_value": "0"
+    },
+    {
+      "id": "crop_weed_domain",
+      "name": "Crop, Growth Stage & Weed Species",
+      "description": "Target crop type (e.g., sugar beet, maize), crop phenological stage, and weed species evaluated. Capture as free text.",
+      "target_section_category": "methodology",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "domain_shift_robustness",
+      "name": "Cross-Dataset / Domain Shift Robustness",
+      "description": "Reported generalization across datasets, lighting conditions, growth stages, or sensor calibrations (e.g., cross-dataset mIoU, robustness experiments).",
+      "target_section_category": "discussion_limitations",
+      "data_type": "numeric",
+      "required": false,
+      "fallback_value": "0"
+    }
+  ],
+  "retraction_check_required": true,
+  "coi_and_funding_audit_required": true,
+  "reproducibility_das_cas_check": true,
+  "minimum_trust_score_threshold": 5.0
+}

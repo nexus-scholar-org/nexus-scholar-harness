@@ -3,7 +3,9 @@
 # ==============================================================================
 
 # Project Workspaces (Generated Research Runs)
-workspaces/
+# Track markdown, json, bibtex, and code while excluding heavy binary PDFs and vector stores
+workspaces/**/pdfs/
+workspaces/**/rag/chroma_db/
 
 # External Plugins (installed via scripts/install_plugins.py)
 

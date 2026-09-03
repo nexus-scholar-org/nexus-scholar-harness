@@ -1,0 +1,3348 @@
+[
+  {
+    "title": "Multispectral image fusion and attention-driven deep learning for precision weed segmentation and classification in UAV-based agricultural monitoring",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.1007/s10707-026-00564-4",
+    "external_ids": {
+      "doi": "10.1007/s10707-026-00564-4",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7134953905",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Dhanalakshmi",
+        "given_name": "Narra",
+        "orcid": null
+      },
+      {
+        "family_name": "Padma sree",
+        "given_name": "Lam",
+        "orcid": null
+      },
+      {
+        "family_name": "Mathura",
+        "given_name": "Bai B.",
+        "orcid": null
+      }
+    ],
+    "venue": "GeoInformatica",
+    "url": "https://doi.org/10.1007/s10707-026-00564-4",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/s10707-026-00564-4"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 1,
+    "references_count": 44,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.355656+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02', 'INC-03', 'INC-04'] via title only (no abstract): evidence=['segmentation', 'classification', 'agricultural', 'multispectral', 'fusion', 'spectral', 'agricultural', 'agricultural'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-03",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Multispectral image fusion and attention-driven deep learning for precision weed segmentation and classification in UAV-based agricultural monitoring",
+      "doi": "10.1007/s10707-026-00564-4"
+    }
+  },
+  {
+    "title": "WeedsGalore: A Multispectral and Multitemporal UAV-Based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.1109/wacv61041.2025.00467",
+    "external_ids": {
+      "doi": "10.1109/wacv61041.2025.00467",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4409263155",
+      "s2_id": null
+    },
+    "abstract": "Weeds are one of the major reasons for crop yield loss but current weeding practices fail to manage weeds in an efficient and targeted manner. Effective weed management is especially important for crops with high worldwide production such as maize, to maximize crop yield for meeting increasing global demands. Advances in near-sensing and computer vision enable the development of new tools for weed management. Specifically, state-of-the-art segmentation models, coupled with novel sensing technologies, can facilitate timely and accurate weeding and monitoring systems. However, learning-based approaches require annotated data and show a lack of generalization to aerial imaging for different crops. We present a novel dataset for semantic and instance segmentation of crops and weeds in agricultural maize fields. The multispectral UAV-based dataset contains images with RGB, red-edge, and nearinfrared bands, a large number of plant instances, dense annotations for maize and four weed classes, and is multitemporal. We provide extensive baseline results for both tasks, including probabilistic methods to quantify prediction uncertainty, improve model calibration, and demonstrate the approach's applicability to out-of-distribution data. The results show the effectiveness of the two additional bands compared to RGB only, and better performance in our target domain than models trained on existing datasets. We hope our dataset advances research on methods and operational systems for fine-grained weed identification, enhancing the robustness and applicability of UAVbased weed management. The dataset and code are available at https://github.com/GFZ/weedsgalore.",
+    "authors": [
+      {
+        "family_name": "Celikkan",
+        "given_name": "Ekin",
+        "orcid": null
+      },
+      {
+        "family_name": "Kunzmann",
+        "given_name": "Timo",
+        "orcid": null
+      },
+      {
+        "family_name": "Yeskaliyev",
+        "given_name": "Yertay",
+        "orcid": null
+      },
+      {
+        "family_name": "Itzerott",
+        "given_name": "Sibylle",
+        "orcid": null
+      },
+      {
+        "family_name": "Klein",
+        "given_name": "Nadja",
+        "orcid": null
+      },
+      {
+        "family_name": "Herold",
+        "given_name": "Martin",
+        "orcid": null
+      }
+    ],
+    "venue": "2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)",
+    "url": "https://doi.org/10.1109/wacv61041.2025.00467",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1109/wacv61041.2025.00467"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 24,
+    "references_count": 69,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356064+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.55,
+      "screening_reasoning": "Conflicting signals: inclusion criteria ['INC-01', 'INC-02', 'INC-03', 'INC-04'] matched, but disqualifying phrase(s) [\"EXC-03('rgb only')\"] also found. Human audit recommended.",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-03",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "WeedsGalore: A Multispectral and Multitemporal UAV-Based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+      "doi": "10.1109/wacv61041.2025.00467"
+    }
+  },
+  {
+    "title": "RGB and multispectral UAV image fusion for Gramineae weed detection in rice fields",
+    "year": 2018,
+    "provider": "crossref",
+    "provider_id": "10.1007/s11119-017-9558-x",
+    "external_ids": {
+      "doi": "10.1007/s11119-017-9558-x",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2791120002",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Barrero",
+        "given_name": "Oscar",
+        "orcid": "https://orcid.org/0000-0003-3264-4129"
+      },
+      {
+        "family_name": "Perdomo",
+        "given_name": "Sammy A.",
+        "orcid": null
+      }
+    ],
+    "venue": "Precision Agriculture",
+    "url": "https://doi.org/10.1007/s11119-017-9558-x",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/s11119-017-9558-x"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 112,
+    "references_count": 29,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356289+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['detection', 'multispectral', 'fusion', 'spectral'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "RGB and multispectral UAV image fusion for Gramineae weed detection in rice fields",
+      "doi": "10.1007/s11119-017-9558-x"
+    }
+  },
+  {
+    "title": "Multispectral Feature Decomposition via Dual-Branch CNN-Transformer U-Net for Crop-Weed Semantic Segmentation",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.4316/aece.2026.02005",
+    "external_ids": {
+      "doi": "10.4316/aece.2026.02005",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7166832227",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "BOUHADJER",
+        "given_name": "M. E. A.",
+        "orcid": null
+      },
+      {
+        "family_name": "MAZARI",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "CHIKR EL MEZOUAR",
+        "given_name": "M.",
+        "orcid": null
+      }
+    ],
+    "venue": "Advances in Electrical and Computer Engineering",
+    "url": "https://doi.org/10.4316/aece.2026.02005",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.4316/aece.2026.02005"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 31,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356307+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['segmentation', 'multispectral', 'spectral'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Multispectral Feature Decomposition via Dual-Branch CNN-Transformer U-Net for Crop-Weed Semantic Segmentation",
+      "doi": "10.4316/aece.2026.02005"
+    }
+  },
+  {
+    "title": "Shape and Style Gan-Based Multispectral Data Augmentation for Crop/Weed Segmentation in Precision Farming",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.4281775",
+    "external_ids": {
+      "doi": "10.2139/ssrn.4281775",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4312418765",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Fawakherji",
+        "given_name": "Mulham",
+        "orcid": null
+      },
+      {
+        "family_name": "Suriani",
+        "given_name": "Vincenzo",
+        "orcid": null
+      },
+      {
+        "family_name": "Bloisi",
+        "given_name": "Domenico Daniele",
+        "orcid": null
+      },
+      {
+        "family_name": "Nardi",
+        "given_name": "Daniele",
+        "orcid": null
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.4281775",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.4281775"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356423+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02', 'INC-04'] via title only (no abstract): evidence=['segmentation', 'multispectral', 'spectral', 'crop/weed'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Shape and Style Gan-Based Multispectral Data Augmentation for Crop/Weed Segmentation in Precision Farming",
+      "doi": "10.2139/ssrn.4281775"
+    }
+  },
+  {
+    "title": "Transferring Learned Patterns from Ground-Based Field Imagery to Predict Uav-Based Imagery for Crop and Weed Semantic Segmentation in Precision Crop Farming",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.4272159",
+    "external_ids": {
+      "doi": "10.2139/ssrn.4272159",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4312429834",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Gao",
+        "given_name": "Junfeng",
+        "orcid": null
+      },
+      {
+        "family_name": "Liao",
+        "given_name": "Wenzhi",
+        "orcid": null
+      },
+      {
+        "family_name": "Nuyttens",
+        "given_name": "David",
+        "orcid": null
+      },
+      {
+        "family_name": "Lootens",
+        "given_name": "Peter",
+        "orcid": null
+      },
+      {
+        "family_name": "Alexandersson",
+        "given_name": "Erik",
+        "orcid": null
+      },
+      {
+        "family_name": "Pieters",
+        "given_name": "Jan",
+        "orcid": null
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.4272159",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.4272159"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 6,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356517+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['segmentation', 'imagery', 'imagery'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Transferring Learned Patterns from Ground-Based Field Imagery to Predict Uav-Based Imagery for Crop and Weed Semantic Segmentation in Precision Crop Farming",
+      "doi": "10.2139/ssrn.4272159"
+    }
+  },
+  {
+    "title": "Rpd: Learning Efficient Crop and Weed for In-Field Semantic Segmentation",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.5018736",
+    "external_ids": {
+      "doi": "10.2139/ssrn.5018736",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4404284817",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Chen",
+        "given_name": "Fanghui",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Zhen",
+        "orcid": null
+      },
+      {
+        "family_name": "Ren",
+        "given_name": "Fengyuan",
+        "orcid": null
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.5018736",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.5018736"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356533+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01'] via title only (no abstract): evidence=['segmentation'].",
+      "matched_inclusion_criteria": [
+        "INC-01"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Rpd: Learning Efficient Crop and Weed for In-Field Semantic Segmentation",
+      "doi": "10.2139/ssrn.5018736"
+    }
+  },
+  {
+    "title": "Real-Time Precision Weed and Crop Classification for Robotic Weed Control in High-Density Weed Environment Using Spectral Fluorescence Imaging in Celery",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.5039666",
+    "external_ids": {
+      "doi": "10.2139/ssrn.5039666",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4405102925",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Raja",
+        "given_name": "Rekha",
+        "orcid": null
+      },
+      {
+        "family_name": "Su",
+        "given_name": "Wen-Hao",
+        "orcid": null
+      },
+      {
+        "family_name": "Slaughter",
+        "given_name": "David",
+        "orcid": null
+      },
+      {
+        "family_name": "Fennimore",
+        "given_name": "Steven A.",
+        "orcid": null
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.5039666",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.5039666"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356553+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['classification', 'spectral'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Real-Time Precision Weed and Crop Classification for Robotic Weed Control in High-Density Weed Environment Using Spectral Fluorescence Imaging in Celery",
+      "doi": "10.2139/ssrn.5039666"
+    }
+  },
+  {
+    "title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.1109/icssit69151.2026.11656575",
+    "external_ids": {
+      "doi": "10.1109/icssit69151.2026.11656575",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7204131815",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Krishna",
+        "given_name": "Boggarapu Vamsi",
+        "orcid": null
+      },
+      {
+        "family_name": "Roshan",
+        "given_name": "Mohammad",
+        "orcid": null
+      },
+      {
+        "family_name": "Babu",
+        "given_name": "E. Akhil",
+        "orcid": null
+      }
+    ],
+    "venue": "2026 7th International Conference on Smart Systems and Inventive Technology (ICSSIT)",
+    "url": "https://doi.org/10.1109/icssit69151.2026.11656575",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1109/icssit69151.2026.11656575"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 15,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356763+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['segmentation', 'imagery', 'imagery'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+      "doi": "10.1109/icssit69151.2026.11656575"
+    }
+  },
+  {
+    "title": "WeedFormer: context-enhanced semantic segmentation for precise weed detection in RGB agricultural imagery.",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.31220/agrirxiv.2025.00361",
+    "external_ids": {
+      "doi": "10.31220/agrirxiv.2025.00361",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4414014817",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Cui",
+        "given_name": "Ming-yi",
+        "orcid": null
+      },
+      {
+        "family_name": "Chen",
+        "given_name": "Liang",
+        "orcid": null
+      },
+      {
+        "family_name": "Tian",
+        "given_name": "Yi-fan",
+        "orcid": null
+      }
+    ],
+    "venue": null,
+    "url": "https://doi.org/10.31220/agrirxiv.2025.00361",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.31220/agrirxiv.2025.00361"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 1,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356801+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02', 'INC-03', 'INC-04'] via title only (no abstract): evidence=['segmentation', 'detection', 'agricultural', 'imagery', 'context', 'agricultural', 'agricultural'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-03",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "WeedFormer: context-enhanced semantic segmentation for precise weed detection in RGB agricultural imagery.",
+      "doi": "10.31220/agrirxiv.2025.00361"
+    }
+  },
+  {
+    "title": "Weed detection by UAV: simulation of the impact of spectral mixing in multispectral images",
+    "year": 2017,
+    "provider": "crossref",
+    "provider_id": "10.1007/s11119-017-9528-3",
+    "external_ids": {
+      "doi": "10.1007/s11119-017-9528-3",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2623946272",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Louargant",
+        "given_name": "M.",
+        "orcid": "https://orcid.org/0000-0002-8686-7750"
+      },
+      {
+        "family_name": "Villette",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "Jones",
+        "given_name": "G.",
+        "orcid": null
+      },
+      {
+        "family_name": "Vigneau",
+        "given_name": "N.",
+        "orcid": null
+      },
+      {
+        "family_name": "Paoli",
+        "given_name": "J. N.",
+        "orcid": null
+      },
+      {
+        "family_name": "G\u00e9e",
+        "given_name": "C.",
+        "orcid": null
+      }
+    ],
+    "venue": "Precision Agriculture",
+    "url": "https://doi.org/10.1007/s11119-017-9528-3",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/s11119-017-9528-3"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 47,
+    "references_count": 36,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356819+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['detection', 'multispectral', 'spectral'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed detection by UAV: simulation of the impact of spectral mixing in multispectral images",
+      "doi": "10.1007/s11119-017-9528-3"
+    }
+  },
+  {
+    "title": "CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.1007/978-3-032-26214-1_21",
+    "external_ids": {
+      "doi": "10.1007/978-3-032-26214-1_21",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7168253426",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Papadeas",
+        "given_name": "Ilias",
+        "orcid": null
+      },
+      {
+        "family_name": "Sandalis",
+        "given_name": "Georgios",
+        "orcid": null
+      },
+      {
+        "family_name": "Zamanakos",
+        "given_name": "Georgios",
+        "orcid": null
+      },
+      {
+        "family_name": "Pratikakis",
+        "given_name": "Ioannis",
+        "orcid": null
+      }
+    ],
+    "venue": "Lecture Notes in Networks and Systems",
+    "url": "https://doi.org/10.1007/978-3-032-26214-1_21",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/978-3-032-26214-1_21"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 23,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.356835+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['segmentation', 'multispectral', 'spectral'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation",
+      "doi": "10.1007/978-3-032-26214-1_21"
+    }
+  },
+  {
+    "title": "Relevance of weed science in modern agriculture",
+    "year": 2019,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2019.v15.i3.1256",
+    "external_ids": {
+      "doi": "10.22271/09746315.2019.v15.i3.1256",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3038060252",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "UPASANI",
+        "given_name": "R.R.",
+        "orcid": null
+      },
+      {
+        "family_name": "BARLA",
+        "given_name": "S.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2019.v15.i3.1256",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2019.v15.i3.1256"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.357040+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Relevance of weed science in modern agriculture",
+      "doi": "10.22271/09746315.2019.v15.i3.1256"
+    }
+  },
+  {
+    "title": "Weed Biology",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1002/9781119737582.ch2",
+    "external_ids": {
+      "doi": "10.1002/9781119737582.ch2",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4362511522",
+      "s2_id": null
+    },
+    "abstract": "Weed biology is the study of growth, development, and reproduction of weeds. This chapter discusses the processes that take place in the life cycle of weeds, from germination, seedling stage, vegetative stage, reproductive or flowering and fruiting stage, to seed production stage. Weeds are angiosperms or flowering plants that go through a life cycle from seed or vegetative propagules to seed/propagule. The life cycle of a weed is similar to that of crops and all other flowering plants. Competition is a fundamental process in all ecosystems; it influences growth, reproduction, and survival of competing organisms. Plants depend on available resources for growth and reproduction. Since weeds are also plants just like crops, they have the same requirements for resources needed for normal growth and development. The degree of crop\u2013weed competition is affected by factors related to the weed, the crop, and the interaction among the crop, weed, and the environment.",
+    "authors": [
+      {
+        "family_name": "Baltazar",
+        "given_name": "Aurora M.",
+        "orcid": null
+      },
+      {
+        "family_name": "Datta",
+        "given_name": "Surajit K. De",
+        "orcid": null
+      }
+    ],
+    "venue": "Weed Science and Weed Management in Rice and Cereal\u2010Based Cropping Systems",
+    "url": "https://doi.org/10.1002/9781119737582.ch2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1002/9781119737582.ch2"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 165,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.357214+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title+abstract. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed Biology",
+      "doi": "10.1002/9781119737582.ch2"
+    }
+  },
+  {
+    "title": "Toward Accurate Weed Detection: Integrating Deep Crop Segmentation Andgreenness-Based Analysis",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.5397014",
+    "external_ids": {
+      "doi": "10.2139/ssrn.5397014",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4413305586",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "BOUHADJER",
+        "given_name": "Mohamed El Amine",
+        "orcid": null
+      },
+      {
+        "family_name": "MAZARI",
+        "given_name": "Sarah",
+        "orcid": null
+      },
+      {
+        "family_name": "CHIKR EL MEZOUAR",
+        "given_name": "Miloud",
+        "orcid": null
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.5397014",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.5397014"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 26,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.357495+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01'] via title only (no abstract): evidence=['segmentation', 'detection'].",
+      "matched_inclusion_criteria": [
+        "INC-01"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Toward Accurate Weed Detection: Integrating Deep Crop Segmentation Andgreenness-Based Analysis",
+      "doi": "10.2139/ssrn.5397014"
+    }
+  },
+  {
+    "title": "Data augmentation for deep learning based semantic segmentation and crop-weed classification in agricultural robotics",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.compag.2021.106418",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2021.106418",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3199444512",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Su",
+        "given_name": "Daobilige",
+        "orcid": null
+      },
+      {
+        "family_name": "Kong",
+        "given_name": "He",
+        "orcid": null
+      },
+      {
+        "family_name": "Qiao",
+        "given_name": "Yongliang",
+        "orcid": null
+      },
+      {
+        "family_name": "Sukkarieh",
+        "given_name": "Salah",
+        "orcid": null
+      }
+    ],
+    "venue": "Computers and Electronics in Agriculture",
+    "url": "https://doi.org/10.1016/j.compag.2021.106418",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.compag.2021.106418"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 128,
+    "references_count": 30,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.357517+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-03', 'INC-04'] via title only (no abstract): evidence=['segmentation', 'classification', 'agricultural', 'agricultural', 'agricultural'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-03",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Data augmentation for deep learning based semantic segmentation and crop-weed classification in agricultural robotics",
+      "doi": "10.1016/j.compag.2021.106418"
+    }
+  },
+  {
+    "title": "Weed dynamics and yield of soybean as influenced by integrated nutrient and weed management practices",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2022.v18.i2.1575",
+    "external_ids": {
+      "doi": "10.22271/09746315.2022.v18.i2.1575",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4294874919",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "APON",
+        "given_name": "M.",
+        "orcid": null
+      },
+      {
+        "family_name": "NONGMAITHEM",
+        "given_name": "D.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2022.v18.i2.1575",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2022.v18.i2.1575"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.357711+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed dynamics and yield of soybean as influenced by integrated nutrient and weed management practices",
+      "doi": "10.22271/09746315.2022.v18.i2.1575"
+    }
+  },
+  {
+    "title": "Weed management in conservation agriculture, its issues and adoption : a review",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i1.1267",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i1.1267",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3047137073",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SONI",
+        "given_name": "J.K.",
+        "orcid": null
+      },
+      {
+        "family_name": "CHOUDHARY",
+        "given_name": "V.K.",
+        "orcid": null
+      },
+      {
+        "family_name": "SINGH",
+        "given_name": "P. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "HOTA",
+        "given_name": "S.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i1.1267",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i1.1267"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 4,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.358153+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed management in conservation agriculture, its issues and adoption : a review",
+      "doi": "10.22271/09746315.2020.v16.i1.1267"
+    }
+  },
+  {
+    "title": "Critical crop-weed competition - A pivotal factor for annual planning of weed pest management towards sustainable crop productivity",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i3.1392",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i3.1392",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3127001012",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "GHOSH",
+        "given_name": "R. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "GHOSH",
+        "given_name": "A.",
+        "orcid": null
+      },
+      {
+        "family_name": "MONDAL",
+        "given_name": "D.",
+        "orcid": null
+      },
+      {
+        "family_name": "KANTHAL",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "BHOWMICK",
+        "given_name": "M. K.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i3.1392",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i3.1392"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.358455+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Critical crop-weed competition - A pivotal factor for annual planning of weed pest management towards sustainable crop productivity",
+      "doi": "10.22271/09746315.2020.v16.i3.1392"
+    }
+  },
+  {
+    "title": "Influence of weed management practices on weed flora, crop yield and nutrient uptake in direct seeded rainfed lowland rice",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2021.v17.i2.1472",
+    "external_ids": {
+      "doi": "10.22271/09746315.2021.v17.i2.1472",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4205473590",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "REDDY",
+        "given_name": "M. S. S. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "AMEENA",
+        "given_name": "M.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2021.v17.i2.1472",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2021.v17.i2.1472"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.358474+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Influence of weed management practices on weed flora, crop yield and nutrient uptake in direct seeded rainfed lowland rice",
+      "doi": "10.22271/09746315.2021.v17.i2.1472"
+    }
+  },
+  {
+    "title": "Leaf colour chart based nitrogen and weed management in rice",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i3.1385",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i3.1385",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3127731516",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "HEMALATHA",
+        "given_name": "K.",
+        "orcid": null
+      },
+      {
+        "family_name": "SINGH",
+        "given_name": "Y.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i3.1385",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i3.1385"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.358936+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Leaf colour chart based nitrogen and weed management in rice",
+      "doi": "10.22271/09746315.2020.v16.i3.1385"
+    }
+  },
+  {
+    "title": "Influence of spacing and weed management practices on weed, growth and yield of groundnut (Arachis hypogaea L.)",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i3.1397",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i3.1397",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3126473021",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "DOLIE",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "NONGMAITHEM",
+        "given_name": "D.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i3.1397",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i3.1397"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 4,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.359235+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Influence of spacing and weed management practices on weed, growth and yield of groundnut (Arachis hypogaea L.)",
+      "doi": "10.22271/09746315.2020.v16.i3.1397"
+    }
+  },
+  {
+    "title": "Effect of integrated nutrient management on weed in sorghum + pearl millet cropping system",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2022.v18.i2.1603",
+    "external_ids": {
+      "doi": "10.22271/09746315.2022.v18.i2.1603",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4297675762",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": ".",
+        "given_name": "SANDEEP",
+        "orcid": null
+      },
+      {
+        "family_name": ".",
+        "given_name": "JITENDER",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2022.v18.i2.1603",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2022.v18.i2.1603"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.359362+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Effect of integrated nutrient management on weed in sorghum + pearl millet cropping system",
+      "doi": "10.22271/09746315.2022.v18.i2.1603"
+    }
+  },
+  {
+    "title": "Crop geometry and weed management effect on weed dynamics in soybean",
+    "year": 2017,
+    "provider": "crossref",
+    "provider_id": "10.5958/0974-8164.2017.00025.9",
+    "external_ids": {
+      "doi": "10.5958/0974-8164.2017.00025.9",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2758842940",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Nagre",
+        "given_name": "B.S.",
+        "orcid": null
+      },
+      {
+        "family_name": "Kamble",
+        "given_name": "A.B.",
+        "orcid": null
+      },
+      {
+        "family_name": "Danawale",
+        "given_name": "N.J.",
+        "orcid": null
+      },
+      {
+        "family_name": "Dhonde",
+        "given_name": "M.B.",
+        "orcid": null
+      }
+    ],
+    "venue": "Indian Journal of Weed Science",
+    "url": "https://doi.org/10.5958/0974-8164.2017.00025.9",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.5958/0974-8164.2017.00025.9"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.359379+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Crop geometry and weed management effect on weed dynamics in soybean",
+      "doi": "10.5958/0974-8164.2017.00025.9"
+    }
+  },
+  {
+    "title": "Yield and quality of mustard as affected by organic weed and nutrient management practices",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2023.v19.i1.1659",
+    "external_ids": {
+      "doi": "10.22271/09746315.2023.v19.i1.1659",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4367019857",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "JAIN",
+        "given_name": "L. K.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2023.v19.i1.1659",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2023.v19.i1.1659"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.359775+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Yield and quality of mustard as affected by organic weed and nutrient management practices",
+      "doi": "10.22271/09746315.2023.v19.i1.1659"
+    }
+  },
+  {
+    "title": "Research on unmanned aerial vehicle (UAV) rice field weed sensing image segmentation method based on CNN-transformer",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.compag.2024.109719",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2024.109719",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4405194977",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Guo",
+        "given_name": "Zhonghui",
+        "orcid": null
+      },
+      {
+        "family_name": "Cai",
+        "given_name": "Dongdong",
+        "orcid": null
+      },
+      {
+        "family_name": "Jin",
+        "given_name": "Zhongyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Xu",
+        "given_name": "Tongyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Fenghua",
+        "orcid": null
+      }
+    ],
+    "venue": "Computers and Electronics in Agriculture",
+    "url": "https://doi.org/10.1016/j.compag.2024.109719",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.compag.2024.109719"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 37,
+    "references_count": 38,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360049+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02', 'INC-03'] via title only (no abstract): evidence=['segmentation', 'aerial', 'aerial'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-03"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Research on unmanned aerial vehicle (UAV) rice field weed sensing image segmentation method based on CNN-transformer",
+      "doi": "10.1016/j.compag.2024.109719"
+    }
+  },
+  {
+    "title": "Weed management with ready-mix herbicides in wet seeded rice",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2021.v17.i1.1441",
+    "external_ids": {
+      "doi": "10.22271/09746315.2021.v17.i1.1441",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4205752541",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "MOUNISHA",
+        "given_name": "J.",
+        "orcid": null
+      },
+      {
+        "family_name": "MENON",
+        "given_name": "M. V.",
+        "orcid": null
+      },
+      {
+        "family_name": "REDDY",
+        "given_name": "T. V.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2021.v17.i1.1441",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2021.v17.i1.1441"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360064+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed management with ready-mix herbicides in wet seeded rice",
+      "doi": "10.22271/09746315.2021.v17.i1.1441"
+    }
+  },
+  {
+    "title": "A Multispectral U-Net Framework for Crop-Weed Semantic Segmentation",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.1007/978-3-030-82064-0_2",
+    "external_ids": {
+      "doi": "10.1007/978-3-030-82064-0_2",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3209232469",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Rosas",
+        "given_name": "Daniel Leyva",
+        "orcid": null
+      },
+      {
+        "family_name": "Gonzalez",
+        "given_name": "Uziel Grajeda",
+        "orcid": null
+      },
+      {
+        "family_name": "Huitron",
+        "given_name": "Victor Gonzalez",
+        "orcid": "https://orcid.org/0000-0003-0426-0515"
+      }
+    ],
+    "venue": "Lecture Notes in Networks and Systems",
+    "url": "https://doi.org/10.1007/978-3-030-82064-0_2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/978-3-030-82064-0_2"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 4,
+    "references_count": 20,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360163+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02'] via title only (no abstract): evidence=['segmentation', 'multispectral', 'spectral'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "A Multispectral U-Net Framework for Crop-Weed Semantic Segmentation",
+      "doi": "10.1007/978-3-030-82064-0_2"
+    }
+  },
+  {
+    "title": "Weed management in wheat crop through bio-herbicidal activity of two natural medicinal plants",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2023.v19.i1.1673",
+    "external_ids": {
+      "doi": "10.22271/09746315.2023.v19.i1.1673",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4367019958",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "ELGHOBASHY",
+        "given_name": "R.",
+        "orcid": null
+      },
+      {
+        "family_name": "EL-DARIER",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "ELNOUBY",
+        "given_name": "A.",
+        "orcid": null
+      },
+      {
+        "family_name": "MIGAHID",
+        "given_name": "M.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2023.v19.i1.1673",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2023.v19.i1.1673"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 1,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360255+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed management in wheat crop through bio-herbicidal activity of two natural medicinal plants",
+      "doi": "10.22271/09746315.2023.v19.i1.1673"
+    }
+  },
+  {
+    "title": "Multi-Spectral Image Synthesis for Crop/Weed Segmentation in Precision Farming",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.robot.2021.103861",
+    "external_ids": {
+      "doi": "10.1016/j.robot.2021.103861",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3086635719",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Fawakherji",
+        "given_name": "Mulham",
+        "orcid": null
+      },
+      {
+        "family_name": "Potena",
+        "given_name": "Ciro",
+        "orcid": "https://orcid.org/0000-0003-2395-2170"
+      },
+      {
+        "family_name": "Pretto",
+        "given_name": "Alberto",
+        "orcid": "https://orcid.org/0000-0003-1920-2887"
+      },
+      {
+        "family_name": "Bloisi",
+        "given_name": "Domenico D.",
+        "orcid": null
+      },
+      {
+        "family_name": "Nardi",
+        "given_name": "Daniele",
+        "orcid": "https://orcid.org/0000-0001-6606-200X"
+      }
+    ],
+    "venue": "Robotics and Autonomous Systems",
+    "url": "https://doi.org/10.1016/j.robot.2021.103861",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.robot.2021.103861"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 102,
+    "references_count": 36,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360339+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-02', 'INC-04'] via title only (no abstract): evidence=['segmentation', 'spectral', 'crop/weed'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Multi-Spectral Image Synthesis for Crop/Weed Segmentation in Precision Farming",
+      "doi": "10.1016/j.robot.2021.103861"
+    }
+  },
+  {
+    "title": "Development of an Autonomous Weed-Weeding Robot Utilizing Edge-AI and Multispectral Computer Vision for Row-Crop Farming",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.68099/asnj.2024.79",
+    "external_ids": {
+      "doi": "10.68099/asnj.2024.79",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Weeds represent one of the most economically damaging biotic stresses in row-crop production, yet current chemical control strategies face mounting regulatory pressure and resistance evolution. This paper presents the design, integration, and preliminary field evaluation of an autonomous ground robot for in-season mechanical weed control in row-crop systems, combining Edge-AI inference with a five-band multispectral vision pipeline. The system architecture comprises a four-wheel differential-drive platform, a MicaSense-class multispectral imaging module, an NVIDIA Jetson Orin edge-computing unit, and a servo-actuated inter-row/intra-row tine mechanism. A YOLOv8-nano model, trained on a field-collected and synthetically augmented dataset of 14,200 annotated multispectral frames covering four principal row-crop weed species (Chenopodium album, Amaranthus retroflexus, Galium aparine, Convolvulus arvensis), is deployed for real-time per-frame weed localisation at 18 frames per second on the embedded platform. Vegetation index fusion combining NDVI and NDRE channels provides a secondary spectral discriminator that reduces false-positive detections on soil and crop residue by 34% relative to RGB-only inference. RTK-GNSS-guided row-following navigation achieves lateral deviation of \u22641.8 cm (1\u03c3) at 0.6 m/s travel speed. Field trials on maize and soybean demonstrate a weed removal efficacy of 82\u201389% with a crop damage rate below 1.2%, at a treatment throughput of 0.45 ha/h.",
+    "authors": [
+      {
+        "family_name": "Kucharski",
+        "given_name": "Kondrat",
+        "orcid": "https://orcid.org/0009-0002-9430-3960"
+      },
+      {
+        "family_name": "Jasi\u0144ska",
+        "given_name": "Natasza",
+        "orcid": "https://orcid.org/0009-0000-1901-9615"
+      },
+      {
+        "family_name": "Dudek",
+        "given_name": "Les\u0142awa",
+        "orcid": "https://orcid.org/0009-0007-8426-5397"
+      }
+    ],
+    "venue": "Aintelia Science Notes",
+    "url": "https://doi.org/10.68099/asnj.2024.79",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.68099/asnj.2024.79"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 17,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360557+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.55,
+      "screening_reasoning": "Conflicting signals: inclusion criteria ['INC-01', 'INC-02', 'INC-03', 'INC-04'] matched, but disqualifying phrase(s) [\"EXC-03('rgb-only')\"] also found. Human audit recommended.",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-02",
+        "INC-03",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Development of an Autonomous Weed-Weeding Robot Utilizing Edge-AI and Multispectral Computer Vision for Row-Crop Farming",
+      "doi": "10.68099/asnj.2024.79"
+    }
+  },
+  {
+    "title": "Bio-efficacy of herbicides weed management in groundnut under lateritic soil of West Bengal",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i1.1294",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i1.1294",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3047077964",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SHAH",
+        "given_name": "M. H.",
+        "orcid": null
+      },
+      {
+        "family_name": "PRAMANIK",
+        "given_name": "K.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i1.1294",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i1.1294"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 1,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360636+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Bio-efficacy of herbicides weed management in groundnut under lateritic soil of West Bengal",
+      "doi": "10.22271/09746315.2020.v16.i1.1294"
+    }
+  },
+  {
+    "title": "Spagri-Ai: Smart Precision Agriculture Dataset for Crop and Weed Detection Using Super-Resolution",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.4639426",
+    "external_ids": {
+      "doi": "10.2139/ssrn.4639426",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4388848534",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Jon\u00e1k",
+        "given_name": "Martin",
+        "orcid": null
+      },
+      {
+        "family_name": "Mucha",
+        "given_name": "J\u00e1n",
+        "orcid": null
+      },
+      {
+        "family_name": "Je\u017eek",
+        "given_name": "\u0160tep\u00e1n",
+        "orcid": null
+      },
+      {
+        "family_name": "Kov\u00e1\u010d",
+        "given_name": "Daniel",
+        "orcid": null
+      },
+      {
+        "family_name": "Cz\u00edria",
+        "given_name": "Korn\u00e9l",
+        "orcid": null
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.4639426",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.4639426"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 19,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360653+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-04'] via title only (no abstract): evidence=['detection', 'dataset', 'dataset'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Spagri-Ai: Smart Precision Agriculture Dataset for Crop and Weed Detection Using Super-Resolution",
+      "doi": "10.2139/ssrn.4639426"
+    }
+  },
+  {
+    "title": "Effect of nitrogen fertilizer and weed management practices on weed growth and crop yield of zero-till transplanted rice",
+    "year": 2018,
+    "provider": "crossref",
+    "provider_id": "10.5958/0974-8164.2018.00061.8",
+    "external_ids": {
+      "doi": "10.5958/0974-8164.2018.00061.8",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2902616633",
+      "s2_id": null
+    },
+    "abstract": "The application of N at recommended or higher dose (33% higher than recommended) effectively enhanced the growth and yield of rice crop by suppressing the weed growth in zero-till transplanted rice. Hand weeding thrice at 25, 55 and 75 days after transplanting (DAT) was the best in reducing weed growth and ultimately increased the grain yield of zero-till transplanted rice. Among the herbicidal methods, tank mix application of bispyribac-Na + 2,4-D minimized the weed growth at early stage and enhanced rice grain yield.",
+    "authors": [
+      {
+        "family_name": "Ghosh",
+        "given_name": "Dibakar",
+        "orcid": null
+      },
+      {
+        "family_name": "Singh",
+        "given_name": "Raghwendra",
+        "orcid": null
+      },
+      {
+        "family_name": "Chander",
+        "given_name": "Subhash",
+        "orcid": null
+      }
+    ],
+    "venue": "Indian Journal of Weed Science",
+    "url": "https://doi.org/10.5958/0974-8164.2018.00061.8",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.5958/0974-8164.2018.00061.8"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 7,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360698+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title+abstract. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Effect of nitrogen fertilizer and weed management practices on weed growth and crop yield of zero-till transplanted rice",
+      "doi": "10.5958/0974-8164.2018.00061.8"
+    }
+  },
+  {
+    "title": "Weed management in organic crop cultivation",
+    "year": 2017,
+    "provider": "crossref",
+    "provider_id": "10.19103/as.2017.0025.18",
+    "external_ids": {
+      "doi": "10.19103/as.2017.0025.18",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4250773569",
+      "s2_id": null
+    },
+    "abstract": "Managing weeds in organic production systems is critical to the economic success of organic farmers, as well as long-term ecological sustainability. Problems with weeds are a major reason why organic operations fail, or never get started. This chapter provides an overview of the range of tools and tactics that can be used to contend with weeds in organic systems and describes the integration of several tools and tactics. The chapter presents several organic farmer case studies to illustrate different types of weed management plans. The chapter looks ahead to future trends in scientific research that will help organic farmers manage weeds while conserving and building soil resources.",
+    "authors": [
+      {
+        "family_name": "Unknown",
+        "given_name": null,
+        "orcid": null
+      },
+      {
+        "family_name": "Gramig",
+        "given_name": "Greta",
+        "orcid": null
+      }
+    ],
+    "venue": "Burleigh Dodds Series in Agricultural Science",
+    "url": "https://doi.org/10.19103/as.2017.0025.18",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.19103/as.2017.0025.18"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.360747+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title+abstract. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed management in organic crop cultivation",
+      "doi": "10.19103/as.2017.0025.18"
+    }
+  },
+  {
+    "title": "Weed interference and wheat productivity in a conservation agriculture-based maize-wheat-mungbean system",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2022.v18.i1.1540",
+    "external_ids": {
+      "doi": "10.22271/09746315.2022.v18.i1.1540",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4285270648",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Ghosh",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "Das",
+        "given_name": "T. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "Shivay",
+        "given_name": "Y. S.",
+        "orcid": null
+      },
+      {
+        "family_name": "Bandyopadhyay",
+        "given_name": "K. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "Bhatia",
+        "given_name": "A.",
+        "orcid": null
+      },
+      {
+        "family_name": "Yeasin",
+        "given_name": "Md",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2022.v18.i1.1540",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2022.v18.i1.1540"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 7,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.361531+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed interference and wheat productivity in a conservation agriculture-based maize-wheat-mungbean system",
+      "doi": "10.22271/09746315.2022.v18.i1.1540"
+    }
+  },
+  {
+    "title": "Management of chocolate weed (Melochia corchorifolia L.) in rice",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i1.1306",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i1.1306",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3047354593",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "MENON",
+        "given_name": "M.V.",
+        "orcid": null
+      },
+      {
+        "family_name": "PRAMEELA",
+        "given_name": "P.",
+        "orcid": null
+      },
+      {
+        "family_name": "KAVITHA",
+        "given_name": "P.R.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i1.1306",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i1.1306"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.361723+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Management of chocolate weed (Melochia corchorifolia L.) in rice",
+      "doi": "10.22271/09746315.2020.v16.i1.1306"
+    }
+  },
+  {
+    "title": "Performance of rainfed greengram (Vigna radiata L.) under various sowing dates and weed management practices",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2021.v17.i3.1514",
+    "external_ids": {
+      "doi": "10.22271/09746315.2021.v17.i3.1514",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4206482043",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SUBBULAKSHMI",
+        "given_name": "S.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2021.v17.i3.1514",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2021.v17.i3.1514"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 1,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.361740+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01'] via title only (no abstract): evidence=['iou'].",
+      "matched_inclusion_criteria": [
+        "INC-01"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Performance of rainfed greengram (Vigna radiata L.) under various sowing dates and weed management practices",
+      "doi": "10.22271/09746315.2021.v17.i3.1514"
+    }
+  },
+  {
+    "title": "Study the combined effect of brown manuring with post emergence herbicide on weed management in planted sugarcane",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i1.1295",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i1.1295",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3047278032",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "FANISH",
+        "given_name": "S. ANITTA",
+        "orcid": null
+      },
+      {
+        "family_name": "RAGAVAN",
+        "given_name": "T.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i1.1295",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i1.1295"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 3,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.361757+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Study the combined effect of brown manuring with post emergence herbicide on weed management in planted sugarcane",
+      "doi": "10.22271/09746315.2020.v16.i1.1295"
+    }
+  },
+  {
+    "title": "Nutrient uptake by crop and weed as influenced by the weed management practices in bush type vegetable cowpea, Vigna unguiculata sub sp. unguiculata (L.) Verdcourt",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2020.v16.i2.1339",
+    "external_ids": {
+      "doi": "10.22271/09746315.2020.v16.i2.1339",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3092471112",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SINCHANA",
+        "given_name": "J. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "RAJ",
+        "given_name": "S. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "GIRIJADEVI",
+        "given_name": "L.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2020.v16.i2.1339",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2020.v16.i2.1339"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.361908+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Nutrient uptake by crop and weed as influenced by the weed management practices in bush type vegetable cowpea, Vigna unguiculata sub sp. unguiculata (L.) Verdcourt",
+      "doi": "10.22271/09746315.2020.v16.i2.1339"
+    }
+  },
+  {
+    "title": "Understanding crop-weed-fertilizer-water interactions and their implications for weed management in agricultural systems",
+    "year": 2018,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.cropro.2017.09.011",
+    "external_ids": {
+      "doi": "10.1016/j.cropro.2017.09.011",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2756913665",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Kaur",
+        "given_name": "Simerjeet",
+        "orcid": null
+      },
+      {
+        "family_name": "Kaur",
+        "given_name": "Ramanjit",
+        "orcid": null
+      },
+      {
+        "family_name": "Chauhan",
+        "given_name": "Bhagirath S.",
+        "orcid": null
+      }
+    ],
+    "venue": "Crop Protection",
+    "url": "https://doi.org/10.1016/j.cropro.2017.09.011",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.cropro.2017.09.011"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 174,
+    "references_count": 104,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.362675+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01', 'INC-03', 'INC-04'] via title only (no abstract): evidence=['agricultural', 'agricultural', 'agricultural'].",
+      "matched_inclusion_criteria": [
+        "INC-01",
+        "INC-03",
+        "INC-04"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Understanding crop-weed-fertilizer-water interactions and their implications for weed management in agricultural systems",
+      "doi": "10.1016/j.cropro.2017.09.011"
+    }
+  },
+  {
+    "title": "Weed management in summer groundnut (Arachis hypogaea L.)",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2021.v17.i1.1436",
+    "external_ids": {
+      "doi": "10.22271/09746315.2021.v17.i1.1436",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4206221190",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SARIN",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "BINDHU",
+        "given_name": "J. S.",
+        "orcid": null
+      },
+      {
+        "family_name": "GIRIJADEVI",
+        "given_name": "L.",
+        "orcid": null
+      },
+      {
+        "family_name": "JACOB",
+        "given_name": "D.",
+        "orcid": null
+      },
+      {
+        "family_name": "MINI",
+        "given_name": "V.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2021.v17.i1.1436",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2021.v17.i1.1436"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.362810+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed management in summer groundnut (Arachis hypogaea L.)",
+      "doi": "10.22271/09746315.2021.v17.i1.1436"
+    }
+  },
+  {
+    "title": "Integrated weed management in wheat (Triticum aestivum L.)",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2022.v18.i2.1604",
+    "external_ids": {
+      "doi": "10.22271/09746315.2022.v18.i2.1604",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4297675816",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SHAHARUKH",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "PAWAR",
+        "given_name": "S. U.",
+        "orcid": null
+      },
+      {
+        "family_name": "AWASARMAL",
+        "given_name": "V. B.",
+        "orcid": null
+      },
+      {
+        "family_name": "I.A.B.",
+        "given_name": "MIRZA",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2022.v18.i2.1604",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2022.v18.i2.1604"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.362825+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Integrated weed management in wheat (Triticum aestivum L.)",
+      "doi": "10.22271/09746315.2022.v18.i2.1604"
+    }
+  },
+  {
+    "title": "New generation pre and post emergence herbicides for weed management in fodder maize cv. African Tall",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2023.v19.i3.1738",
+    "external_ids": {
+      "doi": "10.22271/09746315.2023.v19.i3.1738",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4412408879",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "KALE",
+        "given_name": "R. V.",
+        "orcid": null
+      },
+      {
+        "family_name": "TAKAWALE",
+        "given_name": "P. S.",
+        "orcid": null
+      },
+      {
+        "family_name": "BAHULIKAR",
+        "given_name": "R. A.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2023.v19.i3.1738",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2023.v19.i3.1738"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 1,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.362930+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "New generation pre and post emergence herbicides for weed management in fodder maize cv. African Tall",
+      "doi": "10.22271/09746315.2023.v19.i3.1738"
+    }
+  },
+  {
+    "title": "A spectrum of chemical tests in rice varieties identification and classification",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2022.v18.i2.1585",
+    "external_ids": {
+      "doi": "10.22271/09746315.2022.v18.i2.1585",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4294874888",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "JYOTHI",
+        "given_name": "GBN",
+        "orcid": null
+      },
+      {
+        "family_name": "DAS",
+        "given_name": "S.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2022.v18.i2.1585",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2022.v18.i2.1585"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.362945+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01'] via title only (no abstract): evidence=['classification'].",
+      "matched_inclusion_criteria": [
+        "INC-01"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "A spectrum of chemical tests in rice varieties identification and classification",
+      "doi": "10.22271/09746315.2022.v18.i2.1585"
+    }
+  },
+  {
+    "title": "Sustainable Cotton Crop Productivity through Precision Weed Detection: A Deep Learning-Based Approach with UAV Integration",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.37591/joaet.v15i01.197425",
+    "external_ids": {
+      "doi": "10.37591/joaet.v15i01.197425",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4411221924",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Rajyagor",
+        "given_name": "Bhargav",
+        "orcid": null
+      },
+      {
+        "family_name": "Vora",
+        "given_name": "Paresh",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Aerospace Engineering & Technology",
+    "url": "https://doi.org/10.37591/joaet.v15i01.197425",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.37591/joaet.v15i01.197425"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.363067+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "INCLUDE",
+      "confidence": 0.65,
+      "screening_reasoning": "Matched inclusion criteria ['INC-01'] via title only (no abstract): evidence=['detection'].",
+      "matched_inclusion_criteria": [
+        "INC-01"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Sustainable Cotton Crop Productivity through Precision Weed Detection: A Deep Learning-Based Approach with UAV Integration",
+      "doi": "10.37591/joaet.v15i01.197425"
+    }
+  },
+  {
+    "title": "Weed management impact on soil biological indicators in direct sown finger millet",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2024.v20.i1.1767",
+    "external_ids": {
+      "doi": "10.22271/09746315.2024.v20.i1.1767",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4404253367",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "SNEHA",
+        "given_name": "S. R.",
+        "orcid": null
+      },
+      {
+        "family_name": "RAJ",
+        "given_name": "S. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "JACOB",
+        "given_name": "D.",
+        "orcid": null
+      },
+      {
+        "family_name": "PILLAI",
+        "given_name": "P. S.",
+        "orcid": null
+      },
+      {
+        "family_name": "KAVITHA",
+        "given_name": "G.V.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2024.v20.i1.1767",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2024.v20.i1.1767"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.363255+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Weed management impact on soil biological indicators in direct sown finger millet",
+      "doi": "10.22271/09746315.2024.v20.i1.1767"
+    }
+  },
+  {
+    "title": "Climate smart agriculture for sustaining food production",
+    "year": 2019,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2019.v15.i3.1238",
+    "external_ids": {
+      "doi": "10.22271/09746315.2019.v15.i3.1238",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3038101953",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "NONGMAITHEM",
+        "given_name": "D.",
+        "orcid": null
+      },
+      {
+        "family_name": "APON",
+        "given_name": "M.",
+        "orcid": null
+      },
+      {
+        "family_name": "SINGH",
+        "given_name": "A.P.",
+        "orcid": null
+      },
+      {
+        "family_name": "TZUDIR",
+        "given_name": "L.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2019.v15.i3.1238",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2019.v15.i3.1238"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.363419+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Climate smart agriculture for sustaining food production",
+      "doi": "10.22271/09746315.2019.v15.i3.1238"
+    }
+  },
+  {
+    "title": "Chemical management of weed in direct seeded rice (Oryza sativa L.)",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2024.v20.i1.1760",
+    "external_ids": {
+      "doi": "10.22271/09746315.2024.v20.i1.1760",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4404253454",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "DAS",
+        "given_name": "S. K.",
+        "orcid": null
+      },
+      {
+        "family_name": "NANDY",
+        "given_name": "P.",
+        "orcid": null
+      },
+      {
+        "family_name": "SAMUI",
+        "given_name": "S.",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Crop and Weed",
+    "url": "https://doi.org/10.22271/09746315.2024.v20.i1.1760",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.22271/09746315.2024.v20.i1.1760"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:31.363433+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening": {
+      "workspace_id": "SCI-000000",
+      "decision": "EXCLUDE",
+      "confidence": 0.45,
+      "screening_reasoning": "No inclusion criteria matched in title only. Protocol has 4 inclusion criteria. Flagged for audit.",
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "document_title": "Chemical management of weed in direct seeded rice (Oryza sativa L.)",
+      "doi": "10.22271/09746315.2024.v20.i1.1760"
+    }
+  }
+]

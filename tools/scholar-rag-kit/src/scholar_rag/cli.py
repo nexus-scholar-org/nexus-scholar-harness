@@ -196,7 +196,9 @@ def synthesize(
     limit: int = typer.Option(5, "--limit", "-n", help="Number of evidence chunks to retrieve"),
 ):
     """Generate grounded synthesis with atomic citation tokens and automated entailment verification."""
-    engine = GroundedSynthesisEngine(db_path=db_path, embedder_kwargs={"provider": embedder})
+    engine = GroundedSynthesisEngine(
+        db_path=db_path, collection_name=collection, embedder_kwargs={"provider": embedder}
+    )
 
     with console.status("[cyan]Synthesizing findings & verifying claim entailment...[/cyan]"):
         result = engine.synthesize(

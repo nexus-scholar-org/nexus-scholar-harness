@@ -1,0 +1,1499 @@
+[
+  {
+    "title": "BAWSeg: A UAV Multispectral Benchmark for Barley Weed Segmentation",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.3390/rs18060915",
+    "external_ids": {
+      "doi": "10.3390/rs18060915",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7138376711",
+      "s2_id": null
+    },
+    "abstract": "Accurate weed mapping in cereal fields requires pixel-level segmentation from unmanned aerial vehicle (UAV) imagery that remains reliable across fields, seasons, and illumination. Existing multispectral pipelines often depend on thresholded vegetation indices, which are brittle under radiometric drift and mixed crop\u2013weed pixels, or on single-stream convolutional neural network (CNN) and Transformer backbones that ingest stacked bands and indices, where radiance cues and normalized index cues interfere and reduce sensitivity to small weed clusters embedded in crop canopy. We propose VISA (Vegetation Index and Spectral Attention), a two-stream segmentation network that decouples these cues and fuses them at native resolution. The radiance stream learns from calibrated five-band reflectance using local residual convolutions, channel recalibration, spatial gating, and skip-connected decoding, which preserve fine textures, row boundaries, and small weed structures that are often weakened after ratio-based index compression. The index stream operates on vegetation-index maps with windowed self-attention to model local structure efficiently, state-space layers to propagate field-scale context without quadratic attention cost, and Slot Attention to form stable region descriptors that improve discrimination of sparse weeds under canopy mixing. To support supervised training and deployment-oriented evaluation, we introduce BAWSeg, a four-year UAV multispectral dataset collected over commercial barley paddocks in Western Australia, providing radiometrically calibrated blue, green, red, red edge, and near-infrared orthomosaics, derived vegetation indices, and dense crop, weed, and other labels with leakage-free block splits. On BAWSeg, VISA achieves 75.6% mean Intersection over Union (mIoU) and 63.5% weed Intersection over Union (IoU) with 22.8 M parameters, outperforming a multispectral SegFormer-B1 baseline by 1.2 mIoU and 1.9 weed IoU. Under cross-plot and cross-year protocols, VISA maintains 71.2% and 69.2% mIoU, respectively. The full BAWSeg benchmark dataset, VISA code, trained model weights, and protocol files will be released upon publication.",
+    "authors": [
+      {
+        "family_name": "Wang",
+        "given_name": "Haitian",
+        "orcid": "https://orcid.org/0009-0000-7544-4667"
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Xinyu",
+        "orcid": "https://orcid.org/0009-0008-4065-2472"
+      },
+      {
+        "family_name": "Ibrahim",
+        "given_name": "Muhammad",
+        "orcid": "https://orcid.org/0000-0002-5376-2477"
+      },
+      {
+        "family_name": "Severtson",
+        "given_name": "Dustin",
+        "orcid": "https://orcid.org/0000-0001-7695-4503"
+      },
+      {
+        "family_name": "Mian",
+        "given_name": "Ajmal",
+        "orcid": "https://orcid.org/0000-0002-5206-3842"
+      }
+    ],
+    "venue": "Remote Sensing",
+    "url": "https://doi.org/10.3390/rs18060915",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/rs18060915"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 63,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:21.565893+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "WeedsGalore: A Multispectral and Multitemporal UAV-Based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.1109/wacv61041.2025.00467",
+    "external_ids": {
+      "doi": "10.1109/wacv61041.2025.00467",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4409263155",
+      "s2_id": null
+    },
+    "abstract": "Weeds are one of the major reasons for crop yield loss but current weeding practices fail to manage weeds in an efficient and targeted manner. Effective weed management is especially important for crops with high worldwide production such as maize, to maximize crop yield for meeting increasing global demands. Advances in near-sensing and computer vision enable the development of new tools for weed management. Specifically, state-of-the-art segmentation models, coupled with novel sensing technologies, can facilitate timely and accurate weeding and monitoring systems. However, learning-based approaches require annotated data and show a lack of generalization to aerial imaging for different crops. We present a novel dataset for semantic and instance segmentation of crops and weeds in agricultural maize fields. The multispectral UAV-based dataset contains images with RGB, red-edge, and nearinfrared bands, a large number of plant instances, dense annotations for maize and four weed classes, and is multitemporal. We provide extensive baseline results for both tasks, including probabilistic methods to quantify prediction uncertainty, improve model calibration, and demonstrate the approach's applicability to out-of-distribution data. The results show the effectiveness of the two additional bands compared to RGB only, and better performance in our target domain than models trained on existing datasets. We hope our dataset advances research on methods and operational systems for fine-grained weed identification, enhancing the robustness and applicability of UAVbased weed management. The dataset and code are available at https://github.com/GFZ/weedsgalore.",
+    "authors": [
+      {
+        "family_name": "Celikkan",
+        "given_name": "Ekin",
+        "orcid": null
+      },
+      {
+        "family_name": "Kunzmann",
+        "given_name": "Timo",
+        "orcid": null
+      },
+      {
+        "family_name": "Yeskaliyev",
+        "given_name": "Yertay",
+        "orcid": null
+      },
+      {
+        "family_name": "Itzerott",
+        "given_name": "Sibylle",
+        "orcid": null
+      },
+      {
+        "family_name": "Klein",
+        "given_name": "Nadja",
+        "orcid": null
+      },
+      {
+        "family_name": "Herold",
+        "given_name": "Martin",
+        "orcid": null
+      }
+    ],
+    "venue": "2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)",
+    "url": "https://doi.org/10.1109/wacv61041.2025.00467",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1109/wacv61041.2025.00467"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 24,
+    "references_count": 69,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:22.386110+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "From barley to rapeseed: few-shot fine-tuning of semantic segmentation models for weed detection using UAV multispectral imagery",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.7345639",
+    "external_ids": {
+      "doi": "10.2139/ssrn.7345639",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7204146429",
+      "s2_id": null
+    },
+    "abstract": "Site-specific weed management requires accurate spatial information on weed distribution, which remains challenging when models are transferred between crops and field conditions. This study evaluated multispectral UAV imagery and semantic segmentation models for weed mapping in barley, with a focus on spatial generalisation to an independent field and cross-crop transfer to rapeseed. Four spectral configurations (RGB, RGB + NIR + RedEdge, RGB + vegetation indices, and full multispectral) and three modelling approaches (U-Net, DeepLabv3, and Random Forest) were compared. The full configuration (RGB + NIR + RedEdge + NDVI + NDRE + VARI) combined with U-Net achieved the best performance, with a weed F1-score of 0.5833 and an mIoU of 0.5448. Spatial validation on an independent barley field yielded a weed F1-score of 0.6455 (IoU = 0.4766). Direct transfer to rapeseed performed poorly (F1 = 0.0534), indicating a severe domain shift. However, few-shot fine-tuning with only 63 labelled rapeseed patches (15% of the available dataset) recovered performance to F1 = 0.6274, approaching the barley-domain result. These findings show that domain adaptation with limited labelled data can effectively transfer semantic segmentation models to new crops while reducing annotation effort for operational deployment. The resulting weed probability and density maps illustrate the practical potential of this approach for supporting variable-rate herbicide application.",
+    "authors": [
+      {
+        "family_name": "Hern\u00e1ndez Lude\u00f1a",
+        "given_name": "Patricio  Alonso",
+        "orcid": null
+      },
+      {
+        "family_name": "Fern\u00e1ndez Pi\u00f1ar",
+        "given_name": "Carlos",
+        "orcid": null
+      },
+      {
+        "family_name": "L\u00f3pez de Herrera",
+        "given_name": "Juan",
+        "orcid": null
+      },
+      {
+        "family_name": "Herrero Tejedor",
+        "given_name": "Tom\u00e1s  Ram\u00f3n",
+        "orcid": null
+      },
+      {
+        "family_name": "P\u00e9rez Martin",
+        "given_name": "Enrique",
+        "orcid": null
+      },
+      {
+        "family_name": "Raimundo",
+        "given_name": "Javier",
+        "orcid": null
+      },
+      {
+        "family_name": "Calder\u00f3n",
+        "given_name": "Jonathan",
+        "orcid": "https://orcid.org/0009-0002-6988-5962"
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.7345639",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.7345639"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:23.205022+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Black-grass (Alopecurus myosuroides) in cereal multispectral detection by UAV",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1017/wsc.2023.41",
+    "external_ids": {
+      "doi": "10.1017/wsc.2023.41",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4385309120",
+      "s2_id": null
+    },
+    "abstract": "AbstractSite-specific weed management (on the scale of a few meters or less) has the potential to greatly reduce pesticide use and its associated environmental and economic costs. A prerequisite for site-specific weed management is the availability of accurate maps of the weed population that can be generated quickly and cheaply. Improvements and cost reductions in unmanned aerial vehicles (UAVs) and camera technology mean these tools are now readily available for agricultural use. We used UAVs to collect aerial images captured in both RGB and multispectral formats of 12 cereal fields (wheat [Triticum aestivumL.] and barley [Hordeum vulgareL.]) across eastern England. These data were used to train machine learning models to generate prediction maps of locations of black-grass (Alopecurus myosuroidesHuds.), a prolific weed in UK cereal fields. We tested machine learning and data set resampling methods to obtain the most accurate system for predicting the presence and absence of weeds in new out-of-sample fields. The accuracy of the system in predicting the absence ofA. myosuroidesis 69% and its presence above 5 g in weight with 77% accuracy in new out-of-sample fields. This system generates prediction maps that can be used by either agricultural machinery or autonomous robotic platforms for precision weed management. Improvements to the accuracy can be made by increasing the number of fields and samples in the data set and the length of time over which data are collected to gather data across the entire growing season.",
+    "authors": [
+      {
+        "family_name": "Cox",
+        "given_name": "Jonathan",
+        "orcid": "https://orcid.org/0000-0001-9279-7771"
+      },
+      {
+        "family_name": "Li",
+        "given_name": "Xiaodong",
+        "orcid": null
+      },
+      {
+        "family_name": "Fox",
+        "given_name": "Charles",
+        "orcid": "https://orcid.org/0000-0002-6695-8081"
+      },
+      {
+        "family_name": "Coutts",
+        "given_name": "Shaun",
+        "orcid": "https://orcid.org/0000-0003-0282-4559"
+      }
+    ],
+    "venue": "Weed Science",
+    "url": "https://doi.org/10.1017/wsc.2023.41",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1017/wsc.2023.41"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 4,
+    "references_count": 49,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:24.506808+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection from Multispectral UAV Images",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.1109/m2garss52314.2022.9839758",
+    "external_ids": {
+      "doi": "10.1109/m2garss52314.2022.9839758",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4292070756",
+      "s2_id": null
+    },
+    "abstract": "Knowing the confidence with which one can trust the crop and weed map is essential for decision-making in smart farming. In conventional deep learning approaches, crop and weed detection of the trained model can be just blindly assumed accurate but the truth is not. Due to the real observations in smart farming, uncertainty modeling should be an important stage of predictive algorithm output, such as crop and weed mapping. This study focuses on uncertainty estimation in deep meta-learning for crop and weed detection from multispectral UAV images by proposing a new deep meta-learning method based on squeeze-and-attention CNN. To build the effective trained model in crop and weed detection, deep meta-learning methods have been developed and prove to be a robust method in small training data. The proposed method achieves a mean IoU for the crop and weed detection of 88.5% and 86.5% for the multispectral UAV images based on the RedEdge-MX sensor.",
+    "authors": [
+      {
+        "family_name": "Khoshboresh-Masouleh",
+        "given_name": "Mehdi",
+        "orcid": null
+      },
+      {
+        "family_name": "Shah-Hosseini",
+        "given_name": "Reza",
+        "orcid": null
+      }
+    ],
+    "venue": "2022 IEEE Mediterranean and Middle-East Geoscience and Remote Sensing Symposium (M2GARSS)",
+    "url": "https://doi.org/10.1109/m2garss52314.2022.9839758",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1109/m2garss52314.2022.9839758"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 3,
+    "references_count": 14,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:29.635773+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.3390/plants15152257",
+    "external_ids": {
+      "doi": "10.3390/plants15152257",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7170190881",
+      "s2_id": null
+    },
+    "abstract": "Weed segmentation in soybean fields is essential to improving herbicide use efficiency and supporting precision variable-rate spraying. This study developed an SiLU\u2013CPCA\u2013Gate U-Net (SCG-UNet) using fused UAV RGB and multispectral imagery to improve the delineation of small and partially occluded weeds under complex canopy conditions. SCG-UNet integrates channel\u2013spatial feature enhancement, attention-guided skip-feature fusion, and smooth nonlinear activation within a U-Net framework. A total of 400 spatially aligned RGB\u2013multispectral image groups collected from a soybean field in Henan Province, China, were manually annotated for model development and evaluation. Paired bootstrap comparisons showed that RGB+NIR achieved the highest numerical performance among the tested inputs and significantly outperformed RGB, RGB+R, and RGB+G in mIoU after Holm correction, while remaining statistically comparable to RGB+REdge and RGB+NIR+REdge. With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%, exceeding the baseline U-Net by 0.71, 1.50, 2.19, and 2.09 percentage points, respectively. Five-fold spatial block cross-validation yielded an mIoU of 82.92 \u00b1 0.29% and an F1-score of 80.06 \u00b1 0.40%, indicating stable performance across different regions of the same field. SCG-UNet also achieved the highest numerical mIoU among the evaluated convolutional, high-resolution, and Transformer-based models, exceeding TransUNet and LeViT-UNet by 0.90 and 0.71 percentage points, respectively, while requiring fewer parameters and lower reported memory consumption. The segmentation results were further converted into a conceptual variable-rate spraying prescription map with five spray volume levels ranging from 220 to 300 L/ha. These results demonstrate the potential of RGB\u2013multispectral fusion for soybean weed mapping, although field validation of prescription execution, weed control efficacy, and economic benefits remains necessary.",
+    "authors": [
+      {
+        "family_name": "Li",
+        "given_name": "He",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Qianyi",
+        "orcid": null
+      },
+      {
+        "family_name": "Yang",
+        "given_name": "Zishang",
+        "orcid": null
+      },
+      {
+        "family_name": "Zhang",
+        "given_name": "Xiuyuan",
+        "orcid": null
+      },
+      {
+        "family_name": "Ding",
+        "given_name": "Qiming",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Lele",
+        "orcid": null
+      }
+    ],
+    "venue": "Plants",
+    "url": "https://doi.org/10.3390/plants15152257",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/plants15152257"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 45,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:31.428468+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Improving weed segmentation in sugar beet fields using potentials of multispectral unmanned aerial vehicle images and lightweight deep learning",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.1117/1.jrs.15.034510",
+    "external_ids": {
+      "doi": "10.1117/1.jrs.15.034510",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3187087759",
+      "s2_id": null
+    },
+    "abstract": "In our study, a real-world application using the latest unmanned aerial vehicle (UAV) functionality is presented. Sugar beet is an important industrial crop in many countries. According to estimates, weeds in sugar beet fields dramatically reduce both the quantity and quality of sugar beet crops. Due to the spectral similarities between weeds and sugar beet seedlings, visual identification of weeds is extremely difficult in the sugar beet fields. In the present study, a lightweight, end-to-end trainable guided feature-based deep learning method, called DeepMultiFuse, has been developed to improve the weed segmentation performance using multispectral UAV images that aim to fulfill these requirements (to identify weed in sugar beet fields). The proposed architecture is composed of five basic concepts, including guided features, fusion module, dilation convolution operation, modified inception module, and gated encoder\u2013decoder network extracting the object-level image representation for different scenes. The proposed network was trained on the generated dataset, including four multispectral orthomosaic reflectance maps using the RedEdge-M sensor in Rheinbach and three multispectral orthomosaic reflectance maps applying Sequoia sensor in Eschikon for mapping weed segmentation on the field. Experimental results demonstrated that the proposed network taking advantage of the feature fusion module-rich features outperforms state-of-the-art networks.",
+    "authors": [
+      {
+        "family_name": "Khoshboresh-Masouleh",
+        "given_name": "Mehdi",
+        "orcid": null
+      },
+      {
+        "family_name": "Akhoondzadeh",
+        "given_name": "Mehdi",
+        "orcid": null
+      }
+    ],
+    "venue": "Journal of Applied Remote Sensing",
+    "url": "https://doi.org/10.1117/1.jrs.15.034510",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1117/1.jrs.15.034510"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 17,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:34.990012+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Weed mapping in multispectral drone imagery using lightweight vision transformers",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.neucom.2023.126914",
+    "external_ids": {
+      "doi": "10.1016/j.neucom.2023.126914",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4387475793",
+      "s2_id": null
+    },
+    "abstract": "In precision agriculture, noninvasive remote sensing can be used to observe crops and weeds in visible and non-visible spectra. This paper proposes a novel approach for weed mapping using lightweight Vision Transformers. The method uses a lightweight Transformer architecture to process high-resolution aerial images obtained from drones and performs semantic segmentation to distinguish between crops and weeds. The method also employs specific architectural designs to enable transfer learning from RGB weights in a multispectral setting. For this purpose, the WeedMap dataset, acquired by drones equipped with multispectral cameras, was used. The experimental results demonstrate the effectiveness of the proposed method, exceeding the state-of-the-art. Our approach also enables more efficient mapping, allowing farmers to quickly and easily identify infested areas and prioritize their control efforts. These results encourage using drones as versatile computer vision flying devices for herbicide management, thereby improving crop yields. The code is available at https://github.com/pasqualedem/LWViTs-for-weedmapping.",
+    "authors": [
+      {
+        "family_name": "Castellano",
+        "given_name": "Giovanna",
+        "orcid": "https://orcid.org/0000-0002-6489-8628"
+      },
+      {
+        "family_name": "De Marinis",
+        "given_name": "Pasquale",
+        "orcid": "https://orcid.org/0000-0001-8935-9156"
+      },
+      {
+        "family_name": "Vessio",
+        "given_name": "Gennaro",
+        "orcid": "https://orcid.org/0000-0002-0883-2691"
+      }
+    ],
+    "venue": "Neurocomputing",
+    "url": "https://doi.org/10.1016/j.neucom.2023.126914",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.neucom.2023.126914"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 42,
+    "references_count": 52,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:35.337589+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "ASVLB \u2010Net: A lightweight network for multispectral weed segmentation with NDVI \u2010guided adaptive fusion",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.1002/ps.70881",
+    "external_ids": {
+      "doi": "10.1002/ps.70881",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7160444453",
+      "s2_id": null
+    },
+    "abstract": "Abstract BACKGROUND Accurate crop\u2010weed segmentation is critical for precision spraying but is hindered by visual similarity and occlusion. This study aims to develop a lightweight yet high\u2010accuracy multispectral segmentation network to address these challenges. RESULTS We propose ASVLB\u2010Net, a novel lightweight multiscale feature extraction network guided by normalized difference vegetation index (NDVI) priors for crop\u2010weed segmentation in multispectral imagery. First, we design the Adaptive Spectral\u2010Vegetation Fusion (ASVF) module at the input stage. It achieves adaptive allocation of spectral and spatial features, enhancing the discriminability of vegetation regions. Additionally, we adopt a U\u2010shaped architecture based on the Layer\u2010wise Concatenated Multi\u2010Scale Feature (LCMF) encoder. It efficiently extracts fine\u2010grained features and boundary information with low computational cost. Finally, we use the Bottleneck \u2010SCSA (Spatial and Channel Synergistic Attention) module to capture long\u2010range dependencies, improving segmentation in overlapping areas. Experimental results demonstrate that ASVLB\u2010Net achieves a mean intersection over union (mIOU) of 86.5% and a mean precision of 91.89%, outperforming several state\u2010of\u2010the\u2010art (SOTA) models, while maintaining high efficiency with only 0.47 million parameters. CONCLUSION The ASVLB\u2010Net significantly improves segmentation accuracy and robustness in unmanned aerial vehicle (UAV) multispectral imagery, offering a robust solution for precision weeding applications. \u00a9 2026 Society of Chemical Industry.",
+    "authors": [
+      {
+        "family_name": "Dong",
+        "given_name": "Zhengtong",
+        "orcid": null
+      },
+      {
+        "family_name": "Mu",
+        "given_name": "Zhenhua",
+        "orcid": null
+      },
+      {
+        "family_name": "Ji",
+        "given_name": "Jie",
+        "orcid": null
+      },
+      {
+        "family_name": "Song",
+        "given_name": "Chuanming",
+        "orcid": "https://orcid.org/0009-0006-3154-9874"
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Jianjun",
+        "orcid": null
+      },
+      {
+        "family_name": "Wang",
+        "given_name": "Zumin",
+        "orcid": null
+      }
+    ],
+    "venue": "Pest Management Science",
+    "url": "https://doi.org/10.1002/ps.70881",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1002/ps.70881"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 45,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:36.587057+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "UAV-Based Monitoring of Water Hyacinth for Invasive Weed Management: A Hybrid Detection\u2013Segmentation Deep Learning Approach",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.7129570",
+    "external_ids": {
+      "doi": "10.2139/ssrn.7129570",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7168870721",
+      "s2_id": null
+    },
+    "abstract": "Invasive aquatic weeds, particularly water hyacinth (Eichhornia crassipes), pose a major threat to freshwater ecosystems, causing significant ecological and economic damage in Australia. Accurate detection and mapping are essential for effective and timely management. However, conventional satellite and airborne multispectral methods are often limited by insufficient spatial resolution and spectral ambiguity in complex riparian environments. This study evaluated UAV-based RGB and multispectral data for water hyacinth detection in the Fitzroy River Basin, central Queensland, Australia, and proposed a Hybrid Deep Refinement Network (HDR-Net) for instance segmentation. UAV imagery was acquired at 20 m above ground level using a DJI Mavic 3 Multispectral platform, achieving a ground sampling distance of 0.7 cm/pixel. Multispectral indices were assessed for vegetation\u2013water discrimination. Results showed that RGB-derived indices provide stronger spatial separability, while multispectral indices were constrained by spectral similarity among vegetation types and on water surfaces. HDR-Net combined a lightweight YOLOv8n segmentation model with a U-Net++ refinement branch in a two-stage pipeline. YOLOv8n first performed region-of-interest localisation, and U-Net++ refined pixel-level segmentation within these regions, reducing background interference and false positives. On a held-out test set of 400 UAV image tiles, HDR-Net achieved a Dice score of 0.9463, precision of 0.9580, recall of 0.9610, and mAP@50 of 0.924, outperforming standalone baselines. The false positive rate (4.2%) and false negative rate (3.9%) indicated reliable segmentation performance. By enabling highly accurate and automated mapping, this two-stage pipeline provides an operational tool for precision biosecurity, allowing catchment managers to optimise targeted herbicide application and prioritize critical treatment zones.",
+    "authors": [
+      {
+        "family_name": "Wang",
+        "given_name": "Zhenglin",
+        "orcid": null
+      },
+      {
+        "family_name": "ray",
+        "given_name": "Biplob",
+        "orcid": "https://orcid.org/0000-0002-3016-1695"
+      },
+      {
+        "family_name": "Hassan",
+        "given_name": "Jahan",
+        "orcid": "https://orcid.org/0000-0002-0939-2106"
+      },
+      {
+        "family_name": "Islam",
+        "given_name": "Nahina",
+        "orcid": "https://orcid.org/0000-0002-5469-8104"
+      },
+      {
+        "family_name": "Kiran",
+        "given_name": "Pali  Rushi",
+        "orcid": "https://orcid.org/0009-0009-6107-8753"
+      },
+      {
+        "family_name": "Rani",
+        "given_name": "N. Shobha",
+        "orcid": null
+      },
+      {
+        "family_name": "Bhattarai",
+        "given_name": "Surya",
+        "orcid": "https://orcid.org/0009-0008-1708-9749"
+      }
+    ],
+    "venue": "SSRN Electronic Journal",
+    "url": "https://doi.org/10.2139/ssrn.7129570",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.2139/ssrn.7129570"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:44.645298+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Development of an Autonomous Weed-Weeding Robot Utilizing Edge-AI and Multispectral Computer Vision for Row-Crop Farming",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.68099/asnj.2024.79",
+    "external_ids": {
+      "doi": "10.68099/asnj.2024.79",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": null,
+      "s2_id": null
+    },
+    "abstract": "Weeds represent one of the most economically damaging biotic stresses in row-crop production, yet current chemical control strategies face mounting regulatory pressure and resistance evolution. This paper presents the design, integration, and preliminary field evaluation of an autonomous ground robot for in-season mechanical weed control in row-crop systems, combining Edge-AI inference with a five-band multispectral vision pipeline. The system architecture comprises a four-wheel differential-drive platform, a MicaSense-class multispectral imaging module, an NVIDIA Jetson Orin edge-computing unit, and a servo-actuated inter-row/intra-row tine mechanism. A YOLOv8-nano model, trained on a field-collected and synthetically augmented dataset of 14,200 annotated multispectral frames covering four principal row-crop weed species (Chenopodium album, Amaranthus retroflexus, Galium aparine, Convolvulus arvensis), is deployed for real-time per-frame weed localisation at 18 frames per second on the embedded platform. Vegetation index fusion combining NDVI and NDRE channels provides a secondary spectral discriminator that reduces false-positive detections on soil and crop residue by 34% relative to RGB-only inference. RTK-GNSS-guided row-following navigation achieves lateral deviation of \u22641.8 cm (1\u03c3) at 0.6 m/s travel speed. Field trials on maize and soybean demonstrate a weed removal efficacy of 82\u201389% with a crop damage rate below 1.2%, at a treatment throughput of 0.45 ha/h.",
+    "authors": [
+      {
+        "family_name": "Kucharski",
+        "given_name": "Kondrat",
+        "orcid": "https://orcid.org/0009-0002-9430-3960"
+      },
+      {
+        "family_name": "Jasi\u0144ska",
+        "given_name": "Natasza",
+        "orcid": "https://orcid.org/0009-0000-1901-9615"
+      },
+      {
+        "family_name": "Dudek",
+        "given_name": "Les\u0142awa",
+        "orcid": "https://orcid.org/0009-0007-8426-5397"
+      }
+    ],
+    "venue": "Aintelia Science Notes",
+    "url": "https://doi.org/10.68099/asnj.2024.79",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.68099/asnj.2024.79"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 17,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:48.558987+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Crop and Weed Classication Using Pixel-wise Segmentation on Ground and Aerial Images",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.35708/rc1869-126258",
+    "external_ids": {
+      "doi": "10.35708/rc1869-126258",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3174415524",
+      "s2_id": null
+    },
+    "abstract": "Articial Intelligence (AI) is a key tool in agriculture for implementing sus- tainable strategies for weed control. In traditional weed control, the agro-chemical inputs are uniformly applied to the eld, while innovative approaches using AI aim at minimizing the usage of chemical inputs thanks to local applications. In this paper, we focus on agricultural robotics systems that address the weeding problem by means of selective spraying or mechanical removal of the detected weeds. We present a set of deep learning based methods designed to enable a robot to eciently perform an accurate weed/crop classication from RGB or RGB+NIR (Near Infrared) images. In particular, we use two Convolutional Neural Networks (CNNs) to simplify and speed up the training process. A rst encoder-decoder segmentation network is designed to perform a \"plant-type ag- nostic\" segmentation between vegetation and soil. Each plant is hence classied between crop and weeds by using a second network, depending on the type of pipeline, for patch-level or pixel-level classication. We introduce also a third CNN, specically designed for setups with limited resources, like in small UAVs (Unmanned Aerial Vehicles), that exploits the proposed encoder-decoder seg- mentation network to eciently estimate crop/weeds local statistics. Quantita- tive experimental results, obtained using multiple publicly available datasets, demonstrate the eectiveness of the proposed approaches.",
+    "authors": [
+      {
+        "family_name": "Fawakherji",
+        "given_name": "Mulham",
+        "orcid": null
+      }
+    ],
+    "venue": "International Journal of Robotic Computing",
+    "url": "https://doi.org/10.35708/rc1869-126258",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.35708/rc1869-126258"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 14,
+    "references_count": 0,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:51.981898+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Weed species classification with UAV imagery and standard CNN models: Assessing the frontiers of training and inference phases",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.cropro.2024.106721",
+    "external_ids": {
+      "doi": "10.1016/j.cropro.2024.106721",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4396826395",
+      "s2_id": null
+    },
+    "abstract": "Accurate weed species identification is crucial for effective site-specific weed management (SSWM), enabling targeted and timely control measures for each weed in crop field. This study advanced the current approach to species-level weed identification during the early growth stage by integrating unmanned aerial vehicles (UAVs) imagery with standard convolutional neural networks (CNNs) models such as VGG16, Resnet152 and Inception-Resnet-v2. For this, a robust dataset was created with 33,467 labels of weeds (Atriplex patula, Chenopodium album, Convolvulus arvensis, Cyperus rotundus, Lolium rigidum, Portulaca oleracea, Salsola kali, Solanum nigrum) and crops (maize, tomato), which was subjected to different training, validation and test scenarios. Model inputs were adjusted in order to align them with the information represented by the UAV images. Initially, models were developed in balanced scenarios, gradually increasing label numbers to assess their performance. Inception-ResNet-v2 achieved over 90% accuracy with 400 labels, while ResNet152 and VGG16 required 600 and 800 labels, respectively, for similar accuracy. In a more complex and realistic scenarios with unbalanced datasets, Inception-ResNet-v2 outperformed, likely due to its deeper architecture and enhanced capability to capture intricate features and patterns within UAV images. The study emphasized the importance of the minority-to-majority species ratio in unbalanced datasets, which affects minority species classification. To prevent misclassification, it is crucial to determine the right number of labels for CNN model training and validation. Weed maps were generated after species classification using the Faster R-CNN algorithm as an object detector. This advancement in methodology facilitates the precise and efficient implementation of SSWM techniques.",
+    "authors": [
+      {
+        "family_name": "Mes\u00edas-Ruiz",
+        "given_name": "G.A.",
+        "orcid": null
+      },
+      {
+        "family_name": "Borra-Serrano",
+        "given_name": "I.",
+        "orcid": "https://orcid.org/0000-0003-3444-3099"
+      },
+      {
+        "family_name": "Pe\u00f1a",
+        "given_name": "J.M.",
+        "orcid": null
+      },
+      {
+        "family_name": "de Castro",
+        "given_name": "A.I.",
+        "orcid": "https://orcid.org/0000-0002-6699-2204"
+      },
+      {
+        "family_name": "Fern\u00e1ndez-Quintanilla",
+        "given_name": "C.",
+        "orcid": null
+      },
+      {
+        "family_name": "Dorado",
+        "given_name": "J.",
+        "orcid": "https://orcid.org/0000-0002-2268-2562"
+      }
+    ],
+    "venue": "Crop Protection",
+    "url": "https://doi.org/10.1016/j.cropro.2024.106721",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.cropro.2024.106721"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 22,
+    "references_count": 34,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:54.954275+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Novelty Detection Classifiers in Weed Mapping: Silybum marianum Detection on UAV Multispectral Images",
+    "year": 2017,
+    "provider": "crossref",
+    "provider_id": "10.3390/s17092007",
+    "external_ids": {
+      "doi": "10.3390/s17092007",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2751440609",
+      "s2_id": null
+    },
+    "abstract": "In the present study, the detection and mapping of Silybum marianum (L.) Gaertn. weed using novelty detection classifiers is reported. A multispectral camera (green-red-NIR) on board a fixed wing unmanned aerial vehicle (UAV) was employed for obtaining high-resolution images. Four novelty detection classifiers were used to identify S. marianum between other vegetation in a field. The classifiers were One Class Support Vector Machine (OC-SVM), One Class Self-Organizing Maps (OC-SOM), Autoencoders and One Class Principal Component Analysis (OC-PCA). As input features to the novelty detection classifiers, the three spectral bands and texture were used. The S. marianum identification accuracy using OC-SVM reached an overall accuracy of 96%. The results show the feasibility of effective S. marianum mapping by means of novelty detection classifiers acting on multispectral UAV imagery.",
+    "authors": [
+      {
+        "family_name": "Alexandridis",
+        "given_name": "Thomas",
+        "orcid": "https://orcid.org/0000-0003-1893-6301"
+      },
+      {
+        "family_name": "Tamouridou",
+        "given_name": "Afroditi Alexandra",
+        "orcid": null
+      },
+      {
+        "family_name": "Pantazi",
+        "given_name": "Xanthoula Eirini",
+        "orcid": null
+      },
+      {
+        "family_name": "Lagopodi",
+        "given_name": "Anastasia",
+        "orcid": null
+      },
+      {
+        "family_name": "Kashefi",
+        "given_name": "Javid",
+        "orcid": null
+      },
+      {
+        "family_name": "Ovakoglou",
+        "given_name": "Georgios",
+        "orcid": "https://orcid.org/0000-0003-3225-8033"
+      },
+      {
+        "family_name": "Polychronos",
+        "given_name": "Vassilios",
+        "orcid": null
+      },
+      {
+        "family_name": "Moshou",
+        "given_name": "Dimitrios",
+        "orcid": null
+      }
+    ],
+    "venue": "Sensors",
+    "url": "https://doi.org/10.3390/s17092007",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/s17092007"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 41,
+    "references_count": 29,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:59.032624+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "Multispectral UAV Image Classification of Jimson Weed (Datura stramonium L.) in Common Bean (Phaseolus vulgaris L.)",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.3390/rs16183538",
+    "external_ids": {
+      "doi": "10.3390/rs16183538",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4402765470",
+      "s2_id": null
+    },
+    "abstract": "Jimson weed (Datura stramonium L.) is a toxic weed that is occasionally found in fields with common bean (Phaseolus vulgaris L.) for the processing industry. Common bean growers are required to manually remove toxic weeds. If toxic weed plants remain, the standing crop will be rejected. Hence, the implementation of an automatic weed detection system aiding the farmers is badly needed. The overall goal of this study was to investigate if D. stramonium can be located in common bean fields using an unmanned aerial vehicle (UAV)-based ten-band multispectral camera. Therefore four objectives were defined: (I) assessing the spectral discriminative capacity between common bean and D. stramonium by the development and application of logistic regression models; (II) examining the influence of ground sampling distance (GSD) on model performance; and improving model generalization by (III) incorporating the use of vegetation indices and cumulative distribution function (CDF) matching and by (IV) combining spectral data from multiple common bean fields with the use of leave-one-group-out cross-validation (LOGO CV). Logistic regression models were created using data from fields at four different locations in Belgium. Based on the results, it was concluded that common bean and D. stramonium are separable based on multispectral information. A model trained and tested on the data of one location obtained a validation true positive rate and true negative rate of 99% and 95%, respectively. In this study, where D. stramonium had a mean plant size of 0.038 m2 (\u03c3 = 0.020), a GSD of 2.1 cm was found to be appropriate. However, the results proved to be location dependent as the model was not able to reliably distinguish D. stramonium in two other datasets. Finally, the use of a LOGO CV obtained the best results. Although small D. stramonium plants were still systematically overlooked and classified as common bean, the model was capable of detecting large D. stramonium plants on three of the four fields. This study emphasizes the variability in reflectance data among different common bean fields and the importance of an independent dataset to test model generalization.",
+    "authors": [
+      {
+        "family_name": "Lauwers",
+        "given_name": "Marlies",
+        "orcid": null
+      },
+      {
+        "family_name": "De Cauwer",
+        "given_name": "Benny",
+        "orcid": null
+      },
+      {
+        "family_name": "Nuyttens",
+        "given_name": "David",
+        "orcid": "https://orcid.org/0000-0002-4531-0526"
+      },
+      {
+        "family_name": "Maes",
+        "given_name": "Wouter H.",
+        "orcid": null
+      },
+      {
+        "family_name": "Pieters",
+        "given_name": "Jan G.",
+        "orcid": null
+      }
+    ],
+    "venue": "Remote Sensing",
+    "url": "https://doi.org/10.3390/rs16183538",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/rs16183538"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 84,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:06.281720+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE"
+  },
+  {
+    "title": "RGB and multispectral UAV image fusion for Gramineae weed detection in rice fields",
+    "year": 2018,
+    "provider": "crossref",
+    "provider_id": "10.1007/s11119-017-9558-x",
+    "external_ids": {
+      "doi": "10.1007/s11119-017-9558-x",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2791120002",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Barrero",
+        "given_name": "Oscar",
+        "orcid": "https://orcid.org/0000-0003-3264-4129"
+      },
+      {
+        "family_name": "Perdomo",
+        "given_name": "Sammy A.",
+        "orcid": null
+      }
+    ],
+    "venue": "Precision Agriculture",
+    "url": "https://doi.org/10.1007/s11119-017-9558-x",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/s11119-017-9558-x"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 112,
+    "references_count": 29,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:23.636516+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Multispectral Feature Decomposition via Dual-Branch CNN-Transformer U-Net for Crop-Weed Semantic Segmentation",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.4316/aece.2026.02005",
+    "external_ids": {
+      "doi": "10.4316/aece.2026.02005",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7166832227",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "BOUHADJER",
+        "given_name": "M. E. A.",
+        "orcid": null
+      },
+      {
+        "family_name": "MAZARI",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "CHIKR EL MEZOUAR",
+        "given_name": "M.",
+        "orcid": null
+      }
+    ],
+    "venue": "Advances in Electrical and Computer Engineering",
+    "url": "https://doi.org/10.4316/aece.2026.02005",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.4316/aece.2026.02005"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 31,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:24.188027+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.1109/icssit69151.2026.11656575",
+    "external_ids": {
+      "doi": "10.1109/icssit69151.2026.11656575",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7204131815",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Krishna",
+        "given_name": "Boggarapu Vamsi",
+        "orcid": null
+      },
+      {
+        "family_name": "Roshan",
+        "given_name": "Mohammad",
+        "orcid": null
+      },
+      {
+        "family_name": "Babu",
+        "given_name": "E. Akhil",
+        "orcid": null
+      }
+    ],
+    "venue": "2026 7th International Conference on Smart Systems and Inventive Technology (ICSSIT)",
+    "url": "https://doi.org/10.1109/icssit69151.2026.11656575",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1109/icssit69151.2026.11656575"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 15,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:27.457853+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Weed detection by UAV: simulation of the impact of spectral mixing in multispectral images",
+    "year": 2017,
+    "provider": "crossref",
+    "provider_id": "10.1007/s11119-017-9528-3",
+    "external_ids": {
+      "doi": "10.1007/s11119-017-9528-3",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W2623946272",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Louargant",
+        "given_name": "M.",
+        "orcid": "https://orcid.org/0000-0002-8686-7750"
+      },
+      {
+        "family_name": "Villette",
+        "given_name": "S.",
+        "orcid": null
+      },
+      {
+        "family_name": "Jones",
+        "given_name": "G.",
+        "orcid": null
+      },
+      {
+        "family_name": "Vigneau",
+        "given_name": "N.",
+        "orcid": null
+      },
+      {
+        "family_name": "Paoli",
+        "given_name": "J. N.",
+        "orcid": null
+      },
+      {
+        "family_name": "G\u00e9e",
+        "given_name": "C.",
+        "orcid": null
+      }
+    ],
+    "venue": "Precision Agriculture",
+    "url": "https://doi.org/10.1007/s11119-017-9528-3",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/s11119-017-9528-3"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 47,
+    "references_count": 36,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:28.553966+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation",
+    "year": 2026,
+    "provider": "crossref",
+    "provider_id": "10.1007/978-3-032-26214-1_21",
+    "external_ids": {
+      "doi": "10.1007/978-3-032-26214-1_21",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W7168253426",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Papadeas",
+        "given_name": "Ilias",
+        "orcid": null
+      },
+      {
+        "family_name": "Sandalis",
+        "given_name": "Georgios",
+        "orcid": null
+      },
+      {
+        "family_name": "Zamanakos",
+        "given_name": "Georgios",
+        "orcid": null
+      },
+      {
+        "family_name": "Pratikakis",
+        "given_name": "Ioannis",
+        "orcid": null
+      }
+    ],
+    "venue": "Lecture Notes in Networks and Systems",
+    "url": "https://doi.org/10.1007/978-3-032-26214-1_21",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/978-3-032-26214-1_21"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 0,
+    "references_count": 23,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:28.954805+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Assessment of Weed Classification Using Hyperspectral Reflectance and Optimal Multispectral UAV Imagery",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.3390/agronomy11071435",
+    "external_ids": {
+      "doi": "10.3390/agronomy11071435",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3187026582",
+      "s2_id": null
+    },
+    "abstract": "Weeds compete with crops and are hard to differentiate and identify due to their similarities in color, shape, and size. In this study, the weed species present in sorghum (sorghum bicolor (L.) Moench) fields, such as amaranth (Amaranthus macrocarpus), pigweed (Portulaca oleracea), mallow weed (Malva sp.), nutgrass (Cyperus rotundus), liver seed grass (Urochoa panicoides), and Bellive (Ipomea plebeian), were discriminated using hyperspectral data and were detected and analyzed using multispectral images. Discriminant analysis (DA) was used to identify the most significant spectral bands in order to discriminate weeds from sorghum using hyperspectral data. The results demonstrated good separation accuracy for Amaranthus macrocarpus, Urochoa panicoides, Malva sp., Cyperus rotundus, and Sorghum bicolor (L.) Moench at 440, 560, 680, 710, 720, and 850 nm. Later, the multispectral images of these six bands were collected to detect weeds in the sorghum crop fields using object-based image analysis (OBIA). The results showed that the differences between sorghum and weed species were detectable using the six selected bands, with data collected using an unmanned aerial vehicle. Here, the highest spatial resolution had the highest accuracy for weed detection. It was concluded that each weed was successfully discriminated using hyperspectral data and was detectable using multispectral data with higher spatial resolution.",
+    "authors": [
+      {
+        "family_name": "Che\u2019Ya",
+        "given_name": "Nik Norasma",
+        "orcid": "https://orcid.org/0000-0002-4263-3514"
+      },
+      {
+        "family_name": "Dunwoody",
+        "given_name": "Ernest",
+        "orcid": null
+      },
+      {
+        "family_name": "Gupta",
+        "given_name": "Madan",
+        "orcid": null
+      }
+    ],
+    "venue": "Agronomy",
+    "url": "https://doi.org/10.3390/agronomy11071435",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/agronomy11071435"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 57,
+    "references_count": 53,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:33.518254+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Research on unmanned aerial vehicle (UAV) rice field weed sensing image segmentation method based on CNN-transformer",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.compag.2024.109719",
+    "external_ids": {
+      "doi": "10.1016/j.compag.2024.109719",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4405194977",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Guo",
+        "given_name": "Zhonghui",
+        "orcid": null
+      },
+      {
+        "family_name": "Cai",
+        "given_name": "Dongdong",
+        "orcid": null
+      },
+      {
+        "family_name": "Jin",
+        "given_name": "Zhongyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Xu",
+        "given_name": "Tongyu",
+        "orcid": null
+      },
+      {
+        "family_name": "Yu",
+        "given_name": "Fenghua",
+        "orcid": null
+      }
+    ],
+    "venue": "Computers and Electronics in Agriculture",
+    "url": "https://doi.org/10.1016/j.compag.2024.109719",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.compag.2024.109719"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 37,
+    "references_count": 38,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:45.079412+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "A Multispectral U-Net Framework for Crop-Weed Semantic Segmentation",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.1007/978-3-030-82064-0_2",
+    "external_ids": {
+      "doi": "10.1007/978-3-030-82064-0_2",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3209232469",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Rosas",
+        "given_name": "Daniel Leyva",
+        "orcid": null
+      },
+      {
+        "family_name": "Gonzalez",
+        "given_name": "Uziel Grajeda",
+        "orcid": null
+      },
+      {
+        "family_name": "Huitron",
+        "given_name": "Victor Gonzalez",
+        "orcid": "https://orcid.org/0000-0003-0426-0515"
+      }
+    ],
+    "venue": "Lecture Notes in Networks and Systems",
+    "url": "https://doi.org/10.1007/978-3-030-82064-0_2",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1007/978-3-030-82064-0_2"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 4,
+    "references_count": 20,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:46.268361+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Multi-Spectral Image Synthesis for Crop/Weed Segmentation in Precision Farming",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.robot.2021.103861",
+    "external_ids": {
+      "doi": "10.1016/j.robot.2021.103861",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W3086635719",
+      "s2_id": null
+    },
+    "abstract": null,
+    "authors": [
+      {
+        "family_name": "Fawakherji",
+        "given_name": "Mulham",
+        "orcid": null
+      },
+      {
+        "family_name": "Potena",
+        "given_name": "Ciro",
+        "orcid": "https://orcid.org/0000-0003-2395-2170"
+      },
+      {
+        "family_name": "Pretto",
+        "given_name": "Alberto",
+        "orcid": "https://orcid.org/0000-0003-1920-2887"
+      },
+      {
+        "family_name": "Bloisi",
+        "given_name": "Domenico D.",
+        "orcid": null
+      },
+      {
+        "family_name": "Nardi",
+        "given_name": "Daniele",
+        "orcid": "https://orcid.org/0000-0001-6606-200X"
+      }
+    ],
+    "venue": "Robotics and Autonomous Systems",
+    "url": "https://doi.org/10.1016/j.robot.2021.103861",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1016/j.robot.2021.103861"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 102,
+    "references_count": 36,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:47.760177+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Federated Edge Learning for Distributed Weed Detection in Precision Agriculture Using Multimodal Sensor Fusion",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.3390/ecsa-12-26608",
+    "external_ids": {
+      "doi": "10.3390/ecsa-12-26608",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4417194339",
+      "s2_id": null
+    },
+    "abstract": "In this work, our goal is to develop a privacy-preserving distributed weed detection and management system. The proposed work integrates FEL (Federated Learning) and deep learning with multi-modal sensor fusion to enhance the model\u2019s performance while minimising data transfer, latency, and energy consumption. In this study, we used multimodal sensors, such as LiDAR (Light Detection and Ranging), RGB (Red\u2013Green\u2013Blue) cameras, multispectral imaging devices, and soil moisture sensors placed in controlled agricultural plots. Deep learning models, such as Convolutional Neural Networks (CNNs), LSTM\u2013CNN hybrids, and Vision Transformers, were trained using standardized parameters. A proposed Federated CNN (FedCNN) was deployed across multiple edge devices, each locally trained on sensor data without exchanging raw data, using FedAvg and FedProx algorithms. The experimental work revealed that the model FedCNN performed well in comparison to other models and achieved the highest accuracy of 94.1%, precision of 94.3%, recall of 93.9%, F1-score of 94.1%, and AUC of 94.1% during hybrid fusion strategies. We compared the centralized and federated learning performance.",
+    "authors": [
+      {
+        "family_name": "Arangi",
+        "given_name": "Dasaradha",
+        "orcid": null
+      },
+      {
+        "family_name": "Padhy",
+        "given_name": "Neelamadhab",
+        "orcid": "https://orcid.org/0000-0001-7997-2336"
+      }
+    ],
+    "venue": "ECSA-12",
+    "url": "https://doi.org/10.3390/ecsa-12-26608",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/ecsa-12-26608"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 2,
+    "references_count": 8,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:13:59.520509+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  },
+  {
+    "title": "Weed\u2013Crop Segmentation in Drone Images with a Novel Encoder\u2013Decoder Framework Enhanced via Attention Modules",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.3390/rs15235615",
+    "external_ids": {
+      "doi": "10.3390/rs15235615",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4389308054",
+      "s2_id": null
+    },
+    "abstract": "The rapid expansion of the world\u2019s population has resulted in an increased demand for agricultural products which necessitates the need to improve crop yields. To enhance crop yields, it is imperative to control weeds. Traditionally, weed control predominantly relied on the use of herbicides; however, the indiscriminate application of herbicides presents potential hazards to both crop health and productivity. Fortunately, the advent of cutting-edge technologies such as unmanned vehicle technology (UAVs) and computer vision has provided automated and efficient solutions for weed control. These approaches leverage drone images to detect and identify weeds with a certain level of accuracy. Nevertheless, the identification of weeds in drone images poses significant challenges attributed to factors like occlusion, variations in color and texture, and disparities in scale. The utilization of traditional image processing techniques and deep learning approaches, which are commonly employed in existing methods, presents difficulties in extracting features and addressing scale variations. In order to address these challenges, an innovative deep learning framework is introduced which is designed to classify every pixel in a drone image into categories such as weed, crop, and others. In general, our proposed network adopts an encoder\u2013decoder structure. The encoder component of the network effectively combines the Dense-inception network with the Atrous spatial pyramid pooling module, enabling the extraction of multi-scale features and capturing local and global contextual information seamlessly. The decoder component of the network incorporates deconvolution layers and attention units, namely, channel and spatial attention units (CnSAUs), which contribute to the restoration of spatial information and enhance the precise localization of weeds and crops in the images. The performance of the proposed framework is assessed using a publicly available benchmark dataset known for its complexity. The effectiveness of the proposed framework is demonstrated via comprehensive experiments, showcasing its superiority by achieving a 0.81 mean Intersection over Union (mIoU) on the challenging dataset.",
+    "authors": [
+      {
+        "family_name": "Khan",
+        "given_name": "Sultan Daud",
+        "orcid": null
+      },
+      {
+        "family_name": "Basalamah",
+        "given_name": "Saleh",
+        "orcid": "https://orcid.org/0000-0002-2276-8307"
+      },
+      {
+        "family_name": "Lbath",
+        "given_name": "Ahmed",
+        "orcid": null
+      }
+    ],
+    "venue": "Remote Sensing",
+    "url": "https://doi.org/10.3390/rs15235615",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.3390/rs15235615"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 20,
+    "references_count": 68,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "query_id": null,
+    "retrieved_at": "2026-09-02 12:14:00.420483+00:00",
+    "cluster_id": null,
+    "raw_data": null,
+    "screening_decision": "INCLUDE",
+    "adjudicated": true
+  }
+]

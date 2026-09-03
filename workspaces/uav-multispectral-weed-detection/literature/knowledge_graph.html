@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.1109/icssit69151.2026.11656575", "label": "WeedFormer: Transformer-based ...", "shape": "dot", "size": 10, "title": "DOI: 10.1109/icssit69151.2026.11656575\nTitle: DOI: 10.1109/icssit69151.2026.11656575\nTitle: WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery\nYear: 2026\nCitations: 0\nYear: 2026\nCitations: 0", "value": 5, "year": 2026}, {"citations": 2, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/ecsa-12-26608", "label": "Federated Edge Learning for Di...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/ecsa-12-26608\nTitle: DOI: 10.3390/ecsa-12-26608\nTitle: Federated Edge Learning for Distributed Weed Detection in Precision Agriculture Using Multimodal Sensor Fusion\nYear: 2025\nCitations: 2\nYear: 2025\nCitations: 2", "value": 7, "year": 2025}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.68099/asnj.2024.79", "label": "Development of an Autonomous W...", "shape": "dot", "size": 10, "title": "DOI: 10.68099/asnj.2024.79\nTitle: DOI: 10.68099/asnj.2024.79\nTitle: Development of an Autonomous Weed-Weeding Robot Utilizing Edge-AI and Multispectral Computer Vision for Row-Crop Farming\nYear: 2024\nCitations: 0\nYear: 2024\nCitations: 0", "value": 5, "year": 2024}, {"citations": 42, "font": {"color": "#333333"}, "group": 1, "id": "10.1016/j.neucom.2023.126914", "label": "Weed mapping in multispectral ...", "shape": "dot", "size": 10, "title": "DOI: 10.1016/j.neucom.2023.126914\nTitle: DOI: 10.1016/j.neucom.2023.126914\nTitle: Weed mapping in multispectral drone imagery using lightweight vision transformers\nYear: 2023\nCitations: 42\nYear: 2023\nCitations: 42", "value": 47, "year": 2023}, {"citations": 66, "font": {"color": "#333333"}, "group": 1, "id": "10.1016/j.eswa.2023.122980", "label": "Cross-domain transfer learning...", "shape": "dot", "size": 10, "title": "DOI: 10.1016/j.eswa.2023.122980\nTitle: DOI: 10.1016/j.eswa.2023.122980\nTitle: Cross-domain transfer learning for weed segmentation and mapping in precision farming using ground and UAV images\nYear: 2023\nCitations: 66\nYear: 2023\nCitations: 66", "value": 71, "year": 2023}, {"citations": 35, "font": {"color": "#333333"}, "group": 1, "id": "10.1016/j.compag.2024.109719", "label": "Research on unmanned aerial ve...", "shape": "dot", "size": 10, "title": "DOI: 10.1016/j.compag.2024.109719\nTitle: DOI: 10.1016/j.compag.2024.109719\nTitle: Research on unmanned aerial vehicle (UAV) rice field weed sensing image segmentation method based on CNN-transformer\nYear: 2024\nCitations: 35\nYear: 2024\nCitations: 35", "value": 40, "year": 2024}, {"citations": 20, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/rs15235615", "label": "Weed\u2013Crop Segmentation in Dron...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/rs15235615\nTitle: DOI: 10.3390/rs15235615\nTitle: Weed\u2013Crop Segmentation in Drone Images with a Novel Encoder\u2013Decoder Framework Enhanced via Attention Modules\nYear: 2023\nCitations: 20\nYear: 2023\nCitations: 20", "value": 25, "year": 2023}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.1007/978-3-032-26214-1_21", "label": "CLIP Meets DINOv3 for Effectiv...", "shape": "dot", "size": 10, "title": "DOI: 10.1007/978-3-032-26214-1_21\nTitle: DOI: 10.1007/978-3-032-26214-1_21\nTitle: CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation\nYear: 2026\nCitations: 0\nYear: 2026\nCitations: 0", "value": 5, "year": 2026}, {"citations": 4, "font": {"color": "#333333"}, "group": 1, "id": "10.1007/978-3-030-82064-0_2", "label": "A Multispectral U-Net Framewor...", "shape": "dot", "size": 10, "title": "DOI: 10.1007/978-3-030-82064-0_2\nTitle: DOI: 10.1007/978-3-030-82064-0_2\nTitle: A Multispectral U-Net Framework for Crop-Weed Semantic Segmentation\nYear: 2021\nCitations: 4\nYear: 2021\nCitations: 4", "value": 9, "year": 2021}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/plants15152257", "label": "Soybean Field Weed Segmentatio...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/plants15152257\nTitle: DOI: 10.3390/plants15152257\nTitle: Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images\nYear: 2026\nCitations: 0\nYear: 2026\nCitations: 0", "value": 5, "year": 2026}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.2139/ssrn.7129570", "label": "UAV-Based Monitoring of Water ...", "shape": "dot", "size": 10, "title": "DOI: 10.2139/ssrn.7129570\nTitle: DOI: 10.2139/ssrn.7129570\nTitle: UAV-Based Monitoring of Water Hyacinth for Invasive Weed Management: A Hybrid Detection\u2013Segmentation Deep Learning Approach\nYear: 2026\nCitations: 0\nYear: 2026\nCitations: 0", "value": 5, "year": 2026}, {"citations": 23, "font": {"color": "#333333"}, "group": 1, "id": "10.1016/j.cropro.2024.106721", "label": "Weed species classification wi...", "shape": "dot", "size": 10, "title": "DOI: 10.1016/j.cropro.2024.106721\nTitle: DOI: 10.1016/j.cropro.2024.106721\nTitle: Weed species classification with UAV imagery and standard CNN models: Assessing the frontiers of training and inference phases\nYear: 2024\nCitations: 23\nYear: 2024\nCitations: 23", "value": 28, "year": 2024}, {"citations": 23, "font": {"color": "#333333"}, "group": 1, "id": "10.1109/wacv61041.2025.00467", "label": "WeedsGalore: A Multispectral a...", "shape": "dot", "size": 10, "title": "DOI: 10.1109/wacv61041.2025.00467\nTitle: DOI: 10.1109/wacv61041.2025.00467\nTitle: WeedsGalore: A Multispectral and Multitemporal UAV-Based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields\nYear: 2025\nCitations: 23\nYear: 2025\nCitations: 23", "value": 28, "year": 2025}, {"citations": 63, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/agronomy11071435", "label": "Assessment of Weed Classificat...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/agronomy11071435\nTitle: DOI: 10.3390/agronomy11071435\nTitle: Assessment of Weed Classification Using Hyperspectral Reflectance and Optimal Multispectral UAV Imagery\nYear: 2021\nCitations: 63\nYear: 2021\nCitations: 63", "value": 68, "year": 2021}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.4316/aece.2026.02005", "label": "Multispectral Feature Decompos...", "shape": "dot", "size": 10, "title": "DOI: 10.4316/aece.2026.02005\nTitle: DOI: 10.4316/aece.2026.02005\nTitle: Multispectral Feature Decomposition via Dual-Branch CNN-Transformer U-Net for Crop-Weed Semantic Segmentation\nYear: 2026\nCitations: 0\nYear: 2026\nCitations: 0", "value": 5, "year": 2026}, {"citations": 13, "font": {"color": "#333333"}, "group": 1, "id": "10.35708/rc1869-126258", "label": "Crop and Weed Classication Usi...", "shape": "dot", "size": 10, "title": "DOI: 10.35708/rc1869-126258\nTitle: DOI: 10.35708/rc1869-126258\nTitle: Crop and Weed Classication Using Pixel-wise Segmentation on Ground and Aerial Images\nYear: 2020\nCitations: 13\nYear: 2020\nCitations: 13", "value": 18, "year": 2020}, {"citations": 58, "font": {"color": "#333333"}, "group": 1, "id": "10.1007/s11119-017-9528-3", "label": "Weed detection by UAV: simulat...", "shape": "dot", "size": 10, "title": "DOI: 10.1007/s11119-017-9528-3\nTitle: DOI: 10.1007/s11119-017-9528-3\nTitle: Weed detection by UAV: simulation of the impact of spectral mixing in multispectral images\nYear: 2017\nCitations: 58\nYear: 2017\nCitations: 58", "value": 63, "year": 2017}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.1002/ps.70881", "label": "ASVLB \u2010Net: A lightweight netw...", "shape": "dot", "size": 10, "title": "DOI: 10.1002/ps.70881\nTitle: DOI: 10.1002/ps.70881\nTitle: ASVLB \u2010Net: A lightweight network for multispectral weed segmentation with NDVI \u2010guided adaptive fusion\nYear: 2026\nCitations: 0\nYear: 2026\nCitations: 0", "value": 5, "year": 2026}, {"citations": 2, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/rs16183538", "label": "Multispectral UAV Image Classi...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/rs16183538\nTitle: DOI: 10.3390/rs16183538\nTitle: Multispectral UAV Image Classification of Jimson Weed (Datura stramonium L.) in Common Bean (Phaseolus vulgaris L.)\nYear: 2024\nCitations: 2\nYear: 2024\nCitations: 2", "value": 7, "year": 2024}, {"citations": 45, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/s17092007", "label": "Novelty Detection Classifiers ...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/s17092007\nTitle: DOI: 10.3390/s17092007\nTitle: Novelty Detection Classifiers in Weed Mapping: Silybum marianum Detection on UAV Multispectral Images\nYear: 2017\nCitations: 45\nYear: 2017\nCitations: 45", "value": 50, "year": 2017}, {"citations": 5, "font": {"color": "#333333"}, "group": 1, "id": "10.1017/wsc.2023.41", "label": "Black-grass (Alopecurus myosur...", "shape": "dot", "size": 10, "title": "DOI: 10.1017/wsc.2023.41\nTitle: DOI: 10.1017/wsc.2023.41\nTitle: Black-grass (Alopecurus myosuroides) in cereal multispectral detection by UAV\nYear: 2023\nCitations: 5\nYear: 2023\nCitations: 5", "value": 10, "year": 2023}, {"citations": 4, "font": {"color": "#333333"}, "group": 1, "id": "10.1109/m2garss52314.2022.9839758", "label": "Uncertainty Estimation in Deep...", "shape": "dot", "size": 10, "title": "DOI: 10.1109/m2garss52314.2022.9839758\nTitle: DOI: 10.1109/m2garss52314.2022.9839758\nTitle: Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection from Multispectral UAV Images\nYear: 2022\nCitations: 4\nYear: 2022\nCitations: 4", "value": 9, "year": 2022}, {"citations": 2, "font": {"color": "#333333"}, "group": 1, "id": "10.3390/rs18060915", "label": "BAWSeg: A UAV Multispectral Be...", "shape": "dot", "size": 10, "title": "DOI: 10.3390/rs18060915\nTitle: DOI: 10.3390/rs18060915\nTitle: BAWSeg: A UAV Multispectral Benchmark for Barley Weed Segmentation\nYear: 2026\nCitations: 2\nYear: 2026\nCitations: 2", "value": 7, "year": 2026}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.1016/j.robot.2021.103861", "label": "10.1016/j.robot.2021.103861", "shape": "dot", "size": 10, "title": "DOI: 10.1016/j.robot.2021.103861\nTitle: DOI: 10.1016/j.robot.2021.103861\nTitle: Study 10.1016/j.robot.2021.103861\nYear: None\nCitations: 0\nYear: None\nCitations: 0", "value": 5, "year": null}, {"citations": 0, "font": {"color": "#333333"}, "group": 1, "id": "10.2139/ssrn.7345639", "label": "10.2139/ssrn.7345639", "shape": "dot", "size": 10, "title": "DOI: 10.2139/ssrn.7345639\nTitle: DOI: 10.2139/ssrn.7345639\nTitle: Study 10.2139/ssrn.7345639\nYear: None\nCitations: 0\nYear: None\nCitations: 0", "value": 5, "year": null}]);
+                  edges = new vis.DataSet([]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"nodes": {"shape": "dot", "scaling": {"min": 10, "max": 30}}, "edges": {"color": {"inherit": true}, "smooth": false}, "physics": {"forceAtlas2Based": {"gravitationalConstant": -50, "centralGravity": 0.01, "springLength": 100, "springConstant": 0.08}, "minVelocity": 0.75, "solver": "forceAtlas2Based"}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
