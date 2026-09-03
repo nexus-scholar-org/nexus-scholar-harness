@@ -124,6 +124,7 @@ workspaces/uav-multispectral-weed-detection/
 | 2026-09-03T05:09:00+00:00 | BIB_SUPPLEMENTAL_REGISTERED (added 5 outside-corpus benchmarks to references.bib, 30 total) | scholar-bib-kit + agent | SUCCESS |
 | 2026-09-03T05:13:00+00:00 | MANUSCRIPT_DRAFTED (publication-grade draft with PRISMA methods, results, SSFNet spec) | agent | SUCCESS |
 | 2026-09-03T05:10:00+00:00 | APPENDIX_CREATED (PRISMA flow, empirical evidence table w/ vector tokens, parameter justifications) | agent | SUCCESS |
+| 2026-09-03T05:20:00+00:00 | MANUSCRIPT_TOKENS_RECONCILED (reconciled manuscript & appendix tokens to ChromaDB, grounded Fawakherji) | agent | SUCCESS |
 
 ---
 
