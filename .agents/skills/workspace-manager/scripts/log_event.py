@@ -37,7 +37,12 @@ def refresh_index_md(project_dir: Path) -> Path:
         ("literature/verified.json", "Hydrated bibliographic records with DOIs & abstracts", "Verified"),
         ("literature/included.json", "Screened eligible studies for full-text synthesis", "Included"),
         ("literature/excluded.json", "Excluded studies with logged decision reasons", "Excluded"),
-        ("literature/prisma_screening_report.md", "PRISMA flow diagram and axis synthesis report", "Generated"),
+        ("literature/screening/dual_screening_reliability_report.md", "Inter-rater reliability audit report", "Audited"),
+        ("literature/screening/adjudicated_caveats.json", "Provisional caveat papers tracked for Stage 3 verification", "Provisioned"),
+        ("literature/conflicts.json", "Complete ledger of inter-rater disputes & adjudications", "Adjudicated"),
+        ("literature/conflict_adjudication_log.md", "Traceable adjudication narrative & dispute ledger", "Adjudicated"),
+        ("literature/prisma_screening_report.md", "PRISMA flow diagram and systematic screening report", "Generated"),
+        ("literature/prisma_report.json", "Structured JSON companion to PRISMA flow report", "Generated"),
         ("exports/search_summary.csv", "Tabular raw literature export", "Exported"),
         ("exports/verified_summary.csv", "Clean verified bibliography spreadsheet", "Exported"),
         ("exports/screening_decisions.csv", "Full title & abstract screening decisions spreadsheet", "Exported"),
@@ -50,6 +55,14 @@ def refresh_index_md(project_dir: Path) -> Path:
             mtime = datetime.datetime.fromtimestamp(p.stat().st_mtime, tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M")
             catalog_entries.append(f"| `{rel_path}` | {desc} | {mtime} | {default_status} |")
 
+    # Dynamic scan of reports/*.md
+    reports_dir = project_dir / "reports"
+    if reports_dir.exists():
+        for r_file in sorted(reports_dir.glob("*.md")):
+            rel_path = f"reports/{r_file.name}"
+            mtime = datetime.datetime.fromtimestamp(r_file.stat().st_mtime, tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M")
+            catalog_entries.append(f"| `{rel_path}` | Formal methodology or audit report | {mtime} | Audited |")
+
     # Check for PDFs and extracted files
     pdf_count = len(list((project_dir / "pdfs").glob("*.pdf"))) if (project_dir / "pdfs").exists() else 0
     extracted_count = len(list((project_dir / "extracted").glob("*.md"))) if (project_dir / "extracted").exists() else 0
@@ -58,6 +71,20 @@ def refresh_index_md(project_dir: Path) -> Path:
         catalog_entries.append(f"| `pdfs/` | Downloaded Open Access full-text PDF documents ({pdf_count} files) | Active | Downloaded |")
     if extracted_count > 0:
         catalog_entries.append(f"| `extracted/` | Docling full-text structured Markdown extractions ({extracted_count} files) | Active | Extracted |")
+
+    metrics_block = f"""- **Discovered Papers**: {stats.get("discovered_papers", 0)}
+- **Verified Papers**: {stats.get("verified_papers", 0)}"""
+    if "screened_papers" in stats:
+        metrics_block += f"\n- **Screened Papers**: {stats.get('screened_papers', 0)}"
+    if "included_papers" in stats:
+        metrics_block += f"\n- **Full-Text Eligible Candidates**: {stats.get('included_papers', 0)}"
+    if "confirmed_inclusions" in stats and "provisional_caveats" in stats:
+        metrics_block += f" ({stats.get('confirmed_inclusions')} Confirmed + {stats.get('provisional_caveats')} Provisional Caveats)"
+    if "excluded_papers" in stats:
+        metrics_block += f"\n- **Confirmed Excluded Studies**: {stats.get('excluded_papers', 0)}"
+    metrics_block += f"""
+- **Downloaded PDFs**: {stats.get("downloaded_pdfs", pdf_count)}
+- **Extracted Markdowns**: {stats.get("extracted_markdowns", extracted_count)}"""
 
     index_content = f"""# Project Index: {title}
 
@@ -68,17 +95,15 @@ def refresh_index_md(project_dir: Path) -> Path:
 ---
 
 ## 📊 Summary Metrics
-- **Discovered Papers**: {stats.get("discovered_papers", 0)}
-- **Verified Papers**: {stats.get("verified_papers", 0)}
-- **Downloaded PDFs**: {stats.get("downloaded_pdfs", pdf_count)}
-- **Extracted Markdowns**: {stats.get("extracted_markdowns", extracted_count)}
+{metrics_block}
 
 ---
 
 ## 🎯 Research Questions
 """
     for i, rq in enumerate(manifest.get("research_questions", []), 1):
-        index_content += f"{i}. **RQ{i}**: {rq}\n"
+        clean_rq = rq if not rq.startswith(f"RQ{i}:") else rq.split(":", 1)[1].strip()
+        index_content += f"{i}. **RQ{i}**: {clean_rq}\n"
 
     index_content += f"""
 ---
