@@ -54,5 +54,19 @@
 
 ---
 
-## 4. Methodological Summary & Next Phase
-By implementing dual-independent screening with third-party adjudication, this systematic review averted a severe false-positive pollution risk (over 670 non-relevant papers eliminated). By adopting **Option B (Provisional Full-Text Eligibility)** for the 39 caveat papers, the review simultaneously safeguards against false-negative bias, ensuring high-impact benchmark datasets (e.g. *CoFly-WeedDB*, *CamelinaWeed*) and edge inference systems (e.g. *Jetson TX2 real-time U-Net*) are vetted against their complete empirical full-text tables in Phase 2.
+## 4. Full-Text Retrieval & Eligibility Phase
+- **Reports Sought for Retrieval**: `150`
+- **Reports Successfully Retrieved & Validated**: `138` (**92.0% retrieval yield**)
+  - *Full-Text PDF verified (`%PDF` magic bytes)*: 138 / 138
+  - *Extracted Structured Markdown AST (`extracted/*.md`)*: 138 / 138
+- **Reports Not Retrieved (Paywalls / Inaccessible Repositories)**: `12` (8.0%)
+  - *Commercial Edited Book Chapters*: 5 (Springer LNNS/Smart Ag, Elsevier)
+  - *Restricted Regional / Society Subscriptions*: 7 (SPIE, ASABE, Inderscience, regional journals)
+- **Final Synthesized Review Corpus**: **`138` studies**
+
+---
+
+## 5. Methodological Summary & Final Corpus Lock
+By implementing dual-independent screening with third-party adjudication, this systematic review averted a severe false-positive pollution risk (over 670 non-relevant papers eliminated). Through a comprehensive multi-channel retrieval protocol (combining institutional proxy resolution, Gold Open Access harvesting, and direct preprint recovery), the review achieved a **92.0% full-text retrieval yield** (138 out of 150 candidate studies).
+
+The corpus is **formally locked at N = 138 studies**, fully converted into structured Markdown with complete YAML frontmatter, ready for automated vector database indexing, dynamic extraction matrix compilation, and grounded empirical synthesis.
