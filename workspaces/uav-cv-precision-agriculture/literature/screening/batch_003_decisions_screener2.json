@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000051",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Network slimming via nonconvex regularization is demonstrated on generic image-classification architectures, not agricultural crop/weed segmentation, so it is outside the agronomic scope."
+  },
+  {
+    "workspace_id": "SCI-000052",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CARLA2Real reduces the sim2real gap for autonomous driving datasets (Cityscapes, KITTI), not agricultural UAV crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000053",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CAWM-Mamba performs infrared-visible image fusion and weather restoration for autonomous driving and UAV monitoring, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000054",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Resource-constrained UAV weed detection uses YOLO/RT-DETR bounding-box object detection (mAP50) rather than pixel-level segmentation masks, violating the task-scope criterion despite edge-deployment analysis."
+  },
+  {
+    "workspace_id": "SCI-000055",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Cloud-edge architecture detects tomato plant diseases via classification on PlantVillage/Kaggle, not crop/weed pixel segmentation, so it violates task and domain scope."
+  },
+  {
+    "workspace_id": "SCI-000056",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A survey on civil UAV applications and research challenges, which is secondary literature without a primary empirical crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000057",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "GUARD uses YOLO-based deer detection and deterrence for wildlife management, not crop/weed pixel segmentation, violating both task and domain scope."
+  },
+  {
+    "workspace_id": "SCI-000058",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An exploratory article on drone types and advantages in agriculture with no primary empirical segmentation benchmark or quantitative results."
+  },
+  {
+    "workspace_id": "SCI-000059",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A quantum-resilient blockchain framework for UAV smart-agriculture network security, not computer-vision crop/weed segmentation, so it is outside the scope."
+  },
+  {
+    "workspace_id": "SCI-000060",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AeroDaaS is a drone-as-a-service orchestration platform for UAV sensing/analytics, not a crop/weed segmentation study, so it is outside the agronomic scope."
+  },
+  {
+    "workspace_id": "SCI-000061",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Object-detection uncertainty reduction for UAV search-and-rescue victim finding, neither agricultural nor pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-000062",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AeroDaaS (early version) is a Drones-as-a-Service programming framework for aerial analytics, not an agricultural crop/weed segmentation study."
+  },
+  {
+    "workspace_id": "SCI-000063",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Apple disease detection, freshness classification and YOLO fruit detection are fruit-domain classification/detection tasks, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000064",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DroneFL is a federated-learning framework for multi-UAV target tracking via YOLO-based detection, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000065",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLOv11-Litchi performs bounding-box fruit detection of litchi in orchards, which is fruit-domain object detection rather than crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000066",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive survey on small object detection, which is secondary literature without a primary empirical crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000067",
+    "decision": "INCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "RoWeeder produces pixel-level crop/weed mapping on UAV imagery from crop-row detection, reporting F1 of 75.3 on WeedMap and targeting drone-based aerial surveys, meeting the DL agricultural segmentation and quantitative-metric criteria."
+  },
+  {
+    "workspace_id": "SCI-000068",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Per-tree canopy volume estimation uses mobile LiDAR segmentation in pistachio/almond orchards, an orchard/arboriculture domain rather than crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000069",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A wireless whispering-gallery-mode optical sensor for thermal sensing and aerial mapping is an IoT/hardware sensing study, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000070",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Cranberry fruit segmentation for overheating risk monitoring targets fruit-focused phenotyping rather than agricultural crop/weed management, so it falls outside the target domain."
+  },
+  {
+    "workspace_id": "SCI-000071",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available, so the record provides no retrievable quantitative UAV rice-field weed segmentation results against which to judge the inclusion criteria."
+  },
+  {
+    "workspace_id": "SCI-000072",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available; although the title indicates in-field crop/weed segmentation, there is no retrievable quantitative evidence to screen."
+  },
+  {
+    "workspace_id": "SCI-000073",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Real-time semantic segmentation of sugar beet/weeds is deployed on a ground agricultural robot rather than UAV aerial imagery, violating the modality (non-UAV terrestrial platform) criterion."
+  },
+  {
+    "workspace_id": "SCI-000074",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "WeedFormer is a transformer-based crop-weed semantic segmentation framework for UAV imagery, reporting mIoU 80.27% and pixel accuracy on WeedsGalore, meeting the DL agricultural segmentation and quantitative-metric criteria."
+  },
+  {
+    "workspace_id": "SCI-000075",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Deep-learning weed instance segmentation in potato fields from UAV orthomosaics using YOLOv8/Mask R-CNN, reporting mAP50 scores, matches the DL UAV crop/weed pixel-segmentation and quantitative-metric criteria."
+  }
+]

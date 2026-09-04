@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000176",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the topic is agronomic weed interference/wheat productivity, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000177",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UNET-SA performs UNet+spatial-attention crop/weed semantic segmentation on pigeon-pea field images (mIoU 94.44%), but the abstract establishes no UAV or aerial context, so it is treated as non-UAV and excluded on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000178",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available; although the title indicates UAV weed mapping in maize, no retrievable quantitative segmentation results exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000179",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "The work proposes a taxonomy/synthesis of UAV-based crop-disease identification research (disease diagnosis domain), i.e., secondary literature outside the crop/weed segmentation scope."
+  },
+  {
+    "workspace_id": "SCI-000180",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "CWRepViT-Net (RepViT encoder + Modified-UNet decoder) performs crop/weed semantic segmentation of five classes on drone images of soybean fields captured across six growth stages, achieving >95% overall accuracy and Kappa 0.91, satisfying the DL UAV crop/weed segmentation and quantitative-metric criteria."
+  },
+  {
+    "workspace_id": "SCI-000181",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Weedformer performs real-time crop-contour and weed-index segmentation for spot spraying (57.2 fps, weed Dice 0.87) on early corn, but the abstract establishes no UAV aerial context, so it is treated as non-UAV on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000182",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the leaf-colour-chart nitrogen/weed topic is agronomic, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000183",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the crop/weed segmentation title, so no retrievable quantitative results or UAV context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000184",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV herbicide sprayer agronomic trial evaluates droplet distribution and Phalaris minor weed-control efficacy and yield, with no computer-vision or pixel-level segmentation component, violating the task-scope criterion."
+  },
+  {
+    "workspace_id": "SCI-000185",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A book chapter describing weed biology and crop-weed competition fundamentals, i.e., secondary agronomic background material with no primary UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000186",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A journal decision letter for a crop-disease-detection manuscript; secondary editorial correspondence outside the crop/weed segmentation scope with no benchmark."
+  },
+  {
+    "workspace_id": "SCI-000187",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the bio-herbicidal weed-management topic is agronomic, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000188",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the nutrient-management weed topic is agronomic, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000189",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A context-aware neural-network-compression approach for on-UAV weed detection uses slimmable networks for bounding-box detection, with gains measured in computation reduction rather than pixel-level segmentation masks, violating the task-scope criterion."
+  },
+  {
+    "workspace_id": "SCI-000190",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the semi-supervised maize weed-segmentation title, so no retrievable quantitative results exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000191",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the multiclass weed semantic-segmentation title, so no retrievable quantitative results or UAV context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000192",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Agrochemi-Net detects crops via CNN bounding boxes and segments/detects weeds using a Genetic-Algorithm-optimized colour index rather than deep-learned pixel segmentation, so it is both a bounding-box task and a non-DL weed method despite drone imagery."
+  },
+  {
+    "workspace_id": "SCI-000193",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the crop/weed segmentation-model title, so no retrievable quantitative results or UAV context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000194",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CBAM+UNet+ResNet50 weed semantic segmentation of maize seedling/weed images (mIoU 90.01%) does not establish UAV or aerial context, so it is treated as non-UAV and excluded on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000195",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Paddy crop/weed classification uses hand-crafted SURF color features with Random Forest/KNN/LSSVM classifiers (~86%) on digital-camera images, i.e., non-deep-learning classification without pixel segmentation and no UAV context."
+  },
+  {
+    "workspace_id": "SCI-000196",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and pomegranate crop-regulation is agronomic/orchard management with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000197",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A game-theoretic Nash-equilibrium weed-segmentation method is evaluated on the CWFID ground-field dataset (visible/NIR field images), with no UAV aerial context, so it violates the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000198",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the multitask weed/drivable-area title, so no retrievable quantitative results or UAV context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000199",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the multi-agent UAV farmland semantic-segmentation title, so no retrievable quantitative segmentation results exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000200",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SegFormer-B0 weed segmentation (IoU 88.63%, Dice 88.80%) with SAM-assisted annotation is trained on combined public/self-collected images for resource-constrained use, but the abstract establishes no UAV aerial context, so it is treated as non-UAV on the modality criterion."
+  }
+]

@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000476",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A CFD/wind-tunnel study of propulsion drag reduction for VTOL UAV motor fairings; a hardware-aerodynamics topic with no agricultural image segmentation."
+  },
+  {
+    "workspace_id": "SCI-000477",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available, so there are no retrievable quantitative UAV crop-segmentation results (wheat lodging ratio) to judge against the criteria."
+  },
+  {
+    "workspace_id": "SCI-000478",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A book chapter survey of aerial-aided edge computing applications across disaster management, agriculture, and infrastructure; broad secondary literature with no primary DL segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000479",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A UAV-based Geiger-Muller gamma-radiation monitoring device for environmental/nuclear safety; a non-agricultural sensing application outside crop/weed imagery."
+  },
+  {
+    "workspace_id": "SCI-000480",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A survey of 40 deep-learning efforts applied to agricultural problems; secondary literature without a primary empirical UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000481",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of UAV-based applications for precision agriculture covering data acquisition and processing methods; secondary literature with no primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000482",
+    "decision": "INCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "A UAV-based CNN weed detection method with unsupervised data labeling segments crop and inter-row weeds in UAV images and reports segmentation accuracy, satisfying DL UAV crop/weed segmentation with pixel-level evaluation."
+  },
+  {
+    "workspace_id": "SCI-000483",
+    "decision": "INCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": ["INC-01"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "AgriSegNet is a multiscale attention deep semantic segmentation framework applied to UAV-acquired farmland imagery for anomaly/pattern detection in precision agriculture, matching the DL UAV segmentation scope."
+  },
+  {
+    "workspace_id": "SCI-000484",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of CNN-based methods for crop/plant classification from UAV imagery; secondary literature without a primary crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000485",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of recent advances in crop disease detection using UAV and deep learning; secondary literature with no primary empirical benchmark."
+  },
+  {
+    "workspace_id": "SCI-000486",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep learning for plant disease detection and classification; secondary literature, not a primary UAV crop/weed segmentation study."
+  },
+  {
+    "workspace_id": "SCI-000487",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "A fully convolutional DL segmentation approach classifies vineyard pixels (shadow, ground, healthy, symptom) from fused UAV visible/infrared imagery, reporting >92% vine-level and 87% leaf-level detection, satisfying UAV crop segmentation with quantitative accuracy."
+  },
+  {
+    "workspace_id": "SCI-000488",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "A comparative UAV weed segmentation study on CoFly-WeedDB using UNet/SegNet/DeepLabV3+ with CNN backbones, reporting Precision 88.20%, Recall 88.97%, F1 88.24%, and mIoU 56.21%, a strong match for UAV crop/weed DL segmentation with pixel metrics."
+  },
+  {
+    "workspace_id": "SCI-000489",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Cross-domain transfer learning segments crop (maize), weeds, and soil in both ground and UAV imagery, reporting per-class IoU on the aerial data, satisfying UAV crop/weed segmentation with pixel-wise metrics."
+  },
+  {
+    "workspace_id": "SCI-000490",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive review of deep learning and computer vision for plant disease detection; secondary literature, not a primary UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000491",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep-learning architectures for plant disease detection and classification; secondary literature, not a primary benchmark study."
+  },
+  {
+    "workspace_id": "SCI-000492",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Semantic segmentation of rice lodging in multi-date UAV visible imagery using FCN-AlexNet and SegNet with vegetation indices, reporting F1-scores of 0.80 and 0.79, satisfying UAV crop-stress DL segmentation with pixel metrics."
+  },
+  {
+    "workspace_id": "SCI-000493",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep learning in multiscale agricultural sensing; secondary literature without a primary crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000494",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Weed identification in vegetable plantation uses ground-based CenterNet bounding-box detection combined with a color-index (non-learned) segmentation, lacking UAV aerial flight context and pixel-level DL segmentation masks."
+  },
+  {
+    "workspace_id": "SCI-000495",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review and bibliometric analysis of drones in agriculture; secondary literature, not a primary empirical benchmark."
+  },
+  {
+    "workspace_id": "SCI-000496",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive survey of UAV use for precision agriculture in open fields and greenhouses; secondary literature without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000497",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CRowNet combines SegNet with a Hough transform to detect crop row lines for machine guidance/navigation in UAV images, which is crop-row line detection for navigation rather than pixel-level crop/weed supervised segmentation."
+  },
+  {
+    "workspace_id": "SCI-000498",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Deep weed object detection in UAV images uses YOLOv7 with 12,113 bounding-box annotations to localize weeds; it is bounding-box detection rather than pixel-level semantic/instance segmentation."
+  },
+  {
+    "workspace_id": "SCI-000499",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of IoT-based smart agriculture covering wireless sensors, communication, and UAV crop surveillance; secondary literature without a primary DL segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000500",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review and meta-analysis of deep-learning semantic segmentation of urban features in satellite images; satellite modality, urban domain, and secondary literature all fall outside UAV crop/weed scope."
+  }
+]

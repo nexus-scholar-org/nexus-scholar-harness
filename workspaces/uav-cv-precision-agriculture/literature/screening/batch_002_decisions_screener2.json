@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000026",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Real-time LiDAR/RGB semantic fusion on UAVs is evaluated for urban disaster examination, not agricultural crop/weed segmentation, so it is outside the agronomic scope."
+  },
+  {
+    "workspace_id": "SCI-000027",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PBSeg prototype-based semantic segmentation is evaluated on urban aerial datasets (UAVid, UDD6) rather than agricultural crop/weed imagery, so it falls outside the agronomic domain."
+  },
+  {
+    "workspace_id": "SCI-000028",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Edge semantic segmentation of flood-affected buildings in UAV imagery for disaster response, not agricultural crop/weed segmentation, so it is outside the target domain."
+  },
+  {
+    "workspace_id": "SCI-000029",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Segmentation architecture optimization on the DroneDeploy aerial benchmark does not establish an agricultural crop/weed context, so it cannot be placed in the target agronomic domain."
+  },
+  {
+    "workspace_id": "SCI-000030",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-modal LiDAR/RGB semantic fusion with label propagation is deployed for urban and disaster scenes, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000031",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Co-SemDepth performs joint semantic segmentation and depth estimation on MidAir/Aeroscapes for autonomous UAV navigation, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000032",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SNN semantic segmentation is evaluated on PASCAL VOC and DDD17 driving/event datasets, not agricultural UAV crop/weed imagery, so it is outside the agronomic scope."
+  },
+  {
+    "workspace_id": "SCI-000033",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "GPU-memory-efficient segmentation of ultra-high-resolution UAV imagery is validated on generic public benchmarks without an agricultural crop/weed context."
+  },
+  {
+    "workspace_id": "SCI-000034",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Adaptive model streaming for real-time edge video segmentation targets generic video datasets, not agricultural UAV crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000035",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "FBSNet real-time semantic segmentation is benchmarked on Cityscapes and CamVid driving scenes rather than agricultural UAV crop/weed data."
+  },
+  {
+    "workspace_id": "SCI-000036",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Hyperbolic uncertainty-aware semantic segmentation is evaluated on Cityscapes and UAVid urban scenes, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000037",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Vision transformer compression targets UAV edge deployment for navigation, surveillance and search-and-rescue rather than agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000038",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "MSCFNet lightweight real-time semantic segmentation is evaluated on Cityscapes, not agricultural UAV crop/weed imagery, so it is outside the agronomic scope."
+  },
+  {
+    "workspace_id": "SCI-000039",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CarboFormer segments CO2 gas plumes in optical gas imaging for emission monitoring and livestock management, not crop/weed segmentation, so it is outside the target agricultural domain."
+  },
+  {
+    "workspace_id": "SCI-000040",
+    "decision": "INCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "DAS-SK is a lightweight CNN for agricultural semantic segmentation evaluated on PhenoBench crop/weed-style benchmarks, reporting state-of-the-art accuracy with reduced parameters, matching the DL agricultural segmentation and quantitative-metric criteria."
+  },
+  {
+    "workspace_id": "SCI-000041",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "ArmFormer performs real-time weapon segmentation for security/surveillance applications, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000042",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Energy-efficient edge crack segmentation supports infrastructure monitoring, not agricultural crop/weed management, so it is outside the agronomic scope."
+  },
+  {
+    "workspace_id": "SCI-000043",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "TSJNet multimodal image fusion is evaluated on generic surveillance/road datasets (MSRS, M3FD, TNO), not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000044",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "H2O-Net performs flood segmentation primarily on satellite imagery and is not agricultural crop/weed, violating both modality (non-UAV primary) and domain scope."
+  },
+  {
+    "workspace_id": "SCI-000045",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Segmentation of hotspots and snail trails in solar PV thermal imagery is an energy-infrastructure application, not agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000046",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PLGAN segments power lines in aerial images for UAV flight safety, which is not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000047",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A reading report on AI/ML for wireless spectrum sensing and Open RAN, which is secondary literature outside the agricultural crop/weed domain."
+  },
+  {
+    "workspace_id": "SCI-000048",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SafeLand uses semantic segmentation for autonomous UAV landing in urban/rural environments, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000049",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-task aerial scene interpretation and geolocalization is evaluated on urban building datasets (Inria, Massachusetts), not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000050",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "3D instance segmentation of buildings in urban scenes is a remote-sensing/geospatial application, not agricultural crop/weed management."
+  }
+]

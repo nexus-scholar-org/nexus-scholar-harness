@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001276",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "3DGS reconstruction + RandLA-Net equipment point-cloud semantic segmentation for power transmission projects (mIoU 84.2%). Power-infrastructure domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001277",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Compressed SegFormer for drone safe-landing-zone prediction (95.37% acc, distilled B2->B0; 179 FPS). Although edge metrics are central (INC-03), domain is landing-zone navigation for seismic drones, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001278",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV as-built model acquisition for bridge BIM asset management with ML point-cloud semantic segmentation (crack/spalling). Bridge/BIM infrastructure domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001279",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DeepLabV3-based semantic segmentation for oil-spill detection in port environments from drone RGB (F1 0.9557, IoU 0.8643). Oil-spill/environmental domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001280",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Accelerated UAV onboard terrain semantic segmentation using cloud VLMs and satellite-derived labels for GNSS-denied navigation. Navigation domain and satellite-imagery modality, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001281",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Dmg2Former vision transformers for high-resolution structural visual inspection (crack detection, material ID). Structural-inspection domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001282",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-projection fusion for 3D LiDAR point-cloud semantic segmentation on SemanticKITTI (mIoU 55.5). LiDAR/autonomous-driving domain, not aerial agricultural."
+  },
+  {
+    "workspace_id": "SCI-001283",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of deep-learning-based intelligent transmission-line inspection. Secondary literature, not a primary agricultural benchmark."
+  },
+  {
+    "workspace_id": "SCI-001284",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Aerial-PASS panoramic-annular-lens scene segmentation in drone videos (track/field/others). Sports/urban-aerial domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001285",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RandLA-Net semantic segmentation of LiDAR+imagery for power transmission-line clearance monitoring (mIoU 93.2%). Power-infrastructure domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001286",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Dual-view stereovision UAV inspection system for overhead transmission-line corridor (edge-assisted semantic segmentation). Power-infrastructure domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001287",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Panoramic-annular-lens optical design for aerial scene segmentation of track/field (Aerial-PASS, mIoU >86.3%). Optical-design/sports-aerial domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001288",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Adaptive-keyframe video semantic segmentation for UAV on UAVid (53-54 FPS, mIoU >40%). Urban UAV benchmark, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001289",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Autonomous multirotor UAV safe-spot landing combining camera segmentation + LiDAR slope (water/grass/trees/shadow). UAV safety/landing domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001290",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AI CNN semantic segmentation + GIS for urban green-space detection/accessibility (>90% acc). Urban planning/environmental domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001291",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SegFormer semantic segmentation for risk assessment of autonomous urban UAV landing (emergency landing). Urban safety/landing domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001292",
+    "decision": "INCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2"],
+    "screening_reasoning": "RPD-Net lightweight reparameterized pixel-difference crop-weed semantic segmentation on drone-acquired Phenobench (IoU ~70) and CoFly datasets; reports 42 FPS RTX 3090 and 7 FPS Jetson TX2 latency. UAV agricultural crop/weed pixel-level segmentation with quantitative IoU and on-device edge metrics."
+  },
+  {
+    "workspace_id": "SCI-001293",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SwiftNetRN-18 real-time semantic segmentation for road-driving (Cityscapes 75.5% mIoU, 39.9 Hz). Autonomous-driving domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001294",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AerialCLIP lightweight open-vocabulary UAV segmentation. Although smart agriculture is cited as motivation, evaluation is on UAVid/UDD5/VDD generic urban aerial datasets, with no crop/weed benchmark."
+  },
+  {
+    "workspace_id": "SCI-001295",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RTSDM real-time semantic dense SLAM mapping on Jetson TX2 (BiSeNetV2, ~12 Hz, ~89% acc). Although edge metrics are present, domain is generic SLAM/mapping for rescue/inspection, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001296",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SAM2/SAM2-UNet semantic segmentation of shallow-water seagrass (IoU 0.923-0.935). Marine/ecological domain, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001297",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DDRNet-SDR spatial-frequency real-time segmentation on Cityscapes (78.43% mIoU, 66.1 FPS). Autonomous-driving/urban domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001298",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "GeoTransNet geospatial transformer for terrain semantic understanding/3D reconstruction from UAV+LiDAR (accuracy 97.31%). Engineering surveying/terrain domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001299",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Spatiotemporal dual-branch attention for video semantic segmentation in autonomous driving/traffic monitoring. Driving/traffic domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001300",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLOv8 + DeepLabv3+ bridge-crack identification deployed on edge with TensorRT (FPS 9.66). Civil/bridge infrastructure domain, not agriculture."
+  }
+]

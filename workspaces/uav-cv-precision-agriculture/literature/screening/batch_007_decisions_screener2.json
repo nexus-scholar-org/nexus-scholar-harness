@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000151",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the crop-weed multispectral semantic segmentation title, so no retrievable quantitative results exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000152",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the NDVI/LAI crop-monitoring title concerns vegetation-index modeling rather than DL crop/weed segmentation, so there is no retrievable quantitative segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000153",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Vision-transformer semantic segmentation targets aerial vehicle monitoring/traffic classification rather than agricultural crop/weed imagery, so it is outside the agronomic domain."
+  },
+  {
+    "workspace_id": "SCI-000154",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A CNN is used to identify and distinguish crops from weeds on an available field dataset (real-time decision-making), i.e., classification/detection without pixel-level segmentation masks, and no UAV aerial context is established, violating the task-scope criterion."
+  },
+  {
+    "workspace_id": "SCI-000155",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Domain-generalized crop/weed semantic segmentation with CNNs is designed for precision-farming robots operating across field conditions, not UAV aerial imagery, so it violates the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000156",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the topic is agronomic crop-weed competition planning, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000157",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive chapter overview of autonomous agricultural robotics (harvesting/weed detection) grounded in ground robots, i.e., secondary literature without a primary UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000158",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Reduced U-Net pixel-wise crop/weed segmentation (~95% accuracy) operates on digital field images to aid robotics, with no UAV aerial context, so it is treated as non-UAV and excluded on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000159",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A peer review/editorial of a crop-disease-detection CNN ensemble paper; secondary commentary without a primary UAV crop/weed segmentation benchmark, and the disease-detection domain is out of scope."
+  },
+  {
+    "workspace_id": "SCI-000160",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "U-Net/DeepLabv3 semantic segmentation maps weeds on UAV multispectral barley/rapeseed imagery (best weed F1 0.5833, mIoU 0.5448, cross-field transfer analyzed), satisfying the DL UAV crop/weed segmentation and quantitative-metric criteria."
+  },
+  {
+    "workspace_id": "SCI-000161",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Instance segmentation is applied to ORB-SLAM2 pose estimation by removing human-body features in dynamic scenes (TUM dataset), a robotics/slam application entirely outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000162",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the topic is agronomic weed-management effects on rice yield/nutrient uptake, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000163",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SegFormer/Swin/Segmenter weed semantic segmentation (mIoU 65.74%) targets turf-grass management with potential automated-robot application, but the abstract establishes no UAV aerial context, so it is treated as non-UAV on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000164",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Despite the segmentation title, the method uses the YOLOv8 object detection model on 2630 standard images and reports precision/recall/mAP, i.e., bounding-box detection rather than pixel-level segmentation masks, and no UAV context is established."
+  },
+  {
+    "workspace_id": "SCI-000165",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV instance segmentation targets slope erosion in tailings dams (civil/geotechnical engineering, not agriculture) and no abstract is retrievable, outside the crop/weed domain with no quantitative segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000166",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLO instance segmentation detects uncut weeds in a pear orchard for autonomous robotic weeders (ground robot), a non-UAV orchard-plantation domain outside UAV crop/weed field segmentation."
+  },
+  {
+    "workspace_id": "SCI-000167",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the topic is agronomic soybean nutrition/weed-management practices, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000168",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available; the spectral-fluorescence celery weed/crop classification title implies robotic ground imaging rather than UAV, leaving no retrievable quantitative segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000169",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A UAV-based mapping system uses machine-vision techniques to generate herbicide prescription spray maps, but the preliminary paper reports no pixel-level DL crop/weed segmentation benchmark, violating the task-scope criterion."
+  },
+  {
+    "workspace_id": "SCI-000170",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the climate-smart-agriculture topic is unrelated to UAV crop/weed segmentation, so there is no retrievable evidence in scope."
+  },
+  {
+    "workspace_id": "SCI-000171",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PSPEdgeWeedNet performs CNN crop/weed semantic segmentation in peanut fields using multispectral imagery, but the abstract does not establish UAV or aerial flight context, so it is treated as non-UAV and excluded on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000172",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "D2FNet is a lightweight YOLOv12-based object detector for UAV weed-crop images evaluated via mAP50-95 (44.1%), i.e., bounding-box detection with no pixel-level segmentation masks, violating the task-scope criterion despite the UAV modality."
+  },
+  {
+    "workspace_id": "SCI-000173",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the source is a book chapter on computer-vision weed detection (secondary literature), with no retrievable primary UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000174",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the fertilizer/weed-dynamics topic is agronomic, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000175",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLOv8x-seg/YOLOv11x-seg vs Mask R-CNN compare Parthenium instance segmentation (mAP50 93.1%, Mask R-CNN pixel accuracy 97.8%) on open-field Khyber Pakhtunkhwa images, but the abstract establishes no UAV aerial context, so it is treated as non-UAV on the modality criterion."
+  }
+]

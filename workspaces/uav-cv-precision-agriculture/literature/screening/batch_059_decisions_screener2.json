@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001451",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review/synthesis (2000-2025) of precision agriculture and AI for improving crop productivity (drone monitoring, smart irrigation, predictive analytics). Review, not a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001452",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Enhanced YOLOv8-Ghost-CBAM for oil-palm fresh-fruit-bunch detection/counting with DeepSort tracking (mAP50>90%). Bounding-box detection/counting of orchard fruit, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001453",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV autonomy and trajectory optimization via SBAS + monocular visual-inertial odometry (factor graph). Navigation/state estimation domain, not crop/weed image segmentation."
+  },
+  {
+    "workspace_id": "SCI-001454",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Leaf nitrogen content/accumulation inversion from UAV hyperspectral vegetation indices using linear regression, RFR, and SVR (R2 up to 0.85). Non-deep-learning regression, no learned pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-001455",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of robotics and drones for sustainable farming (tillage, seeding, harvesting, monitoring). Review, not a primary segmentation study."
+  },
+  {
+    "workspace_id": "SCI-001456",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Battery-status prediction for agricultural drones using Random Forest (94.2% accuracy). Drone power/reliability domain, not crop/weed image segmentation."
+  },
+  {
+    "workspace_id": "SCI-001457",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Model-based reinforcement learning for UAV navigation/decision-making in GNSS-denied, low-visibility conditions (search and rescue, thermal + LiDAR). UAV navigation domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001458",
+    "decision": "EXCLUDE",
+    "confidence": 0.86,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Deep spatio-temporal ConvLSTM-Transformer fusion of Sentinel satellite + multi-angle UAV multispectral imagery to detect crop diseases (cotton wilt 98.1% accuracy, F1 97.6%). Disease detection/classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001459",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AI/IoRT/UAV framework for paddy crop-residue (stubble) management and AQI monitoring in northern India. Residue-management systems integration, no pixel-level crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001460",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Smart-beekeeping web app (Tracking.js) for healthy hive-location analysis from drone imagery. Apiculture domain, not crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-001461",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of AI and data analytics for precision agriculture (crop monitoring, yield prediction, disease detection). Review, not a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001462",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Real-time NDMI moisture mapping with a dual-band UAV payload (NIR/SWIR quantum-dot sensors, onboard NDMI). Non-deep-learning vegetation-index mapping, no learned segmentation."
+  },
+  {
+    "workspace_id": "SCI-001463",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SWOC case study of drone-technology adoption by farmers in Coimbatore District (questionnaire survey). Non-technical adoption analysis, not a DL segmentation study."
+  },
+  {
+    "workspace_id": "SCI-001464",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-stage weed detection using YOLOv8n/EfficientDet-D0 localization + MobileNetV3 classification for resource-limited platforms. Bounding-box weed detection/classification, not pixel-level semantic segmentation."
+  },
+  {
+    "workspace_id": "SCI-001465",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RepViT + FPN for UAV small-object detection on VisDrone/UAVDT benchmarks (48 FPS). Bounding-box detection of generic aerial objects, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001466",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Smart Thermowing Explorer drone/IoT system for infrastructure inspection (windmills, solar panels, electrical towers, thermal imaging). Infrastructure-inspection domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001467",
+    "decision": "EXCLUDE",
+    "confidence": 0.86,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Drone-based ML framework for growth estimation (94.32%), weed detection (97.84%), and disease identification (93.87%) with cloud pipelines. Detection/classification/regression tasks, no pixel-level crop/weed segmentation masks."
+  },
+  {
+    "workspace_id": "SCI-001468",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Solar-powered drone remote sensing for yield estimation and field zoning using machine learning (income model, radiation, zoning maps). Regression/zoning, non-segmentation and non-DL-focused."
+  },
+  {
+    "workspace_id": "SCI-001469",
+    "decision": "EXCLUDE",
+    "confidence": 0.82,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Onboard wheat-phytopathology spot detection using a modified YOLO on Jetson TX2/NavQ/RPi (F1 0.978, 16.8 FPS). Bounding-box disease detection (real-time edge metrics), not pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-001470",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of automation and AI in precision agriculture (drones, autonomous tractors, irrigation, predictive analytics). Review, not a primary segmentation study."
+  },
+  {
+    "workspace_id": "SCI-001471",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "WebRT-LiDAR platform-independent web-based real-time LiDAR point-cloud mapping integrated on a low-altitude drone. LiDAR-mapping infrastructure, not aerial agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001472",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLO-based models (YOLOv8n/s, YOLOv10n/s) for identifying nutrient-deficient cotton leaves on UAV imagery (F1 0.83, mAP@0.5 0.885). Bounding-box leaf-deficiency detection, not pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-001473",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparison of YOLOv5 vs YOLOv7 for rice-pest detection from drone imagery (IoU/mIoU 0.8711 per-frame). Bounding-box pest detection, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001474",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Portable Raspberry Pi 5 device with image-processing algorithms for droplet-deposition analysis on spray cards during UAV plant-protection spraying (89.4% accuracy). Spray-droplet analysis, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001475",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of remote sensing and GIS for vegetation-condition assessment using spectral indices (NDVI, EVI, SAVI, NDWI) including UAV monitoring. Review, not a primary DL segmentation study."
+  }
+]

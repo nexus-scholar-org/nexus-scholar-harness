@@ -395,61 +395,170 @@ def cmd_collect(workspace_dir: Path) -> None:
     # Build doc lookup by workspace_id
     doc_by_wsid: dict[str, Document] = {d.workspace_id: d for d in docs if d.workspace_id}
 
-    for b in manifest["batches"]:
-        idx = b["batch_index"]
-        decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
+    # Check if dual-screening and adjudication files are present
+    screener2_files = sorted(screening_dir.glob("batch_*_decisions_screener2.json"))
+    adj_files = sorted(screening_dir.glob("_adjudication_resolved_group_*.json"))
 
-        if not decisions_file.exists():
-            missing_batches.append(idx)
-            logger.warning("Batch %d: decision file missing — using heuristic fallback.", idx)
-            # Fallback: load the batch file and heuristic-screen those papers
-            batch_file = screening_dir / f"batch_{idx:03d}.json"
-            if batch_file.exists():
-                batch_data = json.loads(batch_file.read_text(encoding="utf-8"))
-                for p in batch_data.get("papers", []):
-                    wsid = p.get("workspace_id", "")
-                    doc = doc_by_wsid.get(wsid)
-                    if doc:
-                        all_decisions.append(evaluate_heuristic_screening(doc, protocol_data))
-                        fallback_count += 1
-            continue
+    if screener2_files and adj_files:
+        logger.info(
+            "Detected dual-screening mode: %d screener2 batch files and %d adjudication group files found.",
+            len(screener2_files), len(adj_files)
+        )
+        # Load Screener 1 decisions
+        s1_map: dict[str, dict] = {}
+        for b in manifest["batches"]:
+            idx = b["batch_index"]
+            decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
+            if decisions_file.exists():
+                try:
+                    for r in json.loads(decisions_file.read_text(encoding="utf-8")):
+                        s1_map[r["workspace_id"]] = r
+                except Exception:
+                    pass
 
-        try:
-            raw_decisions: list[dict] = json.loads(decisions_file.read_text(encoding="utf-8"))
-        except Exception as exc:
-            logger.error("Batch %d: failed to parse decisions file (%s).", idx, exc)
-            missing_batches.append(idx)
-            continue
-
-        for entry in raw_decisions:
-            wsid = str(entry.get("workspace_id", ""))
-            doc = doc_by_wsid.get(wsid)
-
-            raw_dec = str(entry.get("decision", "INCLUDE")).upper()
-            decision = "INCLUDE" if raw_dec == "INCLUDE" else "EXCLUDE"
+        # Load Screener 2 decisions
+        s2_map: dict[str, dict] = {}
+        for sf in screener2_files:
             try:
-                confidence = float(entry.get("confidence", 0.80))
-            except (TypeError, ValueError):
-                confidence = 0.80
+                for r in json.loads(sf.read_text(encoding="utf-8")):
+                    s2_map[r["workspace_id"]] = r
+            except Exception:
+                pass
+
+        # Load Adjudication decisions
+        adj_map: dict[str, dict] = {}
+        for af in adj_files:
+            try:
+                for r in json.loads(af.read_text(encoding="utf-8")):
+                    adj_map[r["workspace_id"]] = r
+            except Exception:
+                pass
+
+        # Load confirmed include IDs if available
+        reconciled_include_file = screening_dir / "_final_reconciled_include.txt"
+        confirmed_inc_ids: set[str] = set()
+        if reconciled_include_file.exists():
+            try:
+                confirmed_inc_ids = set(json.loads(reconciled_include_file.read_text(encoding="utf-8")))
+            except Exception:
+                pass
+
+        # Load provisional caveat IDs if available (Option B)
+        caveats_file = screening_dir / "adjudicated_caveats.json"
+        caveat_ids: set[str] = set()
+        if caveats_file.exists():
+            try:
+                cav_list = json.loads(caveats_file.read_text(encoding="utf-8"))
+                caveat_ids = {c["workspace_id"] for c in cav_list}
+            except Exception:
+                pass
+
+        # Build reconciled decisions across all verified documents
+        for doc in docs:
+            wid = doc.workspace_id
+            s1_entry = s1_map.get(wid, {})
+            s2_entry = s2_map.get(wid, {})
+            a_entry = adj_map.get(wid, {})
+
+            is_disputed = (s1_entry.get("decision") != s2_entry.get("decision"))
+
+            if wid in confirmed_inc_ids or (not confirmed_inc_ids and not is_disputed and s1_entry.get("decision") == "INCLUDE") or (not confirmed_inc_ids and is_disputed and a_entry.get("decision") == "INCLUDE"):
+                decision = "INCLUDE"
+                conf = float(a_entry.get("confidence", 0.90)) if is_disputed else max(float(s1_entry.get("confidence", 0.8)), float(s2_entry.get("confidence", 0.8)))
+                matched = a_entry.get("final_codes", ["INC-01", "INC-02"]) if is_disputed else list(set(s1_entry.get("matched_inclusion_criteria", []) + s2_entry.get("matched_inclusion_criteria", [])))
+                violated = []
+                rqs = list(set(s2_entry.get("relevant_rqs", []) + s1_entry.get("relevant_rqs", []))) or ["RQ1"]
+                reason = a_entry.get("adjudication_reasoning") if is_disputed else (s2_entry.get("screening_reasoning") or s1_entry.get("screening_reasoning"))
+            elif wid in caveat_ids:
+                decision = "INCLUDE"
+                conf = float(a_entry.get("confidence", 0.60))
+                matched = ["INC-01", "INC-02"]
+                violated = a_entry.get("final_codes", ["EXC-06"])
+                rqs = ["RQ1"]
+                reason = f"PROVISIONAL INCLUSION (Stage 3 Full-Text Verification Required): {a_entry.get('adjudication_reasoning', '')}"
+            else:
+                decision = "EXCLUDE"
+                conf = float(a_entry.get("confidence", 0.80)) if is_disputed else float(s2_entry.get("confidence", 0.8))
+                matched = []
+                violated = a_entry.get("final_codes", ["EXC-03"]) if is_disputed else (s2_entry.get("violated_exclusion_criteria") or s1_entry.get("violated_exclusion_criteria") or ["EXC-03"])
+                rqs = []
+                reason = a_entry.get("adjudication_reasoning") if is_disputed else (s2_entry.get("screening_reasoning") or s1_entry.get("screening_reasoning"))
 
             all_decisions.append(
                 ScreeningDecision(
-                    workspace_id=wsid,
+                    workspace_id=wid,
                     decision=decision,
-                    confidence=confidence,
-                    matched_inclusion_criteria=list(entry.get("matched_inclusion_criteria") or []),
-                    violated_exclusion_criteria=list(entry.get("violated_exclusion_criteria") or []),
-                    relevant_rqs=list(entry.get("relevant_rqs") or []),
-                    screening_reasoning=str(entry.get("screening_reasoning", "Agent screened.")),
-                    document_title=doc.title if doc else entry.get("title", ""),
-                    doi=doc.external_ids.doi if doc else None,
+                    confidence=conf,
+                    matched_inclusion_criteria=matched,
+                    violated_exclusion_criteria=violated,
+                    relevant_rqs=rqs,
+                    screening_reasoning=str(reason or "Screened in dual consensus."),
+                    document_title=doc.title,
+                    doi=doc.external_ids.doi if doc.external_ids else None,
                 )
             )
 
-    if missing_batches:
-        logger.warning("%d batch(es) had missing/broken decision files: %s", len(missing_batches), missing_batches)
-    if fallback_count:
-        logger.warning("%d papers fell back to heuristic screening.", fallback_count)
+        logger.info(
+            "Dual-screening reconciliation generated %d decisions (%d INCLUDE, %d EXCLUDE).",
+            len(all_decisions),
+            sum(1 for d in all_decisions if d.decision == "INCLUDE"),
+            sum(1 for d in all_decisions if d.decision == "EXCLUDE"),
+        )
+    else:
+        for b in manifest["batches"]:
+            idx = b["batch_index"]
+            decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
+
+            if not decisions_file.exists():
+                missing_batches.append(idx)
+                logger.warning("Batch %d: decision file missing — using heuristic fallback.", idx)
+                batch_file = screening_dir / f"batch_{idx:03d}.json"
+                if batch_file.exists():
+                    batch_data = json.loads(batch_file.read_text(encoding="utf-8"))
+                    for p in batch_data.get("papers", []):
+                        wsid = p.get("workspace_id", "")
+                        doc = doc_by_wsid.get(wsid)
+                        if doc:
+                            all_decisions.append(evaluate_heuristic_screening(doc, protocol_data))
+                            fallback_count += 1
+                continue
+
+            try:
+                raw_decisions: list[dict] = json.loads(decisions_file.read_text(encoding="utf-8"))
+            except Exception as exc:
+                logger.error("Batch %d: failed to parse decisions file (%s).", idx, exc)
+                missing_batches.append(idx)
+                continue
+
+            for entry in raw_decisions:
+                wsid = str(entry.get("workspace_id", ""))
+                doc = doc_by_wsid.get(wsid)
+
+                raw_dec = str(entry.get("decision", "INCLUDE")).upper()
+                decision = "INCLUDE" if raw_dec == "INCLUDE" else "EXCLUDE"
+                try:
+                    confidence = float(entry.get("confidence", 0.80))
+                except (TypeError, ValueError):
+                    confidence = 0.80
+
+                all_decisions.append(
+                    ScreeningDecision(
+                        workspace_id=wsid,
+                        decision=decision,
+                        confidence=confidence,
+                        matched_inclusion_criteria=list(entry.get("matched_inclusion_criteria") or []),
+                        violated_exclusion_criteria=list(entry.get("violated_exclusion_criteria") or []),
+                        relevant_rqs=list(entry.get("relevant_rqs") or []),
+                        screening_reasoning=str(entry.get("screening_reasoning", "Agent screened.")),
+                        document_title=doc.title if doc else entry.get("title", ""),
+                        doi=doc.external_ids.doi if doc else None,
+                    )
+                )
+
+        if missing_batches:
+            logger.warning("%d batch(es) had missing/broken decision files: %s", len(missing_batches), missing_batches)
+        if fallback_count:
+            logger.warning("%d papers fell back to heuristic screening.", fallback_count)
 
     # Look for raw provenance manifest to get exact total_identified and duplicates_removed
     manifest_raw = lit_dir / "raw" / "provenance_manifest.json"

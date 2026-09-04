@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000826",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV deep-learning weed detection in sugar beet benchmarked with one/two-stage DETECTORS (Fast R-CNN, YOLOR, YOLOv7, YOLOv5) reporting mAP on bounding boxes; a detection task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000827",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Farm-DT perception framework on the Moving Fields Weed Dataset combines weed-species classification with SegFormer semantic segmentation (mIoU), but uses ground-level plant imagery rather than UAV aerial crop/weed imagery."
+  },
+  {
+    "workspace_id": "SCI-000828",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A data-driven review of remote-sensing data fusion and transformer-based techniques in precision agriculture; survey without a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000829",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "WeedNet is a weed-species identification/classification model (accuracy across 1,593 species) validated on drone/rover images; a classification/identification task without pixel-level segmentation masks."
+  },
+  {
+    "workspace_id": "SCI-000830",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "WeedScout performs real-time blackgrass classification/mapping with YOLOv8/YOLO-NAS on a Jetson Nano; a bounding-box detection/classification task, not pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-000831",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AMFR-Net wheat phenology (growth-stage) recognition on ground-level RGB imagery reports Top-1 accuracy; a whole-image classification task without UAV aerial imagery or pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000832",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AdjLeafGNN conducts leaf-disease classification and disease-spread prediction on PlantVillage; an image-level classification task without UAV aerial imagery or crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000833",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SimpleEfficientCNN is an ultra-lightweight rice-seed variety classifier (accuracy, GPU latency); a seed image classification task without UAV aerial imagery or pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000834",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A literature review of YOLOv8 optimizations for UAV object detection; survey without a primary UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000835",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative analysis of neural networks (CNN/ViT/SLAM) for high-speed UAV navigation and SWaP constraints; generic aerial navigation, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000836",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "EgeoFireNet is a forest-fire detection and spread-prediction system (Swin Transformer, Jetson Orin NX); the domain is forest-fire monitoring, not crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000837",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLOv5 on a fixed-wing UAV for detecting marking kits in disaster-relief logistics (Jetson Nano); debris/aid localization, unrelated to agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000838",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLO-CMA detects defects (disease/insect/bird/crack) in Sanhua plums for postharvest grading; a bounding-box detection task without UAV aerial imaging or pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000839",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "The Smart Farming Assistant uses a CNN for weed detection from drone imagery plus RF/XGBoost for recommendations; weed detection is a bounding-box detection task without pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-000840",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep-learning techniques for quadcopter UAV systems across domains (surveillance, traffic, agriculture, disaster); survey without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000841",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A structured survey/taxonomy of machine-learning methods for UAV-enabled precision agriculture (100+ studies); review without primary segmentation benchmark data."
+  },
+  {
+    "workspace_id": "SCI-000842",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLOv8m weed detection on a 20k-image field dataset (mAP 94.2%, >120 FPS) for smart machinery; a bounding-box detection task on ground field equipment, not UAV segmentation."
+  },
+  {
+    "workspace_id": "SCI-000843",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "IMYOLOv11n-seg instance-segments apple rootstock cuttings for drought-stress grades in protected greenhouse propagation; outside UAV aerial crop/weed segmentation domain."
+  },
+  {
+    "workspace_id": "SCI-000844",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A systematic review of machine-learning applications in precision agriculture; survey without primary UAV segmentation benchmark data."
+  },
+  {
+    "workspace_id": "SCI-000845",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of precision agriculture/smart-farming innovations (IoT, big data, drones, ML); survey without a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000846",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of hyperspectral imaging technology and applications in agriculture; survey without a primary UAV DL crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000847",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of satellite-to-UAV remote sensing for precision agriculture; survey without primary segmentation benchmark data."
+  },
+  {
+    "workspace_id": "SCI-000848",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review/survey of AI in agriculture for irrigation, pesticide, and herbrand application automation; survey without a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000849",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Uses CNN-based plant detection/mask estimation for automatic plant-stand counting and crop-pattern texture evaluation; a detection/counting study, not a crop-vs-weed pixel segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000850",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive review of machine learning in agriculture (crop/water/soil/livestock management); survey without primary UAV segmentation benchmark data."
+  }
+]

@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000901",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A cyberinfrastructure study training ML models for crop growth-stage, soil-moisture, and yield prediction from UAS imagery; prediction/classification tasks, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000902",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "An instance-segmentation dataset of cabbages across the growing season annotated from UAV imagery, explicitly supporting UAV-based crop instance segmentation and monitoring."
+  },
+  {
+    "workspace_id": "SCI-000903",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Instance segmentation of maize seedling plants from UAV multispectral imagery evaluates six algorithms; YOLOv8 achieves segm_mAP50 94%, i.e., UAV crop pixel-level instance segmentation with quantitative segmentation metrics."
+  },
+  {
+    "workspace_id": "SCI-000904",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Uses VGG-16/CNN/FCN for plant-disease detection in UAV precision-agriculture; a disease-classification/detection task without crop/weed pixel-level segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000905",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Scale-aware CNN regression predicts cotton yield from UAV RGB imagery (R2 > 0.9); a yield-regression task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000906",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CNN/PLSR/RF estimate winter-wheat leaf area index from UAV multispectral images; a trait-regression task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000907",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Fine-tuned vision-transformer for plant-DISEASE detection/classification; a classification task without UAV aerial crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000908",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CNN predicts tree-level almond yield from multispectral aerial imagery (R2 0.96); an orchard-fruit yield regression task outside crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000909",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "MPAPR R-CNN instance-segments apple-tree canopy in UAV imagery for variable-rate spraying; an orchard fruit-tree canopy task outside crop/weed management scope."
+  },
+  {
+    "workspace_id": "SCI-000910",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "CoFly-WeedDB is a UAV RGB cotton-field dataset with expert polygon annotations of three weed species, explicitly built for automatic weed segmentation/classification from UAV imagery."
+  },
+  {
+    "workspace_id": "SCI-000911",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "3D/2D CNNs predict field-scale rice yield and crop stress from multitemporal UAV imagery (RMSE); a yield/stress regression task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000912",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Whole-field RL+CNN aerial scouting samples a corn field and predicts crop health via the excess-green index (89.8% accuracy); a field-scouting/prediction task, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000913",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CNN recognizes individual rapeseed leaves in UAV imagery for stand-count estimation; a leaf-detection/counting task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000914",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Semantic segmentation of tree branches in forest environments for UAV navigation/obstacle avoidance (Jetson Orin Nano, mIoU 89.94%); a forest-perception domain, not crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000915",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RFD-BiSeNet V2 segments floodwater for environmental disaster monitoring (USV/UAV); a flood-monitoring domain outside crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-000916",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Estimates noninvasive heart rate from 4K UAV videos using instance segmentation; a physiological/signals domain, unrelated to crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000917",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Human detection/segmentation in UAV thermal imagery for search-and-rescue (Jetson AGX Orin); a SAR domain, not agricultural crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000918",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "VDP_UNet segments plateau zokor mounds in alpine meadows from UAV imagery; a grassland-rodent-control domain rather than crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000919",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Pruned U-Net segments levee defects for UAV infrastructure inspection (57.74 FPS); a civil-infrastructure domain, unrelated to crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000920",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "EfficientSegNet is a general-purpose lightweight semantic segmentation network for autodriving/surveillance/drone vision; no agricultural crop/weed segmentation context."
+  },
+  {
+    "workspace_id": "SCI-000921",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "MSCL-SwinUNet performs MRI (medical) semantic segmentation; a medical-imaging domain unrelated to crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-000922",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An improved SegFormer segments UAV mine-restoration scenes (HNMUD); a mining/ecological-restoration domain, not crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000923",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RCANet segments pine trees affected by pine wood nematode from UAV imagery (83.14 FPS); a forest-pest domain outside crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000924",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "STDC-CT recognizes UAV emergency landing zones via semantic segmentation (Jetson TX2); an urban/UAV-safety domain, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000925",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Generative-AI (LLM/KG/simulator) farm-level advisory for rice systems; a natural-language advisory study, not a UAV crop/weed segmentation benchmark."
+  }
+]

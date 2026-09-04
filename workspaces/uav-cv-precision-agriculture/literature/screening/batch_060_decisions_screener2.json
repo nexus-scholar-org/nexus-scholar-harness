@@ -1,0 +1,119 @@
+[
+  {
+    "workspace_id": "SCI-001476",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "NAS-optimized YOLOv8n object detector for wheat head/cotton seedling monitoring (mAP@50, GFLOPs, FPS on Jetson Nano). Task is bounding-box object detection, not pixel-level crop/weed segmentation; EXC-02 applies."
+  },
+  {
+    "workspace_id": "SCI-001477",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Evaluates RTK-based direct georeferencing of UAV orthomosaics (positioning error ~98% reduction). No deep learning segmentation and no pixel-wise accuracy metrics; methodological mismatch and insufficient quantitative segmentation data."
+  },
+  {
+    "workspace_id": "SCI-001478",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-04", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV hyperspectral/multispectral soil nutrient monitoring plus GIS fertilization decisions (RMSE, yield gains). Domain is soil-nutrient estimation via regression, not crop/weed pixel segmentation; no DL segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001479",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Conceptual/system design of an autonomous drone platform (sensors, navigation, flight control) for agriculture. No quantitative pixel-wise segmentation accuracy or edge benchmarking reported; insufficient data for inclusion."
+  },
+  {
+    "workspace_id": "SCI-001480",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Vision-enhanced NMPC row-following navigation in vineyards (SITL/PITL tracking performance). Focus is flight control, not crop/weed pixel segmentation, and reports no segmentation accuracy or edge inference metrics."
+  },
+  {
+    "workspace_id": "SCI-001481",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Evaluates YOLOv4/EfficientDet/CenterNet on Jetson Xavier AGX for real-time weed detection (mAP 93.4%, 80 ms/image). Task is bounding-box detection of 13 weed species, not pixel-level segmentation; no segmentation masks reported."
+  },
+  {
+    "workspace_id": "SCI-001482",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review paper on drone applications in precision agriculture (crop monitoring, spraying, mapping). Secondary literature without primary segmentation benchmarks; EXC-05 applies."
+  },
+  {
+    "workspace_id": "SCI-001483",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of multirotor UAV applications and AI in precision agriculture. Secondary literature survey with no novel primary empirical segmentation benchmarks."
+  },
+  {
+    "workspace_id": "SCI-001484",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Enhanced YOLOv8 wheat head detector with deformable attention (mAP@0.5 92.3%). Task is bounding-box detection of wheat heads; no pixel-level segmentation masks reported."
+  },
+  {
+    "workspace_id": "SCI-001485",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RSG-DETR (RT-DETR) real-time crop disease/pest detector (mAP, 161.2 FPS). Task is bounding-box object detection, not pixel-level segmentation; no semantic masks reported."
+  },
+  {
+    "workspace_id": "SCI-001486",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CEA green-technology agronomy experiment (smart irrigation, biofertilizers; water/fertilizer reduction). No deep learning segmentation and no quantitative pixel-wise accuracy/edge metrics on UAV imagery."
+  },
+  {
+    "workspace_id": "SCI-001487",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "General overview of AI in agriculture without primary empirical experiments. Secondary/generalizing literature lacking quantitative segmentation benchmarks."
+  },
+  {
+    "workspace_id": "SCI-001488",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Hyperspectral 3D-1D CNN classifies nutrient stress (92% accuracy) for plant health and spraying; domain is crop health/nutrient-stress classification, not crop/weed pixel segmentation, and no pixel IoU/Dice metrics."
+  }
+]

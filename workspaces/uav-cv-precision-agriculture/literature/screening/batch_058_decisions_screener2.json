@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001426",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Hybrid adaptive and deep-learning-based control architecture for robust UAV navigation (path planning, obstacle avoidance, PID comparison). UAV navigation/control domain, not crop/weed image segmentation."
+  },
+  {
+    "workspace_id": "SCI-001427",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "General ML review/discussion on crop selection, fertilizer prediction, and disease detection. No pixel-level UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001428",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Overview of modern trends in the development of smart agriculture projects (IoT, precision agriculture, data analytics). Review/overview, not a primary segmentation study."
+  },
+  {
+    "workspace_id": "SCI-001429",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Book chapter on farming automation covering IoT, sensors, cloud/edge for smart farming. Survey/review chapter, no segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001430",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Titled as a review of drone sprayers (auto-navigation, vision-based optimization) in precision farming; no abstract available and review-type publication."
+  },
+  {
+    "workspace_id": "SCI-001431",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Hierarchical CNN binary classification (ResNet/EfficientNet) of strawberry plant health from UAV RGB blobs. Whole-image/blob classification (not pixel segmentation) and strawberry/orchard-fruit domain."
+  },
+  {
+    "workspace_id": "SCI-001432",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of the role of AI in transforming decision-making across agricultural systems (machine learning, computer vision, predictive analytics). Review, not a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001433",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Correlational study relating NDVI vegetation index to wheat productivity using multispectral RPAS/satellite imagery and GIS. Non-deep-learning vegetation-index analysis, no DL segmentation."
+  },
+  {
+    "workspace_id": "SCI-001434",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "IoT safety-monitoring platform for agricultural UAV operations (ESP32 + IMU + temperature telemetry, anomaly detection). Flight-safety/hardware monitoring, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001435",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Overview paper on IoT for smart farming (irrigation, livestock monitoring, automation). Review/overview, no primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001436",
+    "decision": "EXCLUDE",
+    "confidence": 0.86,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative evaluation of YOLOv8-nano vs Detectron2 for aerial object detection (mAP@0.5 91.2) across nine land-use categories including agricultural fields. Bounding-box detection task, not pixel-level crop/weed segmentation; reports mAP rather than mIoU."
+  },
+  {
+    "workspace_id": "SCI-001437",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Analysis of weather hazards (wind, temperature, precipitation, visibility) limiting agricultural drone flights in Iraq. Climatology/operations study, not crop/weed image segmentation."
+  },
+  {
+    "workspace_id": "SCI-001438",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Design of the Sky Farm UAV for agriculture with sensors detecting temperature, soil moisture, and disease. System-hardware design overview, no pixel-level crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001439",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "IoT smart-agriculture system for real-time crop monitoring and yield prediction via machine-learning models. Predictive-analytics monitoring, no pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001440",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Spatial chlorophyll estimation from rice fields using drone-derived spectral vegetation indices (NDVI, MCARI, GNDVI) correlated with SPAD. Non-deep-learning vegetation-index regression, no learned segmentation."
+  },
+  {
+    "workspace_id": "SCI-001441",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Survey paper on computational-intelligence/IoT approaches in real-time smart agriculture monitoring. Review/overview, not a primary segmentation study."
+  },
+  {
+    "workspace_id": "SCI-001442",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Wheat maturity identification using an improved RT-DETR model for UAV/edge deployment. Bounding-box object detection of wheat development stages, not pixel-level semantic segmentation."
+  },
+  {
+    "workspace_id": "SCI-001443",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "HSL color-space image processing for potato plant detection (UAV hyperspectral collection + ground AGV roguing). Non-deep-learning color-detection approach without learned pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-001444",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative review of ground-based, manual, and UAV remote-sensing approaches for crop-stress detection (Malaysia/China). Review, not a primary DL segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001445",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Design/implementation of an amphibious UAV for sowing seed balls in agriculture; no abstract available to verify segmentation content or metrics."
+  },
+  {
+    "workspace_id": "SCI-001446",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-objective UAV path-planning optimization using Gaussian Process surrogate models and Sobol sensitivity analysis. Path-planning/optimization domain, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001447",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Gaussian-Mixture-Model with Expectation-Maximization for predictive modeling of sugarcane top-borer infestation (clustering, drone/remote-sensing data). Clustering/ML prediction, not deep-learning pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-001448",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Drone-based AI system for livestock detection (YOLOv8 mAP 91%), LSD classification (MobileNetV2), and plant disease detection (CNN). Livestock domain and detection/classification tasks, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001449",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Coffee-berry health recognition via non-neural-network colour segmentation, specular highlight analysis, and texture convergence from drone overflight. Orchard/fruit domain and non-deep-learning method."
+  },
+  {
+    "workspace_id": "SCI-001450",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV guidance system using crop-row detection and line-follower algorithms; no abstract available to verify segmentation content or quantitative metrics."
+  }
+]

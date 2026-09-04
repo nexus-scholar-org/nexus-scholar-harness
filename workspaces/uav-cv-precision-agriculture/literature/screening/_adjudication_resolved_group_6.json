@@ -1,0 +1,879 @@
+[
+  {
+    "workspace_id": "SCI-001377",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Enhanced U-Net road-scene extraction from UAV imagery (F1 85.6%, mIoU 81.2%) targets road/topology mapping, not crop or weed agronomy. Out of the crop/weed arable domain -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001378",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "U-Net/SegFormer/MANet compared on the Semantic Drone Dataset for safe UAV landing in urban environments (optimized to Jetson Orin Nano). Urban-landing domain, no crop/weed content -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001380",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "EVitNet CNN-Transformer segments discolored pine trees (IoU 0.713) for pine wilt disease from drone remote sensing. Forestry disease monitoring, not crop/weed arable agronomy -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001381",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Survey of deep semantic segmentation (SegNet, FCN, U-Net) across UAV, Cityscapes, ADE20K, and medical imaging. Secondary/review literature without an agricultural primary benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001383",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "PCNet performs physics-constrained thermal UAV image super-resolution (VGTSR2.0/DroneVehicle), evaluating downstream segmentation as a secondary task. Super-resolution reconstruction task, not a crop/weed segmentation benchmark -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001384",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Lightweight CNN-Transformer (QVSATA + Laplacian loss) for low-altitude UAV semantic segmentation for autonomous flight/landing (real-time 4K at 15 FPS on mobile GPU). Generic UAV perception, no agricultural crop/weed content -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001386",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "HHSN-25 fully-convolutional segmentation of hidden hazards (cracks, seepage) in small reservoirs from UAV imagery (mIoU 87%). Reservoir-engineering/hydrology domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001387",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Self-supervised vision-only UAV flight combining U-Net semantic segmentation with monocular depth for obstacle avoidance/landing in indoor lab. UAV navigation/perception, not crop/weed agronomy -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001388",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-04",
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Unsupervised color-based flood-area segmentation in UAV imagery (LAB colorspace, distance transform) reporting 87.4% accuracy. Method is not deep learning (EXC-04) and domain is flood not agriculture (EXC-03).",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001389",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Concept/architecture for UAV near real-time mapping for disaster response (orthomosaic + segmentation) in Austria. Disaster-response domain with no crop/weed content -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001392",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Controllable latent-diffusion data augmentation to improve generic UAV semantic-perception segmentation mIoU on UAV benchmarks. Generic UAV data augmentation, no agricultural crop/weed content -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001393",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Image-free single-pixel segmentation via structured illumination + reconstruction networks (Dice >80% at 1% sampling). Generic resource-limited sensing technique with no crop/weed agricultural content -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001395",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "DSAFNet lightweight real-time segmentation evaluated on Cityscapes (74.78% mIoU, 74.74 FPS) and CamVid. Urban autonomous-driving datasets, no agricultural crop/weed content -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001396",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "SaferSAC DRL uses depth-semantic fusion for autonomous UAV obstacle-avoidance navigation. UAV navigation/planning domain, no crop/weed segmentation benchmark -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001397",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "LDCNet lightweight dynamic-convolution segmentation evaluated on Cityscapes (73.5 mIoU) and CamVid. Urban driving datasets, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001398",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "SegFormer + atrous spatial pyramid pooling for inland water-body extraction from high-resolution UAV remote sensing (Dengzhou, Henan). Water-resource/hydrology domain, not crop/weed agronomy -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001399",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "final_codes": [
+      "EXC-06"
+    ],
+    "adjudication_reasoning": "Title indicates real-time UAV semantic segmentation on embedded platforms but the record has no abstract and no recoverable quantitative segmentation metrics or crop/weed domain. Fails retrievability requirement -> EXC-06.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001400",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "AAEHS-Net evaluated on aerial-drone, Massachusetts roads, and Massachusetts buildings datasets (90-96% accuracy). Roads/buildings domain, not crop/weed agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001401",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03",
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "HR-YOLACT instance segmentation + bounding boxes to detect drones (UAVs) themselves for airport/military surveillance. Detecting UAVs, not crop/weed; bounding-box-centric -> EXC-03/EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001402",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "KDP-Net efficient semantic segmentation for autonomous emergency landing of UAVs (UDD6/SDD, mIoU 76.9%/67.14%, 85-108 FPS, Jetson Orin). Urban landing domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001403",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Lightweight modified RandLA-Net compresses and semantically segments LiDAR point-cloud maps for GNSS-denied UAV navigation. LiDAR point-cloud perception, not aerial crop/weed -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001405",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "DE-Net building extraction from high-resolution UAV imagery (IoU 86.78%, F1 92.91%). Urban-building domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001407",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Ice-Unet semantic segmentation for sea-ice classification (ice, melt ponds, open water, ships) from Arctic UAV imagery (IoU 95.07%). Polar/sea-ice domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001408",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "SSS structural semantic segmentation for autonomous drone delivery landing at house front/garage doors in residential zones. Drone-logistics/housing domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001409",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03",
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Improved YOLOv10n for road-surface defect detection (potholes, cracks, mAP50 0.461) on drone/vehicle edge devices. Bounding-box defect detection on roads, not crop/weed segmentation -> EXC-03/EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001410",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "UAV LiDAR/camera forest-fuel mapping (USDA fire-behavior classes) via semantic segmentation (>85% precision) for wildfire prevention. Forestry/fire domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001412",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Agrocopter crop health monitoring combines NDVI with semantic 'segmentation' performed by filter banks + SVM classifier for pixel-wise plant-health analysis. Method is SVM, not deep learning -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001414",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "PECFIS + DGBESCNN classify rice leaf disease, nutrient deficiency, and growth stage (98.82% accuracy). Whole-image/classification-based disease identification, no pixel-level crop/weed segmentation masks -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001416",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "General smart-farming precision-agriculture system description (IoT/ML/drones for irrigation, pest detection, yield). No specific pixel-level crop/weed DL segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001417",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Socioeconomic study of digital-technology adoption constraints faced by farmers in Punjab, Pakistan. Not a technical DL/UAV segmentation study -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001419",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Policy/framework paper on integrating green infrastructure into sustainable agriculture (soil health, biodiversity, microclimate). No DL UAV segmentation; conceptual review -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001420",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "CFD+AI optimization of rotor-rotor-structure aerodynamic interactions of a precision-agriculture quadcopter (surrogate model, genetic algorithm). Aerodynamics, not crop/weed image segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001421",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "CFD aerodynamic study of dorsal-fin effects on inverted-V VTOL UAV stability (lift/drag/yaw coefficients) for agriculture. Airframe aerodynamics, not image segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001422",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Overview of smart/digital agriculture technologies and proposed standards (sensors, IoT, cloud, analytics). Broad review, not a primary UAV segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001426",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Hybrid adaptive + deep-learning control architecture for robust UAV navigation (path planning, obstacle avoidance, PID comparison). UAV navigation/control domain, no crop/weed segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001427",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "General ML discussion/review on crop selection, fertilizer prediction, and disease detection. No pixel-level UAV crop/weed segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001432",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Review of AI-based tools transforming decision-making across agricultural systems (ML, computer vision, predictive analytics). Review, not a primary segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001433",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Correlational study of NDVI vegetation index to wheat productivity using multispectral RPAS/satellite imagery and GIS. Non-deep-learning vegetation-index analysis, no DL segmentation -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001434",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "IoT safety-monitoring platform for agricultural UAV operations (ESP32 + IMU + temperature telemetry, anomaly detection). Flight-safety/hardware monitoring, not crop/weed segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001435",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Overview paper on IoT for smart farming (irrigation, livestock monitoring, automation). Review, no primary UAV segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001436",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "YOLOv8-nano vs Detectron2 aerial detection over nine land-use categories including agricultural fields (mAP@0.5 91.2, 45 FPS). Bounding-box object detection, not pixel-level crop/weed segmentation; reports mAP not mIoU -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001437",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Analysis of weather hazards (wind, temperature, precipitation, visibility) limiting agricultural drone flights in Iraq using climate data. Climatology/operations study, not crop/weed image segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001438",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Design overview of the Sky Farm UAV with sensors for temperature, soil moisture, and disease. System-hardware description, no pixel-level crop/weed segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001439",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "IoT smart-agriculture system for real-time crop monitoring and yield prediction via ML models. Predictive-analytics monitoring, no pixel-level crop/weed segmentation -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001440",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Spatial chlorophyll estimation from rice fields using drone-derived vegetation indices (NDVI, MCARI, GNDVI) correlated with SPAD. Non-deep-learning vegetation-index regression, no learned segmentation -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001441",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Survey paper on computational-intelligence/IoT approaches in real-time smart agriculture monitoring. Review/overview, not a primary segmentation study -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001443",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "HSL color-space image processing to detect potato plants (UAV hyperspectral collection + ground AGV roguing). Non-deep-learning color-detection approach without learned pixel segmentation -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001445",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "final_codes": [
+      "EXC-06"
+    ],
+    "adjudication_reasoning": "Design/implementation of an amphibious UAV for sowing seed balls in agriculture; no abstract available to verify segmentation content or metrics. Fails retrievability requirement -> EXC-06.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001447",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Gaussian-Mixture-Model + Expectation-Maximization for predictive modeling of sugarcane top-borer infestation (clustering, drone/remote-sensing data). Clustering/ML prediction, not deep-learning pixel segmentation -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001448",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03",
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Drone-based AI system for cattle detection (YOLOv8 mAP 91%), LSD classification (MobileNetV2), and plant-disease detection (CNN). Livestock domain and detection/classification tasks, not crop/weed segmentation -> EXC-03/EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001449",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03",
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Coffee-berry health recognition via non-neural-network colour segmentation and texture convergence from drone overflight. Orchard/fruit (coffee) domain and non-deep-learning method -> EXC-03/EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001451",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Review/synthesis (2000-2025) of precision agriculture and AI for improving crop productivity. Secondary literature, not a primary UAV segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001454",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Leaf nitrogen content/accumulation inversion from UAV hyperspectral vegetation indices using linear regression, RFR, and SVR (R2 up to 0.85). Non-deep-learning regression, no learned pixel segmentation -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001455",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Review of robotics and drones for sustainable farming (tillage, seeding, harvesting, monitoring). Review, not a primary segmentation study -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001456",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Battery-status prediction for agricultural drones using Random Forest (94.2% accuracy). Drone power/reliability domain, not crop/weed image segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001457",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Model-based reinforcement learning for UAV navigation in GNSS-denied, low-visibility, search-and-rescue scenarios (thermal + LiDAR). UAV navigation domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001458",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Deep spatio-temporal ConvLSTM-Transformer fusing Sentinel satellite + UAV multispectral imagery to detect crop diseases (cotton wilt 98.1% accuracy, F1 97.6%). Disease detection/classification, not pixel-level crop/weed segmentation -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001459",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "AI/IoRT/UAV framework for paddy crop-residue (stubble) management and AQI monitoring. Residue-management systems integration, no pixel-level crop/weed segmentation benchmark -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001460",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Smart-beekeeping web app (Tracking.js) for healthy hive-location analysis from drone imagery. Apiculture domain, not crop/weed management -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001462",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Real-time NDMI moisture mapping with a dual-band UAV payload (NIR/SWIR quantum-dot sensors, onboard NDMI). Non-deep-learning vegetation-index mapping, no learned segmentation -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001463",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "SWOC case study of drone-technology adoption by farmers in Coimbatore District (questionnaire survey). Non-technical adoption analysis, not a DL segmentation study -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001464",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Multi-stage weed detection using YOLOv8n/EfficientDet-D0 localization + MobileNetV3 classification. Bounding-box weed detection/classification, not pixel-level semantic segmentation masks -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001466",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "Smart Thermowing Explorer drone/IoT system for infrastructure inspection (windmills, solar panels, electrical towers, thermal imaging). Infrastructure-inspection domain, not agriculture -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001467",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Drone-based ML framework for growth estimation (94.32%), weed detection (97.84%), and disease identification (93.87%). Detection/classification/regression tasks, no pixel-level crop/weed segmentation masks -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001468",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Solar-powered drone remote sensing for yield estimation and field zoning using machine learning (income model, radiation, zoning maps). Regression/zoning, non-segmentation and not DL-focused -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001469",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Onboard wheat-phytopathology spot detection using a modified YOLO on Jetson TX2/NavQ/RPi (F1 0.978, IoU 0.82, 16.8 FPS). Bounding-box disease detection despite edge metrics, not pixel-level segmentation -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001470",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Review of automation and AI in precision agriculture (drones, autonomous tractors, irrigation, predictive analytics). Review, not a primary segmentation study -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001471",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03"
+    ],
+    "adjudication_reasoning": "WebRT-LiDAR platform-independent web-based real-time LiDAR point-cloud mapping integrated on a low-altitude drone. LiDAR-mapping infrastructure, not aerial agricultural crop/weed segmentation -> EXC-03.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001474",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03",
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Portable Raspberry Pi 5 device with image-processing algorithms for droplet-deposition analysis on spray cards during UAV spraying (89.4% accuracy). Spray-droplet analysis, non-DL, not crop/weed segmentation -> EXC-03/EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001475",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Review of remote sensing and GIS for vegetation-condition assessment using spectral indices (NDVI, EVI, SAVI, NDWI) including UAV monitoring. Review, not a primary DL segmentation study -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001477",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-03",
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "Evaluates RTK-based direct georeferencing of UAV orthomosaics (positioning error ~98% reduction). Georeferencing, not DL segmentation, no pixel-wise crop/weed segmentation metrics -> EXC-03/EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001478",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-03",
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "UAV hyperspectral/multispectral soil-nutrient monitoring plus GIS fertilization decisions (RMSE, yield gains). Soil-nutrient estimation via regression, not crop/weed pixel segmentation -> EXC-03/EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001479",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "Conceptual/system design of an autonomous drone platform (sensors, navigation, flight control) for agriculture. No quantitative pixel-wise segmentation accuracy or edge benchmarking reported -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001480",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-06"
+    ],
+    "adjudication_reasoning": "Vision-enhanced NMPC row-following navigation in vineyards (SITL/PITL tracking performance). Focus is flight control in vineyard rows, reports no crop/weed segmentation accuracy or edge inference metrics -> EXC-06.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001484",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Deformable-attention YOLOv8 wheat head detector (mAP@0.5 92.3%) on Global Wheat Head Dataset 2021. Task is bounding-box detection of wheat heads, not pixel-level segmentation masks -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001485",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "RSG-DETR (RT-DETR) real-time crop disease/pest detector (mAP, 161.2 FPS). Bounding-box object detection, not pixel-level segmentation; no semantic masks reported -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001486",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-04"
+    ],
+    "adjudication_reasoning": "CEA green-technology agronomy experiment (smart irrigation, biofertilizers; water/fertilizer reduction). No deep learning segmentation and no quantitative pixel-wise accuracy/edge metrics on UAV imagery -> EXC-04.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001487",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "final_codes": [
+      "EXC-05"
+    ],
+    "adjudication_reasoning": "General overview of AI in agriculture without primary empirical experiments. Secondary/generalizing literature lacking quantitative segmentation benchmarks -> EXC-05.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  },
+  {
+    "workspace_id": "SCI-001488",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "final_codes": [
+      "EXC-02"
+    ],
+    "adjudication_reasoning": "Hyperspectral 3D-1D CNN classifies nutrient stress (92% accuracy) for crop health and spraying. Crop health/nutrient-stress classification, not pixel-level crop/weed segmentation, no IoU/Dice metrics -> EXC-02.",
+    "s1_decision": "INCLUDE",
+    "s2_decision": "EXCLUDE"
+  }
+]

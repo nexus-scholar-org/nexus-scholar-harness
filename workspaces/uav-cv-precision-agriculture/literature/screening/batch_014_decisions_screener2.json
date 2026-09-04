@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000326",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "BENet (79.4% mIoU, 45.5 FPS) is a boundary-enhanced network benchmarked on Cityscapes general scene segmentation, outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000327",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the lightweight off-road segmentation targets mobile robotics/intelligent vehicles, an off-road-terrain domain with no retrievable agricultural crop/weed evidence."
+  },
+  {
+    "workspace_id": "SCI-000328",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SFENet (77.3% mIoU) real-time segmentation is evaluated on Cityscapes/CamVid, an urban general-scene domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000329",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DSSNet (76.45% mIoU, 39 FPS) real-time segmentation is benchmarked on Cityscapes, outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000330",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A GB-RBM-enhanced encoder-decoder segments ground vehicles from UAV thermal infrared imagery of city streets (precision 0.97), an urban-vehicle domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000331",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CustomENet segments floating plastic waste in the aquatic environment of Dal Lake from UAV imagery (mIoU 0.7348, 43.61 FPS), an aquatic-plastic-pollution domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000332",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A MIX-decision binary CNN performs real-time semantic segmentation on the KITTI dataset for autonomous-driving/AR/video-surveillance applications, outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000333",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the lightweight railroad segmentation/distance estimation is a railway-infrastructure domain, outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000334",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Marker-controlled watershed segmentation delineates individual tree crowns in a deciduous forest from UAS-DAP, i.e., a non-deep-learning forestry-tree domain outside crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000335",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "EDRSNet (51.61 FPS) real-time road extraction on DeepGlobe/DRS Road datasets supports UAV autonomous-vehicle navigation, a road-scene domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000336",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the spatial/semantic mutual-optimization title, so no retrievable results or agricultural context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000337",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the FPN real-time segmentation title, so no retrievable results or agricultural context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000338",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "K-means and Gaussian-Mixture unsupervised segmentation (with NDVI interpretation) analyze UAV multispectral winter-wheat orthomosaics, but they are non-deep-learning methods with no learned crop/weed segmentation features."
+  },
+  {
+    "workspace_id": "SCI-000339",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the lightweight railroad segmentation/distance estimation is a railway-infrastructure domain, outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000340",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A deep-learning semantic segmentation network delineates wetland ecosystems from UAV multispectral+TIR imagery (MIoU 73.87%), an ecological-conservation domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000341",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A withdrawn preprint describing a UAV deep-learning drone system to detect structural damage (e.g., rust on roofs) in buildings, a civil-infrastructure domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000342",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An asymmetric-convolution BiSeNetV2 real-time segmentation network is benchmarked on Cityscapes/CamVid (77.1%/78.4% mIoU), outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000343",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RamSeg performs multimodal image+LiDAR 3D semantic segmentation for autonomous SLAM at Wuhan University campus, a general-scene SLAM domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000344",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This German-language book (non-English) covers binary-space-partitioning semantic segmentation and domain adaptation of aerial images of German cities, a non-agricultural aerial domain."
+  },
+  {
+    "workspace_id": "SCI-000345",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Tree-crown semantic segmentation from aerial time series (mIoU 55.97%) targets forest tree-species monitoring, a forestry domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000346",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2"],
+    "screening_reasoning": "PRC-Net segments soil/crops/weeds in UAV multispectral imagery (WeedMap/Sesame Aerial, mIoU 0.8397/0.6520/0.6961) and is explicitly designed for lightweight edge-computing deployment, satisfying the DL UAV crop/weed segmentation, quantitative-metric, and edge-efficiency criteria."
+  },
+  {
+    "workspace_id": "SCI-000347",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A real-time branch-segmentation and grasp-localization framework (89.96% mIoU, 13.9 ms on Jetson Orin Nano) targets UAV interaction with natural tree branches, a forestry/natural-environment domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000348",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A two-pathway encoder-decoder detects and segments wildfires/smoke from drone images in real time, a wildfire domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000349",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CRF/U-Net/FCN/DeepLabV3+ are analyzed on the ManipalUAVid campus aerial-video dataset (constructions/roads/waterbodies), a general urban-scene domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000350",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLO-based detection and Kalman-filter tracking of airborne UAVs (20 FPS on Neural Compute Stick 2) is a UAV-object-detection/tracking task outside agricultural crop/weed segmentation."
+  }
+]

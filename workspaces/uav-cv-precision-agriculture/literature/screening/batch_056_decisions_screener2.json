@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001376",
+    "decision": "INCLUDE",
+    "confidence": 0.78,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Low-cost mini-drone (DJI Mini 2 SE) agricultural monitoring for Indonesian MSMEs: U-Net semantic segmentation of land/vegetation + YOLOvX detection on 300m² vegetable plot, >90% detection accuracy. Agricultural vegetable crop/land UAV pixel-level segmentation meeting INC-01/INC-02, though system-level rather than a pure benchmark."
+  },
+  {
+    "workspace_id": "SCI-001377",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Enhanced U-Net extraction and 3D modeling of real road scenes from UAV imagery (F1 85.6%, mIoU 81.2%). Road-extraction domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001378",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative study of segmentation models (U-Net, SegFormer, MANet) for UAV safe landing in unstructured urban environments (Semantic Drone Dataset), optimized to Jetson Orin Nano. Urban-landing domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001379",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2"],
+    "screening_reasoning": "Drone-mounted RGB semantic segmentation of mature eggplant leaves for precision agriculture, comparing U-Net vs FPN with VGG16/VGG19 encoders; reports 94-97% leaf-segmentation accuracy with 31.5-32.6 ms latency. Agricultural vegetable crop pixel-level segmentation meeting INC-01/INC-02 with device latency for INC-03."
+  },
+  {
+    "workspace_id": "SCI-001380",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "EVitNet lightweight CNN-Transformer segmentation to detect pine wilt disease in forest trees from drone remote sensing (IoU 0.713). Forestry domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001381",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Survey/review paper on advancements in semantic segmentation using deep learning (SegNet, FCN, U-Net) across UAV imagery, Cityscapes, ADE20K, autonomous driving and medical imaging. Review, not a primary agricultural benchmark."
+  },
+  {
+    "workspace_id": "SCI-001382",
+    "decision": "INCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "HRS-UNet hyperspectral segmentation network for precise crop classification from UAV hyperspectral imagery (UAV-HSI-Crop dataset), achieving 89.96% overall accuracy and Kappa 0.8814. Agricultural crop pixel-level classification meeting INC-01/INC-02."
+  },
+  {
+    "workspace_id": "SCI-001383",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PCNet physics-constrained cross-resolution network for thermal UAV image super-resolution (evaluated via downstream segmentation/detection). Super-resolution reconstruction task, not a primary agricultural crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001384",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Lightweight CNN-Transformer with Laplacian loss for low-altitude UAV semantic segmentation enabling autonomous flight/landing (real-time 4K at 15 FPS on mobile GPU). Generic UAV perception, no agricultural crop/weed content."
+  },
+  {
+    "workspace_id": "SCI-001385",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review paper on UAV vegetation monitoring and mapping in Antarctica, surveying ML/DL classifiers. Review; polar/ecology domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001386",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "HHSN-25 fully convolutional segmentation of hidden hazards (cracks, seepage) in small-scale reservoirs from UAV imagery (mIoU 87%). Reservoir-engineering/hydrology domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001387",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Self-supervised vision-only autonomous flight for small UAVs in indoor lab environments combining semantic segmentation (U-Net 1.6M) with monocular depth for obstacle avoidance. UAV navigation/perception domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001388",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Unsupervised (non-deep-learning) color-based flood-area segmentation in UAV imagery (LAB colorspace, vegetation index, distance transform) reporting 87.4% accuracy. Flood domain and non-DL method."
+  },
+  {
+    "workspace_id": "SCI-001389",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Concept/system for UAV near real-time mapping for disaster-response relief (orthomosaic + semantic segmentation), Austria. Disaster-response domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001390",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Critical review of ML/DL techniques for weed detection in agriculture (classic features to CNNs, YOLO, segmentation, transformers). Review/survey, not a primary experimental benchmark."
+  },
+  {
+    "workspace_id": "SCI-001391",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Obscured wildfire flame detection via temporal analysis of drone smoke patterns (encoder-decoder CNN, FLAME2, Dice 85.88%). Wildfire/forest-fire domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001392",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Controllable latent-diffusion data augmentation to improve generic UAV semantic-perception segmentation mIoU on UAV benchmarks. Generic UAV data-augmentation method, no agricultural crop/weed content."
+  },
+  {
+    "workspace_id": "SCI-001393",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Image-free single-pixel segmentation combining structured illumination with single-pixel detection and optimized reconstruction networks (Dice >80%). Novel imaging-sensing technique for generic resource-limited platforms, not an agricultural UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001394",
+    "decision": "INCLUDE",
+    "confidence": 0.76,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "DeepCount uses SLIC superpixels + deep CNN to classify/segment wheat spikes in field imagery for yield counting across growth stages, canopy complexity, and heights above canopy. Agricultural wheat crop pixel-level segmentation; inclusion subject to confirmation that imaging is UAV/aerial (varied canopy heights suggest airborne acquisition)."
+  },
+  {
+    "workspace_id": "SCI-001395",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DSAFNet lightweight real-time semantic segmentation network evaluated on Cityscapes (74.78% mIoU, 74.74 FPS) and CamVid. Urban autonomous-driving domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001396",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SaferSAC deep-reinforcement-learning framework for autonomous UAV obstacle-avoidance navigation using depth-semantic fusion. UAV navigation/planning domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001397",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "LDCNet lightweight dynamic-convolution semantic segmentation evaluated on Cityscapes (73.5% mIoU) and CamVid. Urban autonomous-driving domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001398",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SegFormer + atrous spatial pyramid pooling for inland water-body extraction from high-resolution UAV remote sensing (Dengzhou, Henan). Water-resource/hydrology domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001399",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Real-time semantic segmentation for UAV perspectives on embedded platforms; no abstract available to verify agricultural crop/weed domain or report metrics."
+  },
+  {
+    "workspace_id": "SCI-001400",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AAEHS-Net attention-based semantic segmentation evaluated on aerial-drone, Massachusetts roads, and Massachusetts buildings datasets (90-96% accuracy). Roads/buildings domain, not crop/weed agriculture."
+  }
+]

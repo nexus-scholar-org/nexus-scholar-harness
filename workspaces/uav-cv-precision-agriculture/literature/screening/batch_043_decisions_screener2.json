@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001051",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An Edge-AI framework runs lightweight CNNs on Jetson Nano/drones/Raspberry Pi for real-time paddy weed detection and removal (accuracy up to 92%); a weed detection/classification task rather than a pixel-level segmentation benchmark with IoU/Dice metrics."
+  },
+  {
+    "workspace_id": "SCI-001052",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A study assesses vineyard state using spectral vegetation indices from UAS and reconstructed satellite multispectral imagery; a vegetation-index monitoring study in a vineyard-fruit domain, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001053",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "A comparative study of YOLOv8, Mask R-CNN, and U-Net for weed detection and segmentation in soybean and bean crops from UAV images (YOLOv8s mAP50 97%) using a public 3021-image dataset; DL UAV crop/weed segmentation with quantitative mask/detection metrics."
+  },
+  {
+    "workspace_id": "SCI-001054",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A UAV-based system uses a fine-tuned VGG19 CNN with Grad-CAM to detect wheat diseases from multispectral aerial imagery; a disease-detection/classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001055",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A reinforcement-learning hybrid system with drone networks and IoT identifies pests and optimizes targeted pesticide application (96.8% accuracy); a pest-identification/management task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-001056",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A MobileNetV2+EfficientNetB0 fusion model performs real-time pest and disease detection on the CCMT dataset (89.5% accuracy, inference <10ms); a detection/classification task, not pixel-level segmentation despite edge optimization."
+  },
+  {
+    "workspace_id": "SCI-001057",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "ResVNet (ResNet152 + ViT with LoRA) classifies tomato leaf diseases on PlantVillage (97.45% mean accuracy); an image-classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001058",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CNNs (EfficientNetB0 best, 97.5%) classify crop diseases from UAV RGB/multispectral imagery; a disease-classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001059",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A PRISMA systematic review of deep-learning and sensor-based mango disease detection (20 papers); a fruit-domain review without a primary crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001060",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of automated weed classification techniques covering benchmark datasets, CNNs, and edge-device deployment; survey without a primary pixel-segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001061",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLO-Res, a residual-skip YOLO with motion-blur augmentation, detects weeds in maize fields from UAV imagery in real time; a bounding-box weed-detection task, not pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-001062",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "YOLOv8/Faster R-CNN/InceptionV3 detect aquatic vegetation as water-quality indicators in UAV imagery; an aquatic-weed object-detection task outside the agricultural crop/weed domain."
+  },
+  {
+    "workspace_id": "SCI-001063",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A socially informed UAV spraying framework combines SAM-ViT-H vegetation masks with an EfficientNet-B2 species classifier and severity scoring for spray prioritization; the core benchmarking is species classification/decision-making with precision/recall rather than a pixel-segmentation benchmark with mIoU/Dice."
+  },
+  {
+    "workspace_id": "SCI-001064",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "FusionNet-GLD (Xception + InceptionV3) classifies grapevine leaf diseases (99.63% accuracy); a grapevine-disease classification task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-001065",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A Swin Transformer + ConvNeXt-V2/SE-BiLSTM pipeline classifies cotton leaf disease (99.30% accuracy) with a DQL recommendation module on UAV images; a disease-classification task, not pixel-level crop segmentation."
+  },
+  {
+    "workspace_id": "SCI-001066",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive review of state-of-the-art deep-learning architectures integrated with IoT for plant pest and disease detection; survey without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001067",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A CNN-based classification system distinguishes weeds from paddy crops using drone/ground imagery (with targeted removal); the primary task is weed classification/detection rather than an explicit pixel-segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001068",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A CNN + Random Forest system detects and deters harmful birds in tomato cultivation; a bird-animal detection task outside the crop/weed segmentation scope."
+  },
+  {
+    "workspace_id": "SCI-001069",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A GCN-with-attention + SPP framework classifies UAV-captured soybean plant-disease imagery (97.61% validation accuracy); an image-classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001070",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Semantic-segmentation networks with NDVI classify crop types (table grapes, corn, quinoa) across phenological phases from UAV/satellite multispectral imagery; a crop-type land-cover classification task (including fruit crops) rather than crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001071",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A systematic review of recent AI/data-science trends (2023-2026) in smart and sustainable agriculture including crop monitoring, yield prediction, pest detection, and irrigation; survey without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001072",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A VGG16 transfer-learning system classifies plant diseases and pests from RGB images; an image-classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001073",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A Qpest RCNN estimates tiny-pest density from sticky traps within a UWB-UAV IoT framework, but no abstract or quantitative results are available; indexing-only entry and a pest-detection task rather than crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-001074",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A PSO-optimized deep classifier (MDNN) recommends crops and predicts yields from soil data and UAV NDVI/RGB; a crop-recommendation/yield task, not a computer-vision crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001075",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A YOLOv8 framework performs real-time pest object detection across five pest categories (mAP@0.5 0.952); a pest-detection task, not pixel-level crop/weed segmentation."
+  }
+]

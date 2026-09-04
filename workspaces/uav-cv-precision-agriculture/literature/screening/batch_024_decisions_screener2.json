@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000576",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CNN-based detection and counting of banana plants in UAV orthomosaic images; bounding-box detection/counting in a plantation/plant domain, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000577",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A LiDAR point-cloud quality-control and crop-characterization framework that detects row/alley locations; a geomatics/LiDAR study without a deep-learning crop/weed segmentation method."
+  },
+  {
+    "workspace_id": "SCI-000578",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Berry counting via CNN semantic segmentation uses images from a modified grapeharvester camera in a vineyard; a viticulture berry/phenotyping task outside crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000579",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Leaf-area-index estimation from multimodal UAV data uses regression models (PLSR, SVR, RF, DNN); a biophysical trait-estimation task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000580",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep-learning fruit detection and classification; secondary literature in the fruit/orchard domain, outside crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000581",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of spectroscopy and imaging for crop/weed discrimination using machine learning; secondary literature without a primary benchmark."
+  },
+  {
+    "workspace_id": "SCI-000582",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Fully convolutional network (FCN-4s) performs pixel-level weed mapping and prescription-map generation from high-resolution UAV rice-field imagery, reporting overall accuracy 0.9196 and mean IoU 0.8473, satisfying UAV crop/weed segmentation with pixel metrics."
+  },
+  {
+    "workspace_id": "SCI-000583",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A project overview of an aerial-ground robotics system combining UAV and UGV for weed monitoring/spraying; it describes algorithms but provides no quantitative segmentation benchmark results in the abstract."
+  },
+  {
+    "workspace_id": "SCI-000584",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep-learning techniques for crop/yield prediction; secondary literature, not a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000585",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Semi-supervised semantic segmentation of natural images for viticulture uses a low-cost RGB-D camera in a commercial vineyard (ground-level acquisition), without UAV aerial flight context."
+  },
+  {
+    "workspace_id": "SCI-000586",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep learning in image-based plant phenotyping; secondary literature without a primary benchmark."
+  },
+  {
+    "workspace_id": "SCI-000587",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Maize tassel detection in UAV imagery uses TD-CNN and Faster R-CNN object detectors; bounding-box detection rather than pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000588",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive review of deep learning for plant disease and pest detection; secondary literature, not a primary benchmark."
+  },
+  {
+    "workspace_id": "SCI-000589",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of deep-learning computer vision for smart greenhouse agriculture; greenhouse (non-UAV) modality and secondary literature both fall outside scope."
+  },
+  {
+    "workspace_id": "SCI-000590",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of IoT technologies for smart-agriculture monitoring and control; secondary literature without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000591",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DeepVeg semantically segments canola field images (background, crop, weeds, damage) with mIoU >0.76, but the abstract does not establish UAV aerial imagery, leaving the UAV-modality criterion unmet."
+  },
+  {
+    "workspace_id": "SCI-000592",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PVY detection in seed potatoes uses a fully convolutional network on hyperspectral line-scan images acquired by a ground-level field imaging setup, not UAV aerial imagery."
+  },
+  {
+    "workspace_id": "SCI-000593",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of challenges in using deep learning for agricultural decision-making; secondary literature without a primary benchmark."
+  },
+  {
+    "workspace_id": "SCI-000594",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of drone-based plant disease monitoring and detection; secondary literature without a primary benchmark."
+  },
+  {
+    "workspace_id": "SCI-000595",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of UAV path-planning and obstacle-avoidance algorithms for remote sensing; secondary literature, not a segmentation study."
+  },
+  {
+    "workspace_id": "SCI-000596",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A tiny-YOLOv3 model detects Convolvulus sepium and sugar beet with bounding boxes, reporting mAP and inference time; bounding-box weed detection rather than pixel-level segmentation."
+  },
+  {
+    "workspace_id": "SCI-000597",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comprehensive review of crop-row detection for agricultural navigation; secondary literature, not a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000598",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DeepLab v3+ segments winter wheat plants/soil from nadir-view high-resolution RGB images, but the acquisition is outdoor nadir (not UAV) with no stated aerial flight context."
+  },
+  {
+    "workspace_id": "SCI-000599",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of precision weed control technologies based on deep learning and machine vision; secondary literature without a primary benchmark."
+  },
+  {
+    "workspace_id": "SCI-000600",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "U2-Net extracts olive tree crown number/area from UAV visible images; a tree-orchard canopy extraction task outside crop/weed pixel segmentation."
+  }
+]

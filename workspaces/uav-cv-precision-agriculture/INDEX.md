@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-03 22:33:56 UTC`
+- **Last Updated**: `2026-09-04 00:43:20 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -24,19 +24,15 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-03 22:33 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-03 22:19 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-03 23:33 | Active |
-| `reports/discovery_report_20260903_230800.md` | Initial comprehensive literature discovery & corpus quality audit report | 2026-09-03 23:08 | Audited |
-| `reports/discovery_remediation_report_20260903_231630.md` | Remediation audit report: S2 Stream B recovery & batch abstract hydration | 2026-09-03 23:16 | Audited |
-| `reports/screening_audit_report_20260903_233500.md` | Rigorous PRISMA 2020 screening audit report across 1,488 verified papers | 2026-09-03 23:35 | Audited |
-| `literature/screening/` | 60 batched candidate files and 60 semantic decision files | 2026-09-03 23:32 | Screened |
-| `literature/conflict_adjudication_log.md` | Traceable adjudication log for 74 borderline studies | 2026-09-03 23:33 | Audited |
-| `literature/included.json` | Screened eligible studies for full-text synthesis (786 studies) | 2026-09-03 23:33 | Included |
-| `literature/excluded.json` | Excluded studies with typed PRISMA reason codes (702 studies) | 2026-09-03 23:33 | Excluded |
-| `literature/conflicts.json` | Borderline studies flagged for human audit (74 studies) | 2026-09-03 23:33 | Flagged |
-| `literature/prisma_screening_report.md` | PRISMA 2020 flow diagram and systematic screening report | 2026-09-03 23:33 | Generated |
-| `literature/prisma_report.json` | Structured JSON companion to PRISMA flow report | 2026-09-03 23:33 | Generated |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-04 00:43 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-04 00:43 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-04 00:43 | Active |
+| `literature/raw_search.json` | Raw federated literature search hits | 2026-09-03 22:14 | Discovered |
+| `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-03 22:16 | Deduplicated |
+| `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-03 22:16 | Verified |
+| `literature/included.json` | Screened eligible studies for full-text synthesis | 2026-09-04 00:42 | Included |
+| `literature/excluded.json` | Excluded studies with logged decision reasons | 2026-09-04 00:42 | Excluded |
+| `literature/prisma_screening_report.md` | PRISMA flow diagram and axis synthesis report | 2026-09-04 00:42 | Generated |
 | `synthesis/literature_review.md` | Synthesis document & literature review draft | 2026-09-03 21:06 | In Progress |
 
 ---

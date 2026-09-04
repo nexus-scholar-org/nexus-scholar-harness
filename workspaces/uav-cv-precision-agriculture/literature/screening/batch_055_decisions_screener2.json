@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001351",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Aerial drone traffic surveillance via PSPNet segmentation + DeepSORT (AU-AIR/Aerial Car, 97% detection). Urban traffic domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001352",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Frontier-guided area coverage by UAVs with deep RL and monocular depth (no semantic segmentation). UAV navigation/coverage domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001353",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative real-time vs non-real-time segmentation on FloodNet UAV images (UNet-MobileNetV3 59.3% vs PSPNet 79.7% mIoU). Flood/disaster domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001354",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Semantic segmentation/detection of urban objects (roads, buildings, trees, manholes) from UAV images (VisDrone/COCO). Urban-object domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001355",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SA-SAM transformer-CNN wildfire scene segmentation (3000+ wildfire images). Wildfire domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001356",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PISCFF-LNet lightweight road extraction for autonomous UAV flight (DeepGlobe/DRS Road datasets). Road-extraction domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001357",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Edge-assisted real-time 3D semantic segmentation of large LiDAR point clouds (embedded devices/drones). LiDAR point-cloud domain, not aerial agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001358",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SE3 sequential semantic segmentation of large drone images/panoramas with minimized memory. Generic memory-efficient segmentation, no agricultural crop/weed content."
+  },
+  {
+    "workspace_id": "SCI-001359",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UFCN fully convolutional road extraction from low-altitude UAV RGB imagery (76 images). Road-extraction domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001360",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Vision-based ship speed measurement using YOLOv7 + DeepSORT + semantic segmentation (accuracy >93%). Maritime/water-transport domain; detection/tracking-centric, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001361",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Hybrid CNN (ResNet50/VGG16) nighttime flood detection with radar/optical-thermal drone data (stranded-people detection, evacuation routes). Flood/disaster domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001362",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Automatic synthesis of annotated UAV datasets from 3D city models (Berlin, 144k images) for urban depth/segmentation. Urban dataset-generation domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001363",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Lightweight asymmetric network design for real-time semantic segmentation; no abstract available to verify crop/weed domain or agricultural metrics."
+  },
+  {
+    "workspace_id": "SCI-001364",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SAG-DeepLabV3+ detection of mining-induced ground fissures from UAV imagery (mIoU 79.52%). Mining/geological domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001365",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Semantic segmentation of citrus orchards from multispectral UAV imagery; no abstract available and orchard/citrus domain is outside the crop/weed staple-agriculture scope (per EXC-03 examples)."
+  },
+  {
+    "workspace_id": "SCI-001366",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Reinforcement-learning UAV navigation in urban developments using semantic segmentation of buildings/vehicles. Urban navigation domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001367",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Memory-efficient annotation/perception framework for autonomous drone navigation (ASPP sparse masks, hybrid BB/SS). UAV perception/navigation infrastructure, no agricultural crop/weed content."
+  },
+  {
+    "workspace_id": "SCI-001368",
+    "decision": "INCLUDE",
+    "confidence": 0.82,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Kernelytics multispectral drone algorithm for early corn assessment, including semantic segmentation of plant/weed area (plus stand-count detection and plant-health instance segmentation). Agricultural corn crop/weed UAV pixel-level segmentation meeting INC-01/INC-02."
+  },
+  {
+    "workspace_id": "SCI-001369",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Selective encryption of video regions identified by U-Net semantic segmentation (multi-round chaotic cipher). Cybersecurity/encryption domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001370",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Autonomous landing of flying-walking power-line inspection robot using semantic segmentation of power lines + MPC. Power-infrastructure/robotics domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001371",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2"],
+    "screening_reasoning": "PP-LiteSeg lightweight semantic-segmentation crop classification from UAV visible-light images (rice/soybean/red bean/wheat/corn etc., MIoU 94.79%); discusses real-time/accuracy balance for UAV deployment. Agricultural crop pixel-level segmentation meeting INC-01/INC-02 (and lightweight deployment considerations for INC-03)."
+  },
+  {
+    "workspace_id": "SCI-001372",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "EfficientPillarNet fast semantic segmentation of large LiDAR point clouds (bird's-eye view, 58.8% mIoU for autonomous driving/drone). LiDAR/autonomous-driving domain, not aerial agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001373",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Uncertainty-aware landing-site perception for autonomous UAV landing in urban environments (PIDNet/SCTNet on UAVid/UDD6/VDD). Urban-landing domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001374",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "GBDT-MLP fault diagnosis + UAV tilt-photography semantic segmentation for centralized photovoltaic power-station visualization. Photovoltaic/energy domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001375",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Resource-optimized selective video encryption using U-Net semantic segmentation (Stanford Background). Cybersecurity/encryption domain, not agriculture."
+  }
+]

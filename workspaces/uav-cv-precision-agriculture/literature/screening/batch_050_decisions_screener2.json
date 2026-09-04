@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-001226",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "MFAFNet lightweight real-time semantic segmentation on Cityscapes/CamVid (1.27M params, 75.9/69.9 mIoU). Urban autonomous-driving datasets, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001227",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "ESFCNet real-time UAV semantic segmentation on UAVid/UDD6 (mIoU 69.5/78.3). Urban land-cover UAV benchmarks, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001228",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comprehensive review of plant disease detection (traditional, sensor, and AI approaches). Secondary literature without a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-001229",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Vision-based human-robot collaboration for UAV river patrol (personnel detection and riverbank construction-site inspection with semantic segmentation). River/environmental monitoring domain, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001230",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Obs-tackle obstacle-detection system for visually impaired navigation using smartphones. Non-UAV ground/smartphone modality and assistive-tech domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001231",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "USV-UAV cooperative trajectory planning where UAV provides semantic segmentation of obstacles for a marine surface vessel (NMPC hull-constraint control). Marine/robotic navigation domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001232",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Uncertainty-aware volumetric-semantic exploration/mapping for autonomous aerial shipyard inspection. Exploration/inspection domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001233",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Communication-efficient federated distillation for post-flood risk assessment with UAV swarms (LSD dataset, mIoU 0.62). Flood-disaster domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001234",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "3D-ARSS attention-based semantic segmentation of LiDAR point clouds on edge (SemanticKITTI/NuScenes, 5 FPS AGX Xavier). LiDAR/autonomous-driving domain, not aerial agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001235",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DAS-Net lightweight dynamic-conv semantic segmentation of visible+infrared for anti-UAV surveillance (mIoU 0.678, 26 FPS Jetson AGX Orin). Although it reports INC-03 edge metrics, the domain is UAV surveillance/tracking, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001236",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "U-Net detection/counting of lizards from drone imagery (pixel accuracy 0.9863). Animal/ecology domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001237",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DynDarkSLAM low-light visual SLAM combining ORB-SLAM3, GAN enhancement, YOLOv5 for drone patrol. SLAM/localization domain, not agricultural."
+  },
+  {
+    "workspace_id": "SCI-001238",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV electric power-line patrol using vision + laser SLAM fusion perception (DeepLabv3+ semantic segmentation). Power-infrastructure domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001239",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "OI-3DTM occlusion-informed 3D voxel terrain mapping for urban traversability analysis (UAV-LADIS dataset). Urban navigation/mapping domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001240",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Boundary/context-aware network for real-time road segmentation of UAV images (IoU 85.86%, Dice 92.27%, 111 FPS). Road-reconnaissance/disaster domain, not crop/weed agriculture."
+  },
+  {
+    "workspace_id": "SCI-001241",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AeroResNet-Vision (ARV) multimodal object detection + DeepLabv3++ semantic segmentation on Potsdam/VEDAI/UAVid aerial benchmarks (acc 97-98%). Generic urban aerial imagery, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001242",
+    "decision": "EXCLUDE",
+    "confidence": 0.82,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV weed segmentation for maize seedling counting using shape features + threshold skeleton clustering + multivariate regression (weed-removal accuracy >97%). Although UAV crop/weed domain, the method is classic image analysis, not deep learning segmentation (no learned features)."
+  },
+  {
+    "workspace_id": "SCI-001243",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV-FAENet frequency-aware semantic segmentation on UAVid/UDD6/DroneDeploy (mIoU 68.84/80.11/70.26). Urban remote-sensing benchmarks, not agricultural crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001244",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Improved instance segmentation for fast post-earthquake building damage assessment from UAV images (mAP around mAPbbox50/mAPseg50). Disaster/building domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001245",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Edge-AI comparison of Hailo-8 Raspberry Pi vs Jetson AGX Orin for airport infrastructure monitoring (runway/taxiway markings, AGL lamps; U-Net/LinkNet). Airport/aviation infrastructure domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001246",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Image-based structural-health-monitoring CNN for corrosion diagnosis/prognosis of helicopter components. Infrastructure/material integrity domain, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001247",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SegNet village detection in Google Earth satellite images (no-fly/open-zone geo-fencing, 98% accuracy). Satellite imagery modality and village/geo-fencing domain, not aerial UAV crop/weed."
+  },
+  {
+    "workspace_id": "SCI-001248",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "USVS-Net semantic segmentation of feasible domains/obstacles for unmanned surface vessel navigation (mIoU 81.71%, USV-DATA). Marine-domain navigation, not agriculture."
+  },
+  {
+    "workspace_id": "SCI-001249",
+    "decision": "EXCLUDE",
+    "confidence": 0.87,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DINOsegNext fine-scale mapping of invasive Spartina alterniflora from UAV imagery (IoU 0.742, F1 0.852, 8.5ms). Although vegetation and UAV with edge latency, the domain is coastal conservation of an invasive marsh plant, not agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-001250",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative study of YOLOv8 vs U-Net v2 for railway track crack detection using UAV imagery. Railway-infrastructure domain, not agriculture."
+  }
+]

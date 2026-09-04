@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000951",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "U-Net-Light performs tree-crown segmentation on a Xilinx ZYNQ FPGA SoC from UAV forest images (85% accuracy, 2.127W); DL segmentation with edge-hardware metrics are present, but the domain is forest canopies, not crop/weed."
+  },
+  {
+    "workspace_id": "SCI-000952",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Despite the 'tea plant physiological' title, the abstract estimates rice LAI via RF/XGBoost from UAV multispectral imagery; a trait-regression task with classical ML, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000953",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "X-Decoder vegetation segmentation + YOLO grape-bunch detection in vineyards using UAV-trained models; a grape bunch detection/counting task in an orchard-fruit domain, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000954",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of drone-based hyperspectral sensing for food security and agriculture; survey without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000955",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PLS/BP/RF/SVM retrieve nicotine content in cigar tobacco leaves from UAV hyperspectral data; a biochemically-parametric regression task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000956",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An attention-based GAN augments time-series sensor data from agricultural drones to improve predictive models; a data-augmentation/generative study, not a crop/weed image-segmentation task."
+  },
+  {
+    "workspace_id": "SCI-000957",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A UAV system measures volatile organic compounds at a landfill site; an environmental-monitoring application outside the crop/weed domain and without a CV segmentation task."
+  },
+  {
+    "workspace_id": "SCI-000958",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "SVM/KNN/RF predict sugar-beet leaf SPAD from UAV multispectral data; a chlorophyll/nutrient regression task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000959",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A UAV multispectral dataset of vegetation indices for identifying rice nitrogen requirements; a vegetation-index/N-status dataset, not explicitly a crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000960",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An optimized YOLOv5s model detects/classifies agricultural pests from UAV imagery (mAP 95%); a bounding-box detection task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000961",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "LodgeNet detects/classifies wheat lodging from UAV imagery (YOLOv8, mAP 95.2%); a detection/classification task rather than pixel-level crop segmentation."
+  },
+  {
+    "workspace_id": "SCI-000962",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "Lightweight LW-SegNet/LW-UNet performs pixel-level rice-seedling segmentation from UAV multispectral imagery and reports quantitative F1/IoU; crop segmentation with DL on UAV data and pixel-wise metrics."
+  },
+  {
+    "workspace_id": "SCI-000963",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A macro-to-micro tomato drought-monitoring framework (OECT sensor + RGB + UAV multispectral/thermal) uses vegetation indices and sensors; a monitoring/regression study, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000964",
+    "decision": "INCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "A multi-format open-source weed image dataset spanning five weed species captured with handheld and UAS cameras for real-time weed identification and spot-spraying pipelines; UAV-inclusive crop/weed imagery dataset supporting segmentation-style tasks in a precision-agriculture workflow."
+  },
+  {
+    "workspace_id": "SCI-000965",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of precision crop-protection technologies (zone detection, recommendation, spraying); survey without a primary UAV segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000966",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A UAV multispectral dataset of a vineyard affected by an unspecified condition; a monitoring dataset focused on vegetation indices rather than an explicit crop/weed pixel-segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000967",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV NDVI/CHM-derived hazelnut canopy projected ground area estimation; a non-DL vegetation-index canopy-geometry study in an orchard-fruit domain, not crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000968",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": ["INC-01", "INC-02"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1"],
+    "screening_reasoning": "A lightweight Mobile U-Net extracts wheat-lodging regions from UAV RGB+DSM imagery with 88.99% segmentation accuracy and reports lightweight model properties; DL crop pixel-segmentation on UAV imagery with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000969",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "PSO-ELM estimates soil organic matter and total nitrogen from UAV hyperspectral data; a soil-nutrient regression task, not crop/weed pixel segmentation."
+  },
+  {
+    "workspace_id": "SCI-000970",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An embedded UAV spraying-control system uses an NDVI/GNDVI algorithm on Raspberry Pi; a non-deep-learning vegetation-index threshold approach, not a crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000971",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A BP neural network models droplet deposition in variable-rate plant-protection UAV spraying; a flight/spray-control modeling task, not a computer-vision crop/weed segmentation task."
+  },
+  {
+    "workspace_id": "SCI-000972",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of obstacle-avoidance technology for agricultural UAVs; survey without a primary segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000973",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A mutual-subspace method recognizes spray/non-spray zones from UAV imagery; a non-deep-learning area-classification approach rather than a DL crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000974",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A CNN classifies crops as healthy/normal/diseased across ground, UAV, and remote images; an image-classification task, not pixel-level crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000975",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A general conference treatment of machine learning (CNN/RNN) for crop-health detection from UAV imagery for precision agriculture; a conceptual/overview with crop-health classification rather than a specific crop/weed segmentation benchmark."
+  }
+]

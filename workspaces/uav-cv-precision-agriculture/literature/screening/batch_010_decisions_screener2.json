@@ -1,0 +1,227 @@
+[
+  {
+    "workspace_id": "SCI-000226",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the U-Net/encoder-decoder crop-weed segmentation title, so no retrievable quantitative results or UAV context exist to screen."
+  },
+  {
+    "workspace_id": "SCI-000227",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Herbicide bio-efficacy field trial in groundnut evaluates weed density/control efficiency and yield, an agronomic study with no computer-vision or pixel-level segmentation component."
+  },
+  {
+    "workspace_id": "SCI-000228",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "The abstract is only 'International audience', so no retrievable quantitative crop-weed segmentation results or UAV context exist to screen despite the high-throughput RGB phenotyping title."
+  },
+  {
+    "workspace_id": "SCI-000229",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An agro-economic study of conservation agriculture in North Bengal with no computer-vision content and no retrievable UAV crop/weed segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000230",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "An integrated-weed-management agronomy study tracks weed dynamics/density and crop yield in an organic rotation, with no computer-vision or pixel-level segmentation component."
+  },
+  {
+    "workspace_id": "SCI-000231",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the weed-floristic-diversity topic is agronomic, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000232",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and UAV corn height estimation for yield prediction is crop-monitoring rather than crop/weed pixel segmentation, outside the scope with no retrieveable evidence."
+  },
+  {
+    "workspace_id": "SCI-000233",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A precision weed-control robot sprays vegetables in lettuce fields based on weed/crop mapping, a ground-robot modality with no UAV aerial imagery, violating the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000234",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available and the crop-weed competition-period groundnut topic is agronomic, with no retrievable CV/DL segmentation evidence."
+  },
+  {
+    "workspace_id": "SCI-000235",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A weedicide-comparison agronomy trial in wheat measures weed control efficiency, tillers and yield, with no computer-vision or pixel-level segmentation component."
+  },
+  {
+    "workspace_id": "SCI-000236",
+    "decision": "EXCLUDE",
+    "confidence": 0.55,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CWMamba performs RGB+multispectral crop-weed semantic segmentation on the WeedsGalore dataset (mIoU 57.31%), but the abstract establishes no UAV or aerial context, so it is treated as non-UAV and excluded on the modality criterion."
+  },
+  {
+    "workspace_id": "SCI-000237",
+    "decision": "EXCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A herbicide-weed-dynamics agronomy trial in wheat evaluates weed control and yield, with no computer-vision or pixel-level segmentation component."
+  },
+  {
+    "workspace_id": "SCI-000238",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Kite-Net/TernausNet segment paddy crop/weed/background but the abstract reports only 'convincing segmentation masks' with no quantitative mIoU/Dice and mixes UAV and ground-based sensing, so no retrievable quantitative metric or clear UAV modality is established."
+  },
+  {
+    "workspace_id": "SCI-000239",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Line detection plus semantic segmentation extracts power lines from UAV images for infrastructure inspection, a domain entirely outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000240",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A journal decision letter for a cover-crop/weed-competition paper, i.e., secondary editorial correspondence with no primary UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000241",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A systematic literature review of computer-vision weed-control techniques (2011-2022), i.e., secondary literature without a primary empirical UAV crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000242",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Slimmed DeepLabV3+ is deployed on a UAV edge SoC (QCS610) for forest-fire/flood monitoring (FLAME/FloodNet, mIoU 88-94%), a disaster-monitoring domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000243",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Fast-SCNN/BiSeNetV2 are benchmarked for real-time flood segmentation in UAV imagery (F1 0.738), a flood-monitoring domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000244",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UAV-based olive tree crown detection uses local-extrema and object-based multiresolution segmentation (Gaussian filtering/OBIA), i.e., a non-deep-learning tree/orchard measurement task outside crop/weed segmentation."
+  },
+  {
+    "workspace_id": "SCI-000245",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Coverage-aware training of YOLO11-seg/DeepLabV3+ segments buildings/roads for drone localization in AAM/UAM applications, a building/road domain outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000246",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A peer review of tree-crown semantic segmentation from aerial image time series (mIoU 55.97%) is secondary forestry literature outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000247",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "A peer review of tree-crown semantic segmentation from aerial time series is secondary forestry literature outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000248",
+    "decision": "EXCLUDE",
+    "confidence": 0.5,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-06"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract is available despite the edge-to-GPU real-time segmentation title, and no agricultural crop/weed context is confirmed, so no retrievable quantitative evidence exists to screen."
+  },
+  {
+    "workspace_id": "SCI-000249",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "ESNet real-time semantic segmentation targets Cityscapes traffic/scene understanding for autonomous driving, an urban-domain application outside agricultural crop/weed management."
+  },
+  {
+    "workspace_id": "SCI-000250",
+    "decision": "EXCLUDE",
+    "confidence": 0.7,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Improved DeepLabV3+ segments cultivated land parcels (80.36% MIoU) from mountainous UAV imagery, which is land-parcel mapping rather than crop/weed segmentation, outside the target agronomic domain."
+  }
+]
