@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import json
 from pathlib import Path
 import typer
@@ -14,12 +15,19 @@ from .integrations.latex_typst import AcademicTypesettingExporter
 from .integrations.obsidian import ObsidianVaultExporter
 from .integrations.zotero import ZoteroBridge
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 app = typer.Typer(
     name="scholar-harness",
     help="Nexus Scholar Harness: Master CLI orchestrating systematic research workflows, MCP servers, and academic ecosystem integrations.",
     add_completion=False,
 )
-console = Console()
+console = Console(force_terminal=True, legacy_windows=False)
 
 
 @app.command("status")

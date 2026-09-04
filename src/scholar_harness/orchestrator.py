@@ -137,8 +137,12 @@ class ResearchOrchestrator:
         # 5. Synthesis Review
         synth_file = self.workspace_dir / "synthesis" / "literature_review.md"
         if synth_file.exists():
-            status["synthesis_generated"] = True
-            status["phase"] = "PHASE_3_COMPLETE"
+            content = synth_file.read_text(encoding="utf-8").strip()
+            if status["matrix_rows"] > 0 and status["vector_chunks"] > 0 and len(content) > 1000:
+                status["synthesis_generated"] = True
+                status["phase"] = "PHASE_3_COMPLETE"
+            elif len(content) > 1000:
+                status["synthesis_generated"] = True
 
         # 6. Audit Journal Events
         journal_file = self.workspace_dir / "audit" / "journal.jsonl"
