@@ -1,0 +1,198 @@
+[
+  {
+    "workspace_id": "SCI-000548",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "UAV-borne modified U-Net segments crops from field images for weed density mapping, reporting crop IoU 93.40% and green-plant segmentation accuracy 93.5%. Satisfies INC-01 (DL pixel-level segmentation) and INC-02 (quantitative IoU/accuracy)."
+  },
+  {
+    "workspace_id": "SCI-000434",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.98,
+    "exclusion_codes": ["EXC-03", "EXC-04"],
+    "reasoning": "Peach orchard hyperspectral UAV study monitors potassium fertilization and disease via vegetation indices (not deep learning). Fails EXC-03 (fruit/orchard domain, not arable crop/weed) and EXC-04 (classical spectral analysis, not DL)."
+  },
+  {
+    "workspace_id": "SCI-000575",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.80,
+    "exclusion_codes": ["EXC-02", "EXC-06"],
+    "reasoning": "Improved ENet performs binary crop-row segmentation (vegetation vs. background) for UAV navigation line fitting on CRDLD dataset, not crop vs. weed discrimination. Primary task is navigation guidance, failing INC-01 (EXC-02). Although IoU/accuracy/FPS are reported, the segmentation task does not match the protocol's crop/weed pixel-level segmentation scope."
+  },
+  {
+    "workspace_id": "SCI-000012",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "Deep convolutional network for crop (maize)/weed/soil semantic segmentation on both ground and UAV imagery. Reports per-class IoU on aerial data: crop 0.596, weed 0.407, soil 0.875. Satisfies INC-01 (DL UAV pixel segmentation) and INC-02 (quantitative IoU)."
+  },
+  {
+    "workspace_id": "SCI-000501",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": [],
+    "reasoning": "Deep learning weed segmentation in UAV sorghum field imagery using three architectures with ResNet feature extractors on a curated UAV dataset. Reports F1-score over 89%, satisfying INC-01 (DL UAV pixel-level weed segmentation) and INC-02 (quantitative F1)."
+  },
+  {
+    "workspace_id": "SCI-000624",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.88,
+    "exclusion_codes": [],
+    "reasoning": "Compares U-Net, SegNet, FCN, DeepLabV3+ for pixel-level crop/weed discrimination on two published UAS benchmark datasets. DeepLabV3+ achieves 84.3% classification accuracy; one dataset from field robot but the other from UAV. Satisfies INC-01/INC-02 with quantitative segmentation accuracy."
+  },
+  {
+    "workspace_id": "SCI-001081",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.92,
+    "exclusion_codes": [],
+    "reasoning": "Deep meta-learning squeeze-and-attention CNN performs crop and weed detection with uncertainty estimation from multispectral UAV imagery (RedEdge-MX sensor). Reports mean IoU 88.5% (crop) and 86.5% (weed), satisfying INC-01 and INC-02."
+  },
+  {
+    "workspace_id": "SCI-000708",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.85,
+    "exclusion_codes": [],
+    "reasoning": "Hogweed segmentation from drone RGB/multispectral imagery deployed for both offline orthophoto and real-time on-device scanning. Reports mean IoU improvements via transfer learning for fake multispectral generation. Satisfies INC-01 (DL UAV weed pixel segmentation), INC-02 (quantitative mIoU), and partially INC-03 (edge inference mode)."
+  },
+  {
+    "workspace_id": "SCI-000910",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.92,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "CoFly-WeedDB is a dataset paper describing 201 UAV cotton-field RGB images with polygon annotations for three weed species. Provides expert-annotated segmentation masks but reports no quantitative segmentation benchmark metrics, failing INC-02 (EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-000089",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": [],
+    "reasoning": "SemiWeedNet performs semi-supervised crop/weed semantic segmentation on UAV imagery with multiscale enhancement and consistency regularization. Reports state-of-the-art relative performance on a public dataset, satisfying INC-01 (DL UAV pixel segmentation) and INC-02 (quantitative metrics reported in full text)."
+  },
+  {
+    "workspace_id": "SCI-000570",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "Mask R-CNN performs weed detection and instance segmentation in cotton using UAV-borne imagery (real and synthetic training). Reports mask mAP 0.60–0.80 and bounding-box mAP 0.64–0.81, satisfying INC-01 (DL UAV pixel-level weed segmentation) and INC-02 (quantitative mAP)."
+  },
+  {
+    "workspace_id": "SCI-001166",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "ASRNet performs UAV aerial image semantic segmentation on the Urban Drone Dataset (UDD) with categories: Vegetation, Building, Road, Vehicle, Roof, Other. This is urban scene segmentation, not crop/weed agronomy (EXC-03)."
+  },
+  {
+    "workspace_id": "SCI-000618",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": [],
+    "reasoning": "Mask R-CNN (ResNet50 + SmoothLR) performs instance segmentation of maize seedlings from UAV RGB images for leaf counting. Reports mask AP 95.2%, bounding-box AP 96.9%, and inference time 0.05–0.07 s. Satisfies INC-01 (DL UAV pixel-level crop segmentation) and INC-02 (quantitative AP)."
+  },
+  {
+    "workspace_id": "SCI-001368",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.82,
+    "exclusion_codes": [],
+    "reasoning": "Kernelytics uses multispectral drone imagery (DJI Phantom 4) with U-Net semantic segmentation for corn crop and weed area delineation. Reports corn F1 66%/48% (tile 32/64) and weed segmentation accuracy 98%. Satisfies INC-01 (DL UAV pixel segmentation) and INC-02 (quantitative F1/accuracy). Confidence reduced because F1 values for corn are modest."
+  },
+  {
+    "workspace_id": "SCI-000451",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-03", "EXC-06"],
+    "reasoning": "High-precision time synchronization algorithm for UAV ad hoc networks. This is a pure networking/communications paper with no crop/weed content, no segmentation, and no computer vision (EXC-03, EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-001005",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.88,
+    "exclusion_codes": [],
+    "reasoning": "Knowledge-distilled lightweight Vision Transformer for weed mapping from drones on the WeedMap dataset, achieving F1 0.863 with only 0.5 GMacs. Satisfies INC-01 (DL UAV weed mapping), INC-02 (quantitative F1), and partially INC-03 (lightweight model suitable for drone/mobile deployment)."
+  },
+  {
+    "workspace_id": "SCI-000489",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "Cross-domain transfer learning for crop (maize)/weed/soil segmentation using a novel DL model and enhanced augmentation. Reports per-class IoU on UAV aerial data: crop 0.596, weed 0.407, soil 0.875. Satisfies INC-01 (DL UAV pixel segmentation) and INC-02 (quantitative IoU)."
+  },
+  {
+    "workspace_id": "SCI-000203",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.92,
+    "exclusion_codes": [],
+    "reasoning": "DeBlurWeedSeg combines deblurring and segmentation for weed/crop segmentation in motion-blurred UAV sorghum imagery. Reports relative improvement in Sørensen-Dice coefficient versus a standard segmentation baseline. Satisfies INC-01 (DL UAV pixel-level crop/weed segmentation) and INC-02 (quantitative Dice metric)."
+  },
+  {
+    "workspace_id": "SCI-000091",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": [],
+    "reasoning": "Encoder-decoder framework with Dense-inception and attention modules for pixel-level weed/crop/other classification in drone images, evaluated on a public benchmark dataset. Satisfies INC-01 (DL UAV crop/weed pixel segmentation) and INC-02 (quantitative metrics reported in full text)."
+  },
+  {
+    "workspace_id": "SCI-000666",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.88,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "OverFOMO is an active-sensing coverage path-planning algorithm for UAV scanning that uses an off-the-shelf deep segmentation model to detect crops/weeds for speed control. The paper's contribution is path planning, not segmentation; no quantitative crop/weed segmentation metric (mIoU/F1/Dice) is reported, failing INC-02 (EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-000095",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-03", "EXC-04", "EXC-06"],
+    "reasoning": "Uses UAV multispectral thermal imaging to extract tea canopy temperature for crop water-stress diagnosis and irrigation. No deep learning, no crop/weed pixel segmentation, and no quantitative segmentation metrics (EXC-03: not crop/weed arable segmentation, EXC-04: no DL, EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-000145",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "Two-stage semantic segmentation pipeline classifies tobacco and weed pixels in aerial imagery, improving crop IoU from 0.67 to 0.85 and weed IoU from 0.76 to 0.91. Satisfies INC-01 (DL pixel-level crop/weed segmentation) and INC-02 (quantitative IoU)."
+  },
+  {
+    "workspace_id": "SCI-000416",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "YOLO-based crack detection in tiled sidewalks from UAV images — infrastructure inspection, not agricultural crop/weed segmentation (EXC-03)."
+  },
+  {
+    "workspace_id": "SCI-000964",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "Multi-format open-source weed image dataset with 3,975 images (handheld + UAS DJI Phantom 4 Pro) of five weed species. Annotations are bounding-box format (TXT/XML/YAML). Provides no model benchmarks or quantitative segmentation results (EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-000639",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "CoFly is a UAV-agnostic precision agriculture platform integrating path planning, vegetation indices, and a weed detection module (DeepLabV3+). However, the paper is a software/system publication that reports no quantitative segmentation metrics (mIoU/F1/Dice) for the weed module, failing INC-02 (EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-000488",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "Comparative study of UAV weed segmentation on CoFly-WeedDB using SegNet/UNet/DeepLabV3+ with five CNN backbones. UNet+EfficientNetB0 achieves Precision 88.20%, Recall 88.97%, F1 88.24%, mIoU 56.21%. Satisfies INC-01 (DL UAV weed pixel segmentation) and INC-02 (quantitative F1/mIoU)."
+  },
+  {
+    "workspace_id": "SCI-000441",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-03", "EXC-06"],
+    "reasoning": "The MR12-UAV Bombardier is a UAV hardware/platform design paper for military bombardment (aileron/propeller systems, solar panels, payload of bombs/missiles). No agriculture, no segmentation, no deep learning metrics (EXC-03, EXC-06)."
+  },
+  {
+    "workspace_id": "SCI-001379",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.85,
+    "exclusion_codes": [],
+    "reasoning": "Drone-mounted RGB semantic segmentation of eggplant leaves comparing U-Net vs FPN with VGG16/VGG19. Reports 97.24%/96.73% accuracy and 31.5/32.6 ms latency. Satisfies INC-01 (DL UAV pixel crop segmentation), INC-02 (quantitative accuracy), and partially INC-03 (device latency reported). Confidence reduced because accuracy is reported rather than mIoU/F1/Dice."
+  }
+]

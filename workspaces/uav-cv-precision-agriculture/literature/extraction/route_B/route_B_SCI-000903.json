@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000903",
+  "study": {
+    "title": "Research on Segmentation Method of Maize Seedling Plant Instances Based on UAV Multispectral Remote Sensing Images.",
+    "short_title": "YOLOv8 Instance Segmentation of Maize Seedlings (UAV MS)",
+    "year": 2024,
+    "venue": "Plants (Basel, Switzerland)",
+    "extracted_md": "2024_Geng_Research_on_Segmentation_Method_of_Maize_Seedling_.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "crop (individual maize seedling plants)",
+    "models_tested": ["YOLOv8 (n/s/m/l/x)", "YOLOv5m", "Mask R-CNN", "Cascade Mask R-CNN", "PointRend", "Mask Scoring R-CNN"],
+    "best_model": "YOLOv8m (NRG bands): bbox mAP50 0.952, segm mAP50 0.940",
+    "dataset": {
+      "name": "Self-built maize seedling instance segmentation dataset (Shanyang District, Jiaozuo, Henan)",
+      "uav_collected": true,
+      "images": 1334,
+      "resolution_gsp_m": 0.004,
+      "flight_altitude_m": 8.5,
+      "note": "DJI Phantom 4 Multispectral, flight altitude 8.5 m, side/heading overlap 65%, GSD 0.4 cm/px; 2,238 aerial photos; OpenMVG SfM reconstructs multispectral ortho (RGB/NRG/NER bands). Ortho sliced into 640x640 patches with 10% overlap; SAM-based semi-automatic annotation (5.5 s/plant vs 28.43 s manual). Study area A: 488 train (80%) + 123 val (20%), 24,064 labeled plants; independent test set: 723 images from study area B (Fengshou 2 variety, generalization), 29,226 plants. Mosaic augmentation disabled in final 10 epochs."
+    },
+    "classes": ["maize seedling plant (single class)"],
+    "num_classes": 1,
+    "backbone": "YOLOv8 (C2f + SPPF + PAFPN, anchor-free decoupled head); compared Mask R-CNN etc.",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance segmentation; reported metrics are bbox mAP and segmentation mAP (mAP50/mAP50-95), not semantic mIoU. YOLOv8m NRG: segm mAP50 0.940, segm mAP50-95 0.618."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 4, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance segmentation (mAP metrics only); no F1/Dice semantic value."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 4, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No weed class; weeds only appear in test scenarios (mixed-weed generalization scenes), not as a segmented class."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance segmentation with mAP; crop-class semantic F1 not applicable."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 640,
+    "framework": "PyTorch 2.0.1",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only per-image inference time (ms) on desktop provided; no FPS."},
+    "latency_ms": {"reported": true, "value": 30.8, "unit": "ms", "normalized_digits": 1, "confidence": 0.8, "quote": "YOLOv8m NRG speed 30.8 ms (Table 5); test set 25.2 ms (Table 6)", "section": "Table 5 / Table 6", "table": "Table 5", "ambiguity": "DESKTOP GPU inference (RTX 2080 Ti 11 GB, i9-9900K, PyTorch) per 640x640 patch. Authors recommend model-pruning/knowledge-distillation for future limited-compute use; no embedded measurement => edge.reported false."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Model WEIGHT file sizes in MB reported (YOLOv8m 27.240 MB), not parameter counts."},
+    "gflops": {"reported": true, "value": 110.4, "unit": "GFLOPS", "normalized_digits": 1, "confidence": 0.85, "quote": "YOLOv8m NRG FLOPs 110.4 G", "section": "Table 5 / Table 6", "table": "Table 5", "ambiguity": "Structural complexity metric, YOLOv8m NRG at 640x640 (desktop study). Model size spectrum: n 3.263 G, s 11.790 G, m 110.4 G, l 220.8 G, x 344.5 G."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["Instance segmentation: only box/segmentation mAP reported; no semantic RQ1 metrics (all false with ambiguity), consistent with other Mask-RCNN/YOLO-seg records.", "Table 4 column/section interleaving in PDF extraction; model-labels appear after their band rows; values verified against Tables 5/6 (params sizes).", "GSD resolution-sweep: accuracy sustained to 1.333 cm/px (mAPBox50 0.914, mAPSeg50 0.897 -> H 28.3 m), degrading sharply at 1.6-2.7 cm/px."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

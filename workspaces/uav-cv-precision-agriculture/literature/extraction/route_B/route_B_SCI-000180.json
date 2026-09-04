@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000180",
+  "study": {
+    "title": "CWRepViT-Net: An encoder-decoder deep learning framework with RepViT blocks for crop weed semantic segmentation in soybean fields through their life journey",
+    "short_title": "CWRepViT-Net (RepViT+MUNet) soybean crop-weed seg; OA 95.9%",
+    "year": 2025,
+    "venue": "Smart Agricultural Technology",
+    "extracted_md": "2025_Gomroki_CWRepViTNet_An_encoderdecoder_deep_learning_fra.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "five-class crop/weed semantic segmentation (soil, soybean, volunteer canola, other broadleaf weeds, all grassy weeds) in soybean fields across the vegetation-to-early-reproductive growth cycle",
+    "models_tested": ["CWRepViT-Net (proposed: RepViT encoder + MUNet decoder)", "S#1 RepViT-only", "S#2 MUNet-only", "S#3 conventional U-Net", "MobileNetV3", "MobileViT", "TinyNet", "TinyViT"],
+    "best_model": "CWRepViT-Net: OA 0.9587, Kappa 0.91, Precision 0.9895, F1 0.9876, IoU 0.9735, 13.63 M params",
+    "dataset": {
+      "name": "Self-built soybean crop/weed dataset, Ian N. Morrison Research Farm, Carman, Manitoba, Canada (split-block RCBD, weedy and weed-free blocks)",
+      "uav_collected": true,
+      "images": 2552,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 18,
+      "note": "DJI Matrice 300 RTK + Zenmuse L1 camera rig flown at 18 m; RGB orthophoto mosaics georeferenced (also noted for UAV phenotyping). Six dates in June-July 2024 (21/26/33/39/45/52 DAS; V1-R2 soybean). Sub-images 128x128 px; two ground-truth sets: GT1 (26 DAS) 947 train-val + 237 test and GT2 (45 DAS) 1094 train-val + 274 test (60/20/20 split); x4 rotation augmentation (90/180/270) -> 3788 / 4376 augmented train-val patches. QGIS polygon annotation (5 classes)."
+    },
+    "classes": ["soil", "soybean (crop)", "volunteer canola", "other broadleaf weeds", "all grassy weeds"],
+    "num_classes": 5,
+    "backbone": "RepViT encoder (ImageNet pre-trained, Semi-Transfer Learning) + MUNet decoder blocks concatenated at 5 resolutions (stem + 4 stages); focal loss (gamma=2)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Mean-per-class IoU not explicitly reported; Table 1 reports a single overall 'IoU (%) 97.35' computed from TP/FP/FN (Eq. 4)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.9876, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "CWRepViT-Net (Proposed method) ... F1-score (%) 98.76", "section": "4.3 Comparison of experimental results", "table": "Table 1", "ambiguity": "Global F1-score 98.76% (model-level, pooled over classes). Baselines: MobileNetV3 98.47, MobileViT 98.05, TinyNet 97.88, TinyViT 98.01. Ablation S#3 (plain U-Net) 90.01."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.9587, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "The CWRepViT-Net model achieved an overall accuracy of over 95% and a Kappa coefficient of 0.91 ... proposed network achieved an OA of 95.87 % and a KC of 0.91", "section": "Abstract / 6. Conclusion", "table": "Table 1", "ambiguity": "Overall Accuracy 95.87% (global pixel accuracy, Eq. 5). Baselines: MobileNetV3 94.11, MobileViT 92.65, TinyNet 91.77, TinyViT 92.20."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed classes (volunteer canola, broadleaf, grassy) segmented but per-class F1 not reported (only global F1/IoU)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 for soybean not reported (only global F1/IoU)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 128,
+    "framework": "TensorFlow 2.10.1, Python 3.9.21, NVIDIA GeForce RTX 4070 + Intel i7-14700 + 64 GB RAM; Adam lr 1e-4 decay 1e-6, batch 16, 100 epochs; focal loss",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference latency/FPS reported; only training time (33 min 10 s, Table 1)."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 13.63, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "RepViT architecture blocks with approximately 15 million (15 M) parameters ... Parameters (Million) ... CWRepViT-Net (Proposed method)  14.23  13.63", "section": "3.4 CWRepViT-Net architecture / 4.3 Comparison of experimental results", "table": "Table 1", "ambiguity": "13.63 M params in encoder-decoder form (14.23 M original RepViT form; Table 1 distinguishes 'original form / encoder-decoder form'). Compared: MobileNetV3 6.5, MobileViT 9.7, TinyNet 7.2, TinyViT 11.2 (encoder-decoder forms)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["No inference-time or edge benchmarks; only training efficiency discussed (Semi-TL, 33 min 10 s training) - edge.reported=false.", "IoU 97.35% reported as a single overall metric (Eq. 4), not mean-per-class mIoU.", "Per-class evaluation via confusion matrices is qualitative in text; numeric per-class accuracies in Fig. 8 (>90% for most classes) not tabulated.", "GSD not reported (18 m altitude, M300 RTK/Zenmuse L1); 128x128 patches from orthophoto mosaics across 6 dates."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

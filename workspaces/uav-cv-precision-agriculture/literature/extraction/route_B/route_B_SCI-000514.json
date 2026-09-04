@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000514",
+  "study": {
+    "title": "A fully convolutional network for weed mapping of unmanned aerial vehicle (UAV) imagery",
+    "short_title": "A fully convolutional network for weed mapping of UAV imagery",
+    "year": 2018,
+    "venue": "PLoS ONE",
+    "extracted_md": "2018_Huang_A_fully_convolutional_network_for_weed_mapping_of_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["FCN-AlexNet", "FCN-VGG16", "FCN-GoogLeNet", "FCN-32s", "FCN-16s", "FCN-8s", "Patch-based CNN", "Pixel-based CNN"],
+    "best_model": "FCN-8s (VGG-16)",
+    "dataset": {
+      "name": "self-collected UAV (Phantom 4; rice field, South China)",
+      "uav_collected": true,
+      "images": 1092,
+      "resolution_gsp_m": 0.003,
+      "flight_altitude_m": 6,
+      "note": "91 raw UAV images (4000x3000) split into 1092 tiles of 1000x1000; classes rice/weeds/others; 892 train + 200 validation."
+    },
+    "classes": ["rice", "weeds", "others"],
+    "num_classes": 3,
+    "backbone": "VGG-16",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.752, "unit": "fraction", "normalized_digits": 3, "confidence": 0.97, "quote": "This fashion was continued and even lower layer pool3 was fused to the network (FCN-8s), achieving a minor improvement to 0.752 mean IU.", "section": "Experiments with skip architectures", "table": "Table 2", "ambiguity": "Reported as mean IU (mean intersection over union)."},
+      "mPA": {"reported": true, "value": 0.807, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "mean acc.: FCN-32s 0.795, FCN-16s 0.811, FCN-8s 0.807", "section": "Experiments with skip architectures", "table": "Table 2", "ambiguity": "Reported as 'mean acc.' (mean pixel accuracy) per class."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.935, "unit": "fraction", "normalized_digits": 3, "confidence": 0.97, "quote": "The overall accuracy of the FCN approach was up to 0.935 and the accuracy for weed recognition was 0.883", "section": "Abstract", "table": "Table 2", "ambiguity": "Reported as pixel accuracy / overall accuracy."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.93,
+    "issues": ["inference time on desktop GTX 1060, not edge device"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

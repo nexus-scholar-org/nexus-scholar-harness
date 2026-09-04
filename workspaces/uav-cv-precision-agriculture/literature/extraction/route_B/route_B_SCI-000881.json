@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000881",
+  "study": {
+    "title": "Class imbalance aware deep semantic segmentation framework for weed and tobacco crops in UAV imagery.",
+    "short_title": "DeepLabV3Plus ResNeSt Lovász-CE tobacco-weed mIoU 84.99",
+    "year": 2026,
+    "venue": "Frontiers in artificial intelligence",
+    "extracted_md": "2026_Khan_Class_imbalance_aware_deep_semantic_segmentation_f.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Crop/weed/background 3-class weed-vs-tobacco semantic segmentation on UAV field imagery using an improved DeepLabV3Plus architecture with a ResNeSt (split-attention) backbone replacing Xception, trained with combined Lovász cross-entropy loss and inverse-square-root-frequency class weighting to handle pixel imbalance (background 65.87%, tobacco 14.43%, weed 19.71%)",
+    "models_tested": ["PSPNet", "DeepLabV3+ (ResNet50)", "ANN (ResNet50)", "UPerNet (ResNet50)", "DeepLabV3+ (ResNeSt)", "Proposed: DeepLabV3+ (ResNeSt) + Lovász cross-entropy + inverse square root frequency"],
+    "best_model": "DeepLabV3Plus with ResNeSt backbone, Lovász cross-entropy combined loss and inverse square root frequency class weighting: test aAcc 95.93 ± 0.58%, mIoU 84.99 ± 4.47%, mAcc 90.20 ± 5.15% (mean over testing campaigns C3-C8); beats DeepLabV3+ ResNeSt baseline with cross-entropy (95.30% / 82.96% / 87.61%) and Lovász cross-entropy (95.62 / 83.92 / 88.53) and all other baselines",
+    "dataset": {
+      "name": "Public tobacco-weed UAV dataset (Moazzam et al., 2023): 8 tobacco farms at 15-40 day crop age across 8 drone campaigns; original images 1920x1080 cropped to non-overlapping 480x352 patches. Campaign 2 (936 imgs) = training; campaigns 3-8 (120 imgs each) = testing; campaign 1 (864 imgs) excluded for mislabeled masks. Class pixel counts: background 104,163,282 (65.87%), tobacco 22,813,874 (14.43%), weed 31,169,404 (19.71%). Inverse-square-root-frequency class weights used: background 1.232, tobacco 2.634, weed 2.253 (vs inverse-frequency 1.517/6.928/5.080 and median-frequency 0.299/1.366/1.000).",
+      "uav_collected": false,
+      "images": 2520,
+      "resolution_gsp_m": 0.001,
+      "flight_altitude_m": 4,
+      "note": "imagery is UAV-captured but the dataset is PUBLIC (Moazzam et al., 2023), hence uav_collected=false. images = 864 (C1, excluded) + 936 (C2, training) + 6x120 = 720 (C3-C8, testing) = 2520 total. GSD 0.1 cm/pixel (0.001 m), average altitude 4 m. Loss-function ablation: 9 loss variants (Lovász, Dice, CE and 6 combinations) with DeepLabV3Plus ResNeSt; combined Lovász cross-entropy best (test mIoU 83.92 ± 5.74). Class-weight ablation over 3 strategies with Lovász cross-entropy; inverse square root frequency best."
+    },
+    "classes": ["background", "tobacco", "weed"],
+    "num_classes": 3,
+    "backbone": "ResNeSt (split-attention ResNet variant, replaces Xception in DeepLabV3Plus encoder; ASPP + 1x1-conv decoder, 4x upsampling). Baselines: PSPNet, DeepLabV3+ with ResNet50, ANN ResNet50, UPerNet ResNet50, DeepLabV3+ with ResNeSt.",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.8499, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "Meanwhile, 95.93% ± 0.58 aAcc, 84.99% ± 4.47 mIoU, and 90.20% ± 5.15 mAcc were on average achieved during the testing phase.", "section": "3.4.2 / Table 5", "table": "Table 5", "ambiguity": "Mean test mIoU over testing campaigns C3-C8 (mean ± SD 84.99 ± 4.47; Table 5; 4.48 in Tables 6-7). Training (campaign C2) mIoU 75.60. mIoU = mean Jaccard index over the 3 classes, eq. 8. Best of 5+ models; DeepLabV3+ ResNeSt CE baseline 82.96, DeepLabV3+ ResNet50 80.34, UPerNet ResNet50 78.67, ANN ResNet50 77.13, PSPNet 76.30."},
+      "mPA": {"reported": true, "value": 0.9020, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "achieving a mean average accuracy (aAcc) of 95.93%, a mean intersection over union (mIoU) of 84.99%, and a mean accuracy (mAcc) score of 90.20%.", "section": "Abstract / 3.4.2 / Table 5", "table": "Table 5", "ambiguity": "mapped from mAcc = average class-wise recall/sensitivity (eq. 7: mean of TPc/(TPc+FNc) over classes). Test mean ± 5.15 over C3-C8; training C2 mAcc 84.25. Distinct from aAcc (recorded as PA) which is the mean of individual per-class accuracies (eq. 9)."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Explicitly not reported: 'It is worth noting that this study did not specifically report precision, recall, or F1-score.' (3.4.2)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice used only as a loss function (Table 1), not reported as an evaluation metric."},
+      "PA": {"reported": true, "value": 0.9593, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "The proposed model uses an inverse square root frequency and achieves the highest mean mAcc, mIoU, and aAcc testing results 95.93% ± 0.58, 84.99% ± 4.48, and 90.20% ± 5.15, respectively.", "section": "5 Discussion / Table 7", "table": "Table 7", "ambiguity": "mapped from aAcc (average accuracy, eq. 9: mean of individual per-class accuracies). Test mean ± 0.58 over C3-C8; training C2 aAcc 91.45. Not a single-scored global OA. Per-campaign test aAcc: C3 95.47, C4 96.52, C5 96.51, C6 95.72, C7 95.12, C8 96.21."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1 reported."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1 reported."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None - offline research training/runs on Google Colab. Paper explicitly notes the ResNeSt backbone 'requires significant computing power, which could make it hard to use on small, low-powered devices like those found on drones.'",
+    "precision": null,
+    "resolution_input": 480,
+    "framework": "PyTorch-based MMSegmentation 0.30.0 + mmcv-full 1.6.0, Python 3.10.12, Google Colab; 200 training iterations; 480x352 non-overlapping input patches",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No real-time performance reported or claimed."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported; no edge deployment."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported; 480x352 resolution, 200 training iterations."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["WORKLIST ABSTRACT MISMATCH: the worklist abstract and screening_reasoning describe a DIFFERENT study (self-built low-cost multispectral camera vs MicaSense Altum, U-Net, MAIZE datasets, weed F1 82% Altum / 76% low-cost). The actual full text for SCI-000881 (DOI 10.3389/frai.2026.1792086, Khan et al. 2026) is the tobacco-weed DeepLabV3Plus ResNeSt study recorded here. All metric values taken from the verified extracted_md.", "edge.reported=false: purely offline Google Colab experiments; no edge deployment, no FPS/latency; authors explicitly note ResNeSt is too computationally demanding for on-drone devices.", "mAcc mapped to mPA and aAcc mapped to PA per schema convention; both are per-class mean accuracy variants, not single global OA.", "uav_collected=false: dataset is the PUBLIC Moazzam et al. (2023) tobacco-weed UAV dataset; UAV imagery but not author-collected.", "no quantitative per-class (weed/tobacco) IoU table extracted from figures; only aggregate mIoU/mAcc/aAcc reported. Cleaned per-campaign means provided in Tables 5-7."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

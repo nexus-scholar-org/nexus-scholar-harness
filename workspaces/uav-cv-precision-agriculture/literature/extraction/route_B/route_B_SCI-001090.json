@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001090",
+  "study": {
+    "title": "Resolution-Accuracy Trade-offs in UAV-Based Semantic Segmentation for Precision Agricultural Imagery",
+    "short_title": "Agriculture-Vision GSD study: U-Net3+ best mIoU 79.9% @20 cm/px",
+    "year": 2026,
+    "venue": "Indonesian Journal of Electrical Engineering and Informatics (IJEEI)",
+    "extracted_md": "2026_Amin_ResolutionAccuracy_Tradeoffs_in_UAVBased_Semant.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Quantifies the effect of Ground Sampling Distance (10, 20, 40 cm/pixel) on UAV-based agricultural anomaly semantic segmentation (each anomaly = binary task): weed clusters, dryness, nutrient deficiency, double plant, water, water way, planter skip, endrow",
+    "models_tested": ["U-Net", "U-Net++", "U-Net3+", "Attention U-Net", "R2U-Net (recurrent residual U-Net)", "DeepLabV3+"],
+    "best_model": "U-Net3+ at 20 cm/pixel: mIoU 79.9% (best overall across the model x GSD grid and the most resolution-robust architecture; also best at 40 cm with 76.94%). At 10 cm/pixel plain U-Net is best (72.89%). Hybrid BCE+Dice+Focal loss (weights 0.3/0.3/0.4) for class imbalance",
+    "dataset": {
+      "name": "Agriculture-Vision (CVPR 2020): large aerial image database of farmland with RGB + NIR UAV-acquired channels at up to 10 cm/pixel, annotated for 8 agricultural anomaly patterns; images downscaled for the 20 and 40 cm/pixel conditions",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": 0.1,
+      "flight_altitude_m": null,
+      "note": "Paper evaluates three GSD levels: 10, 20, 40 cm/pixel. Per-class splits used independently per anomaly (e.g. weed cluster 10,000/555/556 train/val/test; dryness 15,125/840/841; nutrient deficiency 11,250/625/625 etc.). Resized/normalized inputs with rotation & flip augmentation."
+    },
+    "classes": ["weed cluster", "dryness", "nutrient deficiency", "double plant", "water", "water way", "planter skip", "endrow"],
+    "num_classes": 8,
+    "backbone": "Fully convolutional CNNs trained per anomaly class as binary segmentation; architecture families U-Net / U-Net++ / U-Net3+ / Attention U-Net / R2U-Net / DeepLabV3+; hybrid BCE+Dice+Focal (0.3/0.3/0.4, alpha 0.25, gamma 2.0); no Transformer models benchmarked (motivated as unsuitable for UAV deployment)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.799, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "At medium resolution (20 cm/pixel) there is a remarkable change in performance. U-Net3+ achieves best mIoU (79.9%) which is better than all the other models", "section": "3.2 Quantitative Performance Analysis Across Resolutions / Table 4", "table": "Table 4", "ambiguity": "Study-wide best mIoU over the model x GSD grid (U-Net3+, 20 cm/pixel). Same model at 10 cm: 0.6841, at 40 cm: 0.7694. Alternative bests by resolution: U-Net 10 cm 0.7289; U-Net3+ 40 cm 0.7694. mIoU = mean per-class Jaccard over the 8 binary anomaly tasks."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-task 'Accuracy' (PA) reported per model/class in Tables 1/3/5 (e.g. weed cluster U-Net3+ 20 cm: 0.9402) but no class-averaged mPA."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Precision and recall reported per class; F1 scores not tabulated."},
+      "Dice": {"reported": true, "value": 0.9545, "unit": "fraction", "normalized_digits": 4, "confidence": 0.7, "quote": "Water Way  U-Net ... .9924  .9715  .9693  .913  .9545  ...  26", "section": "3.2 / Tables 1, 3 (Water Way rows)", "table": "Table 1 / Table 3", "ambiguity": "Class-level Dice coefficient (DC), highest single value reported: U-Net on Water Way at both 10 and 20 cm/pixel. The headline best config (U-Net3+, 20 cm) reaches DC 0.9135 on weed cluster; per-class DC across the grid spans ~0.20-0.95. Values are per-class, not averaged."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only per-task pixel accuracy is given; no aggregate PA for our PA field."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed cluster only reported via JC/accuracy/precision/recall (e.g. 20 cm U-Net3+ JC 0.8411, acc 0.9402); no F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop canopy is not an explicit class in this anomaly-segmentation benchmark."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "Not specified (training-time analysis only; no inference-hardware details given)",
+    "precision": null,
+    "resolution_input": null,
+    "framework": null,
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference FPS/latency reported; only per-epoch training 'Time(s)' in Tables 1/3/5."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No latency reported."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Power not reported."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Param counts not reported; model sizes in MB vary with architecture (U-Net 26 MB, U-Net++ 24, U-Net3+ 20, Attention U-Net 25, R2U-Net 75, DeepLabV3+ 137)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["edge.reported=false: no on-device/edge metrics; hardware platform not disclosed; only per-epoch training time comparisons.", "Headline value is the best cell of a model x GSD grid (U-Net3+ @ 20 cm/pixel, mIoU 79.9%) and is task- and resolution-dependent: plain U-Net wins at 10 cm (72.89%), U-Net3+ wins at 20 (79.9%) and 40 cm (76.94%).", "Binary-per-anomaly segmentation on Agriculture-Vision (8 classes, not crop-vs-weed); weed cluster is one class (its best JC = 0.8411 at 20 cm, U-Net3+).", "Core finding: higher GSD does NOT guarantee higher accuracy - large-area anomalies (dryness, nutrient deficiency, weed clusters) match or beat high-res at 20-40 cm/pixel at much lower compute; fine-grained anomalies (endrow, planter skip) benefit from 10 cm/pixel.", "Hybrid BCE+Dice+Focal loss; multi-scale aggregation architectures most robust to downsampling; model file sizes U-Net family 20-26 MB vs R2U-Net 75 MB / DeepLabV3+ 137 MB."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

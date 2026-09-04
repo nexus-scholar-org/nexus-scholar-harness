@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000708",
+  "study": {
+    "title": "Drone-Aided Detection of Weeds: Transfer Learning for Embedded Image Processing",
+    "short_title": "Drone-Aided Hogweed Detection with Edge Inference",
+    "year": 2022,
+    "venue": "IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing",
+    "extracted_md": "2022_Koshelev_DroneAided_Detection_of_Weeds_Transfer_Learning_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["U-Net (3-block, 17.3M params)", "SegNet (29.5M params)"],
+    "best_model": "SynthFakeRGN (U-Net segmentation + fake-RGN synthesis network, transfer learning)",
+    "dataset": {
+      "name": "UAV RGB + multispectral (MAPIR Survey3 RGN) hogweed imagery, two neighboring fields",
+      "uav_collected": true,
+      "images": 20083,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "DJI drone with FC330 RGB camera (3000x4000); training field also carried MAPIR Survey3 (red 660/green 550/NIR 850 nm, 0.5 FPS); two missions, old and young hogweed crops as separate classes; >20,000 128x128 training crops, 83 evaluation crops; also orthophotos via OpenDroneMap."
+    },
+    "classes": ["background", "old hogweed", "young hogweed"],
+    "num_classes": 3,
+    "backbone": "U-Net (17.3M segmentation) + residual encoder-decoder (2.2M/7.8M synthesis)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.753, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "the U-Net model (see Table II) trained on orthophoto data gives a score of 75.3% when evaluated on frame data", "section": "IV Results", "table": "Table II", "ambiguity": "Reference absolute multiclass mIoU 75.3% (U-Net SynthFakeRGN trained on orthophoto data, evaluated on frame data); headline contributions are relative gains (+1.1% mIoU on RGB frame stream, +1.4% on orthophoto vs RGB-only). Tables I/II full values not fully captured in extraction."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "ROC-AUC and mIoU used as metrics."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "NVIDIA Jetson Xavier NX",
+    "precision": "",
+    "resolution_input": 100,
+    "framework": "TensorRT (network quantization and layer fusion/pruning)",
+    "fps": {"reported": true, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.7, "quote": "we measure the inference speed per 12-MPx frame (3000 x 4000 pixel) in FPS, as well as the power consumption of the hardware in watts (W)", "section": "IV Results / Table III", "table": "Table III", "ambiguity": "FPS per 12-MPx frame measured on Jetson Xavier NX (tile inference 100x100, batch 1) reported in Table III; exact values not captured in markdown extraction. Real-time on-board scanning demonstrated; no quality loss vs server."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": true, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.7, "quote": "we measure the inference speed per 12-MPx frame (3000 x 4000 pixel) in FPS, as well as the power consumption of the hardware in watts (W)", "section": "IV Results / Table III", "table": "Table III", "ambiguity": "Power consumption (W) on Jetson Xavier NX reported in Table III; exact values not captured in markdown extraction."},
+    "params_M": {"reported": true, "value": 17.3, "unit": "millions", "normalized_digits": 1, "confidence": 0.95, "quote": "for the segmentation network, we have used a U-Net backbone consisting of three blocks in both the encoder and decoder parts with 17.3M parameters in total", "section": "III Methods", "table": "", "ambiguity": "U-Net segmentation network 17.3M params (deployed edge regime); synthesis head 2.2M (SegNet regime 29.5M + 7.8M)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["Table I/II/III full numeric values not captured by markdown extraction; FPS and power (W) values unavailable.", "Flight altitude and GSD not reported."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

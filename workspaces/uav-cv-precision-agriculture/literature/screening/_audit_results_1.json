@@ -1,0 +1,198 @@
+[
+  {
+    "workspace_id": "SCI-000482",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "UAV-borne CNN weed detection in line crops using unsupervised data labeling, segmenting crop rows and inter-row weeds; abstract describes pixel-level crop/weed segmentation and reports segmentation accuracy gaps, satisfying INC-01 and INC-02."
+  },
+  {
+    "workspace_id": "SCI-000547",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.97,
+    "exclusion_codes": [],
+    "reasoning": "Fully-convolutional semantic-labeling CNN (with CRF refinement) maps weeds in high-resolution UAV rice-field imagery, reporting mean IoU 0.7751, overall accuracy 0.9445 and Kappa 0.9128 - a genuine UAV crop/weed pixel segmentation benchmark with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000514",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "FCN performs weed mapping on UAV RGB rice-field imagery with overall accuracy 0.935 and weed-recognition accuracy 0.883, satisfying UAV DL crop/weed segmentation with pixel-level metrics (INC-01/INC-02)."
+  },
+  {
+    "workspace_id": "SCI-000582",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "FCN-4s performs pixel-level weed mapping and prescription-map generation from UAV rice-field imagery, reporting overall accuracy 0.9196 and mean IoU 0.8473 - a UAV crop/weed pixel segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000016",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "WeedMap performs crop/weed semantic segmentation on UAV multispectral orthomosaics with a DNN, reporting AUC metrics per class (e.g. crop 0.863, weed 0.782) vs a SegNet baseline - satisfies UAV DL crop/weed segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000010",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.85,
+    "exclusion_codes": [],
+    "reasoning": "Though the abstract reports only 'high classification accuracy', the full text confirms quantitative F1 scores (~0.85 with two channels at 50% labeled data) for pixel-wise crop/weed classification on the weedNet MAV (UAV) multispectral sugar-beet dataset, so INC-02 is satisfied."
+  },
+  {
+    "workspace_id": "SCI-001047",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.65,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "This is a sorghum-panicle counting/phenotyping paper in the whole-plant counting gray zone; although it reports segmentation IoU (mean IoU 87%, per-class IoU), its primary contribution and headline metric are panicle count detection accuracy (94%) and count correlation, i.e. COUNTING rather than crop/weed discrimination."
+  },
+  {
+    "workspace_id": "SCI-001394",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.85,
+    "exclusion_codes": ["EXC-01", "EXC-03"],
+    "reasoning": "DeepCount quantifies (counts) wheat spikes using SLIC+CNN on digital imagery taken in the field / from a ground-based Field Scanalyzer gantry - not UAV-borne aerial imagery (EXC-01) - and its primary purpose is wheat-ear counting in the whole-plant counting gray zone (COUNTING alone = out), reporting count metrics (rRMSE ~15%, R2 0.72) rather than a crop/weed segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000565",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "A lightweight semantic-segmentation network maps weeds onboard a UAV, reporting 80.9% accuracy and 4.5 FPS on a Jetson TX2 with FP16 quantization - a direct match for UAV DL weed segmentation (INC-01/INC-02) plus on-device edge inference performance (INC-03)."
+  },
+  {
+    "workspace_id": "SCI-000084",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.82,
+    "exclusion_codes": [],
+    "reasoning": "Encoder-decoder CNNs perform pixel-wise crop/weed classification on ground and aerial images, including a third CNN specifically designed for small-UAV setups, on multiple public datasets with quantitative results; UAV-capable DL crop/weed pixel segmentation satisfying INC-01/INC-02."
+  },
+  {
+    "workspace_id": "SCI-000487",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.7,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "This is vine/mildew disease detection in vineyard imagery - the fruit/orchard and disease-classification domain explicitly excluded by EXC-03 - rather than arable crop/weed segmentation; although it is a UAV FCN pixel-segmentation study with >92% detection, the target crop (grapevine) and disease task put it out of scope."
+  },
+  {
+    "workspace_id": "SCI-001445",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "This is a pure UAV-platform/hardware design paper (amphibious drone, CATIA design, thrust/payload calculations, Arduino control) for sowing seed balls; it contains no deep-learning crop/weed segmentation and no quantitative segmentation metric, so it fails INC-01/INC-02."
+  },
+  {
+    "workspace_id": "SCI-000398",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.9,
+    "exclusion_codes": ["EXC-05", "EXC-06"],
+    "reasoning": "A book chapter describing a UAV-based hyperspectral imaging sensor system for precision agriculture and forest management; it is secondary/technical literature describing sensor specs and image processing with no primary deep-learning crop/weed segmentation benchmark and no quantitative segmentation results."
+  },
+  {
+    "workspace_id": "SCI-000554",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.6,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "This is a plant counting-and-sizing paper for potato and lettuce in the whole-plant counting gray zone (COUNTING alone = out); although it uses Mask R-CNN instance segmentation and reports mask-based mAP (0.418 potato, 0.660 lettuce), its stated objective is individual-plant counting/sizing rather than crop/weed discrimination, so it is a boundary case flagged out."
+  },
+  {
+    "workspace_id": "SCI-000136",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.9,
+    "exclusion_codes": [],
+    "reasoning": "Mask R-CNN performs weed instance segmentation on aerial sugarcane imagery, reporting AP50 65.5% and F1 0.752 with ResNet-101 pre-trained COCO - genuine UAV (aerial) crop/weed pixel segmentation with quantitative mask metrics (INC-01/INC-02)."
+  },
+  {
+    "workspace_id": "SCI-000411",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.92,
+    "exclusion_codes": ["EXC-05", "EXC-06"],
+    "reasoning": "This is a secondary-literature book chapter on UAV-based precision agriculture (satellite-vs-drone sensing, vegetation indices, crop modelling) with no primary deep-learning segmentation benchmark and no quantitative crop/weed segmentation results, so it violates EXC-05 and EXC-06."
+  },
+  {
+    "workspace_id": "SCI-000555",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.8,
+    "exclusion_codes": [],
+    "reasoning": "EDANet (a semantic-segmentation network) assesses rice lodging from UAV RGB imagery with edge computing, reporting 99.25% lodging-identification accuracy and edge-deployment scouting; rice is an arable crop and it reports a quantitative pixel-level accuracy metric (INC-01/INC-02) plus edge-computing context, so it is in scope despite the scouting focus."
+  },
+  {
+    "workspace_id": "SCI-001173",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.9,
+    "exclusion_codes": [],
+    "reasoning": "UAV (DJI Matrice 100) crop classification via SegNet semantic segmentation with edge computing (ASUS Tinker Board, 4G offload), reporting 89% segmentation accuracy and ~0.7s inference - agricultural crop segmentation meeting INC-01/INC-02 with on-device latency (INC-03)."
+  },
+  {
+    "workspace_id": "SCI-000492",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "FCN-AlexNet and SegNet semantic segmentation of rice lodging in multi-date UAV visible imagery with vegetation indices, reporting F1 scores of 0.80 and 0.79 - a UAV crop-stress pixel-segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000092",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.55,
+    "exclusion_codes": [],
+    "reasoning": "SemiWeedNet is a DNN-based semi-supervised semantic-segmentation method for crop/weed against complex backgrounds, reporting mIoU metrics (89.01% on the Bonn crop/weed dataset) consistent with INC-01/INC-02; however the evaluation uses ground-level Bonn/Stuttgart robot-field datasets rather than explicit UAV imagery, making the UAV-borne criterion ambiguous though not clearly excluded."
+  },
+  {
+    "workspace_id": "SCI-000274",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.9,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "U-Net object segmentation is applied to the Aerial Semantic Segmentation Drone Dataset, which depicts urban scenes (houses, cars, persons, buildings, etc.), not crop/weed arable agronomy; although it reports 92-95% segmentation accuracy, the task domain is urban/infrastructure, so it violates EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000483",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.8,
+    "exclusion_codes": [],
+    "reasoning": "AgriSegNet performs UAV-acquired multiscale-attention semantic segmentation of farmland anomalies (including weed clusters, standing water) on the Agriculture-vision benchmark for precision agriculture, reporting quantitative segmentation results - UAV DL agricultural crop/anomaly pixel-segmentation in scope."
+  },
+  {
+    "workspace_id": "SCI-001210",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.9,
+    "exclusion_codes": [],
+    "reasoning": "MAENet multiple-attention encoder-decoder performs farmland semantic segmentation on three self-made UAV image datasets, reporting MIoU 93.74% and Kappa 96.74% vs other methods - UAV agricultural crop/farmland pixel-level segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-001153",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.9,
+    "exclusion_codes": [],
+    "reasoning": "An improved OCRNet semantic-segmentation method identifies zucchini intercropped with sunflower in UAV visible images, reporting mIoU and intercropping IoU vs PSPNet/DeepLabV3+/DNLNet - arable crop pixel-level segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-001333",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "MobileNetV2-UNet and FFB-BiSeNetV2 semantic-segmentation models identify rice weeds from UAV low-altitude imagery, reporting pixel accuracy 93.09% / mIoU 80.28% and deployed on a Jetson AGX Xavier with TensorRT at 40-45 FPS - UAV weed segmentation with quantitative metrics AND on-device edge FPS (INC-01/02/03)."
+  },
+  {
+    "workspace_id": "SCI-001406",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.85,
+    "exclusion_codes": [],
+    "reasoning": "U-Net crop segmentation/classification from UAV multispectral imagery (wheat, cotton, maize, grass, soil classes) reports 83.35% accuracy and analyses NDVI/EVI/texture for semantic segmentation - agricultural crop pixel-level segmentation meeting INC-01/INC-02."
+  },
+  {
+    "workspace_id": "SCI-000002",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.75,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "This is an adaptive UAV path-planning/robotics paper whose contribution is an altitude-vs-accuracy model and online trajectory replanning; crop/weed segmentation (ERFNet) is used only as the perception tool, and the reported mIoU (~0.5) is an evaluation of planning strategies, not a primary segmentation benchmark, so it is path-planning-only without a retrievable segmentation benchmark."
+  },
+  {
+    "workspace_id": "SCI-000968",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "A lightweight Mobile U-Net extracts wheat-lodging regions from UAV RGB+DSM/ExG imagery, reporting 88.99% overall segmentation accuracy and lightweight model/fast-processing properties - arable crop pixel-segmentation with quantitative metrics (INC-01/INC-02, plus efficiency signal toward INC-03)."
+  }
+]

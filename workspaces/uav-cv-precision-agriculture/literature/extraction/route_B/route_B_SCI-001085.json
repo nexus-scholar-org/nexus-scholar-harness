@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-001085",
+  "study": {
+    "title": "Accelerating UAV-Based Agricultural Field Segmentation Using YOLOv11 and Rockchip NPU Quantization",
+    "short_title": "Crop/weed/soil: YOLOv11s-seg mAP@0.5 0.85, INT8 16 ms on RK3588 NPU",
+    "year": 2026,
+    "venue": "2026 Systems of Signal Synchronization, Generating and Processing in Telecommunications (SYNCHROINFO)",
+    "extracted_md": "2026_Andriyanov_Accelerating_UAVBased_Agricultural_Field_Segmenta.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "Edge-AI acceleration of crop/weed/soil segmentation from UAV video: YOLOv11n-seg and YOLOv11s-seg trained on combined real + synthetic UAV imagery, post-training INT8-quantized to RKNN, and deployed on a Rockchip RK3588 NPU (Orange Pi 5+) for real-time onboard agricultural analytics",
+    "models_tested": ["YOLOv11n-seg (PyTorch + RKNN INT8)", "YOLOv11s-seg (PyTorch + RKNN INT8)"],
+    "best_model": "YOLOv11s-seg in RKNN INT8: mAP@0.5 0.85, Precision 0.85, Recall 0.79, 16 ms on RK3588 NPU (best accuracy); YOLOv11n-seg.rknn fastest at 12 ms (mAP@0.5 0.82, P 0.82, R 0.76)",
+    "dataset": {
+      "name": "Combined custom dataset: real UAV imagery plus synthetic samples for crop, weed, and soil segmentation (512x512 inputs); class distribution Crop 68/Weed 22/Soil 10 (train) and 70/20/10 (test)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Synthetic images added for pixel-accurate annotations and diversity; training set/test set class proportions preserved. No image counts, location, or flight parameters disclosed. Augmentation: random horizontal flip, rotation, brightness, contrast."
+    },
+    "classes": ["crop vegetation", "weed", "soil background"],
+    "num_classes": 3,
+    "backbone": "Ultralytics YOLOv11seg (nano and small variants), 200 epochs, batch 16, 512x512; ONNX export -> RKNN Toolkit2, post-training INT8 quantization (100 calibration images)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance-segmentation study; primary metric is mAP@0.5 (per-instance), no mIoU reported."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel-level per-class accuracy not reported."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance-level Precision and Recall reported (YOLOv11s-seg.rknn P 0.85 / R 0.79) but no F1; deriving F1 would conflate instance-level statistics with semantic metrics."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice not reported."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class segmentation F1; only instance-level P/R/mAP."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class segmentation F1."}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "Orange Pi 5+ single-board computer (Rockchip RK3588 SoC) with integrated NPU (up to 6 TOPS INT8)",
+    "precision": "INT8",
+    "resolution_input": 512,
+    "framework": "RKNN Toolkit2 (post-training INT8 quantization, 100 calibration images; ONNX from Ultralytics PyTorch YOLOv11seg)",
+    "fps": {"reported": false, "value": 62.5, "unit": "fps", "normalized_digits": 1, "confidence": 0.0, "quote": "YOLOv11s-seg.rknn ... 16 (ms); the RKNN models executed on the Rockchip NPU achieve a latency reduction of approximately 2.6x for YOLOv11n-seg and 2.7x for YOLOv11s-seg compared to the original PyTorch implementations", "section": "V. Results and Discussion / Table II", "table": "Table II", "ambiguity": "FPS not directly reported; derived as 1000/16 from the reported YOLOv11s-seg.rknn latency (best-accuracy edge model). YOLOv11n-seg.rknn runs at 12 ms (~83.3 fps). NPU measured latency: 12 vs 31 ms (nano), 16 vs 43 ms (small) for RKNN vs PyTorch .pt."},
+    "latency_ms": {"reported": true, "value": 16, "unit": "ms", "normalized_digits": 0, "confidence": 0.9, "quote": "YOLOv11s-seg.rknn  0.85  0.79  0.85  16", "section": "V. Results and Discussion / Table II", "table": "Table II", "ambiguity": "Measured latency for the best-accuracy deployed model (YOLOv11s-seg.rknn on RK3588 NPU). Fastest variant YOLOv11n-seg.rknn = 12 ms (2.6x vs 31 ms PyTorch); INT8 speedup 2.6-2.7x overall. Latencies measured with RKNN runtime tools on the SBC itself - genuine edge measurement."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Low-power claims qualitative only; no wattage measured."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Parameter counts not stated in the paper."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["edge.reported=true: genuine on-device deployment on Rockchip RK3588 NPU (Orange Pi 5+), INT8 post-training quantization; real measured latencies (16 ms best-accuracy, 12 ms fastest) and 2.6-2.7x speedup vs PyTorch; ~2-3 point mAP@0.5 loss from INT8.", "Instance segmentation: primary metric mAP@0.5 (0.85 YOLOv11s-seg.rknn; 0.88 FP32 PyTorch); precision/recall instance-level - no pixel-level semantic metrics (mIoU/mPA/F1/Dice/PA all false).", "Dataset is real UAV + synthetic mix with no image counts, location, or flight altitude/GSD disclosed; classes crop/weed/soil, 512x512 inputs.", "Power consumption not measured despite low-power claims; params/FLOPs not stated.", "validated"],
+    "validated_changed": ["edge.fps.reported"],
+    "validation": {"checks": 14, "changed": 1},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

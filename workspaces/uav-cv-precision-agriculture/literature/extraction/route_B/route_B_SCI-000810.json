@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000810",
+  "study": {
+    "title": "AgriJetsonBench: External-Power-Referenced TensorRT Benchmarking of Agricultural Vision Models on Jetson Edge Platforms",
+    "short_title": "AgriJetsonBench: SegFormer-B0 mIoU 0.805, 47.2 FPS Nano",
+    "year": 2026,
+    "venue": "arXiv (Cornell University)",
+    "extracted_md": "2026_Jahanifar_AgriJetsonBench_ExternalPowerReferenced_TensorR.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Crop/weed/background 3-class semantic segmentation (plus complementary crop/weed object detection) as a reproducible training-to-deployment TensorRT benchmark on NVIDIA Jetson edge-GPU platforms (AGX Orin 64GB, Orin Nano Super); locked public CropAndWeed_v1 dataset used as fixed deployment workload; dual-source measurement (external board-input logger + internal telemetry), matched-budget 15 W INT8 vs native 50 W/25 W FP16 views, battery-continuation 100%-to-20% endurance runs, J/inference and compute-normalized energy (J/GMAC)",
+    "models_tested": ["BiSeNetV2", "MobileNetV3-LRASPP", "DeepLabV3+", "SegFormer-B0"],
+    "best_model": "SegFormer-B0 (transformer-style semantic segmentation): strongest accuracy on CropAndWeed_v1 test - mIoU 0.8049, Dice 0.8854, foreground mIoU 0.7115, crop IoU 0.7665, weed IoU 0.6565 (DeepLabV3+ mIoU 0.7774, MobileNetV3-LRASPP 0.7631, BiSeNetV2 0.7278); 3.71 M params, 14.84 GMACs / 29.67 GFLOPs at 640. Deployment (TensorRT batch 1, 640x640): matched 15W INT8 - Nano Super 47.18 FPS / 0.2808 J-per-inference vs AGX Orin 31.95 / 0.5013; native FP16 - AGX Orin 103.61 FPS / p95 9.441 ms vs Nano Super 67.47 / 15.020 ms with near-tied energy",
+    "dataset": {
+      "name": "Locked public CropAndWeed_v1 segmentation dataset (Weed-AI, Steininger et al. 2023) as a fixed deployment workload with frozen class list (0 background, 1 crop, 2 weed): train 5,381 / val 798 / test 1,526 images, 1,526 test masks; locked splits, benchmark-order files, labels and license notes packaged. Detection counterpart CottonWeedDet12_v1 (train 3,972 / val 564 / test 1,112, 1,886 boxes) used only for the detection track. Ground/agricultural-robot imagery, not UAV-captured.",
+      "uav_collected": false,
+      "images": 7705,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "images = sum of locked CropAndWeed_v1 split sizes (5,381 + 798 + 1,526). Benchmark paper contribution is the deployment-measurement protocol and measurement-boundary analysis, not new agronomic data collection. Training on Sapelo2 GPU cluster (Georgia Advanced Computing Resource Center); models exported checkpoint -> ONNX -> TensorRT engines (FP32/FP16/INT8, INT8 calibrated on 256 images); resolution ablation at 640 for segmentation (SegFormer-B0 and RT-DETR-R18 stayed at 640; BiSeNetV2 Smin 448)."
+    },
+    "classes": ["background", "crop", "weed"],
+    "num_classes": 3,
+    "backbone": "Four segmentation backbones trained from scratch on CropAndWeed_v1: SegFormer-B0 (hierarchical MiT-B0 transformer encoder + lightweight MLP decoder, 3.71 M params, 14.84 GMACs), DeepLabV3+ (heavier CNN, 40.32 M params, 108.37 GMACs), MobileNetV3-LRASPP (3.21 M, 3.25 GMACs), BiSeNetV2 (3.33 M, 19.23 GMACs); all exported to ONNX and TensorRT at FP32/FP16/INT8 (INT8 with per-size calibration caches and FP16 fallback where needed by the builder), pure engine-level batch-1 timing at 640x640",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.8049, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "SegFormer-B0 achieved the strongest predictive performance, with test mIoU of 0.8049, test Dice of 0.8854, and foreground mIoU of 0.7115", "section": "3.1 / Table 4", "table": "Table 4", "ambiguity": "Held-out CropAndWeed_v1 test set. Best of four segmentation models: DeepLabV3+ mIoU 0.7774, MobileNetV3-LRASPP 0.7631, BiSeNetV2 0.7278. Per-class IoU for SegFormer-B0: crop 0.7665, weed 0.6565 (also reported for all segmentation models in Table 4). Foreground (crop+weed) mIoU 0.7115."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Mean pixel accuracy not reported; mIoU, class IoU, Dice and foreground mIoU reported instead."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported; the segmentation accuracy metric is Dice (recorded in the Dice field)."},
+      "Dice": {"reported": true, "value": 0.8854, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "SegFormer-B0 achieved the strongest predictive performance, with test mIoU of 0.8049, test Dice of 0.8854", "section": "3.1 / Table 4", "table": "Table 4", "ambiguity": "Test Dice on CropAndWeed_v1 (SegFormer-B0). Dataset-wise Dice: DeepLabV3+ 0.8664, MobileNetV3-LRASPP 0.8560, BiSeNetV2 0.8291."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed-class F1 not reported; weed-class IoU reported instead (SegFormer-B0 weed IoU 0.6565 - best, vs DeepLabV3+ 0.6230, MobileNetV3-LRASPP 0.5986, BiSeNetV2 0.5457)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop-class F1 not reported; crop-class IoU reported instead (SegFormer-B0 crop IoU 0.7665 - best, vs DeepLabV3+ 0.7179, MobileNetV3-LRASPP 0.7009, BiSeNetV2 0.6486)."}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "NVIDIA Jetson AGX Orin 64GB Developer Kit and NVIDIA Jetson Orin Nano Super Developer Kit - real edge-GPU deployments; TensorRT engines, batch 1, 640x640; external INA260 board-input power logger + internal Jetson telemetry; matched-budget (15 W vs 15 W) and native (50 W vs 25 W) views; main segmentation energy tests on SegFormer-B0",
+    "precision": "FP16 and INT8 (TensorRT; INT8 with calibration caches, FP16 fallback where required); FP32 reference",
+    "resolution_input": 640,
+    "framework": "PyTorch training -> ONNX export -> NVIDIA TensorRT engines; JetPack/L4T, CUDA, TensorRT versions and nvpmodel clock policies recorded in metadata; pure-engine timing boundary (excludes I/O, preprocessing, postprocessing, NMS, mask decode)",
+    "fps": {"reported": true, "value": 47.18, "unit": "fps", "normalized_digits": 2, "confidence": 0.9, "quote": "Nano processed 756,122 inferences over 4.452 h at 47.18 FPS", "section": "3.8 / Table 8", "table": "Table 8", "ambiguity": "SegFormer-B0 INT8 at 15 W on Orin Nano Super (battery continuation, 100%-to-20% power bank). Matched-budget AGX Orin: 31.95 FPS (1.48x advantage for Nano). Native FP16 (AGX 50 W / Nano 25 W): AGX 103.61 FPS vs Nano 67.47 FPS; AGX locked-640 INT8 best-config median throughput also higher. edge.reported=true."},
+    "latency_ms": {"reported": true, "value": 21.514, "unit": "ms", "normalized_digits": 3, "confidence": 0.9, "quote": "Median latency decreased from 29.523 ms on AGX to 21.514 ms on Nano, and p95 latency decreased from 29.566 ms to 21.582 ms", "section": "3.8 / Table 8", "table": "Table 8", "ambiguity": "PURE TensorRT engine MEDIAN latency, SegFormer-B0 INT8 15 W on Orin Nano Super (batch 1, 640x640); p95 21.582 ms. Matched AGX Orin median 29.523 ms. Native SegFormer-B0 FP16: AGX median 9.420 ms / p95 9.441 ms; Nano median 14.842 / p95 15.020. AGX locked-640 INT8 seg rows: SegFormer-B0 median 7.029 ms (different power mode), DeepLabV3+ 8.353 ms, MobileNetV3-LRASPP 3.975 ms, BiSeNetV2 7.573 ms."},
+    "power_w": {"reported": true, "value": 13.15, "unit": "W", "normalized_digits": 2, "confidence": 0.9, "quote": "Nano Super 15 W SegFormer-B0 INT8 ... Avg W 13.15", "section": "3.8 / Table 8", "table": "Table 8", "ambiguity": "MEASURED average external board-input power (INA260 inline logger) for SegFormer-B0 INT8 15 W battery run on Orin Nano Super. Matched AGX Orin avg 16.01 W. Native FP16: AGX 33.20 W (50 W mode), Nano 21.79 W (25 W mode). Idle baselines: AGX 10.920/11.299 W (15/50 W), Nano 5.308/5.663 W (15/25 W). J/inference for SegFormer-B0 INT8: AGX 0.5013 vs Nano 0.2808 (-44.0%)."},
+    "params_M": {"reported": true, "value": 3.71, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "SegFormer-B0 had only 3.71 M parameters, but required 14.84 GMACs", "section": "3.2 / Table 3", "table": "Table 3", "ambiguity": "SegFormer-B0 (best segmentation model) at 640; other segmentation models: DeepLabV3+ 40.32 M, BiSeNetV2 3.33 M, MobileNetV3-LRASPP 3.21 M. Detection contrasts: YOLO11n 2.63 M, YOLO11s 9.46 M, RT-DETR-R18 20.02 M."},
+    "gflops": {"reported": true, "value": 29.67, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.9, "quote": "SegFormer-B0 Segmentation 3.71 M 1.48e10 MACs at 640 14.84 GMACs 29.67 GFLOPs equiv.", "section": "Table 3 / 2.5", "table": "Table 3", "ambiguity": "GFLOPs-equivalent under the paper convention 1 MAC = 2 FLOPs at 640x640 input (14.84 GMACs). Other segmentation models: DeepLabV3+ 216.74, MobileNetV3-LRASPP 6.50, BiSeNetV2 38.47 GFLOPs-equiv."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["edge.reported=true: real on-device Jetson measurements with externally referenced board-input power logging. SegFormer-B0 INT8 15 W matched-budget: Nano Super 47.18 FPS / median 21.514 ms / 0.2808 J per inference vs AGX Orin 31.95 / 29.523 ms / 0.5013 J. Native FP16: AGX 103.61 FPS / 9.420 ms vs Nano 67.47 / 14.842 ms. INT8 accuracy retention checked (mIoU/Dice drop <= 0.05, crop/weed IoU drop <= 0.10 vs FP16) - all four main INT8 engines passed.", "Benchmark paper: accuracy measured OFFLINE on the locked public CropAndWeed_v1 dataset (ground/robotic sugar-beet imagery, uav_collected=false); the study is a deployment-measurement protocol contribution, not agronomic data collection.", "six models/families in the segmentation track; the detection track (YOLO11n/s, RT-DETR-R18 on CottonWeedDet12_v1) is out of scope for the semantic RQ1 record but its deployment evidence (e.g. Nano YOLO11s INT8 145.82 FPS / 0.0767 J vs AGX 80.90 / 0.1814) is cross-referenced.", "Dual-source power: external INA260 logger primary; pooled internal-minus-external bias -1.988 W (MAE 2.402 W, RMSE 2.720 W, r 0.970 over 76,691 paired 1 Hz samples) motivates the external-boundary reporting.", "Key message: board choice depends on workload, precision, power mode and measurement boundary, not board class alone (Nano wins matched-budget INT8; AGX wins native FP16 high load with near-tied J/inference)."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

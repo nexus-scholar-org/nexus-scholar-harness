@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001023",
+  "study": {
+    "title": "AgriFusion: Multiscale RGB-NIR Fusion for Semantic Segmentation in Airborne Agricultural Imagery",
+    "short_title": "AgriFusion dual-encoder RGB-NIR fusion; mIoU 0.4931, PA 0.8172, F1 0.6785",
+    "year": 2025,
+    "venue": "AgriEngineering",
+    "extracted_md": "2025_Li_AgriFusion_Multiscale_RGBNIR_Fusion_for_Semantic.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "multimodal RGB-NIR semantic segmentation of agricultural field anomalies (planting anomalies and crop stresses: double plant, dry down, end row, nutrient deficiency, planter skip, water, waterway, weed cluster) on the Agriculture-Vision benchmark",
+    "models_tested": ["AgriFusion (asymmetric dual-encoder: MiT-B1 on RGB + ResNet-18 on NIR, AFF attention fusion, MLP decoder)", "SegFormer (MiT-B1, MiT-B3)", "DeepLabV3", "DeepLabV3+", "AAFormer", "Early Fusion (channel concat)", "Late Fusion (W/O AFF)", "CMX"],
+    "best_model": "AgriFusion with MiT-B1 + ResNet-18 encoders: mIoU 49.31%, PA 81.72%, F1 67.85% (mean over 5 runs, p<0.001 vs all baselines)",
+    "dataset": {
+      "name": "Agriculture-Vision (94,986 RGB+NIR aerial images from 3432 fields across the United States; GSD up to 10 cm/px; 8 adopted anomaly classes + background after excluding storm damage due to annotation inconsistency)",
+      "uav_collected": false,
+      "images": 94986,
+      "resolution_gsp_m": 0.1,
+      "flight_altitude_m": null,
+      "note": "Airborne (not UAV) benchmark imagery; RGB + single-channel NIR. Official split: 70% train / 15% val / 15% test. Authors note AgriFusion is 'inherently suitable for UAV-based agricultural monitoring' but no UAV/edge deployment was performed."
+    },
+    "classes": ["background", "double plant (DP)", "dry down (DD)", "end row (ER)", "nutrient deficiency (ND)", "planter skip (PS)", "water (WT)", "waterway (WW)", "weed cluster (WC)"],
+    "num_classes": 9,
+    "backbone": "MiT-B1 transformer (RGB branch) + ResNet-18 CNN (NIR branch), multi-scale AFF fusion, MLP decoder (SegFormer-style)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.4931, "unit": "fraction", "normalized_digits": 4, "confidence": 0.95, "quote": "AgriFusion achieves an mIoU of 49.31%, PA of 81.72%, and F1 score of 67.85%", "section": "3.1. Comprehensive Performance Comparison / Table 1", "table": "Table 1", "ambiguity": "Mean mIoU over 5 runs (49.31 +/- 0.28). 8 anomaly classes + background."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Authors report global Pixel Accuracy (PA = TP+TN/all), not class-mean accuracy."},
+      "F1": {"reported": true, "value": 0.6785, "unit": "fraction", "normalized_digits": 4, "confidence": 0.95, "quote": "AgriFusion achieves an mIoU of 49.31%, PA of 81.72%, and F1 score of 67.85%", "section": "3.1. Comprehensive Performance Comparison / Table 1", "table": "Table 1", "ambiguity": "Mean F1 over 5 runs (67.85 +/- 0.25)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice coefficient not reported as a metric (Dice loss used only during training; F1 score reported instead)."},
+      "PA": {"reported": true, "value": 0.8172, "unit": "fraction", "normalized_digits": 4, "confidence": 0.95, "quote": "AgriFusion achieves an mIoU of 49.31%, PA of 81.72%, and F1 score of 67.85%", "section": "3.1. Comprehensive Performance Comparison / Table 1", "table": "Table 1", "ambiguity": "Pixel Accuracy as defined in Eq. (11): (TP+TN)/(TP+TN+FP+FN), i.e. global pixel accuracy."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed cluster (WC) is one of 8 anomaly classes; per-class WF1 not reported. Per-class IoU for WC = 31.41%."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-crop-class F1; task is anomaly segmentation, not crop/weed binary."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": null,
+    "framework": "PyTorch; trained on NVIDIA RTX 2080Ti GPU (22 GB) for 100 epochs, batch size 64, Adam lr 0.001, CE + Dice loss; MiT-B1 and ResNet-18 pretrained-initialized",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference speed reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Parameter counts not reported (MiT-B1/ResNet-18 architecture noted as relatively efficient but not quantified)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Evaluation on the airborne Agriculture-Vision benchmark, NOT UAV-collected imagery; UAV deployment only discussed as future work.", "Storm damage class excluded (8 anomaly classes + background adopted) due to annotation inconsistency.", "No inference speed, latency, parameter, or power figures; GPU-only training on RTX 2080Ti.", "Reported F1 uses the balanced per-class definition (Eq. 12), not the mean-IoU-style aggregation."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

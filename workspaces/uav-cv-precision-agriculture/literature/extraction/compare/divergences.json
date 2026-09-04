@@ -1,0 +1,1500 @@
+[
+  {
+    "workspace_id": "SCI-000001",
+    "title": "Lightweight Multispectral Crop-Weed Segmentation for Precision Agriculture",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 8.7
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000005",
+    "title": "VISA two-stream network on BAWSeg benchmark",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.847
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.946
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 78
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 12.8
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 22.8
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 33.6
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000012",
+    "title": "Transferring learned patterns from ground-based field imagery to UAV imagery",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": true,
+        "A_value": 0.767,
+        "B_reported": true,
+        "B_value": 0.617
+      },
+      {
+        "group": "seg",
+        "field": "mPA",
+        "A_reported": true,
+        "A_value": 0.859,
+        "B_reported": true,
+        "B_value": 0.734
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 42.04
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000013",
+    "title": "Self-supervised pretraining for high-res multispectral UAV",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.52
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000040",
+    "title": "DAS-SK: Dual Atrous Separable + Selective Kernel CNN",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 10.33
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 96.8
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": true,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 10.678
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": true,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 45.0
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000067",
+    "title": "RoWeeder: Unsupervised Weed Mapping via Crop-Row Detection",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "weed_F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.566
+      },
+      {
+        "group": "seg",
+        "field": "crop_F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.709
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 141.44,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 7.36
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000074",
+    "title": "WeedFormer: SegFormer-B2 + CBAM + ASPP",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8877
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000075",
+    "title": "YOLOv8 vs Mask R-CNN for Weed Segmentation in UAV Ortho-mosaics",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mPA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.515
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000083",
+    "title": "A U-Net Improved Version for Crop and Weed Segmentation",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": true,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9424
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 22.9
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 43.67
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000084",
+    "title": "Crop and Weed Classification Using Pixel-wise Segmentation on Ground and Aerial Images",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 600
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000129",
+    "title": "PCCSAN: Multispectral fusion for weed segmentation/classification",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.988
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 1611.0
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.62
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 2.1
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 55.6
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000138",
+    "title": "ResNet-Unet for Crop and Weed Segmentation (Sorghum UAV)",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.99
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000145",
+    "title": "Two-Stage Semantic Segmentation for Tobacco and Weed Detection",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 12.79
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000149",
+    "title": "WeedVision: Single-Stage Weed Detection and Segmentation (UAV)",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 2.1
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000160",
+    "title": "Barley-to-rapeseed few-shot fine-tuning for weed mapping",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "weed_F1",
+        "A_reported": true,
+        "A_value": 0.5833,
+        "B_reported": true,
+        "B_value": 0.6455
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000180",
+    "title": "CWRepViT-Net: RepViT encoder-decoder for crop-weed segmentation in soybean fields",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": true,
+        "A_value": 0.9735,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9587
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 13.63
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000225",
+    "title": "Adapting Vision-Language Models for Precision Agriculture Crop Segmentation",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": true,
+        "A_value": 0.4661,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000271",
+    "title": "EENet: Edge Enhancement Network for UAV Crop Segmentation",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8507
+      },
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9088
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000286",
+    "title": "Real-Time Weed Segmentation in Tobacco on Jetson Nano",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 3.69,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000346",
+    "title": "PRC-Net: UAV weed segmentation in edge computing",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.891
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000371",
+    "title": "ResLMFFNet: a real-time semantic segmentation network for precision agriculture",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": true,
+        "A_value": 0.681,
+        "B_reported": true,
+        "B_value": 0.884
+      },
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": true,
+        "A_value": 0.781,
+        "B_reported": true,
+        "B_value": 0.913
+      },
+      {
+        "group": "seg",
+        "field": "crop_F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.913
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 98.91
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 1.34
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 12.73
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000483",
+    "title": "AgriSegNet: Deep Aerial Semantic Segmentation for IoT-Assisted Precision Agriculture",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.67
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000488",
+    "title": "Comparative Study of Deep Learning for UAV Weed Detection",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8897
+      },
+      {
+        "group": "seg",
+        "field": "weed_F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.6326
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000489",
+    "title": "Cross-Domain Transfer Learning for Weed Segmentation (Ground + UAV)",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": true,
+        "A_value": 0.767,
+        "B_reported": true,
+        "B_value": 0.617
+      },
+      {
+        "group": "seg",
+        "field": "mPA",
+        "A_reported": true,
+        "A_value": 0.859,
+        "B_reported": true,
+        "B_value": 0.734
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 42.04
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000492",
+    "title": "Semantic Segmentation with Vegetation Indices for Rice Lodging Identification",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "crop_F1",
+        "A_reported": true,
+        "A_value": 0.93,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000505",
+    "title": "Deep Learning-Driven Automatic Segmentation of Weeds and Crops",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 2.5
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 400
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000548",
+    "title": "A Field Weed Density Evaluation Method Based on UAV Imaging and Modified U-Net",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 24.45,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000555",
+    "title": "Adaptive autonomous UAV scouting for rice lodging assessment using EDANet",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "crop_F1",
+        "A_reported": true,
+        "A_value": 0.9519,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000618",
+    "title": "Two-Stage Deep Learning for Maize Leaf Detection and Counting (UAV)",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 70
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000624",
+    "title": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": true,
+        "A_value": 0.843,
+        "B_reported": true,
+        "B_value": 0.7662
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000637",
+    "title": "UAV-based intelligent weed detection using YOLO11 and PSPNet",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 6.2
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000650",
+    "title": "UAV Deep Learning for Grass Weed Detection in Wheat Fields",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 46.5
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000708",
+    "title": "Drone-Aided Weed Detection: Transfer Learning for Embedded Processing",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.753
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "power_w",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 17.3
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000754",
+    "title": "AgroVisionNet: Integrating CNN, Transformer, and GNN for Precision Agriculture",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.916
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.915
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 18.5
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 115
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 22
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000810",
+    "title": "AgriJetsonBench: TensorRT benchmark on Jetson",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8049
+      },
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8854
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": true,
+        "A_value": 9.441,
+        "B_reported": true,
+        "B_value": 21.514
+      },
+      {
+        "group": "edge",
+        "field": "power_w",
+        "A_reported": true,
+        "A_value": 15.0,
+        "B_reported": true,
+        "B_value": 13.15
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 3.71
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 29.67
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000816",
+    "title": "UNet-ResNet deblurring-aware sorghum/weed segmentation",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.7185
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 24.4
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 3.94
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000852",
+    "title": "SqueezeSlimU-Net: Adaptive and Efficient Segmentation for Real-Time UAV Weed Detection",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 235
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000878",
+    "title": "SCG-UNet: soybean weed segmentation (RGB+MS fusion)",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 18.1
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 169.91
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000898",
+    "title": "DM_CorrMatch: semi-supervised semantic segmentation for rapeseed flower coverage estimation",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 76.78
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 84.54
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000903",
+    "title": "YOLOv8 Instance Segmentation of Maize Seedlings (UAV Multispectral)",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 30.8
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 110.4
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000962",
+    "title": "LW-Segnet/LW-Unet: Lightweight Rice Seedling Segmentation (UAV MSS)",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 117.5,
+        "B_reported": true,
+        "B_value": 143.3
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": true,
+        "A_value": 36.8,
+        "B_reported": true,
+        "B_value": 10.6
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": true,
+        "A_value": 693.4,
+        "B_reported": true,
+        "B_value": 32.1
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000968",
+    "title": "Accurate Wheat Lodging Extraction from Multi-Channel UAV Images Using a Lightweight Model",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": true,
+        "A_value": 0.8899,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 1.89,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": true,
+        "A_value": 530,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-000981",
+    "title": "Buckwheat Weed Recognition in Multispectral UAV Images Based on MSU-Net",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 77.18
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 12.96
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 31.0
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 54.78
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001005",
+    "title": "Knowledge Distillation for Weed Mapping with Drones",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 1.0
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001017",
+    "title": "Multi-class weed quantification with U-Net variants",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8763
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.824
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 17
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 58.5
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 135
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001029",
+    "title": "Comparative Analysis of Multispectral Image Instance Segmentation Techniques",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 11.7
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001053",
+    "title": "Deep Learning for Weed Detection and Segmentation in Agricultural Crops Using UAV Images",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.964
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.961
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001084",
+    "title": "A Preliminary Study on U-Net for Crop Monitoring Using Low-Altitude Drone Imagery",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 31.4
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001085",
+    "title": "UAV Field Segmentation with YOLOv11 and Rockchip NPU Quantization",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 62.5,
+        "B_reported": false,
+        "B_value": 62.5
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001090",
+    "title": "Resolution-Accuracy Trade-offs in UAV-Based Semantic Segmentation",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9545
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001096",
+    "title": "Crop Segmentation Generalization: Opuntia spp. transfer",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.956
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.968
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 112.4
+      },
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 8.9
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001292",
+    "title": "RPD-Net: Efficient Crop/Weed Semantic Segmentation",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 142.9
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": true,
+        "A_value": 0.189,
+        "B_reported": true,
+        "B_value": 0.14
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 9.42
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001333",
+    "title": "Real-Time Identification of Rice Weeds by UAV Low-Altitude Remote Sensing",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": true,
+        "A_value": 17.39,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": true,
+        "A_value": 10.7,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001334",
+    "title": "MSEA-Net: Multi-Scale and Edge-Aware Network for Weed Segmentation",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 2.0
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 6.74
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001335",
+    "title": "Intelligent Image Segmentation Based on UAV Remote Sensing and DeepLabV3+",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 20.4
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 4.25
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001368",
+    "title": "Kernelytics: Multispectral Drone Imagery and Deep Learning for Corn",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": true,
+        "A_value": 0.98,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001371",
+    "title": "Crop Classification from Drone Imagery Based on Lightweight Semantic Segmentation",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9902
+      },
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 12.3
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 12.08
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 9.0
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001376",
+    "title": "Mini Drone-Based Precision Agriculture for Indonesian MSMEs",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "latency_ms",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 6000
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001379",
+    "title": "Eggplant Leaf Semantic Segmentation in Aerial Imagery",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": true,
+        "A_value": 31.75,
+        "B_reported": false,
+        "B_value": null
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001382",
+    "title": "HRS-UNet: Semantic Segmentation for Crop Classification in Hyperspectral Remote Sensing",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8996
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001406",
+    "title": "Classification and Identification of Crops Using Deep Learning with UAV Data",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "mIoU",
+        "A_reported": true,
+        "A_value": 0.8385,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.8385
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001411",
+    "title": "SE-U-Net for Kenaf seedling canopy coverage",
+    "differences": [
+      {
+        "group": "seg",
+        "field": "F1",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9244
+      },
+      {
+        "group": "seg",
+        "field": "Dice",
+        "A_reported": true,
+        "A_value": 0.9244,
+        "B_reported": false,
+        "B_value": null
+      },
+      {
+        "group": "seg",
+        "field": "PA",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 0.9292
+      }
+    ]
+  },
+  {
+    "workspace_id": "SCI-001413",
+    "title": "EDM-UNet: An Edge-Enhanced and Attention-Guided Model for UAV-Based Weed Segmentation",
+    "differences": [
+      {
+        "group": "edge",
+        "field": "fps",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 40.36
+      },
+      {
+        "group": "edge",
+        "field": "params_M",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 43.942
+      },
+      {
+        "group": "edge",
+        "field": "gflops",
+        "A_reported": false,
+        "A_value": null,
+        "B_reported": true,
+        "B_value": 184.257
+      }
+    ]
+  }
+]

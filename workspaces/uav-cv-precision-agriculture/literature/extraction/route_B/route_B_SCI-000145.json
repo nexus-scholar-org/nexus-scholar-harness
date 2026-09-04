@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000145",
+  "study": {
+    "title": "Towards automated weed detection through two-stage semantic segmentation of tobacco and weed pixels in aerial Imagery",
+    "short_title": "Two-Stage Semantic Segmentation of Tobacco and Weed Pixels",
+    "year": 2023,
+    "venue": "Smart Agricultural Technology",
+    "extracted_md": "2023_Moazzam_Towards_automated_weed_detection_through_twostage.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["UNet (backbones: Vanilla Mini CNN, VGG16, MobileNet)", "SegNet (backbones: VGG16, ResNet50)", "Proposed 2-stage: UNet+VanillaMini (stage I) then UNet+VGG16 (stage II)"],
+    "best_model": "Two-stage UNet: Stage-I UNet/Vanilla-Mini-CNN (background vs vegetation) + Stage-II UNet/VGG16 (background, tobacco, weed)",
+    "dataset": {
+      "name": "New tobacco-weed aerial dataset (8 fields, Mardan, Khyber Pakhtunkhwa, Pakistan, 2021)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": 0.001,
+      "flight_altitude_m": 4,
+      "note": "DJI Mavic Mini drone at ~4 m AGL, GSD 0.1 cm/pixel; 1920x1080 images cropped to non-overlapping 480x352 patches (last 24 rows shared 80% with next frame); crop age 15-40 days; labels background/crop/weed = 0/1/2; training on one whole field, testing on seven others."
+    },
+    "classes": ["background", "tobacco (crop)", "weed"],
+    "num_classes": 3,
+    "backbone": "Stage-I: Vanilla Mini CNN (UNet); Stage-II: VGG16 (UNet)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.91, "unit": "fraction", "normalized_digits": 2, "confidence": 0.85, "quote": "we achieved the maximum performance of MIOU = 0.91 using Vanilla Mini and VGG 16 as backbones of UNet in stage-I and II", "section": "4 Results / Table 3", "table": "Table 3", "ambiguity": "Best configuration (Stage-I Vanilla Mini/UNet + Stage-II VGG16/UNet): BG IoU 0.98, crop IoU 0.85, weed IoU 0.91, mIoU 0.91. Per-field mIoU ranges 0.78-0.92 across seven test fields (best field 0.92). One-stage baseline SegNet/VGG16 mIoU 0.78."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported; IoU/mIoU used."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed class IoU 0.91 (two-stage) vs 0.76 (one-stage) - reported as IoU not F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Tobacco crop IoU 0.85 (two-stage) vs 0.67 (one-stage) - reported as IoU not F1."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 480,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Inference stated as 'below one second' per 480x352 image (Table 4); no FPS given."},
+    "latency_ms": {"reported": true, "value": null, "unit": "ms", "normalized_digits": 0, "confidence": 0.7, "quote": "We have checked the inference time for one image of size 480 \u00d7 352; it is below one second", "section": "4 Discussion / Table 4", "table": "Table 4", "ambiguity": "Reported only as 'below one second' (not exact) per 480x352 patch on desktop i5 + GTX 1050; 2-stage doubles inference vs 1-stage; offline suitability; Jetson Nano deployment planned as future work, not executed."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 12.79, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "our proposed model (471,586 + 12,321,603 = 12,793,189 trainable parameters)", "section": "3.5 Comparison with MTS-CNN", "table": "", "ambiguity": "Stage-I (471,586) + Stage-II (12,321,603) = 12,793,189 trainable parameters for the 2-stage model (structural; not edge-deployed)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["Two-stage pipeline doubles inference time vs one-stage (below 1 s per patch on desktop; no on-board benchmark).", "Slight discrepancy: best-config mIoU 0.91 (Table 3) vs best single field 0.92 (Table 2); per-field range 0.78-0.92.", "No F1/pixel-accuracy reported; class-wise IoU used."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

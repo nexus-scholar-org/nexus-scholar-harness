@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000136",
+  "study": {
+    "title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+    "short_title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+    "year": 2020,
+    "venue": "2020 International Conference on Computational Science and Computational Intelligence (CSCI)",
+    "extracted_md": "2020_Mini_Weed_segmentation_in_sugarcane_crops_using_Mask_R.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "crop-weed",
+    "models_tested": ["Mask R-CNN ResNet-50 (12 configs)", "Mask R-CNN ResNet-101 (12 configs)"],
+    "best_model": "Mask R-CNN ResNet-101, augmented dataset, COCO pre-trained (R101-A-C)",
+    "dataset": {
+      "name": "Self-collected sugarcane farms (fixed-wing Xmobots Arator 5A UAS, Sony ILCE-5100 RGB camera)",
+      "uav_collected": true,
+      "images": 1100,
+      "resolution_gsp_m": 0.027,
+      "flight_altitude_m": 180,
+      "note": "1100 orthomosaic patches 512x512 (800 train / 200 val / 100 test); GSD 2.7-5.8 cm/pixel; flight altitude 120-240 m AGL; 12364 annotated weed regions (8165 broadleaf, 4199 grass). Sugarcane and ground treated as background."
+    },
+    "classes": ["broadleaf", "grass"],
+    "num_classes": 2,
+    "backbone": "ResNet-101 (FPN)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance segmentation paper; uses COCO AP metrics instead of mIoU."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.752, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "R101-A-C 0.284 0.655 0.185 0.803 0.707 0.752", "section": "III-D Results", "table": "Table III", "ambiguity": "F1 score overall between the two weed types (broadleaf/grass); best config ResNet-101 augmented + COCO pre-trained."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Overall F1 across weed types reported, not per-class."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Sugarcane treated as background, not segmented."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Instance segmentation (COCO metrics); only F1 mappable to RQ1 schema"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

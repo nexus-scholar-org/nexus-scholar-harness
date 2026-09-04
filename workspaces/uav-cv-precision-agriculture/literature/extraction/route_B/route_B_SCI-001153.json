@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001153",
+  "study": {
+    "title": "Recognizing Zucchinis Intercropped with Sunflowers in UAV Visible Images Using an Improved Method Based on OCRNet",
+    "short_title": "Recognizing Zucchinis Intercropped with Sunflowers in UAV Visible Images Using an Improved OCRNet",
+    "year": 2021,
+    "venue": "Remote Sensing",
+    "extracted_md": "2021_Huang_Recognizing_Zucchinis_Intercropped_with_Sunflowers.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop classification (intercropping)",
+    "models_tested": ["Improved OCRNet (SE block + Lovasz-Softmax)", "PSPNet", "DeepLabV3+", "DNLNet", "OCRNet"],
+    "best_model": "Improved OCRNet (SE_MIX_OCRNet) with channel attention + mixed loss",
+    "dataset": {
+      "name": "UAV visible images of zucchini/sunflower intercropping, Hetao Irrigation District, Inner Mongolia, China",
+      "uav_collected": true,
+      "images": 43930,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 100,
+      "note": "DJI S900 + RedEdge multispectral camera (visible RGB used); flown 11:00-13:00, 88% heading / 84% side overlap; 256x256 crops with 75% overlap; 27,130 training / 16,800 test tiles; test areas imaged 26-Jul-2020 (TA1) and 02-Aug-2020 (TA2)."
+    },
+    "classes": ["zucchini", "sunflower", "intercropping", "background"],
+    "num_classes": 4,
+    "backbone": "ResNet-50",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.950, "unit": "fraction", "normalized_digits": 3, "confidence": 0.97, "quote": "The mIoU and intercropping IoU of our proposed method in test area 1 reached 94.44% and 96.57%, respectively, and the mIoU and Intercropping IoU in test area 2 reached 95.05% and 94.51%, respectively.", "section": "Conclusions", "table": "Table 3", "ambiguity": "Best proposed-method result on test area 2 (95.05%); test area 1 mIoU 94.44%."},
+      "mPA": {"reported": true, "value": 0.968, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "Among these evaluation metrics, our proposed method performed best, reaching 94.44%, 96.78%, 0.9534, and 96.57%, respectively.", "section": "4.1 Experiment 1 (test area 1)", "table": "Table 2", "ambiguity": "Mean accuracy (mAcc) 96.78% on test area 1 for the proposed method; TA2 mAcc (96.89%, derived) slightly lower than DeepLabV3+."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Intercropping class accuracy (Acc) 99.59% (TA1) / 96.19% (TA2) reported as class-level accuracy, not global pixel accuracy."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop-type/intercropping study; no weed class."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-crop IoU reported via classes; done here via pixel metrics instead."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Crop-type/intercropping segmentation, not weed-crop discrimination"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

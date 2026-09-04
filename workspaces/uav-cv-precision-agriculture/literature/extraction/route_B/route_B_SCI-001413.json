@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001413",
+  "study": {
+    "title": "EDM-UNet: An Edge-Enhanced and Attention-Guided Model for UAV-Based Weed Segmentation in Soybean Fields",
+    "short_title": "EDM-UNet (ResNet50+ECA+Canny edge guide) soybean weed seg",
+    "year": 2025,
+    "venue": "Agriculture",
+    "extracted_md": "2025_Gao_EDMUNet_An_EdgeEnhanced_and_AttentionGuided_Mo.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "binary weed segmentation in soybean fields from UAV RGB imagery (weed vs background), with edge guidance and structure-prior post-processing",
+    "models_tested": ["EDM-UNet (ResNet50-UNet + ECA attention in skip connections + Canny edge guidance in decoder + Gabor direction-consistency filtering + morphological aspect-ratio filtering)", "ResNet50-UNet (baseline)", "DeepLabv3+", "U-Net", "PSPNet"],
+    "best_model": "EDM-UNet: MIoU 0.8945, Recall 0.9353, Precision 0.9478, 40.36 FPS, 43.942 M params, 184.257 GFLOPs",
+    "dataset": {
+      "name": "Self-built soybean-field weed dataset, Anda, Suihua City, Heilongjiang, China (Agricultural Science Park of Heilongjiang Bayi Agricultural University)",
+      "uav_collected": true,
+      "images": 1200,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Acquired 12-20 June 2024, 10:00-13:00, soybean V2-V3; DJI Phantom 3P (1/2.3-inch CMOS 12.4 MP, f/2.8, nadir), 2-5 m above canopy, 80% forward / 70% side overlap (Pix4Dcapture). 800 raw images, LabelMe binary annotation (weed vs background; 11,403 weed instances, 3-48 per image); 8:1:1 image-level split with augmentation on train only: 1040 train / 80 val / 80 test."
+    },
+    "classes": ["background", "weed"],
+    "num_classes": 2,
+    "backbone": "ResNet50 encoder + U-Net decoder; ECA (Conv1D channel attention, dynamic kernel) on skip connections; Canny/Sobel edge maps concatenated at decoder stages",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.8945, "unit": "fraction", "normalized_digits": 4, "confidence": 0.85, "quote": "The experimental results show that the EDM-UNet method achieves the best performance effect on the self-built dataset, and the MIoU, Recall and Precision on the test set reach 89.45%, 93.53% and 94.78% respectively.", "section": "Abstract / 3.5 Detection Model Comparison Test", "table": "Table 3", "ambiguity": "Binary weed/background; MIoU averaged over all classes incl. background (Eq. 7). Ablation (Table 2, test 8, all modules): MIoU 89.45%, Recall 93.53%, Precision 94.78%, FPS 40.36. Baselines: ResNet50-UNet 82.74%, DeepLabv3+ 81.83%, U-Net 82.09%, PSPNet 70.87%."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class precision/recall not reported; only weed-class precision/recall as target."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported (precision 0.9478 / recall 0.9353 reported)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Overall pixel accuracy not reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only MIoU/Recall/Precision for the weed (positive) class reported; no class-pair F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Segmentation is weed vs background (no crop class)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 512,
+    "framework": "PyTorch 1.10, Ubuntu 20.04, CUDA 11.3/CUDNN 8.2.0; SGD lr 0.01 momentum 0.937, cosine annealing (decay 0.0005), batch 16, 300 epochs; GPU NVIDIA GeForce RTX 3080 Ti 12G; FPS = mean of 100 forward passes",
+    "fps": {"reported": true, "value": 40.36, "unit": "fps", "normalized_digits": 2, "confidence": 0.85, "quote": "FPS is introduced as an indicator to measure the processing speed of the semantic segmentation network ... EDM-UNet  ... FPS 40.36", "section": "3.2 Model Evaluation Index / 3.5 Detection Model Comparison Test", "table": "Table 3", "ambiguity": "40.36 FPS measured on DESKTOP NVIDIA RTX 3080 Ti in PyTorch (not an edge device). Authors claim it 'sufficiently satisfies real-time deployment requirements in UAV-based precision agriculture' but no on-board/embedded benchmark."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported (implied ~24.8 ms/image at 40.36 FPS)."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 43.942, "unit": "millions", "normalized_digits": 3, "confidence": 0.9, "quote": "EDM-UNet has 43.942 million parameters and 184.257 GFLOPs, while the baseline has 43.933 million parameters and 184.100 GFLOPs.", "section": "3.5 Detection Model Comparison Test", "table": "Table 3", "ambiguity": "43.942 M params (near baseline ResNet50-UNet 43.933 M; DeepLabv3+ 5.813 M, PSPNet 2.376 M reported for reference)."},
+    "gflops": {"reported": true, "value": 184.257, "unit": "GFLOPS", "normalized_digits": 3, "confidence": 0.9, "quote": "EDM-UNet has 43.942 million parameters and 184.257 GFLOPs", "section": "3.5 Detection Model Comparison Test", "table": "Table 3", "ambiguity": "184.257 GFLOPs per forward pass (FLOPs in billions, Eq./Table 3); vs ResNet50-UNet 184.100, U-Net 451.672, DeepLabv3+ 52.867, PSPNet 6.031."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["FPS measured on desktop RTX 3080 Ti (PyTorch, 100 forward passes), not an embedded/edge device; edge.reported=false despite real-time and UAV-integration claims.", "Flight altitude 2-5 m above canopy; GSD not explicitly reported (resolution_gsp_m null).", "Per-class semantics are weed vs background only; crop class not segmented.", "Confusion-matrix discussion (weeds correct 87% post-enhancement vs 76% baseline) consistent with reported Recall."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

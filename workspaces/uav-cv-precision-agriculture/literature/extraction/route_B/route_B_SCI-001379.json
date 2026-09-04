@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001379",
+  "study": {
+    "title": "Eggplant Leaf Semantic Segmentation in Aerial Imagery for Precision Agriculture",
+    "short_title": "Eggplant Leaf Segmentation in Aerial Imagery (FPN/VGG16)",
+    "year": 2023,
+    "venue": "International Conference on Humanoid, Nanotechnology, Information Technology,Communication and Control, Environment and Management",
+    "extracted_md": "2023_Usman_Eggplant_Leaf_Semantic_Segmentation_in_Aerial_Imag.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop (leaf/vegetation)",
+    "models_tested": ["U-Net (VGG16/VGG19)", "FPN (VGG16/VGG19)"],
+    "best_model": "FPN + VGG16 (best accuracy & latency: PA 0.9724 @0.5; U-Net+VGG19 tops Dice/IoU/F1)",
+    "dataset": {
+      "name": "LeavesUAV (authors' eggplant farm, Philippines)",
+      "uav_collected": true,
+      "images": 60750,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "New LeavesUAV dataset from 1080p UAV/RGB flight-recordings of mature eggplant leaves; 1080p frames patched to 448x448x3 via sliding window; augmentation (saturation/hue/brightness/flip); train 60,750 (20% validation), test 1,350; binary leaf vs background; grayscale rendering with ImageNet normalization."
+    },
+    "classes": ["eggplant leaf", "background"],
+    "num_classes": 2,
+    "backbone": "VGG16 / VGG19 (ImageNet-pretrained)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Binary task evaluated with class-level IoU reported in Fig. 6 (values not fully extractable); U-Net+VGG19 highest at 0.5 threshold."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.808, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "U-Net with VGG19 has a consistently exceptional performance, attaining the highest F1 score of 0.8080 at the 0.5 threshold", "section": "IV.C Analysis / Fig. 6", "table": "", "ambiguity": "Best F1 (leaf class, binary) = U-Net+VGG19 @0.5 threshold. The paper's recommended model, FPN+VGG16, has lower F1 but best pixel accuracy and latency (values in Fig. 6, not all quantities extractable)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice coefficients plotted in Fig. 6 (not text-extractable); U-Net+VGG19 highest @0.5."},
+      "PA": {"reported": true, "value": 0.9724, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "FPN with VGG16 (97.24% and 96.73%)", "section": "V Conclusion", "table": "", "ambiguity": "Best pixel accuracy (leaf vs background) across all models: FPN+VGG16 = 0.9724 @0.5 threshold and 0.9673 @0.75. Others: U-Net+VGG19 0.9696/0.9687, FPN+VGG19 0.9691/0.9633, U-Net+VGG16 0.9676/0.9622."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No weed class; binary leaf/background segmentation for vegetation-index-based sprayer."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Eggplant-leaf class F1 = 0.8080 (U-Net+VGG19 @0.5) captured under F1."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 448,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Latency reported in ms; no FPS."},
+    "latency_ms": {"reported": true, "value": 31.5, "unit": "ms", "normalized_digits": 1, "confidence": 0.85, "quote": "FPN with VGG16 emerged as the most efficient, exhibiting the lowest average latency times for both thresholds, with 31.5 ms at 0.5 and 32.6 ms at 0.75", "section": "IV.C Network Latency", "table": "", "ambiguity": "Average inference latency per 448x448 patch on DESKTOP hardware (NVIDIA RTX 3060 6 GB, models evaluated on 1,350 test images); U-Net+VGG19 slowest at 38.5/39.6 ms. Not measured on embedded/payload hardware even though intended for a UAV variable sprayer system."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.8,
+    "issues": ["Conference paper; all quantitative results in figures (Fig. 6); many exact metric values (IoU/Dice/F1 for other configs) not extractable from text.", "Latency measured on desktop RTX 3060, not UAV payload hardware.", "Best-model ambiguity: recommended FPN+VGG16 by accuracy/latency; U-Net+VGG19 highest Dice/IoU/F1."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

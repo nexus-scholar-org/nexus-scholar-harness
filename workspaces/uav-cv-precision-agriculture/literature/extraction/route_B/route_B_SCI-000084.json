@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000084",
+  "study": {
+    "title": "Crop and Weed Classification Using Pixel-wise Segmentation on Ground and Aerial Images",
+    "short_title": "Crop and Weed Classification Using Pixel-wise Segmentation on Ground and Aerial Images",
+    "year": 2020,
+    "venue": "International Journal of Robotic Computing",
+    "extracted_md": "2020_Fawakherji_Crop_and_Weed_Classication_Using_Pixel_wise_Segmen.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["VGG-UNet", "VGG-SegNet", "UNet", "Bonnet", "FCN8"],
+    "best_model": "VGG-UNet (multi-channel input RED+NIR+NDVI)",
+    "dataset": {
+      "name": "UAV1 (sugar beet field, multispectral NIR/Red + NDVI); supplementary UAV2 (corn field); SugarBeets, Stuttgart, Carrots, Sunflowers (non-UAV)",
+      "uav_collected": true,
+      "images": 155,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "UAV1 = 155 multispectral images; 100 used for augmentation (420 augmented) + 55 held out for testing. Labels: soil, crop, weed."
+    },
+    "classes": ["soil", "crop", "weed"],
+    "num_classes": 3,
+    "backbone": "VGG-16",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.75, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "SugarBeets 0,75 0.998 0.94 0.80 0.99 0.92 0.70", "section": "4.4 Multi-Channel Architecture Evaluation", "table": "Table 5", "ambiguity": "European decimal comma notation; 3-class (soil/crop/weed) multi-channel VGG-UNet on SugarBeets test split."},
+      "mPA": {"reported": true, "value": 0.95, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "The best results was achieved using the three channels together as input, while for pixel-wise segmentation into soil, and plant sugar beet dataset the best result for NDVI channel. ... RED+NIR+NDVI 0.95 0.98 0.88", "section": "4.6 Weeds Distribution Evaluation", "table": "Table 6", "ambiguity": "Mean accuracy (avg. per-class accuracy) for 3-class segmentation on the UAV sugar beet dataset with RED+NIR+NDVI input."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "NVIDIA Jetson TX2",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Paper reports per-image processing time 0.6 s, not FPS."},
+    "latency_ms": {"reported": true, "value": 600, "unit": "ms", "normalized_digits": 2, "confidence": 0.95, "quote": "The performance of VGG-UNet architecture has been tested on an embedded GPU board, namely Jetson TX2, and the processing time per image was 0.6 [s]", "section": "4.6 Weeds Distribution Evaluation", "table": "", "ambiguity": "Stated as processing time per image (0.6 s) on Jetson TX2."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["European decimal commas in tables converted to points; no FPS reported (only per-image time)"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000016",
+  "study": {
+    "title": "WeedMap: A large-scale semantic weed mapping framework using aerial multispectral imaging and deep neural network for precision farming",
+    "short_title": "WeedMap: A large-scale semantic weed mapping framework using aerial multispectral imaging and deep neural network",
+    "year": 2018,
+    "venue": "arXiv Preprint",
+    "extracted_md": "2018_Sa_WeedMap_A_largescale_semantic_weed_mapping_frame.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["DNN (encoder-decoder, input-channel ablations)", "SegNet (RGB baseline)"],
+    "best_model": "DNN (9 input channels)",
+    "dataset": {
+      "name": "WeedMap (RedEdge-M and Sequoia UAV multispectral orthomosaics)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": 0.01,
+      "flight_altitude_m": 10,
+      "note": "5 RedEdge-M + 3 Sequoia orthomosaic maps, sugar beet fields; tiled 480x360 inputs; 10,196 tiles total."
+    },
+    "classes": ["background", "crop", "weed"],
+    "num_classes": 3,
+    "backbone": "",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["quantitative metric is per-class AUC only (best AUC bg/crop/weed = 0.839/0.863/0.782 on RedEdge-M), no mIoU/F1/Dice/PA reported"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

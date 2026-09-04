@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000067",
+  "study": {
+    "title": "RoWeeder: Unsupervised Weed Mapping through Crop-Row Detection",
+    "short_title": "RoWeeder: SegFormer-B0 unsup. crop/weed mapping",
+    "year": 2024,
+    "venue": "arXiv Preprint",
+    "extracted_md": "2024_Marinis_RoWeeder_Unsupervised_Weed_Mapping_through_CropR.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "weed vs crop (sugar beet) vs background",
+    "models_tested": ["RoWeeder (SegFormer-B0 encoder, flat decoder) (proposed)", "RoWeeder (SegFormer)", "RoWeeder (Pyramid)", "Hough+SLIC+ResNet50", "Hough+CC", "Hough+SLIC"],
+    "best_model": "RoWeeder (Flat decoder): macro F1 0.753, params 3.60 M, inf. 7.16 ms",
+    "dataset": {
+      "name": "WeedMap (Rheinbach, Germany; Eschikon, Switzerland)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Multispectral UAV imagery of sugar beet fields: RedEdge-M (Rheinbach) and Sequoia (Eschikon); 8 orthomosaics [000]-[007]; 512x512 non-overlapping sliding tiles; Eschikon excluded (no blue channel); 5-fold cross-validation over Rheinbach subset; crops/weeds annotations used only for test evaluation; pseudo-ground-truth from crop-row detection (NDVI threshold 0.1, Hough Transform) used for training. GSD/altitude not reported in text."
+    },
+    "classes": ["crop", "weed", "background"],
+    "num_classes": 3,
+    "backbone": "SegFormer-B0 (transformer, ~3.7M params) + custom flat decoder",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Macro-averaged F1 is the sole quality metric (5-fold CV)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.753, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "our method achieved a mean F1 score of 75.3 (RoWeeder Flat 74.5/74.9/75.6/77.2/74.3, mean 75.3 ± 0.5)", "section": "4.3 Results, Table 1", "table": "Table 1", "ambiguity": "Macro-averaged F1, 5-fold CV on Rheinbach subset of WeedMap. Baselines: Hough+SLIC+ResNet50 71.2, Hough+CC 70.4, Hough+SLIC 70.4. Unsupervised training on pseudo-GT; test on true annotations."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 used; Dice-equivalent captured under F1."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 4, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": true, "value": 0.566, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "RoWeeder (Flat) per-class F1 (full): BG 98.4, Crop 70.9, Weed 56.6", "section": "4.3 Results, Table 2", "table": "Table 2", "ambiguity": "Averaged over 5 folds, 'full' = all pixels in image; inter-row weed F1 0.598, intra-row weed F1 by definition ~0 (intra-row weeds labeled crop)."},
+      "crop_F1": {"reported": true, "value": 0.709, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "RoWeeder (Flat) per-class F1: Crop 70.9 (full), inter-row 71.9, intra-row 42.4", "section": "4.3 Results, Table 2", "table": "Table 2", "ambiguity": "Averaged over 5 folds."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 512,
+    "framework": "PyTorch (SegFormer; trained on Leonardo cluster 4x NVIDIA A100-64GB)",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Inference time only; claims real-time suitability for drones (7 ms/image)."},
+    "latency_ms": {"reported": true, "value": 7.16, "unit": "ms", "normalized_digits": 2, "confidence": 0.8, "quote": "our method achieves an inference time of 7ms ... Inference time was calculated on a single NVIDIA RTX 4090", "section": "Table 3 / Computational requirements", "table": "Table 3", "ambiguity": "DESKTOP NVIDIA RTX 4090 (512x512 tile). Future work: test on edge. Hough+SLIC+ResNet50 1620 ms; Hough+CC 84 ms; Hough+SLIC 377 ms. Model 'light enough to be deployed on Jetson TX2/Nano' but NOT measured on them => edge.reported false."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 3.6, "unit": "millions", "normalized_digits": 2, "confidence": 0.8, "quote": "RoWeeder model is lightweight, with only 3.6M parameters and 3.68 GMACs", "section": "Table 3", "table": "Table 3", "ambiguity": "Structural metric (reported). RoWeeder (Flat) 3.60 M; SegFormer variant 3.71 M; Pyramid 3.90 M; Hough+SLIC+ResNet50 23.51 M. Structural model metric, not edge deployment."},
+    "gflops": {"reported": true, "value": 7.36, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.6, "quote": "3.68 GMACs (RoWeeder Flat), Table 3", "section": "Table 3", "table": "Table 3", "ambiguity": "Paper reports 3.68 GMACs; converted to GFLOPS (x2, derived) for schema unit. Structural metric, desktop-measured."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.8,
+    "issues": ["Only macro-averaged F1 reported as quality metric (no mIoU/PA/Dice).", "Efficiency measured on desktop RTX 4090; edge deployment (Jetson TX2/Nano) claimed as motivation but not measured.", "Eschikon subset omitted (no blue channel); experiments limited to Rheinbach subset.", "Pseudo-ground-truth training means quality metrics reflect noise resilience; inter-row/intra-row per-class F1 values as reported."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

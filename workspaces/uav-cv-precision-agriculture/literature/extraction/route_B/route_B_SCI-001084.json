@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001084",
+  "study": {
+    "title": "A Preliminary Study on U-Net for Crop Monitoring Using Low-Altitude Drone Imagery",
+    "short_title": "WeedsGalore (maize): Attention U-Net 21.1% lighter; weed IoU to 77.49%",
+    "year": 2025,
+    "venue": "Proceedings of the 8th International Conference on Engineering Mechanics and Automation ICEMA 2025 20th Anniversary of the Faculty of Engineering Mechanics and Automation, University of Engineering and Technology, Vietnam National University, Hanoi",
+    "extracted_md": "2025_Thang_A_Preliminary_Study_on_UNet_for_Crop_Monitoring_U.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Feasibility study comparing lightweight U-Net variants (U-Net, Attention U-Net, ResUNet, proposed ResUNet-SCSE) against the DeepLabV3+ benchmark for 3-class segmentation of crop canopy, weeds and bare soil in low-altitude multispectral drone imagery (WeedsGalore maize field benchmark)",
+    "models_tested": ["U-Net", "Attention U-Net", "ResUNet (Residual U-Net)", "ResUNet-SCSE (proposed: residual backbone + ASPP at bottleneck + Spatial-Channel Squeeze-and-Excitation on skip connections)", "DeepLabV3+ with ResNet-50 backbone (reference baseline; official 5-channel MSI pretrained checkpoint)"],
+    "best_model": "DeepLabV3+ highest mIoU 82.90% (test set). Best lightweight: Attention U-Net mIoU 82.82% (only 0.08% below DeepLabV3+, 21.1% fewer params: 31.4M vs 39.8M). ResUNet-SCSE mIoU 82.69% with the highest weed-class IoU 77.49%. Baselines: U-Net 79.70%, ResUNet 81.83%",
+    "dataset": {
+      "name": "WeedsGalore (Helmholtz GFZ, WACV 2025): public multitemporal multispectral UAV maize-field benchmark for crop/weed segmentation (RGB + 5-channel multispectral incl. Red-Edge and NIR)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Imagery captured with commercial UAVs at 10-20 m altitude over maize fields at early growth stage (critical weed-control window). Official train/val/test splits strictly followed; inputs standardized to 600x600 px. The study performed NO real UAV flight (preliminary feasibility stage); a Phase 2 (2026) field validation with actual UAV imaging is planned."
+    },
+    "classes": ["crop canopy", "weed", "bare soil / background"],
+    "num_classes": 3,
+    "backbone": "U-Net family (GroupNorm, batch 2) vs DeepLabV3+ ResNet-50 (BN, batch 8); Adam lr 1e-3, 25 epochs, cross-entropy, rotation/flip/Gaussian-noise jitter augmentation; 5-channel MSI inputs",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.829, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "Among all evaluated architectures, DeepLabV3+ achieved the highest overall performance with an mIoU of 82.90%. However, the leading U-Net variants exhibited highly competitive results: Attention U-Net reached 82.82% mIoU, only 0.08% lower than DeepLabV3+, followed closely by ResUNet-SCSE with 82.69% mIoU", "section": "IV. Result and Discussion / Table 2", "table": "Table 2", "ambiguity": "Reported value is the best test-set mIoU (DeepLabV3+ baseline 0.8290); the proposed SOTA competitor ResUNet-SCSE = 0.8269 and the study's headline lightweight Attention U-Net = 0.8282. Class IoUs (Attention U-Net): bg 0.9855, crop 0.7253, weed 0.7739."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class IoU reported, not class-mean accuracy."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported (IoU and mIoU + ECE used)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice not reported."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported per class; weed-class IoU reported instead: ResUNet-SCSE 0.7749 (highest), Attention U-Net 0.7739, DeepLabV3+ 0.7731."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported per class; crop-class IoU reported instead: DeepLabV3+ 0.7293, Attention U-Net 0.7253, ResUNet-SCSE 0.7199."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "No physical hardware deployed (preliminary feasibility study); training/GPU details not specified",
+    "precision": null,
+    "resolution_input": 600,
+    "framework": null,
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference speed reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No latency reported."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Power not reported."},
+    "params_M": {"reported": true, "value": 31.4, "unit": "millions", "normalized_digits": 1, "confidence": 0.9, "quote": "Relative to DeepLabV3+, Attention U-Net reduced model size by 21.1% (approx. 8.4 million parameters) while maintaining nearly identical accuracy", "section": "IV. Result and Discussion / Table 2", "table": "Table 2", "ambiguity": "Structural param count; edge.reported=false (no on-device deployment). Attention U-Net 31.4M; ResUNet-SCSE (proposed) 38.3M; U-Net 31.0M; DeepLabV3+ 39.8M."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["edge.reported=false: no real UAV hardware deployed nor inference timing; deployment suitability is argued only from parameter counts and planned Phase 2 (2026) field validation.", "Best test-set mIoU belongs to the external DeepLabV3+ baseline (0.8290), not the proposed ResUNet-SCSE (0.8269); the headline lightweight result is Attention U-Net (0.8282, 31.4M params, 21.1% smaller than DeepLabV3+).", "Proposed ResUNet-SCSE achieves the top weed-class IoU 77.49% (crop IoU 71.99%).", "Multispectral 5-channel inputs at 600x600; official WeedsGalore train/val/test splits. ECE best 0.0019 (Attention U-Net / ResUNet-SCSE)."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001335",
+  "study": {
+    "title": "Research on Intelligent Image Segmentation Based on UAV Remote Sensing and DeepLabV3+ Model",
+    "short_title": "DeepLabV3+ backbone comparison; MobileNetV2 val IoU 0.7019, Dice 0.7499",
+    "year": 2025,
+    "venue": "2025 IEEE 3rd International Conference on Computer, Vision and Intelligent Technology (ICCVIT)",
+    "extracted_md": "2025_Li_Research_on_Intelligent_Image_Segmentation_Based_o.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop image semantic segmentation from UAV remote sensing with a fixed DeepLabV3+ framework, comparing five backbone networks (VGG16, ResNet50, ResNet101, Xception, MobileNetV2) for accuracy-efficiency trade-off toward edge/UAV deployment",
+    "models_tested": ["DeepLabV3+ (VGG16)", "DeepLabV3+ (ResNet50)", "DeepLabV3+ (ResNet101)", "DeepLabV3+ (Xception)", "DeepLabV3+ (MobileNetV2)"],
+    "best_model": "DeepLabV3+ with MobileNetV2 backbone (recommended by authors for UAV resource-constrained deployment): validation IoU 0.7019, Dice 0.7499, Accuracy 0.8562; 4.25 M params, 88.47 MB memory. Xception statistically comparable (val Accuracy 0.8695, IoU 0.6998, Dice 0.7475).",
+    "dataset": {
+      "name": "AliCloud Tianchi 'Barley Remote Sensing Dataset': GB-scale UAV RGB images of farmland in Xingren, Guizhou, China, pixel-annotated for 5 foreground classes + background",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "External benchmark UAV dataset (Xingren, Guizhou) lacking weather/lighting/growth metadata. Original large images tiled into 1024x1024 patches (background-only patches discarded), then resized to 224x224 for training (bilinear for images, nearest-neighbor for masks). Image count/GSD/altitude not reported. 70%/30% train/val split; no data augmentation."
+    },
+    "classes": ["background", "barley", "maize", "tobacco", "Job's tears", "buildings"],
+    "num_classes": 6,
+    "backbone": "DeepLabV3+ with ASPP (atrous rates 6/12/18 + GAP); comparison backbones VGG16, ResNet50, ResNet101, Xception, MobileNetV2",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.7019, "unit": "fraction", "normalized_digits": 4, "confidence": 0.85, "quote": "0.7019[1] up arrow", "section": "IV. EXPERIMENT AND RESULTS ANALYSIS / Table 2", "table": "Table 2", "ambiguity": "Validation mIoU of DeepLabV3+ (MobileNetV2), highest rank [1]; Xception val IoU 0.6998 statistically indistinguishable (mean differences < std). Single-run estimates."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Accuracy reported is global pixel accuracy, not class-mean accuracy."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported (evaluation uses accuracy, IoU, Dice)."},
+      "Dice": {"reported": true, "value": 0.7499, "unit": "fraction", "normalized_digits": 4, "confidence": 0.85, "quote": "0.7499[1] up arrow", "section": "IV. EXPERIMENT AND RESULTS ANALYSIS / Table 2", "table": "Table 2", "ambiguity": "Validation Dice of DeepLabV3+ (MobileNetV2), highest rank; Xception val Dice 0.7475 (statistically indistinguishable)."},
+      "PA": {"reported": true, "value": 0.8562, "unit": "fraction", "normalized_digits": 4, "confidence": 0.85, "quote": "0.8562[2]", "section": "IV. EXPERIMENT AND RESULTS ANALYSIS / Table 2", "table": "Table 2", "ambiguity": "Validation accuracy of DeepLabV3+ (MobileNetV2). Xception val accuracy 0.8695 (rank [1]) slightly higher but statistically indistinguishable."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop-classification task; no weed class."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class results not reported (only global acc/IoU/Dice)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 224,
+    "framework": "PyTorch; Adam (lr 0.001), cross-entropy loss with class weights [1.0, 2.0, 2.0, 2.0, 2.0, 2.0], batch size 4, 50 epochs; timing/memory measured on desktop GPU platform",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FPS not reported."},
+    "latency_ms": {"reported": true, "value": 20.4, "unit": "ms", "normalized_digits": 2, "confidence": 0.7, "quote": "MobileNetV2 ... Inference Time(s) 0.0204[4]", "section": "IV. EXPERIMENT AND RESULTS ANALYSIS / Table 3", "table": "Table 3", "ambiguity": "Per-image inference time (0.0204 s) of DeepLabV3+ (MobileNetV2) at 224x224 measured on the training GPU workstation (NOT an edge device). Xception 0.0133 s; note MobileNetV2 depthwise convs incur high memory-access overhead."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 4.25, "unit": "millions", "normalized_digits": 2, "confidence": 0.85, "quote": "Quantity of Parameters 4.25M[1]", "section": "Table 1 / Table 3", "table": "Table 3", "ambiguity": "DeepLabV3+ (MobileNetV2) parameter count; GPU memory footprint reported as 88.47 MB (lowest). Structural value, not edge measurement."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.7,
+    "issues": ["Single-run validation metrics (no data augmentation, fewer than 5 repeats); authors note large standard deviations and that Xception vs MobileNetV2 differences are statistically indistinguishable.", "Table 2 metrics partially garbled/interleaved in the PDF OCR; MobileNetV2/Xception values read from visible entries, VGG row ambiguous.", "Dataset is an external AliCloud Tianchi benchmark without image count/GSD/altitude metadata.", "Inference time (0.0204 s) is desktop-GPU per-image time, not on-device edge inference.", "MobileNetV2 chosen for UAV deployment based on memory, stability and generalization, not peak accuracy."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

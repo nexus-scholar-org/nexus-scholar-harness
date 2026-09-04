@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-000482",
+  "study": {
+    "title": "Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops in UAV Images",
+    "short_title": "Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops",
+    "year": 2018,
+    "venue": "Remote Sensing",
+    "extracted_md": "2018_Bah_Deep_Learning_with_Unsupervised_Data_Labeling_for_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["ResNet18"],
+    "best_model": "ResNet18",
+    "dataset": {
+      "name": "self-collected UAV (DJI Phantom 3 Pro; bean and spinach fields)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": 0.0035,
+      "flight_altitude_m": 20,
+      "note": "36 MP RGB camera; DJI Phantom 3 Pro at 20 m altitude, spatial resolution about 0.35 cm; patch-wise CNN classification with 64x64 windows; reports only AUC (ROC), not pixel segmentation metrics. Bean field: thistles + volunteer potato sprouts; spinach field: thistles."
+    },
+    "classes": ["crop", "weed"],
+    "num_classes": 2,
+    "backbone": "ResNet18",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 64,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.92,
+    "issues": ["only AUC (ROC) reported; no pixel-level segmentation metric", "validated"],
+    "validated_changed": ["edge.resolution_input"],
+    "validation": {"checks": 14, "changed": 1},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

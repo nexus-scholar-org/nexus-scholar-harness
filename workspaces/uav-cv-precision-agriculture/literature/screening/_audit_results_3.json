@@ -1,0 +1,198 @@
+[
+  {
+    "workspace_id": "SCI-000962",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.97,
+    "exclusion_codes": [],
+    "reasoning": "LW-Segnet and LW-Unet perform pixel-level rice seedling segmentation from UAV multispectral imagery across 3 rice varieties and different planting densities, reporting quantitative F1-scores and IoU values with lightweight real-time inference considerations."
+  },
+  {
+    "workspace_id": "SCI-001305",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "RSE-BiSeNet performs semantic segmentation of wheat lodging (lodged vs. non-lodged wheat) from self-built UAV imagery, reporting F1 93.1% and mIoU 89.2% compared to U-Net/BiSeNet/DeepLabv3+, satisfying DL pixel-level crop segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000440",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.98,
+    "exclusion_codes": [],
+    "reasoning": "Custom U-Net models perform pixel-level weed segmentation in cotton fields using CoFly-WeedDB UAV RGB imagery, reporting IoU above 50% and Dice above 60%, with models optimized and deployed on Nvidia Jetson Nano edge device including FPS and power consumption metrics."
+  },
+  {
+    "workspace_id": "SCI-000903",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.97,
+    "exclusion_codes": [],
+    "reasoning": "Six instance segmentation algorithms (Mask R-CNN, YOLOv8, etc.) are evaluated on maize seedling plant instances from UAV multispectral imagery; YOLOv8 achieves segm_mAP50 of 94%, constituting UAV crop pixel-level instance segmentation with quantitative mask metrics."
+  },
+  {
+    "workspace_id": "SCI-000271",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.97,
+    "exclusion_codes": [],
+    "reasoning": "EENet (edge enhancement network) performs semantic segmentation of crops from UAV RGB imagery using an innovative edge enhancement strategy, surpassing competing methods in mIoU, F1 score, and model complexity on a publicly available dataset."
+  },
+  {
+    "workspace_id": "SCI-000650",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.88,
+    "exclusion_codes": [],
+    "reasoning": "DeepLabV3+ performs pixel-level semantic segmentation of grass weeds in wheat fields from UAV hyperspectral/RGB imagery, achieving MIoU 88.8% and weed segmentation precision 91.27% for scattered wheat; the paper explicitly uses DL segmentation models with quantitative segmentation metrics despite biomass being the downstream application."
+  },
+  {
+    "workspace_id": "SCI-000075",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "YOLOv8 and Mask R-CNN perform weed instance segmentation in potato fields from UAV orthomosaic RGB images (10m altitude), reporting mAP50 scores of 0.902 and 0.920 respectively, with Real-ESRGAN super-resolution enhancement; weed control treatments significantly impact yield."
+  },
+  {
+    "workspace_id": "SCI-000980",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.92,
+    "exclusion_codes": [],
+    "reasoning": "Mask R-CNN performs instance segmentation of Brassica oleracea (cabbage) heads in UAV imagery using COCO-formatted mask annotations and transfer learning, achieving mAP of 98.6%; this is a crop segmentation task producing pixel-level instance masks from UAV data."
+  },
+  {
+    "workspace_id": "SCI-000067",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "RoWeeder combines crop-row detection with a noise-resilient deep learning model for unsupervised pixel-level crop/weed mapping on the WeedMap dataset from UAV imagery, achieving F1 of 75.3; the task is crop/weed semantic segmentation with a quantitative segmentation metric."
+  },
+  {
+    "workspace_id": "SCI-000138",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.97,
+    "exclusion_codes": [],
+    "reasoning": "ResNet-Unet performs semantic segmentation of sorghum crops, weeds, and background from high-resolution UAV photos, achieving Dice coefficient of 0.929 and precision/recall/F1 of 93.01-99.68%, with data augmentation and contrast enhancement methods."
+  },
+  {
+    "workspace_id": "SCI-000286",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "U-Net-MobileNetV2 performs pixel-level weed segmentation in tobacco crop fields from UAV aerial imagery (Mavic Mini drone), achieving 96% accuracy and mIoU 0.851, with successful real-time deployment on NVIDIA Jetson Nano edge device showing 271ms inference time."
+  },
+  {
+    "workspace_id": "SCI-000149",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.97,
+    "exclusion_codes": [],
+    "reasoning": "WeedVision is a single-stage DL architecture performing both bounding-box detection and pixel-wise instance segmentation of weeds on UAS-acquired imagery, achieving 82.8% mask precision on GPU and 77% on palm-sized AGX Xavier edge device, with ProtoNet head for weed masking."
+  },
+  {
+    "workspace_id": "SCI-000140",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-05"],
+    "reasoning": "This is a comprehensive review paper analyzing drone technology applications in precision agriculture and livestock farming, with no primary benchmark of DL segmentation models on UAV imagery. It is secondary literature covering diverse UAV applications without any quantitative segmentation metrics."
+  },
+  {
+    "workspace_id": "SCI-001053",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "YOLOv8 variants, Mask R-CNN, and U-Net are compared for weed detection and segmentation in soybean and bean crops from UAV images on a public 3021-image dataset; YOLOv8s achieves mAP50 97% and the study includes both detection and mask-level segmentation with explicit quantitative evaluation."
+  },
+  {
+    "workspace_id": "SCI-001046",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.90,
+    "exclusion_codes": [],
+    "reasoning": "UAV-tailored Mask R-CNN performs instance segmentation of weeds (AP 89.1%) and crops (AP 88.9%) from 200 UAV images with IoT-based Raspberry Pi alerts; the model produces pixel-level segmentation masks. The 'plantation crops' reference is minor as the paper uses standard UAV + DL segmentation pipeline."
+  },
+  {
+    "workspace_id": "SCI-000371",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.93,
+    "exclusion_codes": [],
+    "reasoning": "ResLMFFNet is a real-time residual CNN for semantic segmentation applied across three precision agriculture tasks including UAV-based wheat yellow rust detection (Jaccard improvement of 11.2% for RGB) and tree detection (RIT-18 aerial imagery); the paper benchmarks Jaccard Index, FPS, and GFLOPs."
+  },
+  {
+    "workspace_id": "SCI-001203",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.87,
+    "exclusion_codes": [],
+    "reasoning": "Improved U-Net (VGG19 encoder + CBAM attention + Focal-Dice Loss) performs semantic segmentation of corn stover (crop residue) from UAV field imagery, achieving 93.87% pixel accuracy and 83.23% mIoU compared to U-Net/SegNet/ResNet. The task is UAV-based arable crop pixel-level segmentation with quantitative metrics."
+  },
+  {
+    "workspace_id": "SCI-000902",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-06"],
+    "reasoning": "This is a data article presenting an annotated cabbage instance segmentation dataset (458 images, 17,621 COCO-format masks) without any quantitative segmentation benchmark or model evaluation. No mIoU, F1, Dice, or other segmentation accuracy metric is reported, failing INC-02."
+  },
+  {
+    "workspace_id": "SCI-001029",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "YOLOv8-Seg performs instance segmentation of individual Chinese cabbage plants from UAV multispectral imagery, achieving 86.3% mAP under RGB band, using SAM-assisted semi-automatic annotation, and extracting key metrics such as cabbage count and average leaf area."
+  },
+  {
+    "workspace_id": "SCI-001371",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "Improved PP-LiteSeg with pyramid pooling and sparse self-attention performs pixel-level semantic segmentation for crop classification (9 categories including rice, soybean, wheat, corn) from UAV visible-light images, achieving MIoU 94.79% and 12.3 FPS inference speed, balancing accuracy with real-time performance."
+  },
+  {
+    "workspace_id": "SCI-000442",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-03"],
+    "reasoning": "YOLOv8 performs vehicle detection and tracking in urban traffic from UAV videos on iOS mobile devices; the application is urban transportation analysis, not agricultural crop/weed segmentation. This is entirely outside the precision agriculture domain."
+  },
+  {
+    "workspace_id": "SCI-000225",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.94,
+    "exclusion_codes": [],
+    "reasoning": "LoRA-fine-tuned vision-language models (Qwen2-VL, LLaVA) are adapted for crop segmentation on UAV remote-sensing images by reformulating masks as polygon coordinates, with quantitative generalization metrics reported for crop-specific and general segmentation prompts."
+  },
+  {
+    "workspace_id": "SCI-000637",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "YOLO11-PSPNet combination detects and semantically segments weeds in rice paddy fields from UAV imagery, achieving mAP50 of 99.56% with 6.2ms inference time; the dataset captures multiple weed species (Echinochloa, Cyperus) with RAdam+SAM optimizer."
+  },
+  {
+    "workspace_id": "SCI-000017",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "WeedsGalore provides a multispectral multitemporal UAV dataset with dense semantic and instance segmentation annotations for maize and four weed classes, reporting extensive baseline segmentation results with uncertainty quantification across RGB, red-edge, and near-infrared bands."
+  },
+  {
+    "workspace_id": "SCI-001480",
+    "verdict": "OUT_OF_SCOPE",
+    "confidence": 0.99,
+    "exclusion_codes": ["EXC-02", "EXC-06"],
+    "reasoning": "This paper presents vision-enhanced NMPC row-following navigation and control for UAVs in vineyard environments; the computer vision system detects vineyard rows for localization (not pixel-level crop/weed segmentation), and the primary contribution is trajectory tracking with no segmentation accuracy metrics reported."
+  },
+  {
+    "workspace_id": "SCI-000001",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "Lightweight transformer-CNN hybrid processes RGB, NIR, and Red-Edge bands for crop-weed pixel-level semantic segmentation on the WeedsGalore UAV dataset, achieving mIoU of 78.88% (15.8pp improvement over RGB-only) with only 8.7M parameters, demonstrating potential for real-time UAV/edge deployment."
+  },
+  {
+    "workspace_id": "SCI-001413",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.96,
+    "exclusion_codes": [],
+    "reasoning": "EDM-UNet with ECA attention and Canny edge detection performs UAV weed semantic segmentation in soybean fields on a self-built dataset, achieving MIoU 89.45%, Precision 94.78%, Recall 93.53%, and real-time FPS of 40.36, outperforming the baseline network across all metrics."
+  },
+  {
+    "workspace_id": "SCI-000180",
+    "verdict": "IN_SCOPE",
+    "confidence": 0.95,
+    "exclusion_codes": [],
+    "reasoning": "CWRepViT-Net (RepViT encoder + Modified UNet decoder) performs semantic segmentation of five classes (soil, soybean, volunteer canola, broadleaf weeds, grassy weeds) on drone images of soybean fields captured across six growth stages (21-52 DAS), reporting overall accuracy >95% and Kappa 0.91."
+  }
+]

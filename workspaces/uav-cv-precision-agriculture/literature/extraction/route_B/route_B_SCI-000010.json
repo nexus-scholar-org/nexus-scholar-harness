@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000010",
+  "study": {
+    "title": "Semi-supervised GAN for Classification of Multispectral Imagery Acquired by UAVs",
+    "short_title": "Semi-supervised GAN for Classification of Multispectral Imagery Acquired by UAVs",
+    "year": 2019,
+    "venue": "arXiv Preprint",
+    "extracted_md": "2019_Kerdegari_Semisupervised_GAN_for_Classification_of_Multispe.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["Semi-supervised GAN (DCGAN-based, discriminator as pixel classifier)"],
+    "best_model": "Semi-supervised GAN (two input channels: Red+NIR, 50% labeled data)",
+    "dataset": {
+      "name": "weedNet (sugar beet fields; Sequoia 4-band multispectral, MAV)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 2,
+      "note": "NIR and Red channels + derived NDVI; pixel-wise annotated; 50/40/30% labeled data used."
+    },
+    "classes": ["background", "crop", "weed"],
+    "num_classes": 3,
+    "backbone": "",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.85, "unit": "fraction", "normalized_digits": 3, "confidence": 0.75, "quote": "Results showed the F1 score of about 0.85 for two channels with 50% labeled data.", "section": "Conclusion", "table": "Table I", "ambiguity": "Reported as 'about 0.85' (approximate); overall F1 across classes, best configuration (Red+NIR, 50% labeled)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.8,
+    "issues": ["F1 value is approximate ('about 0.85')"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000555",
+  "study": {
+    "title": "Adaptive autonomous UAV scouting for rice lodging assessment using edge computing with deep learning EDANet",
+    "short_title": "Adaptive autonomous UAV scouting for rice lodging assessment using edge computing with EDANet",
+    "year": 2020,
+    "venue": "Computers and Electronics in Agriculture",
+    "extracted_md": "2020_Yang_Adaptive_autonomous_UAV_scouting_for_rice_lodging_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "lodging",
+    "models_tested": ["EDANet"],
+    "best_model": "EDANet with RGB + ExG + ExGR input",
+    "dataset": {
+      "name": "Self-collected UAV RGB images of rice fields (Wufeng, Taiwan); two lodging events 2017 and 2019",
+      "uav_collected": true,
+      "images": 215,
+      "resolution_gsp_m": 0.013,
+      "flight_altitude_m": 50,
+      "note": "Tables: 2017 collection 46,343x25,658 ortho at 200 m flight / 5.3 cm GSD; 2019 collection 5472x3648 at 50 m / 1.3 cm GSD and 200 m / 5.7 cm GSD. 215 50-m Wufeng images; 12 200-m images span the same area."
+    },
+    "classes": ["rice paddy", "rice lodging", "road", "bare land", "background"],
+    "num_classes": 5,
+    "backbone": "EDANet",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "mIoU not reported; paper uses precision/recall/accuracy/overall accuracy/F1."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.785, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "Based on the results of the 2019 dataset, EDANet using RGB + ExG + ExGR information illustrations the highest value in recall (85.22%), accuracy (92.83%), and F1 score (78.51%).", "section": "3.1 Model training and testing", "table": "Table 6", "ambiguity": "Macro F1-score on 2019 test dataset with the final RGB+ExG+ExGR model."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.928, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "Based on the results of the 2019 dataset, EDANet using RGB + ExG + ExGR information illustrations the highest value in recall (85.22%), accuracy (92.83%), and F1 score (78.51%).", "section": "3.1 Model training and testing", "table": "Table 6", "ambiguity": "Overall pixel accuracy (92.83%) on 2019 test dataset, final RGB+ExG+ExGR model."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not a crop-weed study (rice lodging)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Rice paddy class F1 95.28% (training, Table 5) is reported but not an RQ1 crop-F1 benchmark."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Entire 2019 test process runs in ~1 minute (65 s) on a GPU workstation (Tesla V100), not per-image FPS or edge hardware."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Autonomous in-situ edge processing is simulated; Jetson TX2/AGX Xavier/Xavier NX listed as future work."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["99.25% is scouting-normalization accuracy vs 50 m full scout, not segmentation accuracy; edge computing only simulated"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

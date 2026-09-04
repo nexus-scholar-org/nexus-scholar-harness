@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000852",
+  "study": {
+    "title": "SqueezeSlimU-Net: An Adaptive and Efficient Segmentation Architecture for Real-Time UAV Weed Detection",
+    "short_title": "SSU-Net slimmable Squeeze U-Net: IoU 58.28%, 2.5M params, 4.25-9.09 FPS in-flight",
+    "year": 2025,
+    "venue": "IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing",
+    "extracted_md": "2025_Machidon_SqueezeSlimUNet_An_Adaptive_and_Efficient_Segmen.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "real-time UAV weed detection via dynamically slimmable network width (Squeeze U-Net + SqueezeNet fire modules + slimmable neural networks), validated on an onboard edge platform (Jetson Nano) with Monsoon power measurement",
+    "models_tested": ["SSU-Net (proposed slimmable squeeze U-Net, widths 100%/75%/50%/25%)", "SU-Net (slimmable U-Net reference)", "pruned U-Net (PSU-Net)", "pruned squeeze U-Net", "FCN", "DeepLabV3 (MobileNetV3)", "LRASPP (MobileNetV3)", "SegNet", "U-Net", "AlexNet (0.7 GFLOPS) as input-complexity adaptation classifier"],
+    "best_model": "SSU-Net at 100% width: IoU 58.28%, accuracy 90.47%, recall 62.89% on AgriAdapt (512x512), with only 2.5M parameters; on par with DeepLabV3 (IoU 58.35%, 11.0 M) and FCN (IoU 62.62%, 35.3 M). SU-Net (non-squeezed) scores higher IoU 63.58% on the Tobacco dataset but is up to 6.8x slower/per-inference energy.",
+    "dataset": {
+      "name": "AgriAdapt weed detection dataset, first partition (497 UAV images of salad crops, Rome, Italy, Autumn 2023) - primary; validated also on Tobacco Aerial Dataset campaign 2 (936 UAV images, Mavic Mini, Mardan, Pakistan, April 2021)",
+      "uav_collected": true,
+      "images": 497,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Custom built 6 kg hexacopter with onboard NVIDIA Jetson Nano and Arducam 16 MP Sony IMX519 camera on a 2-axis brushless gimbal (AgriAdapt). 80/20 train/test split; images resampled to 512x512 (optimum); background and crop merged into a single class (binary weed detection); weighted CE loss 0.1/0.9 background/weed + L2 0.01; max 300 epochs, Adam lr 1e-4 decay 0.99, batch 8."
+    },
+    "classes": ["weed", "background (crop + soil merged)"],
+    "num_classes": 2,
+    "backbone": "SSU-Net: U-Net skeleton, SqueezeNet fire modules (squeeze/expand with SlimmableConv2d + SwitchableBatchNorm2d), slimmable transposed convolutions; widths 100/75/50/25%",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.5828, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "At 100% width, the SSU-Net achieved an IoU of 58.28%, surpassing the SU-Net's 57.13%", "section": "IV-C1 Inference Performance / Table III", "table": "Table III", "ambiguity": "Binary weed-vs-background IoU on AgriAdapt (512x512), SSU-Net 100% width; IoU 53% at 25% width and 51.67% to 59.67% across widths on Tobacco."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Accuracy reported is overall/semantic-segmentation accuracy (OA), not class-mean."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "The F1-score, balancing precision and recall, also highlights the SSU-Net's dominance, which scores better at the top three widths", "section": "IV-C1 / Table III", "table": "Table III", "ambiguity": "F1-score is reported for SSU-Net vs SU-Net per width in Table III, but numeric values are not recoverable from the extracted text."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice not reported."},
+      "PA": {"reported": true, "value": 0.9047, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "At 100% width, it achieved an accuracy of 90.47%, compared to the SU-Net's 89.41%", "section": "IV-C1 / Table III", "table": "Table III", "ambiguity": "Overall pixel accuracy (OA) of SSU-Net 100% width on AgriAdapt; drops to ~88% at narrower widths. Comparable state-of-the-art models reach 90-91% accuracy."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Binary weed-vs-background F1 reported only via overall F1-score (Table III), not separate per-class weed/crop F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop merged into background; no per-crop F1 reported."}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "NVIDIA Jetson Nano 4 GB board (Ubuntu 20.04.6 LTS, Python 3.8.10, PyTorch 1.12.0), commonly mounted onboard UAVs; power measured with a Monsoon power monitor tool",
+    "precision": "FP32",
+    "resolution_input": 512,
+    "framework": "PyTorch (trained on NVIDIA RTX 3090 24 GB, batch 8, Adam lr 1e-4 exp-decay 0.99, max 300 epochs early-stopped); TorchScript deployment on Jetson Nano; no quantization NCHW",
+    "fps": {"reported": true, "value": 4.25, "unit": "fps", "normalized_digits": 2, "confidence": 0.85, "quote": "FPS, ranging from 4.25 for the 100% width network to 9.09 for the 25% width", "section": "IV-C2 / Table V", "table": "Table V", "ambiguity": "Average FPS on Jetson Nano at 512x512 across slimmable widths (100%: 4.25, 25%: 9.09); meets 4.5 FPS real-time benchmark threshold; SU-Net stays below 4 FPS on the same hardware."},
+    "latency_ms": {"reported": true, "value": 235, "unit": "ms", "normalized_digits": 1, "confidence": 0.7, "quote": "TU-Net. The exhibited differences in inference time make an essential distinction between a solution that enables real-time inference and a solution that does not allow such operation", "section": "IV-C2 / Table V, Fig. 5(b)", "table": "Table V", "ambiguity": "Derived as 1000/4.25 FPS for the 100%-width model on Jetson Nano; ~110 ms at 25% width. Raw per-instance times are given in Fig. 5(b) only (up to 6.8x faster than SU-Net) - value estimated from reported FPS."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "In the case of the Tobacco dataset, the results show that as the energy consumption decreases threefold (from 0.1 to 0.03 mAh), the average IoU declines by just 3%", "section": "IV-C3 / Fig. 7(a)", "table": "", "ambiguity": "Power in watts not reported; per-inference energy measured with Monsoon power monitor: ~0.1 mAh (100% width) to 0.03 mAh (25% width) on Tobacco; up to 65% energy saving with ~2% accuracy drop via input-based adaptation."},
+    "params_M": {"reported": true, "value": 2.5, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "With 2.5 M parameters, SSU-Net achieves an IoU of 58.28%, closely matching larger models, such as Deeplab V3 (58.35%, 11.0 M)", "section": "IV-F / Fig. 13, Table VIII", "table": "Table VIII", "ambiguity": "Parameter count at 100% width; decreases at 75/50/25% widths via slimming. Compare FCN 35.3 M, SegNet 29.44 M, U-Net 0.5 M."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "With its eight layers (five convolutional and three fully connected), and only 0.7 GFLOPS, AlexNet is a powerful yet reasonably small architecture", "section": "IV-D / II", "table": "", "ambiguity": "SSU-Net GFLOPS not explicitly stated in extracted text; 0.7 GFLOPS figure is for the AlexNet input-complexity adaptation classifier."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["F1-score numeric values in Tables III/IV not recoverable from extracted text; IoU/accuracy/recall tracked instead.", "latency_ms derived from reported FPS (1000/4.25 = 235 ms at 100% width), raw times only in Fig. 5(b).", "Power reported as per-inference energy in mAh (Monsoon) rather than watts; watt value not available.", "Primary metrics from AgriAdapt partition 1 (497 images); Tobacco dataset (936 images) SSU-Net reaches IoU 59.67% at 100% width, SU-Net 63.58%.", "Binary weed detection (crop merged into background); slimmable widths 100/75/50/25% tuned at runtime for energy/accuracy."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,1370 @@
+[
+ {
+  "workspace_id": "SCI-000482",
+  "study": {
+   "title": "Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops in UAV Images",
+   "short_title": "Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops",
+   "year": 2018,
+   "venue": "Remote Sensing",
+   "extracted_md": "2018_Bah_Deep_Learning_with_Unsupervised_Data_Labeling_for_.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["CNN models trained on supervised vs. unsupervised (auto-labeled) data"],
+   "best_model": "CNN with unsupervised (line-detection-based) data labeling",
+   "dataset": {
+    "name": "Self-collected UAV bean and spinach fields",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": 0.0035,
+    "flight_altitude_m": null,
+    "note": "Samples: 673 weeds / 4861 crops (bean field); spatial resolution ~0.35 cm; image size N=7360x4912."
+   },
+   "classes": ["weeds", "crops"],
+   "num_classes": 2,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.55,
+   "issues": ["Task is pixel-wise CNN classification of crops vs. weeds; reported metrics are AUC (close to or ≥ 0.90) and supervised-vs-unsupervised accuracy gaps (1.5% spinach, 6% bean field) - none map onto the schema segmentation metrics, so all segmentation metrics are unreported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000547",
+  "study": {
+   "title": "A Semantic Labeling Approach for Accurate Weed Mapping of High Resolution UAV Imagery",
+   "short_title": "A Semantic Labeling Approach for Accurate Weed Mapping of High Resolution UAV Imagery",
+   "year": 2018,
+   "venue": "Sensors",
+   "extracted_md": "2018_Huang_A_Semantic_Labeling_Approach_for_Accurate_Weed_Map.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["Pixel-based-SVM", "FCN-8s", "DFCN ResNet-101 (ASPP-12/ASPP-S/ASPP-L/ASPP-1) +/- CRF"],
+   "best_model": "DFCN ResNet-101 ASPP-1 with CRF",
+   "dataset": {
+    "name": "Self-collected UAV rice field (Guangdong, China)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": 0.003,
+    "flight_altitude_m": 6,
+    "note": "Field 0.54 ha (90 x 60 m); DJI Phantom 4, 4000x3000 px, 35 mm lens."
+   },
+   "classes": ["others", "rice", "weeds"],
+   "num_classes": 3,
+   "backbone": "ResNet-101 (DFCN)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.7751, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "ASPP-1 without CRF 0.7721 0.9423 0.9094 0.2916 s | ASPP-1 with CRF 0.7751 0.9445 0.9128 2.9171 s", "section": "Table 8 (accuracy and efficiency comparison)", "table": "Table 8", "ambiguity": ""},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.9445, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "ASPP-1 without CRF 0.7721 0.9423 0.9094 0.2916 s | ASPP-1 with CRF 0.7751 0.9445 0.9128 2.9171 s", "section": "Table 8 (accuracy and efficiency comparison)", "table": "Table 8", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed accuracy reaches 0.925 (confusion matrix, ASPP-1 with CRF) - accuracy, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.9,
+   "issues": ["Inference 2.9171 s/image (with CRF) vs 0.2916 s (without CRF) reported in Table 8; device/platform unspecified and CRF runs on a single CPU thread - not an embedded deployment."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000514",
+  "study": {
+   "title": "A fully convolutional network for weed mapping of unmanned aerial vehicle (UAV) imagery",
+   "short_title": "A fully convolutional network for weed mapping of UAV imagery",
+   "year": 2018,
+   "venue": "PLoS ONE",
+   "extracted_md": "2018_Huang_A_fully_convolutional_network_for_weed_mapping_of_.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["FCN-32s", "FCN-16s", "FCN-8s", "Patch-based CNN", "Pixel-based CNN"],
+   "best_model": "FCN-8s (VGG-16 transfer + skip)",
+   "dataset": {
+    "name": "Self-collected UAV rice field (Guangzhou, South China)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": 0.003,
+    "flight_altitude_m": 6,
+    "note": "DJI Phantom 4; spatial resolution ~0.3 cm."
+   },
+   "classes": ["others", "rice", "weeds"],
+   "num_classes": 3,
+   "backbone": "VGG-16",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.752, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "pixel acc. 0.923 0.928 0.935 | mean acc. 0.795 0.811 0.807 | mean IU 0.728 0.749 0.752 | f.w. IU 0.876 0.886 0.892", "section": "Table 2 (FCN-32s/16s/8s comparison)", "table": "Table 2", "ambiguity": ""},
+    "mPA":    {"reported": true, "value": 0.807, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "pixel acc. 0.923 0.928 0.935 | mean acc. 0.795 0.811 0.807 | mean IU 0.728 0.749 0.752 | f.w. IU 0.876 0.886 0.892", "section": "Table 2 (FCN-32s/16s/8s comparison)", "table": "Table 2", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.935, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "pixel acc. 0.923 0.928 0.935 | mean acc. 0.795 0.811 0.807 | mean IU 0.728 0.749 0.752 | f.w. IU 0.876 0.886 0.892", "section": "Table 2 (FCN-32s/16s/8s comparison)", "table": "Table 2", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed recognition accuracy 0.883 (FCN-8s, Table 4 confusion matrix) - accuracy, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.9,
+   "issues": ["Inference time 0.323 s/image for FCN-8s (Table 2); 721.8 s/image for Pixel-based CNN (Table 3); device unspecified, desktop evaluation only."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000582",
+  "study": {
+   "title": "Accurate Weed Mapping and Prescription Map Generation Based on Fully Convolutional Networks Using UAV Imagery",
+   "short_title": "Accurate Weed Mapping and Prescription Map Generation Based on FCNs Using UAV Imagery",
+   "year": 2018,
+   "venue": "Sensors",
+   "extracted_md": "2018_Huang_Accurate_Weed_Mapping_and_Prescription_Map_Generat.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["FCN-8s", "Deeplab (ResNet-101 + CRF)", "Modified FCN-4s"],
+   "best_model": "Modified FCN-4s",
+   "dataset": {
+    "name": "Self-collected UAV rice field",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Workflows compared: mosaicking-labeling vs labeling-mosaicking."
+   },
+   "classes": ["others", "rice", "weeds"],
+   "num_classes": 3,
+   "backbone": "VGG-16 (FCN-4s)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.8473, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "FCN-8s 0.9096 0.8303 0.413 s 24.8 min | Deeplab 0.9191 0.8460 5.279 s 39.6 min | FCN-4s 0.9196 0.8473 0.356 s 24.7 min", "section": "Table 3 (method comparison)", "table": "Table 3", "ambiguity": ""},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.9196, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "FCN-8s 0.9096 0.8303 0.413 s 24.8 min | Deeplab 0.9191 0.8460 5.279 s 39.6 min | FCN-4s 0.9196 0.8473 0.356 s 24.7 min", "section": "Table 3 (method comparison)", "table": "Table 3", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed accuracy 0.907 (FCN-4s confusion matrix) - accuracy, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.9,
+   "issues": ["Per-image processing 0.356 s (FCN-4s); full-field map ~24.7 min including data collection. Desktop evaluation, no embedded device."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000016",
+  "study": {
+   "title": "WeedMap: A large-scale semantic weed mapping framework using aerial multispectral imaging and deep neural network for precision farming",
+   "short_title": "WeedMap: semantic weed mapping with aerial multispectral imaging and DNN",
+   "year": 2018,
+   "venue": "arXiv Preprint",
+   "extracted_md": "2018_Sa_WeedMap_A_largescale_semantic_weed_mapping_frame.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["Modified SegNet (RGB baseline)", "Modified SegNet (multi-channel inputs, 13 RedEdge-M + 7 Sequoia models)"],
+   "best_model": "Modified SegNet with 9 input channels (RGB + CIR/NDVI)",
+   "dataset": {
+    "name": "Self-collected UAV multispectral orthomosaics (RedEdge-M and Sequoia)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": 0.0094,
+    "flight_altitude_m": null,
+    "note": "Two campaigns, 1.6554 ha total; sample map 5995x5854 px, GSD 0.94 cm/pixel."
+   },
+   "classes": ["background", "crop", "weed"],
+   "num_classes": 3,
+   "backbone": "VGG16 (SegNet encoder)",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "NVIDIA Titan X GPU (desktop)",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.5,
+   "issues": ["Evaluated via per-class AUC of precision-recall curve (not a schema metric). Best 9-channel model AUC [bg 0.839, crop 0.863, weed 0.782]; RGB SegNet baseline [0.607, 0.681, 0.576]. 'Overall accuracy of 96%' refers to object-detection (crop vs. weed scenario).", "Inference ~200 ms per image on NVIDIA Titan X GPU - desktop, not embedded."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000010",
+  "study": {
+   "title": "Semi-supervised GAN for Classification of Multispectral Imagery Acquired by UAVs",
+   "short_title": "Semi-supervised GAN for Classification of Multispectral Imagery Acquired by UAVs",
+   "year": 2019,
+   "venue": "arXiv Preprint",
+   "extracted_md": "2019_Kerdegari_Semisupervised_GAN_for_Classification_of_Multispe.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["Semi-supervised GAN (DCGAN-based, 1/2/3 input channels)"],
+   "best_model": "Semi-supervised GAN (Red+NIR, 50% labeled data)",
+   "dataset": {
+    "name": "weedNet (MAV multispectral, sugar beet field)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": 2,
+    "note": "4-band Sequoia camera; 790 nm NIR + 660 nm Red + derived NDVI; 50/40/30% labeled pixel-wise annotations."
+   },
+   "classes": ["crop", "weed", "background"],
+   "num_classes": 3,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": true, "value": 0.85, "unit": "fraction", "normalized_digits": 3, "confidence": 0.55, "quote": "Results showed the F1 score of about 0.85 for two channels with 50% labeled data.", "section": "Conclusion", "table": "Table I", "ambiguity": "Table I is an embedded image; exact per-config F1 values not extractable. Text states F1 about 0.85 (Red+NIR, 50% labeled) and 'all models ... perform reasonably well (about 80% for all classes)'."},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 values (Table I) not extractable (image table)."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 values (Table I) not extractable (image table)."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.6,
+   "issues": ["Screening status was PROVISIONAL_FULLTEXT_ELIGIBILITY; full-text verification confirms quantitative F1 reported (about 0.85, best config).", "No deployment/inference timing reported; evaluation offline on weedNet."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000565",
+  "study": {
+   "title": "Lightweight Semantic Segmentation Network for Real-Time Weed Mapping Using Unmanned Aerial Vehicles",
+   "short_title": "Lightweight Semantic Segmentation Network for Real-Time Weed Mapping Using UAVs",
+   "year": 2020,
+   "venue": "Applied Sciences",
+   "extracted_md": "2020_Deng_Lightweight_Semantic_Segmentation_Network_for_Real.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["Modified AlexNet-FCN", "VGGNet-FCN", "GoogLeNet-FCN", "ResNet-FCN"],
+   "best_model": "Modified AlexNet-FCN (FP16 precision calibration)",
+   "dataset": {
+    "name": "Self-collected UAV rice field",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Camera frames 1280x720 cropped to central 720x720 and resized to 1000x1000."
+   },
+   "classes": ["background", "rice", "weed"],
+   "num_classes": 3,
+   "backbone": "AlexNet (modified FCN)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.628, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "GTX 1060 FP16 80.9 62.8 35.6 | Jetson TX2 FP16 80.9 62.8 4.5", "section": "Table 2 (precision calibration results)", "table": "Table 2", "ambiguity": "Primary row = deployed on-device Jetson TX2 FP16. FP32 on GTX 1060 reaches OA 91.2% / mIoU 70.5% before precision calibration."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.809, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "GTX 1060 FP16 80.9 62.8 35.6 | Jetson TX2 FP16 80.9 62.8 4.5", "section": "Table 2 (precision calibration results)", "table": "Table 2", "ambiguity": "Primary row = deployed on-device Jetson TX2 FP16 (overall accuracy 80.9%). FP32 GTX 1060 OA 91.2% before calibration."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": true,
+   "device": "NVIDIA Jetson TX2",
+   "precision": "FP16",
+   "resolution_input": "1000x1000",
+   "framework": "",
+   "fps":       {"reported": true, "value": 4.5, "unit": "fps", "normalized_digits": 2, "confidence": 0.85, "quote": "GTX 1060 FP16 80.9 62.8 35.6 | Jetson TX2 FP16 80.9 62.8 4.5", "section": "Table 2 (precision calibration results)", "table": "Table 2", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.9,
+   "issues": ["fps reported directly on primary device (Jetson TX2 FP16). Same model on Jetson TX2 FP32: 1.2 fps at unchanged 91.2% OA; GTX 1060 FP16 reaches 35.6 fps (desktop comparison). Native unoptimized deployment mentioned at 0.11 fps on TX2."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000084",
+  "study": {
+   "title": "Crop and Weed Classication Using Pixel-wise Segmentation on Ground and Aerial Images",
+   "short_title": "Crop and Weed Classification Using Pixel-wise Segmentation on Ground and Aerial Images",
+   "year": 2020,
+   "venue": "International Journal of Robotic Computing",
+   "extracted_md": "2020_Fawakherji_Crop_and_Weed_Classication_Using_Pixel_wise_Segmen.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["VGG-SegNet", "UNet", "Bonnet", "FCN8", "VGG-UNet (with/without vegetation indices)"],
+   "best_model": "VGG-UNet, 3-class, RED+NIR+NDVI input",
+   "dataset": {
+    "name": "Public datasets: SugarBeets, Stuttgart, Carrots, Sunflowers (plus aerial pipeline)",
+    "uav_collected": false,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Mixed ground/aerial public data; third lightweight CNN designed for small-UAV setups."
+   },
+   "classes": ["soil", "crop", "weed"],
+   "num_classes": 3,
+   "backbone": "VGG-16 (encoder)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.75, "unit": "fraction", "normalized_digits": 3, "confidence": 0.65, "quote": "SugarBeets 0,75 0.998 0.94 0.80 0.99 0.92 0.70", "section": "Results (3-class crop/weed/soil segmentation with vegetation indices)", "table": "3-class mIOU table (with vegetation indices)", "ambiguity": "Per-dataset 3-class mIoU (with vegetation indices): SugarBeets 0.75, Stuttgart 0.60, Carrots 0.40, Sunflowers 0.41; best dataset value recorded."},
+    "mPA":    {"reported": true, "value": 0.95, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "RED+NIR+NDVI 0.95 0.98 0.88", "section": "Table 6 (mean accuracy by input type, 3-class sugar beet)", "table": "Table 6", "ambiguity": "Dataset-specific (sugar beet) mean segmentation accuracy; 2-class NDVI reaches 0.99 (Table 7)."},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed precision/recall reported (e.g. SugarBeets weed precision 0.70, recall 0.80 with VIs) - not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class crop precision/recall reported (SugarBeets crop recall 0.94, precision 0.99 with VIs) - not F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.7,
+   "issues": ["Inference time ~0.2 s per image when a single channel is used as input, higher with three channels (Conclusion); device unspecified - not an embedded deployment."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000136",
+  "study": {
+   "title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+   "short_title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+   "year": 2020,
+   "venue": "2020 International Conference on Computational Science and Computational Intelligence (CSCI)",
+   "extracted_md": "2020_Mini_Weed_segmentation_in_sugarcane_crops_using_Mask_R.md"
+  },
+  "segmentation": {
+   "task": "instance",
+   "domain": "weed-only",
+   "models_tested": ["Mask R-CNN ResNet-50 (scratch/pretrained +/- augmentation)", "Mask R-CNN ResNet-101 (scratch/pretrained +/- augmentation)"],
+   "best_model": "Mask R-CNN ResNet-101 (COCO pretrained + augmentation, R101-A-C)",
+   "dataset": {
+    "name": "Self-collected aerial sugarcane field imagery (Brazil)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Weed classes: broadleaf and grass."
+   },
+   "classes": ["broadleaf weed", "grass weed"],
+   "num_classes": 2,
+   "backbone": "ResNet-101 (FPN)",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance-segmentation paper; evaluation via AP50/AP75/mAP, not mIoU."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": true, "value": 0.752, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "The ResNet-101 model with pre-trained COCO achieved an Average Precision (AP50) of 65.5% and obtained values of 0.803, 0.707 and 0.752 for Precision, Recall and F1 score.", "section": "Abstract", "table": "Table III", "ambiguity": "F1 over the two weed classes overall; per-class F1 not detailed."},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No crop class in the segmentation task (weed-only)."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.85,
+   "issues": ["Trained on NVIDIA Tesla P100 cluster; no inference/deployment timing reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000555",
+  "study": {
+   "title": "Adaptive autonomous UAV scouting for rice lodging assessment using edge computing with deep learning EDANet",
+   "short_title": "Adaptive autonomous UAV scouting for rice lodging assessment using EDANet",
+   "year": 2020,
+   "venue": "Computers and Electronics in Agriculture",
+   "extracted_md": "2020_Yang_Adaptive_autonomous_UAV_scouting_for_rice_lodging_.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["EDANet (RGB/RGB+ExG/RGB+ExGR/RGB+ExG+ExGR)"],
+   "best_model": "EDANet (RGB+ExG+ExGR)",
+   "dataset": {
+    "name": "Self-collected UAV rice (Wufeng, Taiwan; 2017 and 2019 datasets)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "DJI P4P flight profiles; autonomy cubes from SoftwarePilot."
+   },
+   "classes": ["rice paddy", "rice lodging", "road", "bare land", "background"],
+   "num_classes": 5,
+   "backbone": "EDANet",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Paper reports precision/recall/accuracy/OA/F1, not IoU."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": true, "value": 0.7851, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "RGB + ExG + ExGR 72.78 85.22 92.83 78.51 65", "section": "Table 6 (2019 testing dataset, rice lodging class)", "table": "Table 6", "ambiguity": "Per-class rice-lodging F1 on 2019 test set (final model RGB+ExG+ExGR). 2017 test F1 ranges 83.10-85.16 across input combos."},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.9445, "unit": "fraction", "normalized_digits": 3, "confidence": 0.65, "quote": "RGB + ExG + ExGR 95.19 86.03 80.26 96.51 96.46 94.45", "section": "Table 5 (EDANet model training results of F1 score and OA)", "table": "Table 5", "ambiguity": "OA from model-TRAINING-set table for the final model (RGB+ExG+ExGR); highest OA 94.87% with RGB only. Testing table reports per-class metrics only."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Target anomaly class is rice lodging, not weed."},
+    "crop_F1":{"reported": true, "value": 0.9519, "unit": "fraction", "normalized_digits": 3, "confidence": 0.6, "quote": "RGB + ExG + ExGR 95.19 86.03 80.26 96.51 96.46 94.45", "section": "Table 5 (EDANet model training results of F1 score and OA)", "table": "Table 5", "ambiguity": "Rice-paddy per-class F1 (training table), final model."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.65,
+   "issues": ["Simulation-based study; EDANet inference is not deployed on an embedded device - external edge devices (Jetson TX2/AGX Xavier/Xavier NX) are cited only as future work ('In the future, edge computing will be integrated into adaptive scouting').", "99.25% accuracy figure is the adaptive-scouting normalized error relative to 50 m scouting, not a segmentation metric."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-001173",
+  "study": {
+   "title": "Real-time Crop Classification Using Edge Computing and Deep Learning",
+   "short_title": "Real-time Crop Classification Using Edge Computing and Deep Learning",
+   "year": 2020,
+   "venue": "Consumer Communications and Networking Conference",
+   "extracted_md": "2020_Yang_Realtime_Crop_Classification_Using_Edge_Computing.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["SegNet", "FCN-AlexNet"],
+   "best_model": "SegNet",
+   "dataset": {
+    "name": "Self-collected UAV crop fields (NCHU Experimental Farm)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": 30,
+    "note": "DJI Matrice 100 + Logitech C925e webcam (1920x1080); ground resolution ~2.21 cm/pix at 30-40 m."
+   },
+   "classes": ["rice", "corn", "road", "background"],
+   "num_classes": 4,
+   "backbone": "VGG16 (SegNet encoder)",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Paper reports recall, overall accuracy (OA) and confusion-matrix precision; no IoU."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.8944, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "SegNet 96.07 90.61 77.90 88.21 89.44", "section": "Table 1 (overall accuracy by category)", "table": "Table 1", "ambiguity": "Per-class OA values: rice 96.07%, corn 90.61%, road 77.90%, background 88.21%; SegNet OA 89.44%. Abstract states 'segmentation identification accuracy is 89%'."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No weed class in this crop/road/background segmentation."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class recall reported; no crop-class F1."}
+   }
+  },
+  "edge": {
+   "reported": true,
+   "device": "ASUS Tinker Board S (onboard) + backend server (4G LTE offload)",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": true, "value": 1.43, "unit": "fps", "normalized_digits": 2, "confidence": 0.55, "quote": "The average inference speed of the semantic image segmentation model is 0.7s with segmentation identification accuracy is 89%.", "section": "Abstract", "table": "", "ambiguity": "Derived from reported mean inference time 0.7 s (fps = 1000/700 ~ 1.43); paper reports latency, not FPS."},
+   "latency_ms":{"reported": true, "value": 700, "unit": "ms", "normalized_digits": 2, "confidence": 0.85, "quote": "The average inference speed of the semantic image segmentation model is 0.7s with segmentation identification accuracy is 89%.", "section": "Abstract", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.85,
+   "issues": ["\"derived\": true - fps computed from reported latency 0.7 s (1000/700 ~ 1.43); paper reports inference speed, not FPS.", "Tinker Board runs folder monitoring + image relay; SegNet inference is executed on the backend server after 4G LTE transfer."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000492",
+  "study": {
+   "title": "Semantic Segmentation Using Deep Learning with Vegetation Indices for Rice Lodging Identification in Multi-date UAV Visible Images",
+   "short_title": "Semantic Segmentation with Vegetation Indices for Rice Lodging Identification",
+   "year": 2020,
+   "venue": "Remote Sensing",
+   "extracted_md": "2020_Yang_Semantic_Segmentation_Using_Deep_Learning_with_Veg.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["FCN-AlexNet (RGB/RGB+ExG/RGB+ExGR/RGB+ExG+ExGR)", "SegNet (same inputs)", "MLC (baseline)"],
+   "best_model": "FCN-AlexNet (RGB+ExGR)",
+   "dataset": {
+    "name": "Self-collected UAV rice paddies (~40 ha, Taiwan; 2017 train/test + 2019 validation)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Commercial UAV visible-band imaging; three vegetation indices (ExG, ExR, ExGR) computed."
+   },
+   "classes": ["rice paddy", "rice lodging", "road", "ridge", "background"],
+   "num_classes": 5,
+   "backbone": "AlexNet (FCN-AlexNet)",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Paper reports per-class precision/recall/accuracy, OA and F1; no IoU."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": true, "value": 0.8, "unit": "fraction", "normalized_digits": 3, "confidence": 0.6, "quote": "For the identification of rice lodging on the 2017 UAV images, the F1-score reaches 0.80 and 0.79 for FCN-AlexNet and SegNet, respectively.", "section": "Abstract", "table": "Table 7", "ambiguity": "Abstract headline: per-class rice-lodging F1 on 2017 test set (input combo not specified). Table 7 config-specific F1 ranges 0.8249-0.8356 (best RGB 83.56%); 2019 test F1 0.7827 (RGB+ExGR)."},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.9124, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "RGB+ExGR 93.00 80.08 56.95 95.36 93.52 91.24", "section": "Table 6 (validation: per-category F1 and OA)", "table": "Table 6", "ambiguity": "Validation-set overall accuracy (91.24%, FCN-AlexNet RGB+ExGR). Test tables report per-class metrics only; abstract F1 headline on 2017 test set."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Target anomaly class is rice lodging, not weed."},
+    "crop_F1":{"reported": true, "value": 0.93, "unit": "fraction", "normalized_digits": 3, "confidence": 0.6, "quote": "RGB+ExGR 93.00 80.08 56.95 95.36 93.52 91.24", "section": "Table 6 (validation: per-category F1 and OA)", "table": "Table 6", "ambiguity": "Rice-paddy per-class F1 (validation), best model FCN-AlexNet RGB+ExGR."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.7,
+   "issues": ["Timings are per-image processing on an unspecified platform (Tables 7-8: 55-1572 s per image; DL ~10-15x faster than MLC); no embedded deployment."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000092",
+  "study": {
+   "title": "A DNN-based semantic segmentation for detecting weed and crop",
+   "short_title": "A DNN-based semantic segmentation for detecting weed and crop",
+   "year": 2020,
+   "venue": "Computers and Electronics in Agriculture",
+   "extracted_md": "2020_You_A_DNNbased_semantic_segmentation_for_detecting_w.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["PSPNet", "UNet", "SegNet", "FCN8s", "RSS*", "Proposed (HDC + DropBlock + UFAB + SPRB)"],
+   "best_model": "Proposed SemiWeedNet",
+   "dataset": {
+    "name": "Bonn and Stuttgart crop/weed datasets (public)",
+    "uav_collected": false,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Bonn: 9070 images (crop 1.7%/weed 0.7% pixels); Stuttgart: 2584 images (crop 1.5%/weed 0.7%)."
+   },
+   "classes": ["background", "weed", "crop"],
+   "num_classes": 3,
+   "backbone": "ResNet-50",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.8901, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "Ours 89.01 99.73 75.26 92.04 93.44", "section": "Results (Bonn test set; Table mIOU/class IoU/mPA)", "table": "Bonn comparison table", "ambiguity": "Bonn test mIoU 89.01%. Stuttgart test set generalization: ours Res50 70.82%, Res50* 72.94% (Table 7)."},
+    "mPA":    {"reported": true, "value": 0.9344, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "Ours 89.01 99.73 75.26 92.04 93.44", "section": "Results (Bonn test set; Table mIOU/class IoU/mPA)", "table": "Bonn comparison table", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed IoU 75.26% and crop IoU 92.04% reported (Bonn) - IoU, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class crop IoU 92.04% and weed IoU 75.26% reported (Bonn) - IoU, not F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.9,
+   "issues": ["No deployment/inference timing reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000483",
+  "study": {
+   "title": "AgriSegNet: Deep Aerial Semantic Segmentation Framework for IoT-Assisted Precision Agriculture",
+   "short_title": "AgriSegNet: Deep Aerial Semantic Segmentation for IoT-Assisted Precision Agriculture",
+   "year": 2021,
+   "venue": "IEEE Sensors Journal",
+   "extracted_md": "2021_Anand_AgriSegNet_Deep_Aerial_Semantic_Segmentation_Fram.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["Modified DeepLabV3/DeepLabV3+ (output strides 8/16) [17]", "FPN-based model [17]", "AgriSegNet (multi-scale attention + adaptive class weighting + dice loss)"],
+   "best_model": "AgriSegNet",
+   "dataset": {
+    "name": "Agriculture-Vision (UAV farmland anomaly challenge dataset)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Six anomaly classes: cloud shadow, double plant, planter skip, standing water, waterway, weed cluster."
+   },
+   "classes": ["background", "cloud shadow", "double plant", "planter skip", "standing water", "waterway", "weed cluster"],
+   "num_classes": 7,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Overall test mIoU appears only in figure-rendered Tables V-VIII (not text-extractable). Text reports per-class mIoUs: weed cluster 51.7% val / 50.20% test, double plant 47.96% test, cloud shadow 49.12% val / 46.3% test, planter skip 8.68% test; validation dice/F1 67%."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Validation dice score/F1 reported as 67% (per-class, text) - not a schema-level overall metric."},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed-cluster per-class mIoU 50.20% (test) reported - IoU, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No standard crop class in the anomaly segmentation task."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "Cloud GPU server (training; per text)",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.5,
+   "issues": ["Overall AgriSegNet test mIoU is only in figure-style tables (Tables V-VIII rendered as images in extraction), so no overall schema segmentation metric can be quoted; per-class test mIoUs noted instead.", "No embedded deployment; text mentions retraining on 'cloud GPU Server' (IoT-assisted)."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-001210",
+  "study": {
+   "title": "MAENet: Multiple Attention Encoder-decoder Network for Farmland Segmentation of Remote Sensing Images",
+   "short_title": "MAENet: Multiple Attention Encoder-decoder Network for Farmland Segmentation",
+   "year": 2021,
+   "venue": "IEEE Geoscience and Remote Sensing Letters",
+   "extracted_md": "2021_Huan_MAENet_Multiple_Attention_Encoderdecoder_Network.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["FCN", "PSPNet", "UNet", "DeepLabV3+", "MAENet"],
+   "best_model": "MAENet (DPECA + DFA + GIU)",
+   "dataset": {
+    "name": "Three self-made farmland image datasets (representing UAV data)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Multi-class farmland test set."
+   },
+   "classes": ["farmland", "non-farmland (multi-class)"],
+   "num_classes": null,
+   "backbone": "ResNet (DPECA-embedded backbone)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.9374, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "The MIoU and Kappa coefficient in the farmland multi-classification test set can reach 93.74% and 96.74%.", "section": "Abstract", "table": "", "ambiguity": "MIoU on the best farmland multi-classification test set (Dataset 3); per-dataset results in tables. Per-class farmland IoU 92.48%/96.49% on Datasets 1/2."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Kappa coefficient 96.74% reported alongside MIoU - not overall accuracy, not a schema key."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Farmland segmentation task - no weed class."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.8,
+   "issues": ["No deployment/inference timing or parameters reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-001153",
+  "study": {
+   "title": "Recognizing Zucchinis Intercropped with Sunflowers in UAV Visible Images Using an Improved Method Based on OCRNet",
+   "short_title": "Recognizing Zucchinis Intercropped with Sunflowers in UAV Images (OCRNet)",
+   "year": 2021,
+   "venue": "Remote Sensing",
+   "extracted_md": "2021_Huang_Recognizing_Zucchinis_Intercropped_with_Sunflowers.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["PSPNet", "DeepLabV3+", "DNLNet", "OCRNet", "Improved OCRNet (channel attention + Lovasz-Softmax)"],
+   "best_model": "Improved OCRNet",
+   "dataset": {
+    "name": "Self-collected UAV visible imagery (Hetao Irrigation District, Inner Mongolia)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Two test areas TA1 and TA2; classes include zucchinis, sunflowers and intercropping regions."
+   },
+   "classes": ["background", "sunflower", "zucchini", "intercropping"],
+   "num_classes": null,
+   "backbone": "OCRNet (ResNet backbone)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.9505, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "TA2: mIoU 95.05%, mAcc 96.89% (improved OCRNet, best test area)", "section": "Results (test areas TA1/TA2 tables)", "table": "Test-area mIoU/mAcc tables", "ambiguity": "Two test areas: TA1 mIoU 94.44%/mAcc 96.78%, TA2 mIoU 95.05%/mAcc 96.89%; best (TA2) recorded."},
+    "mPA":    {"reported": true, "value": 0.9689, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "TA2: mIoU 95.05%, mAcc 96.89% (improved OCRNet, best test area)", "section": "Results (test areas TA1/TA2 tables)", "table": "Test-area mIoU/mAcc tables", "ambiguity": "TA2 mAcc 96.89% (best test area); TA1 mAcc 96.78%."},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No weed class (crop intercropping task)."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class segment IoU reported (e.g. intercropping IoU 96.57%/94.51% on TA1/TA2) - IoU, not F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.85,
+   "issues": ["No deployment/inference timing or parameters reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-001333",
+  "study": {
+   "title": "Real-Time Identification of Rice Weeds by UAV Low-Altitude Remote Sensing Based on Improved Semantic Segmentation Model",
+   "short_title": "Real-Time Identification of Rice Weeds by UAV Low-Altitude Remote Sensing",
+   "year": 2021,
+   "venue": "Remote Sensing",
+   "extracted_md": "2021_Lan_Real_Time_Identification_of_Rice_Weeds_by_UAV_Low_.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["U-Net", "MobileNetV2-UNet", "BiSeNetV2", "FFB-BiSeNetV2"],
+   "best_model": "FFB-BiSeNetV2",
+   "dataset": {
+    "name": "Self-collected UAV low-altitude rice paddy imagery (incl. video data)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "TensorRT-optimized FP16 inference on embedded device; PC comparison run."
+   },
+   "classes": ["background", "rice", "weed"],
+   "num_classes": 3,
+   "backbone": "BiSeNetV2",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.8028, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "highest pixel acc 93.09% and mIoU 80.28% (FFB-BiSeNetV2)", "section": "Results (model comparison on PC platform)", "table": "Model comparison table", "ambiguity": ""},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.9309, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "highest pixel acc 93.09% and mIoU 80.28% (FFB-BiSeNetV2)", "section": "Results (model comparison on PC platform)", "table": "Model comparison table", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+   }
+  },
+  "edge": {
+   "reported": true,
+   "device": "NVIDIA Jetson AGX Xavier",
+   "precision": "FP16 (TensorRT)",
+   "resolution_input": null,
+   "framework": "TensorRT",
+   "fps":       {"reported": true, "value": 40.16, "unit": "fps", "normalized_digits": 2, "confidence": 0.85, "quote": "FFB-BiSeNetV2 40.16 fps on Jetson AGX Xavier (TensorRT FP16); MobileNetV2-UNet 45.05 fps", "section": "Results (embedded hardware platform)", "table": "Embedded inference table", "ambiguity": "Primary model FFB-BiSeNetV2 (40.16 fps); MobileNetV2-UNet faster (45.05 fps) on same device."},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": true, "value": 17.39, "unit": "millions", "normalized_digits": 2, "confidence": 0.8, "quote": "FFB-BiSeNetV2 model parameters 17,394,450 (17.39 M); GFLOPs 10.7", "section": "Methods/model analysis", "table": "Parameter/computation table", "ambiguity": ""},
+   "gflops":    {"reported": true, "value": 10.7, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.7, "quote": "FFB-BiSeNetV2 model parameters 17,394,450 (17.39 M); GFLOPs 10.7", "section": "Methods/model analysis", "table": "Parameter/computation table", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.9,
+   "issues": ["FPS reported directly on primary embedded device (Jetson AGX Xavier, TensorRT FP16) - no derivation needed. PC platform reaches 83.19 fps (reference only)."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-001406",
+  "study": {
+   "title": "Classification and Identification of Crops Using Deep Learning with UAV Data",
+   "short_title": "Classification and Identification of Crops Using Deep Learning with UAV Data",
+   "year": 2021,
+   "venue": "2021 IEEE International India Geoscience and Remote Sensing Symposium (InGARSS)",
+   "extracted_md": "2021_Narvaria_Classification_and_Identification_of_Crops_Using_D.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["U-Net"],
+   "best_model": "U-Net (CIR + NDVI input)",
+   "dataset": {
+    "name": "Self-collected UAV multispectral imagery (India)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Multispectral bands B/G/R/NIR/red-edge/LWIR thermal; NDVI and EVI indices evaluated; five crop classes."
+   },
+   "classes": ["wheat", "cotton", "maize", "grass", "soil"],
+   "num_classes": 5,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.8385, "unit": "fraction", "normalized_digits": 3, "confidence": 0.6, "quote": "inclusion of NDVI in CIR input dataset yield high segmentation accuracy of 83.85%", "section": "Abstract", "table": "", "ambiguity": "Metric reported as 'average segmentation accuracy', computed via Jaccard index (IoU-like), not standard mIoU. Best input CIR+NDVI 83.85%; RGB 83.35%; CIR alone 74.61%."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No weed class (crop classification task)."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class accuracy not reported as F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.7,
+   "issues": ["No deployment/inference timing or parameters reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000968",
+  "study": {
+   "title": "Accurate Wheat Lodging Extraction from Multi-Channel UAV Images Using a Lightweight Network Model.",
+   "short_title": "Accurate Wheat Lodging Extraction from Multi-Channel UAV Images Using a Lightweight Model",
+   "year": 2021,
+   "venue": "Sensors (Basel, Switzerland)",
+   "extracted_md": "2021_Yang_Accurate_Wheat_Lodging_Extraction_from_MultiChann.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-only",
+   "models_tested": ["U-Net", "FCN", "Mobile U-Net (RGB, RGB+DSM, RGB+ExG inputs)"],
+   "best_model": "Mobile U-Net (RGB+DSM)",
+   "dataset": {
+    "name": "Self-collected UAV wheat field (RGB + DSM + ExG channels)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Input images 256x256 patches."
+   },
+   "classes": ["background", "normal wheat", "lodging wheat"],
+   "num_classes": null,
+   "backbone": "Mobile U-Net (depthwise separable convolution)",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.807, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "RGB+DSM overall: F1 88.99%, mIoU 80.7% (Mobile U-Net, test)", "section": "Results (RGB/DSM/ExG dataset comparison, Table 4)", "table": "Table 4", "ambiguity": "Overall Table 4 (RGB+DSM) mIoU 80.7%. Stage-specific (filling stage, RGB+DSM) reached mIoU 87.99%."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": true, "value": 0.8899, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "RGB+DSM overall: F1 88.99%, mIoU 80.7% (Mobile U-Net, test)", "section": "Results (RGB/DSM/ExG dataset comparison, Table 4)", "table": "Table 4", "ambiguity": "Table 4 reports F1 88.99%; abstract reports the same figure as 'overall accuracy of lodging recognition'. Filling stage (RGB+DSM) F1 96.82%."},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.8899, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "the overall accuracy of lodging recognition based on RGB + DSM reached 88.99%", "section": "Abstract", "table": "", "ambiguity": "Abstract calls 88.99% 'overall accuracy of lodging recognition'; same numeric value appears as F1 in Table 4."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Target anomaly class is wheat lodging, not weed."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 for normal/lodging wheat not reported."}
+   }
+  },
+  "edge": {
+   "reported": true,
+   "device": "Intel Core i7-1065G7 CPU (laptop)",
+   "precision": "",
+   "resolution_input": "256x256",
+   "framework": "",
+   "fps":       {"reported": true, "value": 1.89, "unit": "fps", "normalized_digits": 2, "confidence": 0.55, "quote": "processing speed 0.53 s per 256x256 image on Intel Core i7-1065G7 CPU", "section": "Discussion (processing speed)", "table": "", "ambiguity": "Derived: fps = 1/0.53 s ~ 1.89; paper reports inference time per image, not FPS."},
+   "latency_ms":{"reported": true, "value": 530, "unit": "ms", "normalized_digits": 2, "confidence": 0.8, "quote": "processing speed 0.53 s per 256x256 image on Intel Core i7-1065G7 CPU", "section": "Discussion (processing speed)", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": true, "value": 9.49, "unit": "millions", "normalized_digits": 2, "confidence": 0.85, "quote": "The optimized Mobile U-Net model reached 9.49 million parameters", "section": "Abstract", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.85,
+   "issues": ["\"derived\": true - fps computed as 1/0.53 s ~ 1.89; paper reports inference time per image.", "Edge note: primary reported deployment machine is a laptop CPU (Intel Core i7-1065G7), not an embedded board - real-time on CPU; embedded intent inferred, flagged."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000548",
+  "study": {
+   "title": "A Field Weed Density Evaluation Method Based on UAV Imaging and Modified U-Net",
+   "short_title": "A Field Weed Density Evaluation Method Based on UAV Imaging and Modified U-Net",
+   "year": 2021,
+   "venue": "Remote Sensing",
+   "extracted_md": "2021_Zou_A_Field_Weed_Density_Evaluation_Method_Based_on_UA.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["U-Net", "Modified U-Net"],
+   "best_model": "Modified U-Net",
+   "dataset": {
+    "name": "Self-collected UAV field imagery",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Pipeline: ExG-ExR + minimum-error threshold for bare land/green plants; modified U-Net for crops; weeds by subtraction."
+   },
+   "classes": ["crop", "bare land/green plant", "weed"],
+   "num_classes": 3,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.934, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "In terms of crop segmentation, the intersection over union (IoU) was 93.40%", "section": "Abstract; Table 5 (modified U-Net results)", "table": "Table 5", "ambiguity": "Reported as overall crop-segmentation IoU of the best model (modified U-Net), not mean class IoU."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.9884, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "modified U-Net: IoU 93.40%, Acc 98.84%, precision 84.29%, recall 80.85%, ST 40.90 ms", "section": "Table 5 (modified U-Net results)", "table": "Table 5", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weeds are derived by subtracting crop + bare land; no direct weed metric (green-plant segmentation accuracy 93.5% reported for the threshold step)."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Precision 84.29%/recall 80.85% reported for crop segmentation - F1 not given."}
+   }
+  },
+  "edge": {
+   "reported": true,
+   "device": "NVIDIA RTX 2080 Super GPU",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": true, "value": 24.45, "unit": "fps", "normalized_digits": 2, "confidence": 0.55, "quote": "ST 40.90 ms (modified U-Net, Table 5)", "section": "Table 5", "table": "Table 5", "ambiguity": "Derived: fps = 1000/40.90 ~ 24.45; paper reports segmentation time per single image (ST)."},
+   "latency_ms":{"reported": true, "value": 40.9, "unit": "ms", "normalized_digits": 2, "confidence": 0.65, "quote": "ST 40.90 ms (modified U-Net, Table 5); abstract states 35.90 ms", "section": "Table 5; Abstract", "table": "Table 5", "ambiguity": "Discrepancy: Table 5 reports ST 40.90 ms while the abstract states 35.90 ms; table value recorded."},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.7,
+   "issues": ["\"derived\": true - fps computed as 1000/40.90 ms ~ 24.45; paper reports segmentation time per single image.", "Edge note: RTX 2080 Super is a desktop consumer GPU, not an embedded/onboard device; recorded as the primary reported deployment platform (issue flagged)."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000012",
+  "study": {
+   "title": "Transferring learned patterns from ground-based field imagery to predict UAV-based imagery for crop and weed semantic segmentation in precision crop farming",
+   "short_title": "Transferring learned patterns from ground-based field imagery to UAV imagery",
+   "year": 2022,
+   "venue": "arXiv Preprint",
+   "extracted_md": "2022_Gao_Transferring_learned_patterns_from_ground_based_fi.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["FCN-32s", "FCN-16s", "FCN-8s", "UNet", "SegNet", "Proposed network"],
+   "best_model": "Proposed network",
+   "dataset": {
+    "name": "Self-collected maize field (ground) and UAV images (transfer)",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Ground-based field imagery for training; UAV aerial imagery for transfer evaluation; soil/maize/weed classes."
+   },
+   "classes": ["soil background", "crop (maize)", "weed"],
+   "num_classes": 3,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.767, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "Proposed 0.989 0.979 0.746 0.577 0.841 0.744 0.859 0.767", "section": "Table (field dataset comparison)", "table": "Field dataset comparison table", "ambiguity": "Field (ground) dataset results of the developed model. Transfer to UAV aerial images degrades to mIoU 0.617 / mOA 0.734. Abstract per-class field IoU: crop 0.744, weed 0.577, soil 0.979; aerial: 0.596/0.407/0.875."},
+    "mPA":    {"reported": true, "value": 0.859, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "Proposed 0.989 0.979 0.746 0.577 0.841 0.744 0.859 0.767", "section": "Table (field dataset comparison)", "table": "Field dataset comparison table", "ambiguity": "mOA column (0.859) reported as mean overall accuracy on the field dataset; aerial mOA 0.734."},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class OA reported per class (soil/crop/weed), not a single overall PA."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed IoU reported (field 0.577, aerial 0.407) - IoU, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class crop (maize) IoU reported (field 0.744, aerial 0.596) - IoU, not F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.85,
+   "issues": ["No deployment/inference timing reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000501",
+  "study": {
+   "title": "Deep learning-based early weed segmentation using motion blurred UAV images of sorghum fields",
+   "short_title": "Deep learning-based early weed segmentation using motion blurred UAV images",
+   "year": 2022,
+   "venue": "Computers and Electronics in Agriculture",
+   "extracted_md": "2022_Genze_Deep_learningbased_early_weed_segmentation_using_.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["FCN-32s", "FCN-16s", "FCN-8s", "UNet", "DeepLabv3+", "(each with ResNet feature extractors)"],
+   "best_model": "UNet + ResNet-34",
+   "dataset": {
+    "name": "Self-collected UAV sorghum fields (BBCH 15/17/19); 2156 patches of 256x256",
+    "uav_collected": true,
+    "images": 12,
+    "resolution_gsp_m": 0.001,
+    "flight_altitude_m": null,
+    "note": "GSD 0.1 cm; 12 UAV captures; patches of 256x256; published on GitHub/Mendeley."
+   },
+   "classes": ["soil", "sorghum", "weed"],
+   "num_classes": 3,
+   "backbone": "ResNet-34",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Evaluation uses Sørensen-Dice coefficient, precision, recall and F1-score (pixel basis); mIoU not reported."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": true, "value": 0.8937, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "DS Precision Recall F1-score | 99.69 93.01 86.25 89.37", "section": "Table 5 (hold-out test set, UNet + ResNet-34)", "table": "Table 5", "ambiguity": "Pixel-basis F1 on the hold-out test set; best Dice-based combination UNet + ResNet-34 (validation std 0.0022, Table 4)."},
+    "Dice":   {"reported": true, "value": 0.9969, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "DS Precision Recall F1-score | 99.69 93.01 86.25 89.37", "section": "Table 5 (hold-out test set, UNet + ResNet-34)", "table": "Table 5", "ambiguity": "DS column is the Sørensen-Dice coefficient (0.9969) on the hold-out test set."},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class accuracy from normalized confusion matrix (soil 99.9%, sorghum 86.1%) - not overall PA."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 for weed not reported separately."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 for sorghum not reported separately."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.85,
+   "issues": ["No deployment/inference timing reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-000624",
+  "study": {
+   "title": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+   "short_title": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+   "year": 2022,
+   "venue": "Frontiers in Remote Sensing",
+   "extracted_md": "2022_HashemiBeni_Deep_Convolutional_Neural_Networks_for_Weeds_and_C.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["SegNet", "FCN-32s", "FCN-16s", "FCN-8s", "U-Net", "DeepLab v3+"],
+   "best_model": "DeepLab v3+ (CWFID); FCN-8s (sugarcane dataset)",
+   "dataset": {
+    "name": "CWFID (crop/weed field image dataset) and sugarcane UAS dataset",
+    "uav_collected": true,
+    "images": null,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Two published benchmarks captured by different UASs - field robot (CWFID part) and UAV; three classes background/crops/weeds."
+   },
+   "classes": ["soil/background", "crops", "weeds"],
+   "num_classes": 3,
+   "backbone": "ResNet-18 (per abstract)",
+   "metrics": {
+    "mIoU":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Paper reports per-class accuracy, overall accuracy and Kappa; no mIoU."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": true, "value": 0.843, "unit": "fraction", "normalized_digits": 3, "confidence": 0.8, "quote": "SegNet 62.6 | FCN-32s 68.4 | FCN-16s 77.2 | FCN-8s 81.1 | U-Net 77.9 | DeepLab v3+ 84.3", "section": "Table 3 (overall accuracy and kappa, CWFID dataset)", "table": "Table 3", "ambiguity": "Best overall accuracy on CWFID = DeepLab v3+ 84.3%. On the sugarcane dataset the best is FCN-8s 76.62% (Table 4; main text inconsistently states 74%)."},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed accuracy 90.5% (DeepLabV3+, CWFID) and 86.17% (U-Net, sugarcane) - accuracy, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class crop accuracy (e.g. 60.48% U-Net CWFID; 39.19% sugarcane) - accuracy, not F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.8,
+   "issues": ["Primary headline (84.3%) is the CWFID dataset (partially field-robot imagery); the UAV sugarcane dataset best OA is FCN-8s 76.62% (Table 4), with an inconsistency in the main text (states 74%).", "No deployment/inference timing reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ },
+ {
+  "workspace_id": "SCI-001081",
+  "study": {
+   "title": "Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection from Multispectral UAV Images",
+   "short_title": "Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection",
+   "year": 2022,
+   "venue": "2022 IEEE Mediterranean and Middle-East Geoscience and Remote Sensing Symposium (M2GARSS)",
+   "extracted_md": "2022_KhoshboreshMasouleh_Uncertainty_Estimation_in_Deep_MetaLearning_for_C.md"
+  },
+  "segmentation": {
+   "task": "semantic",
+   "domain": "crop-weed",
+   "models_tested": ["Deep meta-learning squeeze-and-attention CNN"],
+   "best_model": "Deep meta-learning squeeze-and-attention CNN",
+   "dataset": {
+    "name": "Multispectral UAV imagery (MicaSense RedEdge-MX sensor)",
+    "uav_collected": true,
+    "images": 4,
+    "resolution_gsp_m": null,
+    "flight_altitude_m": null,
+    "note": "Evaluated on 4 tested images; mean entropy for uncertainty 25.3%."
+   },
+   "classes": ["background", "crop", "weed"],
+   "num_classes": 3,
+   "backbone": "",
+   "metrics": {
+    "mIoU":   {"reported": true, "value": 0.875, "unit": "fraction", "normalized_digits": 3, "confidence": 0.5, "quote": "The proposed method achieves a mean IoU for the crop and weed detection of 86.5% and 88.5% for the 4 tested images, respectively", "section": "Results (Figure 5 accuracy assessment)", "table": "Figure 5", "ambiguity": "Paper reports per-class mean IoUs (body: crop 86.5%, weed 88.5%; abstract inverts to '88.5% and 86.5%'); overall mIoU = mean(0.865, 0.885) = 0.875 is derived."},
+    "mPA":    {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "F1":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "Dice":   {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "PA":     {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "weed_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed IoU 88.5% (body order) reported - IoU, not F1."},
+    "crop_F1":{"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class crop IoU 86.5% (body order) reported - IoU, not F1."}
+   }
+  },
+  "edge": {
+   "reported": false,
+   "device": "",
+   "precision": "",
+   "resolution_input": null,
+   "framework": "",
+   "fps":       {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "latency_ms":{"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "power_w":   {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "params_M":  {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+   "gflops":    {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+   "route": "A",
+   "route_batch": "A-1",
+   "extractor": "opencode-extractor",
+   "verified_md_read": true,
+   "confidence_overall": 0.6,
+   "issues": ["\"derived\": true - overall mIoU 0.875 computed as the mean of the reported per-class IoUs (86.5% and 88.5%); the paper does not state an aggregate. Crop/weed ordering differs between abstract and body.", "No deployment/inference timing reported."],
+   "extracted_at": "2026-09-04T00:00:00Z"
+  }
+ }
+]

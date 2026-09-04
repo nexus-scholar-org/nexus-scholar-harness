@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000898",
+  "study": {
+    "title": "DM_CorrMatch: a semi-supervised semantic segmentation framework for rapeseed flower coverage estimation using UAV imagery",
+    "short_title": "DM_CorrMatch (diffusion + Vision Mamba); flower IoU 0.886, F1 0.941",
+    "year": 2025,
+    "venue": "Plant Methods",
+    "extracted_md": "2025_Li_DM_CorrMatch_a_semisupervised_semantic_segmentat.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "semi-supervised semantic segmentation of yellow rapeseed (Brassica napus L.) inflorescences from UAV-RGB imagery for flower-coverage estimation / phenotyping, breeding-support application",
+    "models_tested": ["DM_CorrMatch (proposed: Mamba-DeepLabv3+ with Vision Mamba inserted between ResNet101 layer1/layer2, AUL label-update, DDPM generative augmentation)", "UNet", "SegNet", "DeepLabv3+", "HRNet", "SegFormer", "Swin-Unet", "PSPNet", "Attention-UNet", "AugSeg", "CorrMatch", "UniMatch", "FixMatch", "plus 4 traditional methods (Otsu, HSV, K-means, color features)"],
+    "best_model": "DM_CorrMatch (with diffusion): Precision 0.942, Recall 0.940, IoU 0.886, F1 0.941, Accuracy 0.940 (semi-supervised, 30 labeled + 900 unlabeled); note the without-diffusion variant instead reached IoU 0.893 (Table 5)",
+    "dataset": {
+      "name": "Rapeseed Flower Segmentation Dataset (RFSD): 720 high-definition UAV-RGB images (256x256 crops) collected 2021 (training) and 2022 (robustness) at Yangluo Experimental Station, Oil Crops Research Institute, CAAS, Wuhan (plots 8 m2 and 6 m2)",
+      "uav_collected": true,
+      "images": 720,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 10,
+      "note": "DJI Phantom 4 Pro V2.0, 20.1 MP (5472x3648), automatic flight at 10 m AGL, 75% heading/side overlap, 1.9 m/s, orthomosaic via Agisoft PhotoScan, Labelme annotation. Semi-supervised training: 30 labeled + 900 unlabeled images (DDPM-generated). GSD not stated explicitly; model robustness across different GSD/flight altitudes evaluated."
+    },
+    "classes": ["rapeseed flower", "background"],
+    "num_classes": 2,
+    "backbone": "ResNet101 (DeepLabv3+) with bidirectional Vision Mamba (state-space) blocks between layer1 and layer2; encoder-decoder ASPP",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.886, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "achieving an Intersection over Union (IoU) of 0.886, Precision of 0.942, and Recall of 0.940", "section": "Abstract; 3.2.1 (Table 5)", "table": "Table 5", "ambiguity": "Binary flower/background segmentation; IoU is the single flower-class IoU (approx. mIoU). Recorded for the final with-diffusion config (IoU 0.886); the without-diffusion variant on the same 30/900 setting reached IoU 0.893 (best value in Table 5)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Reported 'Accuracy' (Eq. 10) is global pixel accuracy (TP+TN)/all, not class-mean pixel accuracy."},
+      "F1": {"reported": true, "value": 0.941, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "achieving an Intersection over Union (IoU) of 0.886, Precision of 0.942, and Recall of 0.940", "section": "Abstract; Table 5", "table": "Table 5", "ambiguity": "F1 = harmonic mean of Precision/Recall (Eq. 9); with-diffusion config 0.941."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice coefficient not reported (F1 score reported as 2.PR/(P+R)); Dice loss only used during training."},
+      "PA": {"reported": true, "value": 0.94, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "0.940", "section": "Table 5", "table": "Table 5", "ambiguity": "Reported as 'Accuracy' = (TP+TN)/(TP+TN+FP+FN), i.e. global pixel accuracy."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed classes absent; task is rapeseed flower vs background."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 for flower/background not broken out; overall F1 0.941."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 256,
+    "framework": "Pytorch-style training; base network Mamba-DeepLabv3+ (84.54 GFLOPs, 76.78 M params); no edge deployment or quantization",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference speed reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 76.78, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "the parameter count reaching its maximum at 76.78 million", "section": "3.2.1 / Table 2, Table 5", "table": "Table 5", "ambiguity": "Model-level structural parameter count for the final DM_CorrMatch (with diffusion) config; NOT edge-deployed."},
+    "gflops": {"reported": true, "value": 84.54, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.85, "quote": "the model achieves better performance metrics, with an IoU of 0.886. However, this comes at the cost of computational complexity peaking at 84.54 GFLOPs", "section": "3.2.1 / Table 2, Table 5", "table": "Table 5", "ambiguity": "Model-level structural FLOPs (Table 2 and Table 5: 84.54 G); Table 3 lists the same Mamba-DeepLabv3+ at 85.54 GFLOPs - minor internal inconsistency."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["Binary flower/background segmentation; primary metric IoU (0.886) is single flower-class, recorded from the final with-diffusion config matching the abstract. Notably the without-diffusion variant reached IoU 0.893 (Table 5).", "Computational efficiency is reported as structural model FLOPs/params only (84.54 G / 76.78 M) with no edge/real-time inference metrics.", "Internal inconsistency in Mamba-DeepLabv3+ FLOPs (84.54 vs 85.54 G) across Tables 2/5 and Table 3.", "GSD not stated explicitly; UAV altitude robustness assessed qualitatively."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

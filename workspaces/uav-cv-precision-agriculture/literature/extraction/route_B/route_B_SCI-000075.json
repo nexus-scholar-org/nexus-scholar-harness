@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000075",
+  "study": {
+    "title": "Weed Instance Segmentation from UAV ortho-mosaic Images based on Deep Learning",
+    "short_title": "YOLOv8/Mask R-CNN weed instance seg in potato fields",
+    "year": 2024,
+    "venue": "bioRxiv (preprint)",
+    "extracted_md": "2024_Lu_Weed_Instance_Segmentation_from_UAV_ortho_mosaic_I.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "weed vs crop (potato) instance segmentation",
+    "models_tested": ["YOLOv8", "Mask R-CNN (Detectron2)"],
+    "best_model": "Mask R-CNN segm AP50 0.920 (highest mAP); YOLOv8 faster convergence, segm AP50 0.902",
+    "dataset": {
+      "name": "Self-collected potato-field orthomosaic (Duerast field, Freising, Germany)",
+      "uav_collected": true,
+      "images": 150,
+      "resolution_gsp_m": 0.0027,
+      "flight_altitude_m": 10.0,
+      "note": "DJI Phantom 4 RTK, 10 m AGL, 2 m/s, GSD 0.27 cm/px, 5472x3648 RGB images, weekly across growing season; orthomosaic via Agisoft Metashape; clipped to 640x640 tiles; 130 train (659 potato + 934 weed instances = 1593) + 20 val (82 potato + 138 weed = 220) images; SAM-assisted semi-automatic annotation (AnyLabeling); Real-ESRGAN 2x super-resolution for enhancement. Weed treatments: control/chemical/robotic/mechanical."
+    },
+    "classes": ["potato", "weed"],
+    "num_classes": 2,
+    "backbone": "YOLOv8 (CSPDarknet, segmentation head); Mask R-CNN (ResNet+FPN)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.5150, "unit": "fraction", "normalized_digits": 4, "confidence": 0.6, "quote": "YOLOv8 Original Model: ... MIOU: 0.5150 (Fig 11); SR model MIOU 0.5116; SR+MW model MIOU 0.5089", "section": "3.3.2 YOLOv8 / Figure 11", "table": "", "ambiguity": "Pixel-level metrics appear only in Figure 11 caption (instance-seg mask evaluation). Primary evaluation metric is mAP@0.5 (YOLOv8 0.902, Mask R-CNN 0.920, SR 0.909, multiple-weed 0.860). Low mIoU/Dice vs high PA reflects background-dominated tiles."},
+      "mPA": {"reported": true, "value": 0.5150, "unit": "fraction", "normalized_digits": 4, "confidence": 0.5, "quote": "YOLOv8 Original Model: PA 0.9989, CPA 0.5271, MPA 0.5150 (Fig 11)", "section": "3.3.2 YOLOv8 / Figure 11", "table": "", "ambiguity": "Figure 11 caption only; instance-seg masks."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": true, "value": 0.5298, "unit": "fraction", "normalized_digits": 4, "confidence": 0.5, "quote": "YOLOv8 Original Model Mean Dice: 0.5298; SR 0.5234; SR+MW 0.5185 (Fig 11)", "section": "3.3.2 YOLOv8 / Figure 11", "table": "", "ambiguity": "Figure 11 caption only; instance-seg masks."},
+      "PA": {"reported": true, "value": 0.9989, "unit": "fraction", "normalized_digits": 4, "confidence": 0.5, "quote": "YOLOv8 Original Model: PA 0.9989 (Fig 11); SR 0.9990; SR+MW 0.9985", "section": "3.3.2 YOLOv8 / Figure 11", "table": "", "ambiguity": "Figure 11 caption only; dominated by background class."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class AP (Figure 10 PR): weeds 0.821 (original), 0.832 (SR), long weeds 0.811 / other weeds 0.782 (SR+MW)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Potato AP (Figure 10): 0.983 original, 0.986 SR/SR+MW."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 640,
+    "framework": "Detectron2 (Mask R-CNN) / ultralytics YOLOv8",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference-speed measurement reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.7,
+    "issues": ["Instance-segmentation study; primary metric mAP@0.5. Pixel-level metrics (PA/MPA/mIoU/Dice) reported only in Figure 11 caption for YOLOv8.", "Mask R-CNN Table 1 lists AP indicator names only; numeric AP values are figure-only (bbox/segm AP, AP50, AP75), not text-extractable.", "bioRxiv preprint (not peer-reviewed); DOI 10.1101/2024.08.13.607729."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

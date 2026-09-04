@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000160",
+  "study": {
+    "title": "From barley to rapeseed: few-shot fine-tuning of semantic segmentation models for weed detection using UAV multispectral imagery",
+    "short_title": "Barley-to-rapeseed U-Net MSI: weed F1 0.5833, mIoU 0.5448",
+    "year": 2026,
+    "venue": "SSRN preprint",
+    "extracted_md": "2026_Hern\u00e1ndez_Lude\u00f1a_From_barley_to_rapeseed_few_shot_fine_tuning_of_se.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Crop/weed/soil semantic segmentation of UAV multispectral barley imagery (Hordeum vulgare L.) for weed mapping and site-specific weed management: spectral-configuration ablation (RGB; +NIR+RedEdge; +indices; full), model comparison (U-Net/DeepLabv3/RF), spatial generalization to an independent barley field, cross-crop transfer to rapeseed (Brassica napus L.), and few-shot fine-tuning (~5/10/15% labelled target patches) for domain adaptation; weed probability/density maps (2x2 m cells, 4 infestation levels) for variable-rate herbicide application",
+    "models_tested": ["U-Net (from scratch)", "DeepLabv3 (ResNet-50, no ImageNet pretraining)", "Random Forest (pixel-wise baseline, 200 trees)"],
+    "best_model": "U-Net (from scratch, symmetric encoder-decoder + skip connections, 3x3 conv blocks/BN/ReLU) with the full multispectral input (RGB + NIR + RedEdge + NDVI + NDRE + VARI, 8 channels): best in model comparison weed F1 0.5833 / weed IoU 0.4117 / mIoU 0.5448; retrained on combined Barley 1-V1+V2 it reached weed F1 0.6455 / IoU 0.4766 on the independent Barley 2 field (best weed results of the study); full fine-tuning on only 63 labelled rapeseed patches recovered rapeseed weed F1 0.6274 / IoU 0.4571 / mIoU 0.7607. DeepLabv3 far behind (F1 0.2723, IoU 0.1576, mIoU 0.2736); Random Forest lowest (F1 0.0794, IoU 0.0414, mIoU 0.2248)",
+    "dataset": {
+      "name": "Author-collected UAV multispectral barley/rapeseed dataset, Valdeavero, Community of Madrid, Spain (~40.5N, 3.37W): barley fields Barley 1 (11.83 ha, training + temporal validation) and Barley 2 (15.93 ha, spatial validation) plus one rapeseed field (8.39 ha, cross-crop transfer). DJI Phantom 4 RTK (RGB, 20 MP) + DJI Matrice 600 Pro with MicaSense Altum-PT (R/G/B/NIR/RedEdge bands; radiometric calibration via reflectance panel + ILS). Flights at 120 m AGL; orthomosaics (Pix4D + Agisoft Metashape, ETRS89/UTM 30N) at ~5 cm/px. Two campaigns: V1 (3 Mar, barley late tillering BBCH 25-29) and V2 (14 May, barley heading BBCH 51-55 / rapeseed full flowering BBCH 65).",
+      "uav_collected": true,
+      "images": 1673,
+      "resolution_gsp_m": 0.05,
+      "flight_altitude_m": 120,
+      "note": "Patch-based corpus: 256x256 px patches at 50% overlap (stride 128) with masks from manual polygon digitisation in ArcGIS Pro. Training/eval: 726 patches Barley 1-V1 + 524 patches Barley 1-V2 (temporal validation = train V1 / eval V2); independent-field split avoids spatial autocorrelation (no random patch split). Additional 423 patches generated from Rapeseed-V2 for few-shot adaptation (21/42/63 samples = ~5%/10%/15%, excluded from evaluation). Images field = total labelled patches (1250 barley + 423 rapeseed). Orthomosaic spatial resolution ~5 cm/px (Physics: 5.5 cm/px cited in limitations). Six indices computed (NDVI, GNDVI, NDRE, CCCI, SAVI, VARI); Pearson-correlation selection kept NDVI, NDRE, VARI."
+    },
+    "classes": ["crop", "weed", "soil"],
+    "num_classes": 3,
+    "backbone": "U-Net implemented from scratch (no pretrained weights): symmetric encoder-decoder with skip connections, 3x3 conv + batch norm + ReLU blocks, max-pool downsampling, transposed-conv upsampling; DeepLabv3 with ResNet-50 backbone (also no ImageNet pretraining), first conv modified to 8 input channels, ASPP multi-scale dilated context module; Random Forest (200 trees) as per-pixel spectral baseline. Training: Adam, LR 1e-3, weighted cross-entropy (class imbalance), 30 epochs; best epoch selected by weed F1 on validation. Few-shot experiments: partial FT (encoder frozen) LR 1e-4 vs full FT LR 5e-5, up to 30 epochs with early stopping on weed F1",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.5448, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "U-Net achieved the highest weed F1-score (0.5833) and IoU (0.4117), together with the highest overall mIoU (0.5448)", "section": "3.3 Model comparison / Fig. 4", "table": "Fig. 4", "ambiguity": "mIoU 0.5448 from the model-comparison experiment (temporal validation Barley 1-V1 train -> Barley 1-V2 eval, U-Net full spectral config); DeepLabv3 0.2736, RF 0.2248. Higher mIoU 0.7607 reported only for the few-shot rapeseed adaptation (63 patches, full fine-tuning)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Mean pixel accuracy not reported; the paper reports F1-score and IoU per class plus mIoU."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 reported only per class, focused on the weed class (see weed_F1); no overall/mean F1 reported."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice not reported."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported."},
+      "weed_F1": {"reported": true, "value": 0.6455, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "The U-Net model retrained using the combined Barley 1-V1 and Barley 1-V2 datasets and evaluated on the independent Barley 2-V2 field achieved a weed F1-score of 0.6455 and an IoU of 0.4766", "section": "3.4 Spatial validation / Table 1", "table": "Table 1", "ambiguity": "Best weed F1 of the study, from spatial validation on the independent barley field (Barley 2). Temporal validation model comparison gave weed F1 0.5833 (IoU 0.4117); direct cross-crop transfer to rapeseed collapses to 0.0534 (IoU 0.0274); full fine-tuning on 63 rapeseed patches reaches 0.6274 (IoU 0.4571). Partial (encoder-frozen) fine-tuning only reaches 0.3707 at 15%."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop-class F1 not reported numerically; analysis focused on weed F1 (agronomic priority), with class-wise F1/IoU computed for the three classes."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "No inference hardware/platform reported in the extracted text; no embedded/edge deployment (research/prototype pipeline)",
+    "precision": null,
+    "resolution_input": 256,
+    "framework": "Deep learning framework not stated in extracted text; models implemented from scratch (U-Net, DeepLabv3 ResNet-50) in a Python pipeline; code available at github.com/patitostyle/weed-detection-barley-rapeseed",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No FPS/inference throughput reported. edge.reported=false."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 1, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-image inference latency reported. Sliding-window inference over the Barley 2 orthomosaic used 256x256 patches with 50% overlap (stride 128) with prediction averaging, but no timing given. edge.reported=false."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Power consumption not reported."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Parameter counts not reported."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Venue is an SSRN preprint (DOI 10.2139/ssrn.7345639), not peer reviewed (Preprint not peer reviewed marked throughout); worklist venue field null. Dataset deposited with Mendeley Data (mb4jvxjk9dk.1, under moderation) + code public on GitHub.", "Best weed F1 0.6455 (IoU 0.4766) comes from SPATIAL validation on the independent Barley 2 field (Table 1), whereas the headline mIoU 0.5448 / weed F1 0.5833 come from the TEMPORAL model-comparison experiment (Barley 1-V1 -> Barley 1-V2); different experiments/protocols.", "Full multispectral configuration (RGB + NIR + RedEdge + NDVI + NDRE + VARI, 8 input channels) clearly best over RGB (F1 0.5193), +NIR/RedEdge (0.5238) and RGB+indices (0.5461); U-Net >> DeepLabv3 (0.2723) >> Random Forest (0.0794) under identical setup without ImageNet pretraining.", "Cross-crop transfer collapses (weed F1 0.0534, direct rapeseed); full fine-tuning on just 63 labelled rapeseed patches (~15%) restores performance near the barley domain (0.6274 vs 0.6455, mIoU 0.7607); authors flag that rapeseed metrics are an upper-bound estimate (model selection on the evaluation set itself given few patches).", "No parameters, FLOPs, FPS, latency, power, or GPU/hardware details reported anywhere; edge.reported=false.", "Multi-temporal + multi-spectral case study: 120 m AGL flights, ~5 cm/px orthomosaics; patch corpus 726 (Barley 1-V1) + 524 (Barley 1-V2) + 423 (Rapeseed-V2) 256x256 patches; manual mask digitisation; weed maps aggregated to 2x2 m relative density classes."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

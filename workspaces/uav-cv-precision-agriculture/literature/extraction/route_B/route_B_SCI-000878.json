@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000878",
+  "study": {
+    "title": "Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images.",
+    "short_title": "SCG-UNet RGB+NIR soybean weed mIoU 83.43",
+    "year": 2026,
+    "venue": "Plants (Basel, Switzerland)",
+    "extracted_md": "2026_Li_Soybean_Field_Weed_Segmentation_and_Prescription_M.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Binary weed-vs-background semantic segmentation in UAV soybean fields using fused RGB + multispectral imagery; SCG-UNet (SiLU-CPCA-Gate U-Net) adds a CPCA channel-spatial attention module after each DoubleConv, attention-gated adaptive skip connections, and SiLU activation; input fusion evaluated across single bands, band combinations, and RGB-multispectral blends (RGB+NIR selected as best); output feeds a conceptual grid-level variable-rate spraying prescription map (5 levels, 220-300 L/ha)",
+    "models_tested": ["UNet", "SCG-UNet (UNet + CPCA + Gate + SiLU)", "DeepLabv3+", "SegNet", "GoogLeNet-based segmentation", "UNet++", "SegFormer", "HRNet", "TransUNet", "Swin-UNet", "LeViT-UNet"],
+    "best_model": "SCG-UNet with RGB+NIR input: mPA 92.35%, mIoU 83.43%, Dice 79.50%, F1-score (micro) 80.77% on fixed 7:2:1 partition - best numerically across all models; five-fold spatial-block CV mIoU 82.92 ± 0.29% / F1 80.06 ± 0.40%. Beats baseline U-Net by 0.71/1.50/2.19/2.09 pp and TransUNet/LeViT-UNet by 0.90/0.71 pp mIoU with fewer params and lower memory; RGB+NIR mIoU statistically > RGB, RGB+R, RGB+G after Holm correction, comparable to RGB+REdge and RGB+NIR+REdge",
+    "dataset": {
+      "name": "Author-collected soybean weed dataset: 400 manually annotated 512x512 spatially aligned RGB-multispectral image groups from a soybean field (Jiucaitian, Henan Agricultural University, Luohe, Henan, China; ~8 ha), DJI Mavic 3 Multispectral UAV at 30 m altitude / 2.6 m/s, RGB GSD ~1.39 cm/pixel, 80%/70% forward/side overlap, acquired 7 July 2025 11:00-13:00; orthomosaicked in DJI Terra 4.5.0, RGB resampled to the multispectral grid (2592x1944) in ENVI 5.6. Multispectral bands: R 650 nm, G 560 nm, NIR 860 nm, REdge 730 nm. Two classes (weed vs background, soybean+soil+shadows=crop in background). 1300 valid groups cropped, 400 annotated (280 train / 40 val / 80 test; split 7:2:1). Main weeds: goosegrass (Eleusine indica) and spiny amaranth (Amaranthus spinosus); cultivar Zhengdou 365.",
+      "uav_collected": true,
+      "images": 400,
+      "resolution_gsp_m": 0.0139,
+      "flight_altitude_m": 30,
+      "note": "images = 400 annotated RGB-multispectral groups (512x512 patches from orthomosaics); 1300 valid groups cropped, 900 left unannotated. Resampled to multispectral grid so RGB loses some fine edge detail. Class imbalance severe: weed pixels 1.46% total (train 1.23%, val 1.69%, test 2.14%; background/weed ratio 67.65 overall). Simultaneous DJI Mavic 3 Multispectral capture (RGB 5280x3956 PNG + MS 2592x1944 TIFF). Five-fold spatial-block CV in same field - within-field generalization only, not cross-location/year/altitude."
+    },
+    "classes": ["background", "weed"],
+    "num_classes": 2,
+    "backbone": "UNet encoder-decoder with modified multi-channel input layer (in_channels configurable for single-band/combination/RGB+NIR fusion); CPCA (channel+position collaborative attention) after each DoubleConv; Attention Gate (SiLU-based, decoder-context gated) on each skip connection; SiLU replaces ReLU. Fusion loss CE + Dice (lambda_CE = lambda_Dice = 1.0). Training: 512x512 input, 150 epochs, batch 4, AdamW lr 5e-5 wd 5e-5, 5-epoch linear warmup then PolyLR (power 0.9); seed 42; best validation Dice checkpoint.",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.8343, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%", "section": "Abstract / 2.6 / Table 7", "table": "Table 7", "ambiguity": "Binary weed segmentation, RGB+NIR input, fixed 7:2:1 partition test set (80 images). Baselines (mIoU): U-Net 81.93, UNet++ 82.48, TransUNet 82.53, LeViT-UNet 82.72, SegNet 80.93, HRNet 81.89, Swin-UNet 81.97, SegFormer 81.66, DeepLabV3+ 80.28, GoogLeNet 78.36. Five-fold spatial-block CV: 82.92 ± 0.29%. RGB+NIR significantly > RGB (79.35), RGB+R (80.98) and RGB+G (80.60) by paired bootstrap + Holm; comparable to RGB+REdge (81.51) and RGB+NIR+REdge (81.74)."},
+      "mPA": {"reported": true, "value": 0.9235, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%", "section": "Abstract / 2.6 / Table 7", "table": "Table 7", "ambiguity": "mPA = mean of per-class pixel accuracy (eq. 7) over 2 classes; authors caution mPA is dominated by the 98.54% background and does not reflect weed segmentation quality. Baselines: LeViT-UNet 92.00, Swin-UNet 91.82, GoogLeNet 91.73, U-Net 91.64, TransUNet 89.99, UNet++ 89.38, DeepLabV3+ 89.09, SegNet 88.45, SegFormer 85.45, HRNet 87.50."},
+      "F1": {"reported": true, "value": 0.8077, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%", "section": "Abstract / 2.6 / Table 7", "table": "Table 7", "ambiguity": "F1 = pixel-wise MICRO-averaged (TP/FP/FN pooled across all test images, eq. 13) - images with more weed pixels weighted more; numerically differs from Dice which is macro-averaged per image (eq. 14). Baselines: LeViT-UNet 79.78, TransUNet 79.49, UNet++ 79.41, HRNet 78.55, Swin-UNet 78.74, SegFormer 78.19, SegNet 77.19, DeepLabV3+ 76.26, U-Net 78.68, GoogLeNet 73.46. Five-fold CV F1 80.06 ± 0.40%."},
+      "Dice": {"reported": true, "value": 0.7950, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%", "section": "Abstract / 2.6 / Table 7", "table": "Table 7", "ambiguity": "Dice macro-averaged per test image (eq. 14), distinct from F1 micro-aggregation; mathematically equivalent per class in binary segmentation. Baselines: LeViT-UNet 78.48, TransUNet 77.78, UNet++ 77.84, U-Net 77.31, Swin-UNet 77.25, SegNet 76.11, SegFormer 75.93, HRNet 76.76, DeepLabV3+ 74.48, GoogLeNet 72.04."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Global pixel accuracy not reported; mean pixel accuracy (mPA) reported instead and flagged by authors as background-dominated."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Binary weed-vs-background: F1 IS the weed-class micro-F1 (0.8077), recorded in the F1 field; no separate per-class F1 table. Recorded as F1 per schema convention."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No crop class: soybean plants are merged into the background class (binary weed segmentation)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None - offline training/experiments only; workstation with Windows 10, Intel Core Ultra 9 285K, NVIDIA GeForce RTX 5080, 64 GB RAM; no on-device/edge deployment or real-time inference evaluation",
+    "precision": null,
+    "resolution_input": 512,
+    "framework": "PyTorch 2.8.0, Python 3.9.23, CUDA 12.8; AdamW lr 5e-5, 5-epoch warmup + PolyLR 0.9, 150 epochs, batch 4, seed 42; CE+Dice combined loss",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No real-time/throughput metrics reported; Fast-SCNN/RTFormer deliberately excluded from comparison because real-time deployment requires hardware-normalized latency evaluation beyond scope."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "params_M": {"reported": true, "value": 18.1, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "SCG-UNet 92.35 83.43 79.50 80.77 71.2 18.1 169.91", "section": "2.6 / Table 7", "table": "Table 7", "ambiguity": "STRUCTURAL parameter count (Table 7, RGB+NIR, 512x512) - architecture-level only, NOT deployed/measured on device (edge.reported=false). Baselines: U-Net 17.3 M, DeepLabV3+ 42.4 M, SegNet 24.9 M, GoogLeNet 2.26 M, UNet++ 17.44 M, SegFormer 3.46 M, HRNet 5.51 M, TransUNet 21.58 M, Swin-UNet 8.49 M, LeViT-UNet 47.84 M."},
+    "gflops": {"reported": true, "value": 169.91, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.85, "quote": "SCG-UNet 92.35 83.43 79.50 80.77 71.2 18.1 169.91", "section": "2.6 / Table 7", "table": "Table 7", "ambiguity": "STRUCTURAL FLOPs/G at 512x512 input (Table 7) - architecture-level only, NOT measured on device (edge.reported=false). Baselines: U-Net 160.91, DeepLabV3+ 46.75, SegNet 134.01, GoogLeNet 6.24, UNet++ 161.04, SegFormer 12.09, HRNet 7.46, TransUNet 162.06, Swin-UNet 170.24, LeViT-UNet 201.98 GFLOPs. Memory 71.2 MB (reported)."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["edge.reported=false: no edge/on-device deployment; params_M 18.1 / gflops 169.91 recorded as reported structural complexity figures (Table 7), flagged as architecture-level only.", "Binary weed-vs-background segmentation: soybean crop is folded into the background class; F1 field = the paper's weed-class micro-averaged F1 (0.8077); crop_F1 left false since no separate crop class.", "F1 and Dice differ by aggregation strategy (micro vs macro per-image) - both recorded with ambiguity notes.", "RGB+NIR chosen mainly on numerical + statistical grounds; statistically comparable to RGB+REdge / RGB+NIR+REdge (Holm-corrected paired bootstrap).", "Prescription map is conceptual (220-300 L/ha spray-volume levels, 12 m grids); no field validation of spray execution or weed-control efficacy; within-field spatial-block CV only, no multi-location/growth-stage robustness."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001081",
+  "study": {
+    "title": "Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection from Multispectral UAV Images",
+    "short_title": "Deep Meta-Learning Crop/Weed Detection w/ Uncertainty",
+    "year": 2022,
+    "venue": "2022 IEEE Mediterranean and Middle-East Geoscience and Remote Sensing Symposium (M2GARSS)",
+    "extracted_md": "2022_KhoshboreshMasouleh_Uncertainty_Estimation_in_Deep_MetaLearning_for_C.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["SA-CNN (squeeze-and-attention CNN) with deep meta-learning + Monte Carlo dropout"],
+    "best_model": "SA-CNN (proposed deep meta-learning method)",
+    "dataset": {
+      "name": "Multispectral UAV images captured with RedEdge-MX sensor",
+      "uav_collected": true,
+      "images": 100,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Squeeze-and-attention CNN trained with deep meta-learning for small training data; evaluated on 4 tested images; per-class mean IoU crop 88.5% / weed 86.5%; classes: crop and weed."
+    },
+    "classes": ["crop", "weed"],
+    "num_classes": 2,
+    "backbone": "DeepMultiFuse (lightweight CNN) + squeeze-and-attention",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.875, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "The proposed method achieves a mean IoU for the crop and weed detection of 86.5% and 88.5% for the 4 tested images, respectively", "section": "Results / Figure 5 / Abstract", "table": "", "ambiguity": "Per-class mean IoU: crop 88.5%, weed 86.5% (4 test images); overall mIoU = 0.875 derived as mean of the two reported per-class means."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed-class mean IoU 86.5% reported; F1 not used."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Crop-class mean IoU 88.5% reported; F1 not used."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["No flight altitude/GSD reported; evaluation on only 4 test images; overall mIoU derived from per-class means."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

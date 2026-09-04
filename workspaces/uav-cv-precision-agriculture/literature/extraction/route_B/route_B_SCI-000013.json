@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000013",
+  "study": {
+    "title": "Self-supervised training for high-resolution close-range multispectral remote sensing imagery",
+    "short_title": "MoCo-v3 Swin SSL pretraining WeedMap mIoU 0.52",
+    "year": 2026,
+    "venue": "arXiv Preprint",
+    "extracted_md": "2026_Thomas_Selfsupervised_training_for_highresolution_close.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "Crop-weed semantic segmentation (3 classes: background/crop/weeds) on close-range multispectral UAV imagery (WeedMap) to evaluate self-supervised pretraining: encoders pretrained with MoCo-v3 / MAE on combined msuav500K+N (92,320 512x512 chips, 4 bands G-R-RE-NIR, 8-bit), then fine-tuned on 5-100% training-data volumes under frozen/full fine-tuning; headline contribution is SSL transfer, not a novel architecture",
+    "models_tested": ["Swin Transformer tiny (Swin-s3_tiny_224) + U-Net decoder (MoCo-v3 SSL)", "ViT-Small patch16 + DPT decoder (MAE SSL)", "ViT-Small patch16 + DPT decoder (MoCo-v3 SSL)", "ViT-Base patch16 + DPT decoder (MAE SSL)", "ImageNet-initialized Swin/ViT baselines (frozen and unfrozen)", "scratch (random-init) Swin/ViT baselines"],
+    "best_model": "MoCo-v3-pretrained Swin Transformer (tiny) with U-Net decoder, fully fine-tuned: outperformed all weight configurations on Task A (WeedMap Germany/RedEdge-M) 5-25% training-data splits and stayed competitive at 50-100%; on Task B (WeedMap Switzerland/Sequoia) achieved best IoU 0.52 at 75% training data and led 5-10% splits (25 and 11 IoU points better than scratch/frozen-ImageNet). Consistently outperformed the Doornbos et al. 2025 Swin pretrained on msuav500K (pre-release): +15 (frozen) / +10 (unfrozen) IoU at 5%, +8 at 10%, and 2-5 IoU points at 25-100% on Task A; better on Task B up to 50% data",
+    "dataset": {
+      "name": "Evaluation = public WeedMap dataset (Sa et al. 2018), sugar beet fields, 1 cm GSD, 224x224 chips, 4 bands G/R/RE/NIR: Task A = Germany (Rheinbach), MicaSense RedEdge-M, 739 train (100%) / 79 val / 280 spatially-independent test chips, 3 classes (background, crop, weeds); Task B = Switzerland (two fields), Parrot Sequoia, up to 591 train / 66 val / 62 test chips. Pretraining = msuav500K+N: msuav500K foundational dataset + self-collected multi-year Finnish multispectral UAV imagery (Viikki Research Farm, Helsinki 2020-2024, MicaSense RedEdge 3, 10 m / 50 m flights); combined 92,320 chips (87,704 train / 4,616 val), 512x512 8-bit, bands G/R/RE/NIR only, sensors incl. DJI Mavic 3M, Phantom 4M, RedEdge-M, Altum, RedEdge-MX, Sequoia, Altum-PT, Zenmuse X3 NIR.",
+      "uav_collected": false,
+      "images": null,
+      "resolution_gsp_m": 0.01,
+      "flight_altitude_m": 10,
+      "note": "uav_collected=false: evaluation uses the PUBLIC WeedMap dataset (WeedMap was collected with a UAV at ~10 m altitude by Sa et al. 2018); self-collected Finnish imagery (6,330 chips: 5,175 @50 m 3.3 cm GSD + 1,155 @10 m 0.7 cm GSD, oats/barley/faba bean/rapeseed/silage grass) is used only for self-supervised PRETRAINING and is publicly released on Zenodo. images=null because the effective count is split across tasks/data-volume fractions; Task A uses 1,098 annotated chips total (739+79+280), Task B 719 (591+66+62). Label balance across training fractions enforced with Wasserstein-distance subset selection."
+    },
+    "classes": ["background", "crop (sugar beet)", "weeds"],
+    "num_classes": 3,
+    "backbone": "Encoders: Swin Transformer tiny (Swin-s3_tiny_224), ViT-Small (patch16), ViT-Base (patch16). Decoders: U-Net for Swin, Dense-Prediction Transformer (DPT) for ViTs. SSL pretraining: MoCo-v3 (Swin, 200 epochs, eff. batch 252 / 3x84 grad accum, lr 1e-4) and MAE (ViT-S/vit-B, 400 epochs, eff. batch 256 / 4x64 grad accum, lr 0.03 cosine decay, mask ratio 0.75). Downstream fine-tuning: 50 epochs, batch 8, lr 3e-4, class-weighted (inverse frequency), frozen and full-fine-tuning variants, single GPU.",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.52, "unit": "fraction", "normalized_digits": 2, "confidence": 0.9, "quote": "Overall, it achieved the best performance with IoU of 0.52 on the dataset at the 75% training data used, matching the ImageNet unfrozen model that also achieved 0.52 IoU.", "section": "IV-B Downstream Task B / V Discussion", "table": "Figure 6 (curves)", "ambiguity": "Mean IoU over 3 classes on the spatially independent Task B test set (WeedMap Switzerland/Sequoia, 62 chips), best of the MoCo-v3-pretrained Swin U-Net at the 75% training-data fraction; matches ImageNet-unfrozen baseline. Task A (Germany/RedEdge-M, 280 test chips) results are presented only as IoU-vs-data-volume curves (Fig. 3-5) without explicit text numbers; the paper is SSL-method-focused, so absolute mIoU depends on the % training data (5-100%). Also quoted in text: scratch ViT-Base IoU 0.33 vs 0.45-0.48 for pretrained ViT-Base at 5% split."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported; only mean IoU (per class and mean) used."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice not reported."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class IoU only; no per-class F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class IoU only; no per-class F1."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None - offline experimentation on a single GPU; no on-device/embedded deployment reported",
+    "precision": null,
+    "resolution_input": 224,
+    "framework": "PyTorch-based (SpecDeepMap API from EnMAP-Box, custom extension for MAE/MoCo-v3 encoders); SSL pretraining 200-400 epochs, downstream fine-tune 50 epochs (batch 8, lr 3e-4); single GPU; crop-weed segmentation on 224x224 multispectral chips",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No real-time/throughput metrics reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Parameter counts not reported."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["SSL-methodology study: results are presented as mean-IoU-vs-training-data-volume curves (5-100%); explicit absolute numbers quoted in text only for Task B best IoU 0.52 (75% split) and a few low-data comparisons (scratch ViT-Base 0.33 vs pretrained 0.45-0.48). Recorded the best explicitly-quoted IoU with ambiguity.", "uav_collected=false: benchmark evaluation uses the public WeedMap dataset (UAV imagery from Sa et al. 2018); self-collected Finnish multispectral UAV set used for pretraining only (publicly released on Zenodo).", "best model = MoCo-v3-pretrained Swin Transformer (tiny) + U-Net decoder, full fine-tuning; absolute accuracy is data-volume dependent.", "No per-class or PA/F1 metrics reported."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

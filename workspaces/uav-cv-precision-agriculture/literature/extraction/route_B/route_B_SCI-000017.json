@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000017",
+  "study": {
+    "title": "WeedsGalore: A Multispectral and Multitemporal UAV-based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+    "short_title": "WeedsGalore UAV maize benchmark; DeepLabV3+ MSI mIoU 82.9",
+    "year": 2025,
+    "venue": "arXiv Preprint",
+    "extracted_md": "2025_Celikkan_WeedsGalore_A_Multispectral_and_Multitemporal_UAV.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop (maize) and weed semantic segmentation (3-class background/crop/weed and 6-class multi-species settings) plus instance segmentation baselines, on a multispectral (RGB + red-edge + NIR) multitemporal UAV dataset",
+    "models_tested": ["DeepLabv3+ (ResNet50)", "MaskFormer (ResNet50)", "Probabilistic DeepLabv3+ (variational inference with MC dropout, p_d=0.5, K=5 forward passes)"],
+    "best_model": "Probabilistic DeepLabv3+ (MC dropout) on 5-band MSI, 3-class: mIoU 0.8294, ECE 0.0018 (weeds IoU 0.7651, crop IoU 0.7390); deterministic DeepLabv3+ MSI mIoU 0.8290",
+    "dataset": {
+      "name": "WeedsGalore: maize crop/weed dataset, Marquardt, Potsdam, Germany (field ~1840 m2; publicly released)",
+      "uav_collected": true,
+      "images": 156,
+      "resolution_gsp_m": 0.0025,
+      "flight_altitude_m": 5,
+      "note": "DJI Phantom 4 Multispectral (5 monochrome sensors: B/G/R 450/560/650+-16 nm, RE 730+-16 nm, NIR 840+-26 nm + RGB), Hover&Capture, 70% side / 60% front overlap. ~1150 raw images; central 600x600 px crops from 48 locations (12 patches, 4 campaigns May 25/30 & Jun 6/15 2023; maize planted May 9 2023, rows 70 cm x 20 cm) annotated with Encord+SAM. 156 fully annotated images: 104 train / 26 val / 26 test (spatially disjoint 8/2/2 patches). Instances: 2,169 maize, 10,031 weeds (4,109 amaranth, 2,537 barnyard grass, 249 quickweed, 3,136 weed-other). Maps to ~128 m2 ground area per date; 4 large orthomosaics included unlabeled."
+    },
+    "classes": ["background", "maize (crop)", "common amaranth (Amaranthus retroflexus)", "barnyard grass (Echinochloa crus-galli)", "quickweed (Galinsoga parviflora)", "weed other"],
+    "num_classes": 6,
+    "backbone": "ResNet50 (first conv layer re-initialized to 5 input channels for MSI)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.8294, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "Prob. DLv3+  ... MSI  DLv3+ 72.93 77.31 82.90 ... Prob. DLv3+ 73.90 76.51 82.94 0.0018", "section": "4.2 Uncertainty Quantification", "table": "Table 6", "ambiguity": "Best semantic score = probabilistic DeepLabv3+ (MC dropout) on 5-band MSI, 3-class setting: mIoU 82.94%, crop IoU 73.90%, weed IoU 76.51%, ECE 0.0018. Deterministic 3-class MSI: DeepLabv3+ 82.90%, MaskFormer 80.27%. 6-class (multi-species) best DeepLabv3+ MSI mIoU 55.52% (quickweed 21.11). OOD Maize2024 (prob.): mIoU 58.78%."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "IoU-based metrics only; per-class IoUs given (e.g. background 98.45, crop 72.93, weed 77.31 for deterministic DeepLabv3+ MSI)."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1; weed-class IoU reported (deterministic MSI 77.31, prob. 76.51; 6-class per-species IoUs in Table 4)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1; crop (maize) IoU reported (deterministic MSI 72.93, prob. 73.90)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 600,
+    "framework": "Adam (lr 1e-3 DeepLabv3+ / 3e-5 MaskFormer), batch 8, standard augmentation; trained on NVIDIA A100 GPU + Intel Xeon Ice Lake CPU 32 GB; no inference-speed reporting",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Dataset/benchmark paper; semantic/instance baselines are reference results, not a deployment study.", "Worklist venue 'arXiv Preprint' used; paper is in fact published at IEEE/CVF WACV 2025 (DOI 10.1109/WACV61041.2025.00467) - noted for metadata reconciliation.", "No PA/F1/Dice reported (IoU-based only); no edge deployment metrics.", "OOD generalization benchmark (Maize2024): probabilistic DeepLabv3+ mIoU 58.78% (IoUcrop 50.37, IoUweed 57.32) vs 52.55% deterministic.", "PhenoBench comparison: mIoU 29.33% on maize; underscores domain gap."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

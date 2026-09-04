@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000286",
+  "study": {
+    "title": "Real-Time Weed Segmentation in Tobacco Crops Utilizing Deep Learning on a Jetson Nano",
+    "short_title": "U-Net-MobileNetV2 on Jetson Nano (tobacco weeds)",
+    "year": 2024,
+    "venue": "2024 International Conference on Engineering & Computing Technologies (ICECT)",
+    "extracted_md": "2024_Qureshi_RealTime_Weed_Segmentation_in_Tobacco_Crops_Utili.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "weed vs tobacco crop vs background",
+    "models_tested": ["U-Net-MobileNetV2 (MobileNetV2 encoder + U-Net decoder) (proposed)"],
+    "best_model": "U-Net-MobileNetV2 (cropped ~0.5 m GSD setup): accuracy 94%, max IoU 0.85; real-time on Jetson Nano",
+    "dataset": {
+      "name": "Tobacco Aerial Dataset (Mardan, Khyber Pakhtunkhwa, Pakistan)",
+      "uav_collected": true,
+      "images": null,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 4.0,
+      "note": "Public dataset: DJI Mavic Mini drone images of 8 tobacco fields, Mardan, KPK, Pakistan; altitude 4 m; tobacco plants 15-40 days old; 1920x1080 px resized to 480x352; MATLAB Image Labeler annotation into 3 classes (background, tobacco crop, weed) as 8-bit labels 0/1/2; model input 224x224x3; 80/20 train-test split. Phase-2 simulation cropped images to simulate ~0.5 m altitude. Real-time validation at different site in Mansehra District, Pakistan."
+    },
+    "classes": ["tobacco crop", "weed", "background"],
+    "num_classes": 3,
+    "backbone": "MobileNetV2 (encoder, depthwise-separable + inverted residuals) + U-Net decoder with skip connections",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.851, "unit": "fraction", "normalized_digits": 3, "confidence": 0.65, "quote": "mean intersection over union value of 0.851 (abstract); simulation: maximum IoU reached 0.85 (0.54 at 4 m altitude)", "section": "Abstract / III Results (A. Simulation Results)", "table": "", "ambiguity": "Abstract states mIoU 0.851/96% accuracy; text section reports max IoU 0.85 and 94% accuracy for the cropped (~0.5 m) setup. Two simulation phases: 4 m altitude accuracy 79.8%, IoU 0.54."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only accuracy and (m)IoU reported."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.94, "unit": "fraction", "normalized_digits": 3, "confidence": 0.65, "quote": "performance ... significantly improved, with an accuracy of 94% (abstract: 96% accuracy)", "section": "III Results (A. Simulation Results)", "table": "", "ambiguity": "Abstract claims 96%; results section states 94% for cropped (~0.5 m) setup and 79.8% for original 4 m altitude setup."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class metrics not reported."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class metrics not reported; model output described as binary weed/background mask."}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "NVIDIA Jetson Nano",
+    "precision": "ONNX (PyTorch, CUDA)",
+    "resolution_input": 224,
+    "framework": "PyTorch + ONNX Runtime on Jetson Nano (CUDA-accelerated)",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported directly; per-frame latency implies ~3.7 fps (derived from 271.29 ms combined)."},
+    "latency_ms": {"reported": true, "value": 271.29, "unit": "ms", "normalized_digits": 2, "confidence": 0.8, "quote": "The combined duration of the model and real-time inference is observed to be 271.29milliseconds (Fig. 11)", "section": "III.B Real-time Experimental Results", "table": "Figure 11 (timing report)", "ambiguity": "EDGE deployment: Jetson Nano + USB camera + power bank mounted on a drone, real-time validation in tobacco fields, Mansehra, Pakistan. Duration = combined model + real-time inference per frame; composition not detailed."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Power not measured (power bank used in mobile setup)."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.75,
+    "issues": ["Real edge deployment (Jetson Nano) with on-drone real-time validation => edge.reported TRUE.", "Accuracy/mIoU discrepancy: abstract 96%/0.851 vs results text 94%/0.85 vs first phase 79.8%/0.54 (altitude-dependent).", "Annotation is 3-class but model output described as binary weed mask; mIoU presumably 3-class.", "Fig. 5/7 metric curves (accuracy/loss/mIoU) figure-only; numeric maxima quoted in text."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

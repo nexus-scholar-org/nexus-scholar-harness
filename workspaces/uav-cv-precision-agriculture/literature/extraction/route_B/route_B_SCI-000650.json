@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-000650",
+  "study": {
+    "title": "Harnessing UAVs and deep learning for accurate grass weed detection in wheat fields: a study on biomass and yield implications",
+    "short_title": "Grass-Weed Semantic Segmentation in Wheat Fields (DeepLabV3+)",
+    "year": 2024,
+    "venue": "Plant Methods",
+    "extracted_md": "2024_Liu_Harnessing_UAVs_and_deep_learning_for_accurate_gra.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "weed (grass weeds) vs wheat vs land/soil",
+    "models_tested": ["DeepLabV3+ (ResNet-50, proposed baseline of study)", "ResNet-38 (MS COCO)", "PSPNet", "DeepLabV3", "UNet"],
+    "best_model": "DeepLabV3+ (ResNet-50): MIoU 0.888, time 46.5 ms/image",
+    "dataset": {
+      "name": "Self-built wheat-field grass-weed dataset (Yizheng & Sihong, Jiangsu, 2019-2020)",
+      "uav_collected": true,
+      "images": 10000,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 15.0,
+      "note": "UAV RGB (DJI Mavic 3, 5280x3956, flight 15 m) + hyperspectral (DJI Matrice 600 Pro + GaiaSky-mini 400-1000 nm, 3.5 nm, flight 50 m) during wintering/seedling/jointing periods; 8 plots (6 infested, 2 weed-free control); weeds Alopecurus aequalis and Poa annua; 1,000 RGB images -> 10,000 sub-images 318x318 (7,000 train / 3,000 validation); manual LabelMe annotation: wheat, weeds, soil. DeepLabV3+ used to compute weed canopy cover (CC) for SVR biomass estimation."
+    },
+    "classes": ["wheat", "grass weeds", "land/soil"],
+    "num_classes": 3,
+    "backbone": "DeepLabV3+: ResNet-50 encoder with ASPP + decoder (low-level 48-ch 1x1 conv fusion)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.888, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "DeepLabV3+ MIoU 88.8 (Weed IoU 83.3, Wheat IoU 87.5, Land IoU 95.6)", "section": "Semantic segmentation effect of weeds / Table 2", "table": "Table 2", "ambiguity": "Per-method mIoU: ResNet-38 76.7, PSPNet 74.2, DeepLabV3 78.4, UNet 84.3, DeepLabV3+ 88.8 (best). Weed/wheat detection precision per sowing method: 91.27% scattered vs 87.51% drilled."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.968, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "DeepLabV3+ F1 96.8 (Table 2); F1/MIoU/precision/recall above 85 for weed & wheat monitoring", "section": "Table 2 / Semantic segmentation effect of weeds", "table": "Table 2", "ambiguity": "Table 2 F1 column: DeepLabV3+ 0.968 (recall 0.906). Text additionally states model F1/MIoU/precision/recall all >85%. Slight inconsistency: per-plot precision 0.9127/0.8751 vs table F1 levels."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 used (Dice-equivalent), captured under F1."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 4, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Precision/recall reported per class and sowing method, not overall pixel accuracy."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed-class IoU 0.833 (DeepLabV3+); weed-specific F1 not separated from Table 2 F1 column."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Wheat-class IoU 0.875 (DeepLabV3+); wheat-specific F1 not isolated."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None - offline (NVIDIA GeForce RTX 3090 24 GB, Intel Core i7-9700K 8-core, 64 GB DDR4)",
+    "precision": "",
+    "resolution_input": 318,
+    "framework": "Python 3.7 (PyTorch/TensorFlow unspecified)",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only per-image processing time (ms) reported."},
+    "latency_ms": {"reported": true, "value": 46.5, "unit": "ms", "normalized_digits": 1, "confidence": 0.8, "quote": "The processing time for DeepLabV3+ is 46.5ms", "section": "Semantic segmentation effect of weeds / Table 2", "table": "Table 2", "ambiguity": "DESKTOP (RTX 3090 24 GB, i7-9700K) per 318x318 image; ResNet-38 fastest 30.6 ms, PSPNet slowest 76.7 ms. No embedded/on-device measurement => edge.reported false."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.8,
+    "issues": ["Worklist screening = PROVISIONAL_FULLTEXT_ELIGIBILITY (abstract framed as detection; EXC-02/INC-02 concern). Full text CONFIRMS pixel-level semantic segmentation with MIoU/F1/IoU (Table 2) -> satisfies INC-02.", "Focus is weed-cover extraction for biomass/yield modeling; segmentation itself is DeepLabV3+ comparative.", "Table 2 column alignment estimated from PDF layout; per-class values consistent with prose.", "validated"],
+    "validated_changed": ["edge.device"],
+    "validation": {"checks": 14, "changed": 1},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

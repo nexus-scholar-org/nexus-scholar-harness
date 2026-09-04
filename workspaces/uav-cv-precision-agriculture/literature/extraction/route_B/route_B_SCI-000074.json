@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000074",
+  "study": {
+    "title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+    "short_title": "WeedFormer SegFormer-B2+CBAM+ASPP maize mIoU 80.27",
+    "year": 2026,
+    "venue": "2026 7th International Conference on Smart Systems and Inventive Technology (ICSSIT)",
+    "extracted_md": "2026_Krishna_WeedFormer_Transformerbased_CropWeed_Segmentati.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "6-class crop-weed semantic segmentation (background, maize, Amaranth, Barnyard Grass, Quickweed, Weed Other) on the public WeedsGalore UAV maize-field benchmark; WeedFormer combines a pre-trained SegFormer-B2 transformer encoder with a Convolutional Block Attention Module (CBAM, sequential channel+spatial attention) and ASPP multi-scale context aggregation (dilations 1,6,12,18 + global average pooling) for RGB-only imagery, trained with composite cross-entropy + Dice loss",
+    "models_tested": ["SegFormer-B1", "SegFormer-B2", "DeepLabv3+ (ResNet-50)", "UNet++ (EfficientNet-B4)", "Enhanced DeepLabv3+ (ResNet-50 + CBAM + ASPP)", "WeedFormer = SegFormer-B2 + CBAM + ASPP (SFB2-Enh.)", "Published baselines on WeedsGalore: DeepLabv3+ RGB [1], DeepLabv3+ MSI [1]"],
+    "best_model": "WeedFormer (SFB2-Enh. = SegFormer-B2 + CBAM + ASPP) on the WeedsGalore validation set: mIoU 80.27%, pixel accuracy 98.81%, macro precision 87.93%, macro F1 88.77%; +1.81 mIoU over plain SegFormer-B2 (best single transformer) and +24.75 mIoU over the best published multispectral DeepLabv3+ baseline using only RGB input",
+    "dataset": {
+      "name": "WeedsGalore benchmark (Celikkan et al., WACV 2025), public multispectral and multitemporal UAV dataset for crop-weed segmentation in maize fields; evaluation on the validation split of 26 images drawn from two geographically distinct spatial patches; model trained on the small training set of 104 images (pre-trained encoder from ADE20K). Images resized to 512x512, normalized [0,1], augmentation = random flipping, color jittering, random cropping. Six classes: Background, Maize, Amaranth (Amar.), Barnyard Grass (Barn.), Quickweed (Quick.), Weed Other (W.Oth.).",
+      "uav_collected": false,
+      "images": 130,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "uav_collected=false: WeedsGalore is a public third-party UAV benchmark, not collected by the authors. images = 104 training + 26 validation used in this study (the schema field counts images actually used for experiments). Validation = 26 images from two geographically distinct spatial patches. GSD/flight altitude not reported in this paper. RGB-only input; Quickweed is the smallest class with 249 labeled instances across the entire dataset."
+    },
+    "classes": ["background", "maize", "Amaranth", "Barnyard Grass", "Quickweed", "weed_other"],
+    "num_classes": 6,
+    "backbone": "SegFormer-B2 (hierarchical MiT-B2 transformer encoder pre-trained on ADE20K) plus CBAM (channel Mc then spatial Ms attention) and ASPP (dilations 1,6,12,18 + GAP) fused through the SegFormer decoder; MLP head, output softmax. Training: AdamW, encoder LR 5e-5, CBAM/ASPP LR 5e-4, 80 epochs, cosine annealing, mixed-precision, gradient clipping, batch size 4, 5-epoch linear warm-up; best validation mIoU (80.27%) at epoch 72.",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.8027, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "It achieves the highest mIoU of 80.27%, PA of 98.81%, Precision of 87.93%, and F1-Score of 88.77%.", "section": "IV.A / Table I / Fig. 2", "table": "Table I", "ambiguity": "Mean IoU over 6 classes on the WeedsGalore VALIDATION set (26 images, 2 spatial patches). Baselines: SegFormer-B2 78.46, SegFormer-B1 77.80, UNet++ (EB-4) 48.82, DeepLabv3+ (RN-50) 35.74, Enhanced DeepLabv3+ 29.99, published DLv3+ RGB 50.81, DLv3+ MSI 55.52. Per-class WeedFormer IoU (Table II): BG 98.74, Maize 76.93, Amaranth 73.27, Barnyard 74.45, Quickweed 72.24, Weed Other 86.01."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Mean pixel accuracy not reported; per-class IoU (Table II) and pixel accuracy (PA) are reported instead."},
+      "F1": {"reported": true, "value": 0.8877, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "It achieves the highest mIoU of 80.27%, PA of 98.81%, Precision of 87.93%, and F1-Score of 88.77%.", "section": "IV.A / Table I", "table": "Table I", "ambiguity": "Macro-averaged F1 over the 6 classes on the WeedsGalore validation set (paper reports Precision and F1 alongside PA and mIoU). Baselines: SegFormer-B2 87.56, SegFormer-B1 87.11, published DLv3+ MSI 53.40, DLv3+ RGB 49.10, UNet++ 59.15, DeepLabv3+ 43.63, Enhanced DLv3+ 38.92."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice used only as a loss component (CE + Dice, eq. 7-8), never reported as an evaluation metric."},
+      "PA": {"reported": true, "value": 0.9881, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "It achieves the highest mIoU of 80.27%, PA of 98.81%, Precision of 87.93%, and F1-Score of 88.77%.", "section": "IV.A / Table I", "table": "Table I", "ambiguity": "Pixel Accuracy on the WeedsGalore validation set (overall classification correctness). Baselines: UNet++ 99.13 (higher PA but far lower mIoU), SegFormer-B2 98.79, SegFormer-B1 98.73, DeepLabv3+ 97.45, published DLv3+ RGB 88.90, DLv3+ MSI 90.10."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 not reported; per-class IoU reported instead (WeedFormer per-class IoU Table II: Maize 76.93, Amaranth 73.27, Barnyard 74.45, Quickweed 72.24, Weed Other 86.01)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 not reported; maize-class IoU reported instead (WeedFormer maize IoU 76.93; underperforming crop classes drive lower overall — the paper analyzes per-class IoU in Table II)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None stated - offline model training/evaluation only; no on-device deployment, no hardware reported",
+    "precision": null,
+    "resolution_input": 512,
+    "framework": "Deep-learning framework not explicitly named; training details: AdamW, mixed-precision training, gradient clipping, cosine annealing, 80 epochs, batch size 4 (mixed precision implies a GPU framework such as PyTorch)",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No real-time/throughput metrics reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Evaluation only on the WeedsGalore VALIDATION split (26 images, 2 spatial patches) - small/held-out evaluation set; no independent test set reported.", "Only 104 training images used (large pre-trained ADE20K encoder compensates); paper argues Quickweed class (249 instances) robustness via 72.24% IoU vs 21.11% for best multispectral baseline.", "edge.reported=false: no deployment or real-time claims; conclusion names only future directions (NIR/Red-Edge bands, instance segmentation, uncertainty estimation), not on-device processing.", "uav_collected=false: relies on public WeedsGalore UAV benchmark; RGB-only input outperforms published multispectral DeepLabv3+ baseline by 24.75 mIoU.", "Convention: global F1 mapped to the F1 field (macro-averaged); weed_F1/crop_F1 left false - no per-class F1 reported."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

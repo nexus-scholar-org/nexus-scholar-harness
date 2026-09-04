@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001046",
+  "study": {
+    "title": "Implementing Innovative Weed Detection Techniques for Environmental Sustainability",
+    "short_title": "Mask R-CNN (MobileNetV3) weed/crop instance seg + IoT alerts",
+    "year": 2024,
+    "venue": "Journal of Environmental Nanotechnology",
+    "extracted_md": "2024_Sreeja_Implementing_Innovative_Weed_Detection_Techniques_.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "weed and crop detection/segmentation in cluttered UAV images (plantation crops; IoT-based weed-zone alerting)",
+    "models_tested": ["Mask R-CNN with MobileNetV3 backbone (proposed)"],
+    "best_model": "Mask R-CNN (MobileNetV3): weed accuracy/AP 89.1%, crop accuracy/AP 88.7-88.9%, mAP 88.6% (m43)",
+    "dataset": {
+      "name": "Self-collected UAV weed/crop dataset (plantation crops, India)",
+      "uav_collected": true,
+      "images": 200,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "200 UAV images with cluttered backgrounds, weeds and crops as focus; originally 9000x6000, resized to 800x600 and normalized; VIA (VGG Image Annotator) polygon annotation stored as JSON; converted to COCO format; training batch size 10, epoch-wise learning rate 0.01 (training), fine-tuning learning rate 0.003, 156 epochs, batch 25; Keras/TensorFlow GPU on NVIDIA Quadro M4000 8 GB, Intel Xeon E5-2643v3, 64 GB RAM."
+    },
+    "classes": ["weed", "crop"],
+    "num_classes": 2,
+    "backbone": "MobileNetV3 (lightweight inverted-residual blocks with SE attention; chosen for real-time/low-resource deployment given UAV computational constraints)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No mean IoU computed. IoU used only as bounding-box overlap criterion during Mask R-CNN training; results reported as class accuracy/AP and mAP."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1-score named in the evaluation-criteria list (Section 3) but no F1 values are reported in results."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 4, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "\"Accuracy of weed/crop\" values (e.g. 89.1%/88.7%) are class-level detection accuracy/AP (see weed_F1/crop_F1 ambiguity), not pixel accuracy; no pixel-level metric reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1. Weed-level result reported as 89.1% average precision (abstract and Results; Table 1 row Mask R-CNN: weed 89.1)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1. Crop-level result reported as 88.9% AP (abstract) / 88.7% (Table 1) / overall precision 89.4%."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": null,
+    "framework": "Keras / TensorFlow GPU 1.8.0, cuDNN 7.0, Python 3.5.2, Intel Xeon E5-2643v3 3.40 GHz CPU, NVIDIA Quadro M4000 8 GB; Raspberry Pi + GSM module only for sending email weed-zone alerts (no on-device inference)",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference-speed/latency reported."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported. Raspberry Pi used only for image transmission/alerts over GSM; segmentation inference runs on the desktop Quadro M4000 setup."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.75,
+    "issues": ["Instance-segmentation study: metrics are class-level accuracy/AP (weed 89.1%, crop 88.9%, overall 89.4%) and mAP (88.6% m43); no semantic segmentation metric -> RQ1 not reportable.", "Table 1 rows lack model labels for the first entries; only the final Mask R-CNN row is labeled, and numeric values are inconsistent between abstract, Results text (89.4% overall), and Table 1 (88.7% crop) - moderate ambiguity.", "IoT/Raspberry Pi deployed only for email alerting via GSM module (weed-zone image sent to farmer); it does not run the network, so not counted as edge inference.", "Backbone is MobileNetV3 chosen for lightweight/real-time use, but no efficiency (latency/params/FLOPs) numbers are provided.", "Only 200 images with sampling done purely to show feasibility ('proposed work' validity), weak experimental grounding."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

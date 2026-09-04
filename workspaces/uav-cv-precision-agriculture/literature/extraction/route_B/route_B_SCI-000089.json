@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000089",
+  "study": {
+    "title": "Semi-supervised Learning for Weed and Crop Segmentation Using UAV Imagery",
+    "short_title": "SemiWeedNet: Semi-Supervised UAV Crop/Weed Segmentation",
+    "year": 2022,
+    "venue": "Frontiers in Plant Science",
+    "extracted_md": "2022_Nong_Semisupervised_Learning_for_Weed_and_Crop_Segment.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["SemiWeedNet (DeepLabv3+ based)", "SupOnly baseline", "CAC", "ST++", "Adv-Semi", "cycleGAN"],
+    "best_model": "SemiWeedNet (DeepLabv3+ with ResNet50/ResNet101 backbone, SKA + OHEM + consistency)",
+    "dataset": {
+      "name": "WeedMap dataset (Sa et al. 2018): sugar beet fields in Switzerland and Germany",
+      "uav_collected": true,
+      "images": 289,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": null,
+      "note": "Two UAV platforms with RedEdge and Sequoia multispectral sensors; RGB channel only used; 289 pixel-wise labelled tile images (480x360, resized to 480x480) from subsets 000-004, split 8:2 (train/test). Classes: background, crop, weed."
+    },
+    "classes": ["background", "crop", "weed"],
+    "num_classes": 3,
+    "backbone": "ResNet-50 / ResNet-101",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.701, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "Ours Resnet50 0.698 0.695 0.695 0.701 ... Ours Resnet101 0.692 0.690 0.696 0.700", "section": "Results / Table 1", "table": "Table 1", "ambiguity": "Best mIoU 0.701 (SemiWeedNet, ResNet50, full labelled data); with only 20% labelled data SemiWeedNet reaches 0.698, competitive with full supervision (key semi-supervised claim)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class IoU (background/weed/crop) shown in Figures 5-6, not extracted as F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 480,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Lightweight-model + inference-speed design listed only as future work."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["No flight altitude or GSD for the WeedMap imagery reported in this study; mIoU in Table 1 is the primary result."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

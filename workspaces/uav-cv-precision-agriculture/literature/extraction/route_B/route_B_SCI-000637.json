@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-000637",
+  "study": {
+    "title": "UAV-based intelligent weed detection using YOLO11 and PSPNet for precision agriculture",
+    "short_title": "YOLO11-PSPNet weed detection+region segmentation in rice paddy",
+    "year": 2025,
+    "venue": "Notulae Botanicae Horti Agrobotanici Cluj-Napoca",
+    "extracted_md": "2025_CHINNASAMI_UAV_based_intelligent_weed_detection_using_YOLO11_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "weed detection (YOLO11-s bounding boxes) + region-specific semantic segmentation (PSPNet on bbox crops) in rice paddy UAV imagery, targeting site-specific spraying; dataset annotated at tillering stage",
+    "models_tested": ["YOLO11-PSPNet (proposed): YOLO11-s detector (C3K2 blocks, SPPF, C2PSA spatial attention) + PSPNet segmenter (ResNet-50 backbone, 4-level pyramid pooling 1x1/2x2/3x3/6x6), RAdam+SAM optimizer; model trained sequentially"],
+    "best_model": "YOLO11-PSPNet: mAP50 0.9956, precision 0.994, recall 0.982, mIoU 0.9827, IoU 0.9961, DSC 0.832, inference 6.2 ms/img (hardware unspecified)",
+    "dataset": {
+      "name": "Rice paddy weed dataset, Therakalputhoor, Kanyakumari District, India (Roboflow)",
+      "uav_collected": true,
+      "images": 1215,
+      "resolution_gsp_m": 0.00225,
+      "flight_altitude_m": null,
+      "note": "Captured July-Aug 2024 with Autel Robotics EVO II Pro (CMOS 20 MP, 80% forward / 80% side overlap, vertical view) over 150 m x 85 m (12,750 m2) field at tillering stage; flight altitude 5-25 m. Split 70/20/10 train/test/val; images resized to 640x640; histogram equalization + augmentation; Roboflow bbox annotation."
+    },
+    "classes": ["rice (paddy crop)", "Echinochloa (barnyard grass)", "Cyperus difformis (small-flower umbrella sedge)", "Echinochloa colona (jungle rice)"],
+    "num_classes": 4,
+    "backbone": "PSPNet with pretrained ResNet-50 backbone + dilated convs; Pyramid Pooling Module (adaptive average pooling, 1x1 convs, bilinear upsampling, concat fusion); YOLO11-s detector for bbox generation",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.9827, "unit": "fraction", "normalized_digits": 4, "confidence": 0.7, "quote": "The proposed YOLO11-PSPNet model attained a precision of 99.4 % and a recall of 98.2 %. The model accurately detected weeds in the paddy field, with an mAP50 of 99.56 %, an IoU of 99.61 %, and a DSC score of 83.2 % ... IoU (%)  99.61   mIoU (%)  98.27   DSC (%) 83.2", "section": "Results / Performance analysis of the proposed model", "table": "Table 2", "ambiguity": "mIoU 98.27% reported in Table 2 alongside IoU 99.61% and DSC 83.2%; values appear inflated and some tables report mAP50 (99.56%) for both detection and segmentation; exact class scheme for IoU not stated."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported; precision 0.994/recall 0.982 imply F1 ~0.988 (derived, not reported)."},
+      "Dice": {"reported": true, "value": 0.832, "unit": "fraction", "normalized_digits": 3, "confidence": 0.7, "quote": "...an IoU of 99.61 %, and a DSC score of 83.2 %.", "section": "Results / Performance analysis of the proposed model", "table": "Table 2", "ambiguity": "DSC 83.2% (Table 2); noticeably lower than the reported IoU 99.61%/mIoU 98.27%, suggesting inconsistent metric computation; treat with caution."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1 reported."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-class F1 reported (rice paddy only as background crop)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 640,
+    "framework": "Training: SGD (pspnet) / RAdam+SAM (YOLO11-PSPNet), lr 0.001, batch 16, momentum 0.937, weight decay 0.0005, 50 epochs; inference hardware NOT specified",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FPS not directly reported; 6.2 ms/img implies ~161 FPS (derived)."},
+    "latency_ms": {"reported": true, "value": 6.2, "unit": "ms", "normalized_digits": 2, "confidence": 0.7, "quote": "The proposed model achieved an inference time of 6.2 ms per image, demonstrating that the proposed YOLO11-PSPNet framework outperforms existing approaches.", "section": "Comparative analysis", "table": "Table 6", "ambiguity": "Inference time 6.2 ms/image for the combined detection+segmentation pipeline; hardware on which it was measured is NOT reported. Authors claim 'suitable for deployment on edge devices' and 'real-time deployment' potential but perform no on-device benchmark."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported (PSPNet ResNet-50 + YOLO11-s)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.7,
+    "issues": ["Reporting inconsistencies: mAP50 99.56% claimed for both detection and segmentation; IoU 99.61% vs mIoU 98.27% vs DSC 83.2% suggest unreliable metric computation.", "Inference hardware (CPU/GPU) not specified; 6.2 ms/img real-time and edge-deployment suitability claimed without on-device measurements.", "Segmentation is region-specific on YOLO11 bbox crops; exact number of classes / weed-vs-crop masking scheme unclear.", "Comparisons (Table 4/5/6) cite external results rather than re-trained baselines.", "GSD reported as 0.225 cm/pixel (0.00225 m/px); flight altitude range 5-25 m.", "validated"],
+    "validated_changed": [],
+    "validation": {"checks": 14, "changed": 0},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

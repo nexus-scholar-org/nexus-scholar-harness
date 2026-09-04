@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001210",
+  "study": {
+    "title": "MAENet: Multiple Attention Encoder-decoder Network for Farmland Segmentation of Remote Sensing Images",
+    "short_title": "MAENet: Multiple Attention Encoder-decoder Network for Farmland Segmentation",
+    "year": 2022,
+    "venue": "IEEE Geoscience and Remote Sensing Letters",
+    "extracted_md": "2021_Huan_MAENet_Multiple_Attention_Encoderdecoder_Network.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "farmland",
+    "models_tested": ["MAENet (DPECA-ResNet-50 + DFA + GIU)", "FCN-8s", "DeepLabV3+", "DenseASPP", "PAN", "SegNet"],
+    "best_model": "MAENet",
+    "dataset": {
+      "name": "Three self-made farmland datasets, DJI Phantom 4 RTK UAV (Funan County, Anhui 2018; Dapo Township, Yunnan 2020)",
+      "uav_collected": true,
+      "images": 7264,
+      "resolution_gsp_m": 0.029,
+      "flight_altitude_m": null,
+      "note": "512x512 crops (12-pixel overlap), 4:1 train/test split. Dataset 1: 2420 images, 15 cm res, 2 classes (farmland/background). Dataset 2: 7264 images, 2.92 cm res, 2 classes. Dataset 3: 5 classes (background, tobacco 1-3, other farmland) derived from Dataset 2."
+    },
+    "classes": ["background", "tobacco 1", "tobacco 2", "tobacco 3", "other farmland"],
+    "num_classes": 5,
+    "backbone": "ResNet-50",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.937, "unit": "fraction", "normalized_digits": 3, "confidence": 0.95, "quote": "The MIoU and Kappa coefficient in the farmland multi-classification test set can reach 93.74% and 96.74%.", "section": "Abstract", "table": "Table III", "ambiguity": "MIoU 93.74% on Dataset 3 (5-class farmland multi-classification test set)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Kappa 0.967 also reported but not a schema pixel-accuracy metric."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Farmland/crop-plot segmentation; paper notes weed identification qualitatively only."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-crop IoU reported (e.g., 84.89% for unbalanced tobacco class), not F1."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Trained on NVIDIA 2080Ti; no inference/edge metrics."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Farmland plot segmentation (5 tobacco classes), not crop-weed discrimination per se"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

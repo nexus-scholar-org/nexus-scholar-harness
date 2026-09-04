@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000624",
+  "study": {
+    "title": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+    "short_title": "DCNNs for UAS Crop/Weed Discrimination",
+    "year": 2022,
+    "venue": "Frontiers in Remote Sensing",
+    "extracted_md": "2022_HashemiBeni_Deep_Convolutional_Neural_Networks_for_Weeds_and_C.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["U-Net", "SegNet", "FCN-32s", "FCN-16s", "FCN-8s", "DeepLabv3+"],
+    "best_model": "FCN-8s (best overall accuracy on UAV sugarcane dataset)",
+    "dataset": {
+      "name": "Sugarcane orthomosaic, sugarcane plantation in Northern Brazil (UAV); plus CWFID field-robot dataset (not UAV)",
+      "uav_collected": true,
+      "images": 50,
+      "resolution_gsp_m": 0.05,
+      "flight_altitude_m": 162,
+      "note": "Fixed-wing UAV with visible-light RGB Canon G9X at 125-200 m flight height, ~5 cm/pix; orthomosaic patched into 50 x 540x540 images, 10-fold CV, 32 patches of 512x512 per image. Classes: background/soil, crops, weeds. CWFID benchmark (Bonirob field robot) also evaluated; DeepLabv3+ best there (84.3%), FCN-8s best on UAV sugarcane subset."
+    },
+    "classes": ["background/soil", "crops", "weeds"],
+    "num_classes": 3,
+    "backbone": "Various (VGG/ResNet-18 based encoders)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only overall accuracy and per-class accuracy reported; no IoU."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.7662, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "FCN-8s 76.62 0.76", "section": "3 Results / Table 4", "table": "Table 4", "ambiguity": "Overall accuracy on the UAV sugarcane orthomosaic dataset (best classifier FCN-8s; U-Net 74%, DeepLabv3+ 70.99%). Note: the abstract headline 84.3% (DeepLabv3+) refers to the CWFID field-robot dataset, not the UAV subset."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class weed accuracy reported (U-Net 86.17% on sugarcane UAV dataset), not F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 512,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.85,
+    "issues": ["Two datasets: CWFID (field robot) and sugarcane orthomosaic (UAV). UAV-relevant metric is 76.62% (FCN-8s, sugarcane); abstract headline 84.3% is for the non-UAV dataset."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

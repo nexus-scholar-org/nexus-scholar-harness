@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-001029",
+  "study": {
+    "title": "Enhancing sustainable Chinese cabbage production: a comparative analysis of multispectral image instance segmentation techniques",
+    "short_title": "YOLOv8-Seg Chinese cabbage instance seg from UAV multispectral",
+    "year": 2024,
+    "venue": "Frontiers in Sustainable Food Systems",
+    "extracted_md": "2024_Yuan_Enhancing_sustainable_Chinese_cabbage_production_a.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "instance segmentation of individual Chinese cabbage (Brassica rapa subsp. pekinensis) plants from UAV multispectral orthomosaics for crop counting, leaf-area monitoring and growth-stress assessment (single class)",
+    "models_tested": ["YOLOv8-Seg (n/s/m/l/x)", "YOLOv5-Seg", "YOLOv6-Seg", "YOLO11-Seg", "Mask R-CNN", "Cascade Mask R-CNN", "PointRend", "RTMDet"],
+    "best_model": "YOLOv8-Seg: mAP50:0.95 (M) 0.863, mAP50 (M) 0.973, mAP75 (M) 0.953 on RGB band (validation set); YOLOv8l-Seg highest scale result mAP50:0.95 (M) 0.884",
+    "dataset": {
+      "name": "Chinese cabbage UAV multispectral instance-segmentation dataset (Wuzhi County, Henan, China; SJFm orthomosaic)",
+      "uav_collected": true,
+      "images": 923,
+      "resolution_gsp_m": 0.004,
+      "flight_altitude_m": 8.5,
+      "note": "DJI Phantom 4 RTK multispectral (1-inch CMOS; RGB + 4 spectral bands; 1600x1300); 6,102 images (1,017 visible + 5,089 band images) from 3 flights on 2023-10-01 at 8.5 m, 1.0 m/s, 65% side/end overlap; GSD 0.4 cm/px (0.004 m). SFM orthomosaics in RGB, NRG (NIR-R-G) and NER (NIR-RedEdge-Red) combos; SAM semi-automatic annotation + manual polygon correction -> 24,774 cabbage instances; cropped to 640x640 -> 923 images; 80% train / 20% validation split."
+    },
+    "classes": ["Chinese cabbage"],
+    "num_classes": 1,
+    "backbone": "YOLOv8 C2f backbone with SPPF, PAFPN neck, decoupled head (Detect + Segment), Task-Aligned Assigner; CIoU/VFL/DFL/mask-BCE loss",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No mean IoU reported; performance is mask/box mean Average Precision at IoU thresholds: mAP0.5, mAP0.75, mAP0.5:0.95. YOLOv8-Seg RGB: mAP0.5:0.95 (M) 0.863."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 not reported; precision-recall curves summarized only via AP/mAP."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 4, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No weed class; single-class Chinese cabbage task."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class F1 not reported; crop-level quality expressed via mask mAP (Table 4-5): YOLOv8-Seg RGB mAP0.5 (M) 0.973, mAP0.5:0.95 (M) 0.863. NRG 0.861 / NER 0.834 (mAP0.5:0.95 M)."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": null,
+    "precision": null,
+    "resolution_input": 640,
+    "framework": "PyTorch 1.12.0, Python 3.8, CUDA 11.3; AMD Ryzen 7 5800X 8-core 3.8 GHz, NVIDIA GeForce RTX 3060; AdamW (lr 0.002, momentum 0.937, wd 0.0005), 200 epochs, batch 2",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference speed measured in study. Table 3 reproduces standard Ultralytics COCO-val benchmarks for the YOLOv8-Seg family (CPU ONNX / A100 TensorRT) as model-reference only, not study measurements."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not measured for the custom-trained models. Table 3 (standard COCO models, 640 px): YOLOv8s-Seg CPU ONNX 155.7 ms / A100 TensorRT 1.47 ms; YOLOv8n-Seg CPU ONNX 96.1 ms / A100 TensorRT 1.21 ms - vendor benchmark, not this study."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": true, "value": 11.7, "unit": "millions", "normalized_digits": 2, "confidence": 0.8, "quote": "Table 6: Performance comparison of YOLOv8-Seg models at different scales ... YOLOv8s-Seg ... Parameters 11.7", "section": "4.1 Performance analysis of different model scales", "table": "Table 6", "ambiguity": "Custom-trained models on this dataset. Scales: YOLOv8n 3.2 M, m 27.2 M, l 45.9 M, x 71.7 M. (Standard Ultralytics COCO numbers in Table 3: n 3.4 M / s 11.8 M.)"},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "FLOPs only in Table 3 for standard COCO models (YOLOv8n-Seg 12.6 B, s 42.6 B, m 110.2 B, l 220.5 B, x 344.1 B); no FLOPs given for the custom-trained models."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.8,
+    "issues": ["Instance-segmentation study: metrics are box/mask mAP (mAP50/75/0.5:0.95) -> no RQ1 semantic metric reportable.", "Metrics are from the 20% validation split (80/20; no independent test set).", "Single-class dataset (24,774 cabbage instances across 923 images) - no weed/crop discrimination.", "No inference timing on the custom models; Table 3 values are standard Ultralytics COCO-val benchmarks (CPU ONNX / A100 TensorRT), not study measurements; study hardware is desktop RTX 3060.", "Hardware string garbled in PDF ('AMD Ryzen 75,800x' -> read as Ryzen 7 5800X); GSD 0.4 cm/px at 8.5 m; model robust down to 1.333-1.143 cm/px (YOLOv8n-Seg, Table 7)."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

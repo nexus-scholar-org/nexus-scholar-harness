@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000203",
+  "study": {
+    "title": "Improved weed segmentation in UAV imagery of sorghum fields with a combined deblurring segmentation model",
+    "short_title": "DeBlurWeedSeg: Deblurring + Segmentation for UAV Sorghum Fields",
+    "year": 2023,
+    "venue": "Plant Methods",
+    "extracted_md": "2023_Genze_Improved_weed_segmentation_in_UAV_imagery_of_sorgh.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["WeedSeg (UNet-shaped decoder + ResNet-18/34/50/101 encoders)", "DeBlurWeedSeg (NAFNet deblurring + WeedSeg best)"],
+    "best_model": "DeBlurWeedSeg (NAFNet deblur + ResNet-50 WeedSeg), trained on sharp images only",
+    "dataset": {
+      "name": "Experimental sorghum field, southern Germany (Chenopodium album main weed, Cirsium arvense minor)",
+      "uav_collected": true,
+      "images": 1300,
+      "resolution_gsp_m": 0.001,
+      "flight_altitude_m": 5,
+      "note": "DJI Mavic 2 Pro (20 MP Hasselblad L1D-20c), 5 m AGL, velocity 6.9 km/h, wind 6 km/h, GSD 1 mm, sorghum BBCH stage 13, Sept 2020; two flights (Hover-and-Capture sharp + Capture-at-Equal-Distance blurred) matched into 1300 non-overlapping blurry/sharp 128x128 pairs; classes soil/background, sorghum, weeds; hold-out test = 100 patches, backg. >98% of pixels."
+    },
+    "classes": ["soil/background", "sorghum", "weeds"],
+    "num_classes": 3,
+    "backbone": "ResNet-50 (best encoder; ImageNet init); NAFNet (deblurring encoder-decoder)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Study uses Sorensen-Dice coefficient as primary metric (class imbalance); mIoU not reported."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only per-class accuracy in confusion matrices; background >99.8%."},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Sorensen-Dice coefficient (DS) used as the primary metric; DS is equivalent to F1 for binary evaluation."},
+      "Dice": {"reported": true, "value": 0.8373, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "DeBlurWeedSeg 0.8741 0.8011 0.8373", "section": "3.3.2 Deblurring evaluation / Table 4", "table": "Table 4", "ambiguity": "DS on combined (sharp + motion-blurred) hold-out test set, scenario 2 (trained on sharp only). Sharp subset 0.8741, blurred subset 0.8011. Relative improvement +13.4% over WeedSeg baseline (combined ~0.738). Validation-selected ResNet-50 encoder DS 0.9048."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported; only per-class accuracy via confusion matrices (background >99.8%)."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Per-class relative improvements on blurred set: ~+137% weed class and ~+117% sorghum class segmentation accuracy vs WeedSeg; absolute per-class DS not tabulated."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 128,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference speed/latency reported; trained/evaluated on 4x NVIDIA RTX 3090."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Primary metric is Sorensen-Dice; mIoU/mPA not reported.", "DeBlurWeedSeg includes prior NAFNet deblurring step - combined-model performance attributed to joint pipeline.", "Dataset from a single UAV mission (one field, one growth stage, Chenopodium album dominant)."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

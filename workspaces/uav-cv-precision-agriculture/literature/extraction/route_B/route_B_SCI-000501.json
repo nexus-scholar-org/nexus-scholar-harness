@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000501",
+  "study": {
+    "title": "Deep learning-based early weed segmentation using motion blurred UAV images of sorghum fields",
+    "short_title": "Early Weed Segmentation in Sorghum (Motion-Blur UAV)",
+    "year": 2022,
+    "venue": "Computers and Electronics in Agriculture",
+    "extracted_md": "2022_Genze_Deep_learningbased_early_weed_segmentation_using_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["UNet", "DeepLabv3+", "FCN-32s", "FCN-8s", "FCN-8s+dilation", "FCN-16s"],
+    "best_model": "UNet with ResNet-34 feature extractor",
+    "dataset": {
+      "name": "UAV imagery of experimental sorghum field, Southern Germany (sorghum cv FarmSugar 180)",
+      "uav_collected": true,
+      "images": 60,
+      "resolution_gsp_m": 0.001,
+      "flight_altitude_m": 5,
+      "note": "DJI Mavic 2 Pro Hasselblad L1D-20c (5472x3648); 5 m flight altitude, GSD 1 mm; 60 captures at BBCH 17, ~6300 patches annotated from 19 images, 2156 patches (256x256) after background filtering, 4-fold CV + hold-out test set. Classes: background/soil, sorghum, weed."
+    },
+    "classes": ["background/soil", "sorghum", "weed"],
+    "num_classes": 3,
+    "backbone": "ResNet-34",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "mIoU not reported; Sørensen-Dice maintained."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": true, "value": 0.894, "unit": "fraction", "normalized_digits": 3, "confidence": 0.85, "quote": "An UNet-like architecture with a ResNet-34 feature extractor achieved an F1-score of over 89% on a hold-out test-set.", "section": "Abstract / 3.2 Table 5", "table": "Table 5", "ambiguity": "F1-score 89.37% (macro-averaged, hold-out test set, S/weed/background); the row-extracted table row 99.69/93.01/86.25/89.37 maps DS 0.9969 (background), recall 86.25, F1 89.37."},
+      "Dice": {"reported": true, "value": 0.9969, "unit": "fraction", "normalized_digits": 4, "confidence": 0.6, "quote": "DS Precision Recall F1-score / 99.69 93.01 86.25 89.37", "section": "Table 5", "table": "Table 5", "ambiguity": "Table extraction ambiguous: the single extracted row likely corresponds to the background/soil class DS 99.69% (soil pixels almost perfectly predicted); macro Dice across classes not clearly stated."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Not reported; per-class pixel accuracy 99.9% (soil), 86.1% (sorghum), 72.7% (weed) from confusion matrix."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Only macro metrics and per-class confusion-matrix accuracies reported."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 256,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Table 5 extraction captured a single row; DS 99.69 likely background/soil class while macro metrics all above 86%."],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

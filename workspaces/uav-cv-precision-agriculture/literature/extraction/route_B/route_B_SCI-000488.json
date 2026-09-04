@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-000488",
+  "study": {
+    "title": "Deep Learning-Based Weed Detection Using UAV Images: A Comparative Study",
+    "short_title": "Comparative Weed Segmentation on CoFly-WeedDB (UNet/EfficientNetB0)",
+    "year": 2023,
+    "venue": "Drones",
+    "extracted_md": "2023_Shahi_Deep_LearningBased_Weed_Detection_Using_UAV_Image.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["SegNet", "UNet", "DeepLabV3+", "x 5 backbones: VGG16, ResNet50, DenseNet121, EfficientNetB0, MobileNetV2"],
+    "best_model": "UNet + EfficientNetB0 (multi-class, augmented D2)",
+    "dataset": {
+      "name": "CoFly-WeedDB (public dataset; cotton field, Greece; Krestenitsi et al.)",
+      "uav_collected": false,
+      "images": 201,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 5,
+      "note": "Public dataset (zenodo.org/record/6697343): imagery captured with DJI Phantom Pro 4 over a cotton field in Greece at 5 m flight height; 1280x720 RGB; patch-based 256x256 (patches >97% background removed) -> 786 patches (628 train / 158 test; 1884 augmented training samples in D2). Classes: background + 3 weed species (Johnson grass, field bindweed, purslane); heavily imbalanced (purslane only 0.27e6 px). uav_collected=false: public benchmark, not collected by the study authors."
+    },
+    "classes": ["background", "Johnson grass", "field bindweed", "purslane"],
+    "num_classes": 4,
+    "backbone": "EfficientNetB0 (237-layer); others VGG16/ResNet50/DenseNet121/MobileNetV2",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.5621, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "Ef\u00adficientNetB0 combined with UNet produces a mean IoU of 56.21%", "section": "4.2 Multi-class segmentation", "table": "Table 4", "ambiguity": "Multi-class (4-class) task, augmented dataset D2, best config UNet+EfficientNetB0. Class IoU: background 0.8809, Johnson grass 0.4478, bindweed 0.4673, purslane 0.4531. Binary-task best (SegNet+DenseNet121) mIoU 0.6756."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Overall accuracy = 0.8897 reported under the 'Acc.' column (equals Recall in their tables); captured under PA."},
+      "F1": {"reported": true, "value": 0.8824, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "imparting Precision (88.20%), Recall (88.97%), F1-score (88.24%) and mean Intersection of Union (56.21%)", "section": "Abstract / Table 4", "table": "Table 4", "ambiguity": "Macro-averaged F1 over 4 classes for UNet+EfficientNetB0 multi-class task on D2. Per-class F1: background 0.9362, Johnson grass 0.6370, bindweed 0.6370, purslane 0.6237."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice loss used in training; Dice metric not reported."},
+      "PA": {"reported": true, "value": 0.8897, "unit": "fraction", "normalized_digits": 4, "confidence": 0.9, "quote": "UNet 56.21 88.20 88.97 88.24 88.97", "section": "4.2 Multi-class segmentation", "table": "Table 4", "ambiguity": "'Acc.' column of Table 4 for UNet+EfficientNetB0 (D2); equals its Recall value in the table."},
+      "weed_F1": {"reported": true, "value": 0.6326, "unit": "fraction", "normalized_digits": 4, "confidence": 0.7, "quote": "Johnson grass 44.78 ... Bind weed 46.73 ... Purslane 45.31", "section": "Table 6 (class-wise)", "table": "Table 6", "ambiguity": "DERIVED mean of the three weed-species F1 values (0.6370 + 0.6370 + 0.6237)/3 = 0.6326; not directly reported as an aggregate weed F1."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No single crop class; dataset is weed-vs-background over bare/planted cotton field."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None - offline (Google Colab cloud, NVIDIA T4 GPU 12 GB RAM)",
+    "precision": "",
+    "resolution_input": 256,
+    "framework": "Keras (Python), Adam optimizer lr 0.001, up to 100 epochs, early stopping (patience 10), focal loss + dice loss",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No inference speed/latency reported; trained on Google Colab NVIDIA T4 GPU."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Headline metrics are for the multi-class 4-class task (3 weed species + background); binary weed/background task differs (best mIoU 0.6756, SegNet+DenseNet121).", "weed_F1 is derived as the mean of the three weed-species F1s.", "No edge/inference metrics.", "validated"],
+    "validated_changed": ["segmentation.dataset.uav_collected", "edge.device", "edge.framework"],
+    "validation": {"checks": 14, "changed": 3},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

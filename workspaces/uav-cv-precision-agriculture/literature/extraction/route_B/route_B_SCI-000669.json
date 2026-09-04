@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-000669",
+  "study": {
+    "title": "Towards real-time weed detection and segmentation with lightweight CNN models on edge devices",
+    "short_title": "Lightweight SS deployed on Jetson; MobileNetV4-Seg IoU 0.769, F1 0.869, 44 FPS",
+    "year": 2025,
+    "venue": "Computers and Electronics in Agriculture",
+    "extracted_md": "2025_Islam_Towards_realtime_weed_detection_and_segmentation_.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "real-time site-specific weed detection/segmentation of Palmer Amaranth (Amaranthus palmeri) in corn and soybean fields from UAV RGB imagery (256x256), with lightweight models deployed on resource-constrained NVIDIA Jetson edge devices (Jetson Nano and Jetson Orin Nano)",
+    "models_tested": ["MobileNetV4-Seg (proposed: MobileNetV4-Conv-Small encoder + semantic segmentation head decoder, 1.93 M params)", "Lightweight DeepLabv3+ (MobileNetV3 backbone)", "Lightweight SSD (MobileNetV3 backbone, OD)", "YOLO8n (OD)"],
+    "best_model": "MobileNetV4-Seg on Jetson Orin Nano: IoU 69.9%/76.8%, F1 82.3%/86.9% (corn/soybean), Precision 80.9%/83.8%, Recall 83.7%/90.2%, 44 FPS at 256x256",
+    "dataset": {
+      "name": "UAV RGB images of Palmer Amaranth: corn (Phantom 4 RTK, Carleton NE, July 2021; 5472x3648) and soybean (Matrice 300 RTK + Zenmuse P1, Clay Center NE, July 2022; 8192x5460), split into sub-images and resized to 256x256",
+      "uav_collected": true,
+      "images": 796,
+      "resolution_gsp_m": 0.0006,
+      "flight_altitude_m": 5,
+      "note": "Images used for the proposed MobileNetV4-Seg SS model: 443 corn sub-images (390 train / 10 val / 43 test) and 353 soybean sub-images (310 / 10 / 33); DeepLabv3+ SS used 120 sub-images per crop (100/10/10). Soybean GSD 0.06 cm/px at 5 m AGL; corn GSD 0.27 cm/px at 10 m AGL. Best accuracy achieved on the soybean dataset (higher resolution). 256x256 resized input used for all deployed models."
+    },
+    "classes": ["weed (Palmer Amaranth)", "background"],
+    "num_classes": 2,
+    "backbone": "MobileNetV4-Conv-Small (MobileNetV4-Seg); MobileNetV3 in the lightweight DeepLabv3+/SSD variants",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.768, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "For soybean, it achieved 76.8 % IoU, 83.8 % precision, 90.2 % recall, and an 86.9 % F1 score.", "section": "3.2. Performance comparison of lightweight OD and SS models on edge devices / Table 5", "table": "Table 5", "ambiguity": "Binary weed/background segmentation; IoU reported per dataset (corn 69.9%, soybean 76.8%) for MobileNetV4-Seg on Jetson Orin Nano. Best across datasets (soybean) recorded. For binary segmentation this class IoU approximates mean IoU."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Pixel accuracy not reported (paper reports IoU, Precision, Recall, F1 per Section 2.5 S5)."},
+      "F1": {"reported": true, "value": 0.869, "unit": "fraction", "normalized_digits": 3, "confidence": 0.9, "quote": "For soybean, it achieved 76.8 % IoU, 83.8 % precision, 90.2 % recall, and an 86.9 % F1 score.", "section": "3.2. Performance comparison of lightweight OD and SS models on edge devices / Table 5", "table": "Table 5", "ambiguity": "F1 of 86.9% is the best across datasets (MobileNetV4-Seg, soybean; corn F1 82.3%)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Dice not reported explicitly (F1 score reported, which for binary segmentation equals the Dice coefficient)."},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 is reported for the weed/background binary segmentation task, not as a per-class crop-vs-weed breakdown (no crop_F1 counterpart reported)."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "No per-crop-class F1 reported (binary weed/background task)."}
+    }
+  },
+  "edge": {
+    "reported": true,
+    "device": "NVIDIA Jetson Orin Nano (best SS model, MobileNetV4-Seg); NVIDIA Jetson Nano (lightweight DeepLabv3+ / SSD)",
+    "precision": "FP32",
+    "resolution_input": 256,
+    "framework": "PyTorch (Jetson Orin Nano: torch 1.10.0 / torchvision 0.11.3 / CUDA 10.2; Jetson Nano: torch 2.4.1 / torchvision 0.19.1 / CUDA 11.4); no TensorRT/quantization used",
+    "fps": {"reported": true, "value": 44, "unit": "fps", "normalized_digits": 2, "confidence": 0.9, "quote": "The proposed MobileNetV4-Seg SS model achieved real-time (44 FPS) inference speed on Jetson Orin Nano", "section": "5. Conclusion", "table": "Table 5", "ambiguity": "Model-only inference speed (time to process one image through the model); excludes image storage load, model loading time and camera acquisition. DeepLabv3+ (MobileNetV3) reached only 10 FPS on Jetson Nano."},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Latency not reported; throughput given in FPS only."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Jetson Nano was selected for low power consumption (472 GFLOPS, 250 g) but device power draw was not measured/reported."},
+    "params_M": {"reported": true, "value": 1.93, "unit": "millions", "normalized_digits": 2, "confidence": 0.9, "quote": "our developed model has only 1.93 million parameters", "section": "4.1. Model deployment on edge devices", "table": "", "ambiguity": "MobileNetV4-Seg parameter count (vs YOLOv8n 3.2 M)."},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Model GFLOPS not reported (device capabilities cited: Jetson Nano 472 GFLOPS, Jetson Orin Nano 1280 GFLOPS FP32)."}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Binary weed/background segmentation; metrics are for the single weed class per dataset, best (soybean) recorded for mIoU/F1.", "Small test sets (43 and 33 sub-images) and limited field/lighting variation acknowledged by the authors.", "Inference speeds are model-only (exclude storage load, model loading, camera acquisition); power consumption not measured.", "FP32 deployment precision inferred from PyTorch on the Jetson GPUs (no quantization/TensorRT applied) - not stated explicitly.", "validated"],
+    "validated_changed": [],
+    "validation": {"checks": 14, "changed": 0},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

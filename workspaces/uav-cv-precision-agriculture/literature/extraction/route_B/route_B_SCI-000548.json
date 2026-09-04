@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000548",
+  "study": {
+    "title": "A Field Weed Density Evaluation Method Based on UAV Imaging and Modified U-Net",
+    "short_title": "Field Weed Density Evaluation with Modified U-Net",
+    "year": 2021,
+    "venue": "Remote Sensing",
+    "extracted_md": "2021_Zou_A_Field_Weed_Density_Evaluation_Method_Based_on_UA.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["Modified U-Net (HDC)", "U-Net", "SegNet", "FCN", "Otsu threshold", "color texture and shape + SVM"],
+    "best_model": "Modified U-Net (VGG16 backbone with HDC dilated convolutions)",
+    "dataset": {
+      "name": "UAV RGB imagery of experimental marigold field, Shangzhuang station, China Agricultural University, Beijing",
+      "uav_collected": true,
+      "images": 500,
+      "resolution_gsp_m": 0.005,
+      "flight_altitude_m": 20,
+      "note": "DJI Mavic 2 (5472x3648 raw); 20 m flight height, 5 mm/pix mosaicked GSD (12,750x12,750); 100 x 256x256 samples augmented to 500 (400 train / 50 val / 50 test); binary crop-vs-others labeling; weeds derived by removing crop from ExG_ExR green-plant mask."
+    },
+    "classes": ["crop (marigold)", "others (soil + weeds)"],
+    "num_classes": 2,
+    "backbone": "VGG16 with HDC (dilated rates 1, 2, 5)",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.934, "unit": "fraction", "normalized_digits": 3, "confidence": 0.96, "quote": "After training, the mean pixel classification accuracy of the model was 98.84%, the IoU was 93.40%, precision was 93.40%, recall rate was 80.85%", "section": "3.2 / Table 2", "table": "Table 2", "ambiguity": "IoU 93.40% is the crop-segmentation (binary) IoU of the proposed modified U-Net on the test set; the IoU reported in the abstract (93.40%) matches Table 2 (precision printed as 84.29)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "F1 can be derived from precision 84.29% / recall 80.85% (~82.5%) but is not explicitly reported."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.9884, "unit": "fraction", "normalized_digits": 4, "confidence": 0.96, "quote": "After training, the mean pixel classification accuracy of the model was 98.84%, the IoU was 93.40%, precision was 93.40%, recall rate was 80.85%", "section": "3.2 / Table 2", "table": "Table 2", "ambiguity": "Mean pixel classification accuracy (Acc) of binary crop segmentation on the test set."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weed mask produced by subtracting crop from green-plant threshold; no separate weed metrics."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Precision 84.29% / recall 80.85% for crop class reported; F1 not given."}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": 256,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Single-image segmentation time on desktop GPU only; no on-board deployment."},
+    "latency_ms": {"reported": true, "value": 40.9, "unit": "ms", "normalized_digits": 1, "confidence": 0.9, "quote": "the IoU, accuracy, precision, recall, and segment time of the proposed modified U-net were 93.40%, 98.84%, 84.29%, 80.85%, 40.90 ms, respectively", "section": "3.3 / Table 2", "table": "Table 2", "ambiguity": "Segmentation time of a single 256x256 image on a desktop NVIDIA GeForce RTX 2080 Super (Intel i7-9700K); NOT an embedded/edge deployment."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.93,
+    "issues": [],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

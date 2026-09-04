@@ -1,0 +1,57 @@
+{
+  "workspace_id": "SCI-000547",
+  "study": {
+    "title": "A Semantic Labeling Approach for Accurate Weed Mapping of High Resolution UAV Imagery",
+    "short_title": "A Semantic Labeling Approach for Accurate Weed Mapping of High Resolution UAV Imagery",
+    "year": 2018,
+    "venue": "Sensors",
+    "extracted_md": "2018_Huang_A_Semantic_Labeling_Approach_for_Accurate_Weed_Map.md"
+  },
+  "segmentation": {
+    "task": "semantic",
+    "domain": "crop-weed",
+    "models_tested": ["DFCN ResNet-101", "DFCN VGG-16", "FCN-8s", "Pixel-based-SVM"],
+    "best_model": "DFCN ResNet-101 (ASPP-1) with CRF",
+    "dataset": {
+      "name": "self-collected UAV (Phantom 4; rice field, South China)",
+      "uav_collected": true,
+      "images": 1092,
+      "resolution_gsp_m": 0.003,
+      "flight_altitude_m": 6,
+      "note": "91 raw UAV images (4000x3000) split into 1092 non-overlapping 1000x1000 tiles; classes others/rice/weeds."
+    },
+    "classes": ["others", "rice", "weeds"],
+    "num_classes": 3,
+    "backbone": "ResNet-101",
+    "metrics": {
+      "mIoU": {"reported": true, "value": 0.7751, "unit": "fraction", "normalized_digits": 3, "confidence": 0.98, "quote": "The mean intersection over union (mean IU), overall accuracy, and Kappa coefficient of our method were 0.7751, 0.9445, and 0.9128, respectively.", "section": "Abstract", "table": "Table 8", "ambiguity": "Mean IU = mIoU for ASPP-1 with CRF (best model)."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": true, "value": 0.9445, "unit": "fraction", "normalized_digits": 3, "confidence": 0.98, "quote": "The mean intersection over union (mean IU), overall accuracy, and Kappa coefficient of our method were 0.7751, 0.9445, and 0.9128, respectively.", "section": "Abstract", "table": "Table 8", "ambiguity": "Reported as 'overall accuracy' (pixel accuracy)."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "",
+    "precision": "",
+    "resolution_input": null,
+    "framework": "",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "latency_ms": {"reported": false, "value": null, "unit": "ms", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.95,
+    "issues": ["inference speed (0.2916 s/image) is desktop GTX 1080 Ti, not edge device; edge not flagged"],
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}

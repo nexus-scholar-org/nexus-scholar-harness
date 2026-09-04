@@ -1,0 +1,59 @@
+{
+  "workspace_id": "SCI-000618",
+  "study": {
+    "title": "Detection and Counting of Maize Leaves Based on Two-Stage Deep Learning with UAV-Based RGB Image",
+    "short_title": "Two-Stage Mask R-CNN + YOLOv5 for Maize Leaf Counting",
+    "year": 2022,
+    "venue": "Remote Sensing",
+    "extracted_md": "2022_Xu_Detection_and_Counting_of_Maize_Leaves_Based_on_Tw.md"
+  },
+  "segmentation": {
+    "task": "instance",
+    "domain": "crop-segmentation (phenotyping)",
+    "models_tested": ["Mask R-CNN (ResNet50/ResNet101, SmoothLR vs L1)", "YOLOv5n/s/m/l/x (leaf detection stage)", "Faster R-CNN (leaf detection comparison)", "SSD (leaf detection comparison)"],
+    "best_model": "Mask R-CNN ResNet50 + SmoothLR (Bbox AP 0.969, Mask AP 0.952) followed by YOLOv5x",
+    "dataset": {
+      "name": "UAV RGB images of maize seedlings, Farmland Irrigation Research Institute, Xinxiang, Henan, China",
+      "uav_collected": true,
+      "images": 1005,
+      "resolution_gsp_m": null,
+      "flight_altitude_m": 5,
+      "note": "DJI Phantom 4 Pro V2.0 (20 MP 1-inch CMOS, 5472x3648) at 5 m altitude; 1005 cropped 640x640 images split 7:2:1 (train/val/test); instance segmentation of maize seedlings (2646/692/101 after augmentation; detection stage 2963/847/101); leaf classes: fully unfolded leaf, newly appeared leaf; 492 maize inbred varieties."
+    },
+    "classes": ["maize seedling", "leaf (fully unfolded)", "new_leaf (newly appeared)"],
+    "num_classes": 2,
+    "backbone": "ResNet-50 + FPN (Mask R-CNN); YOLOv5x (leaf detector)",
+    "metrics": {
+      "mIoU": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Instance segmentation evaluated with mask mAP (0.952 at IoU 0.5); no semantic mIoU reported."},
+      "mPA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Leaf detection reported via precision/recall/AP instead (e.g., fully-unfolded-leaf AP 0.896, recall 0.844; new leaf AP 0.540, recall 0.500)."},
+      "Dice": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+      "PA": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Primary segmentation metric is mask mAP 95.2% at IoU=0.5 (ResNet50 SmoothLR); no overall pixel accuracy reported."},
+      "weed_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Weeds removed by background segmentation rather than classified."},
+      "crop_F1": {"reported": false, "value": null, "unit": "fraction", "normalized_digits": 3, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+    }
+  },
+  "edge": {
+    "reported": false,
+    "device": "None - offline (NVIDIA Quadro RTX 8000 48 GB, Intel Xeon Gold 6246R, 128 GB RAM, Windows 10)",
+    "precision": "",
+    "resolution_input": 640,
+    "framework": "PyTorch 1.7.1, Python 3.7, OpenCV 4.5.1 (Mask R-CNN via MMDetection w/ ImageNet-pretrained weights; YOLOv5 v6.0 w/ COCO-pretrained weights, SGD)",
+    "fps": {"reported": false, "value": null, "unit": "fps", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": "Inference times 0.05 s (detection) / 0.07 s (segmentation) per image on a desktop GPU; not an edge deployment."},
+    "latency_ms": {"reported": true, "value": 70, "unit": "ms", "normalized_digits": 0, "confidence": 0.9, "quote": "The inference times for image detection boxes and masks were 0.05s and 0.07s, respectively.", "section": "4 Conclusion / 3.3 Table 2", "table": "Table 2", "ambiguity": "Segmentation inference time ~0.07 s per 640x640 image on desktop NVIDIA Quadro RTX 8000 (Xeon Gold 6246R); NOT on-board/edge hardware."},
+    "power_w": {"reported": false, "value": null, "unit": "W", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "params_M": {"reported": false, "value": null, "unit": "millions", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""},
+    "gflops": {"reported": false, "value": null, "unit": "GFLOPS", "normalized_digits": 2, "confidence": 0.0, "quote": "", "section": "", "table": "", "ambiguity": ""}
+  },
+  "extraction": {
+    "route": "B",
+    "route_batch": "",
+    "extractor": "opencode-routeB-sequential",
+    "verified_md_read": true,
+    "confidence_overall": 0.9,
+    "issues": ["Instance-segmentation/object-detection study (mask AP, bbox AP) - no semantic segmentation RQ1 metrics (mIoU/F1/Dice/PA) extractable.", "Inference timing on desktop GPU, not edge hardware.", "validated"],
+    "validated_changed": ["segmentation.models_tested", "edge.device", "edge.framework"],
+    "validation": {"checks": 14, "changed": 3},
+    "extracted_at": "2026-09-04T00:00:00Z"
+  }
+}
