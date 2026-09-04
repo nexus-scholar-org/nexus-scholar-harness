@@ -100,7 +100,7 @@
         "orcid": null
       },
       {
-        "family_name": "Popović",
+        "family_name": "Popovi\u0107",
         "given_name": "Marija",
         "orcid": null
       },
@@ -232,7 +232,7 @@
       "openalex_id": null,
       "s2_id": "2fba13604a76d357f4c37bb3af5a9affa2ce49eb"
     },
-    "abstract": "Accurate weed mapping in cereal fields requires pixel-level segmentation from unmanned aerial vehicle (UAV) imagery that remains reliable across fields, seasons, and illumination. Existing multispectral pipelines often depend on thresholded vegetation indices, which are brittle under radiometric drift and mixed crop–weed pixels, or on single-stream convolutional neural network (CNN) and Transformer backbones that ingest stacked bands and indices, where radiance cues and normalized index cues interfere and reduce sensitivity to small weed clusters embedded in crop canopy. We propose VISA (Vegetation Index and Spectral Attention), a two-stream segmentation network that decouples these cues and fuses them at native resolution. The radiance stream learns from calibrated five-band reflectance using local residual convolutions, channel recalibration, spatial gating, and skip-connected decoding, which preserve fine textures, row boundaries, and small weed structures that are often weakened after ratio-based index compression. The index stream operates on vegetation-index maps with windowed self-attention to model local structure efficiently, state-space layers to propagate field-scale context without quadratic attention cost, and Slot Attention to form stable region descriptors that improve discrimination of sparse weeds under canopy mixing. To support supervised training and deployment-oriented evaluation, we introduce BAWSeg, a four-year UAV multispectral dataset collected over commercial barley paddocks in Western Australia, providing radiometrically calibrated blue, green, red, red edge, and near-infrared orthomosaics, derived vegetation indices, and dense crop, weed, and other labels with leakage-free block splits. On BAWSeg, VISA achieves 75.6% mean Intersection over Union (mIoU) and 63.5% weed Intersection over Union (IoU) with 22.8 M parameters, outperforming a multispectral SegFormer-B1 baseline by 1.2 mIoU and 1.9 weed IoU. Under cross-plot and cross-year protocols, VISA maintains 71.2% and 69.2% mIoU, respectively. The full BAWSeg benchmark dataset, VISA code, trained model weights, and protocol files will be released upon publication.",
+    "abstract": "Accurate weed mapping in cereal fields requires pixel-level segmentation from unmanned aerial vehicle (UAV) imagery that remains reliable across fields, seasons, and illumination. Existing multispectral pipelines often depend on thresholded vegetation indices, which are brittle under radiometric drift and mixed crop\u2013weed pixels, or on single-stream convolutional neural network (CNN) and Transformer backbones that ingest stacked bands and indices, where radiance cues and normalized index cues interfere and reduce sensitivity to small weed clusters embedded in crop canopy. We propose VISA (Vegetation Index and Spectral Attention), a two-stream segmentation network that decouples these cues and fuses them at native resolution. The radiance stream learns from calibrated five-band reflectance using local residual convolutions, channel recalibration, spatial gating, and skip-connected decoding, which preserve fine textures, row boundaries, and small weed structures that are often weakened after ratio-based index compression. The index stream operates on vegetation-index maps with windowed self-attention to model local structure efficiently, state-space layers to propagate field-scale context without quadratic attention cost, and Slot Attention to form stable region descriptors that improve discrimination of sparse weeds under canopy mixing. To support supervised training and deployment-oriented evaluation, we introduce BAWSeg, a four-year UAV multispectral dataset collected over commercial barley paddocks in Western Australia, providing radiometrically calibrated blue, green, red, red edge, and near-infrared orthomosaics, derived vegetation indices, and dense crop, weed, and other labels with leakage-free block splits. On BAWSeg, VISA achieves 75.6% mean Intersection over Union (mIoU) and 63.5% weed Intersection over Union (IoU) with 22.8 M parameters, outperforming a multispectral SegFormer-B1 baseline by 1.2 mIoU and 1.9 weed IoU. Under cross-plot and cross-year protocols, VISA maintains 71.2% and 69.2% mIoU, respectively. The full BAWSeg benchmark dataset, VISA code, trained model weights, and protocol files will be released upon publication.",
     "authors": [
       {
         "family_name": "Wang",
@@ -575,7 +575,7 @@
         "orcid": null
       },
       {
-        "family_name": "Änäkkälä",
+        "family_name": "\u00c4n\u00e4kk\u00e4l\u00e4",
         "given_name": "Mikael",
         "orcid": null
       },
@@ -988,7 +988,7 @@
       "openalex_id": null,
       "s2_id": "39b94c8ee286d99d3a07a38485b769e9b9917855"
     },
-    "abstract": "Accurate crop–weed segmentation from unmanned aerial vehicle (UAV) imagery is essential for precision agriculture and site-specific weed management. How-ever, distinguishing weeds from crops remains challenging due to visual similarities, overlapping vegetation, complex field backgrounds, and varying illumination conditions. This paper presents WeedFormer, a transformer-based semantic segmentation framework for robust crop–weed discrimination in UAV imagery. The proposed architecture combines a SegFormer-B2 backbone with a Convolutional Block Attention Module (CBAM) and Atrous Spatial Pyramid Pooling (ASPP) to capture both global contextual information and fine-grained plant features. The transformer encoder models long-range spatial dependencies, while CBAM enhances discriminative feature representations and ASPP aggregates multi-scale contextual information. Experiments conducted on the WeedsGalore benchmark demonstrate that WeedFormer achieves 80.27% mean Intersection-over-Union (mIoU) and 98.81% pixel accuracy, outperforming DeepLabv3+, SegFormer-B1, SegFormer-B2, and previously reported multi-spectral baselines. The proposed framework effectively segments small, densely clustered, and visually ambiguous weed regions using only RGB imagery, demonstrating its potential for practical precision agriculture applications.",
+    "abstract": "Accurate crop\u2013weed segmentation from unmanned aerial vehicle (UAV) imagery is essential for precision agriculture and site-specific weed management. How-ever, distinguishing weeds from crops remains challenging due to visual similarities, overlapping vegetation, complex field backgrounds, and varying illumination conditions. This paper presents WeedFormer, a transformer-based semantic segmentation framework for robust crop\u2013weed discrimination in UAV imagery. The proposed architecture combines a SegFormer-B2 backbone with a Convolutional Block Attention Module (CBAM) and Atrous Spatial Pyramid Pooling (ASPP) to capture both global contextual information and fine-grained plant features. The transformer encoder models long-range spatial dependencies, while CBAM enhances discriminative feature representations and ASPP aggregates multi-scale contextual information. Experiments conducted on the WeedsGalore benchmark demonstrate that WeedFormer achieves 80.27% mean Intersection-over-Union (mIoU) and 98.81% pixel accuracy, outperforming DeepLabv3+, SegFormer-B1, SegFormer-B2, and previously reported multi-spectral baselines. The proposed framework effectively segments small, densely clustered, and visually ambiguous weed regions using only RGB imagery, demonstrating its potential for practical precision agriculture applications.",
     "authors": [
       {
         "family_name": "Krishna",
@@ -1346,7 +1346,7 @@
     }
   },
   {
-    "title": "Weed–Crop Segmentation in Drone Images with a Novel Encoder–Decoder Framework Enhanced via Attention Modules",
+    "title": "Weed\u2013Crop Segmentation in Drone Images with a Novel Encoder\u2013Decoder Framework Enhanced via Attention Modules",
     "year": 2023,
     "provider": "crossref",
     "provider_id": "10.3390/rs15235615",
@@ -1357,7 +1357,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "The rapid expansion of the world’s population has resulted in an increased demand for agricultural products which necessitates the need to improve crop yields. To enhance crop yields, it is imperative to control weeds. Traditionally, weed control predominantly relied on the use of herbicides; however, the indiscriminate application of herbicides presents potential hazards to both crop health and productivity. Fortunately, the advent of cutting-edge technologies such as unmanned vehicle technology (UAVs) and computer vision has provided automated and efficient solutions for weed control. These approaches leverage drone images to detect and identify weeds with a certain level of accuracy. Nevertheless, the identification of weeds in drone images poses significant challenges attributed to factors like occlusion, variations in color and texture, and disparities in scale. The utilization of traditional image processing techniques and deep learning approaches, which are commonly employed in existing methods, presents difficulties in extracting features and addressing scale variations. In order to address these challenges, an innovative deep learning framework is introduced which is designed to classify every pixel in a drone image into categories such as weed, crop, and others. In general, our proposed network adopts an encoder–decoder structure. The encoder component of the network effectively combines the Dense-inception network with the Atrous spatial pyramid pooling module, enabling the extraction of multi-scale features and capturing local and global contextual information seamlessly. The decoder component of the network incorporates deconvolution layers and attention units, namely, channel and spatial attention units (CnSAUs), which contribute to the restoration of spatial information and enhance the precise localization of weeds and crops in the images. The performance of the proposed framework is assessed using a publicly available benchmark dataset known for its complexity. The effectiveness of the proposed framework is demonstrated via comprehensive experiments, showcasing its superiority by achieving a 0.81 mean Intersection over Union (mIoU) on the challenging dataset.",
+    "abstract": "The rapid expansion of the world\u2019s population has resulted in an increased demand for agricultural products which necessitates the need to improve crop yields. To enhance crop yields, it is imperative to control weeds. Traditionally, weed control predominantly relied on the use of herbicides; however, the indiscriminate application of herbicides presents potential hazards to both crop health and productivity. Fortunately, the advent of cutting-edge technologies such as unmanned vehicle technology (UAVs) and computer vision has provided automated and efficient solutions for weed control. These approaches leverage drone images to detect and identify weeds with a certain level of accuracy. Nevertheless, the identification of weeds in drone images poses significant challenges attributed to factors like occlusion, variations in color and texture, and disparities in scale. The utilization of traditional image processing techniques and deep learning approaches, which are commonly employed in existing methods, presents difficulties in extracting features and addressing scale variations. In order to address these challenges, an innovative deep learning framework is introduced which is designed to classify every pixel in a drone image into categories such as weed, crop, and others. In general, our proposed network adopts an encoder\u2013decoder structure. The encoder component of the network effectively combines the Dense-inception network with the Atrous spatial pyramid pooling module, enabling the extraction of multi-scale features and capturing local and global contextual information seamlessly. The decoder component of the network incorporates deconvolution layers and attention units, namely, channel and spatial attention units (CnSAUs), which contribute to the restoration of spatial information and enhance the precise localization of weeds and crops in the images. The performance of the proposed framework is assessed using a publicly available benchmark dataset known for its complexity. The effectiveness of the proposed framework is demonstrated via comprehensive experiments, showcasing its superiority by achieving a 0.81 mean Intersection over Union (mIoU) on the challenging dataset.",
     "authors": [
       {
         "family_name": "Khan",
@@ -1556,7 +1556,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "In our study, a real-world application using the latest unmanned aerial vehicle (UAV) functionality is presented. Sugar beet is an important industrial crop in many countries. According to estimates, weeds in sugar beet fields dramatically reduce both the quantity and quality of sugar beet crops. Due to the spectral similarities between weeds and sugar beet seedlings, visual identification of weeds is extremely difficult in the sugar beet fields. In the present study, a lightweight, end-to-end trainable guided feature-based deep learning method, called DeepMultiFuse, has been developed to improve the weed segmentation performance using multispectral UAV images that aim to fulfill these requirements (to identify weed in sugar beet fields). The proposed architecture is composed of five basic concepts, including guided features, fusion module, dilation convolution operation, modified inception module, and gated encoder–decoder network extracting the object-level image representation for different scenes. The proposed network was trained on the generated dataset, including four multispectral orthomosaic reflectance maps using the RedEdge-M sensor in Rheinbach and three multispectral orthomosaic reflectance maps applying Sequoia sensor in Eschikon for mapping weed segmentation on the field. Experimental results demonstrated that the proposed network taking advantage of the feature fusion module-rich features outperforms state-of-the-art networks.",
+    "abstract": "In our study, a real-world application using the latest unmanned aerial vehicle (UAV) functionality is presented. Sugar beet is an important industrial crop in many countries. According to estimates, weeds in sugar beet fields dramatically reduce both the quantity and quality of sugar beet crops. Due to the spectral similarities between weeds and sugar beet seedlings, visual identification of weeds is extremely difficult in the sugar beet fields. In the present study, a lightweight, end-to-end trainable guided feature-based deep learning method, called DeepMultiFuse, has been developed to improve the weed segmentation performance using multispectral UAV images that aim to fulfill these requirements (to identify weed in sugar beet fields). The proposed architecture is composed of five basic concepts, including guided features, fusion module, dilation convolution operation, modified inception module, and gated encoder\u2013decoder network extracting the object-level image representation for different scenes. The proposed network was trained on the generated dataset, including four multispectral orthomosaic reflectance maps using the RedEdge-M sensor in Rheinbach and three multispectral orthomosaic reflectance maps applying Sequoia sensor in Eschikon for mapping weed segmentation on the field. Experimental results demonstrated that the proposed network taking advantage of the feature fusion module-rich features outperforms state-of-the-art networks.",
     "authors": [
       {
         "family_name": "Khoshboresh-Masouleh",
@@ -1606,7 +1606,7 @@
     }
   },
   {
-    "title": "Test-Time Adaptive Latent Feature Restoration for UAV Crop–Weed Segmentation under Altitude-Induced Resolution Shifts",
+    "title": "Test-Time Adaptive Latent Feature Restoration for UAV Crop\u2013Weed Segmentation under Altitude-Induced Resolution Shifts",
     "year": 2026,
     "provider": "crossref",
     "provider_id": "10.13031/aim.202601493",
@@ -1617,7 +1617,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "Abstract. Weeds are among the leading causes of agricultural production losses and remain one of the greatest threats to global food security. Accurate crop–weed segmentation is essential for understanding weed spatial distribution and supporting field-scale precision management. However, for large-scale field applications, increasing the flight altitude is necessary to reduce flight time. Nevertheless, the resulting loss of spatial detail can substantially degrade crop–weed segmentation performance when using existing models trained on low-altitude, high-resolution imagery. Although existing image-space restoration methods reconstruct visually plausible detail by enforcing pixel-level statistics, such appearance-driven recovery does not guarantee preservation of the semantic representations on which crop–weed boundary prediction depends. In this study, we address this limitation by performing generative diffusion in the latent feature space, restoring segmentation-relevant representations through a pre-trained latent diffusion U-Net with lightweight LoRA adaptations, interfaced with features produced by a pre-trained DINOv3 encoder. A degradation-aware test-time adaptation stage further refines the restored representation for each test image by enforcing consistency across multiple degradation variants of the input, without modifying model parameters. The approach is evaluated on UAV imagery acquired over the same field at 10 m, 30 m, and 70 m flight altitudes, corresponding to progressively coarser ground sampling distances. Under direct low-to-high altitude transfer, mIoU falls from 78.71% at 10 m to 47.47% at 70 m, with crop IoU declining more severely than weed IoU. Latent feature restoration recovers 14.8 percentage points of mIoU at 70 m over direct transfer, and the full pipeline with degradation-aware test-time adaptation yields the highest average performance across all three altitude subsets, with gains concentrated on the most degraded imagery. The proposed method can empower farmers and breeders with innovative insights for smart weed management, such as precision spraying, to reduce chemical inputs.",
+    "abstract": "Abstract. Weeds are among the leading causes of agricultural production losses and remain one of the greatest threats to global food security. Accurate crop\u2013weed segmentation is essential for understanding weed spatial distribution and supporting field-scale precision management. However, for large-scale field applications, increasing the flight altitude is necessary to reduce flight time. Nevertheless, the resulting loss of spatial detail can substantially degrade crop\u2013weed segmentation performance when using existing models trained on low-altitude, high-resolution imagery. Although existing image-space restoration methods reconstruct visually plausible detail by enforcing pixel-level statistics, such appearance-driven recovery does not guarantee preservation of the semantic representations on which crop\u2013weed boundary prediction depends. In this study, we address this limitation by performing generative diffusion in the latent feature space, restoring segmentation-relevant representations through a pre-trained latent diffusion U-Net with lightweight LoRA adaptations, interfaced with features produced by a pre-trained DINOv3 encoder. A degradation-aware test-time adaptation stage further refines the restored representation for each test image by enforcing consistency across multiple degradation variants of the input, without modifying model parameters. The approach is evaluated on UAV imagery acquired over the same field at 10 m, 30 m, and 70 m flight altitudes, corresponding to progressively coarser ground sampling distances. Under direct low-to-high altitude transfer, mIoU falls from 78.71% at 10 m to 47.47% at 70 m, with crop IoU declining more severely than weed IoU. Latent feature restoration recovers 14.8 percentage points of mIoU at 70 m over direct transfer, and the full pipeline with degradation-aware test-time adaptation yields the highest average performance across all three altitude subsets, with gains concentrated on the most degraded imagery. The proposed method can empower farmers and breeders with innovative insights for smart weed management, such as precision spraying, to reduce chemical inputs.",
     "authors": [
       {
         "family_name": "Tian",
@@ -1698,7 +1698,7 @@
       "openalex_id": "https://openalex.org/W4411210554",
       "s2_id": null
     },
-    "abstract": "The application of drones has contributed to automated herbicide spraying in the context of precision agriculture. Although drone technology is mature, the widespread application of agricultural drones and their numerous advantages still demand improvements in battery endurance during flight missions in agricultural operations. This issue has been addressed by optimizing the path planning to minimize the time of the route and, therefore, the energy consumption. In this direction, a novel framework for autonomous drone-based herbicide applications that integrates deep learning-based semantic segmentation and coverage path optimization is proposed. The methodology involves computer vision for path planning optimization. First, semantic segmentation is performed using a DeepLab v3+ convolutional neural network to identify and classify regions containing weeds based on aerial imagery. Then, a coverage path planning strategy is applied to generate efficient spray routes over each weed-infested area, represented as convex polygons, while accounting for the drone’s refueling constraints. The results demonstrate the effectiveness of the proposed approach for optimizing coverage paths in weed-infested sugarcane fields. By integrating semantic segmentation with clustering and path optimization techniques, it was possible to accurately localize weed patches and compute an efficient trajectory for UAV navigation. The GA-based solution to the Traveling Salesman Problem With Refueling (TSPWR) yielded a near-optimal visitation sequence that minimizes the energy demand. The total coverage path ensured complete inspection of the weed-infected areas, thereby enhancing operational efficiency. For the sugar crop considered in this contribution, the time to cover the area was reduced by 66.3% using the proposed approach because only the weed-infested area was considered for herbicide spraying. Validation of the proposed methodology using real-world agricultural datasets shows promising results in the context of precision agriculture to improve the efficiency of herbicide or fertilizer application in terms of herbicide waste reduction, lower operational costs, better crop health, and sustainability.",
+    "abstract": "The application of drones has contributed to automated herbicide spraying in the context of precision agriculture. Although drone technology is mature, the widespread application of agricultural drones and their numerous advantages still demand improvements in battery endurance during flight missions in agricultural operations. This issue has been addressed by optimizing the path planning to minimize the time of the route and, therefore, the energy consumption. In this direction, a novel framework for autonomous drone-based herbicide applications that integrates deep learning-based semantic segmentation and coverage path optimization is proposed. The methodology involves computer vision for path planning optimization. First, semantic segmentation is performed using a DeepLab v3+ convolutional neural network to identify and classify regions containing weeds based on aerial imagery. Then, a coverage path planning strategy is applied to generate efficient spray routes over each weed-infested area, represented as convex polygons, while accounting for the drone\u2019s refueling constraints. The results demonstrate the effectiveness of the proposed approach for optimizing coverage paths in weed-infested sugarcane fields. By integrating semantic segmentation with clustering and path optimization techniques, it was possible to accurately localize weed patches and compute an efficient trajectory for UAV navigation. The GA-based solution to the Traveling Salesman Problem With Refueling (TSPWR) yielded a near-optimal visitation sequence that minimizes the energy demand. The total coverage path ensured complete inspection of the weed-infected areas, thereby enhancing operational efficiency. For the sugar crop considered in this contribution, the time to cover the area was reduced by 66.3% using the proposed approach because only the weed-infested area was considered for herbicide spraying. Validation of the proposed methodology using real-world agricultural datasets shows promising results in the context of precision agriculture to improve the efficiency of herbicide or fertilizer application in terms of herbicide waste reduction, lower operational costs, better crop health, and sustainability.",
     "authors": [
       {
         "family_name": "Lara-Molina",
@@ -1968,7 +1968,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "The effectiveness of a ResNet-Unet (RU) architecture for semantic segmentation of soil and weeds from sorghum plants in high-resolution UAV photos is investigated. The model makes use of Unet's encoder-decoder structure for precise segmentation and ResNet's deep residual learning for efficient feature extraction. To increase the resilience of the model, data augmentation methods such random rotations, flips, and horizontal and vertical adjustments were used, along with contrast enhancement methods like Gamma Correction and Contrast Limited Adaptive Histogram Equalization (CLAHE). Utilizing the ResNet-Unet framework, we were able to attain a maximum SØrensen-Dice Coefficient (DS) of 0.929, accompanied by a standard deviation of 0.0041. Classification measures show impressive accuracy: among background, sorghum, and weed classes, precision, recall, and F1-score range from 93.01\\% to 99.68\\%. The efficiency of RU architecture for precision agriculture applications is demonstrated by this study, which also provides a viable option for targeted weed management and automated weed detection.",
+    "abstract": "The effectiveness of a ResNet-Unet (RU) architecture for semantic segmentation of soil and weeds from sorghum plants in high-resolution UAV photos is investigated. The model makes use of Unet's encoder-decoder structure for precise segmentation and ResNet's deep residual learning for efficient feature extraction. To increase the resilience of the model, data augmentation methods such random rotations, flips, and horizontal and vertical adjustments were used, along with contrast enhancement methods like Gamma Correction and Contrast Limited Adaptive Histogram Equalization (CLAHE). Utilizing the ResNet-Unet framework, we were able to attain a maximum S\u00d8rensen-Dice Coefficient (DS) of 0.929, accompanied by a standard deviation of 0.0041. Classification measures show impressive accuracy: among background, sorghum, and weed classes, precision, recall, and F1-score range from 93.01\\% to 99.68\\%. The efficiency of RU architecture for precision agriculture applications is demonstrated by this study, which also provides a viable option for targeted weed management and automated weed detection.",
     "authors": [
       {
         "family_name": "Purohit",
@@ -2271,7 +2271,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "Deep learning (DL) inspired models have achieved tremendous success in locating target weed species through bounding-box approach (single-stage models) or pixel-wise semantic segmentation (two-stage models), but not both. Therefore, the goal of this research study was to develop a single-stage DL architecture that not only locate weed presence through bounding-boxes but also achieves pixel-wise instance segmentation on unmanned aerial system (UAS) acquired remote sensing images. Moreover, the developed architecture experiments on integrating a novel C3 and C3x module within its backbone for dense feature extraction, as well as ProtoNet (Prototypical network) in its head component for weed masking. Furthermore, the proposed architecture has been trained on five categories of dataset exported using multiple combinations of various dataset augmentation techniques, namely, C1, C2, C3, C4, and C5, for which multiple metrics were assessed on desktop graphical processing unit (GPU) and a palm-sized edge device (AGX Xavier). Results suggest that category C4, a combination of six data augmentation techniques, outperformed the remaining categories by achieving precision scores of 85.4 % (bounding-boxes) and 82.8 % (masking) on a GPU. Whereas, the same model converted to TorchScript was able to achieve 79.1 % and 77 % bounding-box and masking accuracy on an edge device, respectively. The model developed in this research has two potential applications when integrated with site-specific weed management technologies. First, it enables real-time weed detection, allowing for the immediate identification of weeds for spot-spraying applications. Second, it facilitates instance weed masking, aiding in the estimation of weed growth extent in actual field conditions. Moreover, the developed architecture combines both computer vision applications - detection and instance segmentation – to provide comprehensive information about weed growth, eliminating the need for multiple algorithm.",
+    "abstract": "Deep learning (DL) inspired models have achieved tremendous success in locating target weed species through bounding-box approach (single-stage models) or pixel-wise semantic segmentation (two-stage models), but not both. Therefore, the goal of this research study was to develop a single-stage DL architecture that not only locate weed presence through bounding-boxes but also achieves pixel-wise instance segmentation on unmanned aerial system (UAS) acquired remote sensing images. Moreover, the developed architecture experiments on integrating a novel C3 and C3x module within its backbone for dense feature extraction, as well as ProtoNet (Prototypical network) in its head component for weed masking. Furthermore, the proposed architecture has been trained on five categories of dataset exported using multiple combinations of various dataset augmentation techniques, namely, C1, C2, C3, C4, and C5, for which multiple metrics were assessed on desktop graphical processing unit (GPU) and a palm-sized edge device (AGX Xavier). Results suggest that category C4, a combination of six data augmentation techniques, outperformed the remaining categories by achieving precision scores of 85.4 % (bounding-boxes) and 82.8 % (masking) on a GPU. Whereas, the same model converted to TorchScript was able to achieve 79.1 % and 77 % bounding-box and masking accuracy on an edge device, respectively. The model developed in this research has two potential applications when integrated with site-specific weed management technologies. First, it enables real-time weed detection, allowing for the immediate identification of weeds for spot-spraying applications. Second, it facilitates instance weed masking, aiding in the estimation of weed growth extent in actual field conditions. Moreover, the developed architecture combines both computer vision applications - detection and instance segmentation \u2013 to provide comprehensive information about weed growth, eliminating the need for multiple algorithm.",
     "authors": [
       {
         "family_name": "Rai",
@@ -2337,27 +2337,27 @@
     "abstract": "Site-specific weed management requires accurate spatial information on weed distribution, which remains challenging when models are transferred between crops and field conditions. This study evaluated multispectral UAV imagery and semantic segmentation models for weed mapping in barley, with a focus on spatial generalisation to an independent field and cross-crop transfer to rapeseed. Four spectral configurations (RGB, RGB + NIR + RedEdge, RGB + vegetation indices, and full multispectral) and three modelling approaches (U-Net, DeepLabv3, and Random Forest) were compared. The full configuration (RGB + NIR + RedEdge + NDVI + NDRE + VARI) combined with U-Net achieved the best performance, with a weed F1-score of 0.5833 and an mIoU of 0.5448. Spatial validation on an independent barley field yielded a weed F1-score of 0.6455 (IoU = 0.4766). Direct transfer to rapeseed performed poorly (F1 = 0.0534), indicating a severe domain shift. However, few-shot fine-tuning with only 63 labelled rapeseed patches (15% of the available dataset) recovered performance to F1 = 0.6274, approaching the barley-domain result. These findings show that domain adaptation with limited labelled data can effectively transfer semantic segmentation models to new crops while reducing annotation effort for operational deployment. The resulting weed probability and density maps illustrate the practical potential of this approach for supporting variable-rate herbicide application.",
     "authors": [
       {
-        "family_name": "Hernández Ludeña",
+        "family_name": "Hern\u00e1ndez Lude\u00f1a",
         "given_name": "Patricio  Alonso",
         "orcid": null
       },
       {
-        "family_name": "Fernández Piñar",
+        "family_name": "Fern\u00e1ndez Pi\u00f1ar",
         "given_name": "Carlos",
         "orcid": null
       },
       {
-        "family_name": "López de Herrera",
+        "family_name": "L\u00f3pez de Herrera",
         "given_name": "Juan",
         "orcid": null
       },
       {
         "family_name": "Herrero Tejedor",
-        "given_name": "Tomás  Ramón",
+        "given_name": "Tom\u00e1s  Ram\u00f3n",
         "orcid": null
       },
       {
-        "family_name": "Pérez Martin",
+        "family_name": "P\u00e9rez Martin",
         "given_name": "Enrique",
         "orcid": null
       },
@@ -2367,7 +2367,7 @@
         "orcid": null
       },
       {
-        "family_name": "Calderón",
+        "family_name": "Calder\u00f3n",
         "given_name": "Jonathan",
         "orcid": "https://orcid.org/0009-0002-6988-5962"
       }
@@ -2420,7 +2420,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "With the world's population growing at a steady rate, agricultural product demand is significantly increasing. To meet this expanding need, it is critical to employ cutting-edge knowledge and technologies. Remote sensing data in conjunction with computer vision algorithms, plays an emerging and increasingly important role in precision weed management, which is essential for food security and safety. Drone images are one of the most accessible and efficient remote sensing data that can be collected in field crop production. In this study, drone images were captured at six intervals during June and July 2024 (i.e., 21, 26, 33, 39, 45, and 52 days after seeding (DAS))during soybean vegetative growth phases. By employing a Deep Learning (DL) network, we performed the crop vs. weed semantic segmentation on these captured images. The data set employed in this research was from a soybean experiment field that included five classes: soil, soybean crops, volunteer canola, other broadleaf weeds, and volunteer wheat plus other grassy weeds. The proposed semantic segmentation method is based on an encoder-decoder architecture, where the encoder path uses RepViT blocks, and the decoder path uses Modified UNet (MUNet) blocks. Since the network is trained to segment soybean crops, volunteer canola and other weed species, the proposed method is referred to Crop-Weed-RepViT-Net (CWRepViT-Net). This study outlines a five-step framework designed to segment crops and weeds in soybean fields using drone imagery. The steps consist of: (1) pre-processing image data, (2) training the segmentation network, (3) performing semantic segmentation of crop and weed classes, (4) evaluating model performance, and (5) applying the trained network to early-season soybean growth stages. . The CWRepViT-Net model achieved an overall accuracy of over 95% and a Kappa coefficient of 0.91, indicating strong agreement between predicted and actual labels and confirming the method’s effectiveness for early-stage crop and weed differentiation.",
+    "abstract": "With the world's population growing at a steady rate, agricultural product demand is significantly increasing. To meet this expanding need, it is critical to employ cutting-edge knowledge and technologies. Remote sensing data in conjunction with computer vision algorithms, plays an emerging and increasingly important role in precision weed management, which is essential for food security and safety. Drone images are one of the most accessible and efficient remote sensing data that can be collected in field crop production. In this study, drone images were captured at six intervals during June and July 2024 (i.e., 21, 26, 33, 39, 45, and 52 days after seeding (DAS))during soybean vegetative growth phases. By employing a Deep Learning (DL) network, we performed the crop vs. weed semantic segmentation on these captured images. The data set employed in this research was from a soybean experiment field that included five classes: soil, soybean crops, volunteer canola, other broadleaf weeds, and volunteer wheat plus other grassy weeds. The proposed semantic segmentation method is based on an encoder-decoder architecture, where the encoder path uses RepViT blocks, and the decoder path uses Modified UNet (MUNet) blocks. Since the network is trained to segment soybean crops, volunteer canola and other weed species, the proposed method is referred to Crop-Weed-RepViT-Net (CWRepViT-Net). This study outlines a five-step framework designed to segment crops and weeds in soybean fields using drone imagery. The steps consist of: (1) pre-processing image data, (2) training the segmentation network, (3) performing semantic segmentation of crop and weed classes, (4) evaluating model performance, and (5) applying the trained network to early-season soybean growth stages. . The CWRepViT-Net model achieved an overall accuracy of over 95% and a Kappa coefficient of 0.91, indicating strong agreement between predicted and actual labels and confirming the method\u2019s effectiveness for early-stage crop and weed differentiation.",
     "authors": [
       {
         "family_name": "Gomroki",
@@ -2498,7 +2498,7 @@
       "openalex_id": "https://openalex.org/W4386049764",
       "s2_id": null
     },
-    "abstract": "BACKGROUND: Efficient and site-specific weed management is a critical step in many agricultural tasks. Image captures from drones and modern machine learning based computer vision methods can be used to assess weed infestation in agricultural fields more efficiently. However, the image quality of the captures can be affected by several factors, including motion blur. Image captures can be blurred because the drone moves during the image capturing process, e.g. due to wind pressure or camera settings. These influences complicate the annotation of training and test samples and can also lead to reduced predictive power in segmentation and classification tasks. RESULTS: In this study, we propose DeBlurWeedSeg, a combined deblurring and segmentation model for weed and crop segmentation in motion blurred images. For this purpose, we first collected a new dataset of matching sharp and naturally blurred image pairs of real sorghum and weed plants from drone images of the same agricultural field. The data was used to train and evaluate the performance of DeBlurWeedSeg on both sharp and blurred images of a hold-out test-set. We show that DeBlurWeedSeg outperforms a standard segmentation model that does not include an integrated deblurring step, with a relative improvement of [Formula: see text] in terms of the Sørensen-Dice coefficient. CONCLUSION: Our combined deblurring and segmentation model DeBlurWeedSeg is able to accurately segment weeds from sorghum and background, in both sharp as well as motion blurred drone captures. This has high practical implications, as lower error rates in weed and crop segmentation could lead to better weed control, e.g. when using robots for mechanical weed removal.",
+    "abstract": "BACKGROUND: Efficient and site-specific weed management is a critical step in many agricultural tasks. Image captures from drones and modern machine learning based computer vision methods can be used to assess weed infestation in agricultural fields more efficiently. However, the image quality of the captures can be affected by several factors, including motion blur. Image captures can be blurred because the drone moves during the image capturing process, e.g. due to wind pressure or camera settings. These influences complicate the annotation of training and test samples and can also lead to reduced predictive power in segmentation and classification tasks. RESULTS: In this study, we propose DeBlurWeedSeg, a combined deblurring and segmentation model for weed and crop segmentation in motion blurred images. For this purpose, we first collected a new dataset of matching sharp and naturally blurred image pairs of real sorghum and weed plants from drone images of the same agricultural field. The data was used to train and evaluate the performance of DeBlurWeedSeg on both sharp and blurred images of a hold-out test-set. We show that DeBlurWeedSeg outperforms a standard segmentation model that does not include an integrated deblurring step, with a relative improvement of [Formula: see text] in terms of the S\u00f8rensen-Dice coefficient. CONCLUSION: Our combined deblurring and segmentation model DeBlurWeedSeg is able to accurately segment weeds from sorghum and background, in both sharp as well as motion blurred drone captures. This has high practical implications, as lower error rates in weed and crop segmentation could lead to better weed control, e.g. when using robots for mechanical weed removal.",
     "authors": [
       {
         "family_name": "Genze",
@@ -2567,7 +2567,7 @@
       "relevant_rqs": [
         "RQ1"
       ],
-      "screening_reasoning": "DeBlurWeedSeg combines deblurring and segmentation to segment weeds/sorghum on drone (UAV) images, improving the Sørensen-Dice coefficient versus a standard segmentation baseline, satisfying the DL UAV crop/weed segmentation and quantitative-metric criteria.",
+      "screening_reasoning": "DeBlurWeedSeg combines deblurring and segmentation to segment weeds/sorghum on drone (UAV) images, improving the S\u00f8rensen-Dice coefficient versus a standard segmentation baseline, satisfying the DL UAV crop/weed segmentation and quantitative-metric criteria.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
     }
   },
@@ -3025,7 +3025,7 @@
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "Unmanned aerial vehicles (UAVs) equipped with computer vision techniques offer a practical and scalable solution for large-scale weed mapping in agricultural fields. Accurate pixel-level discrimination of soil, crops, and weeds from UAV imagery remains challenging due to severe class imbalance and the high visual similarity between crop and weed structures. Many existing segmentation approaches are either computationally demanding or depend on ensemble strategies, which restrict their applicability on edge or real-time platforms. To address these limitations, this study introduces a progressive receptive-field context-aware network (PRC-Net) designed for efficient deployment under constrained computational resources. The proposed progressive receptive-field fusion (PRF) module incrementally enlarges the receptive field across multiple scales, enabling improved identification of small crop and weed regions within predominantly soil backgrounds. A channel synergy-focused attention (CSA) mechanism is incorporated to selectively enhance informative spectral bands and their inter-channel relationships in multispectral data, thereby improving class separability. Furthermore, a lightweight context-aware feature extraction (LCFE) module establishes a compact encoder–decoder bottleneck that facilitates effective contextual refinement while reducing parameter redundancy and overfitting risk. Collectively, these components retain discriminative features of minority classes and enhance spectral segmentation quality with minimal computational overhead. PRC-Net is validated on the publicly available WeedMap (RedEdge-M, Sequoia) and Sesame Aerial datasets, achieving mean intersection over union (MIOU) values of 0.8397, 0.6520, and 0.6961, respectively. Experimental performance highlights that PRC-Net achieves superior performance and efficiency compared to existing methods, confirming its suitability for UAV-based weed detection in precision farming.",
+    "abstract": "Unmanned aerial vehicles (UAVs) equipped with computer vision techniques offer a practical and scalable solution for large-scale weed mapping in agricultural fields. Accurate pixel-level discrimination of soil, crops, and weeds from UAV imagery remains challenging due to severe class imbalance and the high visual similarity between crop and weed structures. Many existing segmentation approaches are either computationally demanding or depend on ensemble strategies, which restrict their applicability on edge or real-time platforms. To address these limitations, this study introduces a progressive receptive-field context-aware network (PRC-Net) designed for efficient deployment under constrained computational resources. The proposed progressive receptive-field fusion (PRF) module incrementally enlarges the receptive field across multiple scales, enabling improved identification of small crop and weed regions within predominantly soil backgrounds. A channel synergy-focused attention (CSA) mechanism is incorporated to selectively enhance informative spectral bands and their inter-channel relationships in multispectral data, thereby improving class separability. Furthermore, a lightweight context-aware feature extraction (LCFE) module establishes a compact encoder\u2013decoder bottleneck that facilitates effective contextual refinement while reducing parameter redundancy and overfitting risk. Collectively, these components retain discriminative features of minority classes and enhance spectral segmentation quality with minimal computational overhead. PRC-Net is validated on the publicly available WeedMap (RedEdge-M, Sequoia) and Sesame Aerial datasets, achieving mean intersection over union (MIOU) values of 0.8397, 0.6520, and 0.6961, respectively. Experimental performance highlights that PRC-Net achieves superior performance and efficiency compared to existing methods, confirming its suitability for UAV-based weed detection in precision farming.",
     "authors": [
       {
         "family_name": "Irfan",
@@ -3116,12 +3116,12 @@
     "abstract": null,
     "authors": [
       {
-        "family_name": "Güneşer",
+        "family_name": "G\u00fcne\u015fer",
         "given_name": "Muhammet Tahir",
         "orcid": null
       },
       {
-        "family_name": "Şeker",
+        "family_name": "\u015eeker",
         "given_name": "Chihat",
         "orcid": null
       },
@@ -3680,27 +3680,27 @@
     "abstract": null,
     "authors": [
       {
-        "family_name": "Ivošević",
+        "family_name": "Ivo\u0161evi\u0107",
         "given_name": "Bojana",
         "orcid": null
       },
       {
-        "family_name": "Kostić",
+        "family_name": "Kosti\u0107",
         "given_name": "Marko",
         "orcid": null
       },
       {
-        "family_name": "Ljubičić",
-        "given_name": "Nataša",
+        "family_name": "Ljubi\u010di\u0107",
+        "given_name": "Nata\u0161a",
         "orcid": null
       },
       {
-        "family_name": "Grbović",
-        "given_name": "Željana",
+        "family_name": "Grbovi\u0107",
+        "given_name": "\u017deljana",
         "orcid": null
       },
       {
-        "family_name": "Panić",
+        "family_name": "Pani\u0107",
         "given_name": "Marko",
         "orcid": null
       }
@@ -3780,12 +3780,12 @@
         "orcid": null
       },
       {
-        "family_name": "López-Granados",
+        "family_name": "L\u00f3pez-Granados",
         "given_name": "F.",
         "orcid": null
       },
       {
-        "family_name": "Peña",
+        "family_name": "Pe\u00f1a",
         "given_name": "J.M.",
         "orcid": null
       }
@@ -4369,7 +4369,7 @@
       },
       {
         "family_name": "Canals",
-        "given_name": "Raphaël",
+        "given_name": "Rapha\u00ebl",
         "orcid": "https://orcid.org/0000-0001-9100-7539"
       }
     ],
@@ -4497,7 +4497,7 @@
       "openalex_id": "https://openalex.org/W2995187556",
       "s2_id": null
     },
-    "abstract": "Abstract One of the major goals of tomorrow’s agriculture is to increase agricultural productivity but above all the quality of production while significantly reducing the use of inputs. Meeting this goal is a real scientific and technological challenge. Smart farming is among the promising approaches that can lead to interesting solutions for vineyard management and reduce the environmental impact. Automatic vine disease detection can increase efficiency and flexibility in managing vineyard crops, while reducing the chemical inputs. This is needed today more than ever, as the use of pesticides is coming under increasing scrutiny and control. The goal is to map diseased areas in the vineyard for fast and precise treatment, thus guaranteeing the maintenance of a healthy state of the vine which is very important for yield management. To tackle this problem, a method is proposed here for Mildew disease detection in vine field using a deep learning segmentation approach on Unmanned Aerial Vehicle (UAV) images. The method is based on the combination of the visible and infrared images obtained from two different sensors. A new image registration method was developed to align visible and infrared images, enabling fusion of the information from the two sensors. A fully convolutional neural network approach uses this information to classify each pixel according to different instances, namely, shadow, ground, healthy and symptom. The proposed method achieved more than 92 % of detection at grapevine-level and 87 % at leaf level, showing promising perspectives for computer aided disease detection in vineyards.",
+    "abstract": "Abstract One of the major goals of tomorrow\u2019s agriculture is to increase agricultural productivity but above all the quality of production while significantly reducing the use of inputs. Meeting this goal is a real scientific and technological challenge. Smart farming is among the promising approaches that can lead to interesting solutions for vineyard management and reduce the environmental impact. Automatic vine disease detection can increase efficiency and flexibility in managing vineyard crops, while reducing the chemical inputs. This is needed today more than ever, as the use of pesticides is coming under increasing scrutiny and control. The goal is to map diseased areas in the vineyard for fast and precise treatment, thus guaranteeing the maintenance of a healthy state of the vine which is very important for yield management. To tackle this problem, a method is proposed here for Mildew disease detection in vine field using a deep learning segmentation approach on Unmanned Aerial Vehicle (UAV) images. The method is based on the combination of the visible and infrared images obtained from two different sensors. A new image registration method was developed to align visible and infrared images, enabling fusion of the information from the two sensors. A fully convolutional neural network approach uses this information to classify each pixel according to different instances, namely, shadow, ground, healthy and symptom. The proposed method achieved more than 92 % of detection at grapevine-level and 87 % at leaf level, showing promising perspectives for computer aided disease detection in vineyards.",
     "authors": [
       {
         "family_name": "Kerkech",
@@ -4511,7 +4511,7 @@
       },
       {
         "family_name": "Canals",
-        "given_name": "Raphaël",
+        "given_name": "Rapha\u00ebl",
         "orcid": "https://orcid.org/0000-0001-9100-7539"
       }
     ],
@@ -4645,7 +4645,7 @@
       "openalex_id": "https://openalex.org/W4390146257",
       "s2_id": null
     },
-    "abstract": "Weed and crop segmentation is becoming an increasingly integral part of precision farming that leverages the current computer vision and deep learning technologies. Research has been extensively carried out based on images captured with a camera from various platforms. Unmanned aerial vehicles (UAVs) and ground-based vehicles including agricultural robots are the two popular platforms for data collection in fields. They all contribute to site-specific weed management (SSWM) to maintain crop yield. Currently, the data from these two platforms is processed separately, though sharing the same semantic objects (weed and crop). In our paper, we have proposed a novel method with a new deep learning-based model and the enhanced data augmentation pipeline to train field images alone and subsequently predict both field images and UAV images for weed segmentation and mapping. The network learning process is visualized by feature maps at shallow and deep layers. The results show that the mean intersection of union (IOU) values of the segmentation for the crop (maize), weeds, and soil background in the developed model for the field dataset are 0.744, 0.577, 0.979, respectively, and the performance of aerial images from an UAV with the same model, the IOU values of the segmentation for the crop (maize), weeds and soil background are 0.596, 0.407, and 0.875, respectively. To estimate the effect on the use of plant protection agents, we quantify the relationship between herbicide spraying saving rate and grid size (spraying resolution) based on the predicted weed map. The spraying saving rate is up to 90% when the spraying resolution is at 1.78×1.78 cm2. The study shows that the developed deep convolutional neural network could be used to classify weeds from both field and aerial images and delivers satisfactory results. To achieve this performance, it is crucial to perform preprocessing techniques that reduce dataset differences between two distinct domains.",
+    "abstract": "Weed and crop segmentation is becoming an increasingly integral part of precision farming that leverages the current computer vision and deep learning technologies. Research has been extensively carried out based on images captured with a camera from various platforms. Unmanned aerial vehicles (UAVs) and ground-based vehicles including agricultural robots are the two popular platforms for data collection in fields. They all contribute to site-specific weed management (SSWM) to maintain crop yield. Currently, the data from these two platforms is processed separately, though sharing the same semantic objects (weed and crop). In our paper, we have proposed a novel method with a new deep learning-based model and the enhanced data augmentation pipeline to train field images alone and subsequently predict both field images and UAV images for weed segmentation and mapping. The network learning process is visualized by feature maps at shallow and deep layers. The results show that the mean intersection of union (IOU) values of the segmentation for the crop (maize), weeds, and soil background in the developed model for the field dataset are 0.744, 0.577, 0.979, respectively, and the performance of aerial images from an UAV with the same model, the IOU values of the segmentation for the crop (maize), weeds and soil background are 0.596, 0.407, and 0.875, respectively. To estimate the effect on the use of plant protection agents, we quantify the relationship between herbicide spraying saving rate and grid size (spraying resolution) based on the predicted weed map. The spraying saving rate is up to 90% when the spraying resolution is at 1.78\u00d71.78 cm2. The study shows that the developed deep convolutional neural network could be used to classify weeds from both field and aerial images and delivers satisfactory results. To achieve this performance, it is crucial to perform preprocessing techniques that reduce dataset differences between two distinct domains.",
     "authors": [
       {
         "family_name": "Gao",
@@ -4735,7 +4735,7 @@
     "authors": [
       {
         "family_name": "Yang",
-        "given_name": "Ming‐Der",
+        "given_name": "Ming\u2010Der",
         "orcid": "https://orcid.org/0000-0003-2904-5838"
       },
       {
@@ -4745,7 +4745,7 @@
       },
       {
         "family_name": "Hsu",
-        "given_name": "Yu‐Chun",
+        "given_name": "Yu\u2010Chun",
         "orcid": "https://orcid.org/0000-0002-6616-6906"
       },
       {
@@ -4815,7 +4815,7 @@
         "orcid": null
       },
       {
-        "family_name": "Güreli",
+        "family_name": "G\u00fcreli",
         "given_name": "Zeynep",
         "orcid": null
       },
@@ -4883,7 +4883,7 @@
       "openalex_id": "https://openalex.org/W4415650343",
       "s2_id": "5094d489c453992e72d3698a985d980e51505500"
     },
-    "abstract": "Accurate segmentation of crops and weeds is essential for enhancing crop yield, optimizing herbicide usage, and mitigating environmental impacts. Traditional weed management practices, such as manual weeding or broad-spectrum herbicide application, are labor-intensive, environmentally harmful, and economically inefficient. In response, this study introduces a novel precision agriculture framework integrating Unmanned Aerial Vehicle (UAV)-based remote sensing with advanced deep learning techniques, combining Super-Resolution Reconstruction (SRR) and semantic segmentation. This study is the first to integrate UAV-based SRR and semantic segmentation for tobacco fields, systematically evaluate recent Transformer and Mamba-based models alongside traditional CNNs, and release an annotated dataset that not only ensures reproducibility but also provides a resource for the research community to develop and benchmark future models. Initially, SRR enhanced the resolution of low-quality UAV imagery, significantly improving detailed feature extraction. Subsequently, to identify the optimal segmentation model for the proposed framework, semantic segmentation models incorporating CNN, Transformer, and Mamba architectures were used to differentiate crops from weeds. Among evaluated SRR methods, RCAN achieved the optimal reconstruction performance, reaching a Peak Signal-to-Noise Ratio (PSNR) of 24.98 dB and a Structural Similarity Index (SSIM) of 69.48%. In semantic segmentation, the ensemble model integrating Transformer (DPT with DINOv2) and Mamba-based architectures achieved the highest mean Intersection over Union (mIoU) of 90.75%, demonstrating superior robustness across diverse field conditions. Additionally, comprehensive experiments quantified the impact of magnification factors, Gaussian blur, and Gaussian noise, identifying an optimal magnification factor of 4×, proving that the method was robust to common environmental disturbances at optimal parameters. Overall, this research established an efficient, precise framework for crop cultivation management, offering valuable insights for precision agriculture and sustainable farming practices.",
+    "abstract": "Accurate segmentation of crops and weeds is essential for enhancing crop yield, optimizing herbicide usage, and mitigating environmental impacts. Traditional weed management practices, such as manual weeding or broad-spectrum herbicide application, are labor-intensive, environmentally harmful, and economically inefficient. In response, this study introduces a novel precision agriculture framework integrating Unmanned Aerial Vehicle (UAV)-based remote sensing with advanced deep learning techniques, combining Super-Resolution Reconstruction (SRR) and semantic segmentation. This study is the first to integrate UAV-based SRR and semantic segmentation for tobacco fields, systematically evaluate recent Transformer and Mamba-based models alongside traditional CNNs, and release an annotated dataset that not only ensures reproducibility but also provides a resource for the research community to develop and benchmark future models. Initially, SRR enhanced the resolution of low-quality UAV imagery, significantly improving detailed feature extraction. Subsequently, to identify the optimal segmentation model for the proposed framework, semantic segmentation models incorporating CNN, Transformer, and Mamba architectures were used to differentiate crops from weeds. Among evaluated SRR methods, RCAN achieved the optimal reconstruction performance, reaching a Peak Signal-to-Noise Ratio (PSNR) of 24.98 dB and a Structural Similarity Index (SSIM) of 69.48%. In semantic segmentation, the ensemble model integrating Transformer (DPT with DINOv2) and Mamba-based architectures achieved the highest mean Intersection over Union (mIoU) of 90.75%, demonstrating superior robustness across diverse field conditions. Additionally, comprehensive experiments quantified the impact of magnification factors, Gaussian blur, and Gaussian noise, identifying an optimal magnification factor of 4\u00d7, proving that the method was robust to common environmental disturbances at optimal parameters. Overall, this research established an efficient, precise framework for crop cultivation management, offering valuable insights for precision agriculture and sustainable farming practices.",
     "authors": [
       {
         "family_name": "Tao",
@@ -5239,12 +5239,12 @@
     "authors": [
       {
         "family_name": "Machefer",
-        "given_name": "Mélissande",
+        "given_name": "M\u00e9lissande",
         "orcid": "https://orcid.org/0000-0002-9359-3946"
       },
       {
         "family_name": "Lemarchand",
-        "given_name": "François",
+        "given_name": "Fran\u00e7ois",
         "orcid": "https://orcid.org/0000-0003-3019-2544"
       },
       {
@@ -5315,7 +5315,7 @@
     "authors": [
       {
         "family_name": "Yang",
-        "given_name": "Ming‐Der",
+        "given_name": "Ming\u2010Der",
         "orcid": "https://orcid.org/0000-0003-2904-5838"
       },
       {
@@ -5335,7 +5335,7 @@
       },
       {
         "family_name": "Hsu",
-        "given_name": "Yu‐Chun",
+        "given_name": "Yu\u2010Chun",
         "orcid": "https://orcid.org/0000-0002-6616-6906"
       },
       {
@@ -5481,7 +5481,7 @@
       "openalex_id": "https://openalex.org/W4309191446",
       "s2_id": null
     },
-    "abstract": "Abstract Site-specific treatment of weeds in agricultural landscapes has been gaining importance in recent years due to economic savings and minimal impact on the environment. Different detection methods have been developed and tested for precision weed management systems, but recent developments in neural networks have offered great prospects. However, a major limitation with the neural network models is the requirement of high volumes of data for training. The current study aims at exploring an alternative approach to the use of real images to address this issue. In this study, synthetic images were generated with various strategies using plant instances clipped from UAV-borne real images. In addition, the Generative Adversarial Networks (GAN) technique was used to generate fake plant instances which were used in generating synthetic images. These images were used to train a powerful convolutional neural network (CNN) known as \"Mask R-CNN\" for weed detection and segmentation in a transfer learning mode. The study was conducted on morningglories (MG) and grass weeds (Grass) infested in cotton. The biomass for individual weeds was also collected in the field for biomass modeling using detection and segmentation results derived from model inference. Results showed a comparable performance between the real plant-based synthetic image (mean average precision for mask-mAPm: 0.60; mean average precision for bounding box-mAPb: 0.64) and real image datasets (mAPm: 0.80; mAPb: 0.81). However, the mixed dataset (real image + real plant instance-based synthetic image dataset) resulted in no performance gain for segmentation mask whereas a very small performance gain for bounding box (mAPm: 0.80; mAPb: 0.83). Around 40–50 plant instances were sufficient for generating synthetic images that resulted in optimal performance. Row orientation of cotton in the synthetic images was beneficial compared to random-orientation. Synthetic images generated with automatically-clipped plant instances performed similarly to the ones generated with manually-clipped instances. Generative Adversarial Networks-derived fake plant instances-based synthetic images did not perform as effectively as real plant instance-based synthetic images. The canopy mask area predicted weed biomass better than bounding box area with R2values of 0.66 and 0.46 for MG and Grass, respectively. The findings of this study offer valuable insights for guiding future endeavors oriented towards using synthetic images for weed detection and segmentation, and biomass estimation in row crops.",
+    "abstract": "Abstract Site-specific treatment of weeds in agricultural landscapes has been gaining importance in recent years due to economic savings and minimal impact on the environment. Different detection methods have been developed and tested for precision weed management systems, but recent developments in neural networks have offered great prospects. However, a major limitation with the neural network models is the requirement of high volumes of data for training. The current study aims at exploring an alternative approach to the use of real images to address this issue. In this study, synthetic images were generated with various strategies using plant instances clipped from UAV-borne real images. In addition, the Generative Adversarial Networks (GAN) technique was used to generate fake plant instances which were used in generating synthetic images. These images were used to train a powerful convolutional neural network (CNN) known as \"Mask R-CNN\" for weed detection and segmentation in a transfer learning mode. The study was conducted on morningglories (MG) and grass weeds (Grass) infested in cotton. The biomass for individual weeds was also collected in the field for biomass modeling using detection and segmentation results derived from model inference. Results showed a comparable performance between the real plant-based synthetic image (mean average precision for mask-mAPm: 0.60; mean average precision for bounding box-mAPb: 0.64) and real image datasets (mAPm: 0.80; mAPb: 0.81). However, the mixed dataset (real image + real plant instance-based synthetic image dataset) resulted in no performance gain for segmentation mask whereas a very small performance gain for bounding box (mAPm: 0.80; mAPb: 0.83). Around 40\u201350 plant instances were sufficient for generating synthetic images that resulted in optimal performance. Row orientation of cotton in the synthetic images was beneficial compared to random-orientation. Synthetic images generated with automatically-clipped plant instances performed similarly to the ones generated with manually-clipped instances. Generative Adversarial Networks-derived fake plant instances-based synthetic images did not perform as effectively as real plant instance-based synthetic images. The canopy mask area predicted weed biomass better than bounding box area with R2values of 0.66 and 0.46 for MG and Grass, respectively. The findings of this study offer valuable insights for guiding future endeavors oriented towards using synthetic images for weed detection and segmentation, and biomass estimation in row crops.",
     "authors": [
       {
         "family_name": "Sapkota",
@@ -5499,12 +5499,12 @@
         "orcid": "https://orcid.org/0000-0003-3798-2629"
       },
       {
-        "family_name": "León",
-        "given_name": "Ramón G.",
+        "family_name": "Le\u00f3n",
+        "given_name": "Ram\u00f3n G.",
         "orcid": "https://orcid.org/0000-0002-1924-3331"
       },
       {
-        "family_name": "Reberg‐Horton",
+        "family_name": "Reberg\u2010Horton",
         "given_name": "Chris",
         "orcid": "https://orcid.org/0000-0001-5002-106X"
       },
@@ -5664,7 +5664,7 @@
       "openalex_id": "https://openalex.org/W2894587475",
       "s2_id": null
     },
-    "abstract": "Chemical control is necessary in order to control weed infestation and to ensure a rice yield. However, excessive use of herbicides has caused serious agronomic and environmental problems. Site specific weed management (SSWM) recommends an appropriate dose of herbicides according to the weed coverage, which may reduce the use of herbicides while enhancing their chemical effects. In the context of SSWM, the weed cover map and prescription map must be generated in order to carry out the accurate spraying. In this paper, high resolution unmanned aerial vehicle (UAV) imagery were captured over a rice field. Different workflows were evaluated to generate the weed cover map for the whole field. Fully convolutional networks (FCN) was applied for a pixel-level classification. Theoretical analysis and practical evaluation were carried out to seek for an architecture improvement and performance boost. A chessboard segmentation process was used to build the grid framework of the prescription map. The experimental results showed that the overall accuracy and mean intersection over union (mean IU) for weed mapping using FCN-4s were 0.9196 and 0.8473, and the total time (including the data collection and data processing) required to generate the weed cover map for the entire field (50 × 60 m) was less than half an hour. Different weed thresholds (0.00⁻0.25, with an interval of 0.05) were used for the prescription map generation. High accuracies (above 0.94) were observed for all of the threshold values, and the relevant herbicide saving ranged from 58.3% to 70.8%. All of the experimental results demonstrated that the method used in this work has the potential to produce an accurate weed cover map and prescription map in SSWM applications.",
+    "abstract": "Chemical control is necessary in order to control weed infestation and to ensure a rice yield. However, excessive use of herbicides has caused serious agronomic and environmental problems. Site specific weed management (SSWM) recommends an appropriate dose of herbicides according to the weed coverage, which may reduce the use of herbicides while enhancing their chemical effects. In the context of SSWM, the weed cover map and prescription map must be generated in order to carry out the accurate spraying. In this paper, high resolution unmanned aerial vehicle (UAV) imagery were captured over a rice field. Different workflows were evaluated to generate the weed cover map for the whole field. Fully convolutional networks (FCN) was applied for a pixel-level classification. Theoretical analysis and practical evaluation were carried out to seek for an architecture improvement and performance boost. A chessboard segmentation process was used to build the grid framework of the prescription map. The experimental results showed that the overall accuracy and mean intersection over union (mean IU) for weed mapping using FCN-4s were 0.9196 and 0.8473, and the total time (including the data collection and data processing) required to generate the weed cover map for the entire field (50 \u00d7 60 m) was less than half an hour. Different weed thresholds (0.00\u207b0.25, with an interval of 0.05) were used for the prescription map generation. High accuracies (above 0.94) were observed for all of the threshold values, and the relevant herbicide saving ranged from 58.3% to 70.8%. All of the experimental results demonstrated that the method used in this work has the potential to produce an accurate weed cover map and prescription map in SSWM applications.",
     "authors": [
       {
         "family_name": "Huang",
@@ -5846,7 +5846,7 @@
       "openalex_id": "https://openalex.org/W4211008356",
       "s2_id": null
     },
-    "abstract": "Weeds are among the significant factors that could harm crop yield by invading crops and smother pastures, and significantly decrease the quality of the harvested crops. Herbicides are widely used in agriculture to control weeds; however, excessive use of herbicides in agriculture can lead to environmental pollution as well as yield reduction. Accurate mapping of crops/weeds is essential to determine weeds’ location and locally treat those areas. Increasing demand for flexible, accurate and lower cost precision agriculture technology has resulted in advancements in UAS-based remote sensing data collection and methods. Deep learning methods have been successfully employed for UAS data processing and mapping tasks in different domains. This research investigate, compares and evaluates the performance of deep learning methods for crop/weed discrimination on two open-source and published benchmark datasets captured by different UASs (field robot and UAV) and labeled by experts. We specifically investigate the following architectures: 1) U-Net Model 2) SegNet 3) FCN (FCN-32s, FCN-16s, FCN-8s) 4) DepLabV3+. The deep learning models were fine-tuned to classify the UAS datasets into three classes (background, crops, and weeds). The classification accuracy achieved by U-Net is 77.9% higher than 62.6% of SegNet, 68.4% of FCN-32s, 77.2% of FCN-16s, and slightly lower than 81.1% of FCN-8s, and 84.3% of DepLab v3+. Experimental results showed that the ResNet-18 based segmentation model such as DepLab v3+ could precisely extract weeds compared to other classifiers.",
+    "abstract": "Weeds are among the significant factors that could harm crop yield by invading crops and smother pastures, and significantly decrease the quality of the harvested crops. Herbicides are widely used in agriculture to control weeds; however, excessive use of herbicides in agriculture can lead to environmental pollution as well as yield reduction. Accurate mapping of crops/weeds is essential to determine weeds\u2019 location and locally treat those areas. Increasing demand for flexible, accurate and lower cost precision agriculture technology has resulted in advancements in UAS-based remote sensing data collection and methods. Deep learning methods have been successfully employed for UAS data processing and mapping tasks in different domains. This research investigate, compares and evaluates the performance of deep learning methods for crop/weed discrimination on two open-source and published benchmark datasets captured by different UASs (field robot and UAV) and labeled by experts. We specifically investigate the following architectures: 1) U-Net Model 2) SegNet 3) FCN (FCN-32s, FCN-16s, FCN-8s) 4) DepLabV3+. The deep learning models were fine-tuned to classify the UAS datasets into three classes (background, crops, and weeds). The classification accuracy achieved by U-Net is 77.9% higher than 62.6% of SegNet, 68.4% of FCN-32s, 77.2% of FCN-16s, and slightly lower than 81.1% of FCN-8s, and 84.3% of DepLab v3+. Experimental results showed that the ResNet-18 based segmentation model such as DepLab v3+ could precisely extract weeds compared to other classifiers.",
     "authors": [
       {
         "family_name": "Hashemi-Beni",
@@ -6090,7 +6090,7 @@
       "openalex_id": "https://openalex.org/W4402648832",
       "s2_id": null
     },
-    "abstract": "Abstract Weeds are undesired plants competing with crops for light, nutrients, and water, negatively impacting crop growth. Identifying weeds in wheat fields accurately is important for precise pesticide spraying and targeted weed control. Grass weeds in their early growth stages look very similar to wheat seedlings, making them difficult to identify. In this study, we focused on wheat fields with varying levels of grass weed infestation and used unmanned aerial vehicles (UAVs) to obtain images. By utilizing deep learning algorithms and spectral analysis technology, the weeds were identified and extracted accurately from wheat fields. Our results showed that the precision of weed detection in scattered wheat fields was 91.27% and 87.51% in drilled wheat fields. Compared to areas without weeds, the increase in weed density led to a decrease in wheat biomass, with the maximum biomass decreasing by 71%. The effect of weed density on yield was similar, with the maximum yield decreasing by 4320 kg·ha− 1, a drop of 60%. In this study, a method for monitoring weed occurrence in wheat fields was established, and the effects of weeds on wheat growth in different growth periods and weed densities were studied by accurately extracting weeds from wheat fields. The results can provide a reference for weed control and hazard assessment research.",
+    "abstract": "Abstract Weeds are undesired plants competing with crops for light, nutrients, and water, negatively impacting crop growth. Identifying weeds in wheat fields accurately is important for precise pesticide spraying and targeted weed control. Grass weeds in their early growth stages look very similar to wheat seedlings, making them difficult to identify. In this study, we focused on wheat fields with varying levels of grass weed infestation and used unmanned aerial vehicles (UAVs) to obtain images. By utilizing deep learning algorithms and spectral analysis technology, the weeds were identified and extracted accurately from wheat fields. Our results showed that the precision of weed detection in scattered wheat fields was 91.27% and 87.51% in drilled wheat fields. Compared to areas without weeds, the increase in weed density led to a decrease in wheat biomass, with the maximum biomass decreasing by 71%. The effect of weed density on yield was similar, with the maximum yield decreasing by 4320 kg\u00b7ha\u2212 1, a drop of 60%. In this study, a method for monitoring weed occurrence in wheat fields was established, and the effects of weeds on wheat growth in different growth periods and weed densities were studied by accurately extracting weeds from wheat fields. The results can provide a reference for weed control and hazard assessment research.",
     "authors": [
       {
         "family_name": "Liu",
@@ -6277,7 +6277,7 @@
       "openalex_id": "https://openalex.org/W4410929941",
       "s2_id": null
     },
-    "abstract": "With the resurgence of on-the-go site-specific weed control technologies, research has increasingly focused on real-time weed identification using computer vision and machine learning. While Convolutional Neural Networks (CNNs) have been successfully used for automatic weed detection, many studies prioritize accuracy over inference speed and computational resource demand. The objective of this work was to develop, deploy, and evaluate CNN-based computer vision models on computationally resource-restrained edge devices for real-time weed classification and segmentation. RGB images were collected by UAVs over corn and soybean fields infested with Palmer Amaranth ( Amaranthus palmeri ). A few object detection (OD) and semantic segmentation (SS) models were modified, if necessary, to be lightweight, then trained and deployed on edge devices for real-time weed detection with resized input images in dimensions of 256 × 256 pixels. Specifically, the original backbones of Single-Shot Detector (SSD) and DeepLabv3+ models were replaced by a pre-trained MobileNetV3 backbone and deployed on a Jetson Nano. A YOLOv8n model and a proposed MobileNetV4-Seg model were trained and deployed on a Jetson Orin Nano. All models achieved real-time performance with acceptable accuracies with the data collected in corn and soybean fields. Among them, the MobilenetV4-Seg achieved the best performance, with IoUs of 69.9 % and 76.8 %, F 1 scores of 82.3 % and 86.9 %, for the corn and soybean datasets, respectively, and 44 FPS on the Jetson Orin Nano. Overall, this study demonstrated a use case and feasible workflow for developing and deploying lightweight CNN models on resource-constrained edge devices for on-the-go real-time site-specific applications.",
+    "abstract": "With the resurgence of on-the-go site-specific weed control technologies, research has increasingly focused on real-time weed identification using computer vision and machine learning. While Convolutional Neural Networks (CNNs) have been successfully used for automatic weed detection, many studies prioritize accuracy over inference speed and computational resource demand. The objective of this work was to develop, deploy, and evaluate CNN-based computer vision models on computationally resource-restrained edge devices for real-time weed classification and segmentation. RGB images were collected by UAVs over corn and soybean fields infested with Palmer Amaranth ( Amaranthus palmeri ). A few object detection (OD) and semantic segmentation (SS) models were modified, if necessary, to be lightweight, then trained and deployed on edge devices for real-time weed detection with resized input images in dimensions of 256 \u00d7 256 pixels. Specifically, the original backbones of Single-Shot Detector (SSD) and DeepLabv3+ models were replaced by a pre-trained MobileNetV3 backbone and deployed on a Jetson Nano. A YOLOv8n model and a proposed MobileNetV4-Seg model were trained and deployed on a Jetson Orin Nano. All models achieved real-time performance with acceptable accuracies with the data collected in corn and soybean fields. Among them, the MobilenetV4-Seg achieved the best performance, with IoUs of 69.9 % and 76.8 %, F 1 scores of 82.3 % and 86.9 %, for the corn and soybean datasets, respectively, and 44 FPS on the Jetson Orin Nano. Overall, this study demonstrated a use case and feasible workflow for developing and deploying lightweight CNN models on resource-constrained edge devices for on-the-go real-time site-specific applications.",
     "authors": [
       {
         "family_name": "Islam",
@@ -6320,7 +6320,7 @@
         "orcid": null
       },
       {
-        "family_name": "Knežević",
+        "family_name": "Kne\u017eevi\u0107",
         "given_name": "Stevan Z.",
         "orcid": "https://orcid.org/0000-0003-4898-0063"
       },
@@ -6395,7 +6395,7 @@
       "openalex_id": "https://openalex.org/W4415299263",
       "s2_id": "3038f91196c9e4d4c5d04d5bdbd5f9674adccccc"
     },
-    "abstract": "The global food crises and growing population necessitate efficient agricultural land use. Weeds cause up to 40% yield loss in major crops, resulting in over USD 100 billion in annual economic losses. Camera-equipped UAVs offer a solution for automatic weed detection, but the high computational and energy demands of deep learning models limit their use to expensive, high-end UAVs. In this paper, we present a low-cost UAV system built from off-the-shelf components, featuring a custom-designed on-board computing system based on the NVIDIA Jetson Nano. This system efficiently manages real-time image acquisition and inference using the energy-efficient Squeeze U-Net neural network for weed detection. Our approach ensures the pipeline operates in real time without affecting the drone’s flight autonomy. We also introduce the AgriAdapt dataset, a novel collection of 643 high-resolution aerial images of salad crops with weeds, which fills a key gap by providing realistic UAV data for benchmarking segmentation models under field conditions. Several deep learning models are trained and validated on the newly introduced AgriAdapt dataset, demonstrating its suitability for effective weed segmentation in UAV imagery. Quantitative results show that the dataset supports a range of architectures, from larger models such as DeepLabV3 to smaller, lightweight networks like Squeeze U-Net (with only 2.5 M parameters), achieving high accuracy (around 90%) across the board. These contributions distinguish our work from earlier UAV-based weed detection systems by combining a novel dataset with a comprehensive evaluation of accuracy, latency, and energy efficiency, thus directly targeting deep learning applications for real-time UAV deployment. Our results demonstrate the feasibility of deploying a low-cost, energy-efficient UAV system for real-time weed detection, making advanced agricultural technology more accessible and practical for widespread use.",
+    "abstract": "The global food crises and growing population necessitate efficient agricultural land use. Weeds cause up to 40% yield loss in major crops, resulting in over USD 100 billion in annual economic losses. Camera-equipped UAVs offer a solution for automatic weed detection, but the high computational and energy demands of deep learning models limit their use to expensive, high-end UAVs. In this paper, we present a low-cost UAV system built from off-the-shelf components, featuring a custom-designed on-board computing system based on the NVIDIA Jetson Nano. This system efficiently manages real-time image acquisition and inference using the energy-efficient Squeeze U-Net neural network for weed detection. Our approach ensures the pipeline operates in real time without affecting the drone\u2019s flight autonomy. We also introduce the AgriAdapt dataset, a novel collection of 643 high-resolution aerial images of salad crops with weeds, which fills a key gap by providing realistic UAV data for benchmarking segmentation models under field conditions. Several deep learning models are trained and validated on the newly introduced AgriAdapt dataset, demonstrating its suitability for effective weed segmentation in UAV imagery. Quantitative results show that the dataset supports a range of architectures, from larger models such as DeepLabV3 to smaller, lightweight networks like Squeeze U-Net (with only 2.5 M parameters), achieving high accuracy (around 90%) across the board. These contributions distinguish our work from earlier UAV-based weed detection systems by combining a novel dataset with a comprehensive evaluation of accuracy, latency, and energy efficiency, thus directly targeting deep learning applications for real-time UAV deployment. Our results demonstrate the feasibility of deploying a low-cost, energy-efficient UAV system for real-time weed detection, making advanced agricultural technology more accessible and practical for widespread use.",
     "authors": [
       {
         "family_name": "Machidon",
@@ -6403,12 +6403,12 @@
         "orcid": "https://orcid.org/0000-0002-9330-3865"
       },
       {
-        "family_name": "Krašovec",
-        "given_name": "Andraž",
+        "family_name": "Kra\u0161ovec",
+        "given_name": "Andra\u017e",
         "orcid": "https://orcid.org/0009-0007-4077-0826"
       },
       {
-        "family_name": "Pejović",
+        "family_name": "Pejovi\u0107",
         "given_name": "Veljko",
         "orcid": "https://orcid.org/0000-0002-9009-0024"
       },
@@ -6560,7 +6560,7 @@
       "openalex_id": "https://openalex.org/W4415372084",
       "s2_id": null
     },
-    "abstract": "Ensuring global food security requires accurate and robust solutions for crop health monitoring, weed detection, and large-scale land-cover classification. To this end, we propose AgroVisionNet, a hybrid deep learning framework that integrates Convolutional Neural Networks (CNNs) for local feature extraction, Vision Transformers (ViTs) for capturing long-range global dependencies, and Graph Neural Networks (GNNs) for modeling spatial relationships between image regions. The framework was evaluated on five diverse benchmark datasets—PlantVillage (leaf-level disease detection), Agriculture-Vision (field-scale anomaly segmentation), BigEarthNet (satellite-based land-cover classification), UAV Crop and Weed (weed segmentation), and EuroSAT (multi-class land-cover recognition). Across these datasets, AgroVisionNet consistently outperformed strong baselines including ResNet-50, EfficientNet-B0, ViT, and Mask R-CNN. For example, it achieved 97.8% accuracy and 95.6% IoU on PlantVillage, 94.5% accuracy on Agriculture-Vision, 92.3% accuracy on BigEarthNet, 91.5% accuracy on UAV Crop and Weed, and 96.4% accuracy on EuroSAT. These results demonstrate the framework’s robustness across tasks ranging from fine-grained disease detection to large-scale anomaly mapping. The proposed hybrid approach addresses persistent challenges in agricultural imaging, including class imbalance, image quality variability, and the need for multi-scale feature integration. By combining complementary architectural strengths, AgroVisionNet establishes a new benchmark for deep learning applications in precision agriculture.",
+    "abstract": "Ensuring global food security requires accurate and robust solutions for crop health monitoring, weed detection, and large-scale land-cover classification. To this end, we propose AgroVisionNet, a hybrid deep learning framework that integrates Convolutional Neural Networks (CNNs) for local feature extraction, Vision Transformers (ViTs) for capturing long-range global dependencies, and Graph Neural Networks (GNNs) for modeling spatial relationships between image regions. The framework was evaluated on five diverse benchmark datasets\u2014PlantVillage (leaf-level disease detection), Agriculture-Vision (field-scale anomaly segmentation), BigEarthNet (satellite-based land-cover classification), UAV Crop and Weed (weed segmentation), and EuroSAT (multi-class land-cover recognition). Across these datasets, AgroVisionNet consistently outperformed strong baselines including ResNet-50, EfficientNet-B0, ViT, and Mask R-CNN. For example, it achieved 97.8% accuracy and 95.6% IoU on PlantVillage, 94.5% accuracy on Agriculture-Vision, 92.3% accuracy on BigEarthNet, 91.5% accuracy on UAV Crop and Weed, and 96.4% accuracy on EuroSAT. These results demonstrate the framework\u2019s robustness across tasks ranging from fine-grained disease detection to large-scale anomaly mapping. The proposed hybrid approach addresses persistent challenges in agricultural imaging, including class imbalance, image quality variability, and the need for multi-scale feature integration. By combining complementary architectural strengths, AgroVisionNet establishes a new benchmark for deep learning applications in precision agriculture.",
     "authors": [
       {
         "family_name": "Mahareek",
@@ -6568,7 +6568,7 @@
         "orcid": "https://orcid.org/0000-0002-9042-248X"
       },
       {
-        "family_name": "Çifçi",
+        "family_name": "\u00c7if\u00e7i",
         "given_name": "Mehmet Akif",
         "orcid": "https://orcid.org/0000-0002-6439-8826"
       },
@@ -6775,7 +6775,7 @@
       "openalex_id": "https://openalex.org/W4406949141",
       "s2_id": "0c5751da1b7800a8407b1356fd85ff8db1d40a96"
     },
-    "abstract": "The limited processing capacity of computing equipment that is usually mounted on unmanned aerial vehicles (UAVs) often prevents real-time execution of computer vision tasks, such as image segmentation. In this article, we introduce SqueezeSlimU-Net (SSU-Net), an adaptive and efficient deep learning (DL) model designed to enhance UAV capabilities in performing complex image segmentation tasks under resource constraints, thereby advancing real-time UAV vision—a crucial technology in fields, such as precision agriculture. SSU-Net combines benefits of three specialized DL architectures: the semantic segmentation capabilities of the U-Net architecture, the computational efficiency of SqueezeNet's fire modules, and the dynamic adaptability of slimmable neural networks. This integration allows SSU-Net to adjust its network width in real-time, thus striking the balance between inference accuracy and computational load based on the operational parameters such as task requirements and UAV's battery life. To validate SSU-Net's efficacy, we applied it to a weed detection task using two UAV-collected datasets and tested it on an edge computing platform for UAVs. Our experiments show that SSU-Net can reduce inference energy consumption by up to 65% with only a minimal 2% reduction in accuracy. A comparative evaluation with other state-of-the-art DL image segmentation approaches shows that SSU-Net achieves on par weed detection performance while requiring significantly fewer model parameters. In addition, SSU-Net outperforms state-of-the-art network pruning techniques in balancing accuracy and resource usage. Timing benchmarks show SSU-Net fostering real-time weed detection even on low-resource UAVs, making it ideal for UAV remote sensing applications.",
+    "abstract": "The limited processing capacity of computing equipment that is usually mounted on unmanned aerial vehicles (UAVs) often prevents real-time execution of computer vision tasks, such as image segmentation. In this article, we introduce SqueezeSlimU-Net (SSU-Net), an adaptive and efficient deep learning (DL) model designed to enhance UAV capabilities in performing complex image segmentation tasks under resource constraints, thereby advancing real-time UAV vision\u2014a crucial technology in fields, such as precision agriculture. SSU-Net combines benefits of three specialized DL architectures: the semantic segmentation capabilities of the U-Net architecture, the computational efficiency of SqueezeNet's fire modules, and the dynamic adaptability of slimmable neural networks. This integration allows SSU-Net to adjust its network width in real-time, thus striking the balance between inference accuracy and computational load based on the operational parameters such as task requirements and UAV's battery life. To validate SSU-Net's efficacy, we applied it to a weed detection task using two UAV-collected datasets and tested it on an edge computing platform for UAVs. Our experiments show that SSU-Net can reduce inference energy consumption by up to 65% with only a minimal 2% reduction in accuracy. A comparative evaluation with other state-of-the-art DL image segmentation approaches shows that SSU-Net achieves on par weed detection performance while requiring significantly fewer model parameters. In addition, SSU-Net outperforms state-of-the-art network pruning techniques in balancing accuracy and resource usage. Timing benchmarks show SSU-Net fostering real-time weed detection even on low-resource UAVs, making it ideal for UAV remote sensing applications.",
     "authors": [
       {
         "family_name": "Machidon",
@@ -6783,12 +6783,12 @@
         "orcid": "https://orcid.org/0000-0002-9330-3865"
       },
       {
-        "family_name": "Krašovec",
-        "given_name": "Andraž",
+        "family_name": "Kra\u0161ovec",
+        "given_name": "Andra\u017e",
         "orcid": "https://orcid.org/0009-0007-4077-0826"
       },
       {
-        "family_name": "Pejović",
+        "family_name": "Pejovi\u0107",
         "given_name": "Veljko",
         "orcid": "https://orcid.org/0000-0002-9009-0024"
       },
@@ -6846,7 +6846,7 @@
     "provider": "pubmed",
     "provider_id": "42662386",
     "external_ids": {
-      "doi": "10.5281/zenodo.20148697",
+      "doi": "10.1016/j.dib.2026.113135",
       "arxiv_id": null,
       "pubmed_id": "42662386",
       "openalex_id": null,
@@ -6918,7 +6918,8 @@
       ],
       "screening_reasoning": "PROVISIONAL INCLUSION (Stage 3 Full-Text Verification Required): CamelinaWeed is a UAV RGB/multispectral crop-weed dataset article; although its scope is in-domain camelina weed/crop segmentation, no quantitative segmentation benchmark metrics (mIoU/Dice/F1) are reported in the abstract, so it lacks retrievable results.",
       "adjudication_source": "THIRD_PARTY_ADJUDICATION_PROVISIONAL"
-    }
+    },
+    "doi": "10.1016/j.dib.2026.113135"
   },
   {
     "title": "Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images.",
@@ -6926,13 +6927,13 @@
     "provider": "pubmed",
     "provider_id": "42588761",
     "external_ids": {
-      "doi": "10.3390/diagnostics15020118",
+      "doi": "10.3390/plants15152257",
       "arxiv_id": null,
       "pubmed_id": "42588761",
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "Weed segmentation in soybean fields is essential to improving herbicide use efficiency and supporting precision variable-rate spraying. This study developed an SiLU-CPCA-Gate U-Net (SCG-UNet) using fused UAV RGB and multispectral imagery to improve the delineation of small and partially occluded weeds under complex canopy conditions. SCG-UNet integrates channel-spatial feature enhancement, attention-guided skip-feature fusion, and smooth nonlinear activation within a U-Net framework. A total of 400 spatially aligned RGB-multispectral image groups collected from a soybean field in Henan Province, China, were manually annotated for model development and evaluation. Paired bootstrap comparisons showed that RGB+NIR achieved the highest numerical performance among the tested inputs and significantly outperformed RGB, RGB+R, and RGB+G in mIoU after Holm correction, while remaining statistically comparable to RGB+REdge and RGB+NIR+REdge. With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%, exceeding the baseline U-Net by 0.71, 1.50, 2.19, and 2.09 percentage points, respectively. Five-fold spatial block cross-validation yielded an mIoU of 82.92 ± 0.29% and an F1-score of 80.06 ± 0.40%, indicating stable performance across different regions of the same field. SCG-UNet also achieved the highest numerical mIoU among the evaluated convolutional, high-resolution, and Transformer-based models, exceeding TransUNet and LeViT-UNet by 0.90 and 0.71 percentage points, respectively, while requiring fewer parameters and lower reported memory consumption. The segmentation results were further converted into a conceptual variable-rate spraying prescription map with five spray volume levels ranging from 220 to 300 L/ha. These results demonstrate the potential of RGB-multispectral fusion for soybean weed mapping, although field validation of prescription execution, weed control efficacy, and economic benefits remains necessary.",
+    "abstract": "Weed segmentation in soybean fields is essential to improving herbicide use efficiency and supporting precision variable-rate spraying. This study developed an SiLU-CPCA-Gate U-Net (SCG-UNet) using fused UAV RGB and multispectral imagery to improve the delineation of small and partially occluded weeds under complex canopy conditions. SCG-UNet integrates channel-spatial feature enhancement, attention-guided skip-feature fusion, and smooth nonlinear activation within a U-Net framework. A total of 400 spatially aligned RGB-multispectral image groups collected from a soybean field in Henan Province, China, were manually annotated for model development and evaluation. Paired bootstrap comparisons showed that RGB+NIR achieved the highest numerical performance among the tested inputs and significantly outperformed RGB, RGB+R, and RGB+G in mIoU after Holm correction, while remaining statistically comparable to RGB+REdge and RGB+NIR+REdge. With RGB+NIR input, SCG-UNet achieved an mPA of 92.35%, an mIoU of 83.43%, a Dice coefficient of 79.50%, and an F1-score of 80.77%, exceeding the baseline U-Net by 0.71, 1.50, 2.19, and 2.09 percentage points, respectively. Five-fold spatial block cross-validation yielded an mIoU of 82.92 \u00b1 0.29% and an F1-score of 80.06 \u00b1 0.40%, indicating stable performance across different regions of the same field. SCG-UNet also achieved the highest numerical mIoU among the evaluated convolutional, high-resolution, and Transformer-based models, exceeding TransUNet and LeViT-UNet by 0.90 and 0.71 percentage points, respectively, while requiring fewer parameters and lower reported memory consumption. The segmentation results were further converted into a conceptual variable-rate spraying prescription map with five spray volume levels ranging from 220 to 300 L/ha. These results demonstrate the potential of RGB-multispectral fusion for soybean weed mapping, although field validation of prescription execution, weed control efficacy, and economic benefits remains necessary.",
     "authors": [
       {
         "family_name": "Li",
@@ -6999,7 +7000,8 @@
       ],
       "screening_reasoning": "SCG-UNet performs semantic segmentation of weeds in soybean fields from fused UAV RGB+multispectral imagery, reporting mIoU 83.43%, Dice 79.50%, and F1 80.77% - a direct UAV crop/weed segmentation study with quantitative pixel-wise metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.3390/plants15152257"
   },
   {
     "title": "Class imbalance aware deep semantic segmentation framework for weed and tobacco crops in UAV imagery.",
@@ -7007,7 +7009,7 @@
     "provider": "pubmed",
     "provider_id": "42325281",
     "external_ids": {
-      "doi": "10.1016/j.compag.2021.106242",
+      "doi": "10.3389/frai.2026.1792086",
       "arxiv_id": null,
       "pubmed_id": "42325281",
       "openalex_id": null,
@@ -7081,7 +7083,8 @@
       ],
       "screening_reasoning": "U-Net pixel-based weed/crop classification on UAV maize datasets (MicaSense vs low-cost multispectral) reports weed-class F1 (82% Altum, 76% low-cost) with precision/recall, a UAV crop/weed semantic-segmentation study with quantitative metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.3389/frai.2026.1792086"
   },
   {
     "title": "A Multi-Head UNet++ Framework with Fractional Differential Output Refinement for UAV Multispectral Crop Stress Mapping.",
@@ -7089,7 +7092,7 @@
     "provider": "pubmed",
     "provider_id": "42198036",
     "external_ids": {
-      "doi": "10.1016/j.compag.2025.110587",
+      "doi": "10.3390/s26103228",
       "arxiv_id": null,
       "pubmed_id": "42198036",
       "openalex_id": null,
@@ -7098,12 +7101,12 @@
     "abstract": "Highlights What are the main findings? First unified five-class pixel-level modeling of abiotic water stress and biotic rust disease using UAV-based multispectral orthomosaics. The proposed multi-head WF-UNet++ with FPDE refinement achieves 0.8623 mIoU and 0.8439 FG-IoU, outperforming strong baselines such as UNet, DeepLabV3+, and SegFormer. What are the implications of the main findings? Demonstrates the feasibility of harmonizing heterogeneous UAV multispectral datasets representing abiotic water stress and biotic rust disease within a common semantic segmentation framework. Provides a methodological basis for scalable multi-source crop stress mapping by combining multispectral data, multi-head segmentation, and fractional differential output refinement. Abstract This study presents a unified semantic segmentation framework for UAV-based multispectral crop stress mapping, focusing on the integration of water stress and rust disease conditions within a common label space. Unlike conventional approaches that address individual stress factors independently, the proposed framework harmonizes heterogeneous datasets with different annotation schemes into a single multi-class segmentation problem. To achieve this, UAV multispectral orthomosaics are processed using a patch-based strategy and a multi-head UNet++ architecture incorporating segmentation, edge-aware, and Signed Distance Transform (SDT) branches. In addition, a physics-informed output-space refinement module based on fractional partial differential equations (FPDE) is introduced to enhance spatial coherence and boundary preservation in the predicted maps. Experimental results demonstrate the effectiveness of the proposed framework within the evaluated dataset setting, particularly in terms of boundary delineation, spatial consistency, and minority-class detection. The study highlights the feasibility of integrating heterogeneous stress conditions into a unified segmentation framework and provides a foundation for future research on scalable multi-source agricultural monitoring systems.",
     "authors": [
       {
-        "family_name": "Suiçmez",
-        "given_name": "Çağrı",
+        "family_name": "Sui\u00e7mez",
+        "given_name": "\u00c7a\u011fr\u0131",
         "orcid": null
       },
       {
-        "family_name": "Yılmaz",
+        "family_name": "Y\u0131lmaz",
         "given_name": "Cemal",
         "orcid": null
       },
@@ -7113,7 +7116,7 @@
         "orcid": null
       },
       {
-        "family_name": "Sönmez",
+        "family_name": "S\u00f6nmez",
         "given_name": "Yusuf",
         "orcid": null
       }
@@ -7158,7 +7161,8 @@
       ],
       "screening_reasoning": "Multi-head UNet++ provides unified five-class pixel-level semantic segmentation of crop water stress and rust disease from UAV multispectral orthomosaics, reporting mIoU 0.8623, i.e., UAV crop semantic segmentation with quantitative pixel metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.3390/s26103228"
   },
   {
     "title": "Multiscale CNN-state space model with feature fusion for crop disease detection from UAV imagery.",
@@ -7166,7 +7170,7 @@
     "provider": "pubmed",
     "provider_id": "41479535",
     "external_ids": {
-      "doi": "10.3389/fpls.2024.1435016",
+      "doi": "10.3389/fpls.2025.1733727",
       "arxiv_id": null,
       "pubmed_id": "41479535",
       "openalex_id": null,
@@ -7226,7 +7230,8 @@
       ],
       "screening_reasoning": "MSCNN-VSS performs multiscale CNN-state-space semantic segmentation of crop disease from UAV imagery, reporting Pixel Accuracy 0.9421 and mIoU 0.9152 - UAV crop pixel-level segmentation with quantitative metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.3389/fpls.2025.1733727"
   },
   {
     "title": "A dataset of aligned RGB and multispectral UAV imagery for semantic segmentation of weedy rice.",
@@ -7234,13 +7239,13 @@
     "provider": "pubmed",
     "provider_id": "41342006",
     "external_ids": {
-      "doi": "10.1109/iccv51070.2023.00371",
+      "doi": "10.1016/j.dib.2025.112237",
       "arxiv_id": null,
       "pubmed_id": "41342006",
       "openalex_id": null,
       "s2_id": "315861a30c230e9e99a41cdac1d1b7666a9ef539"
     },
-    "abstract": "This article introduces a curated UAV dataset for detecting and segmenting weedy rice in cultivated fields. It includes 734 high-resolution RGB images along with their geospatially aligned multispectral (MS) counterparts, which feature four spectral bands: Green, Red, Red Edge, and Near-Infrared. The RGB images were annotated with polygon masks created by a fine-tuned Segment Anything model, then reviewed and corrected by experts. All images were resized to 1280 × 960 pixels and further processed to remove samples with missing or excessively extensive annotations (>90 %). The final dataset reflects various infestation levels, with weedy rice coverage ranging from under 5 % to nearly 90 %, supporting the development of robust models in diverse field conditions. All images were acquired in rice fields across Vietnam's Mekong Delta region during three consecutive cropping seasons using consumer-grade UAVs equipped with both RGB and MS sensors. This dataset provides extensive spectral and spatial information, making it a valuable resource for research in precision agriculture, including multimodal semantic segmentation, vegetation classification, and weed detection. It also facilitates benchmarking and domain adaptation studies to improve model generalization across different modalities.",
+    "abstract": "This article introduces a curated UAV dataset for detecting and segmenting weedy rice in cultivated fields. It includes 734 high-resolution RGB images along with their geospatially aligned multispectral (MS) counterparts, which feature four spectral bands: Green, Red, Red Edge, and Near-Infrared. The RGB images were annotated with polygon masks created by a fine-tuned Segment Anything model, then reviewed and corrected by experts. All images were resized to 1280 \u00d7 960 pixels and further processed to remove samples with missing or excessively extensive annotations (>90 %). The final dataset reflects various infestation levels, with weedy rice coverage ranging from under 5 % to nearly 90 %, supporting the development of robust models in diverse field conditions. All images were acquired in rice fields across Vietnam's Mekong Delta region during three consecutive cropping seasons using consumer-grade UAVs equipped with both RGB and MS sensors. This dataset provides extensive spectral and spatial information, making it a valuable resource for research in precision agriculture, including multimodal semantic segmentation, vegetation classification, and weed detection. It also facilitates benchmarking and domain adaptation studies to improve model generalization across different modalities.",
     "authors": [
       {
         "family_name": "Nguyen",
@@ -7308,7 +7313,8 @@
       ],
       "screening_reasoning": "A UAV RGB+multispectral dataset with expert polygon masks explicitly for semantic segmentation of weedy rice in cultivated rice fields, directly supporting UAV crop/weed segmentation research.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.1016/j.dib.2025.112237"
   },
   {
     "title": "DM_CorrMatch: a semi-supervised semantic segmentation framework for rapeseed flower coverage estimation using UAV imagery.",
@@ -7316,7 +7322,7 @@
     "provider": "pubmed",
     "provider_id": "40281599",
     "external_ids": {
-      "doi": "10.1186/s13007-023-01017-x",
+      "doi": "10.1186/s13007-025-01373-w",
       "arxiv_id": null,
       "pubmed_id": "40281599",
       "openalex_id": null,
@@ -7411,7 +7417,8 @@
       ],
       "screening_reasoning": "DM_CorrMatch performs semi-supervised semantic segmentation of rapeseed inflorescence/coverage from UAV imagery (Mamba-DeepLabv3+, IoU 0.886), a UAV crop pixel-level segmentation study with quantitative accuracy.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.1186/s13007-025-01373-w"
   },
   {
     "title": "An instance segmentation dataset of cabbages over the whole growing season for UAV imagery.",
@@ -7419,7 +7426,7 @@
     "provider": "pubmed",
     "provider_id": "39044907",
     "external_ids": {
-      "doi": "10.5281/zenodo.7961758",
+      "doi": "10.1016/j.dib.2024.110699",
       "arxiv_id": null,
       "pubmed_id": "39044907",
       "openalex_id": null,
@@ -7481,7 +7488,8 @@
       ],
       "screening_reasoning": "PROVISIONAL INCLUSION (Stage 3 Full-Text Verification Required): An instance-segmentation dataset of cabbages across the growing season annotated from UAV imagery; although in-domain crop segmentation, it is a data article reporting no quantitative segmentation benchmark metrics (mIoU/Dice/F1), so no retrievable results.",
       "adjudication_source": "THIRD_PARTY_ADJUDICATION_PROVISIONAL"
-    }
+    },
+    "doi": "10.1016/j.dib.2024.110699"
   },
   {
     "title": "Research on Segmentation Method of Maize Seedling Plant Instances Based on UAV Multispectral Remote Sensing Images.",
@@ -7489,7 +7497,7 @@
     "provider": "pubmed",
     "provider_id": "38999682",
     "external_ids": {
-      "doi": "10.1016/0034-4257(92)90132-4",
+      "doi": "10.3390/plants13131842",
       "arxiv_id": null,
       "pubmed_id": "38999682",
       "openalex_id": null,
@@ -7563,7 +7571,8 @@
       ],
       "screening_reasoning": "Instance segmentation of maize seedling plants from UAV multispectral imagery evaluates six algorithms; YOLOv8 achieves segm_mAP50 94%, i.e., UAV crop pixel-level instance segmentation with quantitative segmentation metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.3390/plants13131842"
   },
   {
     "title": "CoFly-WeedDB: A UAV image dataset for weed detection and species identification.",
@@ -7571,13 +7580,13 @@
     "provider": "pubmed",
     "provider_id": "36131952",
     "external_ids": {
-      "doi": "10.13031/trans.59.11831",
+      "doi": "10.1016/j.dib.2022.108575",
       "arxiv_id": null,
       "pubmed_id": "36131952",
       "openalex_id": null,
       "s2_id": null
     },
-    "abstract": "The CoFly-WeedDB contains 201 RGB images (∼436 MB) from the attached camera of DJI Phantom Pro 4 from a cotton field in Larissa, Greece during the first stages of plant growth. The 1280 × 720 RGB images were collected while the Unmanned Aerial Vehicle (UAV) was performing a coverage mission over the field's area. During the designed mission, the camera angle was adjusted to -87°, vertically with the field. The flight altitude and speed of the UAV were equal to 5 m and 3 m/s, respectively, aiming to provide a close and clear view of the weed instances. All images have been annotated by expert agronomists using the LabelMe annotation tool, providing the exact boundaries of 3 types of common weeds in this type of crop, namely (i) Johnson grass, (ii) Field bindweed, and (iii) Purslane. The dataset can be used alone and in combination with other datasets to develop AI-based methodologies for automatic weed segmentation and classification purposes.",
+    "abstract": "The CoFly-WeedDB contains 201 RGB images (\u223c436 MB) from the attached camera of DJI Phantom Pro 4 from a cotton field in Larissa, Greece during the first stages of plant growth. The 1280 \u00d7 720 RGB images were collected while the Unmanned Aerial Vehicle (UAV) was performing a coverage mission over the field's area. During the designed mission, the camera angle was adjusted to -87\u00b0, vertically with the field. The flight altitude and speed of the UAV were equal to 5 m and 3 m/s, respectively, aiming to provide a close and clear view of the weed instances. All images have been annotated by expert agronomists using the LabelMe annotation tool, providing the exact boundaries of 3 types of common weeds in this type of crop, namely (i) Johnson grass, (ii) Field bindweed, and (iii) Purslane. The dataset can be used alone and in combination with other datasets to develop AI-based methodologies for automatic weed segmentation and classification purposes.",
     "authors": [
       {
         "family_name": "Krestenitis",
@@ -7653,7 +7662,8 @@
       ],
       "screening_reasoning": "PROVISIONAL INCLUSION (Stage 3 Full-Text Verification Required): CoFly-WeedDB is a UAV cotton-field dataset with expert polygon annotations of three weed species for weed segmentation/classification; although in-domain, this data article reports no quantitative segmentation benchmark metrics, so no retrievable results.",
       "adjudication_source": "THIRD_PARTY_ADJUDICATION_PROVISIONAL"
-    }
+    },
+    "doi": "10.1016/j.dib.2022.108575"
   },
   {
     "title": "UAV-based real-time detection of corn earworm using EfficientNet and machine learning.",
@@ -7738,7 +7748,7 @@
     "provider": "pubmed",
     "provider_id": "38047001",
     "external_ids": {
-      "doi": "10.48550/arxiv.1911.02855",
+      "doi": "10.34133/plantphenomics.0123",
       "arxiv_id": null,
       "pubmed_id": "38047001",
       "openalex_id": null,
@@ -7812,7 +7822,8 @@
       ],
       "screening_reasoning": "Lightweight LW-SegNet/LW-UNet performs pixel-level rice-seedling segmentation from UAV multispectral imagery and reports quantitative F1/IoU; crop segmentation with DL on UAV data and pixel-wise metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.34133/plantphenomics.0123"
   },
   {
     "title": "Multi-format open-source weed image dataset for real-time weed identification in precision agriculture.",
@@ -7820,7 +7831,7 @@
     "provider": "pubmed",
     "provider_id": "37920388",
     "external_ids": {
-      "doi": "10.1007/978-3-319-10602-1_48",
+      "doi": "10.1016/j.dib.2023.109691",
       "arxiv_id": null,
       "pubmed_id": "37920388",
       "openalex_id": null,
@@ -7905,7 +7916,8 @@
       ],
       "screening_reasoning": "A multi-format open-source weed image dataset spanning five weed species captured with handheld and UAS cameras for real-time weed identification and spot-spraying pipelines; UAV-inclusive crop/weed imagery dataset supporting segmentation-style tasks in a precision-agriculture workflow.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.1016/j.dib.2023.109691"
   },
   {
     "title": "Accurate Wheat Lodging Extraction from Multi-Channel UAV Images Using a Lightweight Network Model.",
@@ -7913,7 +7925,7 @@
     "provider": "pubmed",
     "provider_id": "34696038",
     "external_ids": {
-      "doi": "10.1007/s11263-019-01228-7",
+      "doi": "10.3390/s21206826",
       "arxiv_id": null,
       "pubmed_id": "34696038",
       "openalex_id": null,
@@ -7977,7 +7989,8 @@
       ],
       "screening_reasoning": "A lightweight Mobile U-Net extracts wheat-lodging regions from UAV RGB+DSM imagery with 88.99% segmentation accuracy and reports lightweight model properties; DL crop pixel-segmentation on UAV imagery with quantitative metrics.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
-    }
+    },
+    "doi": "10.3390/s21206826"
   },
   {
     "title": "Deep Learning for Brassica Oleracea Instance Segmentation in UAV Imagery",
@@ -8072,7 +8085,7 @@
       "openalex_id": null,
       "s2_id": "0534af88cc0ada3d3a9c368882b43983883be520"
     },
-    "abstract": "Quickly and accurately identifying weed areas is of great significance for improving weeding efficiency, reducing pesticide residues, protecting soil ecological environment, and increasing crop yield and quality. Targeting low detection efficiency in complex agricultural environments and inability of multispectral input in weed recognition of minor grain based on unmanned aerial vehicles (UAVs), a semantic segmentation model for buckwheat weeds based on MSU-Net (multispectral U-shaped network) was proposed to explore the influence of different band optimizations on recognition accuracy. Five spectral features—red (R), blue (B), green (G), red edge (REdge), and near-infrared (NIR)—were collected in August when the weeds were more prominent. Based on the U-net image semantic segmentation model, the input module was improved to adaptively adjust the input bands. The neuron death caused by the original ReLU activation function may lead to misidentification, so it was replaced by the Swish function to improve the adaptability to complex inputs. Five single-band multispectral datasets and nine groups of multi-band combined data were, respectively, input into the improved MSU-Net model to verify the performance of our method. Experimental results show that in the single-band recognition results, the B band performs better than other bands, with mean pixel accuracy (mPA), mean intersection over union (mIoU), Dice, and F1 values of 0.75, 0.61, 0.87, and 0.80, respectively. In the multi-band recognition results, the R+G+B+NIR band performs better than other combined bands, with mPA, mIoU, Dice, and F1 values of 0.76, 0.65, 0.85, and 0.78, respectively. Compared with U-Net, DenseASPP, PSPNet, and DeepLabv3, our method achieved a preferable balance between model accuracy and resource consumption. These results indicate that our method can adapt to multispectral input bands and achieve good results in weed segmentation tasks. It can also provide reference for multispectral data analysis and semantic segmentation in the field of minor grain crops.",
+    "abstract": "Quickly and accurately identifying weed areas is of great significance for improving weeding efficiency, reducing pesticide residues, protecting soil ecological environment, and increasing crop yield and quality. Targeting low detection efficiency in complex agricultural environments and inability of multispectral input in weed recognition of minor grain based on unmanned aerial vehicles (UAVs), a semantic segmentation model for buckwheat weeds based on MSU-Net (multispectral U-shaped network) was proposed to explore the influence of different band optimizations on recognition accuracy. Five spectral features\u2014red (R), blue (B), green (G), red edge (REdge), and near-infrared (NIR)\u2014were collected in August when the weeds were more prominent. Based on the U-net image semantic segmentation model, the input module was improved to adaptively adjust the input bands. The neuron death caused by the original ReLU activation function may lead to misidentification, so it was replaced by the Swish function to improve the adaptability to complex inputs. Five single-band multispectral datasets and nine groups of multi-band combined data were, respectively, input into the improved MSU-Net model to verify the performance of our method. Experimental results show that in the single-band recognition results, the B band performs better than other bands, with mean pixel accuracy (mPA), mean intersection over union (mIoU), Dice, and F1 values of 0.75, 0.61, 0.87, and 0.80, respectively. In the multi-band recognition results, the R+G+B+NIR band performs better than other combined bands, with mPA, mIoU, Dice, and F1 values of 0.76, 0.65, 0.85, and 0.78, respectively. Compared with U-Net, DenseASPP, PSPNet, and DeepLabv3, our method achieved a preferable balance between model accuracy and resource consumption. These results indicate that our method can adapt to multispectral input bands and achieve good results in weed segmentation tasks. It can also provide reference for multispectral data analysis and semantic segmentation in the field of minor grain crops.",
     "authors": [
       {
         "family_name": "Wu",
@@ -8206,15 +8219,15 @@
       "openalex_id": null,
       "s2_id": "1ff2edb51166c7f96b269f03fe6d83a3171098eb"
     },
-    "abstract": "Weed identification and quantification are processes that are usually manual, subjective, and error-prone. Weeds compete with crops for nutrients, minerals, physical space, sunlight, and water. Thus, weed identification is a crucial component of precision agriculture for autonomous removal and site-specific treatments, efficient weed control, and sustainability. Convolutional Neural Networks (CNNs) are very common in weed identification. This work implemented CNN models for semantic segmentation based on the U-Net architecture for automatically segmenting and quantifying weeds in potato crops using RGB images acquired by a drone at 9–10 m height, flying at 1 m/s. Remote sensing images are affected by factors that degrade image quality and the model’s accuracy. Five U-Net variants were evaluated: the original U-Net, Residual U-Net, Double U-Net, Modified U-Net, and AU-Net. The models were trained using the TensorFlow/Keras frameworks on Google Colab Pro+, following the Knowledge Discovery in Databases (KDD) methodology for image analysis. Each model was trained using a diverse custom dataset in uncontrolled environments, considering six classes: background, Broadleaf dock (Rumex obtusifolius), Dandelion (Taraxacum officinale), Kikuyu grass (Cenchrus clandestinum), other weed species, and the crop potato (Solanum tuberosum L.). The models’ segmentation was widely assessed using Mean Dice Coefficient, Mean IoU, and Dice Loss metrics. The results showed that the Residual U-Net model performed the best in multi-class segmentation, achieving a Mean IoU of 0.8021, a performance comparable to or superior to that reported by other authors. Additionally, a Student’s t-test was applied to complement the data analysis, suggesting that the model is reliable for weed quantification.",
+    "abstract": "Weed identification and quantification are processes that are usually manual, subjective, and error-prone. Weeds compete with crops for nutrients, minerals, physical space, sunlight, and water. Thus, weed identification is a crucial component of precision agriculture for autonomous removal and site-specific treatments, efficient weed control, and sustainability. Convolutional Neural Networks (CNNs) are very common in weed identification. This work implemented CNN models for semantic segmentation based on the U-Net architecture for automatically segmenting and quantifying weeds in potato crops using RGB images acquired by a drone at 9\u201310 m height, flying at 1 m/s. Remote sensing images are affected by factors that degrade image quality and the model\u2019s accuracy. Five U-Net variants were evaluated: the original U-Net, Residual U-Net, Double U-Net, Modified U-Net, and AU-Net. The models were trained using the TensorFlow/Keras frameworks on Google Colab Pro+, following the Knowledge Discovery in Databases (KDD) methodology for image analysis. Each model was trained using a diverse custom dataset in uncontrolled environments, considering six classes: background, Broadleaf dock (Rumex obtusifolius), Dandelion (Taraxacum officinale), Kikuyu grass (Cenchrus clandestinum), other weed species, and the crop potato (Solanum tuberosum L.). The models\u2019 segmentation was widely assessed using Mean Dice Coefficient, Mean IoU, and Dice Loss metrics. The results showed that the Residual U-Net model performed the best in multi-class segmentation, achieving a Mean IoU of 0.8021, a performance comparable to or superior to that reported by other authors. Additionally, a Student\u2019s t-test was applied to complement the data analysis, suggesting that the model is reliable for weed quantification.",
     "authors": [
       {
         "family_name": "Sandoval-Pillajo",
-        "given_name": "Lucía",
+        "given_name": "Luc\u00eda",
         "orcid": null
       },
       {
-        "family_name": "Pusdá-Chulde",
+        "family_name": "Pusd\u00e1-Chulde",
         "given_name": "Marco",
         "orcid": null
       },
@@ -8224,13 +8237,13 @@
         "orcid": null
       },
       {
-        "family_name": "Granda-Gudiño",
+        "family_name": "Granda-Gudi\u00f1o",
         "given_name": "Pedro D.",
         "orcid": null
       },
       {
-        "family_name": "García-Santillán",
-        "given_name": "Iván D.",
+        "family_name": "Garc\u00eda-Santill\u00e1n",
+        "given_name": "Iv\u00e1n D.",
         "orcid": null
       }
     ],
@@ -8271,7 +8284,7 @@
     }
   },
   {
-    "title": "AgriFusion: Multiscale RGB–NIR Fusion for Semantic Segmentation in Airborne Agricultural Imagery",
+    "title": "AgriFusion: Multiscale RGB\u2013NIR Fusion for Semantic Segmentation in Airborne Agricultural Imagery",
     "year": 2025,
     "provider": "semanticscholar",
     "provider_id": "2412e67bb803e948e9ba61fdea6ad78c9fa4abd0",
@@ -8502,7 +8515,7 @@
       "openalex_id": null,
       "s2_id": "3447feb86edcb747e6ecd8cc2d8dd639c2fcc9e4"
     },
-    "abstract": "Small unmanned aerial systems (UAS) have emerged as high-throughput platforms for the collection of high-resolution image data over large crop fields to support precision agriculture and plant breeding research. At the same time, the improved efficiency in image capture is leading to massive datasets, which pose analysis challenges in providing needed phenotypic data. To complement these high-throughput platforms, there is an increasing need in crop improvement to develop robust image analysis methods to analyze large amount of image data. Analysis approaches based on deep learning models are currently the most promising and show unparalleled performance in analyzing large image datasets. This study developed and applied an image analysis approach based on a SegNet deep learning semantic segmentation model to estimate sorghum panicles counts, which are critical phenotypic data in sorghum crop improvement, from UAS images over selected sorghum experimental plots. The SegNet model was trained to semantically segment UAS images into sorghum panicles, foliage and the exposed ground using 462, 250 × 250 labeled images, which was then applied to field orthomosaic to generate a field-level semantic segmentation. Individual panicle locations were obtained after post-processing the segmentation output to remove small objects and split merged panicles. A comparison between model panicle count estimates and manually digitized panicle locations in 60 randomly selected plots showed an overall detection accuracy of 94%. A per-plot panicle count comparison also showed high agreement between estimated and reference panicle counts (Spearman correlation ρ = 0.88, mean bias = 0.65). Misclassifications of panicles during the semantic segmentation step and mosaicking errors in the field orthomosaic contributed mainly to panicle detection errors. Overall, the approach based on deep learning semantic segmentation showed good promise and with a larger labeled dataset and extensive hyper-parameter tuning, should provide even more robust and effective characterization of sorghum panicle counts.",
+    "abstract": "Small unmanned aerial systems (UAS) have emerged as high-throughput platforms for the collection of high-resolution image data over large crop fields to support precision agriculture and plant breeding research. At the same time, the improved efficiency in image capture is leading to massive datasets, which pose analysis challenges in providing needed phenotypic data. To complement these high-throughput platforms, there is an increasing need in crop improvement to develop robust image analysis methods to analyze large amount of image data. Analysis approaches based on deep learning models are currently the most promising and show unparalleled performance in analyzing large image datasets. This study developed and applied an image analysis approach based on a SegNet deep learning semantic segmentation model to estimate sorghum panicles counts, which are critical phenotypic data in sorghum crop improvement, from UAS images over selected sorghum experimental plots. The SegNet model was trained to semantically segment UAS images into sorghum panicles, foliage and the exposed ground using 462, 250 \u00d7 250 labeled images, which was then applied to field orthomosaic to generate a field-level semantic segmentation. Individual panicle locations were obtained after post-processing the segmentation output to remove small objects and split merged panicles. A comparison between model panicle count estimates and manually digitized panicle locations in 60 randomly selected plots showed an overall detection accuracy of 94%. A per-plot panicle count comparison also showed high agreement between estimated and reference panicle counts (Spearman correlation \u03c1 = 0.88, mean bias = 0.65). Misclassifications of panicles during the semantic segmentation step and mosaicking errors in the field orthomosaic contributed mainly to panicle detection errors. Overall, the approach based on deep learning semantic segmentation showed good promise and with a larger labeled dataset and extensive hyper-parameter tuning, should provide even more robust and effective characterization of sorghum panicle counts.",
     "authors": [
       {
         "family_name": "Malambo",
@@ -8585,7 +8598,7 @@
       "openalex_id": null,
       "s2_id": "39352de45e27d3c8e3af4277f8034348c7264dec"
     },
-    "abstract": "Artificial Intelligence (AI) has changed how processes are developed, and decisions are made in the agricultural area replacing manual and repetitive processes with automated and more efficient ones. This study presents the application of deep learning techniques to detect and segment weeds in agricultural crops by applying models with different architectures in the analysis of images captured by an Unmanned Aerial Vehicle (UAV). This study contributes to the computer vision field by comparing the performance of the You Only Look Once (YOLOv8n, YOLOv8s, YOLOv8m, and YOLOv8l), Mask R-CNN (with framework Detectron2), and U-Net models, making public the dataset with aerial images of soybeans and beans. The models were trained using a dataset consisting of 3021 images, randomly divided into test, validation, and training sets, which were annotated, resized, and increased using the Roboflow application interface. Evaluation metrics were used, which included training efficiency (mAP50 and mAP50-90), precision, accuracy, and recall in the model’s evaluation and comparison. The YOLOv8s variant achieved higher performance with an mAP50 of 97%, precision of 99.7%, and recall of 99% when compared to the other models. The data from this manuscript show that deep learning models can generate efficient results for automatic weed detection when trained with a well-labeled and large set. Furthermore, this study demonstrated the great potential of using advanced object segmentation algorithms in detecting weeds in soybean and bean crops.",
+    "abstract": "Artificial Intelligence (AI) has changed how processes are developed, and decisions are made in the agricultural area replacing manual and repetitive processes with automated and more efficient ones. This study presents the application of deep learning techniques to detect and segment weeds in agricultural crops by applying models with different architectures in the analysis of images captured by an Unmanned Aerial Vehicle (UAV). This study contributes to the computer vision field by comparing the performance of the You Only Look Once (YOLOv8n, YOLOv8s, YOLOv8m, and YOLOv8l), Mask R-CNN (with framework Detectron2), and U-Net models, making public the dataset with aerial images of soybeans and beans. The models were trained using a dataset consisting of 3021 images, randomly divided into test, validation, and training sets, which were annotated, resized, and increased using the Roboflow application interface. Evaluation metrics were used, which included training efficiency (mAP50 and mAP50-90), precision, accuracy, and recall in the model\u2019s evaluation and comparison. The YOLOv8s variant achieved higher performance with an mAP50 of 97%, precision of 99.7%, and recall of 99% when compared to the other models. The data from this manuscript show that deep learning models can generate efficient results for automatic weed detection when trained with a well-labeled and large set. Furthermore, this study demonstrated the great potential of using advanced object segmentation algorithms in detecting weeds in soybean and bean crops.",
     "authors": [
       {
         "family_name": "Silva",
@@ -8599,12 +8612,12 @@
       },
       {
         "family_name": "Mesquita",
-        "given_name": "Márcio",
+        "given_name": "M\u00e1rcio",
         "orcid": null
       },
       {
         "family_name": "Vale",
-        "given_name": "Luís Sérgio Rodrigues",
+        "given_name": "Lu\u00eds S\u00e9rgio Rodrigues",
         "orcid": null
       },
       {
@@ -8628,13 +8641,13 @@
         "orcid": null
       },
       {
-        "family_name": "Oliveira-Júnior",
-        "given_name": "José Francisco de",
+        "family_name": "Oliveira-J\u00fanior",
+        "given_name": "Jos\u00e9 Francisco de",
         "orcid": null
       },
       {
         "family_name": "Lima",
-        "given_name": "João L. M. P. de",
+        "given_name": "Jo\u00e3o L. M. P. de",
         "orcid": null
       },
       {
@@ -8828,7 +8841,7 @@
       "openalex_id": null,
       "s2_id": "4a8dc42d0dfeb1d1c85dd23fcff1b5aba431ac0b"
     },
-    "abstract": "—Crop growth monitoring is crucial for precision agriculture, yet traditional methods lack scalability and accuracy. This study develops and evaluates lightweight deep learning architectures for semantic segmentation of weeds, crops, and bare soil from low-altitude multispectral UAV imagery. We systematically compared four U-Net based variants: standard U-Net, Attention enhanced, ResNet augmented, and a proposed SCSE embedded version, against the DeepLabV3+ benchmark on the standardized WeedsGalore dataset. The central hypothesis was that optimized U-Net architectures could match the accuracy of DeepLabV3+ while being substantially more efficient. Results support this: enhanced variants achieved mean Intersection-over-Union (mIoU) values close to DeepLabV3+, with the attention-based model reducing parameter size by 21.1% and maintaining nearly equivalent accuracy. The developed ResUNet SCSE performed best in weed segmentation, reaching an IoU of 77.49% for the weed class. Both improved models also showed the lowest Expected Calibration Error (0.0019), demonstrating improved reliability in uncertainty estimation. Overall, the findings highlight the viability of optimized U-Net architectures for deployment on resource-constrained UAV platforms, offering an favorable trade-off between segmentation accuracy and computational efficiency for automated agricultural monitoring.",
+    "abstract": "\u2014Crop growth monitoring is crucial for precision agriculture, yet traditional methods lack scalability and accuracy. This study develops and evaluates lightweight deep learning architectures for semantic segmentation of weeds, crops, and bare soil from low-altitude multispectral UAV imagery. We systematically compared four U-Net based variants: standard U-Net, Attention enhanced, ResNet augmented, and a proposed SCSE embedded version, against the DeepLabV3+ benchmark on the standardized WeedsGalore dataset. The central hypothesis was that optimized U-Net architectures could match the accuracy of DeepLabV3+ while being substantially more efficient. Results support this: enhanced variants achieved mean Intersection-over-Union (mIoU) values close to DeepLabV3+, with the attention-based model reducing parameter size by 21.1% and maintaining nearly equivalent accuracy. The developed ResUNet SCSE performed best in weed segmentation, reaching an IoU of 77.49% for the weed class. Both improved models also showed the lowest Expected Calibration Error (0.0019), demonstrating improved reliability in uncertainty estimation. Overall, the findings highlight the viability of optimized U-Net architectures for deployment on resource-constrained UAV platforms, offering an favorable trade-off between segmentation accuracy and computational efficiency for automated agricultural monitoring.",
     "authors": [
       {
         "family_name": "Thang",
@@ -8969,7 +8982,7 @@
       "openalex_id": null,
       "s2_id": "4e6b2a92a729fd942507f21c320118a0490cd568"
     },
-    "abstract": "Early and accurate detection of Potato Virus Y (PVY) is critical for maintaining seed potato quality and preventing disease spread in commercial production systems. Conventional PVY monitoring relies on manual field scouting and laboratory diagnostics, which are labor-intensive, time-consuming, and difficult to scale across large fields. Recent advances in uncrewed aerial systems (UAS) and machine learning provide an opportunity for scalable, spatially explicit disease detection using low-cost sensing modalities. This study presents an RGB-based instance segmentation framework for detecting and localizing PVY symptoms in seed potato fields using high-resolution UAV imagery collected from Washington State University (WSU) commercial seed lot trials and Montana State University (MSU) research fields. The workflow begins with polygon-based annotation supported by AI-assisted labeling and refinement using CVAT, Segment Anything 2, and Roboflow SAM-3, including label tightening and correction of missed plant instances to improve annotation quality. To address the localized nature of PVY symptoms within large UAV images, annotated imagery was subdivided into 512 × 512 pixel tiles using a mask-preserving Python-based tiling pipeline. Dataset versioning, preprocessing, and augmentation were performed using the Roboflow platform. A YOLOv26-based instance segmentation model was then trained to simultaneously classify and segment individual plant instances. Experimental results achieved a mean Average Precision (mAP@50) of approximately 65%, with precision and recall values of approximately 73% and 65%, respectively, on an independent test set. These findings show that low-cost RGB UAV imagery, when combined with appropriate dataset construction and instance segmentation techniques, can provide reliable plant-level PVY detection. The proposed framework offers a practical and scalable solution for field-scale disease monitoring and has strong potential for integration into seed potato inspection, certification, and precision agriculture workflows.",
+    "abstract": "Early and accurate detection of Potato Virus Y (PVY) is critical for maintaining seed potato quality and preventing disease spread in commercial production systems. Conventional PVY monitoring relies on manual field scouting and laboratory diagnostics, which are labor-intensive, time-consuming, and difficult to scale across large fields. Recent advances in uncrewed aerial systems (UAS) and machine learning provide an opportunity for scalable, spatially explicit disease detection using low-cost sensing modalities. This study presents an RGB-based instance segmentation framework for detecting and localizing PVY symptoms in seed potato fields using high-resolution UAV imagery collected from Washington State University (WSU) commercial seed lot trials and Montana State University (MSU) research fields. The workflow begins with polygon-based annotation supported by AI-assisted labeling and refinement using CVAT, Segment Anything 2, and Roboflow SAM-3, including label tightening and correction of missed plant instances to improve annotation quality. To address the localized nature of PVY symptoms within large UAV images, annotated imagery was subdivided into 512 \u00d7 512 pixel tiles using a mask-preserving Python-based tiling pipeline. Dataset versioning, preprocessing, and augmentation were performed using the Roboflow platform. A YOLOv26-based instance segmentation model was then trained to simultaneously classify and segment individual plant instances. Experimental results achieved a mean Average Precision (mAP@50) of approximately 65%, with precision and recall values of approximately 73% and 65%, respectively, on an independent test set. These findings show that low-cost RGB UAV imagery, when combined with appropriate dataset construction and instance segmentation techniques, can provide reliable plant-level PVY detection. The proposed framework offers a practical and scalable solution for field-scale disease monitoring and has strong potential for integration into seed potato inspection, certification, and precision agriculture workflows.",
     "authors": [
       {
         "family_name": "Hashmi",
@@ -9034,7 +9047,7 @@
     }
   },
   {
-    "title": "Resolution–Accuracy Trade-offs in UAV-Based Semantic Segmentation for Precision Agricultural Imagery",
+    "title": "Resolution\u2013Accuracy Trade-offs in UAV-Based Semantic Segmentation for Precision Agricultural Imagery",
     "year": 2026,
     "provider": "semanticscholar",
     "provider_id": "50770255f1d399a7cd81429463b8200401890604",
@@ -9113,7 +9126,7 @@
       "openalex_id": null,
       "s2_id": "5225cbf662e218054ee5d4268c7dc1a071bee449"
     },
-    "abstract": "Cercospora leaf spot (CLS) of sugar beet, caused by Cercospora beticola Sacc., is a highly destructive plant disease that can reduce yields by up to 40% and significantly impair root crop quality. This study aimed to develop and validate a quantitative disease assessment method utilizing UAV-based multispectral imaging and semantic segmentation. Field trials were conducted in 2023-2024 on commercial sugar beet crops (Agrofirma Start OOO, Buzdyak District, Republic of Bashkortostan). Plots, measuring 20 × 6 rows (≈21.6 m²), included both control and artificially inoculated treatments. UAV imagery was acquired using a Geoscan ChatGPT equipped with a Pollux multispectral camera (Blue, Green, Red, Red-edge, NIR) at an altitude of approximately 30 m. A U-Net model was trained on 420 annotated image tiles (512 × 512 px), using a 6:2:2 split for training, validation, and testing. The model incorporated spectral indices (NDVI, NDRE, MCARI, NSVDI) in addition to geometric features derived from the normal vectors of a Digital Surface Model (DSM). The developed integrative algorithm achieved an overall multiclass classification accuracy of 88.6%. Specifically, an F1-score of 46.0% was obtained for the ‘infected plants’ class, outperforming Partial Least Squares Discriminant Analysis (PLS-DA) by 18.6 percentage points. F1-scores reached 92.5% for ‘Healthy vegetation’ and 68.7% for ‘Soil/Background.’ This methodology confirms the strong applicability of U-Net for the diagnostic segmentation of Cercospora outbreaks, significantly enhancing the objectivity of crop monitoring. The integration of spectral and geometric features proved crucial in improving the detection of weakly expressed disease symptoms.",
+    "abstract": "Cercospora leaf spot (CLS) of sugar beet, caused by Cercospora beticola Sacc., is a highly destructive plant disease that can reduce yields by up to 40% and significantly impair root crop quality. This study aimed to develop and validate a quantitative disease assessment method utilizing UAV-based multispectral imaging and semantic segmentation. Field trials were conducted in 2023-2024 on commercial sugar beet crops (Agrofirma Start OOO, Buzdyak District, Republic of Bashkortostan). Plots, measuring 20 \u00d7 6 rows (\u224821.6 m\u00b2), included both control and artificially inoculated treatments. UAV imagery was acquired using a Geoscan ChatGPT equipped with a Pollux multispectral camera (Blue, Green, Red, Red-edge, NIR) at an altitude of approximately 30 m. A U-Net model was trained on 420 annotated image tiles (512 \u00d7 512 px), using a 6:2:2 split for training, validation, and testing. The model incorporated spectral indices (NDVI, NDRE, MCARI, NSVDI) in addition to geometric features derived from the normal vectors of a Digital Surface Model (DSM). The developed integrative algorithm achieved an overall multiclass classification accuracy of 88.6%. Specifically, an F1-score of 46.0% was obtained for the \u2018infected plants\u2019 class, outperforming Partial Least Squares Discriminant Analysis (PLS-DA) by 18.6 percentage points. F1-scores reached 92.5% for \u2018Healthy vegetation\u2019 and 68.7% for \u2018Soil/Background.\u2019 This methodology confirms the strong applicability of U-Net for the diagnostic segmentation of Cercospora outbreaks, significantly enhancing the objectivity of crop monitoring. The integration of spectral and geometric features proved crucial in improving the detection of weakly expressed disease symptoms.",
     "authors": [
       {
         "family_name": "Mudarisov",
@@ -9171,7 +9184,7 @@
       "openalex_id": null,
       "s2_id": "522f8141163ffb85c5b3c4b2b059ac193e31f281"
     },
-    "abstract": "Semantic segmentation of UAV–acquired RGB orthomosaics is a key component for quantifying vegetation cover and monitoring phenology in precision agriculture. This study evaluates a representative set of CNN–based architectures (U–Net, U–Net Xception–Style, SegNet, DeepLabV3+) and Transformer–based models (Swin–UNet/Swin–Transformer, SegFormer, and Mask2Former) under a unified and reproducible protocol. We propose a transfer–and–consolidation workflow whose performance is assessed not only through region–overlap and pixel–wise discrepancy metrics, but also via boundary–sensitive criteria that are explicitly linked to orthomosaic–scale vegetation–cover estimation by pixel counting under GSD (Ground Sample Distance) control. The experimental design considers a transfer scenario between morphologically related crops: initial training on Opuntia spp. (prickly pear), direct (“zero–shot”) inference on Agave salmiana, fine–tuning using only 6.84% of the agave tessellated set as limited target–domain supervision, and a subsequent consolidation stage to obtain a multi–species model. The evaluation integrates IoU, Dice, RMSE, pixel accuracy, and computational cost (time per image), and additionally reports the BF score and HD95 to characterize contour fidelity, which is critical when area is derived from orthomosaic–scale masks. Results show that Transformer-based approaches tend to provide higher stability and improved boundary delineation on Opuntia spp., whereas transfer to Agave salmiana exhibits selective degradation that is mitigated through low–annotation–cost fine-tuning. On Opuntia spp., Mask2Former achieves the best test performance (IoU 0.897 +/− 0.094; RMSE 0.146 +/− 0.002) and, after consolidation, sustains the highest overlap on both crops (IoU 0.894 +/− 0.004 on Opuntia and IoU 0.760 +/− 0.046 on Agave), while preserving high contour fidelity (BF score 0.962 +/− 0.102/0.877 +/− 0.153; HD95 2.189 +/− 3.447 px/8.458 +/− 16.667 px for Opuntia/Agave), supporting its use for final vegetation–cover quantification. Overall, the study provides practical guidelines for architecture selection under hardware constraints, a reproducible transfer protocol, and an orthomosaic–oriented implementation that facilitates integration into agronomic and remote–sensing workflows.",
+    "abstract": "Semantic segmentation of UAV\u2013acquired RGB orthomosaics is a key component for quantifying vegetation cover and monitoring phenology in precision agriculture. This study evaluates a representative set of CNN\u2013based architectures (U\u2013Net, U\u2013Net Xception\u2013Style, SegNet, DeepLabV3+) and Transformer\u2013based models (Swin\u2013UNet/Swin\u2013Transformer, SegFormer, and Mask2Former) under a unified and reproducible protocol. We propose a transfer\u2013and\u2013consolidation workflow whose performance is assessed not only through region\u2013overlap and pixel\u2013wise discrepancy metrics, but also via boundary\u2013sensitive criteria that are explicitly linked to orthomosaic\u2013scale vegetation\u2013cover estimation by pixel counting under GSD (Ground Sample Distance) control. The experimental design considers a transfer scenario between morphologically related crops: initial training on Opuntia spp. (prickly pear), direct (\u201czero\u2013shot\u201d) inference on Agave salmiana, fine\u2013tuning using only 6.84% of the agave tessellated set as limited target\u2013domain supervision, and a subsequent consolidation stage to obtain a multi\u2013species model. The evaluation integrates IoU, Dice, RMSE, pixel accuracy, and computational cost (time per image), and additionally reports the BF score and HD95 to characterize contour fidelity, which is critical when area is derived from orthomosaic\u2013scale masks. Results show that Transformer-based approaches tend to provide higher stability and improved boundary delineation on Opuntia spp., whereas transfer to Agave salmiana exhibits selective degradation that is mitigated through low\u2013annotation\u2013cost fine-tuning. On Opuntia spp., Mask2Former achieves the best test performance (IoU 0.897 +/\u2212 0.094; RMSE 0.146 +/\u2212 0.002) and, after consolidation, sustains the highest overlap on both crops (IoU 0.894 +/\u2212 0.004 on Opuntia and IoU 0.760 +/\u2212 0.046 on Agave), while preserving high contour fidelity (BF score 0.962 +/\u2212 0.102/0.877 +/\u2212 0.153; HD95 2.189 +/\u2212 3.447 px/8.458 +/\u2212 16.667 px for Opuntia/Agave), supporting its use for final vegetation\u2013cover quantification. Overall, the study provides practical guidelines for architecture selection under hardware constraints, a reproducible transfer protocol, and an orthomosaic\u2013oriented implementation that facilitates integration into agronomic and remote\u2013sensing workflows.",
     "authors": [
       {
         "family_name": "Duarte-Rangel",
@@ -9184,7 +9197,7 @@
         "orcid": null
       },
       {
-        "family_name": "Cornejo-Velázquez",
+        "family_name": "Cornejo-Vel\u00e1zquez",
         "given_name": "Eduardo",
         "orcid": null
       },
@@ -9242,7 +9255,7 @@
       "openalex_id": null,
       "s2_id": "605e7c1857e7efc0f51091ee47ea42e3cb632048"
     },
-    "abstract": "Phytophthora infestans causes one of the most devastating diseases of the potato crop, also known as late blight. Since early identification of this pathogen is crucial for the effective control of the disease, this study aimed to propose an automated methodology for the identification of its lesions in potato leaflets, using convolutional neural networks called “Mask R-CNN”. The evaluations were carried out during the rainy season, in crops conducted by farmers in the locality of Huasahuasi, in the central Andes of Peru. One hundred photographs (5472 × 3078 pixels) were taken with a Phantom 4 Pro unmanned aerial vehicle (UAV) at an altitude of 3 m in crops with a late blight incidence between 2 and 3. The images were divided into four parts and then passed thorough quality control, resulting in 200 photos (1825 × 1369 pixels). Of the total, 75% was used for model training and 25% for model validation. The models were evaluated under real conditions, using metrics such as accuracy and recall. It was determined that the Mask R-CNN neural network, based on the ResNet 101 deep neural network architecture, offers acceptable accuracy and effectiveness (73.5%) in the identification of late blight lesions at the leaflet level. This methodology constitutes a significant contribution to precision agriculture in the Andes, validating a non-invasive tool capable of overcoming the topographical limitations of the area. Its practical application would optimize the use of fungicides through targeted detection, thereby promoting more sustainable and profitable potato production systems for local farmers.",
+    "abstract": "Phytophthora infestans causes one of the most devastating diseases of the potato crop, also known as late blight. Since early identification of this pathogen is crucial for the effective control of the disease, this study aimed to propose an automated methodology for the identification of its lesions in potato leaflets, using convolutional neural networks called \u201cMask R-CNN\u201d. The evaluations were carried out during the rainy season, in crops conducted by farmers in the locality of Huasahuasi, in the central Andes of Peru. One hundred photographs (5472 \u00d7 3078 pixels) were taken with a Phantom 4 Pro unmanned aerial vehicle (UAV) at an altitude of 3 m in crops with a late blight incidence between 2 and 3. The images were divided into four parts and then passed thorough quality control, resulting in 200 photos (1825 \u00d7 1369 pixels). Of the total, 75% was used for model training and 25% for model validation. The models were evaluated under real conditions, using metrics such as accuracy and recall. It was determined that the Mask R-CNN neural network, based on the ResNet 101 deep neural network architecture, offers acceptable accuracy and effectiveness (73.5%) in the identification of late blight lesions at the leaflet level. This methodology constitutes a significant contribution to precision agriculture in the Andes, validating a non-invasive tool capable of overcoming the topographical limitations of the area. Its practical application would optimize the use of fungicides through targeted detection, thereby promoting more sustainable and profitable potato production systems for local farmers.",
     "authors": [
       {
         "family_name": "Cairampoma",
@@ -9453,7 +9466,7 @@
     }
   },
   {
-    "title": "A Multi-Class Crop Field Identification Method Based on Semantic–SAM Fusion and UAV RGB Imagery",
+    "title": "A Multi-Class Crop Field Identification Method Based on Semantic\u2013SAM Fusion and UAV RGB Imagery",
     "year": 2026,
     "provider": "semanticscholar",
     "provider_id": "6e87652c59680fc9f5a6b129932394550ac77def",
@@ -9464,7 +9477,7 @@
       "openalex_id": null,
       "s2_id": "6e87652c59680fc9f5a6b129932394550ac77def"
     },
-    "abstract": "Accurate parcel-level crop field information is essential for precision agriculture, field management, and crop monitoring based on Unmanned Aerial Vehicle (UAV) imagery. However, it remains difficult to achieve both reliable crop-type recognition and fine boundary delineation from UAV RGB imagery. Although deep learning-based semantic segmentation models can effectively identify crop types, they often produce coarse or incomplete boundaries. The Segment Anything Model (SAM) can produce high-quality boundaries, but it depends on manual prompts and lacks semantic recognition ability, which limits its use in large-scale automatic mapping. To address this issue, this study proposes a parcel-level crop field identification framework based on Semantic–SAM fusion, enabling automatic semantic recognition and fine boundary extraction without manual prompts. Based on UAV RGB remote sensing imagery, this study developed a two-stage Semantic–SAM framework. Semantic segmentation models, including DeepLabv3+, U-Net, HRNet, and PSPNet, were first used to generate initial results. Then, bounding boxes or internal high-confidence points were extracted from the initial field regions as prompts for SAM to refine the segmentation. The final results preserved crop category information while producing finer boundaries. To evaluate the framework, this study compared four semantic segmentation models and their Semantic–SAM versions on the same-region test set, and further tested their spatial generalization ability on the different-region test set. The results showed that the Semantic–SAM framework provided more consistent gains in boundary quality, with regional recognition accuracy improving in several models and test scenarios. On the same-region test set, the PSPNet-based framework showed clear improvement, with mean Intersection over Union (mIoU) increasing from 78.99% to 83.13% under point-box prompts. The U-Net-based framework achieved the best mIoU of 87.09% with box prompts. On the different-region test set, the DeepLabv3+-based framework showed the largest gain in spatial generalization, with mIoU increasing from 67.22% to 73.45% under point-box prompts. Overall, the PSPNet-based fusion framework showed a better balance in accuracy, boundary quality, and robustness under different-region conditions. These results demonstrate that Semantic–SAM fusion supports automatic multi-class crop field mapping and boundary refinement from UAV RGB imagery without manual prompts or SAM fine-tuning, providing a practical approach for parcel-level crop monitoring and precision agriculture applications.",
+    "abstract": "Accurate parcel-level crop field information is essential for precision agriculture, field management, and crop monitoring based on Unmanned Aerial Vehicle (UAV) imagery. However, it remains difficult to achieve both reliable crop-type recognition and fine boundary delineation from UAV RGB imagery. Although deep learning-based semantic segmentation models can effectively identify crop types, they often produce coarse or incomplete boundaries. The Segment Anything Model (SAM) can produce high-quality boundaries, but it depends on manual prompts and lacks semantic recognition ability, which limits its use in large-scale automatic mapping. To address this issue, this study proposes a parcel-level crop field identification framework based on Semantic\u2013SAM fusion, enabling automatic semantic recognition and fine boundary extraction without manual prompts. Based on UAV RGB remote sensing imagery, this study developed a two-stage Semantic\u2013SAM framework. Semantic segmentation models, including DeepLabv3+, U-Net, HRNet, and PSPNet, were first used to generate initial results. Then, bounding boxes or internal high-confidence points were extracted from the initial field regions as prompts for SAM to refine the segmentation. The final results preserved crop category information while producing finer boundaries. To evaluate the framework, this study compared four semantic segmentation models and their Semantic\u2013SAM versions on the same-region test set, and further tested their spatial generalization ability on the different-region test set. The results showed that the Semantic\u2013SAM framework provided more consistent gains in boundary quality, with regional recognition accuracy improving in several models and test scenarios. On the same-region test set, the PSPNet-based framework showed clear improvement, with mean Intersection over Union (mIoU) increasing from 78.99% to 83.13% under point-box prompts. The U-Net-based framework achieved the best mIoU of 87.09% with box prompts. On the different-region test set, the DeepLabv3+-based framework showed the largest gain in spatial generalization, with mIoU increasing from 67.22% to 73.45% under point-box prompts. Overall, the PSPNet-based fusion framework showed a better balance in accuracy, boundary quality, and robustness under different-region conditions. These results demonstrate that Semantic\u2013SAM fusion supports automatic multi-class crop field mapping and boundary refinement from UAV RGB imagery without manual prompts or SAM fine-tuning, providing a practical approach for parcel-level crop monitoring and precision agriculture applications.",
     "authors": [
       {
         "family_name": "Yang",
@@ -9569,12 +9582,12 @@
       },
       {
         "family_name": "Guedes",
-        "given_name": "Clarisse Mercês",
+        "given_name": "Clarisse Merc\u00eas",
         "orcid": null
       },
       {
         "family_name": "Tancredi",
-        "given_name": "Fábio Daniel",
+        "given_name": "F\u00e1bio Daniel",
         "orcid": null
       },
       {
@@ -9636,7 +9649,7 @@
       "openalex_id": null,
       "s2_id": "0b78d0b7f5914e7201cc7ef7e89298bc13350761"
     },
-    "abstract": "An improved semantic segmentation method based on object contextual representations network (OCRNet) is proposed to accurately identify zucchinis intercropped with sunflowers from unmanned aerial vehicle (UAV) visible images taken over Hetao Irrigation District, Inner Mongolia, China. The proposed method improves on the performance of OCRNet in two respects. First, based on the object region context extraction structure of the OCRNet, a branch that uses the channel attention module was added in parallel to rationally use channel feature maps with different weights and reduce the noise of invalid channel features. Secondly, Lovász-Softmax loss was introduced to improve the accuracy of the object region representation in the OCRNet and optimize the final segmentation result at the object level. We compared the proposed method with extant advanced semantic segmentation methods (PSPNet, DeepLabV3+, DNLNet, and OCRNet) in two test areas to test its effectiveness. The results showed that the proposed method achieved the best semantic segmentation effect in the two test areas. More specifically, our method performed better in processing image details, segmenting field edges, and identifying intercropping fields. The proposed method has significant advantages for crop classification and intercropping recognition based on UAV visible images, and these advantages are more substantive in object-level evaluation metrics (mIoU and intercropping IoU).",
+    "abstract": "An improved semantic segmentation method based on object contextual representations network (OCRNet) is proposed to accurately identify zucchinis intercropped with sunflowers from unmanned aerial vehicle (UAV) visible images taken over Hetao Irrigation District, Inner Mongolia, China. The proposed method improves on the performance of OCRNet in two respects. First, based on the object region context extraction structure of the OCRNet, a branch that uses the channel attention module was added in parallel to rationally use channel feature maps with different weights and reduce the noise of invalid channel features. Secondly, Lov\u00e1sz-Softmax loss was introduced to improve the accuracy of the object region representation in the OCRNet and optimize the final segmentation result at the object level. We compared the proposed method with extant advanced semantic segmentation methods (PSPNet, DeepLabV3+, DNLNet, and OCRNet) in two test areas to test its effectiveness. The results showed that the proposed method achieved the best semantic segmentation effect in the two test areas. More specifically, our method performed better in processing image details, segmenting field edges, and identifying intercropping fields. The proposed method has significant advantages for crop classification and intercropping recognition based on UAV visible images, and these advantages are more substantive in object-level evaluation metrics (mIoU and intercropping IoU).",
     "authors": [
       {
         "family_name": "Huang",
@@ -9880,7 +9893,7 @@
       "openalex_id": null,
       "s2_id": "31fe43c7a1434e1607e69425407574fcf2719e5c"
     },
-    "abstract": "The cover of corn stover has a significant effect on the emergence and growth of soybean seedlings. Detecting corn stover covers is crucial for assessing the extent of no-till farming and determining subsidies for stover return; however, challenges such as complex backgrounds, lighting conditions, and camera angles hinder the detection of corn stover coverage. To address these issues, this study focuses on corn stover and proposes an innovative method with which to extract corn stalks in the field, operating an unmanned aerial vehicle (UAV) platform and a U-Net model. This method combines semantic segmentation principles with image detection techniques to form an encoder–decoder network structure. The model utilizes transfer learning by replacing the encoder with the first five layers of the VGG19 network to extract essential features from stalk images. Additionally, it incorporates a concurrent bilinear attention module (CBAM) convolutional attention mechanism to improve segmentation performance for intricate edges of broken stalks. A U-Net-based semantic segmentation model was constructed specifically for extracting field corn stalks. The study also explores how different data sizes affect stalk segmentation results. Experimental results prove that our algorithm achieves 93.87% accuracy in segmenting and extracting corn stalks from images with complex backgrounds, outperforming U-Net, SegNet, and ResNet models. These findings indicate that our new algorithm effectively segments corn stalks in fields with intricate backgrounds, providing a technical reference for detecting stalk cover in not only corn but also other crops.",
+    "abstract": "The cover of corn stover has a significant effect on the emergence and growth of soybean seedlings. Detecting corn stover covers is crucial for assessing the extent of no-till farming and determining subsidies for stover return; however, challenges such as complex backgrounds, lighting conditions, and camera angles hinder the detection of corn stover coverage. To address these issues, this study focuses on corn stover and proposes an innovative method with which to extract corn stalks in the field, operating an unmanned aerial vehicle (UAV) platform and a U-Net model. This method combines semantic segmentation principles with image detection techniques to form an encoder\u2013decoder network structure. The model utilizes transfer learning by replacing the encoder with the first five layers of the VGG19 network to extract essential features from stalk images. Additionally, it incorporates a concurrent bilinear attention module (CBAM) convolutional attention mechanism to improve segmentation performance for intricate edges of broken stalks. A U-Net-based semantic segmentation model was constructed specifically for extracting field corn stalks. The study also explores how different data sizes affect stalk segmentation results. Experimental results prove that our algorithm achieves 93.87% accuracy in segmenting and extracting corn stalks from images with complex backgrounds, outperforming U-Net, SegNet, and ResNet models. These findings indicate that our new algorithm effectively segments corn stalks in fields with intricate backgrounds, providing a technical reference for detecting stalk cover in not only corn but also other crops.",
     "authors": [
       {
         "family_name": "Xu",
@@ -9956,7 +9969,7 @@
       "openalex_id": null,
       "s2_id": "37c143d598e940d1ed1bf38e788c58c1cd6db8b9"
     },
-    "abstract": "With the rapid development of computer vision, semantic segmentation as an important part of the technology has made some achievements in different applications. However, in the farmland segmentation scenario of remote sensing images, the capability of common semantic segmentation methods in restoring the farmland edge and identifying narrow farmland ridges needs to be improved. Therefore, in this letter a semantic segmentation method – multiple attention encoder-decoder network (MAENet) – for farmland segmentation is proposed. The design of a dual pooling efficient channel attention module (DPECA) and its embedment in the backbone to improve the efficiency of feature extraction is described; secondly, a dual feature attention (DFA) module is proposed to extract contextual information of high-level features; finally, a global-guidance information upsample (GIU) module is added to the decoder to reduce the influence of redundant information on feature fusion. We use three self-made farmland image datasets representing UAV data to train MAENet and compare them with other methods. The results show that the performances of segmentation and generalization of MAENet are improved compared with other methods. The MIoU and Kappa coefficient in the farmland multi-classification test set can reach 93.74% and 96.74%.",
+    "abstract": "With the rapid development of computer vision, semantic segmentation as an important part of the technology has made some achievements in different applications. However, in the farmland segmentation scenario of remote sensing images, the capability of common semantic segmentation methods in restoring the farmland edge and identifying narrow farmland ridges needs to be improved. Therefore, in this letter a semantic segmentation method \u2013 multiple attention encoder-decoder network (MAENet) \u2013 for farmland segmentation is proposed. The design of a dual pooling efficient channel attention module (DPECA) and its embedment in the backbone to improve the efficiency of feature extraction is described; secondly, a dual feature attention (DFA) module is proposed to extract contextual information of high-level features; finally, a global-guidance information upsample (GIU) module is added to the decoder to reduce the influence of redundant information on feature fusion. We use three self-made farmland image datasets representing UAV data to train MAENet and compare them with other methods. The results show that the performances of segmentation and generalization of MAENet are improved compared with other methods. The MIoU and Kappa coefficient in the farmland multi-classification test set can reach 93.74% and 96.74%.",
     "authors": [
       {
         "family_name": "Huan",
@@ -10427,7 +10440,7 @@
       "openalex_id": null,
       "s2_id": "b45c56e5efedd6dc1fe1aada80c37e267f60714c"
     },
-    "abstract": "Accurate weed segmentation in Unmanned Aerial Vehicle (UAV) imagery remains a significant challenge in precision agriculture due to environmental variability, weak contextual representation, and inaccurate boundary detection. To address these limitations, we propose the Multi-Scale and Edge-Aware Network (MSEA-Net), a lightweight and efficient deep learning framework designed to enhance segmentation accuracy while maintaining computational efficiency. Specifically, we introduce the Multi-Scale Spatial-Channel Attention (MSCA) module to recalibrate spatial and channel dependencies, improving local–global feature fusion while reducing redundant computations. Additionally, the Edge-Enhanced Bottleneck Attention (EEBA) module integrates Sobel-based edge detection to refine boundary delineation, ensuring sharper object separation in dense vegetation environments. Extensive evaluations on publicly available datasets demonstrate the effectiveness of MSEA-Net, achieving a mean Intersection over Union (IoU) of 87.42% on the Motion-Blurred UAV Images of Sorghum Fields dataset and 71.35% on the CoFly-WeedDB dataset, outperforming benchmark models. MSEA-Net also maintains a compact architecture with only 6.74 M parameters and a model size of 25.74 MB, making it suitable for UAV-based real-time weed segmentation. These results highlight the potential of MSEA-Net for improving automated weed detection in precision agriculture while ensuring computational efficiency for edge deployment.",
+    "abstract": "Accurate weed segmentation in Unmanned Aerial Vehicle (UAV) imagery remains a significant challenge in precision agriculture due to environmental variability, weak contextual representation, and inaccurate boundary detection. To address these limitations, we propose the Multi-Scale and Edge-Aware Network (MSEA-Net), a lightweight and efficient deep learning framework designed to enhance segmentation accuracy while maintaining computational efficiency. Specifically, we introduce the Multi-Scale Spatial-Channel Attention (MSCA) module to recalibrate spatial and channel dependencies, improving local\u2013global feature fusion while reducing redundant computations. Additionally, the Edge-Enhanced Bottleneck Attention (EEBA) module integrates Sobel-based edge detection to refine boundary delineation, ensuring sharper object separation in dense vegetation environments. Extensive evaluations on publicly available datasets demonstrate the effectiveness of MSEA-Net, achieving a mean Intersection over Union (IoU) of 87.42% on the Motion-Blurred UAV Images of Sorghum Fields dataset and 71.35% on the CoFly-WeedDB dataset, outperforming benchmark models. MSEA-Net also maintains a compact architecture with only 6.74 M parameters and a model size of 25.74 MB, making it suitable for UAV-based real-time weed segmentation. These results highlight the potential of MSEA-Net for improving automated weed detection in precision agriculture while ensuring computational efficiency for edge deployment.",
     "authors": [
       {
         "family_name": "Syed",
@@ -10759,7 +10772,7 @@
       "openalex_id": null,
       "s2_id": "dab1e8576beefbfabd416aa92fbdf730216f6fc0"
     },
-    "abstract": "This research introduces a cost-effective drone-based agricultural monitoring system targeted at Indonesia’s smallholder farming enterprises (MSMEs). By leveraging mini drones (DJI Mini 2 SE) and lightweight AI models, farmers can segment land, detect vegetation health, and count crops using simple RGB video analysis. The system utilizes a mobile-to-YouTube private livestream pipeline and performs video processing offline using semantic segmentation (U-Net) and object detection (YOLOvX). The prototype system—tested on a 300m² vegetable plot—shows promising results with over 90% detection accuracy and effective land use visualization. The interface, built with Streamlit, provides real-time insights, affordability, and aligns with Smart City goals of accessibility and sustainability.",
+    "abstract": "This research introduces a cost-effective drone-based agricultural monitoring system targeted at Indonesia\u2019s smallholder farming enterprises (MSMEs). By leveraging mini drones (DJI Mini 2 SE) and lightweight AI models, farmers can segment land, detect vegetation health, and count crops using simple RGB video analysis. The system utilizes a mobile-to-YouTube private livestream pipeline and performs video processing offline using semantic segmentation (U-Net) and object detection (YOLOvX). The prototype system\u2014tested on a 300m\u00b2 vegetable plot\u2014shows promising results with over 90% detection accuracy and effective land use visualization. The interface, built with Streamlit, provides real-time insights, affordability, and aligns with Smart City goals of accessibility and sustainability.",
     "authors": [
       {
         "family_name": "Hermanus",
@@ -10811,7 +10824,7 @@
         "RQ2",
         "RQ1"
       ],
-      "screening_reasoning": "Low-cost mini-drone (DJI Mini 2 SE) agricultural monitoring for Indonesian MSMEs: U-Net semantic segmentation of land/vegetation + YOLOvX detection on 300m² vegetable plot, >90% detection accuracy. Agricultural vegetable crop/land UAV pixel-level segmentation meeting INC-01/INC-02, though system-level rather than a pure benchmark.",
+      "screening_reasoning": "Low-cost mini-drone (DJI Mini 2 SE) agricultural monitoring for Indonesian MSMEs: U-Net semantic segmentation of land/vegetation + YOLOvX detection on 300m\u00b2 vegetable plot, >90% detection accuracy. Agricultural vegetable crop/land UAV pixel-level segmentation meeting INC-01/INC-02, though system-level rather than a pure benchmark.",
       "adjudication_source": "AGREED_BOTH_SCREENERS"
     }
   },
@@ -10918,7 +10931,7 @@
         "orcid": null
       }
     ],
-    "venue": "Poster Volume Ⅱ The 2025 Twenty-First International Conference on Intelligent Computing July 26-29, 2025 Ningbo, China",
+    "venue": "Poster Volume \u2161 The 2025 Twenty-First International Conference on Intelligent Computing July 26-29, 2025 Ningbo, China",
     "url": "https://www.semanticscholar.org/paper/e05d137008fa77e61b625b00b7119b5abc803440",
     "workspace_id": "SCI-001382",
     "sources": [
@@ -11131,7 +11144,7 @@
       "openalex_id": null,
       "s2_id": "f3807323b0660e3c29f04b7277547c6cea1d2308"
     },
-    "abstract": "ABSTRACT Global agriculture faces an unprecedented convergence of challenges: feeding 9.7 billion people by 2050 requires a 70% production increase, while climate change threatens yields through temperature rises (1.5–4°C by 2100), extreme weather events (doubled in frequency), water scarcity (affecting 2 billion people), and soil degradation (33% of agricultural land). This research addresses these challenges through a comprehensive smart agriculture system integrating cutting-edge technologies in a novel five-layer architecture. The system delivers five breakthrough innovations: 1. Edge AI infrastructure using NVIDIA Jetson AGX Orin (275 TOPS) achieving sub-50ms inference latency with 7-day offline operation through federated learning; 2. Multi-modal data fusion harmonizing 68 features from IoT sensor networks, drone fleets, satellite imagery, weather APIs, and soil microbiome DNA sequencing; 3. Advanced deep learning achieving 98.7% crop disease detection accuracy (187,453 images, 22 crops, 47 diseases), LSTM-Transformer yield prediction (R²=0.963), YOLOv8 pest identification (89.3 mAP), and Mask R-CNN weed segmentation (94.2% IoU); 4. Hyperledger Fabric blockchain providing immutable farm-to-consumer traceability reducing fraud by 67% while increasing farmer price premiums by 23%; 5. Digital twin technology coupling real-time sensor synchronization with physics-based crop models (DSSAT, APSIM) enabling 31% water savings through scenario simulation. Keywords: Edge AI, IoT 5.0, Deep Learning, EfficientNet-B4, LSTM-Transformer, YOLOv8, Precision Agriculture, Digital Twin, Blockchain, Hyperledger Fabric, Climate-Resilient Farming, Federated Learning, Multi-Modal Fusion, Satellite Imagery, Soil Microbiome, Crop Disease Detection, Yield Prediction, Sustainable Agriculture, Smallholder Farmers, Developing Nations",
+    "abstract": "ABSTRACT Global agriculture faces an unprecedented convergence of challenges: feeding 9.7 billion people by 2050 requires a 70% production increase, while climate change threatens yields through temperature rises (1.5\u20134\u00b0C by 2100), extreme weather events (doubled in frequency), water scarcity (affecting 2 billion people), and soil degradation (33% of agricultural land). This research addresses these challenges through a comprehensive smart agriculture system integrating cutting-edge technologies in a novel five-layer architecture. The system delivers five breakthrough innovations: 1. Edge AI infrastructure using NVIDIA Jetson AGX Orin (275 TOPS) achieving sub-50ms inference latency with 7-day offline operation through federated learning; 2. Multi-modal data fusion harmonizing 68 features from IoT sensor networks, drone fleets, satellite imagery, weather APIs, and soil microbiome DNA sequencing; 3. Advanced deep learning achieving 98.7% crop disease detection accuracy (187,453 images, 22 crops, 47 diseases), LSTM-Transformer yield prediction (R\u00b2=0.963), YOLOv8 pest identification (89.3 mAP), and Mask R-CNN weed segmentation (94.2% IoU); 4. Hyperledger Fabric blockchain providing immutable farm-to-consumer traceability reducing fraud by 67% while increasing farmer price premiums by 23%; 5. Digital twin technology coupling real-time sensor synchronization with physics-based crop models (DSSAT, APSIM) enabling 31% water savings through scenario simulation. Keywords: Edge AI, IoT 5.0, Deep Learning, EfficientNet-B4, LSTM-Transformer, YOLOv8, Precision Agriculture, Digital Twin, Blockchain, Hyperledger Fabric, Climate-Resilient Farming, Federated Learning, Multi-Modal Fusion, Satellite Imagery, Soil Microbiome, Crop Disease Detection, Yield Prediction, Sustainable Agriculture, Smallholder Farmers, Developing Nations",
     "authors": [
       {
         "family_name": "Dhole",
@@ -11209,7 +11222,7 @@
       "openalex_id": null,
       "s2_id": "f5ca94e5165b494944a49dbabd02141ceff55918"
     },
-    "abstract": "Agriculture is a source of livelihood for the majority of Indian population. The current agricultural problems include timely estimation of crop yield, detection of crop disease, and assessment of damages due to natural disasters such as flood, drought, etc. Any proposed solution to these problems will require accurate classification of crops. In this perspective, UAV (unmanned aerial vehicle) data are proving to be crucial in providing images of the land surface in multispectral channels such as blue (B), green (G), red (R), near infrared, red edge and long wave infrared thermal bands. Once the UAV images have been obtained, segmentation and classification of crops can be performed using deep learning techniques. The objectives of this work is to apply U-Net convolutional neural network (CNN) architecture to (i) find the best combination of input spectral bands for various crop classification such as wheat, cotton, maize, grass, and soil, (ii) to analyse the role of including vegetation indices (NDVI and EVI) in crop classification, and (iii) to analyse the role of textural parameters in performing semantic segmentation of the multiple crops in the scene. Average accuracy of the trained model was 83.35% with RGB bands and 74.61% with CIR (Colour Infrared) composite images. Results indicated that inclusion of NDVI in CIR input dataset yield high segmentation accuracy of 83.85% while dealing with the five classes’ separation problem.",
+    "abstract": "Agriculture is a source of livelihood for the majority of Indian population. The current agricultural problems include timely estimation of crop yield, detection of crop disease, and assessment of damages due to natural disasters such as flood, drought, etc. Any proposed solution to these problems will require accurate classification of crops. In this perspective, UAV (unmanned aerial vehicle) data are proving to be crucial in providing images of the land surface in multispectral channels such as blue (B), green (G), red (R), near infrared, red edge and long wave infrared thermal bands. Once the UAV images have been obtained, segmentation and classification of crops can be performed using deep learning techniques. The objectives of this work is to apply U-Net convolutional neural network (CNN) architecture to (i) find the best combination of input spectral bands for various crop classification such as wheat, cotton, maize, grass, and soil, (ii) to analyse the role of including vegetation indices (NDVI and EVI) in crop classification, and (iii) to analyse the role of textural parameters in performing semantic segmentation of the multiple crops in the scene. Average accuracy of the trained model was 83.35% with RGB bands and 74.61% with CIR (Colour Infrared) composite images. Results indicated that inclusion of NDVI in CIR input dataset yield high segmentation accuracy of 83.85% while dealing with the five classes\u2019 separation problem.",
     "authors": [
       {
         "family_name": "Narvaria",
@@ -11287,7 +11300,7 @@
       "openalex_id": null,
       "s2_id": "fd7e982d6357fc40354d416ecd9be6a4235cb64c"
     },
-    "abstract": "The growth status of Kenaf (Hibiscus cannabinus L.) seedlings directly impacts its yield and quality. Addressing the challenges of inefficient monitoring and quantitative assessment of Kenaf seedlings under saline-alkali conditions, this study developed an automated method for plant identification and canopy coverage estimation during the seedling stage. This approach leverages high-resolution visible light imagery captured by unmanned aerial vehicles (UAVs) combined with deep learning semantic segmentation techniques. First, a UAV imagery dataset of Kenaf seedlings was constructed through geometric and radiometric calibration, image cropping, and sample annotation. Subsequently, three classical semantic segmentation models—FCN, U-Net, and DeepLabV3+—were trained and compared using image enhancement strategies. Model performance was quantitatively evaluated using metrics including Intersection over Union (IoU), accuracy, precision, and F1 score. Results indicate that all three models effectively segmented Kenaf plants from soil backgrounds. U-Net demonstrated optimal overall accuracy and detail retention, DeepLabV3+ exhibited advantages in small-scale object recognition, while FCN offered high computational efficiency, making it suitable for applications demanding real-time processing. Building upon this, the U-Net architecture was enhanced by incorporating a Self-Attention (SE) channel mechanism, further improving model performance to achieve an IoU of 85.99% and an Dice of 92.44%. Based on segmentation results from the enhanced UNet, plant canopy coverage during the Kenaf seedling stage was calculated. Combined with measured dry bark yield per mu, this enabled analysis of growth performance across varieties under saline-alkali conditions, identifying Xiao 3, K5, and Xiao 2 as materials exhibiting strong saline-alkali adaptability. The study demonstrates that this method enables high-precision identification and quantitative analysis of Kenaf seedlings, providing effective technical support for monitoring seedling growth and variety selection in saline-alkali soils.",
+    "abstract": "The growth status of Kenaf (Hibiscus cannabinus L.) seedlings directly impacts its yield and quality. Addressing the challenges of inefficient monitoring and quantitative assessment of Kenaf seedlings under saline-alkali conditions, this study developed an automated method for plant identification and canopy coverage estimation during the seedling stage. This approach leverages high-resolution visible light imagery captured by unmanned aerial vehicles (UAVs) combined with deep learning semantic segmentation techniques. First, a UAV imagery dataset of Kenaf seedlings was constructed through geometric and radiometric calibration, image cropping, and sample annotation. Subsequently, three classical semantic segmentation models\u2014FCN, U-Net, and DeepLabV3+\u2014were trained and compared using image enhancement strategies. Model performance was quantitatively evaluated using metrics including Intersection over Union (IoU), accuracy, precision, and F1 score. Results indicate that all three models effectively segmented Kenaf plants from soil backgrounds. U-Net demonstrated optimal overall accuracy and detail retention, DeepLabV3+ exhibited advantages in small-scale object recognition, while FCN offered high computational efficiency, making it suitable for applications demanding real-time processing. Building upon this, the U-Net architecture was enhanced by incorporating a Self-Attention (SE) channel mechanism, further improving model performance to achieve an IoU of 85.99% and an Dice of 92.44%. Based on segmentation results from the enhanced UNet, plant canopy coverage during the Kenaf seedling stage was calculated. Combined with measured dry bark yield per mu, this enabled analysis of growth performance across varieties under saline-alkali conditions, identifying Xiao 3, K5, and Xiao 2 as materials exhibiting strong saline-alkali adaptability. The study demonstrates that this method enables high-precision identification and quantitative analysis of Kenaf seedlings, providing effective technical support for monitoring seedling growth and variety selection in saline-alkali soils.",
     "authors": [
       {
         "family_name": "Wang",

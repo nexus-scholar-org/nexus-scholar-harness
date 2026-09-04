@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-04 00:51:01 UTC`
+- **Last Updated**: `2026-09-04 01:49:19 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -27,13 +27,13 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-04 00:51 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-04 00:43 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-04 00:51 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-04 01:49 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-04 01:06 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-04 01:49 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-03 22:14 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-03 22:16 | Deduplicated |
-| `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-03 22:16 | Verified |
-| `literature/included.json` | Screened eligible studies for full-text synthesis | 2026-09-04 00:42 | Included |
+| `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-04 01:48 | Verified |
+| `literature/included.json` | Screened eligible studies for full-text synthesis | 2026-09-04 01:48 | Included |
 | `literature/excluded.json` | Excluded studies with logged decision reasons | 2026-09-04 00:42 | Excluded |
 | `literature/screening/dual_screening_reliability_report.md` | Inter-rater reliability audit report | 2026-09-04 00:42 | Audited |
 | `literature/screening/adjudicated_caveats.json` | Provisional caveat papers tracked for Stage 3 verification | 2026-09-04 00:42 | Provisioned |
@@ -47,6 +47,8 @@
 | `reports/discovery_report_20260903_230800.md` | Formal methodology or audit report | 2026-09-03 22:08 | Audited |
 | `reports/dual_screening_synchronization_report_20260904_014500.md` | Formal methodology or audit report | 2026-09-04 00:42 | Audited |
 | `reports/screening_audit_report_20260903_233500.md` | Formal methodology or audit report | 2026-09-03 22:33 | Audited |
+| `pdfs/` | Downloaded Open Access full-text PDF documents (31 files) | Active | Downloaded |
+| `extracted/` | Docling full-text structured Markdown extractions (31 files) | Active | Extracted |
 
 ---
 *Note: This file is automatically maintained by the `workspace-manager` event logger.*
