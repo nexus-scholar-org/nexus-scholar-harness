@@ -134,15 +134,27 @@ class ResearchOrchestrator:
             if status["extracted_count"] > 0:
                 status["phase"] = "PHASE_2_SYNTHESIS"
 
+        # 4b. Vector Database Chunks
+        chroma_dir = self.workspace_dir / "chroma_db"
+        if not chroma_dir.exists():
+            chroma_dir = self.workspace_dir / "rag" / "chroma_db"
+        if chroma_dir.exists():
+            try:
+                import chromadb
+                client = chromadb.PersistentClient(path=str(chroma_dir))
+                collection = client.get_collection("scholar_docs")
+                status["vector_chunks"] = collection.count()
+            except Exception:
+                pass
+
         # 5. Synthesis Review
         synth_file = self.workspace_dir / "synthesis" / "literature_review.md"
         if synth_file.exists():
             content = synth_file.read_text(encoding="utf-8").strip()
-            if status["matrix_rows"] > 0 and status["vector_chunks"] > 0 and len(content) > 1000:
+            if len(content) > 50 and "To be generated from extracted papers" not in content:
                 status["synthesis_generated"] = True
-                status["phase"] = "PHASE_3_COMPLETE"
-            elif len(content) > 1000:
-                status["synthesis_generated"] = True
+                if status["matrix_rows"] > 0 and status["vector_chunks"] > 0:
+                    status["phase"] = "PHASE_3_COMPLETE"
 
         # 6. Audit Journal Events
         journal_file = self.workspace_dir / "audit" / "journal.jsonl"

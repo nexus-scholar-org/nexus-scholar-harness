@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import typer
 from rich.console import Console
@@ -18,7 +25,7 @@ app = typer.Typer(
     help="Scholar RAG Kit: Structural chunking, hybrid graph-boosted retrieval, and grounded synthesis for scientific literature.",
     no_args_is_help=True,
 )
-console = Console()
+console = Console(force_terminal=True, legacy_windows=False)
 
 
 @app.command("index")

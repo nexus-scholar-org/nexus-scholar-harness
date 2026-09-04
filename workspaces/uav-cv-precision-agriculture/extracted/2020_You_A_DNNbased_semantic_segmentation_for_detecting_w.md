@@ -2,9 +2,19 @@
 workspace_id: SCI-000092
 doi: 10.1016/j.compag.2020.105750
 title: A DNN-based semantic segmentation for detecting weed and crop
+authors:
+- family_name: You
+  given_name: Jie
+  orcid: null
+- family_name: Liu
+  given_name: Wei
+  orcid: null
+- family_name: Lee
+  given_name: Joonwhoan
+  orcid: null
 year: 2020
 extraction_engine: pymupdf
-extracted_at: '2026-09-04T10:03:13.149816+00:00'
+extracted_at: '2026-09-04T10:21:24.053323+00:00'
 ---
 
 # A DNN-based semantic segmentation for detecting weed and crop
