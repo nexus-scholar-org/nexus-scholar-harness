@@ -1,0 +1,151 @@
+[
+  {
+    "workspace_id": "SCI-000637",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.",
+    "acknowledgments": "",
+    "coi_statement": "The authors declare that there are no conflicts of interest related to this article.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "Autel EVO II Pro (own-captured dataset)"},
+      {"entity": "Autel Robotics", "kind": "tooling", "quote": "Autel EVO II Pro (own-captured dataset)"},
+      {"entity": "Roboflow", "kind": "tooling", "quote": "Roboflow (annotation platform)"}
+    ],
+    "notes": "Industry entities are vendor tools used for data capture/annotation only; no industry funding or affiliation. Label driven by explicit no-conflict declaration."
+  },
+  {
+    "workspace_id": "SCI-000650",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research was mainly supported by the Special Fund for Independent Innovation of Agricultural Science and Technology in Jiangsu, China (CX(22)3112) and National Natural Science Foundation of China (32172110, 31701355, 31771711, 31671615).",
+    "acknowledgments": "",
+    "coi_statement": "The authors declare no competing interests.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "Flight platform: DJI Matrice 600 Pro (multispectral) and Mavic 3 (RGB)"},
+      {"entity": "Jiangsu Dualix Spectral Imaging Technology Co., Ltd.", "kind": "tooling", "quote": "SpecView (line 151)"},
+      {"entity": "Agisoft LLC", "kind": "tooling", "quote": "Metashape (line 151)"}
+    ],
+    "notes": "All funding is public (Jiangsu province, NSFC); vendor products used only as equipment/software tooling."
+  },
+  {
+    "workspace_id": "SCI-000669",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "",
+    "acknowledgments": "This research was supported by the grant titled An Intelligent Unmanned Aerial Application System for Site-Specific Weed Management under AFRI Foundational and Applied Science Program of the United States Department of Agriculture (USDA award No. 2021-67021-34412).",
+    "coi_statement": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "Image acquisition platform"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Jetson Nano and Jetson Orin Nano edge inference (line 73)"}
+    ],
+    "notes": "USDA/AFRI is public funding; statement appears under the Acknowledgements section."
+  },
+  {
+    "workspace_id": "SCI-000683",
+    "coi_label": "industry-affiliation-or-equipment",
+    "funding_statement": "The research presented in this paper was funded by the Slovenian Research Agency project \"Context-Aware On-Device Approximate Computing\" (J2-3047), research core funding No. P2-0098 and P2-0426, and by the H2020 Smart4All 3rd FTTE grant \"AgriAdapt\".",
+    "acknowledgments": "",
+    "coi_statement": "Author Daniele Latini was employed by the company GEO-K s.r.l., Rome, Italy. The remaining authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.",
+    "industry_entities": [
+      {"entity": "GEO-K s.r.l.", "kind": "affiliation", "quote": "Author Daniele Latini was employed by the company GEO-K s.r.l., Rome, Italy."},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Jetson Nano onboard"},
+      {"entity": "ArduCam", "kind": "tooling", "quote": "ArduCam camera"},
+      {"entity": "Roboflow", "kind": "tooling", "quote": "Roboflow"},
+      {"entity": "Sony", "kind": "tooling", "quote": "Sony imaging sensor"},
+      {"entity": "u-blox", "kind": "tooling", "quote": "u-blox GNSS module"}
+    ],
+    "notes": "Co-author employed by industry (GEO-K s.r.l.) raises label to industry-affiliation-or-equipment despite no-conflict declaration from other authors."
+  },
+  {
+    "workspace_id": "SCI-000708",
+    "coi_label": "industry-affiliation-or-equipment",
+    "funding_statement": "",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "Rakuten", "kind": "affiliation", "quote": "He is currently a Research Engineer with Rakuten, Tokyo, Japan."},
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI drone (related-work/data mention)"},
+      {"entity": "MAPIR", "kind": "tooling", "quote": "MAPIR camera (related-work/data mention)"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Jetson Xavier NX embedded (line 116, related-work mention)"}
+    ],
+    "notes": "No funding/acknowledgments/COI sections exist in the extraction (file ends with references and author bios). Industry affiliation (Rakuten) identified from author bio, hence label."
+  },
+  {
+    "workspace_id": "SCI-000754",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research received no external funding.",
+    "acknowledgments": "",
+    "coi_statement": "The authors declare no conflicts of interest.",
+    "industry_entities": [
+      {"entity": "Google Colab (T4 GPU)", "kind": "tooling", "quote": "All experiments were performed using a Google Colab T4 GPU and the PyTorch framework."},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Edge-AI and embedded systems (e.g., NVIDIA Jetson, Coral TPU)"},
+      {"entity": "Google Coral TPU", "kind": "tooling", "quote": "Edge-AI and embedded systems (e.g., NVIDIA Jetson, Coral TPU)"}
+    ],
+    "notes": "Cloud/edge compute platforms are tooling only; no industry money or affiliation."
+  },
+  {
+    "workspace_id": "SCI-000810",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research received no external funding.",
+    "acknowledgments": "",
+    "coi_statement": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.",
+    "industry_entities": [
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Jetson AGX Orin 64GB and Jetson Orin Nano Super embedded platform (line 41)"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "TensorRT"},
+      {"entity": "ONNX", "kind": "tooling", "quote": "ONNX Runtime"},
+      {"entity": "Texas Instruments", "kind": "tooling", "quote": "INA260 external power monitor"}
+    ],
+    "notes": "No Acknowledgements section (Data/code availability and CRediT present); vendor products used strictly as benchmarks/hardware."
+  },
+  {
+    "workspace_id": "SCI-000816",
+    "coi_label": "no-statement",
+    "funding_statement": "",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "The dataset was collected at an experimental agricultural sorghum field located in Southern Germany using a DJI Mavic 2 Pro consumer-grade drone."},
+      {"entity": "Elsevier (Mendeley Data)", "kind": "tooling", "quote": "The dataset used in this study is sourced from the publicly available DeBlurWeedSeg dataset [34], distributed via the Mendeley Data repository"}
+    ],
+    "notes": "Scientific Reports 'Article in Press' accepted manuscript: no Declarations/Funding/Acknowledgments/COI sections in the extraction (file ends mid-references). DJI Mavic 2 Pro belongs to the third-party DeBlurWeedSeg dataset creators, not the study team."
+  },
+  {
+    "workspace_id": "SCI-000852",
+    "coi_label": "academic-or-public",
+    "funding_statement": "This work was supported in part by the \"Context-Aware On-Device Approximate Computing\" under Grant J2-3047, in part by the Slovenian Research Agency research core under Grant P2-0098 and Grant P2-0426, and in part by the H2020 Smart4All 3rd FTTE grant \"AgriAdapt.\" (Corresponding author: Alina L. Machidon.)",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Jetson Nano (embedded MCU)"},
+      {"entity": "ArduCam", "kind": "tooling", "quote": "ArduCam camera module"},
+      {"entity": "Sony", "kind": "tooling", "quote": "Sony IMX519 imaging sensor"},
+      {"entity": "Monsoon Solutions", "kind": "tooling", "quote": "Monsoon power monitor"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "RTX 3090 GPU (training)"}
+    ],
+    "notes": "IEEE JSTARS format: no separate COI section; funding disclosed via footnote only. Our own-captured/low-cost system uses one co-author's commercial appliances as tools."
+  },
+  {
+    "workspace_id": "SCI-000878",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research was funded by the China Agriculture Research System (CARS-04-PS30) and the Natural Science Foundation of Henan (252300423600).",
+    "acknowledgments": "The authors thank the anonymous reviewers for providing critical comments and suggestions that improved the manuscript.",
+    "coi_statement": "The authors declare no conflicts of interest.",
+    "industry_entities": [],
+    "notes": "Plants (MDPI) format; single soybean field, ~30 m altitude with equatorial RGB/multispectral imagery; no named hardware vendors."
+  },
+  {
+    "workspace_id": "SCI-000881",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "The author(s) declared that financial support was received for this work and/or its publication. This research was supported by the National Research Program for Universities (NRPU) of the Higher Education Commission (HEC) of Pakistan (20-17332/NRPU/RD/HEC/2021-2020).",
+    "acknowledgments": "",
+    "coi_statement": "The author(s) declared that this work was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.",
+    "industry_entities": [],
+    "notes": "Tobacco weed dataset; no named hardware vendors. Also declares generative AI was not used in manuscript creation."
+  },
+  {
+    "workspace_id": "SCI-000890",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "",
+    "acknowledgments": "This research is funded by Vietnam National University Ho Chi Minh City (VNU-HCM) under grant number B2024-16-06.",
+    "coi_statement": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this article.",
+    "industry_entities": [],
+    "notes": "Data in Brief format: funding text appears under the Acknowledgements heading. Consumer-grade UAVs (RGB and MS) used in Tra Vinh / Mekong Delta; no vendor named. VNU-HCM is public/university funding."
+  }
+]

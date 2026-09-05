@@ -1,0 +1,153 @@
+[
+  {
+    "workspace_id": "SCI-001081",
+    "coi_label": "no-statement",
+    "funding_statement": "",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [],
+    "notes": "No funding, acknowledgments, or conflict-of-interest sections found in extracted text."
+  },
+  {
+    "workspace_id": "SCI-001084",
+    "coi_label": "academic-or-public",
+    "funding_statement": "",
+    "acknowledgments": "The research was supported by research project QG.24.83 of Vietnam National University, Hanoi and research project CN25.06 of VNU University of Engineering and Technology.",
+    "coi_statement": "",
+    "industry_entities": [],
+    "notes": "Acknowledgment references public/academic grants (VNU-Hanoi, VNU-UET). No explicit conflict-of-interest declaration found. No industry entities."
+  },
+  {
+    "workspace_id": "SCI-001085",
+    "coi_label": "academic-or-public",
+    "funding_statement": "This research was supported by the Russian Science Foundation (RSF) under Project No. 26-11-00336.",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "Rockchip", "kind": "tooling", "quote": "Rockchip NPU"},
+      {"entity": "Orange Pi", "kind": "tooling", "quote": "Orange Pi 5+"},
+      {"entity": "Ultralytics", "kind": "tooling", "quote": "YOLOv11"},
+      {"entity": "RKNN", "kind": "tooling", "quote": "RKNN toolkit"}
+    ],
+    "notes": "Public RSF funding only. Industry entities are vendor hardware/software used in experiments with no money or donation tie."
+  },
+  {
+    "workspace_id": "SCI-001090",
+    "coi_label": "industry-affiliation-or-equipment",
+    "funding_statement": "",
+    "acknowledgments": "Many thanks for Naptaplaya co. For providing datasets and images for our team. Also, many thanks for faculty of navigation science and space technology (NSST) in Beni-Suef University for their academic and technical supporting this research.",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "Naptaplaya co.", "kind": "donated-equipment", "quote": "Many thanks for Naptaplaya co. For providing datasets and images for our team."}
+    ],
+    "notes": "Naptaplaya co. is a commercial entity that donated datasets/images to the team (no money). Classified as donated-equipment given free provision of research resources; ambiguity noted since dataset/images are not strictly hardware/software."
+  },
+  {
+    "workspace_id": "SCI-001096",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research received no external funding.",
+    "acknowledgments": "",
+    "coi_statement": "The authors declare no conflicts of interest.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI Mavic 2 Mini"},
+      {"entity": "Dronelink", "kind": "tooling", "quote": "Dronelink"},
+      {"entity": "WebODM", "kind": "tooling", "quote": "WebODM"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "NVIDIA RTX 4060"}
+    ],
+    "notes": "Explicit no-conflict statement with no industry money/affiliation/equipment. Entities are vendor tools used with no funding/donation tie."
+  },
+  {
+    "workspace_id": "SCI-001153",
+    "coi_label": "academic-or-public",
+    "funding_statement": "This research was supported by the National Natural Science Foundation of China (NSFC) and the 111 Project.",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [],
+    "notes": "Funding is public/academic (NSFC, 111 Project). No explicit conflict-of-interest declaration found. No industry entities identified."
+  },
+  {
+    "workspace_id": "SCI-001173",
+    "coi_label": "academic-or-public",
+    "funding_statement": "This research is partially supported by the Ministry of Science and Technology under Grant Number 108-2634-F-005-003- through Pervasive AI Research (PAIR) Labs, Taiwan.",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI Matrice 100"},
+      {"entity": "ASUS", "kind": "tooling", "quote": "ASUS Tinker Board"},
+      {"entity": "Logitech", "kind": "tooling", "quote": "Logitech C925e webcam"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "NVIDIA GPU"},
+      {"entity": "TensorFlow", "kind": "tooling", "quote": "TensorFlow"}
+    ],
+    "notes": "Public Taiwan MoST funding. Industry entities are hardware/software used with no funding/donation tie."
+  },
+  {
+    "workspace_id": "SCI-001203",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research was supported by the China Agriculture Research System of MOF and MARA (grant CARS-04-PS32) and other public grants.",
+    "acknowledgments": "The authors would like to thank the editors and anonymous reviewers for their constructive comments and suggestions.",
+    "coi_statement": "The authors declare no conflicts of interest.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI Phantom 4"},
+      {"entity": "Agisoft", "kind": "tooling", "quote": "Agisoft Metashape"},
+      {"entity": "Labelme", "kind": "tooling", "quote": "Labelme"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "NVIDIA GPU"}
+    ],
+    "notes": "Public funding (CARS) with explicit no-conflict declaration. Industry entities are tooling only."
+  },
+  {
+    "workspace_id": "SCI-001210",
+    "coi_label": "academic-or-public",
+    "funding_statement": "This work was supported by the National Natural Science Foundation of China (NSFC) and the Guangxi Innovative Development Grand Grant.",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI Phantom 4 RTK"}
+    ],
+    "notes": "Public/academic funding (NSFC, Guangxi). No explicit COI declaration. DJI Phantom 4 RTK is tooling only."
+  },
+  {
+    "workspace_id": "SCI-001292",
+    "coi_label": "academic-or-public",
+    "funding_statement": "This work was supported by the National Natural Science Foundation of China (NSFC).",
+    "acknowledgments": "",
+    "coi_statement": "",
+    "industry_entities": [
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "NVIDIA RTX 3090"},
+      {"entity": "NVIDIA Jetson", "kind": "tooling", "quote": "Jetson TX2"},
+      {"entity": "PyTorch", "kind": "tooling", "quote": "PyTorch"}
+    ],
+    "notes": "Public NSFC funding. No explicit COI declaration found. Industry entities are computing hardware/framework with no funding/donation tie."
+  },
+  {
+    "workspace_id": "SCI-001305",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This work was supported by the Major Science and Technology Projects in Anhui Province, the Select the Best Candidates program, and the Open Project of Jiangsu Key Laboratory of Information Agriculture.",
+    "acknowledgments": "",
+    "coi_statement": "The authors declare no conflict of interest.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI Phantom 3 Pro"},
+      {"entity": "Pix4D", "kind": "tooling", "quote": "Pix4Dmapper"},
+      {"entity": "Labelme", "kind": "tooling", "quote": "Labelme"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "NVIDIA RTX 2080"},
+      {"entity": "TensorFlow/Keras", "kind": "tooling", "quote": "TensorFlow/Keras"}
+    ],
+    "notes": "Public/academic funding with explicit no-conflict declaration and no industry money/affiliation/equipment. Entities are tooling only."
+  },
+  {
+    "workspace_id": "SCI-001333",
+    "coi_label": "declared-no-conflict",
+    "funding_statement": "This research was funded by Guangdong Provincial Innovation Team for General Key Technologies in Modern Agricultural Industry, Grant No. 2020KJ133, Guangdong Science and Technology Plan Project, grant number 2018A050506073, National Key Research and Development Program, grant number 2018YFD0200304, and the 111 Project, grant number D18019.",
+    "acknowledgments": "We are grateful to the plant protection experts Maoxin Zhang and Bing Ling from South China Agricultural University for guiding us to conduct field investigation of the study site and for providing professional instruction in semantic annotation of UAV image data.",
+    "coi_statement": "The authors declare no conflict of interest.",
+    "industry_entities": [
+      {"entity": "DJI", "kind": "tooling", "quote": "DJI P4 Multispectral UAV"},
+      {"entity": "DJI GS PRO", "kind": "tooling", "quote": "DJI GS PRO software"},
+      {"entity": "LabelMe", "kind": "tooling", "quote": "LabelMe"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "Jetson AGX Xavier"},
+      {"entity": "NVIDIA TensorRT", "kind": "tooling", "quote": "TensorRT"},
+      {"entity": "NVIDIA", "kind": "tooling", "quote": "GTX1080Ti"},
+      {"entity": "TensorFlow", "kind": "tooling", "quote": "TensorFlow"}
+    ],
+    "notes": "Public/academic funding with explicit no-conflict declaration. Industry entities are UAV/hardware/software used with no funding or donation tie."
+  }
+]
