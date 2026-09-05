@@ -4,195 +4,205 @@
 **Playbook & Methodology**: PRISMA 2020 Systematic Literature Review  
 **Epistemological Framework**: Positivist Empirical Benchmark Synthesis  
 **Corpus Finalization Date**: September 4, 2026  
-**Corpus Size**: N = 138 Empirical Studies (92.0% Retrieval Yield from N = 150 Screened Inclusions)  
-**Vector Index**: ChromaDB (6,707 AST Chunks, `all-MiniLM-L6-v2` 384-d Cosine Metric)  
-**Citation Network**: Directed Knowledge Graph (145 Nodes, 140 Directed Citation Edges)
+**Corpus Size**: N = 94 Empirical Studies (full-text extracted; post compliance audit)  
+**Synthesis Source**: `literature/extraction/merged/records.json` — dual-route extracted, compared, adjudicated
 
 ---
 
 ## Executive Summary & PRISMA 2020 Flow
 
-This systematic literature review synthesizes the empirical evidence on deep learning pixel-level semantic and instance segmentation architectures applied to Unmanned Aerial Vehicle (UAV) imagery for agricultural crop and weed management, alongside real-time hardware execution benchmarks across embedded physical compute platforms [SCI-000001#abstractef#chk-2025-5da6d7-abstract-efficient-c-03].
+This systematic literature review synthesizes the empirical evidence on deep learning pixel-level semantic and instance segmentation architectures applied to Unmanned Aerial Vehicle (UAV) imagery for agricultural crop and weed management, alongside real-time hardware execution benchmarks across embedded physical compute platforms.
 
 ### Methodological Workflow & PRISMA Identification Flow
-1. **Identification**: A federated multi-source search was executed across five major scholarly databases (OpenAlex, Semantic Scholar, Crossref, arXiv, and PubMed) spanning publication dates from January 1, 2018 to September 2026. A total of **4,142 raw candidate records** were identified across query clusters targeting UAV aerial platforms, precision agriculture weed discrimination, deep learning segmentation, and edge AI deployment.
-2. **Deduplication & Verification**: Automated cross-provider deduplication using cryptographic DOI hashing and high-dimensional title token similarity resolved the pool to **1,940 unique candidate records**.
-3. **Screening & Eligibility**: Title and abstract screening followed by full-text screening evaluated candidates against three explicit inclusion criteria (INC-01: UAV deep learning segmentation; INC-02: quantitative pixel-level metrics; INC-03: edge hardware benchmarks) and six exclusion criteria (satellite/ground-only, bounding-box detection only, non-crop/weed domains, non-DL methods, secondary literature, and non-retrievable data). A total of **150 studies** were formally included.
-4. **Full-Text Acquisition & Corpus Locking**: Automated multi-provider resolvers and authenticated direct downloads successfully acquired and verified **138 full-text PDFs** with strict `%PDF-` binary magic byte validation, achieving an exceptional **92.0% retrieval yield**. The remaining 12 studies (8.0%) were formally documented as unretrieved due to proprietary commercial publisher monographs or closed regional institutional firewalls.
-5. **Structural AST Extraction & Vector Indexing**: All 138 documents were converted into structured AST Markdown with standardized YAML frontmatter via PyMuPDF. Structural chunking produced **6,707 size-guarded AST chunks** enriched with sectional hierarchy breadcrumbs, methodology metadata, and deterministic identifiers, fully indexed into persistent ChromaDB storage.
+
+The PRISMA 2020 flow is grounded in the verified `literature/prisma_report.json` and the compliance audit:
+
+1. **Identification**: A federated multi-source search was executed across five scholarly databases (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed) spanning January 1, 2018 to September 2026, yielding **1,837 raw candidate records** (OpenAlex 500, Semantic Scholar 639, Crossref 500, arXiv 76, PubMed 122; per `raw/provenance_manifest.json`). After deduplication: **1,488 unique records screened** (*verified corpus*).
+2. **Screening**: Independent dual screening of 1,488 records (inter-rater Cohen's kappa = **0.115**, low agreement), with **690 conflicts** adjudicated by 6 independent agents. **150 studies** formally included (111 confirmed + 39 provisional).
+3. **Full-Text Acquisition**: **138 PDFs retrieved** of 150 (92.0% yield); 12 not retrieved (5 paywalled book chapters, 7 paywalled restricted conference/journal articles).
+4. **Full-Text Compliance Audit**: All 138 extracted studies independently re-screened against the registered protocol by 5 audit agents. **44 studies (31.9%) removed** as scope violations (disease classification, plant counting, orchard/urban/forestry, dataset-only, hardware/platform, path-planning, satellite navigation, secondary literature). **94 studies (68.1%) confirmed IN-SCOPE**.
+5. **Dual-Route Structured Extraction**: 94 studies extracted twice independently (Route A: batch-parallel; Route B: sequential + 15% re-extraction validation). Field-level comparison: mIoU agreement **82.8%**; 17 numeric conflicts adjudicated. **Merged canonical dataset** with per-value provenance quotes.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                 PRISMA 2020 Flow Summary                     │
 ├─────────────────────────────────────────────────────────────┤
-│  Raw Federated Search Records:              N = 4,142       │
-│  Unique Deduplicated Records:                N = 1,940       │
-│  Screened Inclusions Meeting Criteria:      N = 150         │
-│  Retrieved & Extracted Corpus:              N = 138 (92.0%) │
-│  Indexed AST Evidence Chunks:               N = 6,707       │
-│  Citation Knowledge Graph Nodes:            N = 145         │
+│  Raw Federated Search Records:              N = 1,837       │
+│  Unique Deduplicated Records:                N = 1,488       │
+│  Records Screened (verified corpus):         N = 1,488       │
+│  Records Excluded at Screening:              N = 1,338       │
+│  Included (confirmed + provisional):         N = 150         │
+│  Retrieved & Extracted:                      N = 138 (92.0%) │
+│  Removed at Compliance Audit:                N =  44         │
+│  Final Synthesis Corpus:                     N =  94         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## Epistemological Framework & Trustworthiness Rigor
-
-In strict adherence to the registered study protocol (`proto-20260903-uav-cv-precision-agriculture`), this review adopts a **Positivist empirical paradigm**. The unit of analysis is defined as:
-$$	ext{Unit of Analysis} = \langle 	ext{Architecture}, 	ext{Dataset}, 	ext{Spectral Modality}, 	ext{Hardware Accelerator}, 	ext{Quantization}, 	ext{mIoU}, 	ext{FPS}, 	ext{Power} angle$$
-
-To ensure scientific reproducibility and eliminate inter-study reporting bias:
-- **Intra-Study Control**: Cross-architectural accuracy comparisons (RQ1) prioritize paired within-study benchmarks where models were trained and evaluated on identical splits of imagery, flight altitudes, and ground sampling distances.
-- **Hardware Grounding**: Hardware execution claims (RQ2) are classified into *Physical Edge Deployments* (empirically measured on physical embedded boards: NVIDIA Jetson, Raspberry Pi, Rockchip NPU) versus *Simulated / Desktop Benchmarks* (high-power desktop GPUs or parameter-count complexity estimates).
-- **Atomic Claim Provenance**: Every quantitative empirical figure in this synthesis is anchored to an immutable atomic citation token in the format `[WORKSPACE_ID#SECTION#CHUNK_ID]`.
+> **Correction note.** An earlier version of this review (commit `bacdafd`) reported N = 138 studies, a fabricated architectural taxonomy (e.g., "96 studies (69.6%) U-Net"), invented aggregates (e.g., "mean mIoU 76.4% ± 6.2%", Wilcoxon p < 0.005), and cited a `rag/`-relative ChromaDB path that does not exist in the workspace (the Chroma index lives at `chroma_db/`, which is gitignored). **This document supersedes that version entirely.** All values below are traceable to `literature/extraction/merged/records.json` and `synthesis/synthesis_stats.json`.
 
 ---
 
-## Bibliometric Knowledge Graph & Centrality Analysis
+## Corpus Characterization
 
-The directed citation knowledge network was constructed using OpenAlex bibliometric resolution across all included study DOIs, comprising **145 nodes and 140 directed citation edges**. 
-
-### Centrality Analysis & Normalized PageRank
-Normalized PageRank ($d = 0.85$) reveals the foundational topological backbone of the UAV weed segmentation literature:
-1. **Sa et al. (2018)** (*WeedMap: A Large-Scale Semantic Weed Mapping Framework Using Aerial Multispectral Imaging*, Remote Sensing): Serves as the primary topological hub ($PR = 0.0594$, in-degree = 12). Introduced the public WeedMap benchmark and demonstrated the necessity of multi-channel multispectral integration (NDVI, RedEdge, NIR) with modified SegNet architectures [SCI-000482#43resultss#chk-2018-80f4f9-4-3-results-summary-13].
-2. **Bah et al. (2018)** (*Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops in UAV Images*, Remote Sensing): Foundational work establishing Hough transform and unsupervised line detection to generate pseudo-labels for training deep classification CNNs in sugar beet fields [SCI-000482#deeblearni#chk-SCI0-c1a842-deep-learning-with-u-01].
-3. **Huang et al. (2018)** (*A Fully Convolutional Network for Weed Mapping of Sunflower Fields Using UAV Imagery*, Remote Sensing): Established end-to-end Fully Convolutional Networks (FCN-8s) over patch-based classification for high-resolution agricultural orthomosaics.
-4. **Recent Transformer & Edge Hubs (2023–2026)**: A distinct topological cluster emerges around real-time embedded architectures (e.g., SSU-Net, SqueezeSlimU-Net, AgroVisionNet, YOLOv8-seg, YOLO11-seg), reflecting the discipline's shift from offline orthomosaic post-processing to real-time onboard flight inference [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49], [SCI-000754#6resultsan#chk-2025-224f3f-results-and-discussi-56].
-
----
-
-## Section 1: Comparative Algorithmic Accuracy (RQ1)
-
-> **Research Question 1**: *What is the comparative segmentation performance (mIoU %, F1-score) of CNNs, Transformers, and Hybrid architectures on agricultural UAV crop-weed imagery, specifically in paired intra-study benchmarks?*
-
-### 1.1 Architectural Taxonomy & Corpus Prevalence
-Across the 138 analyzed empirical studies:
-- **U-Net Family** (Standard U-Net, ResUNet, Attention U-Net, U-Net++): **96 studies (69.6%)**. Remains the dominant foundational baseline due to its symmetric encoder-decoder topology and skip connections preserving fine weed boundary details.
-- **FCN / PSPNet / SegNet**: **78 studies (56.5%)**. Widely used for classical multi-scale contextual aggregation.
-- **DeepLab Family** (DeepLabV3, DeepLabV3+ with ResNet/MobileNet backbones): **62 studies (44.9%)**. Leverages Atrous Spatial Pyramid Pooling (ASPP) to capture multi-scale plant canopy structures without spatial resolution loss.
-- **Hybrid CNN-Transformer Architectures**: **54 studies (39.1%)**. Embeds self-attention bottlenecks or cross-attention feature fusion into convolutional backbones.
-- **YOLO Segmentation** (YOLOv5-seg, YOLOv7-seg, YOLOv8-seg, YOLO11-seg): **42 studies (30.4%)**. Rapidly growing instance and semantic segmentation paradigm prioritizing real-time inference latency.
-- **Vision Transformers & SegFormer**: **36 studies (26.1%)**. Hierarchical vision transformers utilizing overlapped patch merging and multi-head self-attention.
-- **Mask R-CNN**: **28 studies (20.3%)**. Employs Region Proposal Networks (RPN) for two-stage instance segmentation of discrete plant specimens.
-
-### 1.2 Quantitative Intra-Study Paired Benchmarks
-Across the **36 studies** that conducted explicit paired intra-study comparisons between pure CNNs and Vision Transformers, and the **52 studies** comparing CNNs against Hybrid models:
-
-| Architectural Family | Mean mIoU (%) | Std Dev (%) | Mean F1 / Dice (%) | Global Context Modeling | Boundary Detail Preservation | Parameter Efficiency |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Pure CNNs** (U-Net, DeepLabV3+) | 76.4% | ± 6.2% | 81.2% | Moderate (receptive field bounded) | High (dense skip connections) | High (compact backbones) |
-| **Pure Transformers** (SegFormer, Swin) | 80.8% | ± 5.1% | 85.6% | Very High (global self-attention) | Moderate (patch tokenization) | Moderate to Low |
-| **Hybrid CNN-Transformers** (TransUNet, SSU-Net) | **82.1%** | ± 4.8% | **86.9%** | Very High (attention bottleneck) | Very High (CNN low-level features) | High (optimized tokens) |
-
-#### Key Empirical Findings:
-1. **Statistical Superiority of Hybrid Architectures**: Paired intra-study comparisons demonstrate that Hybrid CNN-Transformers consistently outperform pure CNN baselines by **+3.2 to +6.1 percentage points in mIoU** (p < 0.005, Wilcoxon signed-rank test). Hybrid models solve the local vs. global trade-off: CNN shallow layers capture fine pixel-level edge gradients (critical for distinguishing spindly weed stems from crop seedlings), while transformer attention blocks in the bottleneck resolve ambiguous field-scale canopy contexts [SCI-000001#abstractef#chk-2025-5da6d7-abstract-efficient-c-03], [SCI-000754#6resultsan#chk-2025-224f3f-results-and-discussi-56].
-2. **Failure Modes of Pure Transformers at Ultra-High Resolutions**: While pure Vision Transformers (e.g., SegFormer-B2/B3, Swin-B) achieve peak mIoU under controlled benchmark test splits, their patch tokenization (4x4 or 8x8 non-overlapping patches) causes spatial boundary blurring on ultra-fine early-stage weeds (< 5 pixels wide) when flown at higher altitudes (GSD > 1.5 cm/pixel).
-3. **Multi-Class vs. Binary Segmentation Dynamics**: Sandoval-Pillajo et al. (2026) demonstrated that while binary (crop vs. weed) segmentation easily reaches mIoU > 88–91%, increasing complexity to multi-species discrimination (e.g., potato crops vs. broadleaf dock, dandelion, and kikuyu grass) reduces CNN mIoU to 70.6% (U-Net++) and 80.2% (Residual U-Net), highlighting the necessity of richer architectural capacity for complex agroecosystems [SCI-001017#4discussio#chk-2026-66ad20-discussion-60].
-
-### 1.3 Impact of Spectral Modality: RGB vs. Multispectral (NIR / RedEdge)
-A decisive finding across the corpus is the transformative impact of sensor spectral dimensionality:
-- **RGB-Only Models**: Suffer from severe performance degradation under cloudy illumination, shadow occlusion, and early vegetative phenology where visual reflectance spectra of weeds and crops are near-identical (mean mIoU across RGB studies: **71.2%**).
-- **Multispectral Models (RGB + NIR + RedEdge)**: Incorporating Near-Infrared (780–850 nm) and RedEdge (705–740 nm) channels boosts segmentation accuracy by **+8.5% to +15.8% mIoU** across matched datasets (e.g., WeedsGalore, WeedMap) [SCI-000001#abstractef#chk-2025-5da6d7-abstract-efficient-c-03]. Chlorophyll absorption dips in the RedEdge band combined with steep NIR canopy scattering provide distinct vegetative signatures that allow lightweight models to match or exceed the accuracy of much deeper RGB-only architectures.
+| Attribute | Value |
+|---|---|
+| Studies | 94 |
+| Years | 2018–2026 (2018: 5, 2019: 1, 2020: 7, 2021: 7, 2022: 8, 2023: 10, 2024: 16, 2025: 21, 2026: 19) |
+| Venue type (coarse) | Journal 64, Conference 16, Preprint 14, Other/unknown 0 |
+| Domain | crop-weed 61, crop-only 23, other-veg 6, crop-row 2, weed-only 1, crop-other 1 |
+| Segmentation task | semantic 78, instance 10, both 6 |
+| Studies with ≥1 segmentation metric | **82 / 94 (87.2%)** |
+| Studies with on-device runtime metric (FPS/latency/power) | **40 / 94 (42.6%)** |
+| Studies with true embedded edge device | **15 / 94 (16.0%)** |
 
 ---
 
-## Section 2: Hardware Efficiency & Real-Time Edge Inference (RQ2)
+## Section 1: Comparative Segmentation Accuracy (RQ1)
 
-> **Research Question 2**: *How do edge hardware constraints (thermal design power, compute capacity in TOPS) and execution configurations (quantization precision, input resolution) impact real-time inference throughput (FPS, latency) for UAV segmentation models?*
+> **Research Question 1**: *What is the reported segmentation accuracy (mIoU, F1, Dice, PA) of deep learning models for pixel-level crop/weed segmentation from UAV imagery?*
 
-### 2.1 Edge Hardware Landscape Across Corpus
-Of the 138 studies, **34 studies (24.6%)** performed empirical benchmarks on physical embedded edge computing devices suitable for UAV payload integration:
+### 1.1 Headline Metric Distributions (verified, N = 82 studies with any metric)
 
-| Compute Platform | Architecture / Cores | Memory | Typical TDP | Primary AI Runtime | Mean FPS (FP32) | Mean FPS (FP16/INT8) | Onboard Viability (>= 15 FPS) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **NVIDIA Jetson Nano** | 128-core Maxwell GPU, 4x A57 CPU | 4 GB LPDDR4 | 5–10 W | TensorRT, PyTorch | 2.8 – 6.2 | 8.5 – 14.5 | Marginal (Requires light CNN / INT8) |
-| **NVIDIA Jetson TX2** | 256-core Pascal GPU, Denver+A57 | 8 GB LPDDR4 | 7.5–15 W | TensorRT, PyTorch | 6.5 – 12.0 | 14.0 – 24.8 | Viable (CNNs, SSU-Net) [SCI-000852] |
-| **Jetson Xavier NX / AGX** | 384-core Volta + 48 Tensor Cores | 8–16 GB LPDDR4x | 10–20 W | TensorRT | 14.2 – 22.5 | 38.5 – 58.2 | Fully Viable (CNNs & Hybrids) |
-| **Jetson Orin Nano / NX** | 1024-core Ampere + 32 Tensor Cores | 8–16 GB LPDDR5 | 7–25 W | TensorRT INT8 | 24.0 – 38.0 | **65.0 – 118.4** | State-of-the-Art Real-Time Hub |
-| **Raspberry Pi 4 / 5** | Quad Cortex-A72/A76 (No GPU/NPU) | 4–8 GB LPDDR4 | 3–7 W | ONNX, TFLite | 0.8 – 2.5 | 2.1 – 6.4 | Sub-Real-Time (CPU Bottleneck) |
-| **Raspberry Pi + Coral TPU** | Edge TPU ASIC (4 TOPS @ 2W) | USB 3.0 / PCIe | ~4 W | PyCoral TFLite | N/A (INT8 only) | 18.5 – 26.3 | Viable (INT8 MobileNet backbones) |
-| **Rockchip RK3588** | Octa-core + 6 TOPS Triple-Core NPU | 8–16 GB LPDDR4x | 12 W | RKNN Toolkit | 8.2 – 14.0 | 32.4 – 42.0 | Viable (YOLOv11-seg INT8) |
+| Metric | N reported | Mean | Median | Range |
+|---|---|---|---|---|
+| **mIoU** | 64 | 0.795 | 0.832 | 0.466 – 0.983 |
+| F1 | 32 | 0.857 | 0.890 | 0.492 – 0.988 |
+| Dice | 19 | 0.848 | 0.876 | 0.530 – 0.997 |
+| PA | 37 | 0.928 | 0.939 | 0.809 – 0.999 |
+| mPA | 10 | 0.848 | 0.902 | 0.515 – 0.969 |
+| weed_F1 | 5 | 0.675 | 0.646 | 0.566 – 0.795 |
+| crop_F1 | 8 | 0.837 | 0.888 | 0.660 – 0.952 |
 
-### 2.2 Inference Throughput vs. Latency Analysis
-Empirical benchmarks reveal critical system-level bottlenecks:
-1. **The Jetson Nano Threshold**: While the Jetson Nano has been a popular entry-level platform due to cost, standard U-Net and DeepLabV3+ models operate between **2.8 and 5.5 FPS in FP32**, failing the real-time threshold. Only heavily pruned, specialized architectures—such as SSU-Net or MobileNetV3-UNet quantized to INT8—reach **12.0 to 14.5 FPS** [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49].
-2. **Generational Leap to Orin Nano**: The transition from Pascal/Volta (TX2/Xavier) to Ampere Tensor Core architecture (Orin Nano/NX) yields a **4.2x to 5.8x throughput leap** at equivalent power dissipation (15W mode). YOLOv8-seg and YOLO11-seg models reach up to **118.4 FPS at 512x512 resolution**, enabling multi-camera synchronized inference or multi-stage cascading filters.
-3. **End-to-End Pipeline Latency**: Sarmah et al. (2025) and Squeeze U-Net evaluations demonstrate that forward-pass inference represents only 70–80% of total frame latency; image decoding, bilinear sensor resizing, and argmax mask conversion introduce an additional **3 to 7 ms per frame**, which must be accounted for in flight controller control loops [SCI-000683#5lraspp#chk-2025-326ce3-lraspp-56].
+All values are fractions in [0,1]; mIoU/F1/Dice are the paper's own headline test-set results. mIoU is by far the most commonly reported metric (64/82 studies with any metric).
 
-### 2.3 Precision Quantization Benchmarks (FP32 vs. FP16 vs. INT8)
-Across the studies evaluating hardware quantization runtimes:
-- **FP32 to FP16**: Delivers an average **1.8x to 2.4x speedup** on NVIDIA Volta, Ampere, and Rockchip platforms with negligible accuracy degradation (Delta mIoU < 0.3%). FP16 is currently the empirical "sweet spot" for researchers deploying without calibration datasets.
-- **FP16 to INT8 Post-Training Quantization (PTQ)**: Delivers an additional **1.6x to 2.1x speedup** (cumulative **3.2x to 4.5x over FP32**). However, naive min-max calibration causes severe precision truncation in thin weed classes (Delta mIoU approx -2.5% to -4.1%). Studies employing entropy calibration (KL-divergence) or Quantization-Aware Training (QAT) restrict accuracy loss to < 0.8% mIoU.
+### 1.2 mIoU by Domain
 
----
+| Domain | N | Mean mIoU | Range |
+|---|---|---|---|
+| crop-weed (discrimination) | 45 | 0.783 | 0.515 – 0.983 |
+| crop-only | 13 | 0.812 | 0.466 – 0.951 |
+| other-vegetation | 4 | 0.846 | 0.799 – 0.897 |
+| crop-row | 1 | 0.829 | — |
+| crop-other | 1 | 0.860 | — |
 
-## Section 3: Pareto Frontier Trade-Off & Deployment Guidelines
+The crop-weed discrimination subset (61 studies, of which 45 report mIoU) is the direct evidence base for RQ1. Its mIoU values spread widely (0.515–0.983), reflecting the diversity of crops, platforms, GSD, and class balance across the corpus.
 
-### 3.1 Closed-Loop Flight Velocity & Minimum Frame Rate Formulation
-In autonomous UAV agricultural missions (e.g., targeted spot-spraying or weed mapping), the minimum frame rate required to prevent spatial data gaps is strictly governed by flight speed, altitude, and forward overlap:
+### 1.3 Architecture Family (derived, keyword-classified on best_model / models_tested)
 
-$$	ext{FPS}_{\min} = rac{v_{	ext{flight}}}{	ext{GSD} 	imes H_{	ext{sensor}} 	imes (1 - O_{	ext{forward}})}$$
+| Family | N (total) | N with mIoU | Mean mIoU | Median mIoU | Range |
+|---|---|---|---|---|---|
+| CNN-based | 61 | 40 | 0.793 | 0.829 | 0.515 – 0.983 |
+| Transformer / attention-based | 8 | 6 | 0.872 | 0.856 | 0.805 – 0.974 |
+| Hybrid (CNN + attention/transformer) | 6 | 5 | 0.722 | 0.789 | 0.519 – 0.908 |
+| Unknown/not classifiable | 19 | 13 | 0.792 | 0.874 | 0.466 – 0.948 |
 
-For a typical operational survey ($v = 3.5	ext{ m/s}$, $	ext{GSD} = 1.0	ext{ cm/px}$, $75\%$ overlap at $1024 	imes 1024$), the sensor frame acquisition interval is $0.065	ext{ s}$, dictating a **hard real-time processing threshold of $	ext{FPS} \ge 15.4	ext{ FPS}$**.
+**Caveat.** This taxonomy is derived from a keyword heuristic on the reported primary architecture; family sizes are small for transformer/hybrid, so the apparent transformer advantage is descriptive, not inferential. No statistical significance is claimed.
 
-### 3.2 Four-Tier Architectural Decision Matrix
-
-Based on this synthesis, we formulate a 4-tier decision protocol for agricultural UAV practitioners:
-
-```
-                  ┌─────────────────────────────────────────────────────────┐
-                  │                 UAV Precision Agriculture               │
-                  │                 Hardware Deployment Tiers               │
-                  └───────────────────────────┬─────────────────────────────┘
-                                              │
-         ┌─────────────────────┬──────────────┴──────┬────────────────────┐
-         ▼                     ▼                     ▼                    ▼
-   [Tier 1: High-Alt]    [Tier 2: Edge-CNN]    [Tier 3: Hybrid]     [Tier 4: Ultra-Low]
-   Offline Mapping       Real-Time Spraying    Real-Time Multi-Sp   R-Pi + Coral TPU
-   Desktop GPU           Jetson TX2 / Xavier   Jetson Orin Nano     Micro-UAV Payloads
-   DeepLabV3+ / Swin     YOLOv8-seg / UNet     SSU-Net / SegFormer  MobileNet-UNet INT8
-   mIoU: 84 - 88%        mIoU: 78 - 82%        mIoU: 81 - 85%       mIoU: 72 - 76%
-   FPS: Offline          FPS: 25 - 45 FPS      FPS: 35 - 65 FPS     FPS: 18 - 25 FPS
-```
-
-1. **Tier 1: Offline Orthomosaic Prescription Mapping** (Desktop GPU: RTX 4090 / A100): Optimal choice when imagery is processed post-flight. Deploy high-capacity Vision Transformers (Swin-B, Mask2Former, DeepLabV3+ with ResNet-101) with multi-scale tiling. Maximizes mIoU (84–88%) without latency constraints.
-2. **Tier 2: Real-Time High-Speed Spot-Spraying** (Jetson TX2 / Xavier NX): Prioritizes latency. Deploy YOLOv8s-seg or ResNet18-UNet optimized via TensorRT FP16. Achieves 25–45 FPS at 512x512 resolution with robust 78–82% mIoU.
-3. **Tier 3: Fine-Grained Multi-Species Discrimination** (Jetson Orin Nano / NX): Optimal balance. Deploy lightweight Hybrid CNN-Transformers (e.g., SSU-Net, SegFormer-B0, or Galymzhankyzy Dynamic Modality Hybrids) with 4-band multispectral input. Achieves 81–85% mIoU and 35–65 FPS under 15W power draw.
-4. **Tier 4: Ultra-Low Power / Swarm Payloads** (Raspberry Pi 4/5 + Coral Edge TPU or Rockchip RK3588): Deploy INT8 quantized MobileNetV3-UNet or YOLO11n-seg. Constrains total subsystem power to < 7 Watts while sustaining 18–25 FPS with acceptable binary weed detection mIoU (72–76%).
+**Within-study observations (verified):**
+- **The highest reported accuracies come from lightweight, efficiency-oriented designs.** The corpus ceiling is 0.983 mIoU (SCI-000637, YOLO11-PSPNet, crop-weed RGB), followed by CWRepViT-Net (SCI-000180, 0.974) and PCCSAN multispectral attention fusion (SCI-000129, 0.966) — both crop-weed (note: the keyword taxonomy in Table 1.3 groups these under "Transformer / attention-based" because of name tokens). The best explicitly transformer-family result is Mask2Former (SCI-001096, mIoU 0.897, Opuntia cactus vegetation).
+- **Edge-motivated efficient CNNs** (e.g., RPD-Net SCI-001292 mIoU 0.875 with 0.19 M params; MSEA-Net SCI-001334 mIoU 0.874, 6.74 M params, 2.0 ms inference) reach segmentation accuracy comparable to heavy baselines while qualifying for real-time deployment.
 
 ---
 
-## Section 4: Methodological Threats to Validity & Gaps in Prior Art
+## Section 2: Real-Time / On-Device Inference Benchmarking (RQ2)
 
-This systematic review identified three critical methodological deficiencies in the current literature:
-1. **Benchmark Dataset Fragmentation**: **88.4% of published studies (122 / 138)** evaluated exclusively on private, unreleased custom datasets collected over single geographical fields. Public benchmarks (WeedMap: 21.7%, WeedsGalore: 6.5%, SugarBeet2016: 4.3%) are severely underutilized, preventing direct cross-paper statistical meta-analysis.
-2. **Flight Parameter Reporting Omissions**: Over 45% of studies omitted crucial optical flight parameters, such as flight altitude, flight velocity, camera exposure time, or calibrated Ground Sampling Distance (GSD), rendering empirical replication impossible.
-3. **Power Measurement Inconsistencies**: While 24.6% of studies benchmarked edge hardware throughput, only **11.8% measured physical on-device power dissipation** using hardware shunts (e.g., INA219 / INA3221 monitors) or flight battery telemetry. Most studies merely cited manufacturer Thermal Design Power (TDP) ratings, ignoring dynamic power spikes during GPU Tensor Core saturation.
+> **Research Question 2**: *What on-device edge inference performance (FPS, latency, power, model size) is reported for UAV crop/weed segmentation models?*
+
+### 2.1 Reporting Frequency
+
+| Class | N studies | Definition |
+|---|---|---|
+| On-device runtime (FPS/latency/power) | **40 / 94** | reports ≥1 numeric runtime quantity |
+| Of which **true embedded edge** | **15** | measured on Jetson/RK3588/Tinker Board, not desktop |
+| Efficiency-only (params/GFLOPS, no runtime) | 10 | architecture-efficiency but no device timing |
+| Neither | 44 | no edge/throughput reporting |
+
+### 2.2 Device Families (N = 40 runtime studies)
+
+| Family | Count |
+|---|---|
+| Desktop/Server GPU (RTX 3090/4090/3080/V100/T4, etc.) | 11 |
+| Jetson TX2 | 4 |
+| Jetson Nano | 4 |
+| Jetson AGX Xavier | 2 |
+| Jetson Orin / Orin Nano Super | 2 |
+| Cloud GPU (Colab T4) | 2 |
+| CPU | 2 |
+| Jetson Xavier NX | 1 |
+| Rockchip RK3588 (Orange Pi 5+) | 1 |
+| Tinker Board S | 1 |
+| Unknown / not stated | 9 |
+| Other | 1 |
+
+### 2.3 Verified Runtime Distributions
+
+| Quantity | Scope | N | Mean | Median | Range |
+|---|---|---|---|---|---|
+| **FPS** | all | 28 | 96.1 | 30.6 | 1.43 – 1611 |
+| FPS | true edge (N=12) | 12 | 22.0 | 17.05 | 1.43 – 62.5 |
+| FPS | desktop/cloud | 16 | 151.6 | 40.4 | 1.89 – 1611 |
+| **Latency (ms)** | all | 31 | 324 | 40.9 | 0.62 – 6000 |
+| Latency | true edge (N=11) | 11 | 238 | 142.9 | 2.1 – 700 |
+| Latency | desktop/cloud | 20 | 372 | 31.5 | 0.62 – 6000 |
+| **Power (W)** | true edge | 3 | 9.3 | 10.0 | 4.81 – 13.15 |
+| **Params (M)** | all | 34 | 23.0 | 12.8 | 0.19 – 135 |
+| Params | true edge (N=8) | 8 | 7.35 | 3.71 | 0.19 – 17.4 |
+| GFLOPS | all | 21 | 44.9 | 29.7 | 1.0 – 184 |
+
+**Interpretation (descriptive).**
+- True-edge FPS is an order of magnitude below desktop/cloud FPS (median 17 vs 40 FPS), and drops to single digits for large models on Jetson Nano/TX2 (e.g., SCI-000286 3.7 FPS; SCI-000440 1.9 FPS @ 536 ms).
+- The two most energy-detailed edge studies use Jetson Nano/Orin: 4.8 W @ 536 ms (SCI-000440) and 10 W @ 32.7 ms (SCI-000683); the AgriJetsonBench study (SCI-000810) reports 13.15 W at 47.2 FPS on Jetson Orin Nano Super (INT8, matched 15 W budget).
+- **Params are conspicuously lower in the edge subset** (median 3.71 M vs 13.63 M for desktop), confirming efficiency-motivated design (pruning/quantization) is standard for on-device deployment.
+- Precision reporting is sparse: only 13/40 runtime studies state a precision (FP16 mentioned in 5, INT8 in 2, FP32 in 6; overlaps possible).
+
+### 2.4 Notable Individual Edge Results (verified records)
+
+| Study | Device | Precision | FPS | Latency | Params | Notes |
+|---|---|---|---|---|---|---|
+| SCI-000810 | Jetson AGX Orin / Orin Nano Super | INT8 (15 W) | 47.2 | 21.5 ms | 3.71 M | TensorRT, 0.28 J/inf |
+| SCI-000683 | Jetson Nano | (reported) | 30.6 | 32.7 ms | — | 10 W measured |
+| SCI-000669 | Jetson Orin Nano | — | 44.0 | — | — | real-time weed segmentation |
+| SCI-001085 | Rockchip RK3588 (Orange Pi 5+) | INT8 | 62.5 | 16.0 ms | — | 6 TOPS NPU |
+| SCI-000346 | Jetson TX2 | — | 17.1 | 58.7 ms | — | PRC-Net edge deployment |
+| SCI-001292 | Jetson TX2 | — | 7.0 | 142.9 ms | 0.19 M | RPD-Net, 38% of ERFNet params |
+| SCI-000440 | Jetson Nano | — | 1.9 | 536.6 ms | — | 4.8 W measured |
+| SCI-000286 | Jetson Nano | — | 3.7 | 271.3 ms | — | tobacco field |
+| SCI-000852 | Jetson Nano | — | 4.3 | 235 ms | — | SqueezeSlimU-Net |
 
 ---
 
-## Section 5: Grounded Evidence Register (Selected Benchmarks)
+## Section 3: Key Findings & Evidence Gaps
 
-The following table summarizes representative empirical evidence chunks extracted directly from the persistent corpus:
+### 3.1 RQ1 Findings
+1. **mIoU is the standard headline metric** (64/82), with a corpus median of **0.832** and range 0.466–0.983.
+2. **Performance plateau observed but not at ceiling**: many crop-weed studies cluster in the 0.78–0.90 mIoU band (19/45 crop-weed studies with mIoU); only four studies in the whole corpus exceed 0.95 mIoU — three of them crop-weed discrimination studies.
+3. **Transformer/hybrid architectures appear strong on accuracy** in the descriptive comparison (median mIoU 0.856 vs CNN 0.829) but the sample is tiny (6–8 studies) — no inference is warranted.
+4. **Per-class reporting is rare**: only 8 studies report crop_F1 and 5 report weed_F1, yet weed-level F1 is the agronomically critical quantity. Weed_F1 (0.57–0.79) is consistently lower than crop_F1 (0.66–0.95), reflecting the intrinsic difficulty of sparse, varied weeds.
 
-| Workspace ID | Primary Architecture | Dataset & Altitude | mIoU (%) | Hardware Platform | On-Device Throughput | Precision | Grounded Citation Token |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `SCI-000001` | Hybrid Transformer-CNN | WeedsGalore (Multispectral) | 78.9% | Embedded Platform Target | 8.7M Params (~45 FPS) | FP32 / FP16 | `[SCI-000001#abstractef#chk-2025-5da6d7-abstract-efficient-c-03]` |
-| `SCI-000482` | Modified SegNet | WeedMap (Sugarbeet & Maize) | 81.4% (AUC) | Desktop GPU / Offline | Batch Post-Processing | FP32 | `[SCI-000482#43resultss#chk-2018-80f4f9-4-3-results-summary-13]` |
-| `SCI-000683` | Squeeze U-Net / LRASPP | Custom UAV (Cereal Crops) | 79.5% | UAV Embedded Hardware | 32–35 ms Latency (29 FPS)| FP16 | `[SCI-000683#5lraspp#chk-2025-326ce3-lraspp-56]` |
-| `SCI-000754` | AgroVisionNet (Hybrid) | UAV Crop-Weed Multi-Class | 89.8% | UAV Onboard System | Real-time Candidate | FP16 | `[SCI-000754#6resultsan#chk-2025-224f3f-results-and-discussi-56]` |
-| `SCI-000816` | SOTA Baseline Survey | Custom UAV Crop Canopy | 82.4% | NVIDIA Jetson Target | Complexity Analysis | FP32 | `[SCI-000816#46computat#chk-2026-72fd25-computational-comple-66]` |
-| `SCI-000852` | SSU-Net (SqueezeSlimU-Net)| Custom Agricultural UAV | 81.2% | NVIDIA Jetson Nano / TX2 | 14.0 FPS (TX2) / 9.5 FPS (Nano)| INT8 / FP16 | `[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49]` |
-| `SCI-001017` | Residual U-Net (6-Class) | Multi-Weed Potato Fields | 80.2% | NVIDIA A100 (Google Colab)| 58.5 ms / 17 FPS (Patch) | FP32 | `[SCI-001017#3results#chk-2026-66ad20-results-55]` |
-| `SCI-001334` | Comparative Benchmark | SOTA Weed Benchmarks | 83.1% | Edge Hardware Target | Real-Time Evaluated | FP16 | `[SCI-001334#5results#chk-2025-d3a552-results-29]` |
+### 3.2 RQ2 Findings
+1. **Only 15/94 (16%) of studies demonstrate true on-board inference**; 40/94 (43%) report some runtime metric, but a quarter of these are desktop/cloud GPU or unspecified devices.
+2. **True-edge throughput is low but viable**: median 17 FPS on Jetson-family/RK3588/Tinker Board; the best edge results (RK3588 62.5 FPS; Orin Nano Super 47.2 FPS) demonstrate real-time feasibility at INT8.
+3. **Reporting standardization is poor**: precision is stated in under a third of runtime studies; GSD/flight-altitude context and dataset-residualization (train/test splits) are inconsistently documented, hampering cross-study benchmarking.
+
+### 3.3 Evidence Gaps (for protocol revision / future work)
+- **Power/energy**: only 3 studies report measured power — energy-per-inference is almost entirely missing (except SCI-000810).
+- **Standardized evaluation protocol**: no common corpus/split dominates — the most-used benchmark (WeedsGalore) appears in only 4 studies.
+- **Class-imbalanced reporting**: weed_F1/crop_F1 should be mandatory in future protocols where weed discrimination is the research aim.
+- **Precision standardization**: FP16/INT8 deployment conditions should accompany any on-device FPS claim.
 
 ---
 
-## Conclusion & Future Research Roadmap
+## Data Provenance & Reproducibility
 
-This systematic review synthesizes N=138 empirical studies to establish the architectural and hardware benchmarks governing UAV precision agriculture. The findings demonstrate that **Hybrid CNN-Transformer architectures (mIoU = 82.1%) combined with multispectral (NIR/RedEdge) sensing and INT8 TensorCore acceleration on modern edge platforms (Jetson Orin Nano: > 65 FPS)** define the current state of the art. 
+All numeric claims in this review derive programmatically from:
 
-Future research must prioritize:
-1. Universal release of multi-sensor agricultural benchmark datasets with standardized train/val/test splits.
-2. Direct flight integration of Quantization-Aware Training (QAT) to eliminate precision loss on thin-leaf weed classes.
-3. Standardized reporting of empirical in-flight power draw, flight battery degradation, and closed-loop control latency.
+| Source | Location |
+|---|---|
+| Merged canonical extraction | `literature/extraction/merged/records.json` (94 records, per-value quotes) |
+| Descriptive statistics | `synthesis/synthesis_stats.json` (computed by `build_synthesis.py`) |
+| Synthesis matrix (CSV/JSON) | `synthesis/synthesis_matrix.csv`, `synthesis_matrix.json` |
+| PRISMA flow numbers | `literature/prisma_report.json` |
+| Compliance audit | `literature/screening/_audit_combined.json` |
+| Comparison & adjudication | `literature/extraction/compare/`, `literature/extraction/adjudication/` |
+
+No aggregate, percentage, or statistical claim in this document is fabricated; every number either (a) comes directly from a cited merged record, or (b) is recomputable from `records.json`. Any claim of statistical significance is explicitly disclaimed.

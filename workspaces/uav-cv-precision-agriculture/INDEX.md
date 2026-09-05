@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-04 22:52:17 UTC`
+- **Last Updated**: `2026-09-05 12:41:33 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -27,9 +27,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-04 22:52 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-04 22:44 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-04 22:52 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-05 12:41 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-05 12:41 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-05 12:41 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-03 22:14 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-03 22:16 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-04 01:48 | Verified |
@@ -41,13 +41,14 @@
 | `literature/conflict_adjudication_log.md` | Traceable adjudication narrative & dispute ledger | 2026-09-04 00:42 | Adjudicated |
 | `literature/prisma_screening_report.md` | PRISMA flow diagram and systematic screening report | 2026-09-04 10:52 | Generated |
 | `literature/prisma_report.json` | Structured JSON companion to PRISMA flow report | 2026-09-04 10:51 | Generated |
-| `synthesis/literature_review.md` | Synthesis document & literature review draft | 2026-09-04 11:27 | In Progress |
+| `synthesis/literature_review.md` | Synthesis document & literature review draft | 2026-09-05 12:39 | In Progress |
 | `reports/academic_methodology_review_and_phase2_directives.md` | Formal methodology or audit report | 2026-09-04 00:50 | Audited |
 | `reports/discovery_remediation_report_20260903_231630.md` | Formal methodology or audit report | 2026-09-03 22:16 | Audited |
 | `reports/discovery_report_20260903_230800.md` | Formal methodology or audit report | 2026-09-03 22:08 | Audited |
 | `reports/dual_screening_synchronization_report_20260904_014500.md` | Formal methodology or audit report | 2026-09-04 00:42 | Audited |
 | `reports/fulltext_acquisition_and_corpus_finalization_report.md` | Formal methodology or audit report | 2026-09-04 10:52 | Audited |
 | `reports/harness_and_kits_architectural_retrospective_and_improvement_plan.md` | Formal methodology or audit report | 2026-09-04 10:56 | Audited |
+| `reports/phase1_phase2_detailed_report.md` | Formal methodology or audit report | 2026-09-04 23:01 | Audited |
 | `reports/screening_audit_report_20260903_233500.md` | Formal methodology or audit report | 2026-09-03 22:33 | Audited |
 | `pdfs/` | Downloaded Open Access full-text PDF documents (138 files) | Active | Downloaded |
 | `extracted/` | Docling full-text structured Markdown extractions (138 files) | Active | Extracted |
