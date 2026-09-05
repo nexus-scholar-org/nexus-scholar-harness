@@ -1,0 +1,2413 @@
+{
+  "run_metadata": {
+    "script": "phase4/open_science_check.py",
+    "run_date_utc": "2026-09-05T19:25:22.960278+01:00",
+    "scan": "extracted fulltext markdown",
+    "corpus_size": 94,
+    "missing_extractions": []
+  },
+  "summary": {
+    "studies_scanned": 94,
+    "das": {
+      "not-stated": 30,
+      "statement-only": 26,
+      "request-only": 20,
+      "public+link": 17,
+      "explicitly-unavailable": 1
+    },
+    "cas": {
+      "not-stated": 69,
+      "public+link": 18,
+      "statement-only": 7
+    },
+    "both_public_link": 16,
+    "any_das_or_cas_statement": 69,
+    "repo_link_present": 19
+  },
+  "results": [
+    {
+      "workspace_id": "SCI-000001",
+      "title": "Lightweight Multispectral Crop-Weed Segmentation for Precision Agriculture",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000003",
+      "title": "Modular Transformer Architecture for Precision Agriculture Imaging",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000005",
+      "title": "BAWSeg: A UAV Multispectral Benchmark for Barley Weed Segmentation",
+      "year": 2026,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "nd M.I. All authors have read and agreed to the published version of the manuscript. Funding: This research received no external funding. Data Availability Statement: A public preview subset of the underlying multispectral weed-detection dataset is available on IEEE DataPort: Haitian Wang, Xiny"
+        },
+        {
+          "signal": "dataset_available",
+          "pattern": "(?:the\\s+)?dataset\\s+(?:is|are|will\\s+be)\\s+availab\\w+",
+          "snippet": "research received no external funding. Data Availability Statement: A public preview subset of the underlying multispectral weed-detection dataset is available on IEEE DataPort: Haitian Wang, Xinyu Wang, Muhammad Ibrahim, Dustin Severtson, Ajmal Mian, \u201cMultispectral Remote Sensing for Weed Detectio"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000007",
+      "title": "Vision-Language Semantic Grounding for Multi-Domain Crop-Weed Segmentation",
+      "year": 2026,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "o new environments under limited annotation budgets. Table 3 reports class-wise Dice scores across all four target datasets under different data availability regimes. VL-WS maintains strong performance even under minimal supervision. In particular, weed segmentation accuracy re- mains close to th"
+        },
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "and then degrades gradually as the amount of target-domain data is further reduced. Background and crop classes show minimal sensitivity to data availability, with Dice scores consistently exceeding 90% across most settings. Overall, these results demonstrate the data efficiency and cross-domain"
+        },
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "e on computer vision and pattern recognition, pp. 2879\u20132888. Li, Y., Guo, R., Li, R., Ji, R., Wu, M., Chen, D., Han, C., Han, R., Liu, Y., Data availability Ruan, Y., et al., 2025. An improved u-net and attention mechanism-based model for sugar beet and weed segmentation. Frontiers in Plant Sci"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "-intelligence/. accessed: February 9, 2026. Perez, E., Strub, F., De Vries, H., Dumoulin, V., Courville, A., 2018. Film: Data will be made available on request. ## References Arshad, M.A., Jubery, T.Z., Roy, T., Nassiri, R., Singh, A.K., Singh, A., Hegde, C., Ganapathysubramanian, B., Balu, A.,"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "m altitude, with a spatial scale bar provided for reference. 3.1.2. Phenobench Dataset 3.1.1. UAV Soybean Dataset PhenoBench is a large, publicly available dataset and benchmark suite for plant perception under real agricultural field conditions (Weyler et al., 2024). The dataset comprises 2872 high-re"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000010",
+      "title": "Semi-supervised GAN for Classification of Multispectral Imagery Acquired by UAVs",
+      "year": 2019,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000012",
+      "title": "Transferring learned patterns from ground-based field imagery to predict UAV-based imagery for crop and weed semantic segmentation in precision crop farming",
+      "year": 2022,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000013",
+      "title": "Self-supervised training for high-resolution close-range multispectral remote sensing imagery",
+      "year": 2026,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_is_available",
+          "pattern": "(?:the\\s+)?data\\s+(?:is|are|will\\s+be)\\s+availab\\w+",
+          "snippet": "odels consistently outperform scratch-trained models and, in many cases, surpass ImageNet-initialized baselines when only limited labeled data are available (5\u2013 10%). On downstream Task A, MAE-pretrained ViTs and MoCo-v3-pretrained Swin Transformers showed clear advantages at 5\u201325% training sp"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "s used in precision agriculture and forestry. As no Nordic countries were previously represented in the msuav500K dataset due to lack of publicly available data, the combined and extended dataset which is utilized in this research is referred to as 1 msuav500k+N [2]. To evaluate the pretrained mo"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "l detail [9, 10, 27]. In Table I, a summary of the preprocessed image chips of the self- collected dataset is given, with more details in supplementary materials Table A1. E. Downstream task A: WeedMap (MicaSense RedEdge-M). For downstream task A evaluation, we used the publicly available We"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "ale Geospatial Representation Learning,\" 2023 IEEE/CVF International Conference on Computer Vision (ICCV), pp. 4065\u20134076, 2022. 14 IX. Supplementary Material TABLE A1. OVERVIEW OF FLIGHT CAMPAIGN FOR THE SELF-COLLECTED DATASET Cultivated crop type GSD Date Num- ber of imag- e chips O"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000016",
+      "title": "WeedMap: A large-scale semantic weed mapping framework using aerial multispectral imaging and deep neural network for precision farming",
+      "year": 2018,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "pixels composed of 1.39 billion training pixels and 367 million testing pixels (10,196 images). To our best knowledge, this is the largest publicly available dataset for a sugar beet \ufb01eld containing multispectral images and their pixel-level ground truth. Table 4 presents an overview of the training and"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000017",
+      "title": "WeedsGalore: A Multispectral and Multitemporal UAV-based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+      "year": 2025,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "category [22], are such a do- main, for which such automated systems are crucial for fu- ture agricultural practices. There is very limited publicly available data for weed segmentation in general, especially when it comes to UAVs and more advanced sensors be- yond RGB, which contain extra information"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "]. Hence, models that can accurately segment weeds are vital to support and accelerate agricultural research. To tackle the current lack of publicly available datasets for fine-grained weed segmen- tation in maize fields, our dataset WeedsGalore provides images with five bands (red, green, blue (RGB), red"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "thomosaic for each campaign using the software Ag- isoft Metashape [1]. Detailed steps regarding orthomosaic generation are provided in our Supplementary Material. ## 3. The WeedsGalore Dataset We provide a high-resolution UAV dataset for weed segmentation in maize fields. In comparison to existing"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "ppearances) of the two plants, which are both broad-leaf species with very similar appearances. Images of those two species can be found in Supplementary Material. 4.1.2 Instance Segmentation Implementation Details and Evaluation Metrics. We use MaskFormer to provide baseline results for instance se"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "lants per image), which makes the task chal- lenging, especially for small weeds. Qualitative results sup- porting this are provided in the Supplementary Material. Confusion matrices for both cases are shown in Fig. 4 The results for 3-class setting show that 8% of crops are missed (i.e. predicted as"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "ainty for semantic segmentation of crops and weeds [5]. We use predictive entropy as the un- certainty metric, and refer the readers to our Supplementary Material for the theoretical grounds and equations. Implementation Details and Evaluation Metrics. We im- plement a probabilistic version of DeepLab"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "test) patches whereas control areas had full plant cover (i.e. complete weed infestation). Further details on the field are provided in our Supplementary Material. Uncertainty, quantified by predictive entropy, is present at the object borders, a common case in many domains due to annotation artifact"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "23.22% higher than the runner-up, confirming the qualitative results. An equivalent comparison on WeedsGalore test set can be found in the Supplementary Material. The scores confirm that the acquisition mode or crop type alone isn\u2019t sufficient to handle domain shifts, and datasets targeting UAV-based"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "identifi- cation, enhancing the robustness and applicability of UAV- based weed management. The dataset and code are avail- able at https://github.com/GFZ/weedsgalore. > **Figure 1. WeedsGalore dataset. We present a novel reference** > dataset for UAV-based weed monitoring for maize"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/GFZ/weedsgalore",
+          "snippet": "ed weed identifi- cation, enhancing the robustness and applicability of UAV- based weed management. The dataset and code are avail- able at https://github.com/GFZ/weedsgalore. > **Figure 1. WeedsGalore dataset. We present a novel reference** > dataset for UAV-based weed monitoring for maize fields. The dataset"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000040",
+      "title": "DAS-SK: An Adaptive Model Integrating Dual Atrous Separable and Selective Kernel CNN for Agriculture Semantic Segmentation",
+      "year": 2026,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "trong combined representation: Ylogits = Upsample(Y, scale = 2) \u2208RC\u00d716H\u00d716W . (37) X1 = Concat(S, C) \u2208R256\u00d7H\u00d7W (25) The segmentation map can be obtained by applying the Softmax activation function and argmax to Ylogits. Next, the learned features undergo batch normalization and ReLU activat"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "s: dual backbone, an enhanced ASPP module, and a hierarchical decoder network. Their detailed mathematical expressions are presented in the Supplementary Materials. A. The Dual Backbone MobileNetV3-Large (cf. Table II) is used as the main back- bone, which consists of a series of convolution (Conv)"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "e Analysis A comprehensive summary of class-wise IoU scores and model performance bubble charts for all three datasets can be found in the Supplementary Materials. Table VI-VIII re- sults demonstrate that DAS-SK achieves an optimal balance between segmentation accuracy, computational efficiency, and"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "sharper building boundaries and smoother vegetation compared to Ensemble UNet. An additional quantitative visualization is provided in the Supplementary Materials. On the VDD dataset, DAS-SK demonstrates strong alignment with ground-truth labels, effectively delineating complex urban scenes and main-"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "code_is_available",
+          "pattern": "code\\s+(?:is|will\\s+be|has\\s+been)\\s+(?:made\\s+)?availab\\w+",
+          "snippet": "r real-time agricultural robotics and high-resolution remote sensing, with strong potential for broader deployment in other vision domains. Code is available at https://github.com/irene7c/DAS-SK.git. arXiv:2602.08168v1 [cs.CV] 9 Feb 2026 More recently, transformer-based models [12], [13] have"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "tics and high-resolution remote sensing, with strong potential for broader deployment in other vision domains. Code is available at https://github.com/irene7c/DAS-SK.git. arXiv:2602.08168v1 [cs.CV] 9 Feb 2026 More recently, transformer-based models [12], [13] have attracted attenti"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/irene7c/DAS-SK.git",
+          "snippet": "ral robotics and high-resolution remote sensing, with strong potential for broader deployment in other vision domains. Code is available at https://github.com/irene7c/DAS-SK.git. arXiv:2602.08168v1 [cs.CV] 9 Feb 2026 More recently, transformer-based models [12], [13] have attracted attention for their ability to"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000067",
+      "title": "RoWeeder: Unsupervised Weed Mapping through Crop-Row Detection",
+      "year": 2024,
+      "das": "not-stated",
+      "cas": "statement-only",
+      "data_signals": [],
+      "code_signals": [
+        {
+          "signal": "code_is_available",
+          "pattern": "code\\s+(?:is|will\\s+be|has\\s+been)\\s+(?:made\\s+)?availab\\w+",
+          "snippet": "g RoWeeder with drone technology, farmers can conduct real-time aerial surveys, enabling pre- cise weed management across large fields. The code is available at: https: //github.com/pasqualedem/RoWeeder. 1 Keywords: Precision Agriculture, Crop-Row Detection, Weed Mapping, Deep Learning, UAVs 1"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "y, farmers can conduct real-time aerial surveys, enabling pre- cise weed management across large fields. The code is available at: https: //github.com/pasqualedem/RoWeeder. 1 Keywords: Precision Agriculture, Crop-Row Detection, Weed Mapping, Deep Learning, UAVs 1 Introduction Agricu"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000074",
+      "title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+      "year": 2026,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000075",
+      "title": "Weed Instance Segmentation from UAV ortho-mosaic Images based on Deep Learning",
+      "year": 2024,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made 9 Data availability statement The data supporting the conclusions of this article will be made available on the public repository. 10 Funding The author(s)"
+        },
+        {
+          "signal": "repository_kw",
+          "pattern": "(?:public|online|open)\\s+repositor\\w+",
+          "snippet": "in perpetuity. It is made 9 Data availability statement The data supporting the conclusions of this article will be made available on the public repository. 10 Funding The author(s) declare financial support was received for the research, authorship, and/or publication of this article. This"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000083",
+      "title": "A U-Net Improved Version for Crop and Weed Segmentation from Aerial Images",
+      "year": 2026,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ed version of the manuscript. Funding: This research received no external funding. Institutional Review Board Statement: Not applicable. Data Availability Statement: The original contributions presented in this study are included in the article. The corrected dataset variant and the test split"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000084",
+      "title": "Crop and Weed Classication Using Pixel-wise Segmentation on Ground and Aerial Images",
+      "year": 2020,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "oder seg- mentation network to e ciently estimate crop/weeds local statistics. Quantita- tive experimental results, obtained using multiple publicly available datasets, demonstrate the e\u001bectiveness of the proposed approaches. 40 M. Fawakherji et al. Keywords: Precision agriculture; crop/weed classi cati"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "ture. Section 3 describes the details of the proposed method, while Section 4 shows both qualitative and quantita- tive results obtained on publicly available data. Finally, conclusions are drawn in Section 5. 2 Related Work The problem of vision based crop and weeds classi cation has been addressed"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000089",
+      "title": "Semi-supervised Learning for Weed and Crop Segmentation Using UAV Imagery",
+      "year": 2022,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "possible extensions of this work could be designing a lightweight model by reducing the parameters and increasing the inference speed. DATA AVAILABILITY STATEMENT The original contributions presented in the study are included in the article/supplementary material, further inquiries can be"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "text consistency during training, making the representations robust to the varying environment. Comparative experiments are conducted on a publicly available dataset. The results show the SemiWeedNet outperforms the state-of-the-art methods, and its components have promising potential in improving segm"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "ropblock, universal function approximation block, attention block, and spatial pyramid refined block. The performance of the model on two publicly available datasets is better than the state-of-art segmentation methods. However, all of the above-mentioned methods adopt fully supervised semantic segme"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "tion. Dataset To evaluate the effectiveness of the proposed semi-supervised learning segmentation method for crop/weed mapping, we use a publicly available dataset WeedMap (Sa et al., 2018) to conduct experiments. This dataset is collected from two sugar fields in Switzerland and Germany using two UA"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "ncreasing the inference speed. DATA AVAILABILITY STATEMENT The original contributions presented in the study are included in the article/supplementary material, further inquiries can be directed to the corresponding author. ## CONCLUSION AND FUTURE WORK In this paper, we focus on addressing th"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000091",
+      "title": "Weed\u2013Crop Segmentation in Drone Images with a Novel Encoder\u2013Decoder Framework Enhanced via Attention Modules",
+      "year": 2023,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "n, A.L. All authors have read and agreed to the published version of the manuscript. Funding: This research received no external funding. Data Availability Statement: Data use in this work can be accessed from https://\ufb01gshare.com/ articles/dataset (accessed on 1 September 2023). Con\ufb02icts of In"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "mploying a consistent learning rate of 0.01. 4.1. Dataset In this study, the performance of the proposed framework is assessed by using a publicly available dataset called the rice-weed dataset. The dataset was curated by Huang et al. [23] and was collected at the Zengcheng Teaching and Research Bases,"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "lished version of the manuscript. Funding: This research received no external funding. Data Availability Statement: Data use in this work can be accessed from https://\ufb01gshare.com/ articles/dataset (accessed on 1 September 2023). Con\ufb02icts of Interest: The authors have no con\ufb02ict of interest."
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000092",
+      "title": "A DNN-based semantic segmentation for detecting weed and crop",
+      "year": 2020,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "tter. arXiv preprint arXiv:1506.04579. Long, J., Shelhamer, E., Darrell, T., 2015. Fully convolutional networks for semantic Appendix A. Supplementary material segmentation, in. In: Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pp. 3431\u20133440. Lottes, P., Behley,"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "on and Pattern Recognition, pp. 3431\u20133440. Lottes, P., Behley, J., Chebrolu, N., Milioto, A., Stachniss, C., 2018a. Joint stem detection Supplementary data associated with this article can be found online at https://github.com/kehuantiantang/A-DNN-based-Semantic-Segmentation- for-Detecting-We"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "stems (IROS). IEEE, pp. 8233\u20138238. Lottes, P., Behley, J., Chebrolu, N., Milioto, A., Stachniss, C., 2020. Robust joint stem Appendix B. Supplementary material detection and crop-weed classification using image sequences for plant-specific treatment in precision farming. J. Field Robot. 37, 20\u201334"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "n precision farming. J. Field Robot. 37, 20\u201334. Lottes, P., Hoeferlin, M., Sander, S., M\u00fcter, M., Schulze, P., Stachniss, L.C., 2018b. An Supplementary data associated with this article can be found, in the online version, at https://doi.org/10.1016/j.compag.2020.105750. effective classificati"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "., Milioto, A., Stachniss, C., 2018a. Joint stem detection Supplementary data associated with this article can be found online at https://github.com/kehuantiantang/A-DNN-based-Semantic-Segmentation- for-Detecting-Weed-and-Crop. and crop-weed classification for plant-specific treatm"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/kehuantiantang/A-DNN-based-Semantic-Segmentation-",
+          "snippet": "brolu, N., Milioto, A., Stachniss, C., 2018a. Joint stem detection Supplementary data associated with this article can be found online at https://github.com/kehuantiantang/A-DNN-based-Semantic-Segmentation- for-Detecting-Weed-and-Crop. and crop-weed classification for plant-specific treatment in precision farming. In: 2018 IEEE/RSJ Internati"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000129",
+      "title": "Multispectral image fusion and attention-driven deep learning for precision weed segmentation and classification in UAV-based agricultural monitoring",
+      "year": 2026,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "g. Funding This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors. Data availability The dataset used in this research is author-collected. Due to field-site restrictions, it cannot be made publicly available, but it can b"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "aset used in this research is author-collected. Due to field-site restrictions, it cannot be made publicly available, but it can be shared upon reasonable request to the corresponding author. Declarations Ethical approval All applicable institutional and/or national guidelines for the care and use"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "all UAV flights, multispec\u00ad tral image acquisitions, and ground-truth annotations were conducted exclusively by the research team, and no publicly available datasets were used. Data gathering is done using a DJI Phantom 3 Pro UAV with a MicaSense RedEdge multispectral camera attached, capable of takin"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000136",
+      "title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+      "year": 2020,
+      "das": "not-stated",
+      "cas": "public+link",
+      "data_signals": [],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "saic. The other 7 \u201cFs\u201d are the result of augmentation process. Below the horizontal line, an example using a real image is shown. 1https://github.com/matterport/Mask RCNN/blob/master/samples/shapes/ train shapes.ipynb 486 Authorized licensed use limited to: Consortium - Algeria (CER"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": ". 3, pp. 2971\u20132990, mar 2015. [15] W. Abdulla, \u201cMask R-CNN for object detection and instance segmentation on Keras and TensorFlow,\u201d https://github.com/matterport/Mask RCNN, 2017. [16] S. P. Mohanty, \u201cCrowdAI Mapping Challenge 2018 : Baseline with The present research enhances the unde"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "g but not limited to intelligent herbicide patch spraying, crop counting and statistical analysis of weed infestation. Mask RCNN,\u201d https://github.com/crowdai/crowdai-mapping-challenge- mask-rcnn, 2018. [17] K. He, X. Zhang, S. Ren, and J. Sun, \u201cDeep Residual Learning for Image Recogn"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/matterport/Mask",
+          "snippet": "orthomosaic. The other 7 \u201cFs\u201d are the result of augmentation process. Below the horizontal line, an example using a real image is shown. 1https://github.com/matterport/Mask RCNN/blob/master/samples/shapes/ train shapes.ipynb 486 Authorized licensed use limited to: Consortium - Algeria (CERIST). Downloaded on"
+        },
+        {
+          "url": "https://github.com/matterport/Mask",
+          "snippet": "l. 7, no. 3, pp. 2971\u20132990, mar 2015. [15] W. Abdulla, \u201cMask R-CNN for object detection and instance segmentation on Keras and TensorFlow,\u201d https://github.com/matterport/Mask RCNN, 2017. [16] S. P. Mohanty, \u201cCrowdAI Mapping Challenge 2018 : Baseline with The present research enhances the understanding of how par"
+        },
+        {
+          "url": "https://github.com/crowdai/crowdai-mapping-challenge-",
+          "snippet": "including but not limited to intelligent herbicide patch spraying, crop counting and statistical analysis of weed infestation. Mask RCNN,\u201d https://github.com/crowdai/crowdai-mapping-challenge- mask-rcnn, 2018. [17] K. He, X. Zhang, S. Ren, and J. Sun, \u201cDeep Residual Learning for Image Recognition,\u201d dec 2015. [18] J. Deng, W. Dong"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000138",
+      "title": "Crop and Weed Segmentation Using ResNet-Unet Architecture",
+      "year": 2024,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000145",
+      "title": "Towards automated weed detection through two-stage semantic segmentation of tobacco and weed pixels in aerial Imagery",
+      "year": 2023,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "1\u20136, https://doi. org/10.1109/ETCM.2017.8247469. [4] B. Espejo-Garcia, N. Mylonas, L. Athanasakos, S. Fountas, I. Vasilakoglou, Towards Data Availability weeds identification assistance through transfer learning, Computers and Electronics in Agriculture 171 (2020), https://doi.org/10.1016/j"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "i.org/10.1016/j. compag.2020.105306. [5] J.S. Holt, Principles of Weed Management in Agroecosystems and Wildlands, in: Data will be made available on request. Invasive Weed Symposium 18, 2004. https://www.jstor.org/stable/3989691?se q=1&cid=pdf. [6] N. Iqbal, S. Manalil, B.S. Chauhan, S.W. Adk"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000149",
+      "title": "WeedVision: A single-stage deep learning architecture to perform weed detection and segmentation using drone-acquired images",
+      "year": 2024,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "omous-ma chines/embedded-systems/jetson-xavier-series/. ONNX, 2017. Open neural network exchange: The open standard for machine learning Data availability interoperability. Accessed on: 21st Feb., 2024. URL: https://onnx.ai/. Park, H., Yoo, Y., Seo, G., Han, D., Yun, S., Kwak, N., 2018. C3:"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "21st Feb., 2024. URL: https://onnx.ai/. Park, H., Yoo, Y., Seo, G., Han, D., Yun, S., Kwak, N., 2018. C3: Concentrated- Data will be made available on request. comprehensive convolution and its application to semantic segmentation. arXiv preprint arXiv:1812.04920. Rai, N., Zhang, Y., Ram, B.G.,"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000160",
+      "title": "From barley to rapeseed: few-shot fine-tuning of semantic segmentation models for weed detection using UAV multispectral imagery",
+      "year": 2026,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "he authors 701 reviewed and edited the content as needed and takes full responsibility for the final 702 content of the publication. 703 Data Availability Statement 704 The multispectral UAV imagery and processed patch datasets generated during this 705 study have been deposited in the Mende"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "our_code",
+          "pattern": "our\\s+code\\b",
+          "snippet": "ecause the 304 reference annotations were generated by targeted polygon digitisation rather than 305 exhaustive pixel-level labelling. Colour code: green = crop, red = weed, brown = soil. 306 3.4. Spatial validation in an independent barley field 307 The U-Net model retrained using t"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "be made publicly accessible upon 708 approval. The code used for model training, evaluation, and fine-tuning is available in a 709 public GitHub repository at (https://github.com/patitostyle/weed-detection-barley- 710 rapeseed). All data and code are shared under open licenses to en"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "on 708 approval. The code used for model training, evaluation, and fine-tuning is available in a 709 public GitHub repository at (https://github.com/patitostyle/weed-detection-barley- 710 rapeseed). All data and code are shared under open licenses to ensure reproducibility 711 and"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/patitostyle/weed-detection-barley-",
+          "snippet": "sible upon 708 approval. The code used for model training, evaluation, and fine-tuning is available in a 709 public GitHub repository at (https://github.com/patitostyle/weed-detection-barley- 710 rapeseed). All data and code are shared under open licenses to ensure reproducibility 711 and transparency. 712 References 713 Adhi"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000180",
+      "title": "CWRepViT-Net: An encoder-decoder deep learning framework with RepViT blocks for crop weed semantic segmentation in soybean fields through their life journey",
+      "year": 2025,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "e images, Remote Sens. (Basel) 15 (5) (2023) 1232. [16] E. Gothai, P. Natesan, S. Aishwariya, T.B. Aarthy, G.B. Singh, Weed identification Data availability using convolutional neural network and convolutional neural network architectures, in: 2020 Fourth International Conference on Computing"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "ation (ICCMC), 2020, pp. 958\u2013965. [17] P. Gregoire, J.D. Rosset, R.H. Gulden, Volunteer Brassica napus (L.) interference Data will be made available on request. ## References with soybean [Glycine max (L.) Merr.]: management thresholds, plant growth, and seed return, Can. J. Plant Sci. 101 (4)"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "arated volunteer canola and soybean effec\u00ad tively even when their leaves are highly overlapping. These two labeled datasets are accessible upon request to the cor\u00ad responding author for research purposes in the field of AI-based preci\u00ad sion agriculture. CRediT authorship contribution state"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000203",
+      "title": "Improved weed segmentation in UAV imagery of sorghum fields with a combined deblurring segmentation model",
+      "year": 2023,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "availability_of_data",
+          "pattern": "availab\\w+\\s+of\\s+(?:the\\s+)?data",
+          "snippet": "s research could also be integrated into agricultural robots to deal with motion blur on the fly, which is the subject of another study. Availability of data and materials All data, annotations and code is publicly available on GitHub under https://\u200b github.\u200bcom/\u200bgrimm\u200blab/\u200bDeBlu\u200brWeed\u200bSeg and M"
+        },
+        {
+          "signal": "data_is_available",
+          "pattern": "(?:the\\s+)?data\\s+(?:is|are|will\\s+be)\\s+availab\\w+",
+          "snippet": "ion blur due to the interdependence of flight speed and shutter speed. achieve sufficient segmentation results even when little training data is available [15\u201317]. UNet uses skip connec- tions between the encoder and decoder to link informa- tion from the encoder and decoder layers. In genera"
+        },
+        {
+          "signal": "data_is_available",
+          "pattern": "(?:the\\s+)?data\\s+(?:is|are|will\\s+be)\\s+availab\\w+",
+          "snippet": "d hyperparameter optimization The performance of a model is highly sensitive to the hyperparameter configuration, especially when limited data are available. Therefore, hyperparameter opti- mization is a crucial step to select the best model. In Page 6 of 12 Genze et al. Plant Methods"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "nned aerial vehicle PSNR \u0007Peak signal to noise ratio SSIM \u0007Structural Similarity Index LPIPS \u0007Learned perceptual image patch similarity Supplementary Information The online version contains supplementary material available at https://\u200bdoi.\u200b org/\u200b10.\u200b1186/\u200bs13007-\u200b023-\u200b01060-8. Additional file 1. Da"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "SIM \u0007Structural Similarity Index LPIPS \u0007Learned perceptual image patch similarity Supplementary Information The online version contains supplementary material available at https://\u200bdoi.\u200b org/\u200b10.\u200b1186/\u200bs13007-\u200b023-\u200b01060-8. Additional file 1. Dataset Statistics. Additional file 2. Results of hyp"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "our_code",
+          "pattern": "our\\s+code\\b",
+          "snippet": "53] using the packages numpy [54], pandas [55], pytorch [56], scikit-image [57], scikit-learn [58], albumentations [59] and kornia [60]. Our code is publicly available on GitHub.2 All experiments were conducted under Ubuntu 20.04 LTS on a machine with 104 CPU cores, 756 GB of memor"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ata, containing blurry- sharp image pairs, as well as the corresponding expert generated semantic segmentation masks are published in our GitHub repository together with the code and the pre-trained segmentation models: https://github.com/ grimmlab/DeBlurWeedSeg. The final model is"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "emantic segmentation masks are published in our GitHub repository together with the code and the pre-trained segmentation models: https://github.com/ grimmlab/DeBlurWeedSeg. The final model is available at Mendeley Data: https://\u200bdata.\u200bmende\u200bley.\u200bcom/\u200bdatas\u200bets/\u200b k4gvs\u200bjv4t3/1. In"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "pandas [55], pytorch [56], scikit-image [57], scikit-learn [58], albumentations [59] and kornia [60]. Our code is publicly available on GitHub.2 All experiments were conducted under Ubuntu 20.04 LTS on a machine with 104 CPU cores, 756 GB of memory, and four NVIDIA GeForce RTX 30"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ameter set for each feature extrac- tor in Table 2. In summary, the ResNet-50 encoder (2) DS = 2 \u00b7 TP 2 \u00b7 TP + FP + FN . ## 2 https://\u200bgithub.\u200bcom/\u200bgrimm\u200blab/\u200bDeBlu\u200brWeed\u200bSeg. Page 7 of 12 Genze et al. Plant Methods (2023) 19:87 Fig. 3 Qualitative examples of the debl"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "e fly, which is the subject of another study. Availability of data and materials All data, annotations and code is publicly available on GitHub under https://\u200b github.\u200bcom/\u200bgrimm\u200blab/\u200bDeBlu\u200brWeed\u200bSeg and Mendeley Data under https://\u200b data.\u200bmende\u200bley.\u200bcom/\u200bdatas\u200bets/\u200bk4gvs\u200bjv4t3/1."
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "bject of another study. Availability of data and materials All data, annotations and code is publicly available on GitHub under https://\u200b github.\u200bcom/\u200bgrimm\u200blab/\u200bDeBlu\u200brWeed\u200bSeg and Mendeley Data under https://\u200b data.\u200bmende\u200bley.\u200bcom/\u200bdatas\u200bets/\u200bk4gvs\u200bjv4t3/1. Declarations ## Concl"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/",
+          "snippet": "erated semantic segmentation masks are published in our GitHub repository together with the code and the pre-trained segmentation models: https://github.com/ grimmlab/DeBlurWeedSeg. The final model is available at Mendeley Data: https://\u200bdata.\u200bmende\u200bley.\u200bcom/\u200bdatas\u200bets/\u200b k4gvs\u200bjv4t3/1. In this"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000225",
+      "title": "Adapting Vision-Language Models for Precision Agriculture: A Study on Crop Segmentation based on UAV Remote Sensing Data",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000271",
+      "title": "Crop Segmentation of Unmanned Aerial Vehicle Imagery Using Edge Enhancement Network",
+      "year": 2024,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "and refines the representation of edge details during the generation phase. To facilitate the evaluation of our method, we have produced a publicly available dataset for exper- imentation. Our results, as demonstrated on this self-constructed dataset, illustrate that our proposed approach surpasses compe"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "ns and the number of convolutional layers to greatly reduce the number of model parameters while maintaining accuracy. Third, we produced a publicly available dataset that can be used for crop segmentation tasks, and categorized rice, sesame, corn, ground, and other (indistin- guishable and unknown plant"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000286",
+      "title": "Real-Time Weed Segmentation in Tobacco Crops Utilizing Deep Learning on a Jetson Nano",
+      "year": 2024,
+      "das": "explicitly-unavailable",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000346",
+      "title": "Unmanned aerial vehicle-based weed segmentation from multispectral imagery in an edge computing environment",
+      "year": 2026,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "\u23a5\u23a5\u23a5\u23a5\u23a5\u23a5\u23a6 Transposed Conv Layer \u2212 \u2212 \u2212 40 \u00d7 40 \u00d7 1024 40 \u00d7 40 \u00d7 256 Concatenation (fccab,ftr) \u2212 \u2212 \u2212 40 \u00d7 40 \u00d7 3240 \u00d7 40 \u00d7 256 40 \u00d7 40 \u00d7 288 Data availability Hu, X.-Z., Jeon, W.-S., Rhee, S.-Y., 2022. Sugar Beets and Weed Detection using Semantic Segmentation, in: 2022 International Conference"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "a progressive receptive-field context-aware network (PRC-Net). Our experimental code with trained model weights is publicly accessible on GitHub (Irfan, 2025) for a fair comparison. The key contributions of the study are: - Owing to the limitations of conventional convolutional neu"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": ", Van Der Maaten, L., & Weinberger, K. Q. (2017). Densely Connected The data supporting the findings of this study are available from the GitHub Repository (https://github.com/MuhammadIrfan92/PRC_Net). Convolutional Networks. In 2017 IEEE Conference on Computer Vision and Pattern R"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "nberger, K. Q. (2017). Densely Connected The data supporting the findings of this study are available from the GitHub Repository (https://github.com/MuhammadIrfan92/PRC_Net). Convolutional Networks. In 2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR). Presente"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/MuhammadIrfan92/PRC_Net",
+          "snippet": "., & Weinberger, K. Q. (2017). Densely Connected The data supporting the findings of this study are available from the GitHub Repository (https://github.com/MuhammadIrfan92/PRC_Net). Convolutional Networks. In 2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR). Presented at the 2017 IEEE Conferenc"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000371",
+      "title": "ResLMFFNet: a real-time semantic segmentation network for precision agriculture",
+      "year": 2024,
+      "das": "statement-only",
+      "cas": "statement-only",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ted to the manuscript. Funding Open access funding provided by the Scientific and Techno- logical Research Council of T\u00fcrkiye (T\u00dcB\u0130TAK). Data availability Source code is available on GitHub: https://\u200bgithub.\u200b com/\u200biremu\u200blku/\u200bSeman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Declaratio"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "source_code_available",
+          "pattern": "source\\s+code\\s+(?:is|will\\s+be|has\\s+been)\\s+availab\\w+",
+          "snippet": "ese remarkable accuracy levels involves maintaining almost identical inference time and computational complexity as the LMFFNet model. The source code is available on GitHub: https://\u200bgithub.\u200bcom/\u200biremu\u200blku/\u200b Seman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Keywords Real-time semantic segment"
+        },
+        {
+          "signal": "source_code_available",
+          "pattern": "source\\s+code\\s+(?:is|will\\s+be|has\\s+been)\\s+availab\\w+",
+          "snippet": "pt. Funding Open access funding provided by the Scientific and Techno- logical Research Council of T\u00fcrkiye (T\u00dcB\u0130TAK). Data availability Source code is available on GitHub: https://\u200bgithub.\u200b com/\u200biremu\u200blku/\u200bSeman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Declaration Conflict of interest T"
+        },
+        {
+          "signal": "code_is_available",
+          "pattern": "code\\s+(?:is|will\\s+be|has\\s+been)\\s+(?:made\\s+)?availab\\w+",
+          "snippet": "arkable accuracy levels involves maintaining almost identical inference time and computational complexity as the LMFFNet model. The source code is available on GitHub: https://\u200bgithub.\u200bcom/\u200biremu\u200blku/\u200b Seman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Keywords Real-time semantic segment"
+        },
+        {
+          "signal": "code_is_available",
+          "pattern": "code\\s+(?:is|will\\s+be|has\\s+been)\\s+(?:made\\s+)?availab\\w+",
+          "snippet": "nding Open access funding provided by the Scientific and Techno- logical Research Council of T\u00fcrkiye (T\u00dcB\u0130TAK). Data availability Source code is available on GitHub: https://\u200bgithub.\u200b com/\u200biremu\u200blku/\u200bSeman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Declaration Conflict of interest T"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ls involves maintaining almost identical inference time and computational complexity as the LMFFNet model. The source code is available on GitHub: https://\u200bgithub.\u200bcom/\u200biremu\u200blku/\u200b Seman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Keywords Real-time semantic segmentation \u00b7 Re"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "aining almost identical inference time and computational complexity as the LMFFNet model. The source code is available on GitHub: https://\u200bgithub.\u200bcom/\u200biremu\u200blku/\u200b Seman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Keywords Real-time semantic segmentation \u00b7 Remote sensing \u00b7 Pr"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "nding provided by the Scientific and Techno- logical Research Council of T\u00fcrkiye (T\u00dcB\u0130TAK). Data availability Source code is available on GitHub: https://\u200bgithub.\u200b com/\u200biremu\u200blku/\u200bSeman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Declaration Conflict of interest The authors"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "the Scientific and Techno- logical Research Council of T\u00fcrkiye (T\u00dcB\u0130TAK). Data availability Source code is available on GitHub: https://\u200bgithub.\u200b com/\u200biremu\u200blku/\u200bSeman\u200btic-\u200bSegme\u200bntati\u200bon-\u200bin-\u200bPreci\u200bsion-\u200bAgric\u200bulture. Declaration Conflict of interest The authors declare that the"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000440",
+      "title": "On-Edge Weed Detection Using Unmanned Aerial Vehicles",
+      "year": 2024,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "g an Enhanced Super Resolution GAN (ESRGAN) but at the cost of higher memory footprint. Additionally, NIR estimations from similar fields can be obtained to derive more weed sensitive indices. ## 5. CRediT authorship contribution statement Diaa Addeen Abuhani: Methodology, Software, Valida"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000482",
+      "title": "Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops in UAV Images",
+      "year": 2018,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000483",
+      "title": "AgriSegNet: Deep Aerial Semantic Segmentation Framework for IoT-Assisted Precision Agriculture",
+      "year": 2021,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000488",
+      "title": "Deep Learning-Based Weed Detection Using UAV Images: A Comparative Study",
+      "year": 2023,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "T.B.S. All authors have read and agreed to the published version of the manuscript. Funding: This research received no external funding. Data Availability Statement: The data used in this study are made public by [45] and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "23] evaluated the performance of various deep learning methods such as Faster RCNN [25], YOLO [26] and CenterNet [27] for weed detection on publicly available datasets. Additionally, Fathipoor et al. [24] experimented with UNet and its variation for weed segmentation using ground-based RGB images. They ac"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "it provided an accuracy of 90.50% and an IoU score of 95.90% for weed segmentation. ## 3. Materials and Methods 3.1. Dataset We used a publicly available dataset [45], which consists of 201 RGB images acquired with DJI Phantom Pro 4 from a cotton \ufb01eld in Greece by Krestenitsi et al. [45]. The cotton"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "Funding: This research received no external funding. Data Availability Statement: The data used in this study are made public by [45] and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "ade public by [45] and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/dahalsweekar/Deep-Weed-Segmentation (accessed on 22 September 2023). Con\ufb02icts of Interest: The authors declare no co"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/dahalsweekar/Deep-Weed-Segmentation (accessed on 22 September 2023). Con\ufb02icts of Interest: The authors declare no con\ufb02ict of interest."
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "Intell. 2017, 39, 2481\u20132495. [CrossRef] [PubMed] 53. Kezmann, J.M. Tensor\ufb02ow Advanced Segmentation Models. 2020. Available online: https://github.com/JanMarcelKezmann/ TensorFlow-Advanced-Segmentation-Models (accessed on 15 June, 2023). 54. Neven, R.; Goedem\u00e9, T. A multi-branch U-Net"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "man, F.; Qian, C.; Jin, H.; Gardener, T.; Watson, M.; Lee, T.; de Marmiesse, G.; Zabluda, O.; et al. Keras. 2015. Available online: https://github.com/keras-team/keras (accessed on 1 July 2023). 57. Bisong, E. Building Machine Learning and Deep Learning Models on Google Cloud Platform;"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://zenodo.org/record/6697343",
+          "snippet": "arch received no external funding. Data Availability Statement: The data used in this study are made public by [45] and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/dahalsweekar/Deep-Weed-Segmentation ("
+        },
+        {
+          "url": "https://github.com/dahalsweekar/Deep-Weed-Segmentation",
+          "snippet": "and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/dahalsweekar/Deep-Weed-Segmentation (accessed on 22 September 2023). Con\ufb02icts of Interest: The authors declare no con\ufb02ict of interest. Abbreviations The following abbreviat"
+        },
+        {
+          "url": "https://github.com/JanMarcelKezmann/",
+          "snippet": "l. Mach. Intell. 2017, 39, 2481\u20132495. [CrossRef] [PubMed] 53. Kezmann, J.M. Tensor\ufb02ow Advanced Segmentation Models. 2020. Available online: https://github.com/JanMarcelKezmann/ TensorFlow-Advanced-Segmentation-Models (accessed on 15 June, 2023). 54. Neven, R.; Goedem\u00e9, T. A multi-branch U-Net for steel surface defe"
+        },
+        {
+          "url": "https://github.com/keras-team/keras",
+          "snippet": ".S.; Rahman, F.; Qian, C.; Jin, H.; Gardener, T.; Watson, M.; Lee, T.; de Marmiesse, G.; Zabluda, O.; et al. Keras. 2015. Available online: https://github.com/keras-team/keras (accessed on 1 July 2023). 57. Bisong, E. Building Machine Learning and Deep Learning Models on Google Cloud Platform; Springer: Berlin/Hei"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000489",
+      "title": "Cross-domain transfer learning for weed segmentation and mapping in precision farming using ground and UAV images",
+      "year": 2023,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "2\u2013324. https:// doi.org/10.1007/s11263-008-0202-0 Kr\u00a8ahenb\u00fchl, P., & Koltun, V. (2011). Efficient Inference in Fully Connected CRFs with Data availability Gaussian Edge Potentials. In J. Shawe-Taylor, R. S. Zemel, P. L. Bartlett, F. Pereira, & K. Q. Weinberger (Eds.), Advances in Neural Info"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "d-crfs-with-gaussian-edge-potentials.pdf. Lauwers, M., Nuyttens, D., De Cauwer, B., & Pieters, J. (2022). Hyperspectral Data will be made available on request. Acknowledgement classification of poisonous solanaceous weeds in processing Phaseolus vulgaris L. and Spinacia oleracea L. Computers an"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ype AF-S-NIKKOR 18\u2013140 mm Sony E 35 mm F 1.8 OSS Shutter time 1/800 s 1/2000 s ISO 1600 320 GSD ___ 1.78 mm/pixel ## 1 https://github.com/JunfengGaolab/weed-mapping-with-cross-domain-lear ning-/tree/master. 3 J. Gao et al. Expert Systems With Applications 246 (2024) 12"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/JunfengGaolab/weed-mapping-with-cross-domain-lear",
+          "snippet": "Lens type AF-S-NIKKOR 18\u2013140 mm Sony E 35 mm F 1.8 OSS Shutter time 1/800 s 1/2000 s ISO 1600 320 GSD ___ 1.78 mm/pixel ## 1 https://github.com/JunfengGaolab/weed-mapping-with-cross-domain-lear ning-/tree/master. 3 J. Gao et al. Expert Systems With Applications 246 (2024) 122980 Fig. 1. Field and UAV experiments data collectio"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000492",
+      "title": "Semantic Segmentation Using Deep Learning with Vegetation Indices for Rice Lodging Identification in Multi-date UAV Visible Images",
+      "year": 2020,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000501",
+      "title": "Deep learning-based early weed segmentation using motion blurred UAV images of sorghum fields",
+      "year": 2022,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "weed management in arable crops? Weed Res. 58 (4), 259\u2013272. Fisher, Yu, Vladlen Koltun, 2016. Multi-Scale Context Aggregation by Dilated Data availability The generated and labeled dataset and the code for our proposed machine learning\u2013based model can be found on Mendeley data https://doi.o"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "ta acquisition and annotation One downside of CNNs is the amount of data needed for general\u00ad ization (Sun et al., 2017). There are several publicly available datasets for weed detection, as summarized in a recent review (Lu and Young, 2020). However, most of these datasets were collected using high- r"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": ". Consent for publication. Not applicable. Competing interests. The authors declare that they have no competing interests. Appendix A. Supplementary data Supplementary data to this article can be found online at https://doi. org/10.1016/j.compag.2022.107388. ## 4. Conclusion In this stud"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "cation. Not applicable. Competing interests. The authors declare that they have no competing interests. Appendix A. Supplementary data Supplementary data to this article can be found online at https://doi. org/10.1016/j.compag.2022.107388. ## 4. Conclusion In this study we present a machi"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ntrast to existing research. All data, including the newly generated and annotated UAV imagery dataset, and code is publicly available on GitHub: https://github.com/grimmlab/UAVWeedSegmentation and Mendeley Data: https://doi. org/10.17632/4hh45vkp38.4. Abbreviations: SSWM, Sit"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "g research. All data, including the newly generated and annotated UAV imagery dataset, and code is publicly available on GitHub: https://github.com/grimmlab/UAVWeedSegmentation and Mendeley Data: https://doi. org/10.17632/4hh45vkp38.4. Abbreviations: SSWM, Site Specific Weed M"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "be applicable to captures of different image quality. The complete dataset and code are publicly available on Mendeley- Data1 and in our GitHub repository.2 In our study, we observed a discrepancy between evaluation metrics and a qualitative assessment of the actual predictions. T"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ion models. UNet was only slightly better than DeepLabv3+ and FCN-8s with dilated ## 1 https://doi.org/10.17632/4hh45vkp38.4. 2 https://github.com/grimmlab/UAVWeedSegmentation. 8 N. Genze et al. Computers and Electronics in Agriculture 202 (2022) 107388 suggest that it might be"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ataset and the code for our proposed machine learning\u2013based model can be found on Mendeley data https://doi.org/10.17632/4hh45vkp38.4 and GitHub: https://github. com/grimmlab/UAVWeedSegmentation. Convolutions. In: Yoshua Bengio, Yann LeCun (Eds.). 4th International Conference on L"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ode for our proposed machine learning\u2013based model can be found on Mendeley data https://doi.org/10.17632/4hh45vkp38.4 and GitHub: https://github. com/grimmlab/UAVWeedSegmentation. Convolutions. In: Yoshua Bengio, Yann LeCun (Eds.). 4th International Conference on Learning Represen"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/grimmlab/UAVWeedSegmentation",
+          "snippet": "existing research. All data, including the newly generated and annotated UAV imagery dataset, and code is publicly available on GitHub: https://github.com/grimmlab/UAVWeedSegmentation and Mendeley Data: https://doi. org/10.17632/4hh45vkp38.4. Abbreviations: SSWM, Site Specific Weed Management; ML, Machine Learning;"
+        },
+        {
+          "url": "https://github.com/grimmlab/UAVWeedSegmentation",
+          "snippet": "egmentation models. UNet was only slightly better than DeepLabv3+ and FCN-8s with dilated ## 1 https://doi.org/10.17632/4hh45vkp38.4. 2 https://github.com/grimmlab/UAVWeedSegmentation. 8 N. Genze et al. Computers and Electronics in Agriculture 202 (2022) 107388 suggest that it might be necessary to fine-tuning our mode"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000505",
+      "title": "Deep Learning-Driven Automatic Segmentation of Weeds and Crops in UAV Imagery",
+      "year": 2025,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "semantic segmentation models in this study. The annotated dataset has been made publicly available, and the access link is provided in the Data Availability section. 2.4. Super-Resolution Reconstruction > **Figure 1 presents the workflow of the deep convolution network-based SRR techniques**"
+        },
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ING Program, Grant Number: JPMJSP2108. Institutional Review Board Statement: Not applicable. Informed Consent Statement: Not applicable. Data Availability Statement: Data will be made available on request. Acknowledgments: The authors thank Jiaqi Wang (Graduate School of Frontier Sciences, Th"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "tional Review Board Statement: Not applicable. Informed Consent Statement: Not applicable. Data Availability Statement: Data will be made available on request. Acknowledgments: The authors thank Jiaqi Wang (Graduate School of Frontier Sciences, The University of Tokyo) and Yulun Chen (Department"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000514",
+      "title": "A fully convolutional network for weed mapping of unmanned aerial vehicle (UAV) imagery",
+      "year": 2018,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "cense, which permits unrestricted use, distribution, and reproduction in any medium, provided the original author and source are credited. Data Availability Statement: Data available from the Figshare Repository (DOIs: 10.6084/m9. figshare.5739669), and the URLs is: https:// figshare.com/article"
+        },
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "cted use, distribution, and reproduction in any medium, provided the original author and source are credited. Data Availability Statement: Data available from the Figshare Repository (DOIs: 10.6084/m9. figshare.5739669), and the URLs is: https:// figshare.com/articles/The_dataset_of_the_ manu"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000547",
+      "title": "A Semantic Labeling Approach for Accurate Weed Mapping of High Resolution UAV Imagery",
+      "year": 2018,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000548",
+      "title": "A Field Weed Density Evaluation Method Based on UAV Imaging and Modified U-Net",
+      "year": 2021,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "eview Board Statement: Not applicable. Informed Consent Statement: Informed consent was obtained from all subjects involved in the study. Data Availability Statement: The data presented in this study are available on request from the corresponding author. The data are not publicly available due"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": ": Informed consent was obtained from all subjects involved in the study. Data Availability Statement: The data presented in this study are available on request from the corresponding author. The data are not publicly available due to [A more in-depth study of the relevant data is underway and some"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "to use the minimum error method to calculate the segmentation threshold. It can be seen from the graph that the minimum segmentation error can be obtained at the intersection of normal \ufb01tting curves. However, there were still some errors, because the two curves overlap. The threshold value of"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000555",
+      "title": "Adaptive autonomous UAV scouting for rice lodging assessment using edge computing with deep learning EDANet",
+      "year": 2020,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000565",
+      "title": "Lightweight Semantic Segmentation Network for Real-Time Weed Mapping Using Unmanned Aerial Vehicles",
+      "year": 2020,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "ctly used as references for accurate spraying tasks. For an FCN, input data can be images of arbitrary size and a corresponding output size can be obtained through e\ufb00ective inference. An FCN transforms all fully-connected layers into convolutional layers. In this form, the spatial information o"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000570",
+      "title": "Use of synthetic images for training a deep learning model for weed detection and biomass estimation in cotton",
+      "year": 2022,
+      "das": "request-only",
+      "cas": "statement-only",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ed densities and growth stages. More training samples should be used in training GAN to fully harness its potential and improve accuracy. Data availability That dataset used and/or analyzed during the current study are available from the corresponding author on reasonable request. Authors conf"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "GAN to fully harness its potential and improve accuracy. Data availability That dataset used and/or analyzed during the current study are available from the corresponding author on reasonable request. Authors confirm that the plants were not purchased/gifted from any source. Received: 12 July 2022; Accepted: 31 Oc"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "e generator. The model was trained with 50 instances of each class using the official TensorFlow implementation code provided in (https://\u200bgithub.\u200bcom/\u200bNVlabs/\u200bstyle\u200b gan2-\u200bada). The training samples were subjected to an on-the-fly augmentation process to increase the sample size. A"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "con- tains the object of \u00adinterest22. Detectron2-a PyTorch-based modular object detection \u00adlibrary23 written in Python language (https://\u200bgithub.\u200bcom/\u200bfaceb\u200bookre\u200bsearch/\u200bdetec\u200btron2), was used to implement Mask R-CNN in this study. A pre-trained model provided by the repository was"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "rg/\u200b10.\u200b48550/\u200barXiv.\u200b1703.\u200b06870 (2017). 23. Wu, Y., Kirillov, A., Massa, F., Lo, W.-Y. & Girshick, R. \"Detectron2\", [online]. https://\u200bgithub.\u200bcom/\u200bfaceb\u200bookre\u200bsearch/\u200bdetec\u200btron2 (2019). 24. He, K., Zhang, X., Ren, S. & Sun, J. Deep residual learning for image recognition. arX"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000582",
+      "title": "Accurate Weed Mapping and Prescription Map Generation Based on Fully Convolutional Networks Using UAV Imagery",
+      "year": 2018,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "in an end-to-end mode, which shows great potential for the weed mapping of UAV imagery. However, no related study on weed mapping using FCN can be accessed, except for the work of [21,22]. In these works, semantic labeling approaches were directly applied on the collected UAV imagery. The exper"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000618",
+      "title": "Detection and Counting of Maize Leaves Based on Two-Stage Deep Learning with UAV-Based RGB Image",
+      "year": 2022,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "2019ZD024), and the Science and technology development plan project of Jilin Province (grant numbers YDZJ202201ZYTS544 and 20200403176SF). Data Availability Statement: Not applicable. Acknowledgments: The authors would like to acknowledge the anonymous reviewers for valuable comments and member"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "e superposition of two deep learning methods can reduce the amount of information processed, and more accurate and detailed object features can be obtained. Liu et al. [42] developed an integrated CNN- based method for estimating the severity of apple Alternaria leaf blotch in complex \ufb01eld cond"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "images with 640 \u00d7 640 pixels. The training set, validation set, and test set were created according to the ratio of 7:2:1. LabelMe (https://github.com/wkentaro/labelme, accessed on 20 August 2021) [43] was used to label the boundary points of complete maize seedlings in the dataset and"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "gust 2021) [43] was used to label the boundary points of complete maize seedlings in the dataset and generated JSON \ufb01les. LabelImg (https://github.com/tzutalin/labelImg, accessed on 1 February 2022) [44] was used to label the maize leaves after instance segmentation, and the XML \ufb01les w"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ings and leaves detection with the deep learning method. The steps were divided into two stages. In the \ufb01rst stage, the Mask R-CNN (https://github.com/open-mmlab/mmdetection, accessed on 4 January 2022) [45] was used to generate complete maize seedlings masks with the JSON \ufb01les annotat"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "d from the complex background by the bitwise operation (&) of the binary mask with the original image. In the second stage, YOLOv5 (https://github.com/ultralytics/yolov5/tree/v6.0, accessed on 28 February 2022) [46] was used to detect and count the leaves with the XML \ufb01le annotated by"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "Alternaria Leaf Blotch Disease of the Apple Tree. Remote Sens. 2022, 14, 2519. [CrossRef] 43. Wkentaro, Labelme. Available online: https://github.com/wkentaro/labelme (accessed on 20 August 2021). 44. Tzutalin. LabelImg. Available online: https://github.com/tzutalin/labelImg (accessed"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "elme. Available online: https://github.com/wkentaro/labelme (accessed on 20 August 2021). 44. Tzutalin. LabelImg. Available online: https://github.com/tzutalin/labelImg (accessed on 1 February 2022). 45. MMDetection Contributors. OpenMMLab Detection Toolbox and Benchmark [Computer Soft"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "n 1 February 2022). 45. MMDetection Contributors. OpenMMLab Detection Toolbox and Benchmark [Computer Software]. Available online: https: //github.com/open-mmlab/mmdetection (accessed on 4 January 2022). 46. Ultralytics. YOLOv5. Available online: https://github.com/ultralytics/yolov5/t"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ailable online: https: //github.com/open-mmlab/mmdetection (accessed on 4 January 2022). 46. Ultralytics. YOLOv5. Available online: https://github.com/ultralytics/yolov5/tree/v6.0 (accessed on 28 February 2022). 47. He, K.M.; Gkioxari, G.; Dollar, P.; Girshick, R. Mask R-CNN. IEEE Tran"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/wkentaro/labelme",
+          "snippet": "to 1005 images with 640 \u00d7 640 pixels. The training set, validation set, and test set were created according to the ratio of 7:2:1. LabelMe (https://github.com/wkentaro/labelme, accessed on 20 August 2021) [43] was used to label the boundary points of complete maize seedlings in the dataset and generated JSON \ufb01les."
+        },
+        {
+          "url": "https://github.com/tzutalin/labelImg",
+          "snippet": "on 20 August 2021) [43] was used to label the boundary points of complete maize seedlings in the dataset and generated JSON \ufb01les. LabelImg (https://github.com/tzutalin/labelImg, accessed on 1 February 2022) [44] was used to label the maize leaves after instance segmentation, and the XML \ufb01les were generated. The clas"
+        },
+        {
+          "url": "https://github.com/open-mmlab/mmdetection",
+          "snippet": "ze seedlings and leaves detection with the deep learning method. The steps were divided into two stages. In the \ufb01rst stage, the Mask R-CNN (https://github.com/open-mmlab/mmdetection, accessed on 4 January 2022) [45] was used to generate complete maize seedlings masks with the JSON \ufb01les annotated by LabelMe. When the maiz"
+        },
+        {
+          "url": "https://github.com/ultralytics/yolov5/tree/v6.0",
+          "snippet": "extracted from the complex background by the bitwise operation (&) of the binary mask with the original image. In the second stage, YOLOv5 (https://github.com/ultralytics/yolov5/tree/v6.0, accessed on 28 February 2022) [46] was used to detect and count the leaves with the XML \ufb01le annotated by LabelImg as inputs. > **Figure 2"
+        },
+        {
+          "url": "https://github.com/wkentaro/labelme",
+          "snippet": "erity of Alternaria Leaf Blotch Disease of the Apple Tree. Remote Sens. 2022, 14, 2519. [CrossRef] 43. Wkentaro, Labelme. Available online: https://github.com/wkentaro/labelme (accessed on 20 August 2021). 44. Tzutalin. LabelImg. Available online: https://github.com/tzutalin/labelImg (accessed on 1 February 2022)."
+        },
+        {
+          "url": "https://github.com/tzutalin/labelImg",
+          "snippet": "aro, Labelme. Available online: https://github.com/wkentaro/labelme (accessed on 20 August 2021). 44. Tzutalin. LabelImg. Available online: https://github.com/tzutalin/labelImg (accessed on 1 February 2022). 45. MMDetection Contributors. OpenMMLab Detection Toolbox and Benchmark [Computer Software]. Available onlin"
+        },
+        {
+          "url": "https://github.com/ultralytics/yolov5/tree/v6.0",
+          "snippet": "are]. Available online: https: //github.com/open-mmlab/mmdetection (accessed on 4 January 2022). 46. Ultralytics. YOLOv5. Available online: https://github.com/ultralytics/yolov5/tree/v6.0 (accessed on 28 February 2022). 47. He, K.M.; Gkioxari, G.; Dollar, P.; Girshick, R. Mask R-CNN. IEEE Trans. Pattern Anal. Mach. Intell. 20"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000624",
+      "title": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+      "year": 2022,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "2s, and 64.5% of SegNet. In future research, we will incorporate crop geometry constraints to the model to improve classi\ufb01cation accuracy. DATA AVAILABILITY STATEMENT The original contributions presented in the study are included in the article/supplementary material, further inquiries can be d"
+        },
+        {
+          "signal": "dataset_available",
+          "pattern": "(?:the\\s+)?dataset\\s+(?:is|are|will\\s+be)\\s+availab\\w+",
+          "snippet": "it this single orthomosic into 60 images for the training purpose. An image example is demonstrated in Figure 6. The Sugar Cane Orthomosaic dataset is available via http://www.lapix.ufsc.br/weed- mapping-sugar-cane. IMPLEMENTATION AND RESULTS The research implemented and compared the four deep lea"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "improve classi\ufb01cation accuracy. DATA AVAILABILITY STATEMENT The original contributions presented in the study are included in the article/supplementary material, further inquiries can be directed to the corresponding author. AUTHOR CONTRIBUTIONS In terms of the dataset, the study results con\ufb01rmed"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "GURE 6 | Sample training images of sugarcane dataset. (A) training image; (B) annotated image. agriculture and is available through http://github.com/cw\ufb01d; more details on the data collection can be found in Haug and Ostermann, 2014. background, crops (162 samples), and weeds (332 sa"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "http://github.com/cw\ufb01d",
+          "snippet": "ge. FIGURE 6 | Sample training images of sugarcane dataset. (A) training image; (B) annotated image. agriculture and is available through http://github.com/cw\ufb01d; more details on the data collection can be found in Haug and Ostermann, 2014. background, crops (162 samples), and weeds (332 samples). An"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000637",
+      "title": "UAV-based intelligent weed detection using YOLO11 and PSPNet for precision agriculture",
+      "year": 2025,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "availability_of_data",
+          "pattern": "availab\\w+\\s+of\\s+(?:the\\s+)?data",
+          "snippet": "s/Writing - original draft: R.C, S.R, V.M; and Writing - review & editing: R.C, V.M. All authors read and approved the final manuscript. Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials https://universe."
+        },
+        {
+          "signal": "availability_of_data",
+          "pattern": "availab\\w+\\s+of\\s+(?:the\\s+)?data",
+          "snippet": "R, V.M; and Writing - review & editing: R.C, V.M. All authors read and approved the final manuscript. Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials https://universe.roboflow.com/jeho/weed-lkwvk/"
+        },
+        {
+          "signal": "availability_of_data",
+          "pattern": "availab\\w+\\s+of\\s+(?:the\\s+)?data",
+          "snippet": "ting: R.C, V.M. All authors read and approved the final manuscript. Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials https://universe.roboflow.com/jeho/weed-lkwvk/ Acknowledgements Acknowledgements"
+        },
+        {
+          "signal": "availability_of_data",
+          "pattern": "availab\\w+\\s+of\\s+(?:the\\s+)?data",
+          "snippet": "nd approved the final manuscript. Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials Availability of Data and Materials https://universe.roboflow.com/jeho/weed-lkwvk/ Acknowledgements Acknowledgements Acknowledgements Acknowledgements"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000650",
+      "title": "Harnessing UAVs and deep learning for accurate grass weed detection in wheat fields: a study on biomass and yield implications",
+      "year": 2024,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "and Technology in Jiangsu, China (CX(22)3112) and National Natural Science Foundation of China (32172110, 31701355, 31771711, 31671615). Data availability Data will be made available on request. The method proposed in our study can realize the monitoring of the occurrence of weeds in wheat f"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "X(22)3112) and National Natural Science Foundation of China (32172110, 31701355, 31771711, 31671615). Data availability Data will be made available on request. The method proposed in our study can realize the monitoring of the occurrence of weeds in wheat fields, but there is still no better wa"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000669",
+      "title": "Towards real-time weed detection and segmentation with lightweight CNN models on edge devices",
+      "year": 2025,
+      "das": "public+link",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "under AFRI Foundational and Applied Science Program of the United States Department of Agriculture (USDA award No. 2021-67021- 34412). Data availability ## 5. Conclusion Data will be made available on request. In this study, we successfully developed and deployed four light\u00ad weight CNN O"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "the United States Department of Agriculture (USDA award No. 2021-67021- 34412). Data availability ## 5. Conclusion Data will be made available on request. In this study, we successfully developed and deployed four light\u00ad weight CNN OD and SS models on resource-constrained edge devices, i. e"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": [
+        {
+          "url": "https://huggingface.co/Ultralyti",
+          "snippet": "nal SAR Symposium (CISS), pp. 1\u20133. https://doi.org/10.23919/ CISS51089.2021.9652277. Ultralytics, 2023. Ultralytics/yolov8 . Hugging Face. https://huggingface.co/Ultralyti weed detection and segmentation using drone-acquired images. Comput. Electron. Agric. 219. https://doi.org/10.1016/j.compag.2024.108792."
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000683",
+      "title": "A Low-Cost UAV System and Dataset for Real-Time Weed Detection in Salad Crops",
+      "year": 2025,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "Smart4All 3rd FTTE grant \u201cAgriAdapt\u201d. Institutional Review Board Statement: Not applicable. Informed Consent Statement: Not applicable. Data Availability Statement: The original data presented in the study are openly available in https://gitlab.fri.uni-lj.si/lrk/agriadapt-electronics (accesse"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "oard UAV operation. Despite these advances, important gaps remain. First, leafy vegetables and salad crops are notably underrepresented in publicly available datasets, even though they are highly sensitive to weed competition and critical for fresh food supply chains. Second, few datasets explicitly repo"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "eeds, collected under real field conditions during two flights over different locations in Rome, Italy. To our knowledge, this is the first publicly available dataset focused specifically on weed detection in salad crops from UAV imagery. Beyond serving as the basis for our own evaluation, this dataset pr"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000708",
+      "title": "Drone-Aided Detection of Weeds: Transfer Learning for Embedded Image Processing",
+      "year": 2022,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "dataset_available",
+          "pattern": "(?:the\\s+)?dataset\\s+(?:is|are|will\\s+be)\\s+availab\\w+",
+          "snippet": "of training, validation, and testing samples, where we included both labeled orthophotos together with a paired crop suitable for training. The dataset is available at www.x.com.4 C. Neural Network Architectures In this study, we do not provide extensive experiments with neural network architectures,"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "2ODM\u2014a command line toolkit to generate maps, point clouds, 3-D models, and DEMs from drone, balloon, or kite images. Available at https://github.com/ OpenDroneMap/ODM. 106 IEEE JOURNAL OF SELECTED TOPICS IN APPLIED EARTH OBSERVATIONS AND REMOTE SENSING, VOL. 16, 2023 learn the segm"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/",
+          "snippet": "venient 2ODM\u2014a command line toolkit to generate maps, point clouds, 3-D models, and DEMs from drone, balloon, or kite images. Available at https://github.com/ OpenDroneMap/ODM. 106 IEEE JOURNAL OF SELECTED TOPICS IN APPLIED EARTH OBSERVATIONS AND REMOTE SENSING, VOL. 16, 2023 learn the segmentat"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000754",
+      "title": "Integrating Convolutional, Transformer, and Graph Neural Networks for Precision Agriculture and Food Security",
+      "year": 2025,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "M.A.C. All authors have read and agreed to the published version of the manuscript. Funding: This research received no external funding. Data Availability Statement: The data presented in this research is publicly available. Conflicts of Interest: The authors declare no conflicts of interest."
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000810",
+      "title": "AgriJetsonBench: External-Power-Referenced TensorRT Benchmarking of Agricultural Vision Models on Jetson Edge Platforms",
+      "year": 2026,
+      "das": "request-only",
+      "cas": "statement-only",
+      "data_signals": [
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "ilability 016/j.compag.2023.108420. The data and code that support the findings of this study are available from the corresponding author upon reasonable request. Chen, L.C., Zhu, Y., Papandreou, G., Schroff, F., Adam, H., 2018. Encoder-decoder with atrous separable convolution for semantic image s"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "2023.108420, doi:10.1 Data and code availability 016/j.compag.2023.108420. The data and code that support the findings of this study are available from the corresponding author upon reasonable request. Chen, L.C., Zhu, Y., Papandreou, G., Schroff, F., Adam, H., 2018. Encoder-decoder with atrous separable convolut"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "code_avail_kw",
+          "pattern": "code\\s+availab\\w*",
+          "snippet": "g on the edge. Computers and Electronics in Agriculture 215, 108420. URL: https: //doi.org/10.1016/j.compag.2023.108420, doi:10.1 Data and code availability 016/j.compag.2023.108420. The data and code that support the findings of this study are available from the corresponding author upon reas"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000816",
+      "title": "Deblurring-aware semantic segmentation of crops and weeds in UAV sorghum imagery via a UNet-ResNet architecture",
+      "year": 2026,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "g approaches that leverage abun- dant unlabeled imagery or coarse image-level labels represent promising directions for scaling up training data availability. Additionally, synthetic data generation through procedural modeling or domain randomization has been explored as a means of aug- menting l"
+        },
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ined model weights for the NAFNet deblurring front-end and the proposed UNet\u2013ResNet34 segmentation network are provided as release assets. Data Availability. The imagery (paired sharp/blurred patches with three-class masks: background, crop/sorghum, and weed) is the publicly available DeBlurWeed"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "code_avail_kw",
+          "pattern": "code\\s+availab\\w*",
+          "snippet": "e complete training and evaluation code, the exact software versions, and the random seed are released to support full reproducibility (see Code Availability). To evaluate the effectiveness of the proposed UNet-ResNet segmentation frame- work, we conduct comparative experiments using four ResNet"
+        },
+        {
+          "signal": "code_avail_kw",
+          "pattern": "code\\s+availab\\w*",
+          "snippet": "t tests, and the corresponding field documentation\u2014to empirically validate the computational-feasibility analysis presented in this paper. Code Availability. The complete training and evaluation code for the UNet\u2013 ResNet segmentation framework and the NAFNet restoration-aware pipeline\u2014 including"
+        },
+        {
+          "signal": "code_avail_kw",
+          "pattern": "code\\s+availab\\w*",
+          "snippet": "edSeg. The train/validation/test splits used in this study are released together with the source code in the Zenodo repository listed under Code Availability. Acknowledgements. During the preparation of this manuscript, the authors used ChatGPT (OpenAI, GPT-5) for the purposes of language refine"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "EPTED MANUSCRIPT ARTICLE IN PRESS a Zenodo repository at https://doi.org/10.5281/zenodo.20680100. The same code is additionally hosted on GitHub at https://github.com/happyeveryday8882026/ deblurring-aware-crop-weed-segmentation, where the pre-trained model weights for the NAFNet deb"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ARTICLE IN PRESS a Zenodo repository at https://doi.org/10.5281/zenodo.20680100. The same code is additionally hosted on GitHub at https://github.com/happyeveryday8882026/ deblurring-aware-crop-weed-segmentation, where the pre-trained model weights for the NAFNet deblurring front-end"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "dataset of Genze et al. [34], openly accessible via the Mendeley Data reposi- tory at https://doi.org/10.17632/k4gvsjv4t3.1 and at https://github.com/grimmlab/ DeBlurWeedSeg. The train/validation/test splits used in this study are released together with the source code in the Zenodo r"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://doi.org/10.5281/zenodo.20680100",
+          "snippet": "ported results\u2014is released under the MIT License and permanently archived in ACCEPTED MANUSCRIPT ARTICLE IN PRESS a Zenodo repository at https://doi.org/10.5281/zenodo.20680100. The same code is additionally hosted on GitHub at https://github.com/happyeveryday8882026/ deblurring-aware-crop-weed-segmentation, where t"
+        },
+        {
+          "url": "https://github.com/happyeveryday8882026/",
+          "snippet": "SCRIPT ARTICLE IN PRESS a Zenodo repository at https://doi.org/10.5281/zenodo.20680100. The same code is additionally hosted on GitHub at https://github.com/happyeveryday8882026/ deblurring-aware-crop-weed-segmentation, where the pre-trained model weights for the NAFNet deblurring front-end and the proposed UNet\u2013ResN"
+        },
+        {
+          "url": "https://github.com/grimmlab/",
+          "snippet": "rWeedSeg dataset of Genze et al. [34], openly accessible via the Mendeley Data reposi- tory at https://doi.org/10.17632/k4gvsjv4t3.1 and at https://github.com/grimmlab/ DeBlurWeedSeg. The train/validation/test splits used in this study are released together with the source code in the Zenodo repository list"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-000852",
+      "title": "SqueezeSlimU-Net: An Adaptive and Efficient Segmentation Architecture for Real-Time UAV Weed Detection",
+      "year": 2025,
+      "das": "statement-only",
+      "cas": "statement-only",
+      "data_signals": [
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "contextual demands. 1) Datasets: We evaluate the performance of the SSU-Net on a weed detection task using real-world UAV imagery from two publicly available datasets: the AgriAdapt weed detection dataset [27] and the Tobacco Aerial Dataset [28]. Weed detection is a notoriously challenging task as it inv"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "100%) model, and the 75%, 50%, and 25% pruned neural models, respectively. (a) SSU-Net. (b) SU-Net. to better understand the tradeoff that can be obtained using each compression method. Figs. 9 and 11 summarize the seg- mentation performance comparison between the slimmed and the pruned versio"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "mbedded/jetson-nano-developer-kit [31] M. S. Inc., \u201cMonsoon solutions high voltage power monitor,\u201d 2015. [Online]. Available: http://msoon.github.io/powermonitor/HVPM.html [32] A. Schuler and G. Anderst-Kotsis, \u201cExamining the Energy Impact of Sorting Algorithms on Android: An Empiric"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000878",
+      "title": "Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images.",
+      "year": 2026,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "h System (CARS-04-PS30) and the Natural Science Foundation of Henan (252300423600). Institutional Review Board Statement: Not applicable. Data Availability Statement: The annotated image dataset, dataset partition files, source code, and other data supporting the findings of this study are avai"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "set, dataset partition files, source code, and other data supporting the findings of this study are available from the corresponding author upon reasonable request (wanglele@henau.edu.cn). Acknowledgments: The authors thank the anonymous reviewers for providing critical comments and suggestions that i"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "lity Statement: The annotated image dataset, dataset partition files, source code, and other data supporting the findings of this study are available from the corresponding author upon reasonable request (wanglele@henau.edu.cn). Acknowledgments: The authors thank the anonymous reviewers for providing critical comment"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000881",
+      "title": "Class imbalance aware deep semantic segmentation framework for weed and tobacco crops in UAV imagery.",
+      "year": 2026,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "duct that may be evaluated in this article, or claim that may be made by its manufacturer, is not guaranteed or endorsed by the publisher. Data availability statement The original contributions presented in the study are included in the article/supplementary material, further inquiries can be d"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "d or endorsed by the publisher. Data availability statement The original contributions presented in the study are included in the article/supplementary material, further inquiries can be directed to the corresponding authors. ## References Al-Samarai, G. F., Mahdi, W. M., and Al-Hilali, B. M. (20"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000890",
+      "title": "A dataset of aligned RGB and multispectral UAV imagery for semantic segmentation of weedy rice.",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000898",
+      "title": "DM_CorrMatch: a semi-supervised semantic segmentation framework for rapeseed flower coverage estimation using UAV imagery.",
+      "year": 2025,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "/pixel, ensuring high accuracy while also reducing data acquisition time. This provides a valuable reference for future data collection. Data availability The dataset and code used in this study are not publicly available but can be accessed upon reasonable request by contacting the correspon"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "ence for future data collection. Data availability The dataset and code used in this study are not publicly available but can be accessed upon reasonable request by contacting the corresponding author. ## Conclusion This paper presents the DM_CorrMatch framework for monitoring rapeseed flower cov"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "a valuable reference for future data collection. Data availability The dataset and code used in this study are not publicly available but can be accessed upon reasonable request by contacting the corresponding author. ## Conclusion This paper presents the DM_CorrMatch framework for monito"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000903",
+      "title": "Research on Segmentation Method of Maize Seedling Plant Instances Based on UAV Multispectral Remote Sensing Images.",
+      "year": 2024,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "undation of China (U1304402, 41977284) and Laboratory of Mine Spatio-Temporal Information and Ecological Restoration, MNR (No. KLM202310). Data Availability Statement: The data presented in this study are available on request from the corresponding author. The data are not publicly available due"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "io-Temporal Information and Ecological Restoration, MNR (No. KLM202310). Data Availability Statement: The data presented in this study are available on request from the corresponding author. The data are not publicly available due to privacy. Con\ufb02icts of Interest: The authors declare no con\ufb02icts o"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000962",
+      "title": "Lightweight Deep Learning Models for High-Precision Rice Seedling Segmentation from UAV-Based Multispectral Images.",
+      "year": 2023,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ms (UAS) and supervised learning techniques. Remote Sens. 2018;10(2):343. 15. Su W, Jiang K, Yan A, Liu Z, Zhang M, Wang W. Monitoring Data Availability The data used to support the findings of this study are available from the corresponding author upon request. Supplementary Materials Fi"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "M, Wang W. Monitoring Data Availability The data used to support the findings of this study are available from the corresponding author upon request. Supplementary Materials Fig. S1 Tables S1 to S3 of planted lines for breeding corn using UAV remote sensing image. Nongye Gongc Xuebao"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "15. Su W, Jiang K, Yan A, Liu Z, Zhang M, Wang W. Monitoring Data Availability The data used to support the findings of this study are available from the corresponding author upon request. Supplementary Materials Fig. S1 Tables S1 to S3 of planted lines for breeding corn using UAV remote sensing image. Nongye"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "itoring Data Availability The data used to support the findings of this study are available from the corresponding author upon request. Supplementary Materials Fig. S1 Tables S1 to S3 of planted lines for breeding corn using UAV remote sensing image. Nongye Gongc Xuebao/Trans Chin Soc Agric Eng"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000968",
+      "title": "Accurate Wheat Lodging Extraction from Multi-Channel UAV Images Using a Lightweight Network Model.",
+      "year": 2021,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "(SKLTOF20200116), Innovation and Entrepreneurship Training Program for College Students of Anhui Agricultural University (S202010364235). Data Availability Statement: Restrictions apply to the availability of these data. Data were obtained from the Smart Agriculture Research Institute of Anhui"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "o the availability of these data. Data were obtained from the Smart Agriculture Research Institute of Anhui Agricultural University and are available from the authors with the permission of the Smart Agriculture Research Institute. Acknowledgments: We would like to thank Yuan Gao, Haiyang Xia and Zhiwei"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000980",
+      "title": "Deep Learning for Brassica Oleracea Instance Segmentation in UAV Imagery",
+      "year": 2024,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-000981",
+      "title": "Research on Buckwheat Weed Recognition in Multispectral UAV Images Based on MSU-Net",
+      "year": 2025,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "Applied Basic Research Youth Project (No. 202203021212428 and No. 202203021212414). Institutional Review Board Statement: Not applicable. Data Availability Statement: All data needed to evaluate the conclusions in this paper is present in the paper. Further inquiries can be directed to the corr"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "itzerland) was used to generate orthophoto maps. After image stitching, calibration, and slicing operations, visualized images of each band can be obtained. Figure 3 shows the multispectral sample images obtained from the same plot; Figure 3a\u2013e are grayscale images of the R, G, B, NIR, and REdg"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001005",
+      "title": "Applying Knowledge Distillation to Improve Weed Mapping with Drones",
+      "year": 2023,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001017",
+      "title": "Multi-Class Weed Quantification Based on U-Net Convolutional Neural Networks Using UAV Imagery",
+      "year": 2026,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "49 Appl. Sci. 2026, 16, 3149 22 of 27 Institutional Review Board Statement: Not applicable. Informed Consent Statement: Not applicable. Data Availability Statement: Datasets used in this study were made publicly available for comparison purposes and can be found at the following link: https:/"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "veral UAV-based datasets have been published for crops such as soybean, maize, rice, wheat, lettuce, and sugar beet [48,50\u201361]. However, no publicly available dataset currently focuses on potato crops acquired by UAVs under real \ufb01eld conditions. Furthermore, existing datasets rarely include native weed s"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "IoU re\ufb02ects an average of overlaps that does not penalize accumulated excesses or de\ufb01cits as much if the local overlap is good. A high IoU can be obtained if the main areas of the weed are correctly segmented, but the model adds additional pixels (false positives) or excludes peripheral areas"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ulti-class weed segmentation in potato crops, including annotated masks for native weed species. The dataset is accessible through a public GitHub repository, enabling comparative evaluation and reuse by the research community. This contribution addresses the current lack of open datas"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "Statement: Datasets used in this study were made publicly available for comparison purposes and can be found at the following link: https://github.com/JorgePazos- git/Dataset-of-weeds-in-potato-crops-in-the-province-of-Carchi-and-Imbabura-in- (last accessed 8 December 2025). Acknowled"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/JorgePazos-",
+          "snippet": "ability Statement: Datasets used in this study were made publicly available for comparison purposes and can be found at the following link: https://github.com/JorgePazos- git/Dataset-of-weeds-in-potato-crops-in-the-province-of-Carchi-and-Imbabura-in- (last accessed 8 December 2025). Acknowledgments: This res"
+        },
+        {
+          "url": "https://zenodo.org/records/5119205",
+          "snippet": "taset on UAV High-Resolution Images from Grassland with Broad-Leaved Dock (Rumex Obtusifolius). [Data Set]. Zenodo. 2021. Available online: https://zenodo.org/records/5119205 (accessed on 25 February 2026). 51. Dos Santos Ferreira, A. Data for: Weed Detection in Soybean Crops Using ConvNets. Comput. Electron. Agr"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-001023",
+      "title": "AgriFusion: Multiscale RGB-NIR Fusion for Semantic Segmentation in Airborne Agricultural Imagery",
+      "year": 2025,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "diting. All authors have read and agreed to the published version of the manuscript. Funding: This research received no external funding. Data Availability Statement: The data that support the findings of this study are available from the corresponding author upon reasonable request. Acknowled"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "xternal funding. Data Availability Statement: The data that support the findings of this study are available from the corresponding author upon reasonable request. Acknowledgments: The authors acknowledge the Minnesota Supercomputing Institute (MSI) at the University of Minnesota for providing resour"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "t. Funding: This research received no external funding. Data Availability Statement: The data that support the findings of this study are available from the corresponding author upon reasonable request. Acknowledgments: The authors acknowledge the Minnesota Supercomputing Institute (MSI) at the University of Minnes"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001029",
+      "title": "Enhancing sustainable Chinese cabbage production: a comparative analysis of multispectral image instance segmentation techniques",
+      "year": 2024,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "-CNN, PointRend, RTMDet, YOLOv5-Seg, Frontiers in Sustainable Food Systems 16 frontiersin.org Yuan et al.\b 10.3389/fsufs.2024.1433701 Data availability statement YOLOv6-Seg, and YOLO11-Seg by 4.1, 5.2, 2.2, 8.2, 0.4, 1.0, and 2.7%, respectively. Although YOLOv6-Seg performed relatively w"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001046",
+      "title": "Implementing Innovative Weed Detection Techniques for Environmental Sustainability",
+      "year": 2024,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001053",
+      "title": "Deep Learning for Weed Detection and Segmentation in Agricultural Crops Using Images Captured by an Unmanned Aerial Vehicle",
+      "year": 2024,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ACIV\u2014Associa\u00e7\u00e3o para o Desenvolvimento da Engenharia Civil\u2014Portugal; and internal funding from the Goiano Federal Institute\u2014Campus Ceres. Data Availability Statement: The datasets analyzed for this study can be found in the manuscript. Other data presented in this study are available on request"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": ". Data Availability Statement: The datasets analyzed for this study can be found in the manuscript. Other data presented in this study are available on request from the first author. Acknowledgments: We would like to thank the Cerrado Irrigation Graduate Program and the Laborat\u00f3rio de Tecnologias"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001081",
+      "title": "Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection from Multispectral UAV Images",
+      "year": 2022,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001084",
+      "title": "A Preliminary Study on U-Net for Crop Monitoring Using Low-Altitude Drone Imagery",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001085",
+      "title": "Accelerating UAV-Based Agricultural Field Segmentation Using YOLOv11 and Rockchip NPU Quantization",
+      "year": 2026,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "using UAV images and demonstrated the effectiveness of semantic segmentation approaches in agricultural scenarios [6]. The development of publicly available datasets has further accelerated research in this field. CoFly-WeedDB provides annotated UAV imagery for weed detection and species identificati"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001090",
+      "title": "Resolution-Accuracy Trade-offs in UAV-Based Semantic Segmentation for Precision Agricultural Imagery",
+      "year": 2026,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001096",
+      "title": "Deep Learning for Semantic Segmentation in Crops: Generalization from Opuntia spp.",
+      "year": 2026,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": ".C.-M.; All authors have read and agreed to the published version of the manuscript. Funding: This research received no external funding. Data Availability Statement: The complete dataset, codes, hyperparameters, backbone config- urations, and regularization criteria are publicly available on G"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "gher geometric fidelity of contours (higher BF score and lower HD95). In the case of prickly pear, until recently, there were virtually no publicly available datasets or research dedicated to its automatic segmentation. An initial advance was the work of Duarte\u2013Rangel et al., who binarily segmented veget"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "d all metrics were computed only over valid (non-padded) orthomosaic regions. The datasets are publicly available in the repository https://github.com/ArturoDuarteR/ Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). 2.4. Semantic Segmentation Techniques Semant"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "dy are summarized in Table 2. Full per-model tables (including all stage-wise hyperparameters) are available in the reposi- tory at https://github.com/ArturoDuarteR/Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). > **Table 2.** > General hyperparameter summ"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "y Statement: The complete dataset, codes, hyperparameters, backbone config- urations, and regularization criteria are publicly available on GitHub at https://github.com/ ArturoDuarteR/Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). Conflicts of Interest: The"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "omplete dataset, codes, hyperparameters, backbone config- urations, and regularization criteria are publicly available on GitHub at https://github.com/ ArturoDuarteR/Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). Conflicts of Interest: The authors declare no"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/ArturoDuarteR/",
+          "snippet": "set, and all metrics were computed only over valid (non-padded) orthomosaic regions. The datasets are publicly available in the repository https://github.com/ArturoDuarteR/ Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). 2.4. Semantic Segmentation Techniques Semantic segmentation ass"
+        },
+        {
+          "url": "https://github.com/ArturoDuarteR/Semantic-Segmentation-in-Orthomosaics.git",
+          "snippet": "this study are summarized in Table 2. Full per-model tables (including all stage-wise hyperparameters) are available in the reposi- tory at https://github.com/ArturoDuarteR/Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). > **Table 2.** > General hyperparameter summary per model. The stage schedule was fixed to T/FT/C = 150/"
+        },
+        {
+          "url": "https://github.com/",
+          "snippet": "t: The complete dataset, codes, hyperparameters, backbone config- urations, and regularization criteria are publicly available on GitHub at https://github.com/ ArturoDuarteR/Semantic-Segmentation-in-Orthomosaics.git (accessed on 20 November 2025). Conflicts of Interest: The authors declare no conf"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-001153",
+      "title": "Recognizing Zucchinis Intercropped with Sunflowers in UAV Visible Images Using an Improved Method Based on OCRNet",
+      "year": 2021,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "l Science Foundation of China (51979233), Technology of the People\u2019s Republic of China (2017YFC0403203), and the 111 Project (No. B12007). Data Availability Statement: Not applicable. Acknowledgments: We would like to thank Qian Ma, Mengfei Zhang, Weitong Ma and Xin Cui for their work on \ufb01eld d"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "amera is 1280 \u00d7 960, the focal length is 5.5 mm \ufb01xed lens, and the \ufb01eld of view is 47.2\u25e6HFOV. In one shot, 5 bands of remote sensing images can be obtained: B (475 nm), G (560 nm), R (668 nm), Red Edge (717 nm), and NIR (840 nm). Images were obtained on 26 July 2020, 27 July 2020, 28 July 2020,"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "re found in the original image and \ufb01nally marked. After the splicing program is completed, the UAV orthoimage, 3D point cloud, DSM, and DTM can be obtained. This study mainly used RGB orthoimages with a spatial resolution of 7.5 cm to identify zucchinis intercropped with sun\ufb02owers. Considering"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001173",
+      "title": "Real-time Crop Classification Using Edge Computing and Deep Learning",
+      "year": 2020,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001203",
+      "title": "Research on the Corn Stover Image Segmentation Method via an Unmanned Aerial Vehicle (UAV) and Improved U-Net Network",
+      "year": 2024,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "of Soybean Mechanized Production, Ministry of Agriculture and Rural Affairs, China. Institutional Review Board Statement: Not applicable. Data Availability Statement: The data presented in this study are available on request from the corresponding authors. Acknowledgments: The authors would li"
+        },
+        {
+          "signal": "avail_on_request",
+          "pattern": "availab\\w+\\s+on\\s+(?:reasonable\\s+)?request",
+          "snippet": "l Affairs, China. Institutional Review Board Statement: Not applicable. Data Availability Statement: The data presented in this study are available on request from the corresponding authors. Acknowledgments: The authors would like to thank the editors and anonymous reviewers for their constructiv"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001210",
+      "title": "MAENet: Multiple Attention Encoder-decoder Network for Farmland Segmentation of Remote Sensing Images",
+      "year": 2021,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001292",
+      "title": "RPD: Learning Efficient Crops and Weeds for Field Semantic Segmentation in Drone Images",
+      "year": 2026,
+      "das": "not-stated",
+      "cas": "public+link",
+      "data_signals": [],
+      "code_signals": [
+        {
+          "signal": "code_is_available",
+          "pattern": "code\\s+(?:is|will\\s+be|has\\s+been)\\s+(?:made\\s+)?availab\\w+",
+          "snippet": "ccuracy and computational e\ufb03ciency. Additional experiments on the CoFly dataset further validate the generalization ability of RPD-Net. The code is available at https://github.com/chenfh21/RPD-Net Although traditional image-processing methods are sim- ple and e\ufb03cient for speci\ufb01c task-oriented sc"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "iency. Additional experiments on the CoFly dataset further validate the generalization ability of RPD-Net. The code is available at https://github.com/chenfh21/RPD-Net Although traditional image-processing methods are sim- ple and e\ufb03cient for speci\ufb01c task-oriented scenarios, their rel"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ibuted to the enhanced spatial correlation introduced by directly modeling di\ufb00erential 1The o\ufb03cial implementation is available at: https://github.com/PRBonn/ phenobench-baselines/tree/main/semantic segmentation Authorized licensed use limited to: Consortium - Algeria (CERIST). Downlo"
+        },
+        {
+          "signal": "implementation_available",
+          "pattern": "implementation\\s+(?:is|was|has\\s+been)\\s+availab\\w+",
+          "snippet": "class. This performance gain can be attributed to the enhanced spatial correlation introduced by directly modeling di\ufb00erential 1The o\ufb03cial implementation is available at: https://github.com/PRBonn/ phenobench-baselines/tree/main/semantic segmentation Authorized licensed use limited to: Consortium - Alger"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/chenfh21/RPD-Net",
+          "snippet": "onal e\ufb03ciency. Additional experiments on the CoFly dataset further validate the generalization ability of RPD-Net. The code is available at https://github.com/chenfh21/RPD-Net Although traditional image-processing methods are sim- ple and e\ufb03cient for speci\ufb01c task-oriented scenarios, their reliance on handcrafted"
+        },
+        {
+          "url": "https://github.com/PRBonn/",
+          "snippet": "be attributed to the enhanced spatial correlation introduced by directly modeling di\ufb00erential 1The o\ufb03cial implementation is available at: https://github.com/PRBonn/ phenobench-baselines/tree/main/semantic segmentation Authorized licensed use limited to: Consortium - Algeria (CERIST). Downloaded on Sept"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-001305",
+      "title": "Collaborative Wheat Lodging Segmentation Semi-Supervised Learning Model Based on RSE-BiSeNet Using UAV Imagery",
+      "year": 2023,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "on tech- nologies in Hefei City (GJ2022QN03), and the Open Project of Jiangsu Key Laboratory of Information Agriculture (Grant No. 15266). Data Availability Statement: The data presented in this study are available upon request from the corresponding author. Con\ufb02icts of Interest: The authors de"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "u Key Laboratory of Information Agriculture (Grant No. 15266). Data Availability Statement: The data presented in this study are available upon request from the corresponding author. Con\ufb02icts of Interest: The authors declare no con\ufb02ict of interest. ## References 1. Yang, B.; Gao, Z.; Ga"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001333",
+      "title": "Real-Time Identification of Rice Weeds by UAV Low-Altitude Remote Sensing Based on Improved Semantic Segmentation Model",
+      "year": 2021,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "the 111 Project, grant number D18019. Institutional Review Board Statement: Not applicable. Informed Consent Statement: Not applicable. Data Availability Statement: Not applicable. Acknowledgments: We are grateful to the plant protection experts Maoxin Zhang and Bing Ling from South China Ag"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "counting the percentage of pixels in each category in the prediction results, the density proportions of rice, weeds, and other categories can be obtained, which are combined with the waypoints set by the UAV planning route to generate a weed density forecast distribution map. As shown in Figu"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001334",
+      "title": "MSEA-Net: Multi-Scale and Edge-Aware Network for Weed Segmentation",
+      "year": 2025,
+      "das": "public+link",
+      "cas": "public+link",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ork was supported by the Intelligent Agricultural Machinery Innovation Research and Development Project (202301) of Hunan Province, China. Data Availability Statement: To support reproducibility and further research, the full MSEA-Net implementation is available on GitHub https://github.com/Akra"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "dge detection to refine boundary delineation, ensuring sharper object separation in dense vegetation environments. Extensive evaluations on publicly available datasets demonstrate the ef- fectiveness of MSEA-Net, achieving a mean Intersection over Union (IoU) of 87.42% on the Motion-Blurred UAV Images of"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "ize, enables real-time perfor- mance and suitability for deployment on resource-constrained devices such as UAVs. Extensive evaluations on publicly available datasets demonstrated that MSEA-Net achieves superior segmentation accuracy, with a mean Intersection over Union (IoU) of 71.35% on CoFly-WeedDB an"
+        },
+        {
+          "signal": "publicly_available_data",
+          "pattern": "publicly\\s+availab\\w+\\s+(?:dataset|data)",
+          "snippet": "tional optimizations, such as model pruning and quantization, will be explored to enhance efficiency. Another limitation is the reliance on publicly available datasets, which may not fully capture real-world complexities. To address this, we plan to create a diverse UAV-acquired dataset and explore multi-"
+        },
+        {
+          "signal": "downloadable",
+          "pattern": "can\\s+be\\s+(?:downloaded|accessed|obtained|requested)",
+          "snippet": "s available on GitHub https://github.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB https://github.com/CoFly-Project/CoFly-WeedDB, accessed on 10 October 2024, and Motion-Blurred UAV images of Sorghum Fie"
+        }
+      ],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "lass distributions. ## 4. Experiments 4.1. Dataset For this study, we employed two publicly accessible datasets: CoFly-WeedDB, https:// github.com/CoFly-Project/CoFly-WeedDB, accessed on 10 October 2024 [35] and Motion- Blurred UAV Images of Sorghum Fields, https://data.mendeley.co"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "nce, China. Data Availability Statement: To support reproducibility and further research, the full MSEA-Net implementation is available on GitHub https://github.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ta Availability Statement: To support reproducibility and further research, the full MSEA-Net implementation is available on GitHub https://github.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB h"
+        },
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB https://github.com/CoFly-Project/CoFly-WeedDB, accessed on 10 October 2024, and Motion-Blurred UAV images of Sorghum Fields https://data.mendeley.com/data"
+        },
+        {
+          "signal": "implementation_available",
+          "pattern": "implementation\\s+(?:is|was|has\\s+been)\\s+availab\\w+",
+          "snippet": "Project (202301) of Hunan Province, China. Data Availability Statement: To support reproducibility and further research, the full MSEA-Net implementation is available on GitHub https://github.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be acce"
+        }
+      ],
+      "repo_links": [
+        {
+          "url": "https://github.com/AkramSyed002/MSEA_Net",
+          "snippet": "ina. Data Availability Statement: To support reproducibility and further research, the full MSEA-Net implementation is available on GitHub https://github.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB https://github.com/CoFly-Pro"
+        },
+        {
+          "url": "https://github.com/CoFly-Project/CoFly-WeedDB",
+          "snippet": "b.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB https://github.com/CoFly-Project/CoFly-WeedDB, accessed on 10 October 2024, and Motion-Blurred UAV images of Sorghum Fields https://data.mendeley.com/datasets/4hh45vkp38/5, accessed on 5"
+        }
+      ]
+    },
+    {
+      "workspace_id": "SCI-001335",
+      "title": "Research on Intelligent Image Segmentation Based on UAV Remote Sensing and DeepLabV3+ Model",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001368",
+      "title": "Kernelytics: Multispectral Drone Imagery and Deep Learning for Early Corn Assessment",
+      "year": 2023,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001371",
+      "title": "Crop Classification from Drone Imagery Based on Lightweight Semantic Segmentation Methods",
+      "year": 2024,
+      "das": "request-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "onal Key R&D Program of China (No. 2021ZD0110901) and the Science and Technology Innovation Program of AII-CAAS (No. CAAS-ASTIP-2024-AII). Data Availability Statement: The data generated in this study are not publicly available due to its use in an ongoing study by the authors but can be made av"
+        },
+        {
+          "signal": "upon_request",
+          "pattern": "upon\\s+(?:reasonable\\s+)?request",
+          "snippet": "study are not publicly available due to its use in an ongoing study by the authors but can be made available from the corresponding author upon reasonable request. Acknowledgments: We would like to thank all the authors for their administrative and technical support during the course of this study. W"
+        },
+        {
+          "signal": "avail_from_author",
+          "pattern": "available\\s+from\\s+the\\s+(?:corresponding\\s+)?author",
+          "snippet": "ty Statement: The data generated in this study are not publicly available due to its use in an ongoing study by the authors but can be made available from the corresponding author upon reasonable request. Acknowledgments: We would like to thank all the authors for their administrative and technical support during the"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001376",
+      "title": "Mini Drone-Based Precision Agriculture for Indonesian MSMEs: A Low-Cost AI-Assisted Monitoring System",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "statement-only",
+      "data_signals": [],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "n interactive tool tailored for rural MSMEs. > **Figure 1. Example of methodology in Smart City using Agri Vision** (https://agri-vision.github.io/AgriVision/) E. Commercial Drone Comparisons for Agricultural Use Smart RGB camera [35], [36], [37] performance plays a key role i"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001379",
+      "title": "Eggplant Leaf Semantic Segmentation in Aerial Imagery for Precision Agriculture",
+      "year": 2023,
+      "das": "not-stated",
+      "cas": "statement-only",
+      "data_signals": [],
+      "code_signals": [
+        {
+          "signal": "github_kw",
+          "pattern": "\\bgithub\\b",
+          "snippet": "ce On Advanced Informatics: Concepts, Theory And Applications (ICAICTA). pp. 1-6 (2021) [22] P. Yakubovskiy, \u201cSegmentation models pytorch,\u201d GitHub repos- Aleluya, E. & John Salaan, C. Vision-based Unmanned Aerial Spray System with Variable Flow for Agricultural Application. 2022 IEEE"
+        }
+      ],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001382",
+      "title": "HRS-UNet: A Semantic Segmentation Model for Precise Crop Classification in Hyperspectral Remote Sensing Image",
+      "year": 2025,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001406",
+      "title": "Classification and Identification of Crops Using Deep Learning with UAV Data",
+      "year": 2021,
+      "das": "not-stated",
+      "cas": "not-stated",
+      "data_signals": [],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001411",
+      "title": "Estimation of Kenaf seedling canopy coverage in saline soil using semantic segmentation of UAV RGB images",
+      "year": 2026,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ensive documentation of the plant\u2019s additional morphological characteristics, thereby potentially enhancing the accuracy of identi\ufb01cation. Data availability statement The original contributions presented in the study are included in the article/supplementary material. Further inquiries can be d"
+        },
+        {
+          "signal": "supplementary",
+          "pattern": "supplementary\\s+(?:material|data|information)",
+          "snippet": "the accuracy of identi\ufb01cation. Data availability statement The original contributions presented in the study are included in the article/supplementary material. Further inquiries can be directed to the corresponding authors. (5) Validating Kenaf salt-alkali tolerance by integrating de\ufb01nitive phys"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    },
+    {
+      "workspace_id": "SCI-001413",
+      "title": "EDM-UNet: An Edge-Enhanced and Attention-Guided Model for UAV-Based Weed Segmentation in Soybean Fields",
+      "year": 2025,
+      "das": "statement-only",
+      "cas": "not-stated",
+      "data_signals": [
+        {
+          "signal": "data_avail_kw",
+          "pattern": "data\\s+availab\\w*",
+          "snippet": "ch was funded by the National Key R&D Program of China (2023YFD2301605), the Heilongjiang Natural Science Foundation Project (LH2023F043). Data Availability Statement: The original contributions presented in this study are included in the article; further inquiries can be directed to the corresp"
+        }
+      ],
+      "code_signals": [],
+      "repo_links": []
+    }
+  ]
+}
