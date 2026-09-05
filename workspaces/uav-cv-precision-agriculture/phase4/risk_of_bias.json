@@ -1,0 +1,2398 @@
+{
+  "run_metadata": {
+    "script": "phase4/risk_of_bias_check.py",
+    "run_date_utc": "2026-09-05T20:02:26.935735+01:00",
+    "method": "Deterministic metadata-driven adaptation of QUADAS-2/PROBAST risk-of-bias domains over the canonical records.json (reporting/verifiability risk, not a human full-text appraisal)",
+    "inputs": [
+      "literature/extraction/merged/records.json",
+      "phase4/_manifest.json"
+    ],
+    "corpus_size": 94,
+    "ratings": "L (low) / ? (unclear) / H (high); n/a = domain not applicable"
+  },
+  "summary": {
+    "studies_assessed": 94,
+    "overall_risk": {
+      "?": 77,
+      "H": 15,
+      "L": 2
+    },
+    "by_domain": {
+      "d1": {
+        "L": 71,
+        "?": 20,
+        "H": 3
+      },
+      "d2": {
+        "?": 72,
+        "H": 12,
+        "L": 10
+      },
+      "d3": {
+        "L": 37,
+        "?": 56,
+        "H": 1
+      },
+      "d4": {
+        "?": 32,
+        "n/a": 44,
+        "L": 18
+      }
+    },
+    "studies_high_risk": [
+      "SCI-000016",
+      "SCI-000040",
+      "SCI-000092",
+      "SCI-000149",
+      "SCI-000482",
+      "SCI-000570",
+      "SCI-000618",
+      "SCI-000890",
+      "SCI-000903",
+      "SCI-000980",
+      "SCI-001023",
+      "SCI-001029",
+      "SCI-001046",
+      "SCI-001085",
+      "SCI-001376"
+    ],
+    "studies_unclear": [
+      "SCI-000001",
+      "SCI-000003",
+      "SCI-000005",
+      "SCI-000007",
+      "SCI-000010",
+      "SCI-000012",
+      "SCI-000013",
+      "SCI-000017",
+      "SCI-000067",
+      "SCI-000074",
+      "SCI-000075",
+      "SCI-000083",
+      "SCI-000084",
+      "SCI-000089",
+      "SCI-000091",
+      "SCI-000129",
+      "SCI-000136",
+      "SCI-000138",
+      "SCI-000145",
+      "SCI-000160",
+      "SCI-000180",
+      "SCI-000203",
+      "SCI-000225",
+      "SCI-000271",
+      "SCI-000286",
+      "SCI-000346",
+      "SCI-000371",
+      "SCI-000440",
+      "SCI-000483",
+      "SCI-000488",
+      "SCI-000489",
+      "SCI-000492",
+      "SCI-000501",
+      "SCI-000505",
+      "SCI-000514",
+      "SCI-000547",
+      "SCI-000548",
+      "SCI-000555",
+      "SCI-000565",
+      "SCI-000637",
+      "SCI-000650",
+      "SCI-000669",
+      "SCI-000683",
+      "SCI-000708",
+      "SCI-000754",
+      "SCI-000810",
+      "SCI-000816",
+      "SCI-000852",
+      "SCI-000878",
+      "SCI-000881",
+      "SCI-000898",
+      "SCI-000962",
+      "SCI-000968",
+      "SCI-000981",
+      "SCI-001005",
+      "SCI-001017",
+      "SCI-001053",
+      "SCI-001081",
+      "SCI-001084",
+      "SCI-001090",
+      "SCI-001096",
+      "SCI-001153",
+      "SCI-001173",
+      "SCI-001203",
+      "SCI-001210",
+      "SCI-001292",
+      "SCI-001305",
+      "SCI-001333",
+      "SCI-001334",
+      "SCI-001335",
+      "SCI-001368",
+      "SCI-001371",
+      "SCI-001379",
+      "SCI-001382",
+      "SCI-001406",
+      "SCI-001411",
+      "SCI-001413"
+    ],
+    "studies_edge_rq2": 50
+  },
+  "results": [
+    {
+      "workspace_id": "SCI-000001",
+      "title": "Lightweight Multispectral Crop-Weed Segmentation for Precision Agriculture",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=156, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000003",
+      "title": "Modular Transformer Architecture for Precision Agriculture Imaging",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1300, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "Dice conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000005",
+      "title": "BAWSeg: A UAV Multispectral Benchmark for Barley Weed Segmentation",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000007",
+      "title": "Vision-Language Semantic Grounding for Multi-Domain Crop-Weed Segmentation",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=293, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "Dice conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000010",
+      "title": "Semi-supervised GAN for Classification of Multispectral Imagery Acquired by UAVs",
+      "year": 2019,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "F1 conf=0.75, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000012",
+      "title": "Transferring learned patterns from ground-based field imagery to predict UAV-based imagery for crop and weed semantic segmentation in precision crop farming",
+      "year": 2022,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.72, agreement=adjudicated, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000013",
+      "title": "Self-supervised training for high-resolution close-range multispectral remote sensing imagery",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=739, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000016",
+      "title": "WeedMap: A large-scale semantic weed mapping framework using aerial multispectral imaging and deep neural network for precision farming",
+      "year": 2018,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000017",
+      "title": "WeedsGalore: A Multispectral and Multitemporal UAV-based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=156, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000040",
+      "title": "DAS-SK: An Adaptive Model Integrating Dual Atrous Separable and Selective Kernel CNN for Agriculture Semantic Segmentation",
+      "year": 2026,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "H",
+          "reason": ""
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000067",
+      "title": "RoWeeder: Unsupervised Weed Mapping through Crop-Row Detection",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=n/s, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "weed_F1 conf=0.7, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='y"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000074",
+      "title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=130, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000075",
+      "title": "Weed Instance Segmentation from UAV ortho-mosaic Images based on Deep Learning",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=150, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.6, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000083",
+      "title": "A U-Net Improved Version for Crop and Weed Segmentation from Aerial Images",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1267, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000084",
+      "title": "Crop and Weed Classication Using Pixel-wise Segmentation on Ground and Aerial Images",
+      "year": 2020,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=155, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000089",
+      "title": "Semi-supervised Learning for Weed and Crop Segmentation Using UAV Imagery",
+      "year": 2022,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=289, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000091",
+      "title": "Weed–Crop Segmentation in Drone Images with a Novel Encoder–Decoder Framework Enhanced via Attention Modules",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=91, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000092",
+      "title": "A DNN-based semantic segmentation for detecting weed and crop",
+      "year": 2020,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "H",
+          "reason": ""
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.97, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "H",
+          "reason": "non-UAV source, no documented GT"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000129",
+      "title": "Multispectral image fusion and attention-driven deep learning for precision weed segmentation and classification in UAV-based agricultural monitoring",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1240, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000136",
+      "title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+      "year": 2020,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1100, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "F1 conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000138",
+      "title": "Crop and Weed Segmentation Using ResNet-Unet Architecture",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "weed_F1 conf=0.75, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000145",
+      "title": "Towards automated weed detection through two-stage semantic segmentation of tobacco and weed pixels in aerial Imagery",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.85, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000149",
+      "title": "WeedVision: A single-stage deep learning architecture to perform weed detection and segmentation using drone-acquired images",
+      "year": 2024,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=2300, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000160",
+      "title": "From barley to rapeseed: few-shot fine-tuning of semantic segmentation models for weed detection using UAV multispectral imagery",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1673, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000180",
+      "title": "CWRepViT-Net: An encoder-decoder deep learning framework with RepViT blocks for crop weed semantic segmentation in soybean fields through their life journey",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=2552, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=a_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000203",
+      "title": "Improved weed segmentation in UAV imagery of sorghum fields with a combined deblurring segmentation model",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1300, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "Dice conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000225",
+      "title": "Adapting Vision-Language Models for Precision Agriculture: A Study on Crop Segmentation based on UAV Remote Sensing Data",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=11750, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.8, agreement=a_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000271",
+      "title": "Crop Segmentation of Unmanned Aerial Vehicle Imagery Using Edge Enhancement Network",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1208, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.8, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000286",
+      "title": "Real-Time Weed Segmentation in Tobacco Crops Utilizing Deep Learning on a Jetson Nano",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.8, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000346",
+      "title": "Unmanned aerial vehicle-based weed segmentation from multispectral imagery in an edge computing environment",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000371",
+      "title": "ResLMFFNet: a real-time semantic segmentation network for precision agriculture",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1778, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.75, agreement=adjudicated, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=True, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000440",
+      "title": "On-Edge Weed Detection Using Unmanned Aerial Vehicles",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=366, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.85, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000482",
+      "title": "Deep Learning with Unsupervised Data Labeling for Weed Detection in Line Crops in UAV Images",
+      "year": 2018,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000483",
+      "title": "AgriSegNet: Deep Aerial Semantic Segmentation Framework for IoT-Assisted Precision Agriculture",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=21061, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "Dice conf=0.9, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000488",
+      "title": "Deep Learning-Based Weed Detection Using UAV Images: A Comparative Study",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=366, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000489",
+      "title": "Cross-domain transfer learning for weed segmentation and mapping in precision farming using ground and UAV images",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.95, agreement=adjudicated, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000492",
+      "title": "Semantic Segmentation Using Deep Learning with Vegetation Indices for Rice Lodging Identification in Multi-date UAV Visible Images",
+      "year": 2020,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=3485, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "crop_F1 conf=0.6, agreement=a_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000501",
+      "title": "Deep learning-based early weed segmentation using motion blurred UAV images of sorghum fields",
+      "year": 2022,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=12, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "F1 conf=0.85, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000505",
+      "title": "Deep Learning-Driven Automatic Segmentation of Weeds and Crops in UAV Imagery",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=840, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000514",
+      "title": "A fully convolutional network for weed mapping of unmanned aerial vehicle (UAV) imagery",
+      "year": 2018,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1092, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.97, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000547",
+      "title": "A Semantic Labeling Approach for Accurate Weed Mapping of High Resolution UAV Imagery",
+      "year": 2018,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1092, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.98, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000548",
+      "title": "A Field Weed Density Evaluation Method Based on UAV Imaging and Modified U-Net",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=500, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.96, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000555",
+      "title": "Adaptive autonomous UAV scouting for rice lodging assessment using edge computing with deep learning EDANet",
+      "year": 2020,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=215, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "crop_F1 conf=0.6, agreement=a_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000565",
+      "title": "Lightweight Semantic Segmentation Network for Real-Time Weed Mapping Using Unmanned Aerial Vehicles",
+      "year": 2020,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1092, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000570",
+      "title": "Use of synthetic images for training a deep learning model for weed detection and biomass estimation in cotton",
+      "year": 2022,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=660, split=y"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000582",
+      "title": "Accurate Weed Mapping and Prescription Map Generation Based on Fully Convolutional Networks Using UAV Imagery",
+      "year": 2018,
+      "overall_risk": "L",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=104, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.97, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000618",
+      "title": "Detection and Counting of Maize Leaves Based on Two-Stage Deep Learning with UAV-Based RGB Image",
+      "year": 2022,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1005, split=y"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000624",
+      "title": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+      "year": 2022,
+      "overall_risk": "L",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=50, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "PA conf=0.9, agreement=adjudicated, ambiguity=n"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000637",
+      "title": "UAV-based intelligent weed detection using YOLO11 and PSPNet for precision agriculture",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1215, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=n, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000650",
+      "title": "Harnessing UAVs and deep learning for accurate grass weed detection in wheat fields: a study on biomass and yield implications",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=10000, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.85, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000669",
+      "title": "Towards real-time weed detection and segmentation with lightweight CNN models on edge devices",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=796, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000683",
+      "title": "A Low-Cost UAV System and Dataset for Real-Time Weed Detection in Salad Crops",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=643, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000708",
+      "title": "Drone-Aided Detection of Weeds: Transfer Learning for Embedded Image Processing",
+      "year": 2022,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=20083, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.8, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000754",
+      "title": "Integrating Convolutional, Transformer, and Graph Neural Networks for Precision Agriculture and Food Security",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=8034, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='y"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=False, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000810",
+      "title": "AgriJetsonBench: External-Power-Referenced TensorRT Benchmarking of Agricultural Vision Models on Jetson Edge Platforms",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=7705, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000816",
+      "title": "Deblurring-aware semantic segmentation of crops and weeds in UAV sorghum imagery via a UNet-ResNet architecture",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1300, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000852",
+      "title": "SqueezeSlimU-Net: An Adaptive and Efficient Segmentation Architecture for Real-Time UAV Weed Detection",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=497, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000878",
+      "title": "Soybean Field Weed Segmentation and Prescription Map Generation Based on SCG-UNet Fusion of UAV RGB and Multispectral Images.",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=400, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000881",
+      "title": "Class imbalance aware deep semantic segmentation framework for weed and tobacco crops in UAV imagery.",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=2520, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000890",
+      "title": "A dataset of aligned RGB and multispectral UAV imagery for semantic segmentation of weedy rice.",
+      "year": 2025,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=734, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000898",
+      "title": "DM_CorrMatch: a semi-supervised semantic segmentation framework for rapeseed flower coverage estimation using UAV imagery.",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=720, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000903",
+      "title": "Research on Segmentation Method of Maize Seedling Plant Instances Based on UAV Multispectral Remote Sensing Images.",
+      "year": 2024,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1334, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000962",
+      "title": "Lightweight Deep Learning Models for High-Precision Rice Seedling Segmentation from UAV-Based Multispectral Images.",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1300, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.7, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000968",
+      "title": "Accurate Wheat Lodging Extraction from Multi-Channel UAV Images Using a Lightweight Network Model.",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=150, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000980",
+      "title": "Deep Learning for Brassica Oleracea Instance Segmentation in UAV Imagery",
+      "year": 2024,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=458, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-000981",
+      "title": "Research on Buckwheat Weed Recognition in Multispectral UAV Images Based on MSU-Net",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001005",
+      "title": "Applying Knowledge Distillation to Improve Weed Mapping with Drones",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "weed_F1 conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001017",
+      "title": "Multi-Class Weed Quantification Based on U-Net Convolutional Neural Networks Using UAV Imagery",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=2100, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001023",
+      "title": "AgriFusion: Multiscale RGB-NIR Fusion for Semantic Segmentation in Airborne Agricultural Imagery",
+      "year": 2025,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "H",
+          "reason": ""
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001029",
+      "title": "Enhancing sustainable Chinese cabbage production: a comparative analysis of multispectral image instance segmentation techniques",
+      "year": 2024,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=923, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001046",
+      "title": "Implementing Innovative Weed Detection Techniques for Environmental Sustainability",
+      "year": 2024,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=200, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001053",
+      "title": "Deep Learning for Weed Detection and Segmentation in Agricultural Crops Using Images Captured by an Unmanned Aerial Vehicle",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=3021, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "F1 conf=0.8, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001081",
+      "title": "Uncertainty Estimation in Deep Meta-Learning for Crop and Weed Detection from Multispectral UAV Images",
+      "year": 2022,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=4, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001084",
+      "title": "A Preliminary Study on U-Net for Crop Monitoring Using Low-Altitude Drone Imagery",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=n, eff=y, fps=False, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001085",
+      "title": "Accelerating UAV-Based Agricultural Field Segmentation Using YOLOv11 and Rockchip NPU Quantization",
+      "year": 2026,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001090",
+      "title": "Resolution-Accuracy Trade-offs in UAV-Based Semantic Segmentation for Precision Agricultural Imagery",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001096",
+      "title": "Deep Learning for Semantic Segmentation in Crops: Generalization from Opuntia spp.",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=549, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001153",
+      "title": "Recognizing Zucchinis Intercropped with Sunflowers in UAV Visible Images Using an Improved Method Based on OCRNet",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=43930, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.97, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001173",
+      "title": "Real-time Crop Classification Using Edge Computing and Deep Learning",
+      "year": 2020,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "PA conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001203",
+      "title": "Research on the Corn Stover Image Segmentation Method via an Unmanned Aerial Vehicle (UAV) and Improved U-Net Network",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1600, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001210",
+      "title": "MAENet: Multiple Attention Encoder-decoder Network for Farmland Segmentation of Remote Sensing Images",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=7264, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001292",
+      "title": "RPD: Learning Efficient Crops and Weeds for Field Semantic Segmentation in Drone Images",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=2872, split=y"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=True"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001305",
+      "title": "Collaborative Wheat Lodging Segmentation Semi-Supervised Learning Model Based on RSE-BiSeNet Using UAV Imagery",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=300, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=n, annotation='y"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001333",
+      "title": "Real-Time Identification of Rice Weeds by UAV Low-Altitude Remote Sensing Based on Improved Semantic Segmentation Model",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=3854, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.97, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "L",
+          "reason": "device=y, runtime=y, fps=True, lat=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001334",
+      "title": "MSEA-Net: Multi-Scale and Edge-Aware Network for Weed Segmentation",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=6300, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001335",
+      "title": "Research on Intelligent Image Segmentation Based on UAV Remote Sensing and DeepLabV3+ Model",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001368",
+      "title": "Kernelytics: Multispectral Drone Imagery and Deep Learning for Early Corn Assessment",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=655, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "crop_F1 conf=0.7, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001371",
+      "title": "Crop Classification from Drone Imagery Based on Lightweight Semantic Segmentation Methods",
+      "year": 2024,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=23681, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=True, lat=False, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001376",
+      "title": "Mini Drone-Based Precision Agriculture for Indonesian MSMEs: A Low-Cost AI-Assisted Monitoring System",
+      "year": 2025,
+      "overall_risk": "H",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=n/s, split=n"
+        },
+        "d2": {
+          "rating": "H",
+          "reason": "no primary accuracy metric (none)"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=n, fps=False, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001379",
+      "title": "Eggplant Leaf Semantic Segmentation in Aerial Imagery for Precision Agriculture",
+      "year": 2023,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=60750, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "F1 conf=0.8, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=y, runtime=y, eff=n, fps=True, lat=True, pwr=False"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001382",
+      "title": "HRS-UNet: A Semantic Segmentation Model for Precise Crop Classification in Hyperspectral Remote Sensing Image",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=433, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "PA conf=0.9, agreement=b_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "L",
+          "reason": "benchmark=y, annotation='n"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001406",
+      "title": "Classification and Identification of Crops Using Deep Learning with UAV Data",
+      "year": 2021,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "?",
+          "reason": "uav=True, images=6, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.6, agreement=a_only, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001411",
+      "title": "Estimation of Kenaf seedling canopy coverage in saline soil using semantic segmentation of UAV RGB images",
+      "year": 2026,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=600, split=n"
+        },
+        "d2": {
+          "rating": "?",
+          "reason": "mIoU conf=0.9, agreement=both_equal, ambiguity=y"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "n/a",
+          "reason": "no edge/runtime claims"
+        }
+      }
+    },
+    {
+      "workspace_id": "SCI-001413",
+      "title": "EDM-UNet: An Edge-Enhanced and Attention-Guided Model for UAV-Based Weed Segmentation in Soybean Fields",
+      "year": 2025,
+      "overall_risk": "?",
+      "domains": {
+        "d1": {
+          "rating": "L",
+          "reason": "uav=True, images=1200, split=n"
+        },
+        "d2": {
+          "rating": "L",
+          "reason": "mIoU conf=0.95, agreement=both_equal, ambiguity=n"
+        },
+        "d3": {
+          "rating": "?",
+          "reason": "self-collected; no documented GT / benchmark"
+        },
+        "d4": {
+          "rating": "?",
+          "reason": "device=n, runtime=y, eff=y, fps=True, lat=False, pwr=False"
+        }
+      }
+    }
+  ]
+}
