@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-05 12:41:33 UTC`
+- **Last Updated**: `2026-09-05 17:55:08 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -14,6 +14,8 @@
 - **Confirmed Excluded Studies**: 1338
 - **Downloaded PDFs**: 138
 - **Extracted Markdowns**: 138
+- **Post-Audit Clean Corpus**: 94 studies (44 scope violations removed)
+- **Merged Canonical Records**: 94 (82 with ≥1 RQ1 segmentation metric; 40 with on-device runtime; 15 true embedded edge)
 
 ---
 
@@ -41,7 +43,19 @@
 | `literature/conflict_adjudication_log.md` | Traceable adjudication narrative & dispute ledger | 2026-09-04 00:42 | Adjudicated |
 | `literature/prisma_screening_report.md` | PRISMA flow diagram and systematic screening report | 2026-09-04 10:52 | Generated |
 | `literature/prisma_report.json` | Structured JSON companion to PRISMA flow report | 2026-09-04 10:51 | Generated |
-| `synthesis/literature_review.md` | Synthesis document & literature review draft | 2026-09-05 12:39 | In Progress |
+| `literature/screening/_clean_corpus_ids.json` | Post-audit clean corpus study ids | 2026-09-04 17:33 | Audited |
+| `literature/screening/_audit_combined.json` | Full-text compliance audit verdicts | 2026-09-04 17:33 | Audited |
+| `literature/extraction/SCHEMA.md` | Dual-route extraction schema contract | 2026-09-04 17:37 | Contracted |
+| `literature/extraction/route_A/route_A_batch1.json` | Route A batch extractions | 2026-09-04 18:02 | Extracted |
+| `literature/extraction/route_B/route_B_index.json` | Route B per-study extractions + index | 2026-09-04 22:29 | Extracted |
+| `literature/extraction/compare/comparison_report.md` | Route A vs Route B comparison report | 2026-09-04 22:46 | Compared |
+| `literature/extraction/adjudication/verdicts_all.json` | Adjudicated extraction conflicts | 2026-09-04 22:51 | Adjudicated |
+| `literature/extraction/merged/records.json` | Canonical merged extraction dataset (per-value provenance quotes) | 2026-09-04 22:52 | Merged |
+| `synthesis/synthesis_matrix.csv` | Verified one-row-per-study synthesis matrix | 2026-09-05 12:39 | Generated |
+| `synthesis/synthesis_matrix.json` | Machine-readable synthesis matrix | 2026-09-05 12:39 | Generated |
+| `synthesis/synthesis_stats.json` | Reproducible RQ1/RQ2 descriptive statistics | 2026-09-05 12:39 | Generated |
+| `synthesis/build_synthesis.py` | Reproducible matrix + stats generator | 2026-09-05 12:39 | Generated |
+| `synthesis/literature_review.md` | Synthesis document & literature review | 2026-09-05 12:44 | Final |
 | `reports/academic_methodology_review_and_phase2_directives.md` | Formal methodology or audit report | 2026-09-04 00:50 | Audited |
 | `reports/discovery_remediation_report_20260903_231630.md` | Formal methodology or audit report | 2026-09-03 22:16 | Audited |
 | `reports/discovery_report_20260903_230800.md` | Formal methodology or audit report | 2026-09-03 22:08 | Audited |

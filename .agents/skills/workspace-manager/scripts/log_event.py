@@ -43,10 +43,22 @@ def refresh_index_md(project_dir: Path) -> Path:
         ("literature/conflict_adjudication_log.md", "Traceable adjudication narrative & dispute ledger", "Adjudicated"),
         ("literature/prisma_screening_report.md", "PRISMA flow diagram and systematic screening report", "Generated"),
         ("literature/prisma_report.json", "Structured JSON companion to PRISMA flow report", "Generated"),
+        ("literature/screening/_clean_corpus_ids.json", "Post-audit clean corpus study ids", "Audited"),
+        ("literature/screening/_audit_combined.json", "Full-text compliance audit verdicts", "Audited"),
+        ("literature/extraction/SCHEMA.md", "Dual-route extraction schema contract", "Contracted"),
+        ("literature/extraction/route_A/route_A_batch1.json", "Route A batch extractions", "Extracted"),
+        ("literature/extraction/route_B/route_B_index.json", "Route B per-study extractions + index", "Extracted"),
+        ("literature/extraction/compare/comparison_report.md", "Route A vs Route B comparison report", "Compared"),
+        ("literature/extraction/adjudication/verdicts_all.json", "Adjudicated extraction conflicts", "Adjudicated"),
+        ("literature/extraction/merged/records.json", "Canonical merged extraction dataset (per-value provenance quotes)", "Merged"),
         ("exports/search_summary.csv", "Tabular raw literature export", "Exported"),
         ("exports/verified_summary.csv", "Clean verified bibliography spreadsheet", "Exported"),
         ("exports/screening_decisions.csv", "Full title & abstract screening decisions spreadsheet", "Exported"),
-        ("synthesis/literature_review.md", "Synthesis document & literature review draft", "In Progress"),
+        ("synthesis/synthesis_matrix.csv", "Verified one-row-per-study synthesis matrix", "Generated"),
+        ("synthesis/synthesis_matrix.json", "Machine-readable synthesis matrix", "Generated"),
+        ("synthesis/synthesis_stats.json", "Reproducible RQ1/RQ2 descriptive statistics", "Generated"),
+        ("synthesis/build_synthesis.py", "Reproducible matrix + stats generator", "Generated"),
+        ("synthesis/literature_review.md", "Synthesis document & literature review", "Final" if stats.get("synthesis_verified") else "In Progress"),
     ]
 
     for rel_path, desc, default_status in key_files:
@@ -85,6 +97,22 @@ def refresh_index_md(project_dir: Path) -> Path:
     metrics_block += f"""
 - **Downloaded PDFs**: {stats.get("downloaded_pdfs", pdf_count)}
 - **Extracted Markdowns**: {stats.get("extracted_markdowns", extracted_count)}"""
+    if "audited_clean_corpus" in stats or "merged_records" in stats:
+        if "audited_clean_corpus" in stats:
+            metrics_block += f"\n- **Post-Audit Clean Corpus**: {stats.get('audited_clean_corpus')} studies"
+            if "audit_removed" in stats:
+                metrics_block += f" ({stats.get('audit_removed')} scope violations removed)"
+        if "merged_records" in stats:
+            metrics_block += f"\n- **Merged Canonical Records**: {stats.get('merged_records')}"
+            counts = []
+            if "rq1_metric_studies" in stats:
+                counts.append(f"{stats.get('rq1_metric_studies')} with \u22651 RQ1 segmentation metric")
+            if "runtime_studies" in stats:
+                counts.append(f"{stats.get('runtime_studies')} with on-device runtime")
+            if "true_edge_studies" in stats:
+                counts.append(f"{stats.get('true_edge_studies')} true embedded edge")
+            if counts:
+                metrics_block += " (" + "; ".join(counts) + ")"
 
     index_content = f"""# Project Index: {title}
 
