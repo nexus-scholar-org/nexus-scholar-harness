@@ -20,7 +20,7 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 - [x] **Playbook Archetypes**: Preset templates selected at runtime from `scholar-protocol-kit`'s `PlaybookType` (`PRISMA_SLR`, `SCOPING_REVIEW`, `RAPID_EVIDENCE`, `DESIGN_SCIENCE`, `STUDENT_DISSERTATION`) with paradigm→playbook recommendations and per-playbook trustworthiness frameworks.
 
 ### Phase 1: Discovery & Harvesting
-- [ ] **Citation Snowballing**: Build backward/forward reference traversal directly into `scholar-search-kit`.
+- [x] **Citation Snowballing**: Backward/forward reference traversal built into `scholar-search-kit` — single-hop `scholar-search snowball <id>` plus multi-hop BFS `scholar-search chain <seed...> --depth N` (deduped frontier, cycle protection, per-node/total caps, year bounds, edge manifest). Live-verified against OpenAlex in both directions.
 
 ### Phase 2: Synthesis & Graphs
 - [ ] **Consensus Cartographer**: A tool to automatically group claims into high-consensus vs. active debate.

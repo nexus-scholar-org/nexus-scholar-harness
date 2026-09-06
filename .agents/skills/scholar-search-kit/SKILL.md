@@ -41,6 +41,8 @@ uv run scholar-search screen \
 # 5. Citation Snowballing (Forward = Citing Papers, Backward = References)
 uv run scholar-search snowball W2741809807 --provider openalex --direction forward --output citing.json
 uv run scholar-search snowball W2741809807 --provider openalex --direction backward --output references.json
+# Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
+uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward forward --output chain.json --edges-output chain_edges.json
 ```
 
 ---
