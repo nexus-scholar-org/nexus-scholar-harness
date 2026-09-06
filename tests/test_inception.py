@@ -1,5 +1,6 @@
 """Tests for the Phase-0 Interactive Inception wizard (scholar_harness.inception)."""
 
+import builtins
 import hashlib
 import json
 
@@ -10,6 +11,7 @@ from typer.testing import CliRunner
 from scholar_harness.cli import app
 from scholar_harness.inception import (
     ConceptDraft,
+    ConsoleResponder,
     RQDraft,
     Survey,
     compile_protocol_files,
@@ -267,6 +269,57 @@ def test_run_wizard_no_scaffold_aborts_without_writing(tmp_path):
     with pytest.raises(typer.Exit):
         run_wizard(ScriptedResponder(answers), tmp_path, genesis_timestamp=GENESIS_TS, no_scaffold=True)
     assert not (tmp_path / "workspaces").exists()
+
+
+# ---------------------------------------------------------------------------
+# Console responder: uniform non-TTY line reading (piped stdin smoke)
+# ---------------------------------------------------------------------------
+
+
+def _patch_input(monkeypatch, values):
+    queue = list(values)
+
+    def fake_input(_prompt=""):
+        if not queue:
+            raise EOFError("stream exhausted")
+        return queue.pop(0)
+
+    monkeypatch.setattr(builtins, "input", fake_input)
+    return queue
+
+
+def test_console_responder_reads_scripted_piped_input(monkeypatch):
+    _patch_input(monkeypatch, ["Y", "custom answer", "2", "all", "42"])
+    resp = ConsoleResponder()
+
+    assert resp.confirm("proceed?") is True
+    assert resp.text("enter name") == "custom answer"
+    assert resp.choice("pick", [("A", ""), ("B", "")]) == "B"
+    assert resp.multi("select", ["X", "Y"]) == ["X", "Y"]
+    assert resp.num_if_valid("42") == 42
+    assert resp.num_if_valid("") is None
+
+
+def test_console_responder_blank_uses_default(monkeypatch):
+    _patch_input(monkeypatch, ["", ""])
+    resp = ConsoleResponder()
+    assert resp.confirm("keep going?", default=True) is True
+    assert resp.text("title", default="Fallback Title") == "Fallback Title"
+
+
+def test_console_responder_confirm_rejects_invalid(monkeypatch):
+    _patch_input(monkeypatch, ["maybe", "n"])
+    resp = ConsoleResponder()
+    assert resp.confirm("are you sure?", default=True) is False
+
+
+def test_console_responder_aborts_on_eof(monkeypatch):
+    def boom(_prompt=""):
+        raise EOFError
+
+    monkeypatch.setattr(builtins, "input", boom)
+    with pytest.raises(typer.Abort):
+        ConsoleResponder().text("no input")
 
 
 def test_inception_command_registered():

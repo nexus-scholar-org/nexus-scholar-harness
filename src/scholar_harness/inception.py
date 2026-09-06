@@ -228,18 +228,39 @@ class Responder(Protocol):
 
 
 class ConsoleResponder:
-    """Rich + typer terminal implementation of :class:`Responder`."""
+    """Terminal implementation of :class:`Responder` for TTY and piped stdin.
+
+    Reads prompts via a single uniform line reader (``input()``). This keeps
+    piped / scripted runs (CI smoke tests, ``... | scholar-harness inception``)
+    aligned with interactive use, unlike ``typer.prompt`` which reads stdin
+    through its own buffering and drifts on non-TTY pipes. EOF aborts cleanly.
+    """
+
+    def _read_line(self) -> str:
+        try:
+            return input().strip()
+        except EOFError as exc:
+            raise typer.Abort() from exc
 
     def text(self, message: str, default: str = "") -> str:
-        prompt = f"• {message}"
         if default:
-            value = typer.prompt(prompt, default=default)
+            console.print(f"[bold cyan]• {message}[/bold cyan]  [dim](default: {default})[/dim]")
         else:
-            value = typer.prompt(prompt)
-        return str(value).strip()
+            console.print(f"• {message}")
+        return self._read_line() or default
 
     def confirm(self, message: str, default: bool = True) -> bool:
-        return typer.confirm(message, default=default)
+        suffix = "[Y/n]" if default else "[y/N]"
+        while True:
+            console.print(f"• {message} {suffix}")
+            raw = self._read_line().lower()
+            if not raw:
+                return default
+            if raw in ("y", "yes"):
+                return True
+            if raw in ("n", "no"):
+                return False
+            console.print("[red]Invalid input: answer 'yes' or 'no'.[/red]")
 
     def num_if_valid(self, raw: str) -> int | None:
         raw = raw.strip()
@@ -254,8 +275,9 @@ class ConsoleResponder:
         console.print(f"[bold cyan]▸ {message}[/bold cyan]")
         for i, (label, desc) in enumerate(choices, start=1):
             console.print(f"  [bold]{i}.[/bold] {label}  [dim]— {desc}[/dim]")
+        console.print("  Enter choice number:")
         while True:
-            raw = input("  Enter choice number: ").strip()
+            raw = self._read_line()
             if raw:
                 try:
                     idx = int(raw) - 1
@@ -271,8 +293,9 @@ class ConsoleResponder:
         console.print(f"[bold cyan]▸ {message}[/bold cyan]  [dim](enter comma-separated numbers or 'all' for every option)[/dim]")
         for i, label in enumerate(choices, start=1):
             console.print(f"  [bold]{i}.[/bold] {label}")
+        console.print("  →")
         while True:
-            raw = input("  → ").strip().lower()
+            raw = self._read_line().lower()
             if raw in ("",):
                 return []
             if raw == "all":
