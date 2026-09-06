@@ -33,5 +33,8 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 ### Phase 4: Trust Layers
 - [ ] **Abstracting Phase 4**: We just proved the concepts (Retraction, Open Science, COI, Risk of bias) as raw scripts inside the `uav` workspace. We need to abstract these into an official kit (e.g. `scholar-verify-kit`) so they can be run on *any* workspace.
 
-### Phase 5: Collaboration
-- [ ] **Shared Workspaces & No-Code Builder**: The final vision of a UI-driven, multi-user research environment.
+### Phase 5: Collaboration & Empowerment (The UI Platform)
+Phase 5 transitions the toolkit from a CLI engine into a collaborative, UI-driven platform.
+- [ ] **Shared Collaborative Workspaces**: Cloud-based environments with role-based access (Lead, Reviewer, Editor) and fully reversible audit trails for team-based screening and synthesis.
+- [ ] **No-Code Workflow Builder**: A drag-and-drop visual interface to connect pipeline nodes (e.g., PubMed Search -> Deduplication -> Docling Extractor). Features include pipeline testing on sample papers and auto-generating Python/CLI code for export.
+- [ ] **Domain-Specific Playbooks**: 1-click template pipelines for standardized methodologies, including PRISMA Systematic Reviews, Rapid Evidence Assessments (48-hour turnarounds), and Meta-Research Analysis.
