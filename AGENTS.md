@@ -3,7 +3,9 @@
 OpenCode / agent guidance for the Nexus Scholar Harness repo. Compact: only non-obvious facts that prevent mistakes.
 
 ## What this repo is
-A thin **orchestrator** ("harness") for systematic literature reviews. The actual logic lives in seven external `scholar-*-kit` packages, checked out under `tools/<kit>/` (tracked in git) and installed **editable** into the shared `.venv/`. All kit CLIs are invoked via `uv run <cli>`.
+A thin **orchestrator** ("harness") for systematic literature reviews. The actual logic lives in eight external `scholar-*-kit` packages, checked out under `tools/<kit>/` (tracked in git) and installed **editable** into the shared `.venv/`. All kit CLIs are invoked via `uv run <cli>`.
+
+- Post-screening verification (retraction status, open-science DAS/CAS, COI audit, risk-of-bias) is provided by `scholar-verify-kit` (`uv run scholar-verify ...`); outputs land under `<ws>/phase4/*.json|.md` and mirror the Phase-4 streams.
 
 ## Setup / environment (the big gotcha)
 - `uv sync` installs only the thin harness deps (typer, rich, dev extras). It does **NOT** install the kits, so `uv run scholar-search` etc. won't exist after a bare sync.
@@ -23,7 +25,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 - Heavy/generated artifacts are gitignored: `workspaces/**/pdfs/`, `rag/chroma_db/`, `lib/` (vendored JS: vis/tom-select — do not edit). `workspaces/` text/metadata files **are** tracked. `tools/` **is** tracked (contrary to the stale `scripts/pre_commit_check.py`, which is outdated).
 
 ## Kit domain skills
-Each domain has an SKILL.md under `.agents/skills/<kit>/SKILL.md` (scholar-search-kit, scholar-pdf-kit, scholar-bib-kit, scholar-rag-kit, scholar-graph-kit, scholar-protocol-kit, scholar-agent-kit, methodology-copilot, workspace-manager). Load the relevant skill before working in that domain — they document the exact CLIs and data formats (e.g. YAML-frontmatter Markdown for extracted fulltext, the audit event schema). The MCP server entrypoint for the agent kit is `.agents/plugins/nexus-scholar/mcp_config.json`.
+Each domain has an SKILL.md under `.agents/skills/<kit>/SKILL.md` (scholar-search-kit, scholar-pdf-kit, scholar-bib-kit, scholar-rag-kit, scholar-graph-kit, scholar-protocol-kit, scholar-agent-kit, scholar-verify-kit, methodology-copilot, workspace-manager). Load the relevant skill before working in that domain — they document the exact CLIs and data formats (e.g. YAML-frontmatter Markdown for extracted fulltext, the audit event schema). The MCP server entrypoint for the agent kit is `.agents/plugins/nexus-scholar/mcp_config.json`.
 
 ## Style / workflow notes
 - Do not re-derive kit internals in harness code; call the kit CLIs / import their APIs (e.g. `scholar_search.dedup.Deduplicator`, `scholar_rag.indexer.ScholarIndexer`) as `orchestrator.py` does.

@@ -31,7 +31,7 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 - [ ] **Overleaf / Typst Bridge**: Automated Git-backed export of the final manuscript.
 
 ### Phase 4: Trust Layers
-- [ ] **Abstracting Phase 4**: We just proved the concepts (Retraction, Open Science, COI, Risk of bias) as raw scripts inside the `uav` workspace. We need to abstract these into an official kit (e.g. `scholar-verify-kit`) so they can be run on *any* workspace.
+- [x] **Abstracting Phase 4**: Retraction, Open Science, COI, and Risk-of-bias were proven as raw scripts inside the `uav` workspace, then abstracted into the `scholar-verify-kit` (in `tools/scholar-verify-kit/`, CLI `uv run scholar-verify ...`), runnable on *any* workspace. Verified by parity smoke test against the original `uav-cv-precision-agriculture/phase4/` outputs.
 
 ### Phase 5: Collaboration & Empowerment (The UI Platform)
 Phase 5 transitions the toolkit from a CLI engine into a collaborative, UI-driven platform.

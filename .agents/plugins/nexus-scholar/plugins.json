@@ -58,6 +58,14 @@
       "default_rev": "main",
       "console_script": "scholar-agent",
       "extras": []
+    },
+    {
+      "name": "scholar-verify-kit",
+      "description": "Post-screening trust verification: retraction status, open-science artifacts, conflict-of-interest audit, and deterministic risk-of-bias scoring.",
+      "repo": "https://github.com/nexus-scholar-org/scholar-verify-kit.git",
+      "default_rev": "main",
+      "console_script": "scholar-verify",
+      "extras": []
     }
   ]
 }
