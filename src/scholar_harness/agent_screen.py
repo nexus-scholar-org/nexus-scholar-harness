@@ -78,11 +78,19 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+# Force UTF-8 on Windows to prevent Rich/print unicodes from crashing on OEM code pages
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 # Allow running from repo root without install
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT / "tools/scholar-search-kit/src"))
 
-from scholar_search.models import Document, ExternalIds, Author
+from scholar_search.models import Author, Document, ExternalIds
 from scholar_search.screening import (
     ScreeningDecision,
     evaluate_heuristic_screening,
@@ -94,6 +102,7 @@ try:
     from scholar_agent.calibration import (
         build_checklist_schema,
         build_preflight_calibration,
+        checklist_to_decision,
         evaluate_calibration,
     )
     _HAS_CALIBRATION = True
@@ -560,7 +569,7 @@ def cmd_collect(workspace_dir: Path) -> None:
 
                 # Support new checklist format (inc_XX/exc_XX booleans)
                 # and legacy format (decision + confidence + criteria lists)
-                has_checklist = any(k.startswith("inc_") or k.startswith("exc_") for k in entry)
+                has_checklist = any(k.startswith(("inc_", "exc_")) for k in entry)
                 if has_checklist and _HAS_CALIBRATION:
                     # Deterministic derivation from boolean checklist
                     schema = build_checklist_schema(protocol_data)

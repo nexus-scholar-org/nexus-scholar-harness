@@ -1,13 +1,29 @@
-import typer
 import asyncio
 import json
+import sys
 from pathlib import Path
+
+import typer
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+)
 from rich.table import Table
 
-from .downloader import AsyncPDFDownloader
+# Force UTF-8 on Windows to prevent Rich console UnicodeEncodeError on OEM code pages
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from .config import settings
+from .downloader import AsyncPDFDownloader
 from .extract import DoclingEngine, GrobidEngine
 
 app = typer.Typer(help="Scholar PDF Kit: Bypassing paywalls for automated Open Access discovery.")
