@@ -249,3 +249,30 @@ The harness skills are now **production-ready** with:
 - ✅ Error recovery and profiling capabilities
 
 **All tests pass. Ready for deployment. 🚀**
+
+---
+
+## Future Toolkit Upgrades (Derived from Phase 1-3 Retrospective)
+
+Based on the recent execution of the `uav-cv-precision-agriculture` project, the following architectural upgrades have been identified to address bottlenecks, manual interventions, and edge-cases across the toolkit:
+
+### 1. `scholar-harness` (Orchestrator)
+- **Windows Encoding Fix (P0)**: Force UTF-8 on Windows at entry in `cli.py` to prevent Rich console `UnicodeEncodeError` crashes on OEM code pages.
+- **State Synchronization (P0)**: Introduce a `scholar-harness sync --workspace <path>` command to recalculate metrics and atomically update `project.json` and `INDEX.md` from the filesystem.
+- **Phase Heuristic Fix (P1)**: Update `orchestrator.get_status()` to evaluate actual artifact depth (e.g., `matrix_rows > 0`) rather than relying on placeholder file existence.
+
+### 2. `scholar-pdf-kit` (Retrieval)
+- **Institutional Proxy & Publisher Patterns (P0)**: Add native support for institutional proxies and regex rules to compute exact direct PDF endpoints (IEEE, ScienceDirect, MDPI) to bypass Cloudflare/WAFs.
+- **Magic-Byte Integrity Validation (P0)**: Enforce strict file validation (`%PDF` bytes 0..4, size >50KB) in `scholar_pdf.download` to prevent saving HTML block pages as PDFs.
+- **Tiered Extraction Strategy**: Default to `PyMuPDFEngine` for structural speed, falling back to `Docling`/OCR only for image-based PDFs (character density < 100/page).
+
+### 3. `scholar-search-kit` & `scholar-bib-kit` (Discovery)
+- **Bidirectional Title Alignment (P1)**: Implement a strict similarity check (`token_set_ratio >= 80`) when hydrating DOIs (e.g., via PubMed) to prevent cross-contamination with unrelated papers.
+- **Deduplication Resilience (P2)**: Enhance `TitleNormalizer` in `scholar-bib-kit` to handle ML model aliases (`u-net` -> `unet`) and normalize punctuation/Greek letters.
+
+### 4. `scholar-agent-kit` & `scholar-protocol-kit` (Screening)
+- **Screener Calibration & Structured Prompts (P1)**: Address extreme inter-rater bias (Kappa = 0.115) by running a pre-flight 20-paper calibration test, and replacing free-form inclusion decisions with a structured boolean checklist (e.g., `is_uav_or_drone: bool`).
+- **Provisional States (P2)**: Introduce a `PROVISIONAL_VERIFICATION_REQUIRED` state in the protocol for records with missing abstracts, instead of forcing arbitrary INCLUDE/EXCLUDE decisions.
+
+### 5. `workspace-manager`
+- **Atomic State Sync (P1)**: Ensure the manager can trigger automatic cache invalidation and recalculation of workspace summary statistics when manual or batch ingestion events occur outside the orchestrator.
