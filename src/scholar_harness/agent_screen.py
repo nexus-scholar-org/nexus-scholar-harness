@@ -89,6 +89,17 @@ from scholar_search.screening import (
     partition_screening_results,
 )
 
+# Calibration imports from scholar-agent-kit
+try:
+    from scholar_agent.calibration import (
+        build_checklist_schema,
+        build_preflight_calibration,
+        evaluate_calibration,
+    )
+    _HAS_CALIBRATION = True
+except ImportError:
+    _HAS_CALIBRATION = False
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
@@ -171,21 +182,34 @@ def _build_agent_instructions(
         json.dumps(papers, indent=2, ensure_ascii=False),
         "```",
         "",
+        "## Checklist Schema",
+        "Fill ONE boolean per criterion per paper. Use `true`/`false`.",
+        "```json",
+        json.dumps([
+            {"criterion_id": inc.get("id"), "criterion_type": "inclusion",
+             "description": inc.get("criterion", ""),
+             "field_name": inc.get("id", "INC-01").lower().replace("-", "_")}
+            for inc in inclusions
+        ] + [
+            {"criterion_id": exc.get("id"), "criterion_type": "exclusion",
+             "description": exc.get("criterion", ""),
+             "field_name": exc.get("id", "EXC-01").lower().replace("-", "_")}
+            for exc in exclusions
+        ], indent=2),
+        "```",
+        "",
         "## Required Output",
-        "Write a JSON array (one object per paper, same order) to the decision file.",
-        "Each object MUST have these exact fields:",
+        "Write a JSON array (one object per paper, same order). Each object MUST have:",
         "```json",
         json.dumps([{
             "workspace_id": "SCI-XXXXXX",
-            "decision": "INCLUDE or EXCLUDE",
-            "confidence": 0.0,
-            "matched_inclusion_criteria": ["INC-01"],
-            "violated_exclusion_criteria": [],
-            "relevant_rqs": ["RQ1"],
+            **{inc.get("id", "INC-XX").lower().replace("-", "_"): False
+               for inc in inclusions},
+            **{exc.get("id", "EXC-XX").lower().replace("-", "_"): False
+               for exc in exclusions},
             "screening_reasoning": "One or two sentences explaining the decision."
         }], indent=2),
         "```",
-        "",
         f"Write your response to: `literature/screening/batch_{batch_index:03d}_decisions.json`",
     ]
     return "\n".join(lines)
@@ -534,26 +558,41 @@ def cmd_collect(workspace_dir: Path) -> None:
                 wsid = str(entry.get("workspace_id", ""))
                 doc = doc_by_wsid.get(wsid)
 
-                raw_dec = str(entry.get("decision", "INCLUDE")).upper()
-                decision = "INCLUDE" if raw_dec == "INCLUDE" else "EXCLUDE"
-                try:
-                    confidence = float(entry.get("confidence", 0.80))
-                except (TypeError, ValueError):
-                    confidence = 0.80
-
-                all_decisions.append(
-                    ScreeningDecision(
+                # Support new checklist format (inc_XX/exc_XX booleans)
+                # and legacy format (decision + confidence + criteria lists)
+                has_checklist = any(k.startswith("inc_") or k.startswith("exc_") for k in entry)
+                if has_checklist and _HAS_CALIBRATION:
+                    # Deterministic derivation from boolean checklist
+                    schema = build_checklist_schema(protocol_data)
+                    sd = checklist_to_decision(
                         workspace_id=wsid,
-                        decision=decision,
-                        confidence=confidence,
-                        matched_inclusion_criteria=list(entry.get("matched_inclusion_criteria") or []),
-                        violated_exclusion_criteria=list(entry.get("violated_exclusion_criteria") or []),
-                        relevant_rqs=list(entry.get("relevant_rqs") or []),
-                        screening_reasoning=str(entry.get("screening_reasoning", "Agent screened.")),
+                        checklist=entry,
+                        schema=schema,
                         document_title=doc.title if doc else entry.get("title", ""),
-                        doi=doc.external_ids.doi if doc else None,
+                        doi=(doc.external_ids.doi if doc else None) or entry.get("doi"),
                     )
-                )
+                    all_decisions.append(sd)
+                else:
+                    raw_dec = str(entry.get("decision", "INCLUDE")).upper()
+                    decision = "INCLUDE" if raw_dec == "INCLUDE" else "EXCLUDE"
+                    try:
+                        confidence = float(entry.get("confidence", 0.80))
+                    except (TypeError, ValueError):
+                        confidence = 0.80
+
+                    all_decisions.append(
+                        ScreeningDecision(
+                            workspace_id=wsid,
+                            decision=decision,
+                            confidence=confidence,
+                            matched_inclusion_criteria=list(entry.get("matched_inclusion_criteria") or []),
+                            violated_exclusion_criteria=list(entry.get("violated_exclusion_criteria") or []),
+                            relevant_rqs=list(entry.get("relevant_rqs") or []),
+                            screening_reasoning=str(entry.get("screening_reasoning", "Agent screened.")),
+                            document_title=doc.title if doc else entry.get("title", ""),
+                            doi=doc.external_ids.doi if doc else None,
+                        )
+                    )
 
         if missing_batches:
             logger.warning("%d batch(es) had missing/broken decision files: %s", len(missing_batches), missing_batches)
@@ -617,6 +656,108 @@ def cmd_collect(workspace_dir: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# CALIBRATION
+# ---------------------------------------------------------------------------
+
+def cmd_calibration(workspace_dir: Path, sample_size: int = 20, gold_file: str | None = None) -> None:
+    """Generate a 20-paper pre-flight calibration batch from verified.json + gold labels."""
+    if not _HAS_CALIBRATION:
+        logger.error("scholar-agent-kit calibration module not available. Install scholar-agent-kit.")
+        sys.exit(1)
+
+    lit_dir = workspace_dir / "literature"
+    verified_path = lit_dir / "verified.json"
+    protocol_path = workspace_dir / "protocol.json"
+
+    if not verified_path.exists():
+        logger.error("verified.json not found at %s", verified_path)
+        sys.exit(1)
+    if not protocol_path.exists():
+        logger.error("protocol.json not found at %s", protocol_path)
+        sys.exit(1)
+
+    raw_verified: list[dict] = json.loads(verified_path.read_text(encoding="utf-8"))
+    protocol_data: dict = json.loads(protocol_path.read_text(encoding="utf-8"))
+
+    # Load gold labels if provided; else synthesize from heuristic
+    if gold_file and Path(gold_file).exists():
+        gold_papers = json.loads(Path(gold_file).read_text(encoding="utf-8"))
+        logger.info("Loaded %d gold-labeled papers from %s", len(gold_papers), gold_file)
+    else:
+        logger.info("No gold file provided; synthesizing gold labels via heuristic screening.")
+        gold_papers = []
+        for p in raw_verified:
+            doc = _rebuild_doc(p, fallback_id=p.get("workspace_id", ""))
+            hd = evaluate_heuristic_screening(doc, protocol_data)
+            gold_papers.append({
+                "workspace_id": p.get("workspace_id", doc.workspace_id),
+                "title": p.get("title"),
+                "year": p.get("year"),
+                "abstract": p.get("abstract"),
+                "venue": p.get("venue"),
+                "doi": (p.get("external_ids") or {}).get("doi") or p.get("doi"),
+                "gold_decision": hd.decision,
+                "gold_matched_inclusion": hd.matched_inclusion_criteria,
+                "gold_violated_exclusion": hd.violated_exclusion_criteria,
+            })
+
+    # Clamp sample size
+    sample_size = min(sample_size, len(gold_papers))
+    if sample_size == 0:
+        logger.error("No papers available for calibration.")
+        sys.exit(1)
+
+    screening_dir = _screening_dir(workspace_dir)
+    cal_batch = build_preflight_calibration(
+        gold_papers, protocol_data, sample_size=sample_size
+    )
+    cal_batch.write(screening_dir)
+
+    logger.info("=" * 60)
+    logger.info("CALIBRATION BATCH PREPARED")
+    logger.info("  Papers:    %d", len(cal_batch.batch_data["papers"]))
+    logger.info("  Batch:     %s", screening_dir / "calibration_batch_000.json")
+    logger.info("  Gold:      %s", screening_dir / "calibration_gold.json")
+    logger.info("")
+    logger.info("NEXT STEP — ask the agent to screen the calibration batch:")
+    logger.info("  'Please screen literature/screening/calibration_batch_000.json'")
+    logger.info("  Then run:  python agent_screen.py calibrate-eval %s", workspace_dir)
+    logger.info("=" * 60)
+
+
+def cmd_calibrate_eval(workspace_dir: Path) -> None:
+    """Evaluate calibration decisions against gold standard and print report."""
+    if not _HAS_CALIBRATION:
+        logger.error("scholar-agent-kit calibration module not available.")
+        sys.exit(1)
+
+    screening_dir = _screening_dir(workspace_dir)
+    decisions_path = screening_dir / "calibration_batch_000_decisions.json"
+    gold_path = screening_dir / "calibration_gold.json"
+
+    if not decisions_path.exists():
+        logger.error("Calibration decisions file not found: %s", decisions_path)
+        sys.exit(1)
+    if not gold_path.exists():
+        logger.error("Gold standard file not found: %s", gold_path)
+        sys.exit(1)
+
+    decisions = json.loads(decisions_path.read_text(encoding="utf-8"))
+    gold = json.loads(gold_path.read_text(encoding="utf-8"))
+
+    report = evaluate_calibration(decisions, gold.get("papers", []))
+
+    print(report.to_markdown())
+    logger.info("=" * 60)
+    logger.info("CALIBRATION VERDICT: %s", report.verdict)
+    if report.verdict == "FLAG":
+        logger.warning("Calibration FAILED. Review reasons above before proceeding with real screening.")
+    else:
+        logger.info("Calibration PASSED. Proceed with real screening batches.")
+    logger.info("=" * 60)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -626,13 +767,24 @@ def main() -> None:
             "Agent-in-the-loop PRISMA screening.\n"
             "The harness agent IS the LLM — no external API required.\n\n"
             "Workflow:\n"
-            "  1. python agent_screen.py prepare <workspace>\n"
-            "  2. Ask the agent: 'screen all batches in literature/screening/'\n"
-            "  3. python agent_screen.py collect <workspace>"
+            "  1. python agent_screen.py calibration <workspace>  (pre-flight bias check)\n"
+            "  2. python agent_screen.py prepare <workspace>\n"
+            "  3. Ask the agent: 'screen all batches in literature/screening/'\n"
+            "  4. python agent_screen.py collect <workspace>"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    # calibration
+    p_cal = sub.add_parser("calibration", help="Generate a 20-paper pre-flight calibration batch.")
+    p_cal.add_argument("workspace", help="Path to workspace directory")
+    p_cal.add_argument("--sample-size", "-n", type=int, default=20)
+    p_cal.add_argument("--gold-file", help="Path to gold-labeled JSON (optional; uses heuristic if absent)")
+
+    # calibrate-eval
+    p_ceval = sub.add_parser("calibrate-eval", help="Evaluate calibration decisions against gold standard.")
+    p_ceval.add_argument("workspace", help="Path to workspace directory")
 
     # prepare
     p_prepare = sub.add_parser("prepare", help="Chunk verified.json into batch files.")
@@ -651,7 +803,11 @@ def main() -> None:
     args = parser.parse_args()
     workspace_dir = Path(args.workspace).resolve()
 
-    if args.command == "prepare":
+    if args.command == "calibration":
+        cmd_calibration(workspace_dir, sample_size=args.sample_size, gold_file=args.gold_file)
+    elif args.command == "calibrate-eval":
+        cmd_calibrate_eval(workspace_dir)
+    elif args.command == "prepare":
         cmd_prepare(workspace_dir, batch_size=args.batch_size, force=args.force)
     elif args.command == "status":
         cmd_status(workspace_dir)
