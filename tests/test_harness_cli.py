@@ -105,3 +105,63 @@ def test_orchestrator_get_status(mock_protocol_workspace):
     assert status["title"] == "Harness CLI Pipeline Evaluation"
     assert status["playbook_type"] == "DESIGN_SCIENCE"
     assert status["phase"] == "PHASE_1_DISCOVERY"
+
+
+def test_sync_command_rebuilds_project_state(tmp_path):
+    workspace = tmp_path
+    lit = workspace / "literature"
+    (workspace / "pdfs").mkdir(parents=True)
+    (workspace / "extracted").mkdir()
+    lit.mkdir()
+
+    # Seed minimal literature state
+    raw = [{"workspace_id": f"W{i:04d}"} for i in range(10)]
+    (lit / "raw_search.json").write_text(json.dumps(raw), encoding="utf-8")
+    verified = raw[:8]
+    (lit / "verified.json").write_text(json.dumps(verified), encoding="utf-8")
+    included = raw[:3]
+    (lit / "included.json").write_text(json.dumps(included), encoding="utf-8")
+    excluded = raw[3:8]
+    (lit / "excluded.json").write_text(json.dumps(excluded), encoding="utf-8")
+    (lit / "prisma_report.json").write_text(json.dumps({
+        "total_identified": 10, "records_screened": 8, "records_included": 3,
+        "records_excluded": 5, "conflicts_flagged": 2,
+    }), encoding="utf-8")
+    for i in range(2):
+        (workspace / "pdfs" / f"p{i}.pdf").write_bytes(b"%PDF-")
+    for i in range(2):
+        (workspace / "extracted" / f"e{i}.md").write_text("# doc", encoding="utf-8")
+
+    result = runner.invoke(app, ["sync", "--workspace", str(workspace)])
+    assert result.exit_code == 0
+
+    manifest = json.loads((workspace / "project.json").read_text(encoding="utf-8"))
+    stats = manifest["stats"]
+    assert stats["discovered_papers"] == 10
+    assert stats["verified_papers"] == 8
+    assert stats["included_papers"] == 3
+    assert stats["excluded_papers"] == 5
+    assert stats["records_screened"] == 8
+    assert stats["downloaded_pdfs"] == 2
+    assert stats["extracted_markdowns"] == 2
+
+    assert (workspace / "INDEX.md").exists()
+    index_content = (workspace / "INDEX.md").read_text(encoding="utf-8")
+    assert "Project Index" in index_content
+
+    # No temp residue after atomic write
+    assert not list(workspace.glob("*.tmp"))
+
+
+def test_sync_command_dry_run_writes_nothing(tmp_path):
+    workspace = tmp_path
+    lit = workspace / "literature"
+    lit.mkdir()
+    raw = [{"workspace_id": f"W{i:04d}"} for i in range(5)]
+    (lit / "raw_search.json").write_text(json.dumps(raw), encoding="utf-8")
+
+    result = runner.invoke(app, ["sync", "--workspace", str(workspace), "--dry-run"])
+    assert result.exit_code == 0
+    assert "DRY RUN" in result.stdout
+    assert not (workspace / "project.json").exists()
+    assert not (workspace / "INDEX.md").exists()

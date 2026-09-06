@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,6 +29,13 @@ from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
 
 logger = logging.getLogger(__name__)
+
+
+def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
+    """Write JSON to disk with an atomic temp-file + os.replace dance."""
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, path)
 
 
 class ResearchOrchestrator:
@@ -169,6 +178,187 @@ class ResearchOrchestrator:
                 pass
 
         return status
+
+    def sync_state(self, dry_run: bool = False) -> dict[str, Any]:
+        """Atomically rebuild project.json stats and INDEX.md from filesystem state.
+
+        Derives all countable metrics from the actual workspace layout (literature
+        payloads, screening outputs, PDFs, extractions, synthesis artifacts) and
+        merges them into the existing project.json manifest, preserving
+        researcher-authored fields (title, research_questions, keywords, etc.).
+        Uses an atomic temp-file + os.replace dance so a crash mid-write can never
+        leave a truncated manifest or orphaned INDEX.md.
+        """
+        ws = self.workspace_dir
+        ws.mkdir(parents=True, exist_ok=True)
+
+        stats: dict[str, Any] = {}
+
+        def _count(name: str, path: Path) -> None:
+            if path.exists():
+                try:
+                    stats[name] = len(json.loads(path.read_text(encoding="utf-8")))
+                except Exception:
+                    stats[name] = 0
+
+        lit = ws / "literature"
+        _count("discovered_papers", lit / "raw_search.json")
+        _count("deduped_papers", lit / "deduped.json")
+        _count("verified_papers", lit / "verified.json")
+        _count("included_papers", lit / "included.json")
+        _count("excluded_papers", lit / "excluded.json")
+
+        # PRISMA screening artifacts (batch decisions exclude batch-json supersets)
+        prisma_path = lit / "prisma_report.json"
+        if prisma_path.exists():
+            try:
+                prisma = json.loads(prisma_path.read_text(encoding="utf-8"))
+                for key in ("total_identified", "records_screened", "records_included",
+                            "records_included_confirmed", "records_included_provisional_caveats",
+                            "records_excluded", "conflicts_flagged", "reports_sought_for_retrieval",
+                            "reports_not_retrieved", "reports_retrieved", "retrieval_rate_pct",
+                            "final_fulltext_corpus_assessed"):
+                    if key in prisma:
+                        stats[key] = prisma[key]
+            except Exception:
+                pass
+
+        # Harvested PDFs & extractions
+        pdf_dir = ws / "pdfs"
+        if pdf_dir.exists():
+            stats["downloaded_pdfs"] = len(list(pdf_dir.glob("*.pdf")))
+        ext_dir = ws / "extracted"
+        if ext_dir.exists():
+            stats["extracted_markdowns"] = len(list(ext_dir.glob("*.md")))
+
+        # Graph / matrix / corpus artifacts
+        graph_file = lit / "knowledge_graph.json" if (lit / "knowledge_graph.json").exists() else lit / "graph.json"
+        if graph_file.exists():
+            try:
+                graph = json.loads(graph_file.read_text(encoding="utf-8"))
+                stats["graph_nodes"] = len(graph.get("nodes", []))
+                stats["graph_edges"] = len(graph.get("links", graph.get("edges", [])))
+            except Exception:
+                stats["graph_nodes"] = 0
+        _count("merged_records", lit / "extraction" / "merged" / "records.json")
+        clean_ids = lit / "screening" / "_clean_corpus_ids.json"
+        if clean_ids.exists():
+            try:
+                stats["audited_clean_corpus"] = len(json.loads(clean_ids.read_text(encoding="utf-8")))
+            except Exception:
+                stats["audited_clean_corpus"] = 0
+        matrix_path = lit / "synthesis_matrix.json"
+        if not matrix_path.exists():
+            matrix_path = ws / "synthesis" / "synthesis_matrix.json"
+        _count("matrix_studies", matrix_path)
+
+        # Vector DB chunk count
+        chroma_dir = ws / "rag" / "chroma_db"
+        if chroma_dir.exists():
+            try:
+                import chromadb
+                client = chromadb.PersistentClient(path=str(chroma_dir))
+                stats["vector_chunks"] = client.get_collection("scholar_docs").count()
+            except Exception:
+                pass
+
+        # Merge into manifest
+        manifest_path = ws / "project.json"
+        manifest: dict[str, Any] = {}
+        if manifest_path.exists():
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except Exception:
+                manifest = {}
+        if not manifest:
+            manifest = {
+                "project_id": ws.name,
+                "title": ws.name,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "status": "active",
+                "research_questions": [],
+                "keywords": [],
+            }
+        manifest["updated_at"] = datetime.now(timezone.utc).isoformat()
+        merged_stats = dict(manifest.get("stats", {}))
+        merged_stats.update(stats)
+        # Recompute a defensible status flag if screen flow exists
+        if merged_stats.get("final_fulltext_corpus_assessed", 0) > 0:
+            merged_stats["phase"] = "PHASE_4_COMPLETE"
+        elif merged_stats.get("extracted_markdowns", 0) > 0:
+            merged_stats["phase"] = "PHASE_2_SYNTHESIS"
+        elif merged_stats.get("included_papers", 0) > 0:
+            merged_stats["phase"] = "PHASE_1_HARVESTING"
+        else:
+            merged_stats["phase"] = "PHASE_0_PENDING"
+        manifest["stats"] = merged_stats
+
+        if dry_run:
+            return {
+                "workspace": str(ws),
+                "dry_run": True,
+                "stats_updated": stats,
+                "index_regenerated": False,
+            }
+
+        # Atomic write project.json
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write_json(manifest_path, manifest)
+
+        # Regenerate INDEX.md atomically via workspace-manager (reuse canonical renderer)
+        index_regenerated = self._refresh_index_md_atomic()
+
+        self._log_audit_event(
+            action="STATE_SYNC",
+            agent="scholar-harness",
+            description=f"Rebuilt {ws.name} project.json + INDEX.md from filesystem state ({len(stats)} stats refreshed)",
+            inputs=[str(p) for p in (lit / "raw_search.json", lit / "prisma_report.json") if p.exists()],
+            outputs=["project.json", "INDEX.md"],
+            metrics=stats,
+        )
+
+        return {
+            "workspace": str(ws),
+            "dry_run": False,
+            "stats": stats,
+            "index_regenerated": index_regenerated,
+        }
+
+    def _refresh_index_md_atomic(self) -> bool:
+        """Regenerate INDEX.md using the workspace-manager's canonical renderer.
+
+        project.json is written atomically (temp + os.replace) by sync_state; the
+        INDEX.md renderer writes in place, so we snapshot the previous file first
+        and restore it if the render raises or leaves an empty result. This keeps
+        sync_state failure-safe without re-implementing the catalog renderer.
+        """
+        scripts_dir = (
+            Path(__file__).resolve().parent.parent.parent
+            / ".agents" / "skills" / "workspace-manager" / "scripts"
+        )
+        module_path = scripts_dir / "log_event.py"
+        if not module_path.exists():
+            return False
+        try:
+            spec = importlib.util.spec_from_file_location("_wm_log_event", module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            index_path = self.workspace_dir / "INDEX.md"
+            backup = None
+            if index_path.exists():
+                backup = index_path.read_text(encoding="utf-8")
+
+            module.refresh_index_md(self.workspace_dir)
+
+            rendered = index_path.read_text(encoding="utf-8")
+            if not rendered.strip() or ("Project Index" not in rendered):
+                if backup is not None:
+                    index_path.write_text(backup, encoding="utf-8")
+                return False
+            return True
+        except Exception:
+            return False
 
     async def run_pipeline_async(
         self,

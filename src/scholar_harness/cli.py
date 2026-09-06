@@ -80,6 +80,45 @@ def status(
         console.print(event_table)
 
 
+@app.command("sync")
+def sync(
+    workspace: Path = typer.Option(
+        Path("."), "--workspace", "-w", help="Path to research workspace directory"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Compute stats without writing any files"
+    ),
+):
+    """Atomically rebuild project.json stats and INDEX.md from filesystem state."""
+    orchestrator = ResearchOrchestrator(workspace)
+    result = orchestrator.sync_state(dry_run=dry_run)
+
+    table = Table(title=f"🔄 State Sync: {result['workspace']}", show_header=True, header_style="bold cyan")
+    table.add_column("Key", style="bold white", width=30)
+    table.add_column("Value", style="green", width=42)
+
+    if result.get("dry_run"):
+        table.add_row("Mode", "DRY RUN (no files written)")
+        stats = result.get("stats_updated", {})
+    else:
+        table.add_row("Mode", "Committed")
+        stats = result.get("stats", {})
+        table.add_row("INDEX.md Regenerated", "✅ Yes" if result.get("index_regenerated") else "⚠️  Not (workspace-manager unavailable)")
+
+    table.add_section()
+    for key in ("discovered_papers", "verified_papers", "included_papers",
+                "excluded_papers", "downloaded_pdfs", "extracted_markdowns"):
+        if key in stats:
+            table.add_row(key, str(stats[key]))
+    remaining = {k: v for k, v in stats.items() if k not in (
+        "discovered_papers", "verified_papers", "included_papers",
+        "excluded_papers", "downloaded_pdfs", "extracted_markdowns")}
+    for key, value in remaining.items():
+        table.add_row(key, str(value))
+
+    console.print(table)
+
+
 @app.command("run")
 def run_pipeline(
     protocol: Path = typer.Option(
