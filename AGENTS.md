@@ -12,9 +12,9 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 - Kits are installed into the shared `.venv/` with `python scripts/install_plugins.py` (uses `uv pip install`, **not** `uv sync` — the kits' `[tool.uv.sources]` relative paths only work inside a monorepo). It auto-detects local checkouts in `tools/` for editable installs; falls back to the Git repos/branches declared in `.agents/plugins/nexus-scholar/plugins.json` (source of truth for kit versions).
 - Run everything through the project venv with `uv run ...`. Never rely on a system Python.
 
-- All tests: `uv run pytest` (currently **11 passed, 0 failed** — 100% test pass rate). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
+- All tests: `uv run pytest` (currently **25 passed, 0 failed** — 100% test pass rate). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
 - Lint: `uv run ruff check scripts/` (CI scopes ruff to `scripts/` only). Note: there are ~15 pre-existing errors; don't assume a clean pass.
-- This repo's own CLI: `uv run scholar-harness status|run|export --workspace <dir>` (defined in `src/scholar_harness/cli.py`).
+- This repo's own CLI: `uv run scholar-harness` with `status|sync|run|export|inception` subcommands (defined in `src/scholar_harness/cli.py`, Phase-0 wizard in `src/scholar_harness/inception.py`).
 - Multi-step research is agent-driven and file-based, so commands often hand off:
   - `python src/scholar_harness/agent_screen.py prepare|<status>|collect <workspace>` — the PRISMA screening step is an **agent-in-the-loop file handoff**, not an external API. The pipeline (orchestrator) stops after writing `literature/screening/batch_NNN.json`; an agent reads each batch and writes `batch_NNN_decisions.json`, then `collect` assembles `included.json`/`excluded.json`/`prisma_screening_report.md`.
 

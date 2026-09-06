@@ -15,6 +15,28 @@ You are an expert PhD advisor and methodological architect. When a researcher pr
 
 ---
 
+## Automated Fast Path: `scholar-harness inception`
+
+The four-step conversational loop below can be executed directly as a terminal
+wizard against `tools/scholar-protocol-kit` and the `workspace-manager` scaffold:
+
+```bash
+uv run scholar-harness inception --root <repo-root>
+# --no-scaffold  -> run the interview only; write nothing
+```
+
+It implements the full 4-stage Socratic protocol
+(`docs/phase_0/04_socratic_inception_protocol.md`): latent paradigm mining,
+the 4-way refraction grid, the boundary grill (unit of analysis, gold-standard
+proof, exclusions, lexicon enforcement), then emits `intent.json`, compiles a
+*fingerprinted* `protocol.json` and `SCREENING_CRITERIA.md`, scaffolds
+`workspaces/<slug>/`, and records a `GENESIS` audit event. For scripted /
+hermetic use, drive `scholar_harness.inception.run_wizard` with an injected
+responder. When interactive, prefer the wizard over hand-authoring the
+`intent.json` below.
+
+---
+
 ## The Conversational Protocol
 
 When a user presents a research idea:

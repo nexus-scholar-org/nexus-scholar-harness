@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import sys
-import json
 from pathlib import Path
+
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 
-from .orchestrator import ResearchOrchestrator
+from .inception import inception_command
 from .integrations.latex_typst import AcademicTypesettingExporter
 from .integrations.obsidian import ObsidianVaultExporter
 from .integrations.zotero import ZoteroBridge
+from .orchestrator import ResearchOrchestrator
 
 if sys.platform == "win32":
     try:
@@ -78,6 +79,19 @@ def status(
                 evt.get("description", "")[:60] + "..." if len(evt.get("description", "")) > 60 else evt.get("description", "")
             )
         console.print(event_table)
+
+
+@app.command("inception")
+def inception(
+    root: Path = typer.Option(
+        Path("."), "--root", "-r", help="Repository root containing workspaces/ (default: current dir)"
+    ),
+    no_scaffold: bool = typer.Option(
+        False, "--no-scaffold", help="Run the interview only; emit nothing to disk"
+    ),
+):
+    """Run the Phase-0 Socratic methodology interview and emit a compiled protocol."""
+    inception_command(root, no_scaffold=no_scaffold)
 
 
 @app.command("sync")

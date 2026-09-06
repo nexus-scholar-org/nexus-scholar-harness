@@ -15,9 +15,9 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 *Derived from the `ROADMAP_ASSESSMENT_AND_TASK_LIST.md` and `OPEN_SCIENCE_ROADMAP.md`.*
 
 ### Phase 0: Intent Router
-- [ ] **Interactive Inception CLI**: A terminal wizard to conduct the Socratic interview.
-- [ ] **Protocol Generator**: A tool to explicitly generate the `protocol.json`.
-- [ ] **Playbook Archetypes**: Preset templates for SLRs, Scoping Reviews, and Rapid Assessments.
+- [x] **Interactive Inception CLI**: A terminal wizard to conduct the Socratic interview — `uv run scholar-harness inception --root <repo>`. Implements the 4-stage Socratic protocol (`docs/phase_0/04_socratic_inception_protocol.md`): latent paradigm mining, 4-way refraction grid, Socratic boundary grill (unit of analysis, gold-standard proof, exclusions, lexicon enforcement), then emits `intent.json`, compiles the fingerprinted `protocol.json` and `SCREENING_CRITERIA.md`, scaffolds `workspaces/<slug>/`, and logs the `GENESIS` audit event. Responder-driven so tests are hermetic and scriptable.
+- [x] **Protocol Generator**: The wizard compiles `protocol.json` directly through the deterministic `scholar-protocol-kit` compiler (no hand-authoring); intent → canonical bytes are reproducible (`sha256:` fingerprint verified by tests).
+- [x] **Playbook Archetypes**: Preset templates selected at runtime from `scholar-protocol-kit`'s `PlaybookType` (`PRISMA_SLR`, `SCOPING_REVIEW`, `RAPID_EVIDENCE`, `DESIGN_SCIENCE`, `STUDENT_DISSERTATION`) with paradigm→playbook recommendations and per-playbook trustworthiness frameworks.
 
 ### Phase 1: Discovery & Harvesting
 - [ ] **Citation Snowballing**: Build backward/forward reference traversal directly into `scholar-search-kit`.
