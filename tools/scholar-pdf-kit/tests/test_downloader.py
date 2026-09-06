@@ -1,8 +1,7 @@
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
+
 import aiohttp
 import pytest
-
 from scholar_pdf.downloader import AsyncPDFDownloader
 from scholar_search.http_client import AcademicHttpClient
 
@@ -48,7 +47,7 @@ async def test_process_doi_success(downloader, mock_http_client, temp_output_dir
     # Mock iter_chunked
     async def mock_iter_chunked(*args, **kwargs):
         yield b"%PDF-1.4\n"  # Valid PDF header
-        yield b"Mock PDF Content"
+        yield b"Mock PDF Content" * 1024  # realistic payload size
 
     mock_get.content.iter_chunked = mock_iter_chunked
 
@@ -125,3 +124,51 @@ async def test_process_doi_invalid_pdf(downloader, mock_http_client, temp_output
     assert result.success is False
     assert result.was_oa is True
     assert result.error_message == "Failed to download or invalid PDF"
+
+
+@pytest.mark.asyncio
+async def test_process_doi_publisher_pattern_fallback(downloader, mock_http_client, temp_output_dir):
+    """When the OpenAlex OA URL is Cloudflare-blocked (HTML hull), the IEEE
+    direct-PDF pattern must be attempted and can rescue the download."""
+    doi = "10.1109/ICCV.2023.01234"
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "best_oa_location": {
+            "pdf_url": "https://ieeexplore.ieee.org/document/10209481"
+        }
+    }
+    mock_http_client.get = AsyncMock(return_value=mock_response)
+
+    mock_session = AsyncMock(spec=aiohttp.ClientSession)
+
+    async def make_response(header_bytes, content_type):
+        r = AsyncMock()
+        r.raise_for_status = MagicMock()
+        r.__aenter__ = AsyncMock(return_value=r)
+        r.headers = {"Content-Type": content_type}
+
+        async def mk_chunked(*a, **k):
+            yield header_bytes
+            yield b"payload" * 2048
+
+        r.content.iter_chunked = mk_chunked
+        return r
+
+    html_resp = await make_response(
+        b"<html><body>Checking your browser...</body></html>", "text/html"
+    )
+    pdf_resp = await make_response(b"%PDF-1.6\n", "application/pdf")
+
+    mock_session.get.side_effect = [html_resp, pdf_resp]
+
+    result = await downloader.process_doi(mock_session, mock_http_client, doi)
+
+    assert result.success is True
+    assert result.file_path is not None
+    assert result.was_oa is True
+    urls = []
+    for c in mock_session.get.call_args_list:
+        urls.append(c[0][0])
+    assert any("stampPDF/getPDF.jsp" in u for u in urls), urls

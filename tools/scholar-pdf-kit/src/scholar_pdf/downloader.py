@@ -1,35 +1,45 @@
-import aiohttp
 import asyncio
-from pathlib import Path
-from typing import Optional
+import logging
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from pathlib import Path
 
-from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
+import aiohttp
+from scholar_search.http_client import AcademicHttpClient
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from .config import settings
+from .publisher_patterns import (
+    compute_direct_pdf_from_landing_url,
+    resolve_doi_to_publisher_pdf,
+)
 from .validator import clean_invalid_pdf
-from scholar_search.http_client import AcademicHttpClient
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class DownloadResult:
     doi: str
     success: bool
-    file_path: Optional[Path] = None
-    error_message: Optional[str] = None
+    file_path: Path | None = None
+    error_message: str | None = None
     was_oa: bool = False
-    metadata: Optional[dict] = None
+    metadata: dict | None = None
 
 class AsyncPDFDownloader:
     """Asynchronous PDF Downloader using aiohttp."""
     
-    def __init__(self, output_dir: Optional[Path] = None, use_smart_names: bool = False):
+    def __init__(self, output_dir: Path | None = None, use_smart_names: bool = False):
         self.output_dir = output_dir or settings.download_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
         self.use_smart_names = use_smart_names
         
-    def _safe_filename(self, doi: str, metadata: Optional[dict] = None) -> str:
+    def _safe_filename(self, doi: str, metadata: dict | None = None) -> str:
         """Converts a DOI to a safe filename, optionally using metadata."""
         if self.use_smart_names and metadata:
             title = metadata.get("title", "")
@@ -51,7 +61,7 @@ class AsyncPDFDownloader:
         retry=retry_if_exception_type((aiohttp.ClientError, asyncio.TimeoutError)),
         reraise=True
     )
-    async def download_pdf(self, session: aiohttp.ClientSession, url: str, dest_path: Path) -> bool:
+    async def download_pdf(self, session: aiohttp.ClientSession, url: str, dest_path: Path, proxy_url: str = "") -> bool:
         """Downloads a PDF from a URL to a specific path."""
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -62,7 +72,8 @@ class AsyncPDFDownloader:
 
         try:
             async with self.semaphore:
-                async with session.get(url, headers=headers, timeout=timeout, allow_redirects=True) as response:
+                proxy = proxy_url.strip() or None
+                async with session.get(url, headers=headers, timeout=timeout, allow_redirects=True, proxy=proxy) as response:
                     response.raise_for_status()
 
                     # Check if the final URL looks like a PDF
@@ -97,7 +108,7 @@ class AsyncPDFDownloader:
                 dest_path.unlink()
             raise e  # Let tenacity handle retries
 
-    async def fetch_openalex_metadata(self, http_client: AcademicHttpClient, doi: str) -> Optional[dict]:
+    async def fetch_openalex_metadata(self, http_client: AcademicHttpClient, doi: str) -> dict | None:
         url = f"https://api.openalex.org/works/https://doi.org/{doi}"
         try:
             response = await http_client.get(url, params={"mailto": settings.mailto})
@@ -107,7 +118,7 @@ class AsyncPDFDownloader:
             pass
         return None
         
-    async def fetch_unpaywall_metadata(self, http_client: AcademicHttpClient, doi: str) -> Optional[dict]:
+    async def fetch_unpaywall_metadata(self, http_client: AcademicHttpClient, doi: str) -> dict | None:
         url = f"https://api.unpaywall.org/v2/{doi}"
         try:
             response = await http_client.get(url, params={"email": settings.mailto})
@@ -167,11 +178,45 @@ class AsyncPDFDownloader:
             # Skip if already downloaded
             if dest_path.exists() and clean_invalid_pdf(dest_path):
                 return DownloadResult(doi=doi, success=True, file_path=dest_path, was_oa=True, metadata=metadata)
-                
+
+            proxy_url = settings.proxy_url or ""
+
+            # ---- Attempt 1: primary OA URL (optionally via institutional proxy) ----
             try:
-                success = await self.download_pdf(session, pdf_url, dest_path)
-            except Exception as e:
-                return DownloadResult(doi=doi, success=False, was_oa=True, error_message=f"Failed to download after retries: {str(e)}")
+                success = await self.download_pdf(session, pdf_url, dest_path, proxy_url)
+            except Exception:
+                success = False
+
+            # ---- Attempt 2: publisher direct-PDF endpoint (Cloudflare/WAF bypass) ----
+            if not success and settings.enable_publisher_direct_patterns:
+                direct_url = resolve_doi_to_publisher_pdf(doi) or compute_direct_pdf_from_landing_url(pdf_url)
+                if direct_url and direct_url != pdf_url:
+                    if dest_path.exists():
+                        dest_path.unlink()
+                    try:
+                        success = await self.download_pdf(session, direct_url, dest_path, proxy_url)
+                    except Exception as e:
+                        logger.debug(f"Publisher direct-PDF fallback failed for {doi} via {direct_url}: {e}")
+                        success = False
+
+            # ---- Attempt 3: same URLs again through the proxy (if not already proxied) ----
+            if not success and proxy_url and not pdf_url.startswith(proxy_url):
+                if dest_path.exists():
+                    dest_path.unlink()
+                from .publisher_patterns import rewrite_via_proxy
+                for candidate in (pdf_url, resolve_doi_to_publisher_pdf(doi) or "", compute_direct_pdf_from_landing_url(pdf_url) or ""):
+                    if not candidate:
+                        continue
+                    proxied = rewrite_via_proxy(candidate, proxy_url)
+                    if proxied == candidate:
+                        continue
+                    try:
+                        success = await self.download_pdf(session, proxied, dest_path, proxy_url)
+                        if success:
+                            break
+                    except Exception as e:
+                        logger.debug(f"Proxied fallback failed for {doi} via {proxied}: {e}")
+                        success = False
             
             if success:
                 return DownloadResult(doi=doi, success=True, file_path=dest_path, was_oa=True, metadata=metadata)
