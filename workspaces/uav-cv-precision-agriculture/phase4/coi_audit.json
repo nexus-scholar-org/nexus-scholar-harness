@@ -1,12 +1,8 @@
 {
   "run_metadata": {
-    "script": "phase4/coi_aggregate.py",
-    "run_date_utc": "2026-09-05T19:59:12.579784+01:00",
-    "method": "LLM analyst read of extraction fulltext (8 parallel subagents: funding/acknowledgments/COI verbatim + industry entities + severity-ordered label)",
-    "inputs": [
-      "_agent_results/coi_chunk_1..8.json",
-      "phase4/_manifest.json"
-    ],
+    "tool": "scholar-verify-kit/coi",
+    "run_date_utc": "2026-09-07T02:09:29.796033+01:00",
+    "method": "LLM analyst read of extraction fulltext (parallel subagents: funding/acknowledgments/COI verbatim + industry entities + severity-ordered label)",
     "corpus_size": 94,
     "labels": [
       "no-statement",

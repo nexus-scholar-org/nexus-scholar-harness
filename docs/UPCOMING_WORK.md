@@ -31,7 +31,7 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 - [ ] **Overleaf / Typst Bridge**: Automated Git-backed export of the final manuscript.
 
 ### Phase 4: Trust Layers
-- [x] **Abstracting Phase 4**: Retraction, Open Science, COI, and Risk-of-bias were proven as raw scripts inside the `uav` workspace, then abstracted into the `scholar-verify-kit` (in `tools/scholar-verify-kit/`, CLI `uv run scholar-verify ...`), runnable on *any* workspace. Verified by parity smoke test against the original `uav-cv-precision-agriculture/phase4/` outputs.
+- [x] **Abstracting Phase 4**: Retraction, Open Science, COI, and Risk-of-bias were proven as raw scripts inside the `uav` workspace, then abstracted into the `scholar-verify-kit` (in `tools/scholar-verify-kit/`, CLI `uv run scholar-verify ...`), runnable on *any* workspace. Verified by parity smoke test against the original `uav-cv-precision-agriculture/phase4/` outputs. Dogfooded live in 2026-09: all three offline streams reproduce the legacy 94-study summaries byte-identically, and the fresh online retraction run reports 0 retracted / 0 flagged / 0 errors. The dogfood also caught a real integration bug — `retraction`/`all` hard-coded `literature/screening/included.json` while every other kit uses `literature/included.json` — fixed in the CLI.
 
 ### Phase 5: Collaboration & Empowerment (The UI Platform)
 Phase 5 transitions the toolkit from a CLI engine into a collaborative, UI-driven platform.

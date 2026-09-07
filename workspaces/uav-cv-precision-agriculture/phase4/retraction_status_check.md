@@ -1,6 +1,6 @@
-# Retraction & Publication-Status Check — UAV Precision Agriculture Corpus
+# Retraction & Publication-Status Check
 
-**Corpus**: 94 studies (post-audit); **run**: 2026-09-05T19:10:53.564377+01:00
+**Corpus**: 94 studies (post-audit); **run**: 2026-09-07T02:09:14.038528+01:00
 **Sources**: OpenAlex `is_retracted`/`last_status_in_oa` + Crossref `update-to`
 
 ## Summary
@@ -31,5 +31,5 @@ The following studies have no DOI and are arXiv-tracked; OpenAlex was consulted 
 ## Methodological note
 
 - Correction markers from Crossref may be self-published errata; treat as low-severity unless `type == retraction` or `expression-of-concern`.
-- OpenAlex `is_retracted` reflects the current (2026) metadata snapshot, not publisher live status.
-- All per-study rows are in `phase4/retraction_status_check.json`; regenerate with `uv run python phase4/retraction_check.py`.
+- OpenAlex `is_retracted` reflects the current metadata snapshot, not publisher live status.
+- All per-study rows are in the JSON output; regenerate with `scholar-verify retraction --workspace <dir>`.

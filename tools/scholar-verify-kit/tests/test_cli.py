@@ -96,7 +96,7 @@ def test_retraction_cli_dry_run(tmp_path, monkeypatch):
     (ws / "literature" / "extraction" / "merged" / "records.json").write_text(
         json.dumps([{"workspace_id": "W1", "study": {"title": "T", "year": 2023}}]), encoding="utf-8"
     )
-    (ws / "literature" / "screening" / "included.json").write_text(
+    (ws / "literature" / "included.json").write_text(
         json.dumps([{"workspace_id": "W1", "external_ids": {"doi": "10.1/x"}}]), encoding="utf-8"
     )
     calls = []

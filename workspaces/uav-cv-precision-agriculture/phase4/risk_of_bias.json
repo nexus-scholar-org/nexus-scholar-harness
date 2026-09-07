@@ -1,7 +1,7 @@
 {
   "run_metadata": {
-    "script": "phase4/risk_of_bias_check.py",
-    "run_date_utc": "2026-09-05T20:02:26.935735+01:00",
+    "tool": "scholar-verify-kit/risk-of-bias",
+    "run_date_utc": "2026-09-07T02:09:29.807683+01:00",
     "method": "Deterministic metadata-driven adaptation of QUADAS-2/PROBAST risk-of-bias domains over the canonical records.json (reporting/verifiability risk, not a human full-text appraisal)",
     "inputs": [
       "literature/extraction/merged/records.json",
@@ -154,7 +154,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -202,7 +202,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "L",
@@ -226,7 +226,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='y"
+          "reason": "benchmark=y, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -250,7 +250,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -298,7 +298,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -346,7 +346,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='y"
+          "reason": "benchmark=y, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -362,7 +362,7 @@
       "domains": {
         "d1": {
           "rating": "H",
-          "reason": ""
+          "reason": "claims not from UAV imagery -> outside RQ scope"
         },
         "d2": {
           "rating": "?",
@@ -370,7 +370,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "L",
@@ -394,7 +394,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='y"
+          "reason": "benchmark=y, annotation=y"
         },
         "d4": {
           "rating": "L",
@@ -418,7 +418,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -442,7 +442,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -490,7 +490,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -514,7 +514,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='y"
+          "reason": "benchmark=y, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -554,7 +554,7 @@
       "domains": {
         "d1": {
           "rating": "H",
-          "reason": ""
+          "reason": "claims not from UAV imagery -> outside RQ scope"
         },
         "d2": {
           "rating": "?",
@@ -706,7 +706,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -850,7 +850,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "L",
@@ -898,7 +898,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -946,7 +946,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -970,7 +970,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -1066,7 +1066,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "?",
@@ -1234,7 +1234,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -1282,7 +1282,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -1378,7 +1378,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "L",
@@ -1426,7 +1426,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='y"
+          "reason": "benchmark=y, annotation=y"
         },
         "d4": {
           "rating": "L",
@@ -1474,7 +1474,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -1498,7 +1498,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "L",
@@ -1570,7 +1570,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -1594,7 +1594,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -1690,7 +1690,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -1738,7 +1738,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -1778,7 +1778,7 @@
       "domains": {
         "d1": {
           "rating": "H",
-          "reason": ""
+          "reason": "claims not from UAV imagery -> outside RQ scope"
         },
         "d2": {
           "rating": "L",
@@ -1786,7 +1786,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -1810,7 +1810,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "?",
@@ -1906,7 +1906,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -1954,7 +1954,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",
@@ -2098,7 +2098,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "L",
@@ -2122,7 +2122,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=n, annotation='y"
+          "reason": "benchmark=n, annotation=y"
         },
         "d4": {
           "rating": "n/a",
@@ -2170,7 +2170,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -2290,7 +2290,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "?",
@@ -2314,7 +2314,7 @@
         },
         "d3": {
           "rating": "L",
-          "reason": "benchmark=y, annotation='n"
+          "reason": "benchmark=y, annotation=n"
         },
         "d4": {
           "rating": "n/a",

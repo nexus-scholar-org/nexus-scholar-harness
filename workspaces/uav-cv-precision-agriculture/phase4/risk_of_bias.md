@@ -1,6 +1,6 @@
 # Risk-of-Bias Assessment
 
-**Corpus**: 94 studies (post-audit); **run**: 2026-09-05T20:02:26.935735+01:00
+**Corpus**: 94 studies (post-audit); **run**: 2026-09-07T02:09:29.807683+01:00
 **Method**: deterministic, metadata-driven adaptation of the QUADAS-2 / PROBAST risk-of-bias domains over the canonical extraction records (`records.json`). Ratings: **L** low, **?** unclear, **H** high, **n/a** not applicable.
 
 ## Domain definitions
@@ -146,5 +146,5 @@ SCI-000001, SCI-000003, SCI-000005, SCI-000007, SCI-000010, SCI-000012, SCI-0000
 - A study is rated **H** on D2 when no primary accuracy metric is reported (extraction found none); it may still contribute RQ2-only data.
 - D3 is conservative: self-collected datasets without annotation/benchmark documentation are automatically `?` — presence of a sentence is not proof of quality.
 - D4 rates reporting completeness of runtime/efficiency numbers, which matters directly for the RQ2 (embedded edge inference) synthesis.
-- Per-domain reasons and verbatim flags are stored in `risk_of_bias.json` for manual override of any rating.
-- Regenerate with `uv run python phase4/risk_of_bias_check.py`.
+- Per-domain reasons and verbatim flags are stored in the JSON output for manual override of any rating.
+- Regenerate with `scholar-verify risk-of-bias --workspace <dir>`.

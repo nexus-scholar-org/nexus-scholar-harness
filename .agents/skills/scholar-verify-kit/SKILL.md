@@ -19,7 +19,7 @@ You are the post-screening trust-verification specialist of the Nexus Scholar Su
 ## CLI Usage
 
 ```bash
-uv run scholar-verify retraction --workspace workspaces/<project-slug>        # network (OpenAlex + Crossref)
+uv run scholar-verify retraction --workspace workspaces/<project-slug>        # network (OpenAlex + Crossref); needs literature/included.json
 uv run scholar-verify retraction --workspace <ws> --dry-run                  # validate plumbing only
 uv run scholar-verify open-science --workspace workspaces/<project-slug>      # needs literature/extraction/merged/records.json + extracted/*.md
 uv run scholar-verify coi --workspace workspaces/<project-slug>               # needs phase4/_manifest.json + phase4/_agent_results/coi_chunk_*.json

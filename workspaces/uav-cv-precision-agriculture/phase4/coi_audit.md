@@ -1,7 +1,7 @@
 # Conflict-of-Interest Audit
 
-**Corpus**: 94 studies (post-audit); **run**: 2026-09-05T19:59:12.579784+01:00
-**Method**: independent analyst read of extraction fulltext (8 parallel subagents); funding/acknowledgments/COI statements captured verbatim; industry entities tagged (`funding` / `affiliation` / `donated-equipment` / `tooling`); single severity-ordered label per study.
+**Corpus**: 94 studies (post-audit); **run**: 2026-09-07T02:09:29.796033+01:00
+**Method**: independent analyst read of extraction fulltext (parallel subagents); funding/acknowledgments/COI statements captured verbatim; industry entities tagged (`funding` / `affiliation` / `donated-equipment` / `tooling`); single severity-ordered label per study.
 
 ## Summary
 
@@ -21,7 +21,7 @@ Labels are severity-ordered: `industry-money` > `industry-affiliation-or-equipme
 
 ## Adjusted labels
 
-Subagents occasionally used `no-statement` to mean "no COI section" even when a funding/COI statement exists; a deterministic relabel was applied (recorded per study in `coi_audit.json`).
+Subagents occasionally used `no-statement` to mean "no COI section" even when a funding/COI statement exists; a deterministic relabel was applied (recorded per study in the JSON output).
 
 | ID | Final label |
 |---|---|
@@ -113,7 +113,7 @@ SCI-000001, SCI-000003, SCI-000040, SCI-000074, SCI-000138, SCI-000286, SCI-0004
 
 ## Caution: declared-no-conflict with non-tooling entity tags
 
-Analysts declared no financial conflict while still tagging a non-tooling entity (e.g. field access, donated data). Review verbatim quotes in `coi_audit.json`.
+Analysts declared no financial conflict while still tagging a non-tooling entity (e.g. field access, donated data). Review verbatim quotes in the JSON output.
 
 SCI-000145
 
@@ -122,5 +122,5 @@ SCI-000145
 - Government/academic/university grants are NOT industry entities; they map to `academic-or-public` or `declared-no-conflict` when an explicit declaration exists.
 - `industry-money` = any funding/salary/equity from a private-sector company (incl. corporate foundations); `industry-affiliation-or-equipment` = author employed by industry or equipment/data donated by industry without cash.
 - Seed/variety donations from agrochemical companies (e.g. BASF, Bayer) are tagged `donated-equipment`.
-- Verbatim statements and evidence are recorded per study in `coi_audit.json` for independent verification.
-- Regenerate with `uv run python phase4/coi_aggregate.py`; raw analyst inputs are frozen in `_agent_results/coi_chunk_1..8.json`.
+- Verbatim statements and evidence are recorded per study in the JSON output for independent verification.
+- Regenerate with `scholar-verify coi --workspace <dir>`; relabel rule: no-statement with a COI statement -> declared-no-conflict; no-statement with only funding -> academic-or-public; non-tooling entities upgrade to the matching industry label; adjustments recorded on each row.

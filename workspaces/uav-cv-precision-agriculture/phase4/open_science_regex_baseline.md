@@ -1,6 +1,6 @@
 # Open-Science Artifact Scan (Data / Code Availability)
 
-**Corpus**: 94 studies (post-audit); **run**: 2026-09-05T19:25:22.960278+01:00
+**Corpus**: 94 studies (post-audit); **run**: 2026-09-07T02:09:29.784765+01:00
 
 ## Summary
 
@@ -14,8 +14,7 @@
 | Studies with a repo/data link anywhere | 19 | — |
 | Studies with both public data AND code links | 16 | — |
 
-Transparency context: only **published** repository links provide independently reproducible artifacts;
-`request-only` and `statement-only` claims cannot be re-verified from the record alone.
+Transparency context: only **published** repository links provide independently reproducible artifacts; `request-only` and `statement-only` claims cannot be re-verified from the record alone.
 
 ## Per-study detail (any signal)
 
@@ -508,7 +507,6 @@ Transparency context: only **published** repository links provide independently 
 
 ## Methodological note
 
-- Scan is regex-based over extraction text (`±`{} char windows); classify labels are heuristic and intended for manual verification.
-- `public+link` = positive statement AND an identifiable repository/data DOI URL; `request-only` = available on request;
-  `statement-only` = asserted availability without a link or request channel.
-- Regenerate with `uv run python phase4/open_science_check.py`.
+- Scan is regex-based over extraction text (`±`140 char windows); classify labels are heuristic and intended for manual verification.
+- `public+link` = positive statement AND an identifiable repository/data DOI URL; `request-only` = available on request;  `statement-only` = asserted availability without a link or request channel.
+- Regenerate with `scholar-verify open-science --workspace <dir>`.

@@ -79,7 +79,7 @@ def retraction_cmd(
 ) -> None:
     """Check every canonical record for retraction / correction signals (OpenAlex + Crossref)."""
     rec_path = records or workspace / "literature" / "extraction" / "merged" / "records.json"
-    inc_path = included or workspace / "literature" / "screening" / "included.json"
+    inc_path = included or workspace / "literature" / "included.json"
     recs = _load(rec_path, "records")
     inc = _load(inc_path, "included")
     if not yes:
@@ -151,7 +151,7 @@ def all_cmd(
     manifest = _manifest(ws)
 
     if not skip_retraction:
-        inc_path = ws / "literature" / "screening" / "included.json"
+        inc_path = ws / "literature" / "included.json"
         inc = _load(inc_path, "included")
         checker = retraction.RetractionChecker(sleep_s=sleep_s)
         out = checker.check(recs, inc)
