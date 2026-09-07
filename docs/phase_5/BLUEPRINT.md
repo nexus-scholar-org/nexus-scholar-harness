@@ -47,19 +47,19 @@ flowchart TB
 ### 3.1 Controls plane: Harness Console Server
 - One process: `uv run scholar-harness serve --workspace workspaces/<slug> [--port 8765] [--host 127.0.0.1]`.
 - REST (JSON) for reads/actions; **SSE** for job progress and audit-event ticks.
-- Serves the static console (`docs/phase_5/console/` or `src/scholar_harness/console/static/`) with no build step (vendored JS under `lib/`; see `AGENTS.md`).
+- Serves the static console (`src/scholar_harness/console/static/`) with no build step (vendored JS under `lib/`; see `AGENTS.md`).
 - Embeds `orchestrator.get_status()` unchanged for the dashboard payloads.
 - No auth in v1 (binds loopback; docs warn about `--host` exposure).
 
 ### 3.2 Job Runner
-- Maps a console action → `[command, *args]` (e.g. `["uv","run","--directory","tools/scholar-search-kit","scholar-search","run",...]`).
+- Maps a console action → `[command, *args]` (e.g. `["uv","run","scholar-search","search","--query",...]`).
 - Executes as an asyncio subprocess with cwd = workspace; streams stdout/stderr to a per-job log file under `.harness-console/jobs/<job_id>/` (gitignored).
 - Job lifecycle `queued → running → success|failed|cancelled`; versioned, killable by PID; hard timeout per action.
 - On completion, writes a canonical event to `audit/journal.jsonl` via the same schema `workspace-manager/log_event.py` uses, so agents and UI agree on what happened.
 
 ### 3.3 PipelineSpec store (M5.4)
 - `.harness-console/pipelines/*.json` — plain files, gitignored, but exportable/serializable into the repo (a pipeline is just data).
-- `PipelineSpec` is a JSON DAG whose nodes reference kit CLIs; schema in `SPECS.md` §3. The CLI already executes the equivalent non-interactively via `scholar-harness run --pipeline <file>`; the console editor is a *renderer of that schema*, `dry-run` caps each node at a sample limit before a real run.
+- `PipelineSpec` is a JSON DAG whose nodes reference kit CLIs; schema in `SPECS.md` §3. The CLI will execute the equivalent non-interactively via `scholar-harness run --pipeline <file>` once the M5.4 executor lands (see `PLAN.md` M5.4); the console editor is a *renderer of that schema*, `dry-run` caps each node at a sample limit before a real run.
 
 ### 3.4 Frontend (static console app)
 - Screens (details in `SPECS.md` §4): **Dashboard · Literature · Screening · Harvest & Extract · Synthesis & Trust · Pipeline Builder · Audit · Agent Exchange · Export**.
@@ -72,7 +72,7 @@ The console's strongest architectural feature is the mapping table:
 
 | Console action | Equivalent CLI (shown in UI) | Equivalent MCP tool (when exists) |
 | :-- | :-- | :-- |
-| Run discovery | `uv run scholar-search run --query "..." --providers openalex,arxiv` | `nexus_discover` |
+| Run discovery | `uv run scholar-search search --query "..." --providers openalex,arxiv` | `nexus_discover` |
 | Load screening batch N | `uv run python src/scholar_harness/agent_screen.py status <ws>` | `nexus_screen` |
 | Approve/reject item | write `literature/screening/batch_NNN_decisions.json` (collect) | (agent handoff file contract) |
 | Harvest PDFs | `uv run scholar-pdf download --input literature/included.json --output pdfs/` | `nexus_extract_pdf` |

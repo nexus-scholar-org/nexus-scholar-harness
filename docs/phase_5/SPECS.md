@@ -75,6 +75,7 @@ A pipeline is a DAG of kit invocations. It is pure data: the CLI (`scholar-harne
   "workspace_slug": "my-review",
   "settings": {
     "rq_ids": ["RQ1", "RQ2"],
+    "queries": { "rq1_query": "multispectral UAV weed segmentation" },
     "provider_priority": ["openalex", "semantic_scholar", "arxiv"]
   },
   "nodes": [
@@ -120,7 +121,7 @@ A pipeline is a DAG of kit invocations. It is pure data: the CLI (`scholar-harne
 ```
 
 Rules:
-- `args` values are static or `{{settings_key}}`/`{{input_key}}` templates resolved against `settings` + node outputs; unresolved templates fail schema validation, not at runtime.
+- `args` values are static or `{{settings_key}}`/`{{input_key}}` templates resolved against `settings` (e.g. `{{queries.rq1_query}}`) + node outputs; unresolved templates fail schema validation, not at runtime.
 - Node commands are executed through the same `uv run` env as the kits (no custom interpreters).
 - `requires_decision: true` nodes stop conditional on presence of decision files — this is what lets the console and the agent hand off screening cleanly.
 - Fingerprint = SHA-256 of canonical JSON, mirroring `scholar-protocol-kit`'s approach; re-runs with same fingerprint + same inputs are guaranteed idempotent (railroaded by the roadmap determinism principle).
@@ -131,20 +132,21 @@ Location: `src/scholar_harness/console/runtimes/actions.py`. One table drives (a
 
 | action_id | label | command template | mcp_tool | mutates |
 | :-- | :-- | :-- | :-- | :-- |
-| `status` | Show workspace status | `scholar-harness status -w {ws}` | — | no |
-| `sync` | Resync project state | `scholar-harness sync -w {ws}` | — | yes |
-| `discovery` | Federated discovery | `uv run --directory tools/scholar-search-kit scholar-search run --query {q}` | `nexus_discover` | yes |
-| `screen_prepare` | Prepare screening batch | `python src/scholar_harness/agent_screen.py prepare {ws}` | `nexus_screen` | yes |
-| `screen_collect` | Assemble screening decisions | `python src/scholar_harness/agent_screen.py collect {ws}` | `nexus_screen` | yes |
-| `download` | Harvest OA PDFs | `uv run --directory tools/scholar-pdf-kit scholar-pdf download --input {ws}/literature/included.json --output {ws}/pdfs/` | `nexus_extract_pdf` | yes |
-| `extract` | Extract fulltext | `uv run --directory tools/scholar-pdf-kit scholar-pdf extract --input {ws}/pdfs/ --output {ws}/extracted/` | `nexus_extract_pdf` | yes |
-| `rag_index` | Index into vector store | `uv run --directory tools/scholar-rag-kit scholar-rag index --ws {ws}` | `nexus_rag_index` | yes |
-| `trust_context` | Build trust consensus | `uv run --directory tools/scholar-verify-kit scholar-verify trust-context --workspace {ws}` | — | yes |
-| `synthesize` | Grounded synthesis | `uv run --directory tools/scholar-rag-kit scholar-rag synthesize ...` | `nexus_rag_synthesize` | yes |
-| `graph` | Build citation graph | `uv run --directory tools/scholar-graph-kit scholar-graph build ...` | `nexus_graph_build` | yes |
-| `export` | Export artifact set | `scholar-harness export ...` | — | yes |
+| `status` | Show workspace status | `uv run scholar-harness status -w {ws}` | — | no |
+| `sync` | Resync project state | `uv run scholar-harness sync -w {ws}` | — | yes |
+| `discovery` | Federated discovery | `uv run scholar-search search --query "{q}"` | `nexus_discover` | yes |
+| `dedup` | Deduplicate candidates | `uv run scholar-search dedup --input {ws}/literature/candidates.json --output {ws}/literature/corpus.json` | `nexus_dedup` | yes |
+| `screen_prepare` | Prepare screening batch | `uv run python src/scholar_harness/agent_screen.py prepare {ws}` | `nexus_screen` | yes |
+| `screen_collect` | Assemble screening decisions | `uv run python src/scholar_harness/agent_screen.py collect {ws}` | `nexus_screen` | yes |
+| `download` | Harvest OA PDFs | `uv run scholar-pdf download --input {ws}/literature/included.json --output {ws}/pdfs/` | `nexus_extract_pdf` | yes |
+| `extract` | Extract fulltext | `uv run scholar-pdf extract --input {ws}/pdfs/ --output {ws}/extracted/` | `nexus_extract_pdf` | yes |
+| `rag_index` | Index into vector store | `uv run scholar-rag index {ws}/extracted/ --workspace-id {ws}` | `nexus_rag_index` | yes |
+| `trust_context` | Build trust consensus | `uv run scholar-verify trust-context --workspace {ws}` | — | yes |
+| `synthesize` | Grounded synthesis | `uv run scholar-rag synthesize "{q}" --rq-id RQ1 --output-claims {ws}/synthesis/claims.json` | `nexus_rag_synthesize` | yes |
+| `graph` | Build citation graph | `uv run scholar-graph build --input {ws}/literature/included.json --output {ws}/literature/knowledge_graph.html` | `nexus_graph_build` | yes |
+| `export` | Export artifact set | `uv run scholar-harness export latex -w {ws}` | — | yes |
 
-**CI drift test:** for every row, assert the command template's CLI exists (`--help` parses) and the `mcp_tool` name (if any) is registered in `.agents/plugins/nexus-scholar/mcp_config.json`.
+**CI drift test:** for every row, assert the command template's CLI exists (`--help` parses) and the `mcp_tool` name (if any) is an exported tool of `tools/scholar-agent-kit`'s MCP server (`tools/scholar-agent-kit/src/scholar_agent/server.py`).
 
 ## 6. Job Runner contract
 
@@ -155,7 +157,7 @@ Location: `src/scholar_harness/console/runtimes/actions.py`. One table drives (a
   "state": "queued|running|success|failed|cancelled",
   "pid": 8123,
   "exit_code": 0,
-  "command": ["uv", "run", "--directory", "tools/scholar-verify-kit", "scholar-verify", "trust-context", "--workspace", "..."],
+  "command": ["uv", "run", "scholar-verify", "trust-context", "--workspace", "..."],
   "cwd": "<workspace>",
   "log_path": "<workspace>/.harness-console/jobs/job_6f9c2a1/stdout.log",
   "started_at": "2026-09-07T10:00:00Z",
@@ -214,7 +216,7 @@ The GUI never introduces a new schema, and the parity test (PLAN matrix §4 row 
 | `test_job_lifecycle_success` | POST job → `queued→running→success`; journal event appended with matching `event_id`. |
 | `test_job_failure_and_cancel` | failing command → `failed` + journal `FAILED`; cancel → SIGTERM path + `cancelled`. |
 | `test_screening_parity` | GUI decisions file == agent `collect` output modulo review metadata. |
-| `test_actions_table_drift` | every row's CLI parses `--help`; mcp_tool registered in `mcp_config.json`. |
+| `test_actions_table_drift` | every row's CLI parses `--help`; mcp_tool is an exported tool of `tools/scholar-agent-kit` (`server.py`). |
 | `test_pipeline_dry_run_writes_nothing` | dry-run of a PRISMA template leaves `workspaces/<slug>` canonical tree byte-identical. |
 | `test_pipeline_fingerprint_stable` | same spec JSON → same `sha256` fingerprint; re-running is idempotent. |
 | `test_atomic_write_no_partials` | kill a decision POST mid-write; no partial `batch_NNN_decisions.json` survives. |

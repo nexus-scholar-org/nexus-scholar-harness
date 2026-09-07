@@ -89,7 +89,7 @@ Into **git + the append-only audit journal**, not a realtime server. Two people 
 
 - Harness CLI surface: `src/scholar_harness/cli.py` (`status`, `sync`, `run`, `export`, `inception`) and `orchestrator.py`.
 - Agent handoff screening: `src/scholar_harness/agent_screen.py` (`prepare|status|collect`), batches `literature/screening/batch_NNN.json` → `batch_NNN_decisions.json`.
-- MCP: `tools/scholar-agent-kit` (7 `nexus_*` tools), `.agents/plugins/nexus-scholar/mcp_config.json`.
+- MCP: `tools/scholar-agent-kit` (13 `nexus_*` tools: `nexus_protocol_compile|validate|render_criteria`, `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_extract_pdf`, `nexus_rag_index|query|synthesize`, `nexus_matrix_extract`, `nexus_graph_build`, `nexus_bib_clean`), `.agents/plugins/nexus-scholar/mcp_config.json`.
 - Workspace contract: `workspaces/<slug>/` (`AGENTS.md` section "Where research output goes").
 - Existing generated UIs to embed rather than rebuild: `scholar-graph-kit` `map.html` (PyVis), `scholar-rag-kit` renderings, `prisma_screening_report.md`, `phase4/trust_consensus*.md`.
 - Prior design threads this supersedes/reconciles: `brainstorming/PHASE_3_INTERACTIVE_INTERFACES_DEEP_DIVE.md`, `methodology-tooling/08_production_web_app.md`, `methodology-tooling/09_agent_native_ecosystem.md`, `brainstorming/OPEN_SCIENCE_ROADMAP_v1.md` §PHASE 5.

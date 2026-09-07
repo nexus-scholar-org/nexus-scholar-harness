@@ -33,7 +33,7 @@ Socratic Inception ─▶ Federated Discovery ─▶ Dedup & Verify ─▶ PRISM
 | Kit | Purpose | Key CLI |
 | :-- | :-- | :-- |
 | `scholar-protocol-kit` | Compiles, fingerprints, and renders research protocols from `intent.json`. | `scholar-protocol compile -i intent.json -o protocol.json --fingerprint` |
-| `scholar-search-kit` | Federated search (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed, bioRxiv), snowballing, dedup, verify, screening export. | `scholar-search query / dedup / verify / snowball / chain` |
+| `scholar-search-kit` | Federated search (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed, bioRxiv), snowballing, dedup, verify, screening export. | `scholar-search search / dedup / verify / snowball / chain` |
 | `scholar-pdf-kit` | OA discovery, resilient downloading (institutional-proxy aware), `%PDF` integrity validation, Markdown extraction. | `scholar-pdf download / extract / ingest` |
 | `scholar-bib-kit` | BibTeX parse, lint, merge, dedup, resolve missing metadata. | `scholar-bib lint / merge / resolve` |
 | `scholar-rag-kit` | AST chunking, ChromaDB indexing, grounded synthesis with atomic attribution tokens. | `scholar-rag index / query / synthesize / consensus` |
@@ -99,7 +99,7 @@ workspaces/<slug>/
 
 ```bash
 # Federated discovery + dedup
-uv run scholar-search query --query "multispectral weed segmentation" --providers openalex semanticscholar crossref arxiv --year-min 2018 --limit 50 --output workspaces/<slug>/literature/raw_search.json
+uv run scholar-search search --query "multispectral weed segmentation" --providers openalex semanticscholar crossref arxiv --year-min 2018 --limit 50 --output workspaces/<slug>/literature/raw_search.json
 uv run scholar-search dedup  --input workspaces/<slug>/literature/raw_search.json --output workspaces/<slug>/literature/deduped.json
 
 # PRISMA screening is an agent-in-the-loop handoff (not an opaque API)

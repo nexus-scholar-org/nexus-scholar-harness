@@ -20,7 +20,7 @@
 - Add `serve` subcommand to `src/scholar_harness/cli.py`: FastAPI + uvicorn, loopback bind, static file serving.
 - Read endpoints over the workspace contract (meta, status, literature lists, screening batch listing, synthesis/phase-4/exports listing, audit timeline).
 - Job Runner (asyncio subprocess, PID tracking, kill, timeout, SSE events, job log + journal events).
-- **Exit:** dashboard JSON identical to `scholar-harness status`; a test job (`scholar-verify trust-context") runs and its completion lands in `audit/journal.jsonl`. Hermetic tests in `tests/` using a `tmp_path` workspace.
+- **Exit:** dashboard JSON identical to `scholar-harness status`; a test job (`scholar-verify trust-context`) runs and its completion lands in `audit/journal.jsonl`. Hermetic tests in `tests/` using a `tmp_path` workspace.
 
 ### M5.2 — Phase 5 Console: read-only observability (weeks 3–4)
 - Static single-page app: Dashboard, Literature browser (included/excluded/included counts + per-item metadata), Synthesis & Trust renderer (styled Markdown for `prisma_screening_report.md`, `evidence_matrix.md`, `consensus_*.md`, `trust_consensus*.md`), Graph iframe (`knowledge_graph.html`), Audit timeline.
@@ -33,11 +33,10 @@
 - **Exit:** a full screen/collect cycle for one batch round-trips identically whether driven by the GUI or by `agent_screen.py` (test proves parity).
 
 ### M5.4 — No-Code Pipeline Builder (weeks 7–9)
+- **Prerequisite:** add `scholar-harness run --pipeline <file>` to `src/scholar_harness/cli.py` — the `PipelineSpec` DAG executor: node scheduling from `edges`, `{{...}}` arg resolution against `settings` + outputs, `requires_decision` halt, `on_fail` semantics, fingerprint/idempotency checks. (This executor does not exist yet; `run` currently takes `--protocol` only.)
 - PipelineSpec editor (drag/stack/param-form v1; canvas DAG optional), instantiate 5c domain templates, dry-run on N samples, then full run through `scholar-harness run --pipeline`.
 - Export: rendered `uv run` shell script and/or committed `pipeline.json`.
 - **Exit:** a non-programmer composes Search → Dedup → Screen → Harvest → Synthesize → Trust from templates and runs it end-to-end; dry-run produces no writes to canonical files.
-
-
 
 ## 3. Explicit non-goals for this cycle (from BLUEPRINT §7)
 
@@ -73,5 +72,4 @@ No chat copilot in the browser, no DB, no Celery/RabbitMQ, no realtime sync, no 
 - [ ] A non-programmer builds and runs a search→screen→harvest→synthesize pipeline from the console (M5.4).
 - [ ] Every console action displays its exact `uv run` command; the mapping table is CI-tested (M5.1/2).
 - [ ] A screening/verification round-trip completed in the GUI is byte-identical to the agent-driven path (M5.3).
-
 - [ ] Console is still only "wraps + renders + triggers": zero kit logic duplicated (review gate at each milestone).
