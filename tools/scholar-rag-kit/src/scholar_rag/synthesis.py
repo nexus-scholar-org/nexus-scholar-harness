@@ -10,6 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from scholar_rag.consensus import classify_stance
 from scholar_rag.models import (
     MethodologyMatrixRow,
     RetrievalResult,
@@ -154,6 +155,18 @@ class GroundedSynthesisEngine:
                             supporting_ids.append(cid)
 
             score, status = self.verify_claim_entailment(sent, supporting_texts)
+
+            study_ids = []
+            for cid in supporting_ids:
+                chunk = id_to_chunk.get(cid)
+                if not chunk:
+                    continue
+                meta = chunk.metadata or {}
+                study = meta.get("workspace_id") or meta.get("paper_id") or meta.get("filename")
+                if study:
+                    study_ids.append(str(study))
+            study_id = study_ids[0] if study_ids else "UNKNOWN"
+
             claims.append(
                 SynthesisClaim(
                     claim_text=sent.strip(),
@@ -161,6 +174,8 @@ class GroundedSynthesisEngine:
                     entailment_score=score,
                     entailment_status=status,
                     supporting_chunk_ids=supporting_ids,
+                    study_id=study_id,
+                    stance=classify_stance(sent),
                 )
             )
 

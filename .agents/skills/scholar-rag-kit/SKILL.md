@@ -16,7 +16,8 @@ You are the scientific retrieval-augmented generation and synthesis specialist o
    $$\text{Score}(d) = \text{CosineSim}(q, d) + \alpha \cdot \text{PageRank}(d) + \beta \cdot \mathbb{I}_{\text{seed}}(d)$$
 5. **Grounded Attributed Synthesis**: Generates research reviews with atomic citation tokens `[WORKSPACE_ID#SECTION#CHUNK_ID]` and verifies semantic claim entailment.
 6. **Cross-Study Methodology Matrix**: Extracts 7-dimension comparative matrices (`matrix.json` and `matrix.md`).
-7. **Append-Only Audit Journal**: Logs `RAG_INDEX_BUILT`, `RAG_QUERY_RETRIEVED`, and `SYNTHESIS_GENERATED` events to `audit/journal.jsonl`.
+7. **Consensus Cartographer**: Clusters attributed synthesis claims into high-consensus findings vs. active debates with deterministic stance attribution and verdicts (`consensus.json`/`consensus.md`).
+8. **Append-Only Audit Journal**: Logs `RAG_INDEX_BUILT`, `RAG_QUERY_RETRIEVED`, and `SYNTHESIS_GENERATED` events to `audit/journal.jsonl`.
 
 ---
 
@@ -60,6 +61,21 @@ uv run scholar-rag matrix \
   --output-md workspaces/<project-slug>/literature/matrix.md \
   --output-json workspaces/<project-slug>/literature/matrix.json
 ```
+
+### 5. Consensus Cartographer (High-Consensus vs. Active Debates)
+```bash
+# Emit claims from synthesis for downstream cartography
+uv run scholar-rag synthesize "<research question>" --rq-id RQ1 \
+  --output workspaces/<project-slug>/synthesis/literature_review.md \
+  --output-claims workspaces/<project-slug>/synthesis/claims.json
+
+# Bucket claims into high-consensus findings / active debates
+uv run scholar-rag consensus workspaces/<project-slug>/synthesis/claims.json \
+  --rq-id RQ1 \
+  --output-json workspaces/<project-slug>/synthesis/consensus.json \
+  --output-md workspaces/<project-slug>/synthesis/consensus.md
+```
+Behavior: Jaccard greedy clustering (default threshold `0.30`, override `--threshold`), deterministic polarity-lexicon stance (`POSITIVE`/`NEGATIVE`/`NEUTRAL`) auto-derived from claim text unless a `stance` is pre-set in the claim input, per-study majority-stance dedup, then verdicts: `HIGH_CONSENSUS` (agreed ≥ contested threshold), `ACTIVE_DEBATE` (opposing*3 ≥ contested), `UNRESOLVED` (neutral majority), `PROVISIONAL` (<2 studies).
 
 ---
 

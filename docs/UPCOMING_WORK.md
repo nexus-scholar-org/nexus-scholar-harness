@@ -23,7 +23,7 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 - [x] **Citation Snowballing**: Backward/forward reference traversal built into `scholar-search-kit` — single-hop `scholar-search snowball <id>` plus multi-hop BFS `scholar-search chain <seed...> --depth N` (deduped frontier, cycle protection, per-node/total caps, year bounds, edge manifest). Live-verified against OpenAlex in both directions.
 
 ### Phase 2: Synthesis & Graphs
-- [ ] **Consensus Cartographer**: A tool to automatically group claims into high-consensus vs. active debate.
+- [x] **Consensus Cartographer**: A deterministic, hermetic claim-clustering tool in `scholar-rag-kit` (`uv run scholar-rag consensus claims.json [--rq-id] [--output-json] [--output-md]`) that groups extracted synthesis claims into high-consensus vs. active-debate buckets. Jaccard greedy clustering (threshold 0.30), polarity-lexicon stance attribution (`POSITIVE`/`NEGATIVE`/`NEUTRAL`, auto-derived from claim text), per-study majority-stance dedup, and verdict rules (`HIGH_CONSENSUS`, `ACTIVE_DEBATE`, `UNRESOLVED`, `PROVISIONAL`). `scholar-rag synthesize --output-claims claims.json` now emits per-claim `study_id`/`stance` for downstream cartography.
 
 ### Phase 3: Interactive Interfaces
 - [ ] **Jupyter Notebook Suite**: Pre-built templates (`00_research_inception.ipynb`, etc.) that researchers can execute cell-by-cell.

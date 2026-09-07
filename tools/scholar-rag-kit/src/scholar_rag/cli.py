@@ -17,7 +17,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from scholar_rag.consensus import ConsensusCartographer
 from scholar_rag.indexer import ScholarIndexer
+from scholar_rag.models import SynthesisClaim
 from scholar_rag.retriever import ScholarRetriever
 from scholar_rag.synthesis import GroundedSynthesisEngine, generate_methodology_matrix
 
@@ -191,6 +193,9 @@ def synthesize(
     output_file: Path | None = typer.Option(
         None, "--output", "-o", help="File to write synthesized literature review markdown"
     ),
+    output_claims: Path | None = typer.Option(
+        None, "--output-claims", help="File to write the verified claim ledger (JSON) for consensus analysis"
+    ),
     db_path: str = typer.Option("./chroma_db", help="Path to ChromaDB persistent vector database"),
     collection: str = typer.Option("scholar_docs", help="Collection name"),
     embedder: str = typer.Option(
@@ -253,6 +258,96 @@ def synthesize(
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(result.synthesis_markdown, encoding="utf-8")
         console.print(f"\n[bold green]Saved synthesis to {output_file}[/bold green]")
+
+    if output_claims:
+        output_claims.parent.mkdir(parents=True, exist_ok=True)
+        claims_data = [c.model_dump() for c in result.claims]
+        output_claims.write_text(json.dumps(claims_data, indent=2, ensure_ascii=False), encoding="utf-8")
+        console.print(f"[bold green]Saved {len(claims_data)} claims to {output_claims}[/bold green]")
+
+
+@app.command("consensus")
+def consensus(
+    claims_file: Path = typer.Argument(
+        ..., help="JSON/JSONL file of SynthesisClaim records (from scholar-rag synthesize --output-claims)"
+    ),
+    rq_id: str | None = typer.Option(None, "--rq-id", "-r", help="Research question identifier for the report"),
+    threshold: float = typer.Option(
+        ConsensusCartographer.DEFAULT_THRESHOLD,
+        "--threshold",
+        "-t",
+        help="Min token-set similarity for claim clustering (0..1)",
+    ),
+    output_json: Path | None = typer.Option(None, "--output-json", help="File to write the full report (JSON)"),
+    output_md: Path | None = typer.Option(None, "--output-md", help="File to write the markdown report"),
+):
+    """Group claims into high-consensus findings vs. active debates (Consensus Cartographer)."""
+    if not claims_file.exists():
+        console.print(f"[bold red]Error:[/bold red] Claims file {claims_file} does not exist.")
+        raise typer.Exit(1)
+
+    raw_records: list[dict] = []
+    if claims_file.suffix.lower() == ".jsonl":
+        for line in claims_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line:
+                raw_records.append(json.loads(line))
+    else:
+        data = json.loads(claims_file.read_text(encoding="utf-8"))
+        raw_records = data if isinstance(data, list) else [data]
+
+    claims = [SynthesisClaim(**{k: v for k, v in r.items() if k in SynthesisClaim.model_fields}) for r in raw_records]
+
+    if not claims:
+        console.print("[yellow]No claims found in input file.[/yellow]")
+        raise typer.Exit(1)
+
+    cartographer = ConsensusCartographer()
+    report = cartographer.analyze(claims=claims, rq_id=rq_id, threshold=threshold)
+
+    console.print(
+        Panel(
+            f"[bold cyan]RQ:[/bold cyan] {rq_id or 'General'}\n"
+            f"[bold]Input Claims:[/bold] {report.input_claims} | "
+            f"[bold]Clusters:[/bold] {report.total_groups} | "
+            f"[bold green]High-Consensus:[/bold green] {len(report.high_consensus)} | "
+            f"[bold yellow]Active Debates:[/bold yellow] {len(report.active_debates)} | "
+            f"[bold dim]Unresolved:[/bold dim] {len(report.unresolved)} | "
+            f"[bold white]Provisional:[/bold white] {len(report.provisional)}",
+            title="Consensus Cartographer Report",
+        )
+    )
+
+    for bucket_title, bucket in (
+        ("High-Consensus Findings", report.high_consensus),
+        ("Active Debates", report.active_debates),
+    ):
+        if not bucket:
+            continue
+        console.print(f"\n[bold]{bucket_title}:[/bold]")
+        table = Table()
+        table.add_column("Cluster", style="bold")
+        table.add_column("Consensus", style="cyan")
+        table.add_column("Studies", justify="right")
+        table.add_column("Theme", style="white", max_width=80)
+        for g in bucket:
+            table.add_row(
+                g.cluster_id,
+                f"{g.consensus_score:.2f}",
+                str(len(g.supporting_studies)),
+                g.theme[:80] + ("..." if len(g.theme) > 80 else ""),
+            )
+        console.print(table)
+
+    if output_json:
+        output_json.parent.mkdir(parents=True, exist_ok=True)
+        output_json.write_text(json.dumps(report.model_dump(), indent=2, ensure_ascii=False), encoding="utf-8")
+        console.print(f"[bold green]Saved consensus report to {output_json}[/bold green]")
+
+    if output_md:
+        output_md.parent.mkdir(parents=True, exist_ok=True)
+        output_md.write_text(report.rendered_markdown, encoding="utf-8")
+        console.print(f"[bold green]Saved consensus markdown to {output_md}[/bold green]")
 
 
 @app.command("matrix")
