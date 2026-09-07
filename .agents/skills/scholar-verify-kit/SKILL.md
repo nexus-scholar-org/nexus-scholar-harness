@@ -27,6 +27,7 @@ uv run scholar-verify coi --workspace workspaces/<project-slug>               # 
 uv run scholar-verify risk-of-bias --workspace workspaces/<project-slug>      # needs records.json + phase4/_manifest.json
 uv run scholar-verify all --workspace workspaces/<project-slug> --skip-retraction   # all 4 streams, offline
 uv run scholar-verify trust-context --workspace workspaces/<project-slug>  # annotate synthesis/consensus.json with Phase-4 context (hermetic)
+uv run scholar-verify trust-context --workspace workspaces/<project-slug> --rq-id RQ1  # scope to clusters whose claims belong to RQ1 (writes trust_consensus_RQ1.json/.md)
 ```
 
 Outputs: `<ws>/phase4/{retraction_status_check,open_science_regex_baseline,coi_audit,risk_of_bias}.json|.md`.
@@ -78,3 +79,7 @@ Deterministic trust levels (worst applies, per cluster):
 - `ADEQUATE` — everything else (covered but with `?` ratings / mixed signals).
 
 Per-study details stay in the JSON (`trust.studies`); cluster aggregates live in `trust.aggregates`. Only `retraction` introduces runtime variance; `trust-context` itself is hermetic and deterministic.
+
+### RQ-scoped reports
+
+Per-RQ claim pools (`synthesis/claims_rq<N>.json`) are auto-loaded to attribute each cluster's claims to their originating RQ(s) — exact `(study_id, claim_text)` match against the claim pools. Every annotated cluster then carries `rq_ids` (all matching RQs; `rq_id` when unanimous). `--rq-id RQ1` scopes the report to clusters whose claims belong to that RQ (cross-RQ clusters are co-members of each RQ's report) and writes `phase4/trust_consensus_RQ1.{json,md}`; clusters with no RQ attribution fall back to the report-level codes parsed from `consensus["rq_id"]`. Provenance is chainable: claim pool → cluster → trust report, all hermetic.

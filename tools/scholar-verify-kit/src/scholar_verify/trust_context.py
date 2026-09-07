@@ -23,6 +23,8 @@ in the JSON for downstream audit.
 from __future__ import annotations
 
 import json
+import re
+from pathlib import Path
 from typing import Any
 
 CONSENSUS_DEFAULT = "synthesis/consensus.json"
@@ -36,6 +38,42 @@ PHASE4_INPUTS = {
 
 TRUST_LEVELS = ("BLOCKED", "UNVERIFIED", "WEAK", "ADEQUATE", "STRONG")
 _FLAG_REASON_SENSITIVE = ("retraction", "expression-of-concern", "erratum", "retracted")
+
+
+def _parse_rq_codes(text: Any) -> list[str]:
+    """Extract ``RQ<n>`` codes from a free-form report label (e.g. ``ALL (RQ1+RQ2)``)."""
+    return sorted(set(re.findall(r"RQ\d+", text or "")))
+
+
+def _rq_code_from_claims_stem(stem: str) -> str | None:
+    m = re.match(r"claims_rq(\d+)$", stem)
+    return f"RQ{m.group(1)}" if m else None
+
+
+def load_rq_claims(claims_dir: Any) -> dict[str, dict[str, Any]]:
+    """Load per-RQ claim pools from ``claims_rq*.json`` files into an attribution index."""
+    d = Path(claims_dir)
+    out: dict[str, dict[str, Any]] = {}
+    if not d.is_dir():
+        return out
+    for p in sorted(d.glob("claims_rq*.json")):
+        code = _rq_code_from_claims_stem(p.stem)
+        if not code:
+            continue
+        rows = _rows(_load_json(p))
+        out[code] = {
+            "rows": rows,
+            "keys": {(c.get("study_id"), c.get("claim_text")) for c in rows},
+        }
+    return out
+
+
+def cluster_rq_ids(group: dict[str, Any], claims_by_rq: dict[str, dict[str, Any]]) -> list[str]:
+    """RQ codes whose claim pool contains any of the cluster's claims (exact study/claim match)."""
+    keys = {(c.get("study_id"), c.get("claim_text")) for c in group.get("claims", [])}
+    if not keys:
+        return []
+    return sorted(rq for rq, info in claims_by_rq.items() if keys & info["keys"])
 
 
 def _load_json(path) -> list[dict[str, Any]]:
@@ -171,28 +209,64 @@ def annotate_group(group: dict[str, Any], index: dict[str, dict[str, Any]]) -> d
     return out
 
 
-def annotate(consensus: dict[str, Any], phase4: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
-    """Annotate a full Consensus Cartographer report with cluster trust context."""
+def annotate(
+    consensus: dict[str, Any],
+    phase4: dict[str, list[dict[str, Any]]],
+    *,
+    rq_id: str | None = None,
+    claims_by_rq: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Annotate a full Consensus Cartographer report with cluster trust context.
+
+    When ``claims_by_rq`` (see :func:`load_rq_claims`) is given, every annotated
+    cluster carries ``rq_ids`` — the RQs whose claim pools contain the cluster's
+    claims — and ``rq_id`` (the single RQ when unanimous, else ``None``).
+
+    When ``rq_id`` is given, the report is scoped to clusters whose claims belong
+    to that RQ. Clusters with no RQ attribution fall back to the report-level
+    RQ codes parsed from ``consensus["rq_id"]``.
+    """
     index = build_trust_index(phase4)
     buckets = ("high_consensus", "active_debates", "unresolved", "provisional")
-    annotated = {
-        "rq_id": consensus.get("rq_id"),
-        "input_claims": consensus.get("input_claims"),
-        "total_groups": consensus.get("total_groups"),
-        "threshold": consensus.get("threshold"),
-        "trust_level_counts": {},
-        "buckets": {},
-    }
-    for bucket in buckets:
-        groups = consensus.get(bucket) or []
-        annotated["buckets"][bucket] = [annotate_group(g, index) for g in groups]
+    report_rq_ids = _parse_rq_codes(consensus.get("rq_id"))
+
+    def annotate_bucket(name: str) -> list[dict[str, Any]]:
+        out = []
+        for g in consensus.get(name) or []:
+            ag = annotate_group(g, index)
+            ids = cluster_rq_ids(g, claims_by_rq) if claims_by_rq else []
+            ag["rq_ids"] = ids
+            ag["rq_id"] = ids[0] if len(ids) == 1 else None
+            out.append(ag)
+        return out
+
+    annotated_buckets = {b: annotate_bucket(b) for b in buckets}
+
+    if rq_id:
+        def keep(g: dict[str, Any]) -> bool:
+            if g["rq_ids"]:
+                return rq_id in g["rq_ids"]
+            return rq_id in report_rq_ids
+
+        annotated_buckets = {b: [g for g in gs if keep(g)] for b, gs in annotated_buckets.items()}
+
+    total = sum(len(gs) for gs in annotated_buckets.values())
 
     level_counter: dict[str, int] = {lev: 0 for lev in TRUST_LEVELS}
-    for bucket in annotated["buckets"].values():
+    for bucket in annotated_buckets.values():
         for g in bucket:
             level_counter[g["trust"]["trust_level"]] += 1
-    annotated["trust_level_counts"] = {k: v for k, v in level_counter.items() if v}
-    return annotated
+
+    return {
+        "rq_id": rq_id or consensus.get("rq_id"),
+        "report_rq_ids": report_rq_ids,
+        "input_claims": consensus.get("input_claims"),
+        "total_groups": total,
+        "total_groups_all": consensus.get("total_groups"),
+        "threshold": consensus.get("threshold"),
+        "trust_level_counts": {k: v for k, v in level_counter.items() if v},
+        "buckets": annotated_buckets,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -212,11 +286,19 @@ def render_report(annotated: dict[str, Any]) -> str:
         f"**RQ**: {annotated.get('rq_id') or 'General'} | **Clusters**: {annotated.get('total_groups')} | "
         f"**Input claims**: {annotated.get('input_claims')}",
         "",
+    ]
+    if (
+        annotated.get("total_groups_all") is not None
+        and annotated["total_groups_all"] != annotated["total_groups"]
+    ):
+        md.append(f"_Scoped to `{annotated.get('rq_id')}`: {annotated['total_groups']} of {annotated['total_groups_all']} clusters._")
+        md.append("")
+    md.extend([
         "## Trust-level distribution",
         "",
         "| Level | Clusters |",
         "|---|---|",
-    ]
+    ])
     total = 0
     for lev in TRUST_LEVELS:
         n = annotated["trust_level_counts"].get(lev, 0)
@@ -246,6 +328,9 @@ def render_report(annotated: dict[str, Any]) -> str:
             t = g["trust"]
             md.append(f"### {g['cluster_id']} — {_mono(g.get('theme'), 80)}")
             md.append("")
+            rqs = g.get("rq_ids") or []
+            if len(rqs) > 1:
+                md.append(f"- **RQs**: {', '.join(rqs)}")
             md.append(
                 f"- **Level**: `{t['trust_level']}` {('(' + ', '.join(t['flags']) + ')') if t['flags'] else ''}"
             )
@@ -277,14 +362,19 @@ def render_report(annotated: dict[str, Any]) -> str:
     return "\n".join(md)
 
 
-def run(consensus: dict[str, Any], phase4_dir: Any) -> dict[str, Any]:
+def run(
+    consensus: dict[str, Any],
+    phase4_dir: Any,
+    *,
+    rq_id: str | None = None,
+    claims_dir: Any = None,
+) -> dict[str, Any]:
     """Load Phase-4 outputs from a directory and annotate the consensus report."""
-    from pathlib import Path
-
     phase4 = {}
     d = Path(phase4_dir)
     for key, fname in PHASE4_INPUTS.items():
         p = d / fname
         if p.exists():
             phase4[key] = _rows(_load_json(p))
-    return annotate(consensus, phase4)
+    claims_by_rq = load_rq_claims(claims_dir) if claims_dir else None
+    return annotate(consensus, phase4, rq_id=rq_id, claims_by_rq=claims_by_rq)

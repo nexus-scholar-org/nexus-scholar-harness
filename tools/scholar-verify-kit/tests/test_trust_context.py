@@ -73,6 +73,63 @@ def _phase4() -> dict:
     }
 
 
+def _consensus_multi_rq() -> dict:
+    return {
+        "rq_id": "ALL (RQ1+RQ2)",
+        "input_claims": 4,
+        "total_groups": 3,
+        "threshold": 0.4,
+        "high_consensus": [
+            {
+                "cluster_id": "C1",
+                "theme": "RAG improves retrieval accuracy",
+                "supporting_studies": ["S1"],
+                "claims": [{"study_id": "S1", "claim_text": "a"}],
+            }
+        ],
+        "active_debates": [],
+        "unresolved": [
+            {
+                "cluster_id": "C2",
+                "theme": "Cross-RQ finding",
+                "supporting_studies": ["S2", "S3"],
+                "claims": [
+                    {"study_id": "S2", "claim_text": "b"},
+                    {"study_id": "S3", "claim_text": "c"},
+                ],
+            }
+        ],
+        "provisional": [
+            {
+                "cluster_id": "C3",
+                "theme": "Edge latency acceptable",
+                "supporting_studies": ["S3"],
+                "claims": [{"study_id": "S3", "claim_text": "d"}],
+            }
+        ],
+        "rendered_markdown": "",
+    }
+
+
+def _claims_by_rq() -> dict:
+    return {
+        "RQ1": {
+            "rows": [
+                {"study_id": "S1", "claim_text": "a"},
+                {"study_id": "S2", "claim_text": "b"},
+            ],
+            "keys": {("S1", "a"), ("S2", "b")},
+        },
+        "RQ2": {
+            "rows": [
+                {"study_id": "S3", "claim_text": "c"},
+                {"study_id": "S3", "claim_text": "d"},
+            ],
+            "keys": {("S3", "c"), ("S3", "d")},
+        },
+    }
+
+
 class TestIndex:
     def test_build_index_flattens_streams(self):
         index = tc.build_trust_index(_phase4())
@@ -159,6 +216,75 @@ class TestAnnotate:
         assert "STRONG" in md
 
 
+class TestRqScope:
+    def test_cluster_rq_attribution(self):
+        assert tc.cluster_rq_ids({"claims": [{"study_id": "S2", "claim_text": "b"}]}, _claims_by_rq()) == ["RQ1"]
+        assert tc.cluster_rq_ids(
+            {"claims": [{"study_id": "S2", "claim_text": "b"}, {"study_id": "S3", "claim_text": "c"}]},
+            _claims_by_rq(),
+        ) == ["RQ1", "RQ2"]
+        assert tc.cluster_rq_ids({"claims": [{"study_id": "S9", "claim_text": "zz"}]}, _claims_by_rq()) == []
+
+    def test_provenance_recorded_without_filtering(self):
+        out = tc.annotate(_consensus_multi_rq(), _phase4(), claims_by_rq=_claims_by_rq())
+        assert out["total_groups"] == 3
+        c1 = out["buckets"]["high_consensus"][0]
+        c2 = out["buckets"]["unresolved"][0]
+        c3 = out["buckets"]["provisional"][0]
+        assert c1["rq_ids"] == ["RQ1"]
+        assert c1["rq_id"] == "RQ1"
+        assert c2["rq_ids"] == ["RQ1", "RQ2"]
+        assert c2["rq_id"] is None
+        assert c3["rq_ids"] == ["RQ2"]
+
+    def test_scope_keeps_cross_rq_cluster(self):
+        out = tc.annotate(_consensus_multi_rq(), _phase4(), rq_id="RQ1", claims_by_rq=_claims_by_rq())
+        assert out["rq_id"] == "RQ1"
+        assert out["total_groups"] == 2
+        assert out["total_groups_all"] == 3
+        assert [g["cluster_id"] for g in out["buckets"]["provisional"]] == []
+        assert "C2" in [g["cluster_id"] for g in out["buckets"]["unresolved"]]
+
+    def test_scope_rq2_only(self):
+        out = tc.annotate(_consensus_multi_rq(), _phase4(), rq_id="RQ2", claims_by_rq=_claims_by_rq())
+        assert [g["cluster_id"] for g in out["buckets"]["high_consensus"]] == []
+        assert "C2" in [g["cluster_id"] for g in out["buckets"]["unresolved"]]
+        assert out["trust_level_counts"].get("UNVERIFIED") == 1
+
+    def test_fallback_to_report_level_when_no_claims_index(self):
+        out = tc.annotate(_consensus_multi_rq(), _phase4(), rq_id="RQ1")
+        assert out["total_groups"] == 3
+        assert out["report_rq_ids"] == ["RQ1", "RQ2"]
+
+    def test_unknown_cluster_excluded_when_outside_report(self):
+        out = tc.annotate(_consensus_multi_rq(), _phase4(), rq_id="RQ9", claims_by_rq=_claims_by_rq())
+        assert out["total_groups"] == 0
+        assert out["trust_level_counts"] == {}
+
+    def test_render_scope_note(self):
+        out = tc.annotate(_consensus_multi_rq(), _phase4(), rq_id="RQ1", claims_by_rq=_claims_by_rq())
+        md = tc.render_report(out)
+        assert "Scoped to `RQ1`" in md
+        assert "2 of 3 clusters" in md
+
+    def test_parse_rq_codes(self):
+        assert tc._parse_rq_codes("ALL (RQ1+RQ2)") == ["RQ1", "RQ2"]
+        assert tc._parse_rq_codes("RQ3") == ["RQ3"]
+        assert tc._parse_rq_codes(None) == []
+        assert tc._parse_rq_codes("") == []
+
+    def test_load_rq_claims_from_dir(self, tmp_path):
+        d = tmp_path / "synthesis"
+        d.mkdir()
+        (d / "claims_rq1.json").write_text(json.dumps([{"study_id": "S1", "claim_text": "a"}]), encoding="utf-8")
+        (d / "claims_rq2.json").write_text(json.dumps([{"study_id": "S2", "claim_text": "b"}]), encoding="utf-8")
+        (d / "notes.txt").write_text("ignore me", encoding="utf-8")
+        idx = tc.load_rq_claims(d)
+        assert sorted(idx) == ["RQ1", "RQ2"]
+        assert idx["RQ1"]["keys"] == {("S1", "a")}
+        assert tc.load_rq_claims(tmp_path / "nonexistent") == {}
+
+
 class TestCli:
     def _make_ws(self, tmp_path):
         ws = tmp_path / "ws"
@@ -183,3 +309,24 @@ class TestCli:
         out = json.loads((ws / "phase4" / "trust_consensus.json").read_text(encoding="utf-8"))
         assert out["trust_level_counts"]["STRONG"] == 1
         assert "Trust-Weighted Consensus Report" in (ws / "phase4" / "trust_consensus.md").read_text(encoding="utf-8")
+
+    def test_cli_trust_context_rq_scoped(self, tmp_path):
+        ws = self._make_ws(tmp_path)
+        (ws / "synthesis" / "claims_rq1.json").write_text(
+            json.dumps(_claims_by_rq()["RQ1"]["rows"]), encoding="utf-8"
+        )
+        (ws / "synthesis" / "claims_rq2.json").write_text(
+            json.dumps(_claims_by_rq()["RQ2"]["rows"]), encoding="utf-8"
+        )
+        (ws / "synthesis" / "consensus.json").write_text(
+            json.dumps(_consensus_multi_rq()), encoding="utf-8"
+        )
+        res = runner.invoke(app, ["trust-context", "--workspace", str(ws), "--rq-id", "RQ1"])
+        assert res.exit_code == 0, res.output
+        out = json.loads((ws / "phase4" / "trust_consensus_RQ1.json").read_text(encoding="utf-8"))
+        assert out["rq_id"] == "RQ1"
+        assert out["total_groups"] == 2
+        assert out["total_groups_all"] == 3
+        assert out["trust_level_counts"]["STRONG"] == 1
+        assert "Scoped to `RQ1`" in (ws / "phase4" / "trust_consensus_RQ1.md").read_text(encoding="utf-8")
+        assert not (ws / "phase4" / "trust_consensus.json").exists()

@@ -48,6 +48,10 @@ def _write(ws: Path, name: str, data: dict[str, Any], md: str) -> None:
     typer.echo(f"wrote {out_dir / name}.json + .md")
 
 
+def _slug(text: str) -> str:
+    return "".join(ch for ch in text if ch.isalnum() or ch in "-_") or "scoped"
+
+
 def _merged_records(ws: Path) -> list[dict[str, Any]]:
     return _load(ws / "literature" / "extraction" / "merged" / "records.json", "merged records")
 
@@ -148,10 +152,12 @@ def trust_context_cmd(
     coi: Path | None = typer.Option(None, "--coi", help="Override coi_audit.json path"),
     retraction: Path | None = typer.Option(None, "--retraction", help="Override retraction_status_check.json path"),
     open_science: Path | None = typer.Option(None, "--open-science", help="Override open_science_regex_baseline.json path"),
-    output_json: Path | None = typer.Option(None, "--output-json", help="JSON output path (default <ws>/phase4/trust_consensus.json)"),
-    output_md: Path | None = typer.Option(None, "--output-md", help="Markdown output path (default <ws>/phase4/trust_consensus.md)"),
+    rq_id: str | None = typer.Option(None, "--rq-id", help="Scope report to clusters whose claims belong to this RQ (e.g. RQ1)"),
+    claims_dir: Path | None = typer.Option(None, "--claims-dir", help="Override dir of claims_rq*.json used for RQ attribution"),
+    output_json: Path | None = typer.Option(None, "--output-json", help="JSON output path (default <ws>/phase4/trust_consensus[_RQ].json)"),
+    output_md: Path | None = typer.Option(None, "--output-md", help="Markdown output path (default <ws>/phase4/trust_consensus[_RQ].md)"),
 ) -> None:
-    """Annotate Consensus Cartographer clusters with Phase-4 trust context."""
+    """Annotate Consensus Cartographer clusters with Phase-4 trust context (optionally per RQ)."""
     ws = _resolve_workspace(workspace)
     cons_path = consensus or (ws / trust_context.CONSENSUS_DEFAULT)
     cons = _load(cons_path, "consensus report")
@@ -169,18 +175,22 @@ def trust_context_cmd(
         if p.exists():
             phase4[key] = trust_context._rows(_load(p, f"phase4/{default_fname}"))
 
-    annotated = trust_context.annotate(cons, phase4)
+    cdir = claims_dir or (ws / "synthesis")
+    claims_by_rq = trust_context.load_rq_claims(cdir) if cdir.exists() else {}
+
+    annotated = trust_context.annotate(cons, phase4, rq_id=rq_id, claims_by_rq=claims_by_rq)
     md = trust_context.render_report(annotated)
 
     out_dir = ws / "phase4"
     out_dir.mkdir(parents=True, exist_ok=True)
-    (output_json or (out_dir / "trust_consensus.json")).write_text(
+    stem = f"trust_consensus_{_slug(rq_id)}" if rq_id else "trust_consensus"
+    (output_json or (out_dir / f"{stem}.json")).write_text(
         json.dumps(annotated, indent=2, ensure_ascii=False), encoding="utf-8"
     )
-    (output_md or (out_dir / "trust_consensus.md")).write_text(md, encoding="utf-8")
+    (output_md or (out_dir / f"{stem}.md")).write_text(md, encoding="utf-8")
     typer.echo(json.dumps(annotated.get("trust_level_counts", {}), indent=2, ensure_ascii=False))
     typer.echo(annotated.get("total_groups"))
-    typer.echo("wrote phase4/trust_consensus.json + .md")
+    typer.echo(f"wrote {out_dir / stem}.json + .md")
 
 
 @app.command("all")

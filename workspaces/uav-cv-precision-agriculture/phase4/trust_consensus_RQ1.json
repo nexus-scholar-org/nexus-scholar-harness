@@ -1,0 +1,628 @@
+{
+  "rq_id": "RQ1",
+  "report_rq_ids": [
+    "RQ1",
+    "RQ2"
+  ],
+  "input_claims": 38,
+  "total_groups": 3,
+  "total_groups_all": 12,
+  "threshold": 0.4,
+  "trust_level_counts": {
+    "ADEQUATE": 3
+  },
+  "buckets": {
+    "high_consensus": [],
+    "active_debates": [],
+    "unresolved": [
+      {
+        "cluster_id": "C1",
+        "theme": "achieved by FCN8. However, compared to performance in the field dataset, all the corresponding metrics in the networks decreased in the UAV dataset.",
+        "claims": [
+          {
+            "claim_text": "petitive performance, striking a balance between high accuracy (89.8%) and a reasonable Model Error (MAE) of 2.1%, making it suitable for real-time UAV…",
+            "citation_tokens": [
+              "[SCI-000754#6resultsan#chk-2025-224f3f-results-and-discussi-56]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000754",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "achieved by FCN8. However, compared to performance in the field dataset, all the corresponding metrics in the networks decreased in the UAV dataset.",
+            "citation_tokens": [
+              "[SCI-000489#3results#chk-2023-50a172-results-30]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000489",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "To assess the computational feasibility of deployment on resource-constrained UAV platforms, we report the parameter count and multiply–accumulate operations…",
+            "citation_tokens": [
+              "[SCI-000816#46computat#chk-2026-72fd25-computational-comple-66]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000816",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Computer vision processing pipelines commonly rely on resource-intensive DL models [10], unsuitable for deployment on UAVs which are typically characterized by…",
+            "citation_tokens": [
+              "[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-08]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000852",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "In this paper, we address this challenge by presenting a low-cost UAV system built entirely from commercially available components and equipped with a…",
+            "citation_tokens": [
+              "[SCI-000683#1introduct#chk-2025-326ce3-introduction-08]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000683",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "Our contribution represents a signiﬁcant advancement in bridging the gap between high-performance segmentation mod- els and the limitations of on-board UAV…",
+            "citation_tokens": [
+              "[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-53]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000852",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000489",
+          "SCI-000683",
+          "SCI-000754",
+          "SCI-000816",
+          "SCI-000852"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 2,
+          "NEUTRAL": 3
+        },
+        "consensus_score": 0.4,
+        "verdict": "UNRESOLVED",
+        "trust": {
+          "trust_level": "ADEQUATE",
+          "flags": [],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000489",
+            "SCI-000683",
+            "SCI-000754",
+            "SCI-000816",
+            "SCI-000852"
+          ],
+          "studies_audited": 5,
+          "studies_total": 5,
+          "aggregates": {
+            "overall_risk": {
+              "H": 0,
+              "L": 0,
+              "?": 5
+            },
+            "industry_money": 0,
+            "industry_any_ties": 4,
+            "no_coi_statement": 1,
+            "flagged": 0,
+            "open_science_public_link": 2,
+            "repo_links": 4
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000489",
+              "overall_risk": "?",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/JunfengGaolab/weed-mapping-with-cross-domain-lear",
+                  "snippet": "Lens type AF-S-NIKKOR 18–140 mm Sony E 35 mm F 1.8 OSS Shutter time 1/800 s 1/2000 s ISO 1600 320 GSD ___ 1.78 mm/pixel ## 1 https://github.com/JunfengGaolab/weed-mapping-with-cross-domain-lear ning-/tree/master. 3 J. Gao et al. Expert Systems With Applications 246 (2024) 122980 Fig. 1. Field and UAV experiments data collectio"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000683",
+              "overall_risk": "?",
+              "coi_label": "industry-affiliation-or-equipment",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "GEO-K s.r.l.",
+                  "kind": "affiliation"
+                },
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "ArduCam",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Roboflow",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Sony",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "u-blox",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "statement-only",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000754",
+              "overall_risk": "?",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "Google Colab (T4 GPU)",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Google Coral TPU",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "statement-only",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000816",
+              "overall_risk": "?",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "DJI",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Elsevier (Mendeley Data)",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://doi.org/10.5281/zenodo.20680100",
+                  "snippet": "ported results—is released under the MIT License and permanently archived in ACCEPTED MANUSCRIPT ARTICLE IN PRESS a Zenodo repository at https://doi.org/10.5281/zenodo.20680100. The same code is additionally hosted on GitHub at https://github.com/happyeveryday8882026/ deblurring-aware-crop-weed-segmentation, where t"
+                },
+                {
+                  "url": "https://github.com/happyeveryday8882026/",
+                  "snippet": "SCRIPT ARTICLE IN PRESS a Zenodo repository at https://doi.org/10.5281/zenodo.20680100. The same code is additionally hosted on GitHub at https://github.com/happyeveryday8882026/ deblurring-aware-crop-weed-segmentation, where the pre-trained model weights for the NAFNet deblurring front-end and the proposed UNet–ResN"
+                },
+                {
+                  "url": "https://github.com/grimmlab/",
+                  "snippet": "rWeedSeg dataset of Genze et al. [34], openly accessible via the Mendeley Data reposi- tory at https://doi.org/10.17632/k4gvsjv4t3.1 and at https://github.com/grimmlab/ DeBlurWeedSeg. The train/validation/test splits used in this study are released together with the source code in the Zenodo repository list"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000852",
+              "overall_risk": "?",
+              "coi_label": "academic-or-public",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "ArduCam",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Sony",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Monsoon Solutions",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "statement-only",
+              "cas": "statement-only",
+              "repo_links": []
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1",
+          "RQ2",
+          "RQ3",
+          "RQ4",
+          "RQ5",
+          "RQ6"
+        ],
+        "rq_id": null
+      },
+      {
+        "cluster_id": "C2",
+        "theme": "Comparing the performance of ﬁve backbone CNNs, ResNet50, DenseNet121 and EfﬁcientNetB0 achieve a mean IoU score of above 50% when combined with UNet and…",
+        "claims": [
+          {
+            "claim_text": "Comparing the performance of ﬁve backbone CNNs, ResNet50, DenseNet121 and EfﬁcientNetB0 achieve a mean IoU score of above 50% when combined with UNet and…",
+            "citation_tokens": [
+              "[SCI-000488#4resultsan#chk-2023-8ee0c4-results-and-discussi-33]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000488",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Tables 3 and 4 provide a comprehensive comparison of MSEA-Net with various benchmark models across key segmentation metrics, including mean IoU, precision,…",
+            "citation_tokens": [
+              "[SCI-001334#5results#chk-2025-d3a552-results-31]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-001334",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Beyond comparisons with standard CNN baselines in the multi-dataset setting, the proposed framework further demonstrates competitive performance when compared…",
+            "citation_tokens": [
+              "[SCI-000007#4resultsan#chk-2026-07be3f-results-and-discussi-52]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000007",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "On the other hand, the Residual U-Net model was trained on Google Colab Pro+ on a GPU Nvidia A100 for 100 epochs in 2.5 h, with a relatively fast inference…",
+            "citation_tokens": [
+              "[SCI-001017#3results#chk-2026-66ad20-results-55]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-001017",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "The adaptability of our model is complemented by its excep- tional real-time performance. Our SSU-Net’s inference speed aligns well with those reported by…",
+            "citation_tokens": [
+              "[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000852",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Crop Class Performance. All models achieve strong and comparable performance in the crop class. U-Net achieves a Dice score of 95.73%, DeepLabv3+ achieves 95.",
+            "citation_tokens": [
+              "[SCI-000007#4resultsan#chk-2026-07be3f-results-and-discussi-41]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000007",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000007",
+          "SCI-000488",
+          "SCI-000852",
+          "SCI-001017",
+          "SCI-001334"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 5
+        },
+        "consensus_score": 0.0,
+        "verdict": "UNRESOLVED",
+        "trust": {
+          "trust_level": "ADEQUATE",
+          "flags": [],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000007",
+            "SCI-000488",
+            "SCI-000852",
+            "SCI-001017",
+            "SCI-001334"
+          ],
+          "studies_audited": 5,
+          "studies_total": 5,
+          "aggregates": {
+            "overall_risk": {
+              "H": 0,
+              "L": 0,
+              "?": 5
+            },
+            "industry_money": 0,
+            "industry_any_ties": 3,
+            "no_coi_statement": 0,
+            "flagged": 0,
+            "open_science_public_link": 3,
+            "repo_links": 8
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000007",
+              "overall_risk": "?",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "request-only",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000488",
+              "overall_risk": "?",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "DJI",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Google",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://zenodo.org/record/6697343",
+                  "snippet": "arch received no external funding. Data Availability Statement: The data used in this study are made public by [45] and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/dahalsweekar/Deep-Weed-Segmentation ("
+                },
+                {
+                  "url": "https://github.com/dahalsweekar/Deep-Weed-Segmentation",
+                  "snippet": "and can be accessed at https://zenodo.org/record/6697343 (accessed on 2 June 2023). The link for the implementation code can be accessed at https://github.com/dahalsweekar/Deep-Weed-Segmentation (accessed on 22 September 2023). Conﬂicts of Interest: The authors declare no conﬂict of interest. Abbreviations The following abbreviat"
+                },
+                {
+                  "url": "https://github.com/JanMarcelKezmann/",
+                  "snippet": "l. Mach. Intell. 2017, 39, 2481–2495. [CrossRef] [PubMed] 53. Kezmann, J.M. Tensorﬂow Advanced Segmentation Models. 2020. Available online: https://github.com/JanMarcelKezmann/ TensorFlow-Advanced-Segmentation-Models (accessed on 15 June, 2023). 54. Neven, R.; Goedemé, T. A multi-branch U-Net for steel surface defe"
+                },
+                {
+                  "url": "https://github.com/keras-team/keras",
+                  "snippet": ".S.; Rahman, F.; Qian, C.; Jin, H.; Gardener, T.; Watson, M.; Lee, T.; de Marmiesse, G.; Zabluda, O.; et al. Keras. 2015. Available online: https://github.com/keras-team/keras (accessed on 1 July 2023). 57. Bisong, E. Building Machine Learning and Deep Learning Models on Google Cloud Platform; Springer: Berlin/Hei"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000852",
+              "overall_risk": "?",
+              "coi_label": "academic-or-public",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "ArduCam",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Sony",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "Monsoon Solutions",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "statement-only",
+              "cas": "statement-only",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-001017",
+              "overall_risk": "?",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/JorgePazos-",
+                  "snippet": "ability Statement: Datasets used in this study were made publicly available for comparison purposes and can be found at the following link: https://github.com/JorgePazos- git/Dataset-of-weeds-in-potato-crops-in-the-province-of-Carchi-and-Imbabura-in- (last accessed 8 December 2025). Acknowledgments: This res"
+                },
+                {
+                  "url": "https://zenodo.org/records/5119205",
+                  "snippet": "taset on UAV High-Resolution Images from Grassland with Broad-Leaved Dock (Rumex Obtusifolius). [Data Set]. Zenodo. 2021. Available online: https://zenodo.org/records/5119205 (accessed on 25 February 2026). 51. Dos Santos Ferreira, A. Data for: Weed Detection in Soybean Crops Using ConvNets. Comput. Electron. Agr"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-001334",
+              "overall_risk": "?",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [
+                {
+                  "entity": "DJI",
+                  "kind": "tooling"
+                },
+                {
+                  "entity": "NVIDIA",
+                  "kind": "tooling"
+                }
+              ],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/AkramSyed002/MSEA_Net",
+                  "snippet": "ina. Data Availability Statement: To support reproducibility and further research, the full MSEA-Net implementation is available on GitHub https://github.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB https://github.com/CoFly-Pro"
+                },
+                {
+                  "url": "https://github.com/CoFly-Project/CoFly-WeedDB",
+                  "snippet": "b.com/AkramSyed002/MSEA_Net, accessed on 4 February 2025. Additionally, the datasets used for evaluation can be accessed from CoFly- WeedDB https://github.com/CoFly-Project/CoFly-WeedDB, accessed on 10 October 2024, and Motion-Blurred UAV images of Sorghum Fields https://data.mendeley.com/datasets/4hh45vkp38/5, accessed on 5"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1",
+          "RQ2",
+          "RQ4",
+          "RQ5",
+          "RQ6"
+        ],
+        "rq_id": null
+      }
+    ],
+    "provisional": [
+      {
+        "cluster_id": "C3",
+        "theme": "cropped interested field for testing performances of the networks, (c) manually labelled ground truth map",
+        "claims": [
+          {
+            "claim_text": "cropped interested field for testing performances of the networks, (c) manually labelled ground truth map",
+            "citation_tokens": [
+              "[SCI-000012#3results#chk-2022-1683b1-results-27]"
+            ],
+            "entailment_score": 0.0,
+            "entailment_status": "UNSUPPORTED",
+            "supporting_chunk_ids": [],
+            "study_id": "SCI-000012",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000012"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 1
+        },
+        "consensus_score": 0.0,
+        "verdict": "PROVISIONAL",
+        "trust": {
+          "trust_level": "ADEQUATE",
+          "flags": [],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000012"
+          ],
+          "studies_audited": 1,
+          "studies_total": 1,
+          "aggregates": {
+            "overall_risk": {
+              "H": 0,
+              "L": 0,
+              "?": 1
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 0,
+            "flagged": 0,
+            "open_science_public_link": 0,
+            "repo_links": 0
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000012",
+              "overall_risk": "?",
+              "coi_label": "academic-or-public",
+              "adjusted_from": "no-statement",
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1"
+        ],
+        "rq_id": "RQ1"
+      }
+    ]
+  }
+}
