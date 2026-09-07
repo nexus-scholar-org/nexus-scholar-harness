@@ -37,14 +37,7 @@ jobs:
         run: uv run python scripts/install_plugins.py --help
       
       - name: Verify plugin manifest
-        run: |
-          python -c "
-          import json
-          with open('.agents/plugins/nexus-scholar/plugins.json') as f:
-              manifest = json.load(f)
-          assert manifest.get('plugins'), 'No plugins defined in manifest'
-          print(f'✅ Plugin manifest valid: {len(manifest[\"plugins\"])} plugins registered')
-          "
+        run: uv run python scripts/validate_manifest.py
       
       - name: Install plugins (git-only, no local checkouts)
         run: uv run python scripts/install_plugins.py --git-only --no-verify
