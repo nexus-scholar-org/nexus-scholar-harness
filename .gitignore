@@ -8,6 +8,9 @@ workspaces/**/pdfs/
 workspaces/**/rag/chroma_db/
 workspaces/**/chroma_db/
 
+# Harness Console runtime state (job stdout, job dirs)
+workspaces/**/.harness-console/
+
 # External Plugins (installed via scripts/install_plugins.py)
 
 
