@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Pre-commit checklist for plugin harness refactor."""
 import subprocess
 import sys

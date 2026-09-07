@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate plugin manifest structure."""
 import json
 import sys

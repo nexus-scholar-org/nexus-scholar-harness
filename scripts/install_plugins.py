@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Nexus Scholar Plugin Installer.
 
 Installs external Nexus Scholar toolkits into the unified harness environment.

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 reconcile_dual_screening.py
 Synchronizes dual-screening decisions, 3rd-party adjudication, and Option B (Provisional 150)
