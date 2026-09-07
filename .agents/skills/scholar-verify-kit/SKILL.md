@@ -13,6 +13,7 @@ You are the post-screening trust-verification specialist of the Nexus Scholar Su
 2. **Open-science artifact scan** (DAS/CAS): deterministic regex baseline over extracted fulltext, classifying each study `public+link` / `request-only` / `statement-only` / `explicitly-unavailable` / `not-stated`.
 3. **Conflict-of-interest audit aggregator**: normalizes per-chunk analyst COI classifications, validates coverage vs the theme manifest, applies a documented deterministic relabel for `no-statement` drift.
 4. **Risk-of-bias scorer**: deterministic, metadata-driven adaptation of QUADAS-2/PROBAST domains (D1 dataset selection, D2 metric reporting, D3 ground-truth labeling, D4 runtime/efficiency claims). Overall = worst applicable domain.
+5. **Trust-weighted consensus**: hermetic join of a Consensus Cartographer `synthesis/consensus.json` with the four Phase-4 outputs, annotating each cluster with per-study RoB/COI/retraction/open-science context, cluster aggregates, and a deterministic trust level (`BLOCKED` → `UNVERIFIED` → `WEAK` → `ADEQUATE` → `STRONG`) → `phase4/trust_consensus.{json,md}`.
 
 ---
 
@@ -25,6 +26,7 @@ uv run scholar-verify open-science --workspace workspaces/<project-slug>      # 
 uv run scholar-verify coi --workspace workspaces/<project-slug>               # needs phase4/_manifest.json + phase4/_agent_results/coi_chunk_*.json
 uv run scholar-verify risk-of-bias --workspace workspaces/<project-slug>      # needs records.json + phase4/_manifest.json
 uv run scholar-verify all --workspace workspaces/<project-slug> --skip-retraction   # all 4 streams, offline
+uv run scholar-verify trust-context --workspace workspaces/<project-slug>  # annotate synthesis/consensus.json with Phase-4 context (hermetic)
 ```
 
 Outputs: `<ws>/phase4/{retraction_status_check,open_science_regex_baseline,coi_audit,risk_of_bias}.json|.md`.
@@ -63,3 +65,16 @@ out = checker.check(records, included)          # hits OpenAlex + Crossref (rate
 - The kit's schemas exactly match the legacy Phase-4 outputs on `uav-cv-precision-agriculture`; verified by parity smoke test (identical counts for all summaries).
 - LOW/library-documented caveats: OpenAlex `is_retracted` is a metadata snapshot, not publisher live status; Crossref `correction` events are low-severity errata unless `type` is `retraction`/`expression-of-concern`.
 - Do not re-implement these checks in harness code; call `scholar_verify` APIs / the `scholar-verify` CLI instead.
+
+## Trust-weighted consensus (`scholar-verify trust-context`)
+
+Joints `synthesis/consensus.json` against the four Phase-4 outputs (`risk_of_bias.json`, `coi_audit.json`, `retraction_status_check.json`, `open_science_regex_baseline.json`), all present under `phase4/` by default. Pure function `trust_context.annotate(consensus, phase4)`; outputs `phase4/trust_consensus.{json,md}`.
+
+Deterministic trust levels (worst applies, per cluster):
+- `BLOCKED` — any supporting study is retraction-flagged (`flagged`).
+- `UNVERIFIED` — zero supporting studies found in Phase-4 (`coverage == 0`).
+- `WEAK` — coverage < 50%, any `overall_risk == "H"`, or any industry-`funding` entity.
+- `STRONG` — coverage ≥ 50%, no `overall_risk in ("?", None)`, no industry ties, and ≥ 1 study with DAS/CAS `public+link`.
+- `ADEQUATE` — everything else (covered but with `?` ratings / mixed signals).
+
+Per-study details stay in the JSON (`trust.studies`); cluster aggregates live in `trust.aggregates`. Only `retraction` introduces runtime variance; `trust-context` itself is hermetic and deterministic.

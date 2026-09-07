@@ -6,6 +6,7 @@ Commands mirror the Phase 4 analytical workstreams:
   open-science  DAS/CAS regex baseline over extracted fulltext
   coi           conflict-of-interest audit aggregator
   risk-of-bias  deterministic QUADAS-2/PROBAST scoring over records.json
+  trust-context annotate consensus clusters with Phase-4 trust context
   all           run every verification stream sequentially
 """
 
@@ -18,7 +19,7 @@ from typing import Any
 
 import typer
 
-from . import coi, open_science, retraction, risk_of_bias
+from . import coi, open_science, retraction, risk_of_bias, trust_context
 
 app = typer.Typer(help="Verify the trustworthiness of a screened corpus (retraction status, open-science artifacts, COI, risk of bias).")
 
@@ -137,6 +138,49 @@ def risk_of_bias_cmd(
     md = risk_of_bias.render_report(out)
     typer.echo(json.dumps(out["summary"], indent=2, ensure_ascii=False))
     _write(ws, "risk_of_bias", out, md)
+
+
+@app.command("trust-context")
+def trust_context_cmd(
+    workspace: Path = typer.Option(..., "--workspace", "-w", help="Workspace directory", callback=_resolve_workspace),
+    consensus: Path | None = typer.Option(None, "--consensus", help="Override consensus.json path"),
+    risk_of_bias: Path | None = typer.Option(None, "--risk-of-bias", help="Override risk_of_bias.json path"),
+    coi: Path | None = typer.Option(None, "--coi", help="Override coi_audit.json path"),
+    retraction: Path | None = typer.Option(None, "--retraction", help="Override retraction_status_check.json path"),
+    open_science: Path | None = typer.Option(None, "--open-science", help="Override open_science_regex_baseline.json path"),
+    output_json: Path | None = typer.Option(None, "--output-json", help="JSON output path (default <ws>/phase4/trust_consensus.json)"),
+    output_md: Path | None = typer.Option(None, "--output-md", help="Markdown output path (default <ws>/phase4/trust_consensus.md)"),
+) -> None:
+    """Annotate Consensus Cartographer clusters with Phase-4 trust context."""
+    ws = _resolve_workspace(workspace)
+    cons_path = consensus or (ws / trust_context.CONSENSUS_DEFAULT)
+    cons = _load(cons_path, "consensus report")
+
+    phase4_dir = ws / "phase4"
+    overrides = {
+        "risk_of_bias": risk_of_bias,
+        "coi": coi,
+        "retraction": retraction,
+        "open_science": open_science,
+    }
+    phase4 = {}
+    for key, default_fname in trust_context.PHASE4_INPUTS.items():
+        p = overrides.get(key) or (phase4_dir / default_fname)
+        if p.exists():
+            phase4[key] = trust_context._rows(_load(p, f"phase4/{default_fname}"))
+
+    annotated = trust_context.annotate(cons, phase4)
+    md = trust_context.render_report(annotated)
+
+    out_dir = ws / "phase4"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (output_json or (out_dir / "trust_consensus.json")).write_text(
+        json.dumps(annotated, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    (output_md or (out_dir / "trust_consensus.md")).write_text(md, encoding="utf-8")
+    typer.echo(json.dumps(annotated.get("trust_level_counts", {}), indent=2, ensure_ascii=False))
+    typer.echo(annotated.get("total_groups"))
+    typer.echo("wrote phase4/trust_consensus.json + .md")
 
 
 @app.command("all")
