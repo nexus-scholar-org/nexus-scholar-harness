@@ -34,7 +34,7 @@ Phase 5 was envisioned (`ROADMAP_ASSESSMENT_AND_TASK_LIST.md`, `brainstorming/OP
 | D2 | **Wrap, don't rewrite.** Console actions invoke kit CLIs via `uv run` and read workspace files directly. Zero logic duplication. | Keeps Phase-3 invariant #1 (zero state desync) and #2 (deterministic reproducibility) trivially true. | 08's "rewrap orchestrator as API" → kept minimal. |
 | D3 | **Filesystem is the database.** No DB, no Celery/RabbitMQ, no realtime sync service in v1. | `project.json`, `INDEX.md`, `audit/journal.jsonl`, `literature/`, `synthesis/`, `phase4/` already ARE the canonical state. Adding a DB recreates the desync the repo has engineered away. | Roadmap "survives >50 concurrent edits" → meet via atomic-file discipline + reload, not a server. |
 | D4 | **Chat stays in the agent.** The console offers no LLM chat panel. | The coding agents already do conversationally; a WebSocket copilot re-implements them poorly. Console focuses on *binding decisions* (screening, verification, export) where humans must sign off. | 08's "killer copilot" → deferred to agent layer. |
-| D5 | **Auth/RBAC deferred.** v1 is localhost-only, single user. Collaboration = git + audit ledger; role gates become file-level sign-offs later. | Building auth now delays every other milestone for zero current users. | 5a "cloud workspaces" → staged to M5.5 stretch. |
+| D5 | **Auth/RBAC abandoned.** v1 is localhost-only, single user. Collaboration = git + audit ledger. | Building auth violates the thin-client principle. | 5a "cloud workspaces" → completely removed. |
 | D6 | **Every console action has an explicit CLI/MCP equivalent** shown in the UI ("agent exchange"). | Guarantees anything a human does in the GUI, an agent can reproduce headlessly. | New invariant, added by this design. |
 
 The single most important consequence of D1–D6: **the UI cannot become complicated without breaking its own contract.** Complexity budget is spent only where a GUI genuinely beats an agent — the **screening/verification human-judgment screens** and the **no-code pipeline builder** (itself just an editor for a JSON spec the CLI already consumes).
@@ -45,7 +45,7 @@ The single most important consequence of D1–D6: **the UI cannot become complic
 
 | Roadmap item | Phase 5 deliverable | Principle |
 | :-- | :-- | :-- |
-| **5a Shared workspaces** | Local-first console; collaboration via git + audit journal (M5.5 stretch: role gates) | Filesystem-as-state; no sync engine. |
+| **5a Shared workspaces** | Local-first console; collaboration via git + audit journal. | Filesystem-as-state; no sync engine. |
 | **5b No-code workflow builder** | `PipelineSpec` (JSON) editor → dry-run on sample → export to `uv run` script or `scholar-harness run --pipeline` (M5.4) | Builder edits the same contract the CLI executes. |
 | **5c Domain templates** | Library of preset `PipelineSpec` archetypes (PRISMA SLR, scoping review, REA, meta-research) | 1-click = instantiate a spec, not new logic. |
 
@@ -77,11 +77,11 @@ Reviewers/PIs who must make and sign **binding decisions** (PRISMA inclusion, CO
 
 ### Q4. Where does the "collaborative shared workspace" go?
 
-Into **git + the append-only audit journal**, not a realtime server. Two people reviewing the same workspace review the same files; the journal records who decided what when; conflict prevention is atomic-rename write discipline (already the repo's pattern) plus the built-in determinism that makes re-runs safe. Role gates (Lead/Reviewer/Editor) are layered on later as file-level sign-off requirements, not as server ACLs.
+Into **git + the append-only audit journal**, not a realtime server. Two people reviewing the same workspace review the same files; the journal records who decided what when; conflict prevention is atomic-rename write discipline (already the repo's pattern) plus the built-in determinism that makes re-runs safe.
 
 ### Q5. Is the web app from `08_production_web_app.md` abandoned?
 
-Not abandoned — **staged**. The console is the maximal UI that stays honest to the harness. If a cloud multi-tenant product is ever warranted, it uses the same contract: the console's endpoints become the API surface, and the frontend can be swapped for a richer SPA (M5.6 stretch). Nothing about the console blocks that path; the file contract is the port.
+**Yes. Abandoned entirely.** The console is the maximal UI that stays honest to the harness. We are committing exclusively to the thin, local-first, agent-agnostic architecture.
 
 ---
 

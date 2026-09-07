@@ -37,12 +37,7 @@
 - Export: rendered `uv run` shell script and/or committed `pipeline.json`.
 - **Exit:** a non-programmer composes Search → Dedup → Screen → Harvest → Synthesize → Trust from templates and runs it end-to-end; dry-run produces no writes to canonical files.
 
-### M5.5 — Collaboration layer (stretch, weeks 10–12)
-- Role sign-off gates (Lead/Reviewer/Editor) as file-level markers wrapping collect/export steps; reviewer-facing diff of decisions (`git diff`-backed); notification hooks (webhook/cron) optional.
-- **Exit:** two reviewers sequentially finalize a screening batch with a complete audit trail; no new infra.
 
-### M5.6 — Cloud/multi-tenant (deferred, unestimated)
-Contract-compatible SPA swap + hosted serving. **Not planned for this cycle.**
 
 ## 3. Explicit non-goals for this cycle (from BLUEPRINT §7)
 
@@ -78,5 +73,5 @@ No chat copilot in the browser, no DB, no Celery/RabbitMQ, no realtime sync, no 
 - [ ] A non-programmer builds and runs a search→screen→harvest→synthesize pipeline from the console (M5.4).
 - [ ] Every console action displays its exact `uv run` command; the mapping table is CI-tested (M5.1/2).
 - [ ] A screening/verification round-trip completed in the GUI is byte-identical to the agent-driven path (M5.3).
-- [ ] Shared review leaves a fully reversible trail in `audit/journal.jsonl`; two reviewers finalizing the same batch lose no decisions (M5.5).
+
 - [ ] Console is still only "wraps + renders + triggers": zero kit logic duplicated (review gate at each milestone).

@@ -81,10 +81,9 @@ The console's strongest architectural feature is the mapping table:
 
 This table is **data, not documentation**: the server owns a static mapping (spec'd in `SPECS.md` §5) so the UI can render "see what command this triggers" on every button, and CI can test that label ≠ command drift.
 
-## 5. Collaboration model (5a, staged)
+## 5. Collaboration model
 
-- **v1 (M5.2–M5.4):** single local user; sharing = the workspace's git repo. Decisions land in the audit journal so a second reviewer sees the trail.
-- **v1.5 (M5.5 stretch):** role gates become *file-level sign-off requirements* — e.g. a "screening finalized" marker requires `Lead` approval written as a wrapper around the collect step; still file-based, no server ACL.
+- **Local single-user:** single local user; sharing = the workspace's git repo. Decisions land in the audit journal so a second reviewer sees the trail.
 - **Concurrency safety** is handed entirely to: atomic-rename writes (existing repo pattern), deterministic/idempotent re-runs (roadmap §Why-This-Works), and the append-only journal. No locks, no realtime broker, no conflict-resolution layer to build.
 
 ## 6. Security posture
@@ -100,4 +99,4 @@ This table is **data, not documentation**: the server owns a static mapping (spe
 - A database, cache, or message broker.
 - Realtime multi-cursor collaboration or an auth service.
 - Re-implementations of ranking, chunking, dedup, verification, or graph math.
-- A mobile or SaaS deployment for v1 (M5.6 stretch stays contract-compatible).
+- A mobile or SaaS deployment.
