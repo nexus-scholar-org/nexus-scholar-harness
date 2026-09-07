@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "nexus-scholar-harness"
 version = "1.0.0"
@@ -39,3 +43,6 @@ pythonpath = [
     "tools/scholar-agent-kit/src",
 ]
 addopts = "-q --basetemp=tests_temp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scholar_harness"]
