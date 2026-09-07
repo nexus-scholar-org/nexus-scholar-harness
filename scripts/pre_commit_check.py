@@ -4,9 +4,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 def run_cmd(cmd):
     """Run a command and return output."""
-    result = subprocess.run(cmd, capture_output=True, text=True, shell=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, shell=True, check=False)
     return result.returncode, result.stdout, result.stderr
 
 def main():
@@ -28,18 +29,18 @@ def main():
             checks_passed += 1
         else:
             print("   ❌ Plugin manifest has no plugins defined")
-    except Exception as e:
+    except (OSError, json.JSONDecodeError) as e:
         print(f"   ❌ Plugin manifest validation failed: {e}")
     
     # 2. Check install_plugins.py syntax
     checks_total += 1
     print("\n2. Check install_plugins.py syntax...")
-    code, stdout, _ = run_cmd("uv run python -m py_compile scripts/install_plugins.py")
+    code, _stdout, _ = run_cmd("uv run python -m py_compile scripts/install_plugins.py")
     if code == 0:
         print("   ✅ install_plugins.py syntax is valid")
         checks_passed += 1
     else:
-        print(f"   ❌ Syntax error in install_plugins.py")
+        print("   ❌ Syntax error in install_plugins.py")
     
     # 3. Check .gitignore includes tools/
     checks_total += 1
@@ -83,7 +84,7 @@ def main():
         else:
             print("   ✅ tools/ is not present (already clean)")
             checks_passed += 1
-    except Exception as e:
+    except OSError as e:
         print(f"   ⚠️  Could not verify git status: {e}")
         checks_passed += 1  # Not critical
     

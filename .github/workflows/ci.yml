@@ -26,6 +26,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Sync project environment
+        run: uv sync --extra dev
       
       - name: Lint with ruff
         run: uv run ruff check scripts/

@@ -4,6 +4,7 @@ import json
 import sys
 from pathlib import Path
 
+
 def validate_manifest():
     manifest_path = Path(".agents/plugins/nexus-scholar/plugins.json")
     

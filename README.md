@@ -1,300 +1,163 @@
-# 🛰️ Nexus-Scholar / Harness-Agri
+# Nexus Scholar Harness
 
-> **Agent-Native Academic Research & Systematic Literature Inception Harness**  
-> An autonomous, audited, multi-tool environment for conducting rigorous academic literature reviews, epistemological problem framing, federated search discovery, Open Access PDF harvesting, full-text extraction, and synthesis.
+> **Agent-native, audited orchestration for systematic literature reviews.**
+> A thin orchestrator that drives eight external research kits through a unified CLI, workspaces-as-file-contract state, and an append-only audit ledger.
+
+[![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](pyproject.toml)
+[![Managed with uv](https://img.shields.io/badge/managed%20with-uv-7841db?logo=astral)](https://docs.astral.sh/uv/)
+[![Kits](https://img.shields.io/badge/8%20research%20kits-galaxy)](tools/)
 
 ---
 
-## 🌟 Architecture Overview
+## Why this repo exists
 
-```mermaid
-flowchart TD
-    subgraph Inception [1. Socratic Inception & Scaffolding]
-        A["Vague Research Idea / Draft"] --> B["methodology-copilot\n(Socratic Interview & Paradigm Refraction)"]
-        B --> C["Generate intent.json, compile protocol.json & Scaffold Workspace"]
-    end
+The harness is deliberately **thin**: it does not re-implement research logic. Instead it orchestrates a family of purpose-built kits — discovery, screening, PDF harvesting, extraction, RAG synthesis, citation graphs, protocol compilation, and verification — that live under `tools/` and are installed **editable** into one shared environment. Everything a researcher or an AI agent does on the pipeline is:
 
-    subgraph Discovery [2. Federated Discovery & Verification]
-        C --> D["scholar-search-kit\n(OpenAlex + Semantic Scholar + Crossref + arXiv)"]
-        D --> E["Deduplicate & Resolve Canonical DOIs"]
-        E --> F["Hydrate Rich Abstracts & Clean JATS XML Markup"]
-    end
+1. **Deterministic and idempotent** — re-runs produce identical artifacts (`protocol.json` carries a SHA-256 fingerprint).
+2. **Audited** — every significant step appends an immutable event to `audit/journal.jsonl`.
+3. **Agent-agnostic** — the same CLI, MCP tools (`scholar-agent-kit`), and workspace files drive opencode, Claude, Copilot, and any other coding agent.
 
-    subgraph Screening [3. LLM Batch Screening]
-        F --> G["Batch Partitioning (batch_01 .. batch_N)"]
-        G --> H["LLM Semantic Reasoning against SCREENING_CRITERIA.md & RQs"]
-        H --> I["included.json, excluded.json, CSV & PRISMA Report"]
-    end
+The pipeline in one flow:
 
-    subgraph Extraction [4. PDF Harvesting & Markdown Extraction]
-        I --> J["scholar-pdf-kit (OpenAlex / Unpaywall / arXiv / bioRxiv)"]
-        J --> K["Concurrent Download & %PDF- Magic Byte Validation"]
-        K --> L["PyMuPDF / Docling Layout & Section Markdown Extraction"]
-    end
-
-    subgraph Synthesis [5. Synthesis & Provenance Audit]
-        L --> M["Synthesize literature_review.md & references.bib"]
-        M --> N["Append-Only Event Ledger (audit/journal.jsonl) & INDEX.md"]
-    end
+```text
+Socratic Inception ─▶ Federated Discovery ─▶ Dedup & Verify ─▶ PRISMA Screening ─▶ OA Harvest ─▶ Extraction ─▶ RAG Synthesis ─▶ Trust Verification
+(methodology-copilot)   (scholar-search)   (scholar-search)  (agent-in-the-loop)  (scholar-pdf)  (scholar-pdf)  (scholar-rag)   (scholar-verify)
 ```
 
 ---
 
-## 🧠 Specialized Skills & Capabilities
+## The research kits
 
-The harness provides six agent-native skills located in `.agents/skills/` (and `.agents/plugins/nexus-scholar/`):
-
-### 1. `methodology-copilot` / `scholar-protocol-kit`
-- **Purpose**: Socratic advisor and deterministic protocol compiler. Guides researchers through epistemological paradigm selection (Positivist, Constructivist, Critical Realist, Design Science), research question formulation, PRISMA criteria generation, and compiles `intent.json` into canonical `protocol.json` with SHA-256 fingerprinting.
-- **Key CLI**: `uv run scholar-protocol compile -i intent.json -o protocol.json --fingerprint`
-
-### 2. `scholar-search-kit`
-- **Purpose**: High-throughput federated search, citation snowballing, deduplication, and PRISMA 2020 screening across OpenAlex, Semantic Scholar, Crossref, and arXiv.
-- **Key CLI**: `uv run scholar-search query`, `uv run scholar-search dedup`, `uv run scholar-search verify`, `uv run scholar-search screen`
-
-### 3. `scholar-pdf-kit`
-- **Purpose**: Automated Open Access full-text discovery, concurrent downloading, and structured section Markdown extraction with YAML frontmatter.
-- **Key CLI**: `uv run scholar-pdf download`, `uv run scholar-pdf extract --engine pymupdf`
-
-### 4. `scholar-rag-kit`
-- **Purpose**: Structural AST sectional chunking, local ChromaDB vector indexing, dynamic protocol extraction matrix generation, and grounded synthesis with claim entailment verification.
-- **Key CLI**: `uv run scholar-rag index`, `uv run scholar-rag query`, `uv run scholar-rag matrix --protocol protocol.json`, `uv run scholar-rag synthesize`
-
-### 5. `scholar-graph-kit`
-- **Purpose**: Constructs citation and co-citation knowledge networks from OpenAlex, computes normalized PageRank centrality metrics, and generates interactive PyVis HTML visualizations.
-- **Key CLI**: `uv run scholar-graph build --input included.json --output graph.html --json-output graph.json`, `uv run scholar-graph pagerank graph.json`
-
-### 6. `workspace-manager`
-- **Purpose**: Standardized research workspace initialization, data routing, and append-only provenance auditing (`audit/journal.jsonl`).
+| Kit | Purpose | Key CLI |
+| :-- | :-- | :-- |
+| `scholar-protocol-kit` | Compiles, fingerprints, and renders research protocols from `intent.json`. | `scholar-protocol compile -i intent.json -o protocol.json --fingerprint` |
+| `scholar-search-kit` | Federated search (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed, bioRxiv), snowballing, dedup, verify, screening export. | `scholar-search query / dedup / verify / snowball / chain` |
+| `scholar-pdf-kit` | OA discovery, resilient downloading (institutional-proxy aware), `%PDF` integrity validation, Markdown extraction. | `scholar-pdf download / extract / ingest` |
+| `scholar-bib-kit` | BibTeX parse, lint, merge, dedup, resolve missing metadata. | `scholar-bib lint / merge / resolve` |
+| `scholar-rag-kit` | AST chunking, ChromaDB indexing, grounded synthesis with atomic attribution tokens. | `scholar-rag index / query / synthesize / consensus` |
+| `scholar-graph-kit` | Citation/co-citation networks, PageRank, interactive PyVis HTML maps. | `scholar-graph build / pagerank` |
+| `scholar-agent-kit` | MCP server exposing all kits as `nexus_*` tools to AI agents. | `scholar-agent` (MCP entrypoint) |
+| `scholar-verify-kit` | Phase-4 trust streams: retraction status, open-science DAS/CAS, COI audit, risk-of-bias, trust-weighted consensus. | `scholar-verify retraction / coi / ... / trust-context --rq-id` |
 
 ---
 
-## 🛠️ Prerequisites & Setup
+## Quick start
 
 ### Requirements
-- **Python**: Version `3.11` or higher.
-- **Package Manager**: [`uv`](https://github.com/astral-sh/uv) (fast Python package installer and resolver).
-- **Git**: Version `2.30` or higher.
 
-### 1. Install `uv`
-If `uv` is not yet installed on your system:
-```bash
-# Windows (PowerShell)
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+- **Python 3.11+**
+- **[`uv`](https://docs.astral.sh/uv/)** — install: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"` (Windows) or `curl -LsSf https://astral.sh/uv/install.sh | sh` (macOS/Linux)
+- **Git 2.30+**
 
-# macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-### 2. Clone the Repository
 ```bash
 git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
+
+# Thin harness deps (typer, rich, dev extras)
+uv sync --extra dev
+
+# Install the eight kits into the shared .venv (editable installs when tools/ checkouts exist;
+# Git-branch fallback declared in .agents/plugins/nexus-scholar/plugins.json)
+uv run python scripts/install_plugins.py
+
+# Sanity check
+uv run scholar-harness status --workspace workspaces/uav-cv-precision-agriculture
 ```
 
-### 3. Install Nexus Scholar Plugins
-Plugins are installed into a shared root virtual environment (`.venv`) using the unified installer:
+> **Gotcha:** `uv sync` installs only the harness. Kit CLIs become available only after `install_plugins.py` runs — the installer is the source of truth for kit versions.
+
+### Scaffold a workspace
 
 ```bash
-# Automatic plugin discovery (local checkouts preferred, Git fallback)
-python scripts/install_plugins.py
-
-# Or, if you only have Git repos available (no local checkouts):
-python scripts/install_plugins.py --git-only
-
-# To force editable installs from local developer checkouts:
-python scripts/install_plugins.py --dev-path ~/nexus-scholar-dev
-
-# Clean up legacy per-tool .venv directories (one-time cleanup):
-python scripts/install_plugins.py --clean
+uv run scholar-harness inception --root .          # Socratic wizard → intent.json + fingerprinted protocol.json + SCREENING_CRITERIA.md
+uv run scholar-harness status -w workspaces/<slug> # dashboard-style status table
+uv run scholar-harness sync -w workspaces/<slug>   # rebuild project.json / INDEX.md from filesystem
 ```
 
-The installer reads `.agents/plugins/nexus-scholar/plugins.json` and:
-1. **Searches for local checkouts** in priority order: `--dev-path`, `$NEXUS_PLUGIN_PATH`, `tools/`, `../`, `../../`
-2. **Installs editable** (`-e`) if found locally → single source of truth for development
-3. **Falls back to Git** if no local checkout exists → uses remote repo at specified branch/tag
-4. **Installs in dependency order** → `scholar-search-kit` first, then dependents
+A canonical workspace is a **file contract**:
 
-After installation, all console scripts are available via `uv run`:
-```bash
-uv run scholar-protocol --help
-uv run scholar-search --help
-uv run scholar-pdf --help
-uv run scholar-bib --help
-uv run scholar-graph --help
-uv run scholar-rag --help
-uv run scholar-agent --help
-```
-
-
----
-
-## 🚀 End-to-End Workflow Execution
-
-### Step 1: Scaffold a Research Workspace
-Create a structured project directory with `workspace-manager`:
-```bash
-uv run python .agents/skills/workspace-manager/scripts/init_project.py \
-  --title "Your Research Title" \
-  --slug "my-research-project" \
-  --paradigm "Design Science & Quantitative Benchmark"
-```
-
-This generates:
 ```text
-workspaces/my-research-project/
-├── intent.json               # Socratic LLM protocol generation intent
-├── protocol.json             # Canonical deterministic research protocol
-├── SCREENING_CRITERIA.md     # Rendered PRISMA inclusion/exclusion criteria
-├── INDEX.md                  # Master project index catalog
-├── audit/
-│   └── journal.jsonl         # Append-only provenance event ledger
-├── exports/                  # CSV and JSON tabular exports
-├── pdfs/                     # Harvested Open Access PDFs
-├── extracted/                # Full-text structured Markdown extracts
-└── synthesis/                # Synthesis report and BibTeX library
+workspaces/<slug>/
+├── protocol.json            # canonical, fingerprinted protocol
+├── intent.json              # inception intent
+├── SCREENING_CRITERIA.md    # rendered PRISMA criteria
+├── INDEX.md                 # master catalog
+├── project.json             # machine-readable state
+├── audit/journal.jsonl      # append-only event ledger
+├── literature/              # candidates, included/excluded, PRISMA report, screening batches
+├── pdfs/                    # harvested OA PDFs (gitignored)
+├── extracted/               # full-text Markdown with YAML frontmatter
+├── synthesis/               # consensus, matrices, literature review
+└── phase4/                  # trust_consensus*, RoB/COI/retraction reports
 ```
 
 ---
 
-### Step 2: Federated Literature Discovery
-Search academic databases using multi-query clusters:
+## Usage highlights
+
 ```bash
-# Run scholar-search via unified environment
-uv run scholar-search query \
-  --query "multispectral weed segmentation" \
-  --providers openalex semanticscholar crossref arxiv \
-  --year-min 2018 \
-  --limit 50 \
-  --export json \
-  --output workspaces/my-research-project/literature/raw_search.json
+# Federated discovery + dedup
+uv run scholar-search query --query "multispectral weed segmentation" --providers openalex semanticscholar crossref arxiv --year-min 2018 --limit 50 --output workspaces/<slug>/literature/raw_search.json
+uv run scholar-search dedup  --input workspaces/<slug>/literature/raw_search.json --output workspaces/<slug>/literature/deduped.json
+
+# PRISMA screening is an agent-in-the-loop handoff (not an opaque API)
+uv run python src/scholar_harness/agent_screen.py prepare <ws>    # writes literature/screening/batch_NNN.json
+#   ... an agent reads each batch and writes batch_NNN_decisions.json ...
+uv run python src/scholar_harness/agent_screen.py collect <ws>    # assembles included.json / excluded.json / prisma_screening_report.md
+
+# Harvest + extract with optional institutional-proxy rescue
+uv run scholar-pdf download --input workspaces/<slug>/literature/included.json --output workspaces/<slug>/pdfs/ --smart-names --proxy https://www.sndl1.arn.dz --proxy-style subdomain
+uv run scholar-pdf extract  --input workspaces/<slug>/pdfs/ --output workspaces/<slug>/extracted/ --engine pymupdf
+
+# Synthesize, cartograph, verify
+uv run scholar-rag synthesize --ws workspaces/<slug> --output-claims synthesis/claims.json
+uv run scholar-rag consensus   synthesis/claims.json --rq-id RQ1
+uv run scholar-graph build --input workspaces/<slug>/literature/included.json --output literature/knowledge_graph.html
+uv run scholar-verify trust-context --workspace workspaces/<slug> --claims-dir synthesis --rq-id RQ2
 ```
 
-Deduplicate candidates:
+---
+
+## Quality & testing
+
 ```bash
-uv run scholar-search dedup \
-  --input workspaces/my-research-project/literature/raw_search.json \
-  --output workspaces/my-research-project/literature/deduped.json \
-  --export csv \
-  --csv-output workspaces/my-research-project/exports/search_summary.csv
+uv run pytest              # harness suite (imports src/ + kits from tools/*/src via pythonpath)
+uv run ruff check scripts/ # CI-scoped lint (this is the lint gate)
 ```
 
----
+- Hermetic suites live beside each kit (`tools/<kit>/tests/`).
+- CI (`.github/workflows/ci.yml`) runs on `main`/`develop` across `ubuntu/windows/macos` × Python `3.11/3.12`: ruff lint on `scripts/`, plugin-installer syntax, plugin manifest schema validation, and best-effort plugin install.
 
-### Step 3: Verification & Abstract Hydration
-Verify citation authenticity against Crossref and OpenAlex, resolve canonical DOIs, and hydrate full abstracts:
-```bash
-uv run scholar-search verify \
-  --input workspaces/my-research-project/literature/deduped.json \
-  --output workspaces/my-research-project/literature/verified.json \
-  --export csv \
-  --csv-output workspaces/my-research-project/exports/verified_summary.csv
-```
+## Documentation
 
----
+- **Design set:** [`docs/phase_0/`](docs/phase_0) (protocol schema, Socratic inception, playbooks) · [`docs/phase_5/`](docs/phase_5) (agent-first **Harness Console** — plan, blueprint, specs; not yet implemented)
+- **Deep dives:** [`brainstorming/`](brainstorming) (per-phase architectural retrospectives for Phases 0–4)
+- **Agent workflows:** `.agents/skills/<kit>/SKILL.md` per kit · MCP entrypoint at `.agents/plugins/nexus-scholar/mcp_config.json`
+- **Roadmap state:** [`ROADMAP_ASSESSMENT_AND_TASK_LIST.md`](ROADMAP_ASSESSMENT_AND_TASK_LIST.md) · [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)
 
-### Step 4: Semantic LLM Screening
-Screen verified candidates against `SCREENING_CRITERIA.md` and research questions using LLM batch evaluation, outputting:
-- `literature/included.json` (Eligible papers with assigned RQs and reasoning)
-- `literature/excluded.json` (Excluded papers with logged rejection reasons)
-- `literature/prisma_screening_report.md` (PRISMA 2020 flow breakdown)
-- `exports/screening_decisions.csv` (Full decision spreadsheet)
-
----
-
-### Step 5: Open Access PDF Harvesting
-Download full-text Open Access PDFs concurrently with magic byte validation:
-```bash
-uv run scholar-pdf download \
-  --input workspaces/my-research-project/literature/included.json \
-  --output workspaces/my-research-project/pdfs/ \
-  --smart-names \
-  --export json
-```
-
----
-
-### Step 6: Full-Text Structured Markdown Extraction
-Extract section-indexed Markdown documents from harvested PDFs:
-```bash
-uv run scholar-pdf extract \
-  --input workspaces/my-research-project/pdfs/ \
-  --output workspaces/my-research-project/extracted/ \
-  --engine pymupdf
-```
-
----
-
-### Step 7: Synthesis & BibTeX Library Generation
-Synthesize findings into a publication-grade literature review document and export a clean `.bib` file:
-- `synthesis/literature_review.md` (Comparative matrices, literature gaps, and baseline positioning)
-- `synthesis/references.bib` (Curated BibTeX entries for all included studies)
-
----
-
-## 📜 Provenance & Audit Ledger
-
-Every action executed in this harness is recorded to `workspaces/<project>/audit/journal.jsonl`. Each entry follows the canonical event schema:
-
-```json
-{
-  "timestamp": "2026-08-28T19:27:18.546691+00:00",
-  "event_id": "EVT-20260828192718-f98507",
-  "action": "LITERATURE_SYNTHESIS",
-  "agent_or_tool": "methodology-copilot",
-  "description": "Generated comprehensive literature review synthesis across 4 RQs and curated BibTeX library.",
-  "parameters": {},
-  "inputs": ["literature/included.json", "extracted/*.md", "SCREENING_CRITERIA.md"],
-  "outputs": ["synthesis/literature_review.md", "synthesis/references.bib"],
-  "metrics": {
-    "included_studies_synthesized": 129,
-    "bibtex_entries_generated": 129,
-    "fulltext_extracts_integrated": 20
-  },
-  "status": "SUCCESS"
-}
-```
-
-To manually log an event and refresh the master catalog:
-```bash
-uv run python .agents/skills/workspace-manager/scripts/log_event.py \
-  my-research-project \
-  --action "CUSTOM_ANALYSIS" \
-  --agent "my-tool" \
-  --desc "Completed custom evaluation" \
-  --inputs "data/input.json" \
-  --outputs "results/output.csv"
-```
-
----
-
-## 📁 Repository Structure
+## Repository layout
 
 ```text
 nexus-scholar-harness/
 ├── .agents/
-│   ├── plugins/
-│   │   └── nexus-scholar/      # Plugin registry manifest & console scripts config
-│   └── skills/
-│       ├── methodology-copilot/ # Socratic research advisor & criteria generator
-│       └── workspace-manager/  # Project scaffolder & audit event logger
-├── scripts/
-│   └── install_plugins.py      # Unified plugin installer (searches local → Git fallback)
-├── brainstorming/              # Research design notes and architecture specs
-├── workspaces/                 # Generated research project workspaces
-├── .gitignore                  # Ignores generated workspaces and external plugins
-├── pyproject.toml              # Harness orchestrator dependencies
-└── README.md                   # This documentation file
+│   ├── plugins/nexus-scholar/   # plugin registry (kit versions) + MCP config
+│   └── skills/<kit>/            # per-kit agent skill: SKILL.md + references
+├── src/scholar_harness/         # the thin orchestrator (cli, orchestrator, inception, agent_screen)
+├── scripts/                     # install_plugins.py (kit installer), lint/validate helpers
+├── tools/<kit>/                 # eight tracked kit packages (editable-installed into .venv)
+├── docs/                        # phase_0 protocol specs + phase_5 console design
+├── brainstorming/               # architecture deep dives & roadmap
+├── workspaces/                  # research project workspaces (text/metadata tracked)
+├── pyproject.toml
+└── AGENTS.md                    # agent operational guidance (read me first)
 ```
 
-**Note**: External plugin packages (`scholar-search-kit`, `scholar-pdf-kit`, etc.) are **not vendored** in this repository.
-They are installed into the shared `.venv/` by `scripts/install_plugins.py`, which supports:
-- Local development clones (editable installs) in `tools/` or custom paths
-- Remote Git repository fallback
-- Single shared environment for all tools (no per-tool virtual environments)
+## License
+
+MIT. Free for academic and open-source use.
 
 ---
 
-## 📄 License & Attribution
-
-Designed and developed for academic research acceleration. Free for academic and open-source use.
+*Designed for **agent-native**, audited, reproducible literature research — from research question to trust-weighted consensus.*

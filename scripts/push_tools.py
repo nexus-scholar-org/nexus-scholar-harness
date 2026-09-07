@@ -2,8 +2,8 @@
 Push each toolkit from tools/ to its respective GitHub repository in nexus-scholar-org.
 """
 import json
-import subprocess
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -33,7 +33,8 @@ for p in plugins:
         clone_res = subprocess.run(
             ["git", "clone", "--depth", "1", repo_url, str(tmp_path)],
             capture_output=True,
-            text=True
+            text=True,
+            check=False,
         )
         if clone_res.returncode != 0:
             print(f"  Clone failed ({clone_res.stderr.strip()}), initializing fresh repo...")
@@ -62,14 +63,16 @@ for p in plugins:
             commit_res = subprocess.run(
                 ["git", "-C", str(tmp_path), "commit", "-m", f"feat({name}): synchronize toolkit with nexus-scholar monorepo"],
                 capture_output=True,
-                text=True
+                text=True,
+                check=False,
             )
             print(f"  Committed: {commit_res.stdout.splitlines()[0] if commit_res.stdout else 'Done'}")
             
             push_res = subprocess.run(
                 ["git", "-C", str(tmp_path), "push", "origin", "main"],
                 capture_output=True,
-                text=True
+                text=True,
+                check=False,
             )
             if push_res.returncode == 0:
                 print(f"  ✅ Successfully pushed {name} to {repo_url}")

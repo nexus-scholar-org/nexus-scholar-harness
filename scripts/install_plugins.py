@@ -185,12 +185,12 @@ def install_plugin(
 
     if local_path:
         print(f"  📍 Found local checkout at: {local_path}")
-        print(f"  🛠️  Installing in editable mode (-e)...")
+        print("  🛠️  Installing in editable mode (-e)...")
         target = f"{local_path}{extras_suffix}"
         cmd.extend(["-e", target])
     else:
         if local_only:
-            print(f"  ❌ Skipped: No local clone found and --local-only specified.")
+            print("  ❌ Skipped: No local clone found and --local-only specified.")
             return False
 
         print(f"  🌐 Installing from Git repository: {repo_url} (branch/tag: {default_rev})")
@@ -208,7 +208,7 @@ def install_plugin(
         else:
             print(f"  ❌ Installation failed for {name} (exit code: {res.returncode})", file=sys.stderr)
             return False
-    except Exception as e:
+    except OSError as e:
         print(f"  ❌ Error during install: {e}", file=sys.stderr)
         return False
 
@@ -228,8 +228,7 @@ def verify_installation(plugins: list[dict[str, Any]]) -> dict[str, bool]:
         try:
             res = subprocess.run(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
