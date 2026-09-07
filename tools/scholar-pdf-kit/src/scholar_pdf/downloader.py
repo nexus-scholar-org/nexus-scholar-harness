@@ -15,9 +15,11 @@ from tenacity import (
 from .config import settings
 from .publisher_patterns import (
     compute_direct_pdf_from_landing_url,
+    is_proxied_url,
     resolve_doi_to_publisher_pdf,
+    rewrite_via_proxy,
 )
-from .validator import clean_invalid_pdf
+from .validator import clean_invalid_pdf, validate_pdf_structure
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +35,23 @@ class DownloadResult:
 class AsyncPDFDownloader:
     """Asynchronous PDF Downloader using aiohttp."""
     
-    def __init__(self, output_dir: Path | None = None, use_smart_names: bool = False):
+    def __init__(
+        self,
+        output_dir: Path | None = None,
+        use_smart_names: bool = False,
+        proxy_url: str | None = None,
+        proxy_style: str = "auto",
+        structural_validation: bool | None = None,
+    ):
         self.output_dir = output_dir or settings.download_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
         self.use_smart_names = use_smart_names
+        self.proxy_url = (proxy_url if proxy_url is not None else settings.proxy_url) or ""
+        self.proxy_style = proxy_style or settings.proxy_style or "auto"
+        self.structural_validation = (
+            settings.pdf_structural_validation if structural_validation is None else structural_validation
+        )
         
     def _safe_filename(self, doi: str, metadata: dict | None = None) -> str:
         """Converts a DOI to a safe filename, optionally using metadata."""
@@ -179,7 +193,7 @@ class AsyncPDFDownloader:
             if dest_path.exists() and clean_invalid_pdf(dest_path):
                 return DownloadResult(doi=doi, success=True, file_path=dest_path, was_oa=True, metadata=metadata)
 
-            proxy_url = settings.proxy_url or ""
+            proxy_url = self.proxy_url
 
             # ---- Attempt 1: primary OA URL (optionally via institutional proxy) ----
             try:
@@ -200,14 +214,13 @@ class AsyncPDFDownloader:
                         success = False
 
             # ---- Attempt 3: same URLs again through the proxy (if not already proxied) ----
-            if not success and proxy_url and not pdf_url.startswith(proxy_url):
+            if not success and proxy_url and not is_proxied_url(pdf_url, proxy_url):
                 if dest_path.exists():
                     dest_path.unlink()
-                from .publisher_patterns import rewrite_via_proxy
                 for candidate in (pdf_url, resolve_doi_to_publisher_pdf(doi) or "", compute_direct_pdf_from_landing_url(pdf_url) or ""):
                     if not candidate:
                         continue
-                    proxied = rewrite_via_proxy(candidate, proxy_url)
+                    proxied = rewrite_via_proxy(candidate, proxy_url, style=self.proxy_style)
                     if proxied == candidate:
                         continue
                     try:
@@ -261,7 +274,13 @@ class AsyncPDFDownloader:
             # 3. Verify it is a valid PDF
             if not clean_invalid_pdf(dest_path):
                 return DownloadResult(doi=doi, success=False, error_message="The provided file is not a valid PDF.")
-                
+            if self.structural_validation and not validate_pdf_structure(dest_path):
+                return DownloadResult(
+                    doi=doi,
+                    success=False,
+                    error_message="The provided file failed structural PDF validation.",
+                )
+
             return DownloadResult(doi=doi, success=True, file_path=dest_path, metadata=metadata)
             
         except Exception as e:

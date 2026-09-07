@@ -5,8 +5,8 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 ## 1. Immediate Architectural Debt (The "Fixes")
 *Derived from the Phase 1-3 Retrospective. These are critical stability improvements.*
 
-- **[P0] Windows CLI Stability:** Force UTF-8 in `scholar-harness` to prevent Rich console crashes.
-- **[P0] PDF Retrieval Resilience:** Add institutional proxy support and publisher URL patterns (IEEE, Elsevier) to `scholar-pdf-kit` to bypass Cloudflare. Add `%PDF` magic-byte validation.
+- ~~[P0] Windows CLI Stability~~ **DONE (commit `58283ac`).**
+- ~~[P0] PDF Retrieval Resilience~~ **DONE:** `scholar-pdf-kit` gained institutional-proxy support and hardened PDF validation. Subdomain-prefix proxy style for SNL (`*.www.sndl1.arn.dz`), EZproxy (`login?url=`), and OpenAthens (`proxy.openathens.net`) via `rewrite_via_proxy(url, proxy_url, style="auto|subdomain|ezproxy|prefix")`, with `is_proxied_url()` guarding against double-proxying; the downloader's attempt-3 cascade re-runs the OA/direct-PDF candidates through the proxy when vanilla attempts hit Cloudflare/WAFs. New `--proxy`, `--proxy-style`, and `--strict-validate` flags on `scholar-pdf download|ingest`. Validation upgraded from a 5-byte check to a binary signature gate: `%PDF-<major>.<minor>` within the first 1024 bytes, `%%EOF` trailer within the last 8 KB, 10 KB size floor, plus optional pypdf structural validation (`validate_pdf_structure()`, encryption-tolerant). Existing failed-download dogfood behaviors (HTML block pages, "Checking your browser", truncated payloads) now reliably rejected.
 - **[P1] State Syncing:** Add a `scholar-harness sync` command to atomically rebuild `project.json` and `INDEX.md` from filesystem state.
 - **[P1] Screener Bias Calibration:** Add a 20-paper pre-flight calibration test and a boolean checklist to `scholar-agent-kit` to prevent wild variations in inclusion rates.
 - **[P1] Discovery Integrity:** Enforce strict bidirectional title similarity when hydrating DOIs to prevent PubMed cross-contamination.

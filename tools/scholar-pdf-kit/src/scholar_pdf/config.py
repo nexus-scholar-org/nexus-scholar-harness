@@ -13,8 +13,16 @@ class Settings(BaseSettings):
     download_timeout: int = 30  # seconds
 
     # Institutional proxy support
-    # EZproxy or generic HTTP proxy: https://proxy.university.edu/login?url=
+    # EZproxy:   https://proxy.university.edu/login?url=
+    # Subdomain: https://www.sndl1.arn.dz   (host-prefix style, auto-detected)
+    # Prefix:    http://proxy:3128
     proxy_url: str = ""
+    # auto | ezproxy | subdomain | prefix
+    proxy_style: str = "auto"
+
+    # Optional structural (pypdf) validation on ingest, beyond the binary
+    # %PDF- header + %%EOF trailer signature check.
+    pdf_structural_validation: bool = False
 
     # Publisher direct-PDF patterns
     # When True, compute direct-PDF URLs for IEEE/Elsevier/Springer/arXiv/MDPI

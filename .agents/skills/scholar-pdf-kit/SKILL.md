@@ -10,7 +10,7 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 ## Core Capabilities
 1. **Multi-Endpoint Open Access Cascade**: Resolves legal OA full-text across OpenAlex, Unpaywall, bioRxiv/medRxiv, and arXiv direct links.
 2. **Concurrent & Resilient Downloading**: Asynchronous retrieval with exponential backoff and paywall HTML redirect rejection.
-3. **Strict Magic Byte Validation**: Verifies binary `%PDF-` signature and removes corrupted or redirected HTML paywall files.
+3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; removes corrupted HTML/paywall block pages. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
 4. **Smart Canonical Naming**: Formats filenames as `{year}_{author}_{title}.pdf` and exports structured metadata logs.
 5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `year`, `extraction_engine`).
 
@@ -39,6 +39,14 @@ uv run scholar-pdf extract \
 
 # 4. Ingest an Existing PDF Manually
 uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/35057062 --smart-names
+
+# 5. Download Through an Institutional Proxy (Cloudflare/WAF bypass)
+#    attempt 3 automatically re-runs OA + direct-PDF candidates through the proxy
+uv run scholar-pdf download \
+  --input workspaces/<project-slug>/literature/included.json \
+  --output workspaces/<project-slug>/pdfs/ \
+  --proxy https://www.sndl1.arn.dz \
+  --proxy-style subdomain      # auto | subdomain | ezproxy | prefix
 ```
 
 ---
@@ -54,10 +62,14 @@ from scholar_pdf.extract import PyMuPDFEngine
 async def main():
     dois = ["10.1371/journal.pbio.3000246", "10.7717/peerj.4375"]
 
-    # 1. Initialize Downloader
+    # 1. Initialize Downloader (add proxy_url/proxy_style to re-run
+    #    failures through an institutional proxy; optional pypdf gate)
     downloader = AsyncPDFDownloader(
         output_dir=Path("workspaces/my-project/pdfs"),
-        use_smart_names=True
+        use_smart_names=True,
+        proxy_url="https://www.sndl1.arn.dz",
+        proxy_style="subdomain",      # auto | subdomain | ezproxy | prefix
+        structural_validation=True,
     )
 
     # 2. Batch Download (Async)
