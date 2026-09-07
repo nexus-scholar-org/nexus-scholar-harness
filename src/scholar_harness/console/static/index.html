@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-950 text-gray-100 dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Scholar Harness Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS v4 Browser runtime -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.5);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 0.8);
+    }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden bg-gray-950 text-gray-100 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Mobile Sidebar Overlay (el-dialog backdrop & drawer pattern) -->
+  <div id="mobile-sidebar" class="fixed inset-0 z-50 lg:hidden hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-950/80 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 flex">
+      <div class="relative mr-16 flex w-full max-w-xs flex-1 flex-col bg-gray-900 border-r border-gray-800 p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="size-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <span class="font-bold tracking-tight text-white text-lg">Nexus Scholar</span>
+          </div>
+          <button onclick="toggleMobileSidebar()" class="text-gray-400 hover:text-white p-1">
+            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <!-- Mobile Nav Links -->
+        <nav class="mt-8 flex flex-1 flex-col gap-y-2" id="mobile-nav-items"></nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP SIDEBAR (Tailwind Plus Dark Sidebar Component) -->
+  <aside class="hidden lg:flex lg:w-72 lg:flex-col shrink-0 bg-gray-900 border-r border-gray-800/80">
+    <!-- Brand Header -->
+    <div class="flex h-16 shrink-0 items-center justify-between px-6 border-b border-gray-800/60">
+      <div class="flex items-center gap-3">
+        <div class="size-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center shadow-md shadow-indigo-500/25 ring-1 ring-white/20">
+          <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <div>
+          <div class="font-semibold tracking-tight text-white text-sm">Harness Console</div>
+          <div class="text-[11px] font-mono text-indigo-400">Phase 5 • Local-First</div>
+        </div>
+      </div>
+      <span class="inline-flex items-center gap-x-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        v1.0
+      </span>
+    </div>
+
+    <!-- Active Workspace Selector Card -->
+    <div class="px-4 py-3 m-3 rounded-xl bg-gray-950/60 border border-gray-800/80 shadow-inner">
+      <div class="flex items-center justify-between text-[11px] text-gray-400 mb-1">
+        <span class="uppercase tracking-wider font-semibold">Active Workspace</span>
+        <span class="font-mono text-indigo-400 text-[10px]">PRISMA SLR</span>
+      </div>
+      <div class="text-xs font-medium text-white truncate flex items-center gap-1.5">
+        <svg class="size-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+        </svg>
+        <span class="truncate" id="sidebar-ws-slug">uav-cv-precision-agriculture</span>
+      </div>
+    </div>
+
+    <!-- Main Navigation List -->
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+      <div class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider px-3 pt-3 pb-1">Review Pipeline</div>
+      
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item group w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-white bg-indigo-600/20 border border-indigo-500/30">
+        <svg class="size-4.5 text-indigo-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+        </svg>
+        <span>Dashboard</span>
+      </button>
+
+      <button onclick="switchTab('literature')" id="nav-literature" class="nav-item group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <div class="flex items-center gap-3">
+          <svg class="size-4.5 text-gray-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+          <span>Literature</span>
+        </div>
+        <span class="rounded-full bg-gray-800 px-2 py-0.5 text-[11px] font-mono text-gray-300">1,029</span>
+      </button>
+
+      <button onclick="switchTab('screening')" id="nav-screening" class="nav-item group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <div class="flex items-center gap-3">
+          <svg class="size-4.5 text-amber-400 group-hover:text-amber-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span>Screening Room</span>
+        </div>
+        <span class="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Active</span>
+      </button>
+
+      <button onclick="switchTab('harvest')" id="nav-harvest" class="nav-item group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <div class="flex items-center gap-3">
+          <svg class="size-4.5 text-gray-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          <span>Harvest & Extract</span>
+        </div>
+        <span class="rounded-full bg-gray-800 px-2 py-0.5 text-[11px] font-mono text-gray-300">94 PDF</span>
+      </button>
+
+      <button onclick="switchTab('synthesis')" id="nav-synthesis" class="nav-item group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <div class="flex items-center gap-3">
+          <svg class="size-4.5 text-emerald-400 group-hover:text-emerald-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-2.14-7.255A9.01 9.01 0 0 1 12 2.25c2.32 0 4.47.87 6.14 2.32.18.15.26.38.2.61l-.64 2.45a.75.75 0 0 1-.95.53l-2.42-.71a.75.75 0 0 0-.82.26l-1.6 2.05a.75.75 0 0 1-.97.22l-2.31-1.15a.75.75 0 0 0-.87.14l-1.8 1.8a.75.75 0 0 1-1.06 0l-1.8-1.8a.75.75 0 0 0-.87-.14L1.09 9.17a.75.75 0 0 1-.97-.22L-.48 6.9a.75.75 0 0 0-.82-.26l-2.42.71a.75.75 0 0 1-.95-.53l-.64-2.45c-.06-.23.02-.46.2-.61A9.01 9.01 0 0 1 12 2.25Z" />
+          </svg>
+          <span>Synthesis & Trust</span>
+        </div>
+        <span class="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Phase 4</span>
+      </button>
+
+      <div class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider px-3 pt-5 pb-1">Automation & Contracts</div>
+
+      <button onclick="switchTab('pipeline')" id="nav-pipeline" class="nav-item group w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <svg class="size-4.5 text-purple-400 group-hover:text-purple-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+        </svg>
+        <span>Pipeline Builder</span>
+      </button>
+
+      <button onclick="switchTab('agent-exchange')" id="nav-agent-exchange" class="nav-item group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <div class="flex items-center gap-3">
+          <svg class="size-4.5 text-sky-400 group-hover:text-sky-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+          </svg>
+          <span>Agent Exchange</span>
+        </div>
+        <span class="rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1.5 py-0.2 text-[10px] font-mono">D6 Parity</span>
+      </button>
+
+      <button onclick="switchTab('audit')" id="nav-audit" class="nav-item group w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/60 transition">
+        <svg class="size-4.5 text-gray-400 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <span>Audit Ledger</span>
+      </button>
+    </nav>
+
+    <!-- Bottom System Status -->
+    <div class="p-4 border-t border-gray-800/80 bg-gray-950/40">
+      <div class="flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center gap-2">
+          <span class="size-2 rounded-full bg-emerald-500"></span>
+          <span>FastAPI :8765</span>
+        </div>
+        <span class="font-mono text-[10px] text-gray-400">uv run</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <div class="flex flex-1 flex-col overflow-hidden">
+    
+    <!-- Top Global Header -->
+    <header class="h-16 shrink-0 flex items-center justify-between px-6 border-b border-gray-800/80 bg-gray-900/50 backdrop-blur-md">
+      <div class="flex items-center gap-4">
+        <button onclick="toggleMobileSidebar()" class="lg:hidden text-gray-400 hover:text-white">
+          <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 id="page-title" class="text-base font-semibold text-white tracking-tight">Review Overview & Metrics</h1>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center gap-3">
+        <button onclick="triggerQuickJob('sync')" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-gray-200 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700/80 transition">
+          <svg class="size-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Resync State
+        </button>
+        <button onclick="openExportModal()" class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm shadow-indigo-600/30 transition">
+          <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
+          Export PRISMA
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT PANELS -->
+    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 1: DASHBOARD                                       -->
+      <!-- ======================================================== -->
+      <div id="tab-dashboard" class="tab-content space-y-6">
+        
+        <!-- Stats in Cards (Tailwind Plus Application UI Component) -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400">PRISMA Funnel & Evidence Pipeline</h2>
+            <span class="text-xs text-gray-400">Live Workspace Heartbeat</span>
+          </div>
+          <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Stat 1 -->
+            <div class="rounded-xl bg-gray-900/75 p-5 border border-gray-800 shadow-sm relative overflow-hidden group hover:border-gray-700 transition">
+              <div class="absolute -right-4 -bottom-4 size-24 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition"></div>
+              <dt class="truncate text-xs font-medium text-gray-400">Discovered Candidates</dt>
+              <dd class="mt-2 flex items-baseline justify-between">
+                <span class="text-3xl font-bold tracking-tight text-white">1,029</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">6 Providers</span>
+              </dd>
+              <div class="mt-3 text-[11px] text-gray-400">OpenAlex, Semantic, Crossref, arXiv</div>
+            </div>
+
+            <!-- Stat 2 -->
+            <div class="rounded-xl bg-gray-900/75 p-5 border border-gray-800 shadow-sm relative overflow-hidden group hover:border-gray-700 transition">
+              <dt class="truncate text-xs font-medium text-gray-400">Screened & Included</dt>
+              <dd class="mt-2 flex items-baseline justify-between">
+                <span class="text-3xl font-bold tracking-tight text-emerald-400">94</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">935 Excluded</span>
+              </dd>
+              <div class="mt-3 text-[11px] text-gray-400">Dual-Agent Screened (κ = 0.115 corrected)</div>
+            </div>
+
+            <!-- Stat 3 -->
+            <div class="rounded-xl bg-gray-900/75 p-5 border border-gray-800 shadow-sm relative overflow-hidden group hover:border-gray-700 transition">
+              <dt class="truncate text-xs font-medium text-gray-400">PDFs Harvested & Extracted</dt>
+              <dd class="mt-2 flex items-baseline justify-between">
+                <span class="text-3xl font-bold tracking-tight text-white">94<span class="text-lg text-gray-400 font-normal">/94</span></span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">100% OA</span>
+              </dd>
+              <div class="mt-3 text-[11px] text-gray-400">%PDF signature + pypdf AST validated</div>
+            </div>
+
+            <!-- Stat 4 -->
+            <div class="rounded-xl bg-gray-900/75 p-5 border border-gray-800 shadow-sm relative overflow-hidden group hover:border-gray-700 transition">
+              <dt class="truncate text-xs font-medium text-gray-400">Trust-Annotated Clusters</dt>
+              <dd class="mt-2 flex items-baseline justify-between">
+                <span class="text-3xl font-bold tracking-tight text-purple-400">12</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">8 Adequate</span>
+              </dd>
+              <div class="mt-3 text-[11px] text-gray-400">Phase 4 RoB/COI/Retraction verified</div>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Two Column Status Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Left 2 Cols: Pipeline Execution States -->
+          <div class="lg:col-span-2 rounded-xl bg-gray-900/75 border border-gray-800 p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+              <div>
+                <h3 class="text-sm font-semibold text-white">Phase 0 → Phase 4 Stage Health</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Automated checkpoint status for systematic review protocol</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="size-1.5 rounded-full bg-emerald-400"></span> Fully Synchronized
+              </span>
+            </div>
+
+            <div class="mt-5 space-y-4">
+              <!-- Stage 0 -->
+              <div class="flex items-center justify-between p-3 rounded-lg bg-gray-950/50 border border-gray-800/80">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">P0</div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Intent & Socratic Protocol</div>
+                    <div class="text-[11px] text-gray-400 font-mono">protocol.json • sha256:d8a2f4...</div>
+                  </div>
+                </div>
+                <span class="text-xs text-emerald-400 font-medium">Locked</span>
+              </div>
+
+              <!-- Stage 1 -->
+              <div class="flex items-center justify-between p-3 rounded-lg bg-gray-950/50 border border-gray-800/80">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">P1</div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Federated Discovery & Deduplication</div>
+                    <div class="text-[11px] text-gray-400">1,029 candidates &rarr; 935 distinct DOIs</div>
+                  </div>
+                </div>
+                <span class="text-xs text-emerald-400 font-medium">Completed</span>
+              </div>
+
+              <!-- Stage 2 -->
+              <div class="flex items-center justify-between p-3 rounded-lg bg-gray-950/50 border border-gray-800/80">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-400">P2</div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Dual-Route Agent Screening</div>
+                    <div class="text-[11px] text-gray-400">Batches 1–10 assembled • 94 included</div>
+                  </div>
+                </div>
+                <span class="text-xs text-emerald-400 font-medium">Ready for Collect</span>
+              </div>
+
+              <!-- Stage 3 -->
+              <div class="flex items-center justify-between p-3 rounded-lg bg-gray-950/50 border border-gray-800/80">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-xs font-bold text-sky-400">P3</div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Consensus Cartography & Synthesis</div>
+                    <div class="text-[11px] text-gray-400">12 clusters • Jaccard + Cosine semantic path</div>
+                  </div>
+                </div>
+                <span class="text-xs text-emerald-400 font-medium">Cartographed</span>
+              </div>
+
+              <!-- Stage 4 -->
+              <div class="flex items-center justify-between p-3 rounded-lg bg-gray-950/50 border border-gray-800/80">
+                <div class="flex items-center gap-3">
+                  <div class="size-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xs font-bold text-purple-400">P4</div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Trust Layers & Retraction Auditing</div>
+                    <div class="text-[11px] text-gray-400">0 retracted • 0 flagged • 8 Adequate / 2 Weak / 2 Unverified</div>
+                  </div>
+                </div>
+                <span class="text-xs text-emerald-400 font-medium">Verified</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Col: Quick Job Runner & SSE Terminal -->
+          <div class="rounded-xl bg-gray-900/75 border border-gray-800 p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+                <h3 class="text-sm font-semibold text-white">Subprocess Job Runner</h3>
+                <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
+              </div>
+              <p class="text-xs text-gray-400 mt-2">Trigger kit commands through the shared <code class="text-indigo-400">.venv</code> without leaving the browser.</p>
+
+              <div class="mt-4 space-y-2">
+                <button onclick="runJobAction('trust_context')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition">
+                  <span class="flex items-center gap-2">
+                    <svg class="size-3.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Run Trust Annotator
+                  </span>
+                  <code class="text-[10px] text-gray-400">scholar-verify</code>
+                </button>
+
+                <button onclick="runJobAction('screen_collect')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition">
+                  <span class="flex items-center gap-2">
+                    <svg class="size-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Screening Collect
+                  </span>
+                  <code class="text-[10px] text-gray-400">agent_screen.py</code>
+                </button>
+
+                <button onclick="runJobAction('graph')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition">
+                  <span class="flex items-center gap-2">
+                    <svg class="size-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Rebuild Citation Graph
+                  </span>
+                  <code class="text-[10px] text-gray-400">scholar-graph</code>
+                </button>
+              </div>
+            </div>
+
+            <!-- Terminal Output Preview -->
+            <div class="mt-4 pt-3 border-t border-gray-800">
+              <div class="text-[10px] uppercase tracking-wider text-gray-400 mb-1 flex items-center justify-between">
+                <span>Active Job Tail</span>
+                <span class="text-emerald-400 font-mono">PID 8123 [EXIT 0]</span>
+              </div>
+              <div class="p-2.5 rounded bg-black/60 font-mono text-[11px] text-gray-300 leading-relaxed overflow-x-auto border border-gray-800/80">
+                <span class="text-indigo-400">$</span> uv run scholar-verify trust-context<br>
+                <span class="text-emerald-400">✓</span> Loaded 12 consensus clusters<br>
+                <span class="text-emerald-400">✓</span> Evaluated 94 studies across 4 streams<br>
+                <span class="text-gray-400">&rarr; 8 ADEQUATE / 2 WEAK / 2 UNVERIFIED</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 2: LITERATURE TABLE (Tailwind Plus Simple in Card) -->
+      <!-- ======================================================== -->
+      <div id="tab-literature" class="tab-content space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 class="text-base font-semibold text-white">Literature Database</h2>
+            <p class="text-xs text-gray-400">Candidate and included corpus rows with DOI links and screening status.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" placeholder="Filter by title, author, or DOI..." class="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 w-64">
+            <select class="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-300 focus:outline-none">
+              <option>All Items (1,029)</option>
+              <option selected>Included Only (94)</option>
+              <option>Excluded Only (935)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-800 bg-gray-900/60 overflow-hidden shadow">
+          <table class="min-w-full divide-y divide-gray-800 text-left">
+            <thead class="bg-gray-900/90 text-xs font-semibold text-gray-300">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 sm:pl-6">Study ID</th>
+                <th scope="col" class="px-3 py-3.5">Title & Reference</th>
+                <th scope="col" class="px-3 py-3.5">Year</th>
+                <th scope="col" class="px-3 py-3.5">Status</th>
+                <th scope="col" class="px-3 py-3.5">Open Access</th>
+                <th scope="col" class="py-3.5 pl-3 pr-4 sm:pr-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800 text-xs text-gray-300">
+              <tr class="hover:bg-gray-800/40 transition">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-mono font-medium text-indigo-400 sm:pl-6">SCI-000042</td>
+                <td class="py-3 px-3 max-w-md">
+                  <div class="font-medium text-white line-clamp-1">Multispectral UAV Weed Mapping in Precision Agriculture via Deep ResNet</div>
+                  <div class="text-[11px] text-gray-400 font-mono mt-0.5">10.1016/j.compag.2021.106421</div>
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-gray-400">2021</td>
+                <td class="whitespace-nowrap px-3 py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Included</span>
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-gray-400">
+                  <span class="inline-flex items-center gap-1 text-[11px] text-emerald-400">
+                    <span class="size-1.5 rounded-full bg-emerald-400"></span> Valid PDF
+                  </span>
+                </td>
+                <td class="whitespace-nowrap py-3 pl-3 pr-4 text-right sm:pr-6">
+                  <button onclick="inspectPaper('SCI-000042')" class="text-indigo-400 hover:text-indigo-300 font-medium">Inspect</button>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-gray-800/40 transition">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-mono font-medium text-indigo-400 sm:pl-6">SCI-000088</td>
+                <td class="py-3 px-3 max-w-md">
+                  <div class="font-medium text-white line-clamp-1">Real-time Edge AI Object Detection on Autonomous Drones for Crop Health</div>
+                  <div class="text-[11px] text-gray-400 font-mono mt-0.5">10.1109/JSTARS.2022.3190241</div>
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-gray-400">2022</td>
+                <td class="whitespace-nowrap px-3 py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Included</span>
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-gray-400">
+                  <span class="inline-flex items-center gap-1 text-[11px] text-emerald-400">
+                    <span class="size-1.5 rounded-full bg-emerald-400"></span> Valid PDF
+                  </span>
+                </td>
+                <td class="whitespace-nowrap py-3 pl-3 pr-4 text-right sm:pr-6">
+                  <button onclick="inspectPaper('SCI-000088')" class="text-indigo-400 hover:text-indigo-300 font-medium">Inspect</button>
+                </td>
+              </tr>
+
+              <tr class="hover:bg-gray-800/40 transition">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-mono font-medium text-gray-400 sm:pl-6">SCI-000105</td>
+                <td class="py-3 px-3 max-w-md">
+                  <div class="font-medium text-gray-400 line-clamp-1">Satellite Remote Sensing for Regional Crop Yield Estimation in Wheat</div>
+                  <div class="text-[11px] text-gray-400 font-mono mt-0.5">10.3390/rs13050982</div>
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-gray-400">2021</td>
+                <td class="whitespace-nowrap px-3 py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">Excluded (EXC-01)</span>
+                </td>
+                <td class="whitespace-nowrap px-3 py-3 text-gray-400">N/A</td>
+                <td class="whitespace-nowrap py-3 pl-3 pr-4 text-right sm:pr-6">
+                  <button class="text-gray-500 hover:text-gray-300 font-medium">Reason</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 3: SCREENING ROOM (Human Judgment & Radio Groups) -->
+      <!-- ======================================================== -->
+      <div id="tab-screening" class="tab-content space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-white">Interactive Screening Room</h2>
+            <p class="text-xs text-gray-400">Human-in-the-loop decision interface for PRISMA Title/Abstract validation.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-mono text-gray-400">Batch 3 of 10</span>
+            <div class="w-32 bg-gray-800 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-full w-3/4"></div>
+            </div>
+            <span class="text-xs font-semibold text-indigo-400">75%</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Paper Abstract Card -->
+          <div class="lg:col-span-2 rounded-xl bg-gray-900/80 border border-gray-800 p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs text-indigo-400">STUDY SCI-000142</span>
+              <span class="text-xs text-gray-400">arXiv:2304.09812 [cs.CV]</span>
+            </div>
+            <h3 class="text-lg font-semibold text-white leading-snug">
+              Lightweight Vision Transformers on Autonomous Micro-UAVs for Ultra-High Resolution Orchard Canopy Segmentation
+            </h3>
+            <div class="text-xs text-gray-400">Authors: J. Martinez, A. Chen, R. Patel (2023)</div>
+            
+            <div class="p-4 rounded-lg bg-gray-950/70 border border-gray-800/80 text-xs text-gray-300 leading-relaxed">
+              <div class="font-semibold text-gray-400 uppercase text-[10px] tracking-wider mb-2">Abstract</div>
+              Recent advancements in drone-based remote sensing have enabled precision agriculture applications ranging from weed detection to yield mapping. However, running complex neural networks onboard micro-unmanned aerial vehicles (UAVs) remains constrained by battery life and compute limitations. In this paper, we propose OrchardViT, a lightweight transformer model customized for low-power edge compute devices such as the Raspberry Pi 5 and NVIDIA Jetson Nano...
+            </div>
+
+            <!-- Screening Protocol Criteria Reminder -->
+            <div class="p-3.5 rounded-lg bg-indigo-500/5 border border-indigo-500/20 text-xs">
+              <div class="font-semibold text-indigo-400 mb-1 flex items-center gap-1.5">
+                <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Protocol Inclusions Checklist (PRISMA):
+              </div>
+              <ul class="list-disc list-inside text-gray-400 space-y-0.5 text-[11px]">
+                <li>Empirical deployment of computer vision algorithms on UAV/drone aerial imagery.</li>
+                <li>Agricultural domain: crop monitoring, weed mapping, or yield prediction.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Decision Form (Tailwind Plus Radio Group Component) -->
+          <div class="rounded-xl bg-gray-900/80 border border-gray-800 p-6 flex flex-col justify-between">
+            <div class="space-y-4">
+              <h4 class="text-sm font-semibold text-white">Record Human Decision</h4>
+              
+              <!-- Radio Group with descriptions -->
+              <div class="space-y-2.5">
+                <label class="flex items-start gap-3 p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 cursor-pointer hover:bg-emerald-500/10 transition">
+                  <input type="radio" name="decision" value="included" checked class="mt-0.5 text-emerald-500 focus:ring-emerald-500 bg-gray-950 border-gray-700">
+                  <div>
+                    <div class="text-xs font-semibold text-emerald-400">Include Paper</div>
+                    <div class="text-[11px] text-gray-400">Meets all inclusion criteria; eligible for PDF harvest.</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-800 bg-gray-950/40 cursor-pointer hover:bg-gray-800/40 transition">
+                  <input type="radio" name="decision" value="excluded" class="mt-0.5 text-red-500 focus:ring-red-500 bg-gray-950 border-gray-700">
+                  <div>
+                    <div class="text-xs font-semibold text-red-400">Exclude Paper</div>
+                    <div class="text-[11px] text-gray-400">Violates one or more criteria. Requires reason code.</div>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-800 bg-gray-950/40 cursor-pointer hover:bg-gray-800/40 transition">
+                  <input type="radio" name="decision" value="uncertain" class="mt-0.5 text-amber-500 focus:ring-amber-500 bg-gray-950 border-gray-700">
+                  <div>
+                    <div class="text-xs font-semibold text-amber-400">Uncertain / Discuss</div>
+                    <div class="text-[11px] text-gray-400">Requires second reviewer adjudication.</div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Reason code -->
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Reason Code</label>
+                <select class="w-full px-3 py-1.5 bg-gray-950 border border-gray-800 rounded-lg text-xs text-white focus:border-indigo-500">
+                  <option>INC-01: Explicit UAV + Computer Vision in Agriculture</option>
+                  <option>EXC-01: Ground robotics only (no aerial/UAV imagery)</option>
+                  <option>EXC-02: Satellite remote sensing only</option>
+                  <option>EXC-03: Non-agricultural application</option>
+                </select>
+              </div>
+
+              <!-- Reviewer Note -->
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Audit Note</label>
+                <textarea rows="2" placeholder="Optional notes logged to journal.jsonl..." class="w-full px-3 py-1.5 bg-gray-950 border border-gray-800 rounded-lg text-xs text-white placeholder-gray-600 focus:border-indigo-500"></textarea>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4 border-t border-gray-800 mt-4 flex items-center gap-2">
+              <button onclick="recordScreeningDecision()" class="flex-1 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm shadow-indigo-600/30 transition">
+                Save & Next Study &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 4: SYNTHESIS & TRUST (Phase 4 Trust Levels)         -->
+      <!-- ======================================================== -->
+      <div id="tab-synthesis" class="tab-content space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-white">Trust-Weighted Consensus Cartography</h2>
+            <p class="text-xs text-gray-400">Consensus clusters joined against Risk of Bias, Conflict of Interest, and Retraction status.</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            Phase 4 Trust Graded
+          </span>
+        </div>
+
+        <!-- Trust Legend (Catalyst Badge Component Styling) -->
+        <div class="p-4 rounded-xl bg-gray-900/60 border border-gray-800 flex flex-wrap items-center gap-4 text-xs">
+          <span class="font-medium text-gray-400">Trust Grades:</span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+            STRONG (High Open Science + Low RoB)
+          </span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+            ADEQUATE (Verified, Standard RoB)
+          </span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/25">
+            WEAK (Sparse Open Science)
+          </span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-zinc-500/15 text-zinc-400 border border-zinc-500/25">
+            UNVERIFIED
+          </span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-red-500/15 text-red-400 border border-red-500/25">
+            BLOCKED (Retracted / COI)
+          </span>
+        </div>
+
+        <!-- Claim Clusters Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Cluster Card 1 -->
+          <div class="rounded-xl bg-gray-900/80 border border-gray-800 p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-gray-400">CLUSTER-01 • RQ1</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">ADEQUATE</span>
+            </div>
+            <h4 class="text-sm font-semibold text-white">Deep residual networks (ResNet-50/101) outperform classical SVMs in UAV weed mapping</h4>
+            <div class="text-xs text-gray-400">Stance: <span class="text-emerald-400 font-medium">HIGH_CONSENSUS (8 Studies agree, 0 contest)</span></div>
+            <div class="p-3 rounded bg-gray-950/60 border border-gray-800/80 text-[11px] text-gray-300">
+              <div class="text-gray-400 font-medium mb-1">Study Provenance:</div>
+              SCI-000012, SCI-000042, SCI-000099, SCI-000140 (No retractions, low COI risk).
+            </div>
+          </div>
+
+          <!-- Cluster Card 2 -->
+          <div class="rounded-xl bg-gray-900/80 border border-gray-800 p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-gray-400">CLUSTER-02 • RQ2</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/25">WEAK</span>
+            </div>
+            <h4 class="text-sm font-semibold text-white">YOLOv8 demonstrates higher real-time inference FPS than Vision Transformers on micro-edge compute</h4>
+            <div class="text-xs text-gray-400">Stance: <span class="text-amber-400 font-medium">ACTIVE_DEBATE (4 Positive vs 2 Contradictory)</span></div>
+            <div class="p-3 rounded bg-gray-950/60 border border-gray-800/80 text-[11px] text-gray-300">
+              <div class="text-gray-400 font-medium mb-1">Study Provenance:</div>
+              SCI-000088, SCI-000142, SCI-000210 (No public dataset URLs provided).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 5: AGENT EXCHANGE (D6 Parity Mapping Table)        -->
+      <!-- ======================================================== -->
+      <div id="tab-agent-exchange" class="tab-content space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-white">Agent Exchange (D6 Parity Surface)</h2>
+            <p class="text-xs text-gray-400">Every console button maps 1:1 to an underlying CLI command and MCP tool for autonomous coding agents.</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            13 MCP Tools Verified
+          </span>
+        </div>
+
+        <div class="rounded-xl border border-gray-800 bg-gray-900/60 overflow-hidden shadow">
+          <table class="min-w-full divide-y divide-gray-800 text-left">
+            <thead class="bg-gray-900/90 text-xs font-semibold text-gray-300">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 sm:pl-6">Action</th>
+                <th scope="col" class="px-3 py-3.5">Underlying CLI Command (uv run)</th>
+                <th scope="col" class="px-3 py-3.5">MCP Tool</th>
+                <th scope="col" class="py-3.5 pl-3 pr-4 sm:pr-6 text-right">Copy</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800 text-xs text-gray-300 font-mono">
+              <tr class="hover:bg-gray-800/40">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-sans font-medium text-white sm:pl-6">Federated Discovery</td>
+                <td class="py-3 px-3 text-indigo-400 select-all">uv run scholar-search search --query "..."</td>
+                <td class="py-3 px-3 text-sky-400">nexus_discover</td>
+                <td class="py-3 pl-3 pr-4 text-right sm:pr-6 font-sans">
+                  <button onclick="copyToClipboard('uv run scholar-search search --query')" class="text-xs text-indigo-400 hover:text-white">Copy</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-800/40">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-sans font-medium text-white sm:pl-6">Deduplication</td>
+                <td class="py-3 px-3 text-indigo-400 select-all">uv run scholar-search dedup --input candidates.json</td>
+                <td class="py-3 px-3 text-sky-400">nexus_dedup</td>
+                <td class="py-3 pl-3 pr-4 text-right sm:pr-6 font-sans">
+                  <button onclick="copyToClipboard('uv run scholar-search dedup --input candidates.json')" class="text-xs text-indigo-400 hover:text-white">Copy</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-800/40">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-sans font-medium text-white sm:pl-6">Screening Handoff</td>
+                <td class="py-3 px-3 text-indigo-400 select-all">uv run python src/scholar_harness/agent_screen.py prepare</td>
+                <td class="py-3 px-3 text-sky-400">nexus_screen</td>
+                <td class="py-3 pl-3 pr-4 text-right sm:pr-6 font-sans">
+                  <button onclick="copyToClipboard('uv run python src/scholar_harness/agent_screen.py prepare')" class="text-xs text-indigo-400 hover:text-white">Copy</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-800/40">
+                <td class="whitespace-nowrap py-3 pl-4 pr-3 font-sans font-medium text-white sm:pl-6">Trust Context Annotator</td>
+                <td class="py-3 px-3 text-indigo-400 select-all">uv run scholar-verify trust-context --workspace &lt;ws&gt;</td>
+                <td class="py-3 px-3 text-gray-500">—</td>
+                <td class="py-3 pl-3 pr-4 text-right sm:pr-6 font-sans">
+                  <button onclick="copyToClipboard('uv run scholar-verify trust-context --workspace <ws>')" class="text-xs text-indigo-400 hover:text-white">Copy</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 6: PIPELINE BUILDER                                -->
+      <!-- ======================================================== -->
+      <div id="tab-pipeline" class="tab-content space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-white">PipelineSpec DAG Editor (M5.4)</h2>
+            <p class="text-xs text-gray-400">Visual composition of systematic review workflows consuming JSON PipelineSpec 0.1.0.</p>
+          </div>
+          <button class="px-3.5 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg shadow transition">
+            Dry-Run Pipeline (Sample 25)
+          </button>
+        </div>
+
+        <!-- Visual Flow Diagram -->
+        <div class="p-6 rounded-xl bg-gray-900/80 border border-gray-800">
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <div class="px-4 py-3 rounded-lg bg-gray-950 border border-indigo-500/40 text-center">
+              <div class="text-[10px] text-gray-400 uppercase font-semibold">Node 1</div>
+              <div class="text-xs font-bold text-white mt-0.5">scholar-search</div>
+              <div class="text-[10px] text-indigo-400 font-mono">candidates.json</div>
+            </div>
+            <span class="text-gray-600">&rarr;</span>
+            <div class="px-4 py-3 rounded-lg bg-gray-950 border border-indigo-500/40 text-center">
+              <div class="text-[10px] text-gray-400 uppercase font-semibold">Node 2</div>
+              <div class="text-xs font-bold text-white mt-0.5">dedup</div>
+              <div class="text-[10px] text-indigo-400 font-mono">corpus.json</div>
+            </div>
+            <span class="text-gray-600">&rarr;</span>
+            <div class="px-4 py-3 rounded-lg bg-gray-950 border border-amber-500/40 text-center">
+              <div class="text-[10px] text-gray-400 uppercase font-semibold">Node 3 (Agent)</div>
+              <div class="text-xs font-bold text-amber-300 mt-0.5">agent_screen</div>
+              <div class="text-[10px] text-amber-400 font-mono">included.json</div>
+            </div>
+            <span class="text-gray-600">&rarr;</span>
+            <div class="px-4 py-3 rounded-lg bg-gray-950 border border-sky-500/40 text-center">
+              <div class="text-[10px] text-gray-400 uppercase font-semibold">Node 4</div>
+              <div class="text-xs font-bold text-white mt-0.5">scholar-pdf</div>
+              <div class="text-[10px] text-sky-400 font-mono">pdfs/ + extracted/</div>
+            </div>
+            <span class="text-gray-600">&rarr;</span>
+            <div class="px-4 py-3 rounded-lg bg-gray-950 border border-purple-500/40 text-center">
+              <div class="text-[10px] text-gray-400 uppercase font-semibold">Node 5</div>
+              <div class="text-xs font-bold text-white mt-0.5">scholar-verify</div>
+              <div class="text-[10px] text-purple-400 font-mono">trust_consensus.json</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCREEN 7: AUDIT JOURNAL TIMELINE                          -->
+      <!-- ======================================================== -->
+      <div id="tab-audit" class="tab-content space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-white">Append-Only Audit Journal</h2>
+            <p class="text-xs text-gray-400">Provable record of all agent and console decisions from <code class="text-indigo-400">audit/journal.jsonl</code>.</p>
+          </div>
+          <span class="text-xs font-mono text-gray-400">Total Events: 148</span>
+        </div>
+
+        <div class="rounded-xl border border-gray-800 bg-gray-900/60 p-6">
+          <ol class="relative border-l border-gray-800 ml-3 space-y-6">
+            <li class="ml-6">
+              <span class="absolute -left-1.5 mt-1.5 size-3 rounded-full bg-emerald-500 ring-4 ring-gray-900"></span>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-semibold text-emerald-400">EVT-20260907-094122-8123</span>
+                <time class="text-[11px] text-gray-500">10 mins ago</time>
+              </div>
+              <p class="text-xs font-medium text-white mt-1">Action: <code class="text-indigo-400">trust_context</code> completed successfully</p>
+              <div class="text-[11px] text-gray-400 mt-0.5">Agent: <code class="text-gray-300">scholar-harness-console</code> • Grade: 8 Adequate / 2 Weak / 2 Unverified</div>
+            </li>
+
+            <li class="ml-6">
+              <span class="absolute -left-1.5 mt-1.5 size-3 rounded-full bg-indigo-500 ring-4 ring-gray-900"></span>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-semibold text-indigo-400">EVT-20260907-081504-2391</span>
+                <time class="text-[11px] text-gray-500">2 hours ago</time>
+              </div>
+              <p class="text-xs font-medium text-white mt-1">Action: <code class="text-indigo-400">screen_collect</code> assembled 94 studies</p>
+              <div class="text-[11px] text-gray-400 mt-0.5">Agent: <code class="text-gray-300">opencode-dual-screener</code> • Kappa: 0.84 calibrated</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    function switchTab(tabId) {
+      // Hide all contents
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      // Show targeted content
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.remove('hidden');
+
+      // Update Nav active styling
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('bg-indigo-600/20', 'text-white', 'border-indigo-500/30');
+        btn.classList.add('text-gray-300');
+      });
+      const activeBtn = document.getElementById('nav-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600/20', 'text-white', 'border-indigo-500/30');
+        activeBtn.classList.remove('text-gray-300');
+      }
+
+      // Update page title
+      const titles = {
+        'dashboard': 'Review Overview & Metrics',
+        'literature': 'Literature Database & Candidates',
+        'screening': 'Human-in-the-Loop Screening Room',
+        'harvest': 'Open Access Harvest & Extraction',
+        'synthesis': 'Trust-Weighted Consensus Cartography',
+        'pipeline': 'PipelineSpec DAG Automation',
+        'agent-exchange': 'Agent Exchange (D6 Parity Surface)',
+        'audit': 'Audit Journal & Event Provenance'
+      };
+      document.getElementById('page-title').innerText = titles[tabId] || 'Harness Console';
+    }
+
+    function toggleMobileSidebar() {
+      const el = document.getElementById('mobile-sidebar');
+      el.classList.toggle('hidden');
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard: ' + text);
+    }
+
+    function recordScreeningDecision() {
+      alert('Screening decision logged to literature/screening/batch_003_decisions.json and audit/journal.jsonl!');
+    }
+
+    function runJobAction(actionId) {
+      alert('Job triggered: uv run scholar-harness job ' + actionId + ' (asyncio subprocess PID allocated)');
+    }
+
+    function triggerQuickJob(action) {
+      alert('Resyncing workspace state from filesystem...');
+    }
+
+    function openExportModal() {
+      alert('Exporting PRISMA LaTeX & Markdown packages to workspaces/uav-cv-precision-agriculture/export/');
+    }
+
+    function inspectPaper(id) {
+      alert('Opening inspection modal for ' + id);
+    }
+  </script>
+</body>
+</html>
