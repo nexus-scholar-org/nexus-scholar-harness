@@ -13,6 +13,8 @@ license = { text = "MIT" }
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
 ]
 
 [project.optional-dependencies]

@@ -212,6 +212,36 @@ def export(
         raise typer.Exit(1)
 
 
+@app.command("serve")
+def serve(
+    workspace: Path = typer.Option(
+        Path("."), "--workspace", "-w", help="Path to research workspace directory"
+    ),
+    host: str = typer.Option("127.0.0.1", "--host", help="Bind host (loopback by default)"),
+    port: int = typer.Option(8765, "--port", "-p", help="Bind port"),
+    reload: bool = typer.Option(
+        False, "--reload", help="Enable uvicorn auto-reload (development only)"
+    ),
+):
+    """Run the Harness Console server (FastAPI + uvicorn) for a workspace."""
+    import uvicorn
+
+    from .console import create_app
+
+    ws = workspace.resolve()
+    if not ws.is_dir():
+        console.print(f"[bold red]❌ Workspace directory not found: {ws}[/bold red]")
+        raise typer.Exit(1)
+
+    app = create_app(ws)
+    console.print(
+        f"[bold cyan]🌐 Harness Console listening on http://{host}:{port}[/bold cyan]\n"
+        f"[dim]Workspace: {ws}[/dim]\n"
+        f"[dim]CTRL+C to stop[/dim]"
+    )
+    uvicorn.run(app, host=host, port=port, reload=reload)
+
+
 def main():
     app()
 
