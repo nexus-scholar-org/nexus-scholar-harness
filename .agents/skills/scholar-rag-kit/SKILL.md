@@ -77,12 +77,28 @@ uv run scholar-rag consensus workspaces/<project-slug>/synthesis/claims.json \
 ```
 Behavior: Jaccard greedy clustering (default threshold `0.30`, override `--threshold`), deterministic polarity-lexicon stance (`POSITIVE`/`NEGATIVE`/`NEUTRAL`) auto-derived from claim text unless a `stance` is pre-set in the claim input, per-study majority-stance dedup, then verdicts: `HIGH_CONSENSUS` (agreed ≥ contested threshold), `ACTIVE_DEBATE` (opposing*3 ≥ contested), `UNRESOLVED` (neutral majority), `PROVISIONAL` (<2 studies).
 
+For real literature, paraphrased claims rarely share enough content words for lexical Jaccard to merge (e.g. max pairwise Jaccard ~0.17 on UAV-CV corpus → every-claim-is-its-own-cluster). Use semantic clustering, which replaces the scorer with embedding cosine (`embedder_claim_scorer`, falls back to lexical on embedder errors):
+
+```bash
+uv run scholar-rag consensus workspaces/<project-slug>/synthesis/claims.json \
+  --rq-id RQ1 \
+  --similarity sentence-transformers \
+  --threshold 0.40 \
+  --output-json workspaces/<project-slug>/synthesis/consensus.json \
+  --output-md workspaces/<project-slug>/synthesis/consensus.md
+```
+
+A threshold of ~`0.40` (vs `0.30` lexical-default) gives topically coherent clusters on paraphrase-heavy corpora; sweep thresholds when in doubt. Filter obvious non-claim fragments (section headers like `5.1. Results…`, PDF watermarks/footers, figure captions, in-text reference lines) out of the claim pool first — they pollute clustering.
+
 ---
 
 ## Python API
 
 ```python
-from scholar_rag import MarkdownChunker, ScholarIndexer, ScholarRetriever, GroundedSynthesisEngine
+from scholar_rag import (
+    MarkdownChunker, ScholarIndexer, ScholarRetriever, GroundedSynthesisEngine,
+    ConsensusCartographer, embedder_claim_scorer, get_embedder,
+)
 
 # Initialize Indexer
 indexer = ScholarIndexer(db_path="./chroma_db", embedder_kwargs={"provider": "sentence-transformers"})

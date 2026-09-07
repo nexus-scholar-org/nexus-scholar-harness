@@ -1,0 +1,158 @@
+[
+  {
+    "claim_text": "To assess the computational feasibility of deployment on resource-constrained UAV platforms, we report the parameter count and multiply–accumulate operations…",
+    "citation_tokens": [
+      "[SCI-000816#46computat#chk-2026-72fd25-computational-comple-66]"
+    ],
+    "entailment_score": 0.8495000004768372,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2026-72fd25-computational-comple-66"
+    ],
+    "study_id": "SCI-000816",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "On the other hand, the Residual U-Net model was trained on Google Colab Pro+ on a GPU Nvidia A100 for 100 epochs in 2.5 h, with a relatively fast inference…",
+    "citation_tokens": [
+      "[SCI-001017#3results#chk-2026-66ad20-results-55]"
+    ],
+    "entailment_score": 0.800599992275238,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2026-66ad20-results-55"
+    ],
+    "study_id": "SCI-001017",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "In addition to inference, the end-to-end pipeline also includes preprocessing (image loading, resizing, and normalization) and postprocessing (argmax…",
+    "citation_tokens": [
+      "[SCI-000683#5lraspp#chk-2025-326ce3-lraspp-56]"
+    ],
+    "entailment_score": 0.7531999945640564,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-326ce3-lraspp-56"
+    ],
+    "study_id": "SCI-000683",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "> Table 1 shows that prior UAV solutions frequently favor sensing diversity and accuracy",
+    "citation_tokens": [
+      "[SCI-000683#2backgroun#chk-2025-326ce3-background-and-relat-18]"
+    ],
+    "entailment_score": 0.6973999738693237,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-326ce3-background-and-relat-18"
+    ],
+    "study_id": "SCI-000683",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "Computer vision processing pipelines commonly rely on resource-intensive DL models [10], unsuitable for deployment on UAVs which are typically characterized by…",
+    "citation_tokens": [
+      "[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-08]"
+    ],
+    "entailment_score": 0.885699987411499,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "chk-2025-2225af-abstract-the-limited-08"
+    ],
+    "study_id": "SCI-000852",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "The results in Tables 7–9 emphasize the practical trade-offs between segmentation accuracy, energy consumption, and inference speed at different image…",
+    "citation_tokens": [
+      "[SCI-000683#5lraspp#chk-2025-326ce3-lraspp-63]"
+    ],
+    "entailment_score": 0.7700999975204468,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-326ce3-lraspp-63"
+    ],
+    "study_id": "SCI-000683",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "The speciﬁc contributions of our work are as follows. 1) We propose SSU-Net, a novel architecture optimized for real-time image segmentation on…",
+    "citation_tokens": [
+      "[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-12]"
+    ],
+    "entailment_score": 0.8202000260353088,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-2225af-abstract-the-limited-12"
+    ],
+    "study_id": "SCI-000852",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "The adaptability of our model is complemented by its excep- tional real-time performance. Our SSU-Net’s inference speed aligns well with those reported by…",
+    "citation_tokens": [
+      "[SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49]"
+    ],
+    "entailment_score": 0.7856000065803528,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-2225af-abstract-the-limited-49"
+    ],
+    "study_id": "SCI-000852",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "Of course, comprehensive validation is still required. Rigorous benchmarking across the entire test set, executed on representative target edge hardware, is…",
+    "citation_tokens": [
+      "[SCI-001425#abstractau#chk-2025-93586b-abstract-automated-a-18]"
+    ],
+    "entailment_score": 0.8177000284194946,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-93586b-abstract-automated-a-18"
+    ],
+    "study_id": "SCI-001425",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "We have used NVIDIA Jetson Xavier NX as a target device, sinceit was proventobeanefﬁcient low-cost solutionfor various vision tasks in edge computing [8].",
+    "citation_tokens": [
+      "[SCI-000708#abstractin#chk-2022-c2660a-abstract-in-this-art-30]"
+    ],
+    "entailment_score": 0.8769000172615051,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "chk-2022-c2660a-abstract-in-this-art-30"
+    ],
+    "study_id": "SCI-000708",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "The proposed framework operates as a closed-loop perception pipeline distributed between an onboard processor mounted on the UAV and a remote cloud inference…",
+    "citation_tokens": [
+      "[SCI-000323#41overallf#chk-2026-36fa5b-overall-framework-an-39]"
+    ],
+    "entailment_score": 0.8754000067710876,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "chk-2026-36fa5b-overall-framework-an-39"
+    ],
+    "study_id": "SCI-000323",
+    "stance": "NEUTRAL"
+  },
+  {
+    "claim_text": "The first step is to validate the model's promising performance in a real-world operational context. While our tests on a standard computing system confirmed…",
+    "citation_tokens": [
+      "[SCI-001425#abstractau#chk-2025-93586b-abstract-automated-a-20]"
+    ],
+    "entailment_score": 0.7193999886512756,
+    "entailment_status": "AMBIGUOUS",
+    "supporting_chunk_ids": [
+      "chk-2025-93586b-abstract-automated-a-20"
+    ],
+    "study_id": "SCI-001425",
+    "stance": "NEUTRAL"
+  }
+]

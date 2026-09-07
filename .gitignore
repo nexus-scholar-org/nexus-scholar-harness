@@ -4,8 +4,7 @@
 
 # Project Workspaces (Generated Research Runs)
 # Track markdown, json, bibtex, and code while excluding heavy binary PDFs and vector stores
-workspaces/**/pdfs/**/*.pdf
-workspaces/**/pdfs/*.pdf
+workspaces/**/pdfs/
 workspaces/**/rag/chroma_db/
 workspaces/**/chroma_db/
 

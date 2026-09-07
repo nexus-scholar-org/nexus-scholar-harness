@@ -15,6 +15,7 @@ Implements a deterministic, hermetic pipeline:
 
 from __future__ import annotations
 
+import math
 import re
 from collections import Counter
 from typing import Any, Callable
@@ -159,6 +160,39 @@ def classify_stance(claim_text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Similarity scorers
+# ---------------------------------------------------------------------------
+
+
+def jaccard_claim_scorer(a: SynthesisClaim, b: SynthesisClaim) -> float:
+    """Jaccard similarity over the content-word sets of two claims (lexical)."""
+    return jaccard_similarity(tokenize_content(a.claim_text), tokenize_content(b.claim_text))
+
+
+def embedder_claim_scorer(
+    embedder: Any, fallback: Callable[[SynthesisClaim, SynthesisClaim], float] = jaccard_claim_scorer
+) -> Callable[[SynthesisClaim, SynthesisClaim], float]:
+    """Builds a semantic claim scorer from an embedding callable (cosine).
+
+    Deterministic and hermetic — needs no network once the embedder is
+    constructed. Falls back to the lexical scorer on embedding errors so
+    clustering never crashes on noisy input.
+    """
+
+    def score(a: SynthesisClaim, b: SynthesisClaim) -> float:
+        try:
+            ea, eb = embedder([a.claim_text, b.claim_text])
+            dot = sum(x * y for x, y in zip(ea, eb))
+            norm_a = math.sqrt(sum(x * x for x in ea)) or 1.0
+            norm_b = math.sqrt(sum(y * y for y in eb)) or 1.0
+            return max(0.0, min(1.0, dot / (norm_a * norm_b)))
+        except Exception:
+            return fallback(a, b)
+
+    return score
+
+
+# ---------------------------------------------------------------------------
 # Consensus Cartographer
 # ---------------------------------------------------------------------------
 
@@ -168,28 +202,27 @@ class ConsensusCartographer:
 
     DEFAULT_THRESHOLD = 0.30
 
-    def __init__(self, similarity_fn: Callable[[set[str], set[str]], float] | None = None):
-        self.similarity_fn = similarity_fn or jaccard_similarity
+    def __init__(self, similarity_fn: Callable[[SynthesisClaim, SynthesisClaim], float] | None = None):
+        self.similarity_fn = similarity_fn or jaccard_claim_scorer
 
     # -- clustering ----------------------------------------------------------
 
     def _cluster(self, claims: list[SynthesisClaim], threshold: float) -> list[dict[str, Any]]:
-        """Greedy agglomerative clustering over content-word token sets."""
+        """Greedy agglomerative clustering over a claim similarity function."""
         clusters: list[dict[str, Any]] = []
         for claim in claims:
-            tokens = tokenize_content(claim.claim_text)
             best_idx = -1
             best_sim = 0.0
             for i, cluster in enumerate(clusters):
-                sim = self.similarity_fn(tokens, cluster["tokens"])
+                rep = cluster["claims"][0]
+                sim = self.similarity_fn(claim, rep)
                 if sim > best_sim:
                     best_sim = sim
                     best_idx = i
             if best_idx >= 0 and best_sim >= threshold:
-                clusters[best_idx]["tokens"] |= tokens
                 clusters[best_idx]["claims"].append(claim)
             else:
-                clusters.append({"tokens": set(tokens), "claims": [claim]})
+                clusters.append({"claims": [claim]})
         return clusters
 
     # -- per-cluster metrics -------------------------------------------------

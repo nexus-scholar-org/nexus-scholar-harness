@@ -276,7 +276,15 @@ def consensus(
         ConsensusCartographer.DEFAULT_THRESHOLD,
         "--threshold",
         "-t",
-        help="Min token-set similarity for claim clustering (0..1)",
+        help="Min claim similarity for clustering (0..1)",
+    ),
+    similarity: str = typer.Option(
+        "lexical",
+        "--similarity",
+        help="Claim similarity: 'lexical' (Jaccard) or 'sentence-transformers' (embedding cosine)",
+    ),
+    model_name: str | None = typer.Option(
+        None, "--model-name", help="Embedding model for semantic similarity (e.g. all-MiniLM-L6-v2)"
     ),
     output_json: Path | None = typer.Option(None, "--output-json", help="File to write the full report (JSON)"),
     output_md: Path | None = typer.Option(None, "--output-md", help="File to write the markdown report"),
@@ -302,7 +310,19 @@ def consensus(
         console.print("[yellow]No claims found in input file.[/yellow]")
         raise typer.Exit(1)
 
-    cartographer = ConsensusCartographer()
+    similarity_fn = None
+    if similarity != "lexical":
+        try:
+            from scholar_rag.consensus import embedder_claim_scorer
+            from scholar_rag.embedder import get_embedder
+
+            embedder = get_embedder(provider=similarity, model_name=model_name)
+            similarity_fn = embedder_claim_scorer(embedder)
+        except Exception as exc:
+            console.print(f"[bold yellow]Warning:[/bold yellow] {similarity} scorer unavailable ({exc}); using lexical Jaccard.")
+            similarity_fn = None
+
+    cartographer = ConsensusCartographer(similarity_fn=similarity_fn)
     report = cartographer.analyze(claims=claims, rq_id=rq_id, threshold=threshold)
 
     console.print(

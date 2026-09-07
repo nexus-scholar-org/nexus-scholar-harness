@@ -6,7 +6,14 @@ import json
 
 import pytest
 
-from scholar_rag.consensus import ConsensusCartographer, classify_stance, jaccard_similarity, tokenize_content
+from scholar_rag.consensus import (
+    ConsensusCartographer,
+    classify_stance,
+    embedder_claim_scorer,
+    jaccard_claim_scorer,
+    jaccard_similarity,
+    tokenize_content,
+)
 from scholar_rag.models import ClaimStance, ConsensusReport, SynthesisClaim
 
 # ---------------------------------------------------------------------------
@@ -38,6 +45,43 @@ class TestPrimitives:
         b = {"method", "improves", "speed"}
         assert jaccard_similarity(a, b) == pytest.approx(2 / 4)
         assert jaccard_similarity(set(), set()) == 0.0
+
+    def test_jaccard_claim_scorer_matches_primitives(self):
+        a = _claim("The method improves accuracy")
+        b = _claim("The method improves accuracy further")
+        assert jaccard_claim_scorer(a, b) == pytest.approx(
+            jaccard_similarity(tokenize_content("The method improves accuracy"), tokenize_content("The method improves accuracy further"))
+        )
+
+    def test_embedder_claim_scorer_cosine(self):
+        class _FakeEmbedder:
+            _ALPHA = "abcdefghijklmnop"
+
+            def __call__(self, texts):
+                vec = []
+                for t in texts:
+                    v = [0.0] * len(self._ALPHA)
+                    idx = self._ALPHA.index(t[0]) if t and t[0] in self._ALPHA else 0
+                    v[idx] = 1.0
+                    vec.append(v)
+                return vec
+
+        scorer = embedder_claim_scorer(_FakeEmbedder())
+        a, b, c = _claim("accuracy gains"), _claim("edge latency costs"), _claim("dataset size")
+        assert scorer(a, a) == pytest.approx(1.0)
+        assert scorer(a, b) == pytest.approx(0.0)
+
+        report = ConsensusCartographer(similarity_fn=scorer).analyze([a, b, c])
+        assert report.input_claims == 3
+
+    def test_embedder_claim_scorer_falls_back_on_error(self):
+        class _BrokenEmbedder:
+            def __call__(self, texts):
+                raise RuntimeError("embedding service down")
+
+        scorer = embedder_claim_scorer(_BrokenEmbedder())
+        a, b = _claim("RAG improves retrieval accuracy"), _claim("RAG improves retrieval accuracy greatly")
+        assert scorer(a, b) == pytest.approx(jaccard_claim_scorer(a, b))
 
     def test_classify_stance_positive(self):
         assert classify_stance("RAG improves accuracy by 20%.") == ClaimStance.POSITIVE.value

@@ -1,0 +1,14 @@
+### Synthesis for: How do edge hardware constraints (thermal design power, compute capacity in TOPS) and execution configurations (quantization precision, input resolution) impact real-time inference throughput (FPS, latency) for UAV segmentation models?
+
+- To assess the computational feasibility of deployment on resource-constrained UAV platforms, we report the parameter count and multiply–accumulate operations… [SCI-000816#46computat#chk-2026-72fd25-computational-comple-66]
+- On the other hand, the Residual U-Net model was trained on Google Colab Pro+ on a GPU Nvidia A100 for 100 epochs in 2.5 h, with a relatively fast inference… [SCI-001017#3results#chk-2026-66ad20-results-55]
+- In addition to inference, the end-to-end pipeline also includes preprocessing (image loading, resizing, and normalization) and postprocessing (argmax… [SCI-000683#5lraspp#chk-2025-326ce3-lraspp-56]
+- > Table 1 shows that prior UAV solutions frequently favor sensing diversity and accuracy [SCI-000683#2backgroun#chk-2025-326ce3-background-and-relat-18]
+- Computer vision processing pipelines commonly rely on resource-intensive DL models [10], unsuitable for deployment on UAVs which are typically characterized by… [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-08]
+- The results in Tables 7–9 emphasize the practical trade-offs between segmentation accuracy, energy consumption, and inference speed at different image… [SCI-000683#5lraspp#chk-2025-326ce3-lraspp-63]
+- The speciﬁc contributions of our work are as follows. 1) We propose SSU-Net, a novel architecture optimized for real-time image segmentation on… [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-12]
+- The adaptability of our model is complemented by its excep- tional real-time performance. Our SSU-Net’s inference speed aligns well with those reported by… [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49]
+- Of course, comprehensive validation is still required. Rigorous benchmarking across the entire test set, executed on representative target edge hardware, is… [SCI-001425#abstractau#chk-2025-93586b-abstract-automated-a-18]
+- We have used NVIDIA Jetson Xavier NX as a target device, sinceit was proventobeanefﬁcient low-cost solutionfor various vision tasks in edge computing [8]. [SCI-000708#abstractin#chk-2022-c2660a-abstract-in-this-art-30]
+- The proposed framework operates as a closed-loop perception pipeline distributed between an onboard processor mounted on the UAV and a remote cloud inference… [SCI-000323#41overallf#chk-2026-36fa5b-overall-framework-an-39]
+- The first step is to validate the model's promising performance in a real-world operational context. While our tests on a standard computing system confirmed… [SCI-001425#abstractau#chk-2025-93586b-abstract-automated-a-20]

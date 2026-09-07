@@ -1,0 +1,12 @@
+### Synthesis for: real-time inference speed FPS latency on NVIDIA Jetson and embedded GPU edge devices for UAV segmentation
+
+- The adaptability of our model is complemented by its excep- tional real-time performance. Our SSU-Net’s inference speed aligns well with those reported by… [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-49]
+- > Table 1 shows that prior UAV solutions frequently favor sensing diversity and accuracy [SCI-000683#2backgroun#chk-2025-326ce3-background-and-relat-18]
+- On the other hand, the Residual U-Net model was trained on Google Colab Pro+ on a GPU Nvidia A100 for 100 epochs in 2.5 h, with a relatively fast inference… [SCI-001017#3results#chk-2026-66ad20-results-55]
+- Recent agricultural edge-AI studies show that embedded inference is practical for detection, segmentation, monitoring, and robotic perception tasks Dang et al. [SCI-000810#1introduct#chk-2026-c389c0-introduction-07]
+- In this paper, we address this challenge by presenting a low-cost UAV system built entirely from commercially available components and equipped with a… [SCI-000683#1introduct#chk-2025-326ce3-introduction-08]
+- Fig. 8 Schematic of the proposed on-board deployment pipeline (a conceptual diagram, not a field photograph). A UAV-captured, potentially motion-blurred frame… [SCI-000816#46computat#chk-2026-72fd25-computational-comple-68]
+- In the inference phase, we deployed our trained model on the Jetson AGX Orin platform using PyTorch with CUDA acceleration, optimizing computational… [SCI-000446#abstractth#chk-2026-9c6cb8-abstract-this-paper--08]
+- SRCNN and EDSR require approximately 1.5 ms, SRFBN 2 ms, RDN 5 ms, while RCAN exceeds 8 ms per patch. Lightweight models are faster but less accurate, whereas… [SCI-000505#4discussio#chk-2025-3f507c-discussion-46]
+- Computer vision processing pipelines commonly rely on resource-intensive DL models [10], unsuitable for deployment on UAVs which are typically characterized by… [SCI-000852#abstractth#chk-2025-2225af-abstract-the-limited-08]
+- In addition to inference, the end-to-end pipeline also includes preprocessing (image loading, resizing, and normalization) and postprocessing (argmax… [SCI-000683#5lraspp#chk-2025-326ce3-lraspp-56]
