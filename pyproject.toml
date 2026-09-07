@@ -36,4 +36,4 @@ pythonpath = [
     "tools/scholar-graph-kit/src",
     "tools/scholar-agent-kit/src",
 ]
-addopts = "-q"
+addopts = "-q -o tmp_path_cleanup_policy=none"
