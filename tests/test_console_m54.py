@@ -155,6 +155,27 @@ def test_runner_loads_builtin_default_spec(tmp_path):
     assert len(spec.nodes) >= 3
 
 
+def test_pipeline_export_script_endpoint(tmp_path):
+    ws = _bootstrap(tmp_path)
+    client = TestClient(create_app(ws))
+    client.post("/api/v1/pipelines", json={"spec": _dag_spec(
+        "exportpipe", [_node("n1", CODE_WRITE, {"out": "literature/n1.json", "content": "x"},
+                            ["literature/n1.json"])], [])})
+    r = client.get("/api/v1/pipelines/exportpipe/export")
+    assert r.status_code == 200
+    assert r.text.startswith("#!/usr/bin/env bash")
+    assert "run_node 'n1'" in r.text
+    assert "'uv' 'run' 'python' '-c'" in r.text
+    assert "literature/n1.json" in r.text
+    # builtin template is also exportable with no saved file
+    rb = client.get("/api/v1/pipelines/prisma_slr_default/export")
+    assert rb.status_code == 200
+    assert "n3_screen" in rb.text
+    # unknown id -> 404; unsupported format -> 400
+    assert client.get("/api/v1/pipelines/nope/export").status_code == 404
+    assert client.get("/api/v1/pipelines/exportpipe/export?script_format=bat").status_code == 400
+
+
 # ---------------------------------------------------------------------------
 # live DAG execution through the job runner (httpx + asyncio.run)
 # ---------------------------------------------------------------------------

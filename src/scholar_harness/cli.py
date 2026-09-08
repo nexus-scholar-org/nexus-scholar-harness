@@ -211,13 +211,16 @@ def _run_pipeline_spec(pipeline: Path, workspace: Path, skip: str | None) -> Non
 @app.command("export")
 def export(
     format_type: str = typer.Argument(
-        ..., help="Export target format: 'latex', 'typst', 'obsidian', 'zotero'"
+        ..., help="Export target format: 'latex', 'typst', 'obsidian', 'zotero', 'pipeline-sh'"
     ),
     workspace: Path = typer.Option(
         Path("."), "--workspace", "-w", help="Path to research workspace directory"
     ),
     output: Path = typer.Option(
         None, "--output", "-o", help="Target output file or directory"
+    ),
+    pipeline: str | None = typer.Option(
+        None, "--pipeline", help="PipelineSpec id (in <ws>/.harness-console/pipelines) or path (format 'pipeline-sh')"
     ),
 ):
     """Export synthesized research findings and bibliographies to external tools."""
@@ -249,8 +252,37 @@ def export(
         manifest = bridge.sync_included_papers(inc_file, pdf_dir, project_slug=workspace_path.name)
         console.print(f"[bold green]✅ Synced {manifest.get('items_synced', 0)} items to Zotero collection '{workspace_path.name}'[/bold green]")
 
+    elif format_type.lower() in ("pipeline-sh", "pipeline"):
+        import os
+        import uuid as uuid_mod
+
+        from .integrations.pipeline_script import render_pipeline_sh
+        from .pipeline_executor import load_spec
+
+        if not pipeline:
+            console.print("[bold red]❌ export pipeline-sh requires --pipeline <id|path>[/bold red]")
+            raise typer.Exit(1)
+        store_dir = workspace_path / ".harness-console" / "pipelines"
+        cand = Path(pipeline)
+        spec_path = cand if cand.is_file() else store_dir / f"{pipeline}.json"
+        if not spec_path.is_file():
+            console.print(f"[bold red]❌ pipeline spec not found: {spec_path}[/bold red]")
+            raise typer.Exit(1)
+        try:
+            spec = load_spec(spec_path)
+        except Exception as exc:
+            console.print(f"[bold red]❌ cannot load pipeline: {exc}[/bold red]")
+            raise typer.Exit(1)
+        script = render_pipeline_sh(spec, workspace_path)
+        out_target = output or (store_dir / f"{spec.id}.sh")
+        store_dir.mkdir(parents=True, exist_ok=True)
+        tmp = out_target.with_name(out_target.name + f".tmp-{uuid_mod.uuid4().hex[:8]}")
+        tmp.write_text(script, encoding="utf-8")
+        os.replace(tmp, out_target)
+        console.print(f"[bold green]✅ Exported pipeline {spec.id} → {out_target}[/bold green]")
+
     else:
-        console.print(f"[bold red]❌ Unsupported export format: {format_type}. Supported: latex, typst, obsidian, zotero[/bold red]")
+        console.print(f"[bold red]❌ Unsupported export format: {format_type}. Supported: latex, typst, obsidian, zotero, pipeline-sh[/bold red]")
         raise typer.Exit(1)
 
 

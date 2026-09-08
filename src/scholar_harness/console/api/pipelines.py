@@ -26,7 +26,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from .audit import log_event
@@ -292,6 +292,29 @@ def list_pipelines(request: Request) -> dict[str, Any]:
     if PRISMA_SLR_DEFAULT["id"] not in saved:
         saved.insert(0, PRISMA_SLR_DEFAULT["id"])
     return {"count": len(saved), "ids": saved}
+
+
+@router.get("/{spec_id}/export")
+def export_pipeline_script(request: Request, spec_id: str, script_format: str = "sh") -> Response:
+    """Render a saved PipelineSpec into an equivalently-executing bash script.
+
+    The exported script mirrors `uv run scholar-harness run --pipeline <spec>`
+    for the same workspace (topo order, resolved args, idempotency guard,
+    on_fail, requires_decision halt). Lazy import avoids a cycle with the
+    integrations renderer.
+    """
+    from scholar_harness.integrations.pipeline_script import render_pipeline_sh
+
+    if script_format != "sh":
+        raise HTTPException(status_code=400, detail="unsupported export format: only 'sh'")
+    ws: Path = request.app.state.workspace
+    spec = _load_spec(ws, spec_id)
+    script = render_pipeline_sh(spec, ws)
+    return Response(
+        content=script,
+        media_type="text/x-shellscript",
+        headers={"Content-Disposition": f'attachment; filename="{spec.id}.sh"'},
+    )
 
 
 class NewSpecBody(BaseModel):

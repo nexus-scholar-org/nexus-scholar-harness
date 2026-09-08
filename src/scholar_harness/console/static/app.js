@@ -957,7 +957,10 @@ function pipelineEditor() {
   run.disabled = !canRunPipeline();
   run.title = canRunPipeline() ? "Run the saved pipeline via the Job Runner" : "Save the spec first to enable Run";
   run.onclick = runPipeline;
-  head.append(dry, save, run);
+  const exp = el("button", "btn", "Export .sh");
+  exp.title = "Download the rendered `uv run` shell script (saves first if needed)";
+  exp.onclick = exportScript;
+  head.append(dry, save, run, exp);
   root.append(head);
 
   if (state.pipelineTab === "json") root.append(pipelineJSONCard(spec));
@@ -1285,6 +1288,39 @@ async function runPipeline() {
   try {
     const res = await postJSON("/api/v1/jobs/start", { action_id: "pipeline", pipeline_id: state.pipelineId });
     listenJob(res.job);
+  } catch (err) {
+    showErr(err.message);
+  }
+}
+
+async function exportScript() {
+  const spec = collectEditor();
+  if (!spec) return;
+  clearErr();
+  try {
+    if (state.pipelineDirty || !state.pipelineId || state.pipelineId !== spec.id) {
+      const res = await postJSON("/api/v1/pipelines", { spec });
+      state.pipelineSpec = res.spec;
+      state.pipelineId = res.spec.id;
+      state.pipelineDirty = false;
+    }
+    const res = await fetch(`/api/v1/pipelines/${encodeURIComponent(state.pipelineId)}/export?script_format=sh`);
+    if (!res.ok) {
+      let detail = res.statusText;
+      try { detail = JSON.stringify((await res.json()).detail || detail); } catch (_) { /* non-JSON body */ }
+      throw new Error(`GET export -> ${res.status} ${detail}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = state.pipelineId + ".sh";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    state.pipelineMsg = "exported " + state.pipelineId + ".sh — run with `bash <script> [workspace]`";
+    renderView();
   } catch (err) {
     showErr(err.message);
   }
