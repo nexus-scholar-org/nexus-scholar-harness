@@ -281,3 +281,35 @@ pre.json {
 .annotate-form input:focus, .annotate-form select:focus, .annotate-form textarea:focus { border-color: var(--accent); }
 .form-row { display: flex; flex-direction: column; gap: 4px; }
 .form-row label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+
+/* ---------- pipeline builder ---------- */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
+.p-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: rgba(99, 102, 241, .04); }
+.p-card .p-name { font-family: var(--mono); font-size: 12px; font-weight: 600; word-break: break-all; }
+.p-card .p-hint { color: var(--dim); font-size: 11px; }
+.p-tabs { display: flex; gap: 6px; }
+.p-editor { margin-top: 12px; }
+.p-editor input[type="text"], .p-editor input[type="number"], .p-editor select, .p-editor textarea {
+  width: 100%; padding: 6px 8px; font-size: 12px; background: var(--panel2);
+  color: #e2e8f0; border: 1px solid var(--border); border-radius: 6px; font-family: var(--mono); box-sizing: border-box;
+}
+.p-editor textarea { line-height: 1.5; resize: vertical; }
+.p-editor input:focus, .p-editor select:focus, .p-editor textarea:focus { border-color: var(--accent); outline: none; }
+.p-editor h4 { margin: 10px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+.spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.spec-grid .full, .node-card .full { grid-column: 1 / -1; }
+.node-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(99, 102, 241, .03); }
+.node-head { display: flex; align-items: center; gap: 8px; }
+.node-head .mono { font-size: 12px; word-break: break-all; }
+.node-head .btn.danger { margin-left: auto; }
+.deps { display: flex; flex-wrap: wrap; gap: 10px; padding: 6px 0; }
+.deps label { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 11px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.drypanel { margin-top: 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
+.drypanel.ok { border-color: rgba(52, 211, 153, .5); }
+.drypanel.err { border-color: rgba(248, 113, 113, .5); }
+.strip { list-style: none; padding: 0; margin: 8px 0 0; }
+.strip li { font-size: 12px; padding: 2px 0; }
+.strip .w-msg { color: var(--dim); }
+.strip .e-msg { color: var(--err); }
+.json-editor { min-height: 420px; }

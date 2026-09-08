@@ -16,6 +16,13 @@ const state = {
   batchNo: null,
   activeJob: null,
   reasons: {},
+  pipelines: null,
+  pipelineSpec: null,
+  pipelineId: null,
+  pipelineTab: "form",
+  pipelineDirty: false,
+  dryRunResult: null,
+  pipelineMsg: "",
 };
 
 const PHASES = [
@@ -765,6 +772,557 @@ async function renderActions() {
   view.append(card);
 }
 
+/* ---------------- pipeline builder (M5.4 no-code) ---------------- */
+
+const ARCHETYPES = ["PRISMA_SLR", "SCOPING_REVIEW", "REA", "META_RESEARCH"];
+const ON_FAIL = ["abort", "skip", "continue"];
+
+function splitCommand(s) {
+  const out = [];
+  let cur = "", q = false;
+  for (const ch of String(s)) {
+    if (ch === '"') { q = !q; continue; }
+    if ((ch === " " || ch === "\t") && !q) { if (cur) { out.push(cur); cur = ""; } continue; }
+    cur += ch;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+function uniquePipelineId(base) {
+  let cand = String(base || "pipeline").replace(/[^A-Za-z0-9_-]/g, "_");
+  if (!cand) cand = "pipeline";
+  let n = 2;
+  while ((state.pipelines || []).includes(cand)) cand = `${base}-${n++}`;
+  return cand;
+}
+
+function blankSpec(base) {
+  return {
+    schema_version: "0.1.0",
+    id: uniquePipelineId(base),
+    archetype: "PRISMA_SLR",
+    name: "",
+    workspace_slug: "",
+    settings: {},
+    nodes: [],
+    edges: [],
+    dry_run: { per_node_limit: 25 },
+    created_by: "console",
+    fingerprint: "",
+  };
+}
+
+function nextNodeIndex(nodes) {
+  let m = 0;
+  nodes.forEach((n) => {
+    const mm = /_(\d+)$/.exec(n.id || "");
+    if (mm) m = Math.max(m, parseInt(mm[1], 10));
+  });
+  return m + 1;
+}
+
+function blankNode(idx) {
+  return {
+    id: "node_" + idx,
+    kit: "scholar-search-kit",
+    command: [],
+    args: {},
+    inputs: [],
+    outputs: [],
+    on_fail: "abort",
+    requires_decision: false,
+  };
+}
+
+async function editPipeline(id, clone) {
+  try {
+    const res = await api("/api/v1/pipelines/" + encodeURIComponent(id));
+    const spec = JSON.parse(JSON.stringify(res.spec));
+    if (clone) spec.id = uniquePipelineId(id + "-copy");
+    state.pipelineSpec = spec;
+    state.pipelineId = null;
+    state.pipelineDirty = false;
+    state.pipelineTab = "form";
+    state.dryRunResult = null;
+    state.pipelineMsg = "";
+    renderView();
+  } catch (err) {
+    showErr(err.message);
+  }
+}
+
+function openGallery() {
+  state.pipelineSpec = null;
+  state.pipelineId = null;
+  state.pipelineTab = "form";
+  state.pipelineDirty = false;
+  state.dryRunResult = null;
+  state.pipelineMsg = "";
+  renderView();
+}
+
+function savedBadge() {
+  if (state.pipelineDirty) return "unsaved edits";
+  return state.pipelineId && state.pipelineId === state.pipelineSpec.id
+    ? "saved · " + state.pipelineId
+    : "draft · not saved yet";
+}
+
+function canRunPipeline() {
+  return Boolean(state.pipelineSpec && state.pipelineId && state.pipelineId === state.pipelineSpec.id && !state.pipelineDirty);
+}
+
+function markDirty() {
+  state.pipelineDirty = true;
+  const bad = $("#view-pipelines .p-dirty");
+  if (bad) { bad.textContent = "unsaved edits"; bad.classList.add("warn"); }
+  const run = $("#view-pipelines .p-run");
+  if (run) run.disabled = true;
+}
+
+async function renderPipelines() {
+  const view = $("#view-pipelines");
+  view.innerHTML = "";
+  const payload = await api("/api/v1/pipelines");
+  state.pipelines = payload.ids;
+  view.append(galleryCard(payload.ids));
+  if (state.pipelineSpec) view.append(pipelineEditor());
+}
+
+function galleryCard(ids) {
+  const card = el("div", "card");
+  const head = el("div", "batch-toolbar");
+  head.append(el("h3", "count", `Pipeline templates & saved specs · ${ids.length}`));
+  const newBtn = el("button", "btn primary", "+ New blank");
+  newBtn.title = "Start from an empty PipelineSpec";
+  newBtn.onclick = () => {
+    state.pipelineSpec = blankSpec("my_pipeline");
+    state.pipelineId = null;
+    state.pipelineDirty = false;
+    state.pipelineTab = "form";
+    state.dryRunResult = null;
+    state.pipelineMsg = "";
+    renderView();
+  };
+  head.append(newBtn);
+  card.append(head);
+
+  const grid = el("div", "gallery");
+  ids.forEach((id) => {
+    const pc = el("div", "p-card");
+    pc.append(el("div", "p-name", id));
+    pc.append(el("div", "p-hint", id === "prisma_slr_default" ? "builtin template · browse or clone" : "saved spec in .harness-console/pipelines/"));
+    const row = el("div", "pill-row");
+    const open = el("button", "btn", "Open");
+    open.title = "Open in the builder";
+    open.onclick = () => editPipeline(id, false);
+    const clone = el("button", "btn", "Clone");
+    clone.title = "Duplicate as a new draft";
+    clone.onclick = () => editPipeline(id, true);
+    row.append(open, clone);
+    pc.append(row);
+    grid.append(pc);
+  });
+  card.append(grid);
+  return card;
+}
+
+function pipelineEditor() {
+  const root = el("div", "p-editor");
+  const spec = state.pipelineSpec;
+  const head = el("div", "batch-toolbar");
+  const back = el("button", "btn", "← gallery");
+  back.onclick = openGallery;
+  head.append(back);
+
+  const tabs = el("div", "p-tabs");
+  ["form", "json"].forEach((t) => {
+    const b = el("button", "btn" + (state.pipelineTab === t ? " primary" : ""), t);
+    b.title = t === "form" ? "No-code form editor" : "Raw PipelineSpec JSON";
+    b.onclick = () => switchPipelineTab(t);
+    tabs.append(b);
+  });
+  head.append(tabs);
+
+  head.append(el("span", "badge p-dirty" + (state.pipelineDirty ? " warn" : ""), savedBadge()));
+
+  const dry = el("button", "btn", "Dry-run");
+  dry.title = "Validate + plan execution order (writes nothing canonical)";
+  dry.onclick = dryRunSpec;
+  const save = el("button", "btn primary", "Save");
+  save.title = "Validate and persist PipelineSpec to .harness-console/pipelines/";
+  save.onclick = saveSpec;
+  const run = el("button", "btn accent p-run", "Run");
+  run.disabled = !canRunPipeline();
+  run.title = canRunPipeline() ? "Run the saved pipeline via the Job Runner" : "Save the spec first to enable Run";
+  run.onclick = runPipeline;
+  head.append(dry, save, run);
+  root.append(head);
+
+  if (state.pipelineTab === "json") root.append(pipelineJSONCard(spec));
+  else root.append(pipelineFormCard(spec));
+
+  if (state.dryRunResult) root.append(dryRunPanel(state.dryRunResult));
+  if (state.pipelineMsg) root.append(el("div", "empty", state.pipelineMsg));
+  else root.append(el("div", "foot-hint", "Nodes run via `uv run <kit command>` · `{{key}}` resolves settings / slots / node outputs · Dry-run never writes canonical files"));
+
+  root.addEventListener("input", markDirty);
+  root.addEventListener("change", markDirty);
+  return root;
+}
+
+function pRow(labelText, input) {
+  const row = el("div", "form-row");
+  row.append(el("label", "", labelText), input);
+  return row;
+}
+
+function pipelineFormCard(spec) {
+  const card = el("div", "card");
+  card.append(el("h3", "", "Spec · form"));
+
+  const top = el("div", "spec-grid");
+  const idIn = el("input");
+  idIn.type = "text";
+  idIn.dataset.pf = "id";
+  idIn.value = spec.id;
+  top.append(pRow("id *", idIn));
+  const archSel = el("select");
+  archSel.dataset.pf = "archetype";
+  ARCHETYPES.forEach((a) => archSel.append(option(a, a, a === spec.archetype)));
+  top.append(pRow("archetype", archSel));
+  const nameIn = el("input");
+  nameIn.type = "text";
+  nameIn.dataset.pf = "name";
+  nameIn.value = spec.name || "";
+  top.append(pRow("name", nameIn));
+  const wsIn = el("input");
+  wsIn.type = "text";
+  wsIn.dataset.pf = "workspace_slug";
+  wsIn.value = spec.workspace_slug || "";
+  top.append(pRow("workspace slug", wsIn));
+  const limIn = el("input");
+  limIn.type = "number";
+  limIn.min = "1";
+  limIn.dataset.pf = "dryperm";
+  limIn.value = String(((spec.dry_run || {}).per_node_limit) || 25);
+  top.append(pRow("dry-run per-node limit", limIn));
+  card.append(top);
+
+  const settingsIn = el("textarea");
+  settingsIn.dataset.pf = "settings";
+  settingsIn.rows = 5;
+  settingsIn.value = JSON.stringify(spec.settings || {}, null, 2);
+  const settingsRow = el("div", "form-row full");
+  settingsRow.append(el("label", "", "settings (JSON) — plain keys like queries / provider_priority"), settingsIn);
+  card.append(settingsRow);
+
+  const sec = el("div", "full");
+  sec.append(el("h4", "", "Nodes"));
+  spec.nodes.forEach((n, idx) => sec.append(nodeCard(spec, n, idx)));
+  const addBtn = el("button", "btn", "+ Add node");
+  addBtn.onclick = () => {
+    if (!collectEditor()) return;
+    state.pipelineSpec.nodes.push(blankNode(nextNodeIndex(state.pipelineSpec.nodes)));
+    state.pipelineDirty = true;
+    renderView();
+  };
+  sec.append(addBtn);
+  card.append(sec);
+
+  card.append(pipelineEdgesSummary(spec));
+  return card;
+}
+
+function nodeCard(spec, node, idx) {
+  const nc = el("div", "node-card");
+  const head = el("div", "node-head full");
+  head.append(el("span", "badge accent", "N" + (idx + 1)));
+  head.append(el("span", "mono", node.id));
+  const rm = el("button", "btn danger", "Remove");
+  rm.onclick = () => {
+    if (!collectEditor()) return;
+    const s = state.pipelineSpec;
+    const id = s.nodes[idx].id;
+    s.nodes = s.nodes.filter((_, i) => i !== idx);
+    s.edges = s.edges.filter((e) => e[0] !== id && e[1] !== id);
+    state.pipelineDirty = true;
+    renderView();
+  };
+  head.append(rm);
+  nc.append(head);
+
+  const idIn = el("input");
+  idIn.type = "text";
+  idIn.dataset.node = "id";
+  idIn.value = node.id;
+  idIn.title = "renaming updates edges; `{{old.output}}` refs must be updated by hand";
+  idIn.onchange = () => {
+    const oldId = node.id;
+    if (!collectEditor()) return;
+    const s = state.pipelineSpec;
+    const newId = s.nodes[idx].id;
+    if (oldId && oldId !== newId) s.edges = s.edges.map((e) => e.map((x) => (x === oldId ? newId : x)));
+    renderView();
+  };
+  nc.append(pRow("node id", idIn));
+
+  const kitIn = el("input");
+  kitIn.type = "text";
+  kitIn.dataset.node = "kit";
+  kitIn.value = node.kit;
+  kitIn.placeholder = "e.g. scholar-search-kit";
+  nc.append(pRow("kit", kitIn));
+
+  const cmdIn = el("input");
+  cmdIn.type = "text";
+  cmdIn.dataset.node = "command";
+  cmdIn.value = (node.command || []).join(" ");
+  cmdIn.placeholder = "e.g. scholar-search run";
+  nc.append(pRow("command (uv run …)", cmdIn));
+
+  const onfailSel = el("select");
+  onfailSel.dataset.node = "onfail";
+  ON_FAIL.forEach((o) => onfailSel.append(option(o, o + (o === "skip" ? " (skip node)" : o === "continue" ? " (continue rest)" : ""), o === node.on_fail)));
+  nc.append(pRow("on failure", onfailSel));
+
+  const rdIn = el("input");
+  rdIn.type = "checkbox";
+  rdIn.dataset.node = "rd";
+  rdIn.checked = Boolean(node.requires_decision);
+
+  const argsIn = el("textarea");
+  argsIn.dataset.node = "args";
+  argsIn.rows = 5;
+  argsIn.value = node.args && Object.keys(node.args).length ? JSON.stringify(node.args, null, 2) : "{}";
+  nc.append(pRow("args (JSON) — may use {{...}} templates", argsIn));
+
+  const outIn = el("textarea");
+  outIn.dataset.node = "outputs";
+  outIn.rows = 2;
+  outIn.value = (node.outputs || []).join("\n");
+  const outRow = pRow("outputs — one per line", outIn);
+  outRow.classList.add("full");
+  nc.append(outRow);
+
+  const rdRow = pRow("requires decision (agent handoff)", rdIn);
+  rdRow.classList.add("full");
+  nc.append(rdRow);
+
+  const deps = el("div", "deps");
+  spec.nodes.forEach((other) => {
+    if (other.id === node.id) return;
+    const cb = el("input");
+    cb.type = "checkbox";
+    const has = spec.edges.some((e) => e[0] === other.id && e[1] === node.id);
+    cb.checked = has;
+    cb.onchange = () => {
+      if (cb.checked) {
+        if (!state.pipelineSpec.edges.some((e) => e[0] === other.id && e[1] === node.id)) state.pipelineSpec.edges.push([other.id, node.id]);
+      } else {
+        state.pipelineSpec.edges = state.pipelineSpec.edges.filter((e) => !(e[0] === other.id && e[1] === node.id));
+      }
+      markDirty();
+      updateEdgesHint();
+    };
+    const lbl = el("label", "");
+    lbl.append(cb, el("span", "mono", other.id));
+    deps.append(lbl);
+  });
+  const depsRow = el("div", "full");
+  depsRow.append(el("label", "", "depends on"), deps);
+  nc.append(depsRow);
+  return nc;
+}
+
+function pipelineEdgesSummary(spec) {
+  const box = el("div", "full");
+  box.append(el("label", "", "Edges"));
+  const chips = el("div", "chips");
+  if (!spec.edges.length) chips.append(el("span", "badge", "no edges — nodes run independently"));
+  else spec.edges.forEach((e) => chips.append(el("span", "badge", e[0] + " → " + e[1])));
+  box.append(chips);
+  box.dataset.edgebox = "1";
+  return box;
+}
+
+function updateEdgesHint() {
+  const box = $("#view-pipelines [data-edgebox]");
+  if (!box) return;
+  box.innerHTML = "";
+  box.append(el("label", "", "Edges"));
+  const chips = el("div", "chips");
+  if (!state.pipelineSpec.edges.length) chips.append(el("span", "badge", "no edges — nodes run independently"));
+  else state.pipelineSpec.edges.forEach((e) => chips.append(el("span", "badge", e[0] + " → " + e[1])));
+  box.append(chips);
+}
+
+function pipelineJSONCard(spec) {
+  const card = el("div", "card");
+  card.append(el("h3", "", "Spec · raw JSON"));
+  const ta = el("textarea");
+  ta.dataset.pj = "1";
+  ta.className = "json-editor";
+  ta.value = JSON.stringify(spec, null, 2);
+  card.append(ta);
+  const row = el("div", "form-row full");
+  const apply = el("button", "btn", "Apply JSON to editor");
+  apply.onclick = () => {
+    clearErr();
+    if (!collectJSON()) return;
+    state.pipelineDirty = true;
+    state.pipelineMsg = "JSON applied — validate with Dry-run, then Save";
+    renderView();
+  };
+  row.append(apply, el("span", "foot-hint", "Schema 0.1.0 · server validates on Dry-run / Save"));
+  card.append(row);
+  return card;
+}
+
+function switchPipelineTab(t) {
+  if (t === state.pipelineTab) return;
+  clearErr();
+  if (t === "form" && !collectJSON()) return;
+  state.pipelineTab = t;
+  renderView();
+}
+
+function collectEditor() {
+  if (state.pipelineTab === "json") return collectJSON();
+  const root = $("#view-pipelines .p-editor");
+  if (!root || !state.pipelineSpec) return null;
+  const spec = state.pipelineSpec;
+  const val = (sel) => { const n = root.querySelector(sel); return n ? n.value : ""; };
+
+  spec.id = val('[data-pf="id"]').trim() || spec.id;
+  spec.name = val('[data-pf="name"]').trim();
+  spec.archetype = val('[data-pf="archetype"]') || "PRISMA_SLR";
+  spec.workspace_slug = val('[data-pf="workspace_slug"]').trim();
+  const lim = parseInt(val('[data-pf="dryperm"]'), 10);
+  spec.dry_run = { per_node_limit: Number.isFinite(lim) && lim > 0 ? lim : 25 };
+
+  const settingsRaw = val('[data-pf="settings"]').trim();
+  if (settingsRaw) {
+    try { spec.settings = JSON.parse(settingsRaw); }
+    catch (_) { showErr("settings is not valid JSON"); return null; }
+  } else spec.settings = {};
+
+  const cards = Array.from(root.querySelectorAll(".node-card"));
+  try {
+    cards.forEach((nc, idx) => {
+      if (idx >= spec.nodes.length) return;
+      const node = spec.nodes[idx];
+      node.id = (nc.querySelector('[data-node="id"]').value.trim() || node.id);
+      node.kit = nc.querySelector('[data-node="kit"]').value.trim();
+      node.command = splitCommand(nc.querySelector('[data-node="command"]').value);
+      const argsRaw = nc.querySelector('[data-node="args"]').value.trim();
+      node.args = argsRaw ? JSON.parse(argsRaw) : {};
+      node.outputs = nc.querySelector('[data-node="outputs"]').value.split(/\r?\n|,/).map((s) => s.trim()).filter(Boolean);
+      node.on_fail = nc.querySelector('[data-node="onfail"]').value || "abort";
+      node.requires_decision = nc.querySelector('[data-node="rd"]').checked;
+    });
+  } catch (err) {
+    showErr("node args is not valid JSON: " + err.message);
+    return null;
+  }
+  return spec;
+}
+
+function collectJSON() {
+  const ta = $("#view-pipelines [data-pj]");
+  if (!ta) return null;
+  try {
+    state.pipelineSpec = JSON.parse(ta.value);
+    return state.pipelineSpec;
+  } catch (err) {
+    showErr("spec JSON is not valid: " + err.message);
+    return null;
+  }
+}
+
+async function saveSpec() {
+  const spec = collectEditor();
+  if (!spec) return;
+  clearErr();
+  try {
+    const res = await postJSON("/api/v1/pipelines", { spec });
+    state.pipelineSpec = res.spec;
+    state.pipelineId = res.spec.id;
+    state.pipelineDirty = false;
+    state.dryRunResult = null;
+    state.pipelineMsg = "saved " + res.spec.id + " (fingerprint " + res.spec.fingerprint.slice(0, 24) + "…)";
+    renderView();
+  } catch (err) {
+    showErr(err.message);
+  }
+}
+
+async function dryRunSpec() {
+  const spec = collectEditor();
+  if (!spec) return;
+  clearErr();
+  try {
+    if (state.pipelineDirty || !state.pipelineId || state.pipelineId !== spec.id) {
+      const res = await postJSON("/api/v1/pipelines", { spec });
+      state.pipelineSpec = res.spec;
+      state.pipelineId = res.spec.id;
+      state.pipelineDirty = false;
+    }
+    const body = { per_node_limit: (spec.dry_run || {}).per_node_limit || 25 };
+    const dry = await postJSON("/api/v1/pipelines/" + encodeURIComponent(state.pipelineId) + "/dry-run", body);
+    state.dryRunResult = dry;
+    state.pipelineMsg = dry.message;
+    renderView();
+  } catch (err) {
+    showErr(err.message);
+  }
+}
+
+async function runPipeline() {
+  if (!canRunPipeline()) { showErr("save the spec first, then run"); return; }
+  clearErr();
+  try {
+    const res = await postJSON("/api/v1/jobs/start", { action_id: "pipeline", pipeline_id: state.pipelineId });
+    listenJob(res.job);
+  } catch (err) {
+    showErr(err.message);
+  }
+}
+
+function dryRunPanel(res) {
+  const box = el("div", "drypanel" + (res.valid ? " ok" : " err"));
+  const head = el("div", "a-head");
+  head.append(el("span", "badge" + (res.valid ? " ok" : " err"), res.valid ? "valid" : "invalid"));
+  head.append(el("span", "p-hint", res.message || ""));
+  box.append(head);
+  if (res.errors && res.errors.length) {
+    const ul = el("ul", "strip");
+    res.errors.forEach((e) => ul.append(el("li", "e-msg", "- " + e)));
+    box.append(ul);
+  }
+  if (res.warnings && res.warnings.length) {
+    const ul = el("ul", "strip");
+    res.warnings.forEach((e) => ul.append(el("li", "w-msg", "~ " + e)));
+    box.append(ul);
+  }
+  if (res.nodes_ordered && res.nodes_ordered.length) {
+    const chips = el("div", "chips");
+    res.nodes_ordered.forEach((id) => chips.append(el("span", "badge", id)));
+    const row = el("div", "full");
+    row.append(el("label", "", "execution order"), chips);
+    box.append(row);
+  }
+  if (res.requires_decision && res.requires_decision.length) {
+    const chips = el("div", "chips");
+    res.requires_decision.forEach((id) => chips.append(el("span", "badge warn", id + " · handoff")));
+    const row = el("div", "full");
+    row.append(el("label", "", "requires decision"), chips);
+    box.append(row);
+  }
+  return box;
+}
+
 /* ---------------- dispatch ---------------- */
 
 const RENDERERS = {
@@ -775,6 +1333,7 @@ const RENDERERS = {
   synthesis: renderSynthesis,
   graph: renderGraph,
   audit: renderAudit,
+  pipelines: renderPipelines,
   actions: renderActions,
 };
 
@@ -786,6 +1345,7 @@ const TITLES = {
   synthesis: "Synthesis & Trust",
   graph: "Knowledge Graph",
   audit: "Audit Trail",
+  pipelines: "Pipeline Builder",
   actions: "Agent Exchange",
 };
 
