@@ -14,12 +14,15 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import queue
 import signal
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from ...pipeline_executor import PipelineCancelled, PipelineError, PipelineExecutor
+from ..api.pipelines import PRISMA_SLR_DEFAULT, PipelineSpec, store_path, validate_spec
 from .actions import Action, get_action, render_command
 
 logger = logging.getLogger(__name__)
@@ -33,12 +36,14 @@ LONG_RUNNING_TIMEOUT_S = 12 * 60 * 60
 class Job:
     """Mutable job state shared across the runner and the API."""
 
-    def __init__(self, job_id: str, action_id: str, command: list[str], cwd: Path, timeout_s: int):
+    def __init__(self, job_id: str, action_id: str, command: list[str], cwd: Path, timeout_s: int,
+                 pipeline_id: str | None = None):
         self.job_id = job_id
         self.action_id = action_id
         self.command = command
         self.cwd = cwd
         self.timeout_s = timeout_s
+        self.pipeline_id = pipeline_id
         self.state = "queued"
         self.pid: int | None = None
         self.exit_code: int | None = None
@@ -47,6 +52,7 @@ class Job:
         self.log_path: str | None = None
         self.journal_event_id: str | None = None
         self.error: str | None = None
+        self.node_results: list[dict[str, Any]] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -62,6 +68,8 @@ class Job:
             "finished_at": self.finished_at,
             "journal_event_id": self.journal_event_id,
             "error": self.error,
+            "pipeline_id": self.pipeline_id,
+            "node_results": self.node_results,
         }
 
 
@@ -97,6 +105,7 @@ class JobRunner:
         action_id: str,
         query: str | None = None,
         workspace: str | None = None,
+        pipeline_id: str | None = None,
     ) -> Job:
         """Create (queued) and spawn a job for the given action. Single-flight."""
         async with self._lock:
@@ -105,7 +114,15 @@ class JobRunner:
 
             action: Action = get_action(action_id)
             ws = workspace or str(self.workspace)
-            command = render_command(action, workspace=ws, query=query)
+            spec: PipelineSpec | None = None
+            if action_id == "pipeline":
+                if not pipeline_id:
+                    raise ValueError("pipeline_id is required for action 'pipeline'")
+                spec = self._load_pipeline_spec(pipeline_id)
+                pipeline_path = store_path(self.workspace) / f"{pipeline_id}.json"
+                command = render_command(action, workspace=ws, pipeline=str(pipeline_path))
+            else:
+                command = render_command(action, workspace=ws, query=query)
 
             job_id = f"job_{uuid.uuid4().hex[:8]}"
             job = Job(
@@ -114,6 +131,7 @@ class JobRunner:
                 command=command,
                 cwd=self.workspace,
                 timeout_s=self._timeout_for(action.action_id),
+                pipeline_id=pipeline_id,
             )
             job.log_path = str(self._job_dir(job_id) / "stdout.log")
             self.jobs[job_id] = job
@@ -125,6 +143,13 @@ class JobRunner:
         job.state = "running"
         job.error = None
         self._publish(job)
+
+        # Pipeline jobs execute the DAG in-process (a worker thread streams node
+        # output to SSE) rather than re-invoking the CLI as a nested subprocess.
+        if action_id == "pipeline":
+            asyncio.create_task(self._run_pipeline(job, spec))
+            return job
+
         proc = await asyncio.create_subprocess_exec(
             *command,
             cwd=str(self.workspace),
@@ -187,6 +212,132 @@ class JobRunner:
             self._processes.pop(job.job_id, None)
         self._publish(job)
 
+    def _load_pipeline_spec(self, spec_id: str) -> PipelineSpec:
+        """Load a saved spec (or the builtin default), requiring a valid DAG."""
+        path = store_path(self.workspace) / f"{spec_id}.json"
+        if path.is_file():
+            try:
+                spec = PipelineSpec.model_validate_json(path.read_text(encoding="utf-8"))
+            except Exception as exc:
+                raise ValueError(f"unparseable pipeline spec {spec_id!r}: {exc}") from exc
+        elif spec_id == PRISMA_SLR_DEFAULT["id"]:
+            spec = PipelineSpec.model_validate(PRISMA_SLR_DEFAULT)
+        else:
+            raise ValueError(f"missing pipeline spec: {spec_id}")
+        result = validate_spec(spec)
+        if result["errors"]:
+            raise ValueError(
+                f"pipeline spec {spec_id!r} is invalid: {'; '.join(result['errors'])}"
+            )
+        return spec
+
+    async def _run_pipeline(self, job: Job, spec: PipelineSpec) -> None:
+        """Run a PipelineSpec DAG in a worker thread, streaming node output to SSE.
+
+        Log lines hop back to the loop via `call_soon_threadsafe` (the executor
+        runs on a thread pool thread). Cancellation is cooperative: the executor
+        checks `should_cancel` at each node boundary, so an in-flight node always
+        runs to completion first.
+        """
+        loop = asyncio.get_running_loop()
+        lines: queue.Queue[str] = queue.Queue()
+
+        def push(line: str) -> None:
+            lines.put_nowait(line)
+
+        def runner_fn() -> tuple[str, list[dict[str, Any]] | None, str | None]:
+            try:
+                runner = PipelineExecutor(self.workspace)
+                results = runner.run(
+                    spec,
+                    output=push,
+                    should_cancel=lambda: job.state == "cancelled",
+                )
+                return "success", [r.to_dict() for r in results], None
+            except PipelineCancelled as exc:
+                return "cancelled", None, str(exc)
+            except PipelineError as exc:
+                return "halted", None, str(exc)
+            except Exception as exc:  # noqa: BLE001
+                return "failed", None, f"{type(exc).__name__}: {exc}"
+
+        task = loop.run_in_executor(None, runner_fn)
+        chunks: list[str] = []
+        # Poll the (thread-safe) output queue alongside executor completion. We
+        # deliberately avoid `asyncio.wait_for` + `call_soon_threadsafe`: their
+        # bridge is unreliable on proactor loops (notably under TestClient), where
+        # the coordinator would spin forever even though the DAG ran to completion.
+        while not task.done():
+            try:
+                line = lines.get_nowait()
+            except queue.Empty:
+                await asyncio.sleep(0.05)
+                continue
+            chunks.append(line)
+            if job.state != "cancelled":
+                self._publish_log(job.job_id, line)
+        while not lines.empty():
+            line = lines.get_nowait()
+            chunks.append(line)
+            if job.state != "cancelled":
+                self._publish_log(job.job_id, line)
+
+        state, node_results, error = await task
+        job.node_results = node_results or []
+        job.finished_at = _utc_now()
+        if state == "success":
+            job.state, job.exit_code = "success", 0
+        elif state == "cancelled":
+            job.state, job.exit_code = "cancelled", -signal.SIGTERM
+        else:
+            job.state, job.exit_code = "failed", 1
+        job.error = error
+
+        try:
+            log = self._job_dir(job.job_id) / "stdout.log"
+            log.write_text("\n".join(chunks), encoding="utf-8")
+        except Exception:
+            logger.debug("failed to persist job stdout for %s", job.job_id, exc_info=True)
+
+        if job.node_results:
+            try:
+                out = self._job_dir(job.job_id) / "pipeline_results.json"
+                out.write_text(
+                    json.dumps(
+                        {"pipeline_id": spec.id, "results": job.node_results},
+                        indent=2,
+                        ensure_ascii=False,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            except Exception:
+                logger.debug("failed to persist pipeline results for %s", job.job_id, exc_info=True)
+
+        status = "SUCCESS" if job.state == "success" else ("PARTIAL" if job.state == "cancelled" else "FAILED")
+        node_states = {r["node_id"]: r.get("state") for r in job.node_results}
+        event_id = _journal_event(
+            workspace=self.workspace,
+            action_id=job.action_id,
+            description=f"pipeline {spec.id!r} job {job.job_id} finished with state '{job.state}'",
+            status=status,
+            inputs=[spec.id],
+            outputs=[job.job_id],
+            metrics={
+                "state": job.state,
+                "exit_code": job.exit_code,
+                "nodes": len(job.node_results),
+                "node_states": node_states,
+                "error": job.error,
+            },
+        )
+        job.journal_event_id = event_id
+
+        async with self._lock:
+            self._active_actions.discard(job.action_id)
+            self._processes.pop(job.job_id, None)
+        self._publish(job)
+
     def _terminate(self, job: Job, proc: asyncio.subprocess.Process) -> None:
         try:
             proc.terminate()
@@ -224,17 +375,20 @@ class JobRunner:
         job.state = "cancelled"
         job.exit_code = -signal.SIGTERM
         job.finished_at = _utc_now()
-        _journal_event(
-            workspace=self.workspace,
-            action_id=job.action_id,
-            description=f"{job.action_id} job {job.job_id} cancelled",
-            status="PARTIAL",
-            inputs=[job.action_id],
-            outputs=[job.job_id],
-        )
-        async with self._lock:
-            self._active_actions.discard(job.action_id)
-            self._processes.pop(job_id, None)
+        if job.pipeline_id is None:
+            _journal_event(
+                workspace=self.workspace,
+                action_id=job.action_id,
+                description=f"{job.action_id} job {job.job_id} cancelled",
+                status="PARTIAL",
+                inputs=[job.action_id],
+                outputs=[job.job_id],
+            )
+            async with self._lock:
+                self._active_actions.discard(job.action_id)
+                self._processes.pop(job_id, None)
+        # Pipeline jobs: the running _run_pipeline finalizer performs the journal
+        # write and single-flight cleanup once the DAG notices the cancel.
         self._publish(job)
         return job
 

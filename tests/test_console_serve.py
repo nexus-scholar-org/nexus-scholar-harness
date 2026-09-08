@@ -185,7 +185,7 @@ class _StubRunner:
         self._counter = 0
         self.start_ok = True
 
-    async def start(self, action_id, query=None, workspace=None):
+    async def start(self, action_id, query=None, workspace=None, pipeline_id=None):
         from scholar_harness.console.runtimes.actions import get_action
 
         get_action(action_id)  # raises KeyError for unknown actions (mirrors real runner)

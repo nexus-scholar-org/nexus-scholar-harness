@@ -8,8 +8,8 @@ This table drives three consumers; keep it in sync across all of them:
      mcp_tool, if any, is exported by the scholar-agent-kit MCP server).
 
 Convention: every command runs through `uv run <cli>` against the shared
-`.venv` (see AGENTS.md). Placeholder tokens use `{ws}` for the workspace path
-and `{q}` for a free-text query.
+`.venv` (see AGENTS.md). Placeholder tokens use `{ws}` for the workspace path,
+`{q}` for a free-text query, and `{pipeline}` for a pipeline store path.
 """
 
 from __future__ import annotations
@@ -109,6 +109,13 @@ ACTIONS: list[Action] = [
         True,
     ),
     Action("export", "Export artifact set", "uv run scholar-harness export latex -w {ws}", None, True),
+    Action(
+        "pipeline",
+        "Run pipeline DAG",
+        "uv run scholar-harness run --pipeline {pipeline} -w {ws}",
+        None,
+        True,
+    ),
 ]
 
 _ACTIONS_BY_ID: dict[str, Action] = {a.action_id: a for a in ACTIONS}
@@ -123,17 +130,22 @@ def get_action(action_id: str) -> Action:
         raise KeyError(f"Unknown action '{action_id}'. Known actions: {known}") from None
 
 
-def render_command(action: Action, workspace: str = DEFAULT_WORKSPACE, query: str | None = None) -> list[str]:
+def render_command(action: Action, workspace: str = DEFAULT_WORKSPACE, query: str | None = None,
+                   pipeline: str | None = None) -> list[str]:
     """Expand an action's command template into an argv list.
 
-    `{ws}` is substituted with workspace; `{q}` with query. The token is
-    optional; `{q}` left unresolved (when query is None) yields a literal
-    "..." placeholder that is still a valid `--help`-safe probe.
+    `{ws}` is substituted with workspace; `{q}` with query; `{pipeline}` with
+    the pipeline store path. Tokens are optional; unresolved `{q}` / `{pipeline}`
+    yield a literal "..." placeholder that is still a `--help`-safe probe.
     """
     if not action.command_template.startswith("uv run "):
         raise ValueError(f"Action '{action.action_id}' command must start with 'uv run '")
 
-    values: dict[str, Any] = {"ws": workspace, "q": query if query is not None else "..."}
+    values: dict[str, Any] = {
+        "ws": workspace,
+        "q": query if query is not None else "...",
+        "pipeline": pipeline if pipeline is not None else "...",
+    }
     text = action.command_template
     for token, value in values.items():
         text = text.replace("{" + token + "}", str(value))

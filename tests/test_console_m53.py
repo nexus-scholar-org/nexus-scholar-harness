@@ -423,7 +423,7 @@ class _StubRunner:
     def __init__(self):
         self.jobs = {}
 
-    async def start(self, action_id, query=None, workspace=None):
+    async def start(self, action_id, query=None, workspace=None, pipeline_id=None):
         from scholar_harness.console.runtimes.actions import get_action
 
         get_action(action_id)

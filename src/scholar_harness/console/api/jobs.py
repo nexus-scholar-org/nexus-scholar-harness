@@ -27,6 +27,7 @@ class StartJobBody(BaseModel):
     action_id: str
     query: str | None = None
     workspace: str | None = None
+    pipeline_id: str | None = None
 
 
 class JobStreamBroadcast:
@@ -62,11 +63,20 @@ def _sse(event: dict[str, Any]) -> str:
 
 @router.post("/start", status_code=202)
 async def start_job(body: StartJobBody, request: Request) -> dict[str, Any]:
+    if body.action_id == "pipeline" and not body.pipeline_id:
+        raise HTTPException(status_code=400, detail="pipeline_id is required for action 'pipeline'")
     runner = _runner(request)
     try:
-        job = await runner.start(body.action_id, query=body.query, workspace=body.workspace)
+        job = await runner.start(
+            body.action_id,
+            query=body.query,
+            workspace=body.workspace,
+            pipeline_id=body.pipeline_id,
+        )
     except KeyError as exc:
         raise HTTPException(status_code=400, detail=f"unknown action: {exc}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except JobConflict as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     _broadcast(request).put({"event": "sync", "data": {"job": job.to_dict()}})

@@ -53,6 +53,10 @@ class PipelineError(Exception):
     """Raised for halted / aborted pipelines with a structured message."""
 
 
+class PipelineCancelled(PipelineError):
+    """Raised when an operator cancels the pipeline between nodes."""
+
+
 class NodeResult:
     """Outcome of a single node execution (serializable)."""
 
@@ -302,6 +306,7 @@ class PipelineExecutor:
         spec: PipelineSpec,
         output: Callable[[str], None] = print,
         skip: Iterable[str] = (),
+        should_cancel: Callable[[], bool] | None = None,
     ) -> list[NodeResult]:
         node_map = {n.id: n for n in spec.nodes}
         order, cycle_errors = _toposort(set(node_map), spec.edges)
@@ -312,6 +317,8 @@ class PipelineExecutor:
         prior_outputs: dict[str, dict[str, str]] = {}
 
         for node_id in order:
+            if should_cancel is not None and should_cancel():
+                raise PipelineCancelled("cancelled by operator")
             if node_id in skip:
                 output(f"… node {node_id} skipped (explicit)")
                 results.append(NodeResult(node_id, "skipped", [], skipped_reason="explicit skip"))

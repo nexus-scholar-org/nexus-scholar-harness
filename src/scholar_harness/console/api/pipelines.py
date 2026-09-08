@@ -255,6 +255,11 @@ def _store(ws: Path) -> Path:
     return d
 
 
+def store_path(ws: Path) -> Path:
+    """Runtime store dir for pipeline specs (also used by the job runner)."""
+    return _store(ws)
+
+
 def _load_spec(ws: Path, spec_id: str, allow_builtin: bool = True) -> PipelineSpec:
     path = _store(ws) / f"{spec_id}.json"
     if path.is_file():
