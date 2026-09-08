@@ -34,7 +34,7 @@ from .audit import log_event
 router = APIRouter(prefix="/api/v1/pipelines", tags=["pipelines"])
 
 SCHEMA_VERSION = "0.1.0"
-_TEMPLATE_RE = re.compile(r"\{\{\s*([A-Za-z0-9_.]+)\s*\}\}")
+_TEMPLATE_RE = re.compile(r"\{\{\s*([A-Za-z0-9_.\/-]+)\s*\}\}")
 
 
 class PipelineNode(BaseModel):
@@ -203,11 +203,13 @@ def validate_spec(spec: PipelineSpec) -> dict[str, Any]:
             errors.append(f"edge references unknown target node {dst!r}")
 
     slot_keys = {"workspace_slug", "rq_id", "per_node_limit"}
+    # Node-output references resolve at runtime: {{node_id.output_path}}.
+    output_refs = {f"{n.id}.{out}" for n in spec.nodes for out in n.outputs}
     for n in spec.nodes:
         if not n.command:
             errors.append(f"node {n.id}: command must not be empty")
-        unresolved = _extract_template_keys(n.args) - set()
-        unresolved = {k for k in _extract_template_keys(n.args) if not _lookup(k, spec.settings, slot_keys)}
+        unresolved = {k for k in _extract_template_keys(n.args)
+                      if not _lookup(k, spec.settings, slot_keys) and k not in output_refs}
         if unresolved:
             errors.append(f"node {n.id}: unresolved template keys {sorted(unresolved)}")
 

@@ -136,7 +136,10 @@ def sync(
 @app.command("run")
 def run_pipeline(
     protocol: Path = typer.Option(
-        Path("protocol.json"), "--protocol", "-p", help="Path to canonical protocol.json"
+        None, "--protocol", "-p", help="Path to canonical protocol.json (classic orchestrator)"
+    ),
+    pipeline: Path = typer.Option(
+        None, "--pipeline", help="Path to a PipelineSpec JSON file (M5.4 DAG executor)"
     ),
     workspace: Path = typer.Option(
         Path("."), "--workspace", "-w", help="Target research workspace directory"
@@ -144,13 +147,22 @@ def run_pipeline(
     limit: int = typer.Option(
         None, "--limit", "-l", help="Max search candidates to fetch (for testing)"
     ),
+    skip: str = typer.Option(
+        None, "--skip", help="Comma-separated node ids to skip (DAG executor only)"
+    ),
 ):
-    """Execute the full end-to-end systematic research pipeline."""
+    """Execute a research pipeline: either the classic orchestrator (--protocol)
+    or a PipelineSpec DAG (--pipeline, M5.4)."""
+    if pipeline is not None:
+        _run_pipeline_spec(pipeline, workspace, skip)
+        return
+
+    protocol_path = protocol or Path("protocol.json")
     orchestrator = ResearchOrchestrator(workspace)
-    console.print(f"[bold cyan]🚀 Initializing Nexus Scholar Pipeline for {protocol}...[/bold cyan]")
+    console.print(f"[bold cyan]🚀 Initializing Nexus Scholar Pipeline for {protocol_path}...[/bold cyan]")
 
     with console.status("[bold green]Executing multi-stage pipeline..."):
-        res = orchestrator.run_pipeline(protocol_path=protocol, max_search_results=limit)
+        res = orchestrator.run_pipeline(protocol_path=protocol_path, max_search_results=limit)
 
     console.print(Panel.fit(
         f"[bold green]✨ Research Pipeline Execution Completed Successfully![/bold green]\n\n"
@@ -164,6 +176,36 @@ def run_pipeline(
         title="Pipeline Execution Summary",
         border_style="green"
     ))
+
+
+def _run_pipeline_spec(pipeline: Path, workspace: Path, skip: str | None) -> None:
+    """Execute a PipelineSpec DAG (M5.4)."""
+    from .pipeline_executor import PipelineError, execute_file
+
+    console.print(f"[bold cyan]🚀 Executing PipelineSpec {pipeline} in {workspace}...[/bold cyan]")
+    skip_ids = [s.strip() for s in skip.split(",")] if skip else []
+    try:
+        spec, results = execute_file(pipeline, workspace, output=console.print, skip=skip_ids)
+    except PipelineError as exc:
+        console.print(f"[bold red]❌ Pipeline halted: {exc}[/bold red]")
+        raise typer.Exit(1)
+
+    table = Table(title=f"➜ PipelineSpec {spec.id} · {spec.name or spec.archetype}",
+                  show_header=True, header_style="bold cyan")
+    table.add_column("Node", style="bold white", width=22)
+    table.add_column("State", style="green", width=10)
+    table.add_column("Exit", style="dim", width=6)
+    table.add_column("Detail", style="white")
+    for r in results:
+        detail = r.message or r.skipped_reason or (" ".join(r.command) if r.command else "—")
+        table.add_row(r.node_id, r.state, "-" if r.exit_code is None else str(r.exit_code), detail)
+    console.print(table)
+
+    states = {r.state for r in results}
+    if "halted" in states:
+        console.print("[bold yellow]⏸ Pipeline paused: human review required before re-run.[/bold yellow]")
+        raise typer.Exit(1)
+    console.print("[bold green]✨ PipelineSpec execution complete.[/bold green]")
 
 
 @app.command("export")
