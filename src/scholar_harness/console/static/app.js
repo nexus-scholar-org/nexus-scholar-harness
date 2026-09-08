@@ -774,7 +774,14 @@ async function renderActions() {
 
 /* ---------------- pipeline builder (M5.4 no-code) ---------------- */
 
-const ARCHETYPES = ["PRISMA_SLR", "SCOPING_REVIEW", "REA", "META_RESEARCH"];
+const ARCHETYPES = ["PRISMA_SLR", "SCOPING_REVIEW", "RAPID_EVIDENCE", "DESIGN_SCIENCE", "STUDENT_DISSERTATION"];
+const BUILTIN_IDS = new Set([
+  "prisma_slr_default",
+  "scoping_review_default",
+  "rapid_evidence_default",
+  "design_science_default",
+  "student_dissertation_default",
+]);
 const ON_FAIL = ["abort", "skip", "continue"];
 
 function splitCommand(s) {
@@ -912,7 +919,7 @@ function galleryCard(ids) {
   ids.forEach((id) => {
     const pc = el("div", "p-card");
     pc.append(el("div", "p-name", id));
-    pc.append(el("div", "p-hint", id === "prisma_slr_default" ? "builtin template · browse or clone" : "saved spec in .harness-console/pipelines/"));
+    pc.append(el("div", "p-hint", BUILTIN_IDS.has(id) ? "builtin template · browse or clone" : "saved spec in .harness-console/pipelines/"));
     const row = el("div", "pill-row");
     const open = el("button", "btn", "Open");
     open.title = "Open in the builder";

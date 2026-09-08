@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from ...pipeline_executor import PipelineCancelled, PipelineError, PipelineExecutor
-from ..api.pipelines import PRISMA_SLR_DEFAULT, PipelineSpec, store_path, validate_spec
+from ..api.pipelines import BUILTIN_TEMPLATES, PipelineSpec, store_path, validate_spec
 from .actions import Action, get_action, render_command
 
 logger = logging.getLogger(__name__)
@@ -220,8 +220,8 @@ class JobRunner:
                 spec = PipelineSpec.model_validate_json(path.read_text(encoding="utf-8"))
             except Exception as exc:
                 raise ValueError(f"unparseable pipeline spec {spec_id!r}: {exc}") from exc
-        elif spec_id == PRISMA_SLR_DEFAULT["id"]:
-            spec = PipelineSpec.model_validate(PRISMA_SLR_DEFAULT)
+        elif spec_id in BUILTIN_TEMPLATES:
+            spec = PipelineSpec.model_validate(BUILTIN_TEMPLATES[spec_id])
         else:
             raise ValueError(f"missing pipeline spec: {spec_id}")
         result = validate_spec(spec)

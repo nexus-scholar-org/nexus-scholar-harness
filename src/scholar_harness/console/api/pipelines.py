@@ -132,6 +132,261 @@ PRISMA_SLR_DEFAULT = {
     "fingerprint": "",
 }
 
+# The five canonical review playbook archetypes (inception.ALL_PLAYBOOKS) each
+# ship a 1-click template so the gallery covers every research paradigm:
+#   PRISMA_SLR          -> complete systematic SLR (default)
+#   SCOPING_REVIEW      -> JBI-style evidence map (broad search, charting stop)
+#   RAPID_EVIDENCE      -> REA guidelines: narrow, recent, prioritized provider
+#   DESIGN_SCIENCE      -> Hevner DSR: artifact-oriented pipeline + eval matrix
+#   STUDENT_DISSERTATION-> APA/JBI-adapted: two-wave studio review
+# Templates are scaffolds: the same {{settings}}/node-output template language
+# and validation invariants as user specs, so dry-run/export/run work unchanged.
+
+SCOPING_REVIEW_DEFAULT: dict[str, Any] = {
+    "schema_version": SCHEMA_VERSION,
+    "id": "scoping_review_default",
+    "archetype": "SCOPING_REVIEW",
+    "name": "Scoping Review (JBI) - breadth-first evidence map",
+    "workspace_slug": "my-scoping-review",
+    "settings": {
+        "rq_ids": ["RQ1"],
+        "queries": {"rq1_query": "stakeholder perception urban green space UAV monitoring"},
+        "provider_priority": ["openalex", "semantic_scholar", "arxiv", "pubmed"],
+    },
+    "nodes": [
+        {
+            "id": "n1_scope_discovery",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "run"],
+            "args": {"query": "{{queries.rq1_query}}", "providers": "{{provider_priority}}", "year_min": 2010, "limit": 5000},
+            "inputs": [],
+            "outputs": ["literature/candidates.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n2_dedup",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "dedup"],
+            "args": {"input": "{{n1_scope_discovery.literature/candidates.json}}"},
+            "inputs": ["literature/candidates.json"],
+            "outputs": ["literature/corpus.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n3_scope_screen",
+            "kit": "harness-agent-screen",
+            "command": ["python", "src/scholar_harness/agent_screen.py", "prepare"],
+            "args": {"workspace": "{{workspace_slug}}"},
+            "inputs": ["literature/corpus.json"],
+            "outputs": ["literature/screening/batch_*.json"],
+            "on_fail": "abort",
+            "requires_decision": True,
+        },
+    ],
+    "edges": [["n1_scope_discovery", "n2_dedup"], ["n2_dedup", "n3_scope_screen"]],
+    "dry_run": {"per_node_limit": 25},
+    "created_by": "console",
+    "fingerprint": "",
+}
+
+RAPID_EVIDENCE_DEFAULT: dict[str, Any] = {
+    "schema_version": SCHEMA_VERSION,
+    "id": "rapid_evidence_default",
+    "archetype": "RAPID_EVIDENCE",
+    "name": "Rapid Evidence Assessment (REA) - recent prioritized match",
+    "workspace_slug": "my-rapid-evidence",
+    "settings": {
+        "rq_ids": ["RQ1"],
+        "queries": {"rq1_query": "risk of bias assessment tool screening efficiency"},
+        "provider_priority": "openalex",
+    },
+    "nodes": [
+        {
+            "id": "n1_rapid_discovery",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "run"],
+            "args": {"query": "{{queries.rq1_query}}", "providers": "{{provider_priority}}", "year_min": 2020, "limit": 800},
+            "inputs": [],
+            "outputs": ["literature/candidates.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n2_dedup",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "dedup"],
+            "args": {"input": "{{n1_rapid_discovery.literature/candidates.json}}"},
+            "inputs": ["literature/candidates.json"],
+            "outputs": ["literature/corpus.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n3_rapid_screen",
+            "kit": "harness-agent-screen",
+            "command": ["python", "src/scholar_harness/agent_screen.py", "prepare"],
+            "args": {"workspace": "{{workspace_slug}}"},
+            "inputs": ["literature/corpus.json"],
+            "outputs": ["literature/screening/batch_*.json"],
+            "on_fail": "abort",
+            "requires_decision": True,
+        },
+        {
+            "id": "n4_fulltext",
+            "kit": "scholar-pdf-kit",
+            "command": ["scholar-pdf", "download"],
+            "args": {"input": "literature/included.json", "output": "pdfs/", "max-concurrent": 10, "strict-validate": True},
+            "inputs": ["literature/included.json"],
+            "outputs": ["pdfs/**"],
+            "on_fail": "abort",
+        },
+    ],
+    "edges": [
+        ["n1_rapid_discovery", "n2_dedup"],
+        ["n2_dedup", "n3_rapid_screen"],
+        ["n3_rapid_screen", "n4_fulltext"],
+    ],
+    "dry_run": {"per_node_limit": 25},
+    "created_by": "console",
+    "fingerprint": "",
+}
+
+DESIGN_SCIENCE_DEFAULT: dict[str, Any] = {
+    "schema_version": SCHEMA_VERSION,
+    "id": "design_science_default",
+    "archetype": "DESIGN_SCIENCE",
+    "name": "Design Science (Hevner DSR) - artifact evaluation pipeline",
+    "workspace_slug": "my-design-science",
+    "settings": {
+        "rq_ids": ["RQ1", "RQ2"],
+        "queries": {"design_query": "multispectral UAV weed segmentation artifact evaluation benchmark"},
+        "provider_priority": ["openalex", "semantic_scholar", "arxiv"],
+    },
+    "nodes": [
+        {
+            "id": "n1_ds_discovery",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "run"],
+            "args": {"query": "{{queries.design_query}}", "providers": "{{provider_priority}}", "year_min": 2018, "limit": 3000},
+            "inputs": [],
+            "outputs": ["literature/candidates.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n2_dedup",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "dedup"],
+            "args": {"input": "{{n1_ds_discovery.literature/candidates.json}}"},
+            "inputs": ["literature/candidates.json"],
+            "outputs": ["literature/corpus.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n3_ds_screen",
+            "kit": "harness-agent-screen",
+            "command": ["python", "src/scholar_harness/agent_screen.py", "prepare"],
+            "args": {"workspace": "{{workspace_slug}}"},
+            "inputs": ["literature/corpus.json"],
+            "outputs": ["literature/screening/batch_*.json"],
+            "on_fail": "abort",
+            "requires_decision": True,
+        },
+        {
+            "id": "n4_ds_artifacts",
+            "kit": "scholar-pdf-kit",
+            "command": ["scholar-pdf", "download"],
+            "args": {"input": "literature/corpus.json", "output": "pdfs/", "smart-names": True},
+            "inputs": ["literature/corpus.json"],
+            "outputs": ["pdfs/**"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n5_ds_matrix",
+            "kit": "scholar-rag-kit",
+            "command": ["scholar-rag", "matrix"],
+            "args": {"protocol": "protocol.json", "db-path": "rag/chroma_db", "output-dir": "literature"},
+            "inputs": [],
+            "outputs": ["literature/synthesis_matrix.md"],
+            "on_fail": "continue",
+        },
+    ],
+    "edges": [
+        ["n1_ds_discovery", "n2_dedup"],
+        ["n2_dedup", "n3_ds_screen"],
+        ["n3_ds_screen", "n4_ds_artifacts"],
+        ["n3_ds_screen", "n5_ds_matrix"],
+    ],
+    "dry_run": {"per_node_limit": 25},
+    "created_by": "console",
+    "fingerprint": "",
+}
+
+STUDENT_DISSERTATION_DEFAULT: dict[str, Any] = {
+    "schema_version": SCHEMA_VERSION,
+    "id": "student_dissertation_default",
+    "archetype": "STUDENT_DISSERTATION",
+    "name": "Student Dissertation (APA/JBI adapted) - two-wave studio review",
+    "workspace_slug": "my-dissertation",
+    "settings": {
+        "rq_ids": ["RQ1", "RQ2"],
+        "queries": {"rq1_query": "unmanned aerial vehicles precision agriculture weed detection"},
+        "provider_priority": ["openalex", "semantic_scholar", "arxiv", "pubmed", "crossref"],
+    },
+    "nodes": [
+        {
+            "id": "n1_thesis_discovery",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "run"],
+            "args": {"query": "{{queries.rq1_query}}", "providers": "{{provider_priority}}", "year_min": 2015, "limit": 4000},
+            "inputs": [],
+            "outputs": ["literature/candidates.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n2_dedup",
+            "kit": "scholar-search-kit",
+            "command": ["scholar-search", "dedup"],
+            "args": {"input": "{{n1_thesis_discovery.literature/candidates.json}}"},
+            "inputs": ["literature/candidates.json"],
+            "outputs": ["literature/corpus.json"],
+            "on_fail": "abort",
+        },
+        {
+            "id": "n3_thesis_screen",
+            "kit": "harness-agent-screen",
+            "command": ["python", "src/scholar_harness/agent_screen.py", "prepare"],
+            "args": {"workspace": "{{workspace_slug}}"},
+            "inputs": ["literature/corpus.json"],
+            "outputs": ["literature/screening/batch_*.json"],
+            "on_fail": "abort",
+            "requires_decision": True,
+        },
+        {
+            "id": "n4_thesis_fulltext",
+            "kit": "scholar-pdf-kit",
+            "command": ["scholar-pdf", "download"],
+            "args": {"input": "literature/included.json", "output": "pdfs/", "strict-validate": True},
+            "inputs": ["literature/included.json"],
+            "outputs": ["pdfs/**"],
+            "on_fail": "abort",
+        },
+    ],
+    "edges": [
+        ["n1_thesis_discovery", "n2_dedup"],
+        ["n2_dedup", "n3_thesis_screen"],
+        ["n3_thesis_screen", "n4_thesis_fulltext"],
+    ],
+    "dry_run": {"per_node_limit": 25},
+    "created_by": "console",
+    "fingerprint": "",
+}
+
+BUILTIN_TEMPLATES: dict[str, dict[str, Any]] = {
+    PRISMA_SLR_DEFAULT["id"]: PRISMA_SLR_DEFAULT,
+    SCOPING_REVIEW_DEFAULT["id"]: SCOPING_REVIEW_DEFAULT,
+    RAPID_EVIDENCE_DEFAULT["id"]: RAPID_EVIDENCE_DEFAULT,
+    DESIGN_SCIENCE_DEFAULT["id"]: DESIGN_SCIENCE_DEFAULT,
+    STUDENT_DISSERTATION_DEFAULT["id"]: STUDENT_DISSERTATION_DEFAULT,
+}
+
 
 def _lookup(key: str, settings: dict[str, Any], slot_keys: set[str]) -> bool:
     """True if `key` resolves against settings/slots (dotted paths included)."""
@@ -267,8 +522,8 @@ def _load_spec(ws: Path, spec_id: str, allow_builtin: bool = True) -> PipelineSp
             return PipelineSpec.model_validate_json(path.read_text(encoding="utf-8"))
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"unparseable pipeline spec {spec_id}: {exc}") from exc
-    if allow_builtin and spec_id == PRISMA_SLR_DEFAULT["id"]:
-        return PipelineSpec.model_validate(PRISMA_SLR_DEFAULT)
+    if allow_builtin and spec_id in BUILTIN_TEMPLATES:
+        return PipelineSpec.model_validate(BUILTIN_TEMPLATES[spec_id])
     raise HTTPException(status_code=404, detail=f"missing pipeline spec: {spec_id}")
 
 
@@ -289,8 +544,8 @@ def _write_spec(ws: Path, spec: PipelineSpec) -> PipelineSpec:
 def list_pipelines(request: Request) -> dict[str, Any]:
     ws: Path = request.app.state.workspace
     saved = sorted(p.name[: -len(".json")] for p in _store(ws).glob("*.json") if p.is_file())
-    if PRISMA_SLR_DEFAULT["id"] not in saved:
-        saved.insert(0, PRISMA_SLR_DEFAULT["id"])
+    builtin_ids = list(BUILTIN_TEMPLATES)
+    saved = [bid for bid in builtin_ids if bid not in saved] + saved
     return {"count": len(saved), "ids": saved}
 
 

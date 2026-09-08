@@ -176,6 +176,55 @@ def test_pipeline_export_script_endpoint(tmp_path):
     assert client.get("/api/v1/pipelines/exportpipe/export?script_format=bat").status_code == 400
 
 
+BUILTIN_ARCHETYPES = [
+    "prisma_slr_default",
+    "scoping_review_default",
+    "rapid_evidence_default",
+    "design_science_default",
+    "student_dissertation_default",
+]
+
+
+def test_all_builtin_archetype_templates_list_valid_and_exportable(tmp_path):
+    """The gallery ships one 1-click template per canonical playbook archetype.
+
+    Each builtin must be listed, validate clean (acyclic DAG, resolvable
+    template keys, no output collisions), be dry-runnable without writing, and
+    carry a requires_decision screening step.
+    """
+    ws = _bootstrap(tmp_path)
+    client = TestClient(create_app(ws))
+
+    listed = client.get("/api/v1/pipelines")
+    assert listed.status_code == 200
+    ids = listed.json()["ids"]
+    for bid in BUILTIN_ARCHETYPES:
+        assert bid in ids
+    assert len(ids) == len(BUILTIN_ARCHETYPES)
+
+    for bid in BUILTIN_ARCHETYPES:
+        spec = client.get(f"/api/v1/pipelines/{bid}")
+        assert spec.status_code == 200, bid
+        body = spec.json()["spec"]
+        assert body["archetype"] in {
+            "PRISMA_SLR", "SCOPING_REVIEW", "RAPID_EVIDENCE",
+            "DESIGN_SCIENCE", "STUDENT_DISSERTATION",
+        }
+        assert len(body["nodes"]) >= 3
+        assert any(n["requires_decision"] for n in body["nodes"])
+
+        dry = client.post(f"/api/v1/pipelines/{bid}/dry-run", json={})
+        assert dry.status_code == 200, bid
+        payload = dry.json()
+        assert payload["valid"] is True, f"{bid}: {payload['errors']}"
+        assert len(payload["nodes_ordered"]) == len(body["nodes"])
+        assert "no canonical files modified" in payload["message"]
+
+        export = client.get(f"/api/v1/pipelines/{bid}/export")
+        assert export.status_code == 200, bid
+        assert export.text.startswith("#!/usr/bin/env bash")
+
+
 # ---------------------------------------------------------------------------
 # live DAG execution through the job runner (httpx + asyncio.run)
 # ---------------------------------------------------------------------------
