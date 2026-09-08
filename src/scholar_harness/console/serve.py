@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .api import jobs as jobs_api
+from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .runtimes.job_runner import JobRunner
 
@@ -47,6 +48,7 @@ def create_app(workspace: str | Path) -> FastAPI:
 
     app.include_router(workspace_api.router)
     app.include_router(jobs_api.router)
+    app.include_router(streams_api.router)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
