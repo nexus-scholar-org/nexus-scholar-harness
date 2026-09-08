@@ -111,7 +111,8 @@ async def job_stream(job_id: str, request: Request) -> StreamingResponse:
     async def event_gen():
         try:
             # Replay the current state first.
-            yield _sse({"event": "snapshot", "data": {"job": runner.jobs[job_id].to_dict()}})
+            job_dict = runner.jobs[job_id].to_dict()
+            yield _sse({"event": "snapshot", "data": {"job": job_dict}})
             while True:
                 try:
                     msg = await asyncio.wait_for(queue.get(), timeout=30)
@@ -119,9 +120,15 @@ async def job_stream(job_id: str, request: Request) -> StreamingResponse:
                     yield ": keepalive\n\n"
                     continue
                 data = msg.get("data", {})
-                if data.get("job", {}).get("job_id") == job_id:
+                if data.get("job", {}).get("job_id") == job_id or data.get("job_id") == job_id and msg.get("event") == "log":
                     yield _sse(msg)
         finally:
             broadcast.unsubscribe(queue)
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")
+
+
+# SPECS §3 aliases: POST /api/v1/jobs and GET /api/v1/jobs/{id}/events are the
+# canonical paths; `/start` and `/stream` remain for backward compatibility.
+router.add_api_route("", start_job, methods=["POST"], status_code=202)
+router.add_api_route("/{job_id}/events", job_stream, methods=["GET"])

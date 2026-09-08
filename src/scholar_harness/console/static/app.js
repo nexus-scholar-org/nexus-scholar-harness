@@ -13,6 +13,9 @@ const state = {
   synthSelected: null,
   auditAction: "",
   auditAgent: "",
+  batchNo: null,
+  activeJob: null,
+  reasons: {},
 };
 
 const PHASES = [
@@ -40,6 +43,22 @@ async function api(path) {
       detail = (await res.json()).detail || detail;
     } catch (_) { /* non-JSON body */ }
     throw new Error(`GET ${path} -> ${res.status} ${detail}`);
+  }
+  return res.json();
+}
+
+async function postJSON(path, body) {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      detail = JSON.stringify((await res.json()).detail || detail);
+    } catch (_) { /* non-JSON body */ }
+    throw new Error(`POST ${path} -> ${res.status} ${detail}`);
   }
   return res.json();
 }
@@ -72,6 +91,110 @@ function kpi(label, value, sub) {
   box.append(el("div", "k-label", label), el("div", "k-value", String(value)));
   if (sub) box.append(el("div", "k-sub", sub));
   return box;
+}
+
+/* ---------------- job runner tray ---------------- */
+
+const RUNNER_TRIGGERS = ["sync", "trust_context", "screen_collect", "graph", "export", "status"];
+let jobStream = null;
+
+function buildRunnerButtons(rows) {
+  const wrap = $("#runner-buttons");
+  wrap.innerHTML = "";
+  rows
+    .filter((r) => RUNNER_TRIGGERS.includes(r.action_id))
+    .forEach((r) => {
+      const b = el("button", "btn", r.label);
+      b.title = r.command;
+      b.dataset.action = r.action_id;
+      b.onclick = () => startAction(r.action_id);
+      wrap.append(b);
+    });
+}
+
+async function startAction(actionId) {
+  clearErr();
+  try {
+    const res = await postJSON("/api/v1/jobs/start", { action_id: actionId });
+    listenJob(res.job);
+  } catch (err) {
+    showErr(err.message);
+  }
+}
+
+async function runAction(actionId) {
+  clearErr();
+  const res = await postJSON("/api/v1/jobs/start", { action_id: actionId });
+  listenJob(res.job);
+  return res.job;
+}
+
+function listenJob(job) {
+  state.activeJob = job.job_id;
+  if (jobStream) jobStream.close();
+  $("#active-job-wrap").classList.remove("hidden");
+  const tail = $("#job-tail");
+  tail.innerHTML = "";
+  renderJobMeta(job);
+  setRunnerPill(job.state);
+  jobStream = new EventSource(`/api/v1/jobs/${job.job_id}/stream`);
+  jobStream.onerror = () => {};
+  jobStream.addEventListener("snapshot", (e) => renderJob(JSON.parse(e.data).job, false));
+  jobStream.addEventListener("job", (e) => renderJob(JSON.parse(e.data).job, true));
+  jobStream.addEventListener("log", (e) => appendTail(JSON.parse(e.data).line));
+}
+
+function renderJobMeta(job) {
+  const badge = $("#job-badge");
+  badge.textContent = `${job.action_id} · ${job.job_id}`;
+  $("#job-pid").textContent = job.pid != null ? "pid " + job.pid : (job.state === "running" ? "spawning…" : "pid —");
+  $("#job-cmd").textContent = (job.command || []).join(" ");
+  $("#job-cancel").classList.toggle("hidden", !["queued", "running"].includes(job.state));
+}
+
+function setRunnerPill(stateName) {
+  const pill = $("#runner-state");
+  pill.className = "badge";
+  pill.textContent = stateName;
+  if (stateName === "success") pill.classList.add("ok");
+  else if (stateName === "failed" || stateName === "cancelled") pill.classList.add("err");
+  else if (stateName === "running" || stateName === "queued") pill.classList.add("accent");
+}
+
+function renderJob(job, isTerminal) {
+  renderJobMeta(job);
+  setRunnerPill(job.state);
+  document.querySelectorAll("#runner-buttons .btn").forEach((b) => {
+    b.classList.toggle("busy", b.dataset.action === job.action_id && ["queued", "running"].includes(job.state));
+  });
+  if (["success", "failed", "cancelled"].includes(job.state)) {
+    appendTail(`⟶ job ${job.job_id} finished (state=${job.state}, exit=${job.exit_code})`, true);
+    if (isTerminal && jobStream) {
+      setTimeout(() => {
+        if (jobStream) jobStream.close();
+        jobStream = null;
+      }, 3000);
+    }
+  }
+}
+
+function appendTail(line, dim) {
+  const tail = $("#job-tail");
+  const div = document.createElement("div");
+  if (dim) div.className = "tail-dim";
+  div.textContent = line || " ";
+  tail.append(div);
+  tail.scrollTop = tail.scrollHeight;
+}
+
+async function cancelActiveJob() {
+  const jobId = state.activeJob;
+  if (!jobId) return;
+  try {
+    await postJSON(`/api/v1/jobs/${jobId}/cancel`, {});
+  } catch (err) {
+    showErr(err.message);
+  }
 }
 
 /* ---------------- status / dashboard ---------------- */
@@ -190,29 +313,198 @@ async function renderLiterature() {
 }
 
 /* ---------------- screening ---------------- */
-
 async function renderScreening() {
   const view = $("#view-screening");
   view.innerHTML = "";
   const payload = await api("/api/v1/screening/batches");
+
+  const bar = el("div", "batch-toolbar");
+  const collectBtn = el("button", "btn primary", "Run Collect (assemble included/excluded)");
+  collectBtn.onclick = () => runAction("screen_collect").catch((e) => showErr(e.message));
+  bar.append(collectBtn);
+  view.append(bar);
+
   const card = el("div", "card");
-  card.append(el("h3", "count", `Screening batches · ${payload.count}`));
+  card.append(el("h3", "", `Screening batches · ${payload.count}`));
   const tbl = el("table", "tbl");
-  tbl.innerHTML = `<thead><tr><th>Batch</th><th>Items</th><th>Decisions</th><th>Collected</th><th>Decision file</th></tr></thead>`;
+  tbl.innerHTML = `<thead><tr><th>Batch</th><th>Items</th><th>Decisions</th><th>State</th><th></th></tr></thead>`;
   const body = el("tbody", "");
   payload.batches.forEach((b) => {
     const tr = el("tr", "");
+    const stateBadge = b.collected
+      ? el("span", "badge ok", "collected")
+      : (b.decisions_count > 0 ? el("span", "badge warn", "needs collect") : el("span", "badge", "pending"));
+    const tdBtn = el("td", "");
+    const review = el("button", "btn", b.decisions_count > 0 ? "Review / edit" : "Open screening room");
+    review.onclick = () => {
+      state.batchNo = parseInt(b.name.replace(/\D/g, ""), 10);
+      renderView();
+    };
+    tdBtn.append(review);
     tr.append(
       el("td", "mono", b.name),
       el("td", "", String(b.items)),
-      el("td", "", String(b.decisions_count)),
-      el("td", "", b.collected ? "yes" : "—"),
-      el("td", "mono", b.decisions_file || "—"),
+      el("td", "", `${b.decisions_count}/${b.items}`),
+      el("td", "").append(stateBadge),
+      tdBtn,
     );
     body.append(tr);
   });
   tbl.append(body);
   card.append(tbl);
+  view.append(card);
+
+  if (state.batchNo != null) {
+    await renderBatchRoom();
+  } else {
+    const hint = el("div", "card");
+    hint.append(el("div", "empty", "Select a batch above to open the interactive screening room."));
+    view.append(hint);
+  }
+}
+
+function reasonOptions(batchData) {
+  const criteria = (batchData.items.protocol || {}).screening_criteria || {};
+  const inc = (criteria.inclusion || []).map((c) => ({ code: c.id, text: c.criterion }));
+  const exc = (criteria.exclusion || []).map((c) => ({ code: c.id, text: `${c.criterion}${c.reason_category ? " (" + c.reason_category + ")" : ""}` }));
+  return { inc, exc };
+}
+
+function paperCard(wsid, paper, batchData, existing) {
+  const card = el("div", "paper-card");
+  card.dataset.ws = wsid;
+
+  const head = el("div", "p-head");
+  head.append(el("span", "p-title", paper.title || "Untitled"), el("span", "badge accent", wsid));
+  card.append(head);
+
+  const meta = el("div", "p-meta");
+  meta.append(
+    el("span", "", paper.year || "—"),
+    el("span", "", paper.venue || "—"),
+    el("span", "", paper.doi || "—"),
+  );
+  card.append(meta);
+
+  const abs = paper.abstract && paper.abstract !== "No abstract available." ? paper.abstract : "";
+  card.append(el("div", "p-abs", abs));
+
+  const decision = el("div", "p-decision");
+  const seg = el("div", "seg");
+  const incB = el("button", existing === "INCLUDE" ? "active" : "", "Include");
+  const excB = el("button", existing === "EXCLUDE" ? "active" : "", "Exclude");
+  let current = existing || "";
+  function toggle(kind) {
+    current = current === kind ? "" : kind;
+    incB.classList.toggle("active", current === "INCLUDE");
+    excB.classList.toggle("active", current === "EXCLUDE");
+  }
+  incB.onclick = () => toggle("INCLUDE");
+  excB.onclick = () => toggle("EXCLUDE");
+  seg.append(incB, excB);
+
+  const cfd = el("input");
+  cfd.type = "range";
+  cfd.min = "0";
+  cfd.max = "1";
+  cfd.step = "0.05";
+  cfd.className = "cfd-range";
+  cfd.value = String(existing ? existing.confidence : 0.85);
+  const cfdLabel = el("span", "cfd", Number(cfd.value).toFixed(2));
+  cfd.oninput = () => { cfdLabel.textContent = Number(cfd.value).toFixed(2); };
+
+  const { inc: incReasons, exc: excReasons } = reasonOptions(batchData);
+  const sel = el("select", "reason-select");
+  sel.append(option("", "reason code…"));
+  incReasons.forEach((r) => sel.append(option(r.code, r.code + " (INC)", existing && (existing.matched_inclusion_criteria || []).includes(r.code))));
+  excReasons.forEach((r) => sel.append(option(r.code, r.code + " (EXC)", existing && (existing.violated_exclusion_criteria || []).includes(r.code))));
+  sel.append(option("", "other — see note"));
+  if (sel.options.length <= 1) sel.append(option("", "no criteria in protocol"));
+
+  const note = el("input");
+  note.type = "text";
+  note.className = "note-input";
+  note.placeholder = "screening note / reasoning…";
+  if (existing && existing.screening_reasoning) note.value = existing.screening_reasoning;
+
+  decision.append(seg, cfd, cfdLabel, sel, note);
+  card.append(decision);
+  return card;
+}
+
+function option(value, text, selected) {
+  const o = document.createElement("option");
+  o.value = value;
+  o.textContent = text;
+  o.selected = Boolean(selected);
+  return o;
+}
+
+function collectDecisions() {
+  const rows = [];
+  document.querySelectorAll("#view-screening .paper-card").forEach((card) => {
+    const wsid = card.dataset.ws;
+    const active = card.querySelector(".seg button.active");
+    if (!wsid || !active) return;
+    const decision = active.textContent.toUpperCase();
+    const rec = {
+      workspace_id: wsid,
+      decision,
+      confidence: parseFloat(card.querySelector(".cfd-range").value),
+    };
+    const reason = card.querySelector(".reason-select").value;
+    if (reason.startsWith("INC")) rec.matched_inclusion_criteria = [reason];
+    else if (reason.startsWith("EXC")) rec.violated_exclusion_criteria = [reason];
+    const note = card.querySelector(".note-input").value.trim();
+    if (note) rec.screening_reasoning = note;
+    rows.push(rec);
+  });
+  return rows;
+}
+
+async function renderBatchRoom() {
+  const n = state.batchNo;
+  const view = $("#view-screening");
+  view.innerHTML = ""; // re-render the batch room only (batch table not shown here)
+  clearErr();
+  let data;
+  try {
+    data = await api(`/api/v1/screening/batch/${n}`);
+  } catch (err) {
+    showErr(err.message);
+    return;
+  }
+  const card = el("div", "card");
+  const head = el("div", "batch-toolbar");
+  head.append(el("h3", "", `Screening room · batch ${n} · ${data.items.papers.length} papers`));
+  const saveBtn = el("button", "btn primary", "Save Batch Decisions");
+  saveBtn.onclick = async () => {
+    const decisions = collectDecisions();
+    try {
+      await postJSON(`/api/v1/screening/batch/${n}/decisions`, {
+        batch: n,
+        decisions,
+        reviewed_by: "console",
+        timestamp: new Date().toISOString(),
+      });
+      renderView();
+    } catch (err) {
+      showErr(err.message);
+    }
+  };
+  head.append(saveBtn);
+  const back = el("button", "btn", "← back to batches");
+  back.onclick = () => { state.batchNo = null; renderView(); };
+  head.append(back);
+  card.append(head);
+
+  const existingById = {};
+  (data.decisions || []).forEach((d) => {
+    existingById[d.workspace_id || d.study_id] = d;
+  });
+  data.items.papers.forEach((p) => {
+    card.append(paperCard(p.workspace_id || p.study_id, p, data, existingById[p.workspace_id || p.study_id]));
+  });
   view.append(card);
 }
 
@@ -371,10 +663,70 @@ async function renderAudit() {
   bar.append(input, bar2, el("span", "badge accent", payload.total + " events"));
   view.append(bar);
 
+  view.append(auditForm());
+
   const card = el("div", "card");
   if (!payload.items.length) card.append(el("div", "empty", "no audit events match"));
   else payload.items.forEach((evt) => card.append(auditRow(evt)));
   view.append(card);
+}
+
+function auditForm() {
+  const card = el("div", "card");
+  card.append(el("h3", "", "Add log entry (append-only journal)"));
+  const form = el("div", "annotate-form");
+
+  const actionRow = el("div", "form-row");
+  actionRow.append(el("label", "", "Action *"));
+  const actionIn = el("input", "");
+  actionIn.placeholder = "e.g. VERIFICATION_REVIEW";
+  actionRow.append(actionIn);
+
+  const agentRow = el("div", "form-row");
+  agentRow.append(el("label", "", "Agent / tool"));
+  const agentIn = el("input", "");
+  agentIn.value = "scholar-harness-console";
+  agentRow.append(agentIn);
+
+  const statRow = el("div", "form-row");
+  statRow.append(el("label", "", "Status"));
+  const statSel = el("select", "");
+  ["SUCCESS", "PARTIAL", "FAILED"].forEach((s) => statSel.append(option(s, s, s === "SUCCESS")));
+  statRow.append(statSel);
+
+  const descRow = el("div", "form-row full");
+  descRow.append(el("label", "", "Description *"));
+  const descIn = el("input", "");
+  descIn.placeholder = "What happened and why it matters";
+  descRow.append(descIn);
+
+  form.append(actionRow, agentRow, statRow, descRow);
+
+  const row = el("div", "form-row full");
+  const submit = el("button", "btn primary", "Append event");
+  submit.onclick = async () => {
+    if (!actionIn.value.trim() || !descIn.value.trim()) {
+      showErr("action and description are required");
+      return;
+    }
+    try {
+      await postJSON("/api/v1/audit/events", {
+        action: actionIn.value.trim(),
+        agent_or_tool: agentIn.value.trim() || "scholar-harness-console",
+        description: descIn.value.trim(),
+        status: statSel.value,
+      });
+      actionIn.value = "";
+      descIn.value = "";
+      renderView();
+    } catch (err) {
+      showErr(err.message);
+    }
+  };
+  row.append(submit);
+  form.append(row);
+  card.append(form);
+  return card;
 }
 
 /* ---------------- agent exchange ---------------- */
@@ -465,6 +817,16 @@ function boot() {
 
   $$(".nav-item").forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
   $("#reload-btn").addEventListener("click", renderView);
+
+  api("/api/v1/agents/actions")
+    .then((p) => buildRunnerButtons(p.rows))
+    .catch((e) => showErr(e.message));
+  const tray = $("#runner-tray");
+  $("#tray-toggle").addEventListener("click", () => {
+    const minimized = tray.classList.toggle("minimized");
+    $("#tray-toggle").textContent = minimized ? "expand" : "minimize";
+  });
+  $("#job-cancel").addEventListener("click", cancelActiveJob);
 
   window.addEventListener("focus", renderView);
 

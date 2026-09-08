@@ -40,6 +40,7 @@
     </div>
   </aside>
 
+  <div class="app-col">
   <main class="main">
     <header class="topbar">
       <div id="view-title">Dashboard</div>
@@ -57,6 +58,28 @@
       <section id="view-actions" class="view" aria-hidden="true"></section>
     </div>
   </main>
+
+  <!-- Job Runner tray: trigger actions, live subprocess tail, cancel -->
+  <section id="runner-tray" class="runner-tray" aria-label="Job runner">
+    <div class="tray-head">
+      <span class="tray-title">Job Runner</span>
+      <span id="runner-state" class="badge">idle</span>
+      <button class="btn-link" id="tray-toggle">minimize</button>
+    </div>
+    <div id="tray-body">
+      <div class="tray-actions" id="runner-buttons"></div>
+      <div id="active-job-wrap" class="active-job hidden">
+        <div class="job-meta">
+          <span id="job-badge" class="badge accent">—</span>
+          <span class="mono" id="job-pid">pid —</span>
+          <span class="mono" id="job-cmd"></span>
+          <button id="job-cancel" class="btn danger hidden">cancel</button>
+        </div>
+        <pre id="job-tail" class="job-tail"></pre>
+      </div>
+    </div>
+  </section>
+  </div>
 
   <script src="/static/lib/marked.min.js"></script>
   <script src="/static/app.js"></script>

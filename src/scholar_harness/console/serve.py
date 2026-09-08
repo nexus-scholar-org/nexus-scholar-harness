@@ -16,7 +16,10 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from .api import audit as audit_api
 from .api import jobs as jobs_api
+from .api import pipelines as pipelines_api
+from .api import screening as screening_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .runtimes.job_runner import JobRunner
@@ -48,14 +51,16 @@ def create_app(workspace: str | Path) -> FastAPI:
 
     app.include_router(workspace_api.router)
     app.include_router(jobs_api.router)
+    app.include_router(screening_api.router)
+    app.include_router(pipelines_api.router)
+    app.include_router(audit_api.router)
     app.include_router(streams_api.router)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok", "workspace": str(ws)}
 
-    # Static console (visual prototype). In production the vendored JS lives
-    # under static/lib/; the app currently serves the committed index.html.
+    # Static console (no-build SPA; vendored JS lives under static/lib/).
     if STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

@@ -56,7 +56,11 @@ BATCH FILE FORMAT (batch_NNN.json)
 }
 
 DECISION FILE FORMAT (batch_NNN_decisions.json)
-------------------------------------------------
+-----------------------------------------------
+`collect` accepts both the raw JSON array below and the §7 wrapper object
+{"batch", "decisions", "reviewed_by", "timestamp"} written by the console.
+Entries are matched to papers by `workspace_id` (falling back to `study_id`).
+
 [
   {
     "workspace_id": "SCI-000001",
@@ -228,6 +232,24 @@ def _screening_dir(workspace_dir: Path) -> Path:
     d = workspace_dir / "literature" / "screening"
     d.mkdir(parents=True, exist_ok=True)
     return d
+
+
+def _load_decisions(path: Path) -> list[dict]:
+    """Load a decisions file tolerating both the §7 wrapper and the raw list.
+
+    The console writes the wrapper `{"batch", "decisions", "reviewed_by",
+    "timestamp"}`; agents historically wrote a raw JSON array. Both shapes must
+    round-trip through `collect` without any transform of the decision records.
+    """
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(payload, dict):
+        decisions = payload.get("decisions")
+        if not isinstance(decisions, list):
+            raise ValueError(f"{path.name}: 'decisions' key must be a list")
+        return decisions
+    if isinstance(payload, list):
+        return payload
+    raise ValueError(f"{path.name}: expected a JSON list or wrapper object, got {type(payload).__name__}")
 
 
 # ---------------------------------------------------------------------------
@@ -444,8 +466,8 @@ def cmd_collect(workspace_dir: Path) -> None:
             decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
             if decisions_file.exists():
                 try:
-                    for r in json.loads(decisions_file.read_text(encoding="utf-8")):
-                        s1_map[r["workspace_id"]] = r
+                    for r in _load_decisions(decisions_file):
+                        s1_map[r.get("workspace_id") or r.get("study_id", "")] = r
                 except Exception:
                     pass
 
@@ -557,14 +579,14 @@ def cmd_collect(workspace_dir: Path) -> None:
                 continue
 
             try:
-                raw_decisions: list[dict] = json.loads(decisions_file.read_text(encoding="utf-8"))
+                raw_decisions: list[dict] = _load_decisions(decisions_file)
             except Exception as exc:
                 logger.error("Batch %d: failed to parse decisions file (%s).", idx, exc)
                 missing_batches.append(idx)
                 continue
 
             for entry in raw_decisions:
-                wsid = str(entry.get("workspace_id", ""))
+                wsid = str(entry.get("workspace_id") or entry.get("study_id") or "")
                 doc = doc_by_wsid.get(wsid)
 
                 # Support new checklist format (inc_XX/exc_XX booleans)

@@ -80,6 +80,10 @@ class JobRunner:
         if self.on_event is not None:
             self.on_event({"event": "job", "data": {"job": job.to_dict()}})
 
+    def _publish_log(self, job_id: str, line: str) -> None:
+        if self.on_event is not None:
+            self.on_event({"event": "log", "data": {"job_id": job_id, "line": line}})
+
     def _job_dir(self, job_id: str) -> Path:
         return self.workspace / JOB_RUN_DIR / "jobs" / job_id
 
@@ -139,6 +143,8 @@ class JobRunner:
             chunks: list[bytes] = []
             async for line in proc.stdout:
                 chunks.append(line)
+                if job.state != "cancelled":
+                    self._publish_log(job.job_id, line.decode(errors="replace").rstrip("\r\n"))
             try:
                 exit_code = await asyncio.wait_for(proc.wait(), timeout=job.timeout_s)
             except TimeoutError:
