@@ -233,12 +233,12 @@ async function renderDashboard() {
   const phaseCard = el("div", "card");
   phaseCard.append(el("h3", "", "Pipeline phase"));
   phaseCard.append(phaseChips(status.phase));
-  phaseCard.append(
-    el("div", "pill-row").append(
-      el("span", "badge accent", status.playbook_type),
-      el("span", "badge", status.title),
-    ),
+  const pillRow = el("div", "pill-row");
+  pillRow.append(
+    el("span", "badge accent", status.playbook_type),
+    el("span", "badge", status.title),
   );
+  phaseCard.append(pillRow);
   view.append(phaseCard);
 
   const recent = el("div", "card");
@@ -341,11 +341,13 @@ async function renderScreening() {
       renderView();
     };
     tdBtn.append(review);
+    const tdState = el("td", "");
+    tdState.append(stateBadge);
     tr.append(
       el("td", "mono", b.name),
       el("td", "", String(b.items)),
       el("td", "", `${b.decisions_count}/${b.items}`),
-      el("td", "").append(stateBadge),
+      tdState,
       tdBtn,
     );
     body.append(tr);
@@ -391,9 +393,10 @@ function paperCard(wsid, paper, batchData, existing) {
 
   const decision = el("div", "p-decision");
   const seg = el("div", "seg");
-  const incB = el("button", existing === "INCLUDE" ? "active" : "", "Include");
-  const excB = el("button", existing === "EXCLUDE" ? "active" : "", "Exclude");
-  let current = existing || "";
+  const existingDecision = existing && existing.decision ? existing.decision.toUpperCase() : "";
+  const incB = el("button", existingDecision === "INCLUDE" ? "active" : "", "Include");
+  const excB = el("button", existingDecision === "EXCLUDE" ? "active" : "", "Exclude");
+  let current = existingDecision;
   function toggle(kind) {
     current = current === kind ? "" : kind;
     incB.classList.toggle("active", current === "INCLUDE");
@@ -480,6 +483,10 @@ async function renderBatchRoom() {
   const saveBtn = el("button", "btn primary", "Save Batch Decisions");
   saveBtn.onclick = async () => {
     const decisions = collectDecisions();
+    if (!decisions.length) {
+      showErr("Please select at least one decision (Include or Exclude) before saving.");
+      return;
+    }
     try {
       await postJSON(`/api/v1/screening/batch/${n}/decisions`, {
         batch: n,
