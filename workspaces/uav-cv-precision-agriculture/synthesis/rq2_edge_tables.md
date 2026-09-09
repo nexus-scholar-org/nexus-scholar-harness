@@ -3,7 +3,7 @@
 Auto-generated from `literature/extraction/merged/records.json` + `synthesis/synthesis_matrix.json`. True-edge = device reported AND (fps OR latency) measured on hardware. Quote snippets = extraction evidence, to curate in the manuscript.
 
 ## Diagnostics
-- device reported = 46 | resolution = 70 | precision = 13 | fps = 28 | latency = 31 | params = 34 | FLOPs = 21
+- device reported = 46 | resolution = 70 | precision = 13 | fps = 28 | latency = 32 | params = 34 | FLOPs = 21
 - true-edge cohort (device + runtime measured) = 30
 - deployment class: embedded on-device = 16 | desktop/cloud accelerator = 20 | unspecified = 55
 - NOTE: the pipeline's earlier `true_edge_studies=15` stat used a stricter definition (embedded-class board only); reconcile one canonical definition before the manuscript.
@@ -44,7 +44,7 @@ Auto-generated from `literature/extraction/merged/records.json` + `synthesis/syn
 | SCI-000852 | NVIDIA Jetson Nano | Jetson Nano | FP32 | 512 | 4.250 | 235.0 |  | 2.50 |  | FPS, ranging from 4.25 for the 100% width network to 9.09 for the 25% width |
 | SCI-000878 | None - offline training/expe | Efficiency-only |  | 512 |  |  |  | 18.10 | 169.9 |  |
 | SCI-000881 | None - offline research trai | -None- |  | 480 |  |  |  |  |  |  |
-| SCI-000962 | Windows 10 desktop (AMD Ryze | Other |  | 512 | 143.300 |  |  | 10.60 | 32.1 | LW-Segnet 693.4 36.8 11.0 117.5 LW-Unet 603.7 32.1 10.6 143.3 |
+| SCI-000962 | Windows 10 desktop (AMD Ryze | Other |  | 512 | 11.000 | 117.5 |  | 10.60 | 36.8 | LW-Segnet 693.4 36.8 11.0 117.5 LW-Unet 603.7 32.1 10.6 143.3 |
 | SCI-000968 | Intel Core i7-1065G7 CPU (la | CPU |  | 256x256 | 1.890 | 530.0 |  | 9.49 |  | processing speed 0.53 s per 256x256 image on Intel Core i7-1065G7 CPU |
 | SCI-000981 | Desktop: NVIDIA GeForce RTX  | Desktop/Server G |  | 256 | 77.180 | 13.0 |  | 31.00 | 54.8 | MSU-Net ... Parameters 3.10 x 10^7, FLOPs/G 54.78, FPS/(f s-1) 77.18 |
 | SCI-001017 | None - offline. Models train | Cloud GPU (Colab |  | 128 | 17.000 | 58.5 |  | 135.00 |  | a relatively fast inference time of 58.5 ms (17 fps) per 128 x 128 image patch ( |
@@ -55,7 +55,7 @@ Auto-generated from `literature/extraction/merged/records.json` + `synthesis/syn
 | SCI-001096 | Desktop workstation: NVIDIA  | Desktop/Server G |  | 224 | 112.400 | 8.9 |  |  |  | Inference times for Mask2Former and Swin-Transformer are comparable (~8-9 ms per |
 | SCI-001173 | ASUS Tinker Board S (onboard | Tinker Board S |  | None | 1.430 | 700.0 |  |  |  | The average inference speed of the semantic image segmentation model is 0.7s wit |
 | SCI-001292 | NVIDIA Jetson TX2 (also RTX  | Jetson TX2 | FP32 (re | 768 | 7.000 | 142.9 |  | 0.19 | 9.4 | The proposed model achieves 42.05 FPS on RTX 3090 and 7.0 FPS on Jetson TX2 |
-| SCI-001333 | NVIDIA Jetson AGX Xavier | Jetson AGX Xavie | FP16 (Te | 800 | 40.160 |  |  | 17.39 | 10.7 | FFB-BiSeNetV2 40.16 fps on Jetson AGX Xavier (TensorRT FP16); MobileNetV2-UNet 4 |
+| SCI-001333 | NVIDIA Jetson AGX Xavier | Jetson AGX Xavie | FP16 (Te | 352x480 | 40.160 |  |  | 17.39 | 10.7 | FFB-BiSeNetV2 40.16 fps on Jetson AGX Xavier (TensorRT FP16); MobileNetV2-UNet 4 |
 | SCI-001379 | CPU (desktop) | CPU |  | 448 | 31.750 | 31.5 |  |  |  | FPN with VGG16 emerged as the most efficient, exhibiting the lowest average late |
 | SCI-001411 | None - offline experiments o | -None- |  | 512 |  |  |  |  |  |  |
 | SCI-000371 |  | Unknown / not st |  | 224 | 98.910 |  |  | 1.34 | 12.7 | Table 1: Performance comparison of real-time semantic segmentation architectures |
@@ -87,7 +87,7 @@ Auto-generated from `literature/extraction/merged/records.json` + `synthesis/syn
 | SCI-001085 | Orange Pi 5+ (Rockchip RK3588, 6 | Rockchip RK3588 | INT8 (po | 512 | 62.500 | 16.0 |  | YOLOv11s-seg.rknn 0.85 0.79 0.85 16 |
 | SCI-001173 | ASUS Tinker Board S (onboard) +  | Tinker Board S |  | None | 1.430 | 700.0 |  | The average inference speed of the semantic image segmentation model is 0.7s with segmenta |
 | SCI-001292 | NVIDIA Jetson TX2 (also RTX 3090 | Jetson TX2 | FP32 (re | 768 | 7.000 | 142.9 | 0.19 | The proposed model achieves 42.05 FPS on RTX 3090 and 7.0 FPS on Jetson TX2 |
-| SCI-001333 | NVIDIA Jetson AGX Xavier | Jetson AGX Xavie | FP16 (Te | 800 | 40.160 |  | 17.39 | FFB-BiSeNetV2 40.16 fps on Jetson AGX Xavier (TensorRT FP16); MobileNetV2-UNet 45.05 fps |
+| SCI-001333 | NVIDIA Jetson AGX Xavier | Jetson AGX Xavie | FP16 (Te | 352x480 | 40.160 |  | 17.39 | FFB-BiSeNetV2 40.16 fps on Jetson AGX Xavier (TensorRT FP16); MobileNetV2-UNet 45.05 fps |
 
 ### B2 — Desktop/cloud accelerator (measured, but not edge hardware; 13 studies — auxiliary)
 
@@ -101,7 +101,7 @@ Auto-generated from `literature/extraction/merged/records.json` + `synthesis/syn
 | SCI-000548 | NVIDIA RTX 2080 Super GPU | Desktop/Server G |  | 256 | 24.450 | 40.9 |  |
 | SCI-000618 | None - offline (NVIDIA Quadro RT | Desktop/Server G |  | 640 |  | 70.0 |  |
 | SCI-000650 | None - offline (NVIDIA GeForce R | Desktop/Server G |  | 318 |  | 46.5 |  |
-| SCI-000962 | Windows 10 desktop (AMD Ryzen 7  | Other |  | 512 | 143.300 |  | 10.60 |
+| SCI-000962 | Windows 10 desktop (AMD Ryzen 7  | Other |  | 512 | 11.000 | 117.5 | 10.60 |
 | SCI-000981 | Desktop: NVIDIA GeForce RTX 3080 | Desktop/Server G |  | 256 | 77.180 | 13.0 | 31.00 |
 | SCI-001017 | None - offline. Models trained a | Cloud GPU (Colab |  | 128 | 17.000 | 58.5 | 135.00 |
 | SCI-001096 | Desktop workstation: NVIDIA GeFo | Desktop/Server G |  | 224 | 112.400 | 8.9 |  |
@@ -114,12 +114,6 @@ Auto-generated from `literature/extraction/merged/records.json` + `synthesis/syn
 | SCI-000067 | NVIDIA RTX 4090 (consumer GPU; pap | Desktop/Server G |  | 512 | 141.440 | 7.1 | RoWeeder (SegFormer) 3.71 7.84 7.07 (Params(M), GMACs, Inference time(ms)) |
 | SCI-000754 | Google Colab T4 GPU (training and  | Cloud GPU (Colab | AMP mixe | 224 |  | 18.5 | Inference latency averaged 18 ms per 224 x 224 image (batch size = 32), confirming real-ti |
 | SCI-000816 | None - no on-device deployment per | Efficiency-only |  | 128 |  |  |  |
-
-### D1 — Target-edge evidence note (read on 2026-09-09; verbatim from source full texts)
-
-- **SCI-000067 (RoWeeder, Marinis et al. 2024):** "Inference time was calculated on a single NVIDIA RTX 4090, a consumer-grade GPU, which is more powerful than a typical edge device … Future work will focus on testing the model on edge devices to evaluate its performance in real-world scenarios." → 7.07 ms / 141 FPS is RTX 4090-only; **no on-board measurement reported**.
-- **SCI-000754 (AgroVisionNet, Mahareek et al. 2025):** "Inference latency averaged 18 ms per 224 x 224 image (batch size = 32), confirming real-time feasibility for UAV and field-robot deployment" (measured on Google Colab T4); "In future research, we aim to (1) optimize AgroVisionNet for edge deployment through model compression techniques such as pruning, quantization, and knowledge distillation" → T4-only; **no on-board measurement reported**.
-- Action: both rows are excluded from the embedded on-device cohort and must NOT be cited as on-device evidence. Optionally cite them in the Discussion as examples of the "claimed vs measured" deployment reporting gap.
 
 ## Table C — device deployed but no measured fps/latency (efficiency-only); flag for primary-justification checks
 

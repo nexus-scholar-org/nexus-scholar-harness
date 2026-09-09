@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-09 11:49:45 UTC`
+- **Last Updated**: `2026-09-09 13:47:55 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -29,9 +29,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 11:49 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-09 11:24 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 11:49 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 13:47 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-09 12:53 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 13:47 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-03 22:14 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-03 22:16 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-04 01:48 | Verified |
@@ -50,7 +50,7 @@
 | `literature/extraction/route_B/route_B_index.json` | Route B per-study extractions + index | 2026-09-04 22:29 | Extracted |
 | `literature/extraction/compare/comparison_report.md` | Route A vs Route B comparison report | 2026-09-04 22:46 | Compared |
 | `literature/extraction/adjudication/verdicts_all.json` | Adjudicated extraction conflicts | 2026-09-04 22:51 | Adjudicated |
-| `literature/extraction/merged/records.json` | Canonical merged extraction dataset (per-value provenance quotes) | 2026-09-04 22:52 | Merged |
+| `literature/extraction/merged/records.json` | Canonical merged extraction dataset (per-value provenance quotes) | 2026-09-09 13:47 | Merged |
 | `synthesis/synthesis_matrix.csv` | Verified one-row-per-study synthesis matrix | 2026-09-05 12:39 | Generated |
 | `synthesis/synthesis_matrix.json` | Machine-readable synthesis matrix | 2026-09-05 12:39 | Generated |
 | `synthesis/synthesis_stats.json` | Reproducible RQ1/RQ2 descriptive statistics | 2026-09-05 12:39 | Generated |

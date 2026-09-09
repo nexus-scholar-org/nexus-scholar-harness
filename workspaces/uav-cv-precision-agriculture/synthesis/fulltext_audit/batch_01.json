@@ -1,0 +1,409 @@
+{
+ "batch": 1,
+ "studies": [
+  {
+   "workspace_id": "SCI-000040",
+   "title": "DAS-SK: An Adaptive Model Integrating Dual Atrous Separable and Selective Kernel CNN for Agriculture Semantic Segmentation",
+   "year": 2026,
+   "venue": "arXiv Preprint",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2026_Chee_DAS_SK_An_Adaptive_Model_Integrating_Dual_Atrous_S.md",
+   "attributed_model": "DAS-SK (best results on PhenoBench)",
+   "attributed_backbone": "MobileNetV3-Large / EfficientNet-B3",
+   "family": "CNN",
+   "dataset_name": "LandCover.ai, VDD, PhenoBench",
+   "num_classes": null,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8555,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Specific PhenoBench mIoU 0.8555 read from paper; consolidated best across benchmarks; exact table not in extracted frontmatter.",
+     "quote_in_records": "DAS-SK consistently achieves state-of-the-art performance while being more efficient than CNN-, transformer-, and hybrid-based competitors."
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "FPS measured on NVIDIA GeForce RTX 3050 Ti GPU; training on A100-40GB (Alliance Canada, Narval cluster)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "1024"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch 2.1, CUDA 12.1"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "fps",
+     "value": 10.33,
+     "quote_in_records": "On PhenoBench, DAS-SK reaches the best mIoU while remaining the most compact and efficient model"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 96.8,
+     "quote_in_records": "FPS on PhenoBench ... 10.33"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 10.678,
+     "quote_in_records": "CNN Our model (DAS-SK) 85.55 10.678 45.00 4.67 1.028 10.09 10.33"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "gflops",
+     "value": 45.0,
+     "quote_in_records": "CNN Our model (DAS-SK) 85.55 10.678 45.00 4.67 1.028 10.09 10.33"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000074",
+   "title": "WeedFormer: Transformer-based Crop-Weed Segmentation for UAV Imagery",
+   "year": 2026,
+   "venue": "2026 7th International Conference on Smart Systems and Inventive Technology (ICSSIT)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2026_Krishna_WeedFormer_Transformerbased_CropWeed_Segmentati.md",
+   "attributed_model": "WeedFormer (mIoU 0.8027, PA 0.9881)",
+   "attributed_backbone": "SegFormer-B2 (with CBAM + ASPP)",
+   "family": "CNN",
+   "dataset_name": "WeedsGalore (UAV multispectral benchmark)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8027,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "mIoU 80.27% on WeedsGalore test. RGB-only input.",
+     "quote_in_records": "WeedFormer achieves 80.27% mean Intersection-over-Union (mIoU) and 98.81% pixel accuracy, outperforming DeepLabv3+, SegFormer-B1, SegFormer-B2, and previously reported multi-spectral baselines"
+    },
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.8877,
+     "unit": "fraction",
+     "confidence": 0.85,
+     "ambiguity": "Macro-averaged F1 over the 6 classes on the WeedsGalore validation set (paper reports Precision and F1 alongside PA and mIoU). Baselines: SegFormer-B2 87.56, SegFormer-B1 87.11, published DLv3+ MSI 53.40, DLv3+ RGB 49.10, UNet++ 59.15, DeepLabv3+ 43.63, Enhanced DLv3+ 38.92.",
+     "quote_in_records": "It achieves the highest mIoU of 80.27%, PA of 98.81%, Precision of 87.93%, and F1-Score of 88.77%."
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.9881,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Pixel accuracy 98.81%.",
+     "quote_in_records": "80.27% mean Intersection-over-Union (mIoU) and 98.81% pixel accuracy"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "None stated - offline model training/evaluation only; no on-device deployment, no hardware reported"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "512"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "Deep-learning framework not explicitly named; training details: AdamW, mixed-pre"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000075",
+   "title": "Weed Instance Segmentation from UAV ortho-mosaic Images based on Deep Learning",
+   "year": 2024,
+   "venue": "bioRxiv preprint (DOI 10.1101/2024.08.13.607729)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Lu_Weed_Instance_Segmentation_from_UAV_ortho_mosaic_I.md",
+   "attributed_model": "YOLOv8 (original RGB ortho-mosaic)",
+   "attributed_backbone": "YOLOv8 / Mask R-CNN",
+   "family": "CNN",
+   "dataset_name": "self-collected UAV ortho-mosaic (potato)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.515,
+     "unit": "fraction",
+     "confidence": 0.6,
+     "ambiguity": "read from figure (Figure 11) caption text; MIOU 0.5150 for YOLOv8 original model (SR model 0.5116, SR+MW 0.5089).",
+     "quote_in_records": "Original Model: PA: 0.9989, CPA: 0.5271, MPA: 0.5150, MIOU: 0.5150, Mean Dice: 0.5298"
+    },
+    {
+     "kind": "metric",
+     "key": "mPA",
+     "value": 0.515,
+     "unit": "fraction",
+     "confidence": 0.5,
+     "ambiguity": "Figure 11 caption only; instance-seg masks.",
+     "quote_in_records": "YOLOv8 Original Model: PA 0.9989, CPA 0.5271, MPA 0.5150 (Fig 11)"
+    },
+    {
+     "kind": "metric",
+     "key": "Dice",
+     "value": 0.5298,
+     "unit": "fraction",
+     "confidence": 0.6,
+     "ambiguity": "read from figure (Figure 11); Mean Dice 0.5298 for original YOLOv8 model.",
+     "quote_in_records": "Original Model: PA: 0.9989, CPA: 0.5271, MPA: 0.5150, MIOU: 0.5150, Mean Dice: 0.5298"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.9989,
+     "unit": "fraction",
+     "confidence": 0.6,
+     "ambiguity": "read from figure (Figure 11); PA 0.9989 for original YOLOv8 model.",
+     "quote_in_records": "Original Model: PA: 0.9989, CPA: 0.5271, MPA: 0.5150, MIOU: 0.5150, Mean Dice: 0.5298"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "640"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "Detectron2 (Mask R-CNN) / ultralytics YOLOv8"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000084",
+   "title": "Crop and Weed Classication Using Pixel-wise Segmentation on Ground and Aerial Images",
+   "year": 2020,
+   "venue": "International Journal of Robotic Computing",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2020_Fawakherji_Crop_and_Weed_Classication_Using_Pixel_wise_Segmen.md",
+   "attributed_model": "VGG-UNet, 3-class, RED+NIR+NDVI input",
+   "attributed_backbone": "VGG-16 (encoder)",
+   "family": "CNN",
+   "dataset_name": "Public datasets: SugarBeets, Stuttgart, Carrots, Sunflowers (plus aerial pipeline)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.75,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "Per-dataset 3-class mIoU (with vegetation indices): SugarBeets 0.75, Stuttgart 0.60, Carrots 0.40, Sunflowers 0.41; best dataset value recorded.",
+     "quote_in_records": "SugarBeets 0,75 0.998 0.94 0.80 0.99 0.92 0.70"
+    },
+    {
+     "kind": "metric",
+     "key": "mPA",
+     "value": 0.95,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "Dataset-specific (sugar beet) mean segmentation accuracy; 2-class NDVI reaches 0.99 (Table 7).",
+     "quote_in_records": "RED+NIR+NDVI 0.95 0.98 0.88"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "NVIDIA Jetson TX2"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 600,
+     "quote_in_records": "The performance of VGG-UNet architecture has been tested on an embedded GPU board, namely Jetson TX2, and the processing time per image was 0.6 [s]"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000089",
+   "title": "Semi-supervised Learning for Weed and Crop Segmentation Using UAV Imagery",
+   "year": 2022,
+   "venue": "Frontiers in Plant Science 13:927368",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2022_Nong_Semisupervised_Learning_for_Weed_and_Crop_Segment.md",
+   "attributed_model": "SemiWeedNet (Ours) with ResNet50 backbone, full labeled data",
+   "attributed_backbone": "ResNet-50 / ResNet-101 (DeepLabV3+)",
+   "family": "CNN",
+   "dataset_name": "WeedMap",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.701,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "Columns are labeled-ratio splits (2/8, 3/7, 5/5, full); 0.701 is Ours-Resnet50 at full labels; SupOnly Resnet101 reaches 0.705 as a supervised upper bound.",
+     "quote_in_records": "Ours Resnet50 0.698 0.695 0.695 0.701 SupOnly Resnet101 0.670 0.673 0.688 0.705"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "480"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000091",
+   "title": "Weed\u2013Crop Segmentation in Drone Images with a Novel Encoder\u2013Decoder Framework Enhanced via Attention Modules",
+   "year": 2023,
+   "venue": "Remote Sensing 15:5615",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2023_Khan_WeedCrop_Segmentation_in_Drone_Images_with_a_Nove.md",
+   "attributed_model": "Proposed framework (DenseInception encoder + ASPP + attention decoder)",
+   "attributed_backbone": "DenseInception (encoder) + ASPP + attention",
+   "family": "CNN",
+   "dataset_name": "rice-weed dataset (Huang et al., Zengcheng, SCAU)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.81,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Per-class IoU: Rice 0.81, Weeds 0.79, Others 0.84; mIoU 0.81 (macro mean).",
+     "quote_in_records": "Proposed 0.81 0.79 0.84 0.81 (Rice, Weeds, Others, mIoU)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "1000"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000136",
+   "title": "Weed segmentation in sugarcane crops using Mask R-CNN through aerial images",
+   "year": 2020,
+   "venue": "2020 International Conference on Computational Science and Computational Intelligence (CSCI)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2020_Mini_Weed_segmentation_in_sugarcane_crops_using_Mask_R.md",
+   "attributed_model": "Mask R-CNN ResNet-101 (COCO pretrained + augmentation, R101-A-C)",
+   "attributed_backbone": "ResNet-101 (FPN)",
+   "family": "CNN",
+   "dataset_name": "Self-collected aerial sugarcane field imagery (Brazil)",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.752,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "F1 over the two weed classes overall; per-class F1 not detailed.",
+     "quote_in_records": "The ResNet-101 model with pre-trained COCO achieved an Average Precision (AP50) of 65.5% and obtained values of 0.803, 0.707 and 0.752 for Precision, Recall and F1 score."
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000138",
+   "title": "Crop and Weed Segmentation Using ResNet-Unet Architecture",
+   "year": 2024,
+   "venue": "2024 First International Conference on Data, Computation and Communication (ICDCC 2024)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Purohit_Crop_and_Weed_Segmentation_Using_ResNetUnet_Archi.md",
+   "attributed_model": "ResNet-Unet (UNet with ResNet-50 encoder)",
+   "attributed_backbone": "ResNet-50 (UNet encoder)",
+   "family": "CNN",
+   "dataset_name": "self-collected UAV sorghum (Germany)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.8937,
+     "unit": "fraction",
+     "confidence": 0.75,
+     "ambiguity": "Macro-averaged F1 across Background/Sorghum/Weed = 89.37%; weighted avg F1 = 99.68%. No global F1 stated.",
+     "quote_in_records": "Macro avg 93.01 86.25 89.37 (Precision, Recall, F1-Score)"
+    },
+    {
+     "kind": "metric",
+     "key": "Dice",
+     "value": 0.929,
+     "unit": "fraction",
+     "confidence": 0.8,
+     "ambiguity": "Maximum Sorensen-Dice coefficient 0.929 (best hyperparameter set across 4-fold CV, mean over validation sets).",
+     "quote_in_records": "we were able to attain a maximum SArensen-Dice Coefficient (DS) of 0.929, accompanied by a standard deviation of 0.0041"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.99,
+     "unit": "fraction",
+     "confidence": 0.7,
+     "ambiguity": "Overall classification accuracy per held-out test set (macro-averaged).",
+     "quote_in_records": "test_1 (Early stage crop growth) Accuracy 0.9900363; test_2 (Advanced stage) 0.978746 (Table III)"
+    },
+    {
+     "kind": "metric",
+     "key": "weed_F1",
+     "value": 0.7948,
+     "unit": "fraction",
+     "confidence": 0.75,
+     "ambiguity": "Per-class Weed F1 = 79.48%.",
+     "quote_in_records": "Weed 87.64 72.71 79.48 (Precision, Recall, F1-Score)"
+    },
+    {
+     "kind": "metric",
+     "key": "crop_F1",
+     "value": 0.8876,
+     "unit": "fraction",
+     "confidence": 0.75,
+     "ambiguity": "Per-class Sorghum (crop) F1 = 88.76%.",
+     "quote_in_records": "Sorghum 91.58 86.10 88.76 (Precision, Recall, F1-Score)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "256"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-000149",
+   "title": "WeedVision: A single-stage deep learning architecture to perform weed detection and segmentation using drone-acquired images",
+   "year": 2024,
+   "venue": "Computers and Electronics in Agriculture 219:108792",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Rai_WeedVision_A_singlestage_deep_learning_architect.md",
+   "attributed_model": "WeedVision trained on category C4 (six augmentation techniques)",
+   "attributed_backbone": "YOLO-style CSPDarknet backbone (C3/C3x/SPPF)",
+   "family": "CNN",
+   "dataset_name": "self-collected UAV (soybean field, NDSU)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "NVIDIA Jetson AGX Xavier"
+    },
+    {
+     "kind": "edge_field",
+     "key": "precision",
+     "value": "TorchScript & ONNX (FP32)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "640"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch TorchScript and ONNX Runtime"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 2.1,
+     "quote_in_records": "The inference speed of the architecture was 2.1 ms and 2.3 ms per image for C4 and C5 category, respectively (TorchScript on Jetson AGX Xavier); ONNX ~1.25X faster"
+    }
+   ]
+  }
+ ]
+}

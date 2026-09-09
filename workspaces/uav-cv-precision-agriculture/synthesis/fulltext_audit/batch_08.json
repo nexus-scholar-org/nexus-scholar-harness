@@ -1,0 +1,70 @@
+{
+ "batch": 8,
+ "studies": [
+  {
+   "workspace_id": "SCI-001411",
+   "title": "Estimation of Kenaf seedling canopy coverage in saline soil using semantic segmentation of UAV RGB images",
+   "year": 2026,
+   "venue": "Frontiers in Plant Science",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2026_Wang_Estimation_of_Kenaf_seedling_canopy_coverage_in_sa.md",
+   "attributed_model": "SE-enhanced U-Net (IoU 0.8599, Dice 0.9244)",
+   "attributed_backbone": "U-Net + Self-Attention (SE) channel mechanism",
+   "family": "CNN",
+   "dataset_name": "Kenaf (Hibiscus cannabinus L.) seedlings in saline-alkali soil, UAV RGB",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8599,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Binary (Kenaf seedling vs soil) IoU 85.99% with SE-U-Net; FCN/U-Net/DeepLabV3+ compared. 'Dice' reported alongside IoU.",
+     "quote_in_records": "the U-Net architecture was enhanced by incorporating a Self-Attention (SE) channel mechanism, further improving model performance to achieve an IoU of 85.99% and a Dice of 92.44%"
+    },
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.9244,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "F1-score column of Table 4 for SE-UNet AdamW (average over classes). The abstract calls the same value 'an Dice of 92.44%'; for binary segmentation F1 == Dice, recorded under F1. Ablations (Table 5): scale only 91.91, geometric 92.07, photometric 92.17.",
+     "quote_in_records": "SE-UNet AdamW ... F1-score 92.44"
+    },
+    {
+     "kind": "metric",
+     "key": "Dice",
+     "value": 0.9244,
+     "unit": "fraction",
+     "confidence": 0.8,
+     "ambiguity": "Dice/F1 92.44% (binary).",
+     "quote_in_records": "an IoU of 85.99% and a Dice of 92.44%"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.9292,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Overall Accuracy (Acc = (TP+TN)/(TP+TN+FP+FN)) for SE-UNet AdamW, 92.92%. SE-UNet SGD 92.55%; U-Net SGD 91.91% (per-class Acc U-Net: Kenaf 92.33 / Background 91.49).",
+     "quote_in_records": "Replacing SGD with AdamW further enhanced SE-UNet's performance, achieving an overall mIoU improvement of 1.7%, accuracy gain of 1.01%, and mF1-score increase of 0.99%"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "None - offline experiments on a high-performance workstation (13th-gen Intel Core i5-13490F, 64 GB DDR4, NVIDIA GeForce RTX 4070; Python 3.8, CUDA 11.3, PyTorch 1.10). FCN noted as fastest inference for real-time/resource-limited applications, but no embedded deployment or inference FPS reported."
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "512"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch 1.10 / CUDA 11.3 / Python 3.8 (Miniconda3); FCN/U-Net/DeepLabv3+/SE-UNet"
+    }
+   ]
+  }
+ ]
+}

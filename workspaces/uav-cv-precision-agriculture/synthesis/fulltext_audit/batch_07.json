@@ -1,0 +1,410 @@
+{
+ "batch": 7,
+ "studies": [
+  {
+   "workspace_id": "SCI-001203",
+   "title": "Research on the Corn Stover Image Segmentation Method via an Unmanned Aerial Vehicle (UAV) and Improved U-Net Network",
+   "year": 2024,
+   "venue": "Agriculture",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Xu_Research_on_the_Corn_Stover_Image_Segmentation_Met.md",
+   "attributed_model": "Improved U-Net (VGG19 + CBAM + Focal-Dice loss)",
+   "attributed_backbone": "VGG19 (first five layers)",
+   "family": "CNN",
+   "dataset_name": "Self-collected UAV corn stover field images",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8323,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "",
+     "quote_in_records": "this study demonstrates a significant enhancement in the mIoU for straw segmentation by incorporating the VGG19 network and CBAM into the architecture, resulting in an impressive increase of 9.69 percentage points to reach 83.23%"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.9387,
+     "unit": "fraction",
+     "confidence": 0.85,
+     "ambiguity": "Reported as overall 'accuracy' (93.87%) alongside mIoU 83.23% in the comparison table; per-pixel segmentation accuracy treated as PA.",
+     "quote_in_records": "Experimental results prove that our algorithm achieves 93.87% accuracy in segmenting and extracting corn stalks from images with complex backgrounds"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch 1.7.1, Python 3.7, CUDA 11.0, OpenCV/Numpy/PIL; NVIDIA GeForce GTX 3050 "
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001333",
+   "title": "Real-Time Identification of Rice Weeds by UAV Low-Altitude Remote Sensing Based on Improved Semantic Segmentation Model",
+   "year": 2021,
+   "venue": "Remote Sensing",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2021_Lan_Real_Time_Identification_of_Rice_Weeds_by_UAV_Low_.md",
+   "attributed_model": "FFB-BiSeNetV2",
+   "attributed_backbone": "BiSeNetV2",
+   "family": "CNN",
+   "dataset_name": "Self-collected UAV low-altitude rice paddy imagery (incl. video data)",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8028,
+     "unit": "fraction",
+     "confidence": 0.97,
+     "ambiguity": "",
+     "quote_in_records": "highest pixel acc 93.09% and mIoU 80.28% (FFB-BiSeNetV2)"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.9309,
+     "unit": "fraction",
+     "confidence": 0.97,
+     "ambiguity": "",
+     "quote_in_records": "highest pixel acc 93.09% and mIoU 80.28% (FFB-BiSeNetV2)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "NVIDIA Jetson AGX Xavier"
+    },
+    {
+     "kind": "edge_field",
+     "key": "precision",
+     "value": "FP16 (TensorRT)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "800"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "TensorRT"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "fps",
+     "value": 40.16,
+     "quote_in_records": "FFB-BiSeNetV2 40.16 fps on Jetson AGX Xavier (TensorRT FP16); MobileNetV2-UNet 45.05 fps"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 17.39,
+     "quote_in_records": "FFB-BiSeNetV2 model parameters 17,394,450 (17.39 M); GFLOPs 10.7"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "gflops",
+     "value": 10.7,
+     "quote_in_records": "FFB-BiSeNetV2 model parameters 17,394,450 (17.39 M); GFLOPs 10.7"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001334",
+   "title": "MSEA-Net: Multi-Scale and Edge-Aware Network for Weed Segmentation",
+   "year": 2025,
+   "venue": "AgriEngineering",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2025_Syed_MSEANet_MultiScale_and_EdgeAware_Network_for_W.md",
+   "attributed_model": "MSEA-Net",
+   "attributed_backbone": "Encoder-decoder with MSCA + EEBA modules",
+   "family": "CNN",
+   "dataset_name": "Motion-Blurred UAV Images of Sorghum Fields",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8742,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "mIoU (87.42%) on Motion-Blurred Sorghum dataset; CoFly-WeedDB mIoU is 71.35%.",
+     "quote_in_records": "On the Motion-Blurred UAV Images of Sorghum Fields dataset (Table 4), MSEA-Net again achieves the highest mean IoU (87.42%)"
+    },
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.9307,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "",
+     "quote_in_records": "It also demonstrates superior precision (93.54%), recall (92.61%), and F1-score (93.07%), highlighting its robustness in multi-class segmentation"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "256"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch 2.4.0 (Python 3.8.9), Adam lr 0.002, batch 64, 200 epochs, early stop pa"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 2.0,
+     "quote_in_records": "MSEA-Net achieves an average inference time of 0.0020 s per image"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 6.74,
+     "quote_in_records": "MSEA-Net maintains only 6.74 M parameters and a model size of 25.74 MB"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001335",
+   "title": "Research on Intelligent Image Segmentation Based on UAV Remote Sensing and DeepLabV3+ Model",
+   "year": 2025,
+   "venue": "2025 IEEE 3rd International Conference on Computer, Vision and Intelligent Technology (ICCVIT)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2025_Li_Research_on_Intelligent_Image_Segmentation_Based_o.md",
+   "attributed_model": "DeepLabV3+ (MobileNetV2)",
+   "attributed_backbone": "MobileNetV2",
+   "family": "CNN",
+   "dataset_name": "AliCloud Tianchi UAV crop imagery (Xingren, Guizhou)",
+   "num_classes": 5,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.7274,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Validation IoU (0.7274) from table row: Val Accuracy / Val IoU / Val Dice with standard deviations.",
+     "quote_in_records": "MobileNetV2 0.8851 0.0053 0.7274 0.0126 0.7732"
+    },
+    {
+     "kind": "metric",
+     "key": "Dice",
+     "value": 0.7732,
+     "unit": "fraction",
+     "confidence": 0.85,
+     "ambiguity": "Validation Dice (0.7732) from table row.",
+     "quote_in_records": "MobileNetV2 0.8851 0.0053 0.7274 0.0126 0.7732"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.8851,
+     "unit": "fraction",
+     "confidence": 0.85,
+     "ambiguity": "Reported as 'Val Accuracy' (pixel accuracy) in the table; treated as PA.",
+     "quote_in_records": "MobileNetV2 0.8851 0.0053 0.7274 0.0126 0.7732"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "224"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch; Adam (lr 0.001), cross-entropy loss with class weights [1.0, 2.0, 2.0, "
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 20.4,
+     "quote_in_records": "MobileNetV2 ... Inference Time(s) 0.0204[4]"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 4.25,
+     "quote_in_records": "Quantity of Parameters 4.25M[1]"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001368",
+   "title": "Kernelytics: Multispectral Drone Imagery and Deep Learning for Early Corn Assessment",
+   "year": 2023,
+   "venue": "IEEE MIT Undergraduate Research Technology Conference (URTC 2023)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2023_Aplin_Kernelytics_Multispectral_Drone_Imagery_and_Deep_.md",
+   "attributed_model": "U-Net with composite 5-band input, tile size 32 (crop & weed segmentation)",
+   "attributed_backbone": "ResNet-101 (SSD/U-Net/Mask R-CNN)",
+   "family": "CNN",
+   "dataset_name": "self-collected UAV multispectral (DJI Phantom 4 Multispectral)",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.98,
+     "unit": "fraction",
+     "confidence": 0.5,
+     "ambiguity": "Paper states 'accuracy of 98%' for weed segmentation without defining the metric; interpreted as pixel accuracy. Confidence <0.7.",
+     "quote_in_records": "A U-Net model of the same structure trained on the weed data achieved an accuracy of 98% for weed segmentation"
+    },
+    {
+     "kind": "metric",
+     "key": "crop_F1",
+     "value": 0.66,
+     "unit": "fraction",
+     "confidence": 0.7,
+     "ambiguity": "Corn (crop) per-class F1 = 66% at U-Net tile size 32/32; non-corn F1 = 98. Overall/mean F1 not reported.",
+     "quote_in_records": "Non-Corn Corn Precision 97 72 Recall 98 60 F1 98 66 (tile size 32, composite bands)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "32"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001376",
+   "title": "Mini Drone-Based Precision Agriculture for Indonesian MSMEs: A Low-Cost AI-Assisted Monitoring System",
+   "year": 2025,
+   "venue": "Jurnal Sistem Cerdas",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2025_Hermanus_Mini_DroneBased_Precision_Agriculture_for_Indones.md",
+   "attributed_model": "YOLOX (fruit instance segmentation)",
+   "attributed_backbone": "YOLOX (instance segmentation, integrated with Streamlit); U-Net for land-zone semantic segmentation",
+   "family": "CNN",
+   "dataset_name": "DJI Mini 2 SE drone video of a 300 m^2 vegetable plot (Indonesia)",
+   "num_classes": 11,
+   "verify": [
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "Python Streamlit app, OBS Studio + private YouTube Live transport; processing of"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 6000,
+     "quote_in_records": "The end-to-end latency from video capture to segmentation visualization in the Streamlit app remained under 6 seconds using a standard laptop."
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001379",
+   "title": "Eggplant Leaf Semantic Segmentation in Aerial Imagery for Precision Agriculture",
+   "year": 2023,
+   "venue": "IEEE HNICEM 2023",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2023_Usman_Eggplant_Leaf_Semantic_Segmentation_in_Aerial_Imag.md",
+   "attributed_model": "U-Net with VGG19 encoder (highest F1); FPN + VGG16 recommended for low latency",
+   "attributed_backbone": "VGG16 / VGG19 (U-Net & FPN)",
+   "family": "CNN",
+   "dataset_name": "LeavesUAV (self-collected)",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.808,
+     "unit": "fraction",
+     "confidence": 0.8,
+     "ambiguity": "F1 = 0.8080 at IoU threshold 0.5 (U-Net VGG19); at 0.75 = 0.8002. Values reported within Figure 6 caption text.",
+     "quote_in_records": "U-Net with VGG19 has a consistently exceptional performance, attaining the highest F1 score of 0.8080 at the 0.5 threshold"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.9724,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Accuracy 97.24% is for the FPN+VGG16 (latency-optimal) model at threshold 0.5, not the F1-optimal U-Net+VGG19. Treat as pixel accuracy.",
+     "quote_in_records": "The experimental findings demonstrate the effectiveness of the VGG16-based FPN architecture for real-time leaf segmentation tasks as it acquires 97.24% and 96.73% accuracy with a latency time of 31.5 ms and 32.6 ms, on 0.5 and 0.75 threshold values."
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "CPU (desktop)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "448"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "fps",
+     "value": 31.75,
+     "quote_in_records": "FPN with VGG16 emerged as the most efficient, exhibiting the lowest average latency times for both thresholds, with 31.5 ms at 0.5 and 32.6 ms at 0.75"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 31.5,
+     "quote_in_records": "FPN with VGG16 emerged as the most efficient, exhibiting the lowest average latency times for both thresholds, with 31.5 ms at 0.5 and 32.6 ms at 0.75"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001382",
+   "title": "HRS-UNet: A Semantic Segmentation Model for Precise Crop Classification in Hyperspectral Remote Sensing Image",
+   "year": 2025,
+   "venue": "Poster Volume II The 2025 Twenty-First International Conference on Intelligent Computing (ICIC)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2025_Lin_HRSUNet_A_Semantic_Segmentation_Model_for_Precis.md",
+   "attributed_model": "HRS-UNet",
+   "attributed_backbone": "U-Net with Multiscale Spectral Aggregation",
+   "family": "CNN",
+   "dataset_name": "UAV-HSI-Crop benchmark",
+   "num_classes": null,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.8996,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Overall Accuracy (OA) per Eq. (12) = correctly classified samples / total, i.e. global pixel accuracy (reported as 'classification accuracy'); mapped to PA.",
+     "quote_in_records": "our method achieves a remarkable overall accuracy (OA) of 89.96% with a corresponding Kappa coefficient of 0.8814"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "96"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch; 8x NVIDIA RTX 3090 GPUs, 200 epochs, batch size 8, Adam lr 4e-5, weight"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001406",
+   "title": "Classification and Identification of Crops Using Deep Learning with UAV Data",
+   "year": 2021,
+   "venue": "2021 IEEE International India Geoscience and Remote Sensing Symposium (InGARSS)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2021_Narvaria_Classification_and_Identification_of_Crops_Using_D.md",
+   "attributed_model": "U-Net (CIR + NDVI input)",
+   "attributed_backbone": "U-Net",
+   "family": "CNN",
+   "dataset_name": "Self-collected UAV multispectral imagery (India)",
+   "num_classes": 5,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8385,
+     "unit": "fraction",
+     "confidence": 0.6,
+     "ambiguity": "Metric reported as 'average segmentation accuracy', computed via Jaccard index (IoU-like), not standard mIoU. Best input CIR+NDVI 83.85%; RGB 83.35%; CIR alone 74.61%.",
+     "quote_in_records": "inclusion of NDVI in CIR input dataset yield high segmentation accuracy of 83.85%"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.8385,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Averaged per-image overall accuracy with U-Net on CIR+NDVI input (best combination; RGB 83.35%, CIR 74.61%).",
+     "quote_in_records": "CIR with NDVI gave most accurate results (83.85% average accuracy highlighted in bold in Table 3) for segregation of crops using U-Net"
+    }
+   ]
+  }
+ ]
+}

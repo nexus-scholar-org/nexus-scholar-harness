@@ -1,0 +1,388 @@
+{
+ "batch": 6,
+ "studies": [
+  {
+   "workspace_id": "SCI-001017",
+   "title": "Multi-Class Weed Quantification Based on U-Net Convolutional Neural Networks Using UAV Imagery",
+   "year": 2026,
+   "venue": "Applied Sciences",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2026_SandovalPillajo_MultiClass_Weed_Quantification_Based_on_UNet_Con.md",
+   "attributed_model": "Residual U-Net (Mean IoU 0.8021)",
+   "attributed_backbone": "U-Net variants",
+   "family": "CNN",
+   "dataset_name": "Custom UAV potato-crop dataset (Andean weeds)",
+   "num_classes": 6,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.8021,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Mean IoU over 6 classes on test set. Assessed with Mean Dice Coefficient, Mean IoU, Dice Loss metrics.",
+     "quote_in_records": "The Residual U-Net is the best model for adjusting the resulting multi-class segmentation to the silhouettes of the native plants under study, with a mean IoU of 0.8021"
+    },
+    {
+     "kind": "metric",
+     "key": "Dice",
+     "value": 0.8763,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Validation set (10%, 210 images) for the balanced Residual U-Net. Test-set Dice not reported (test-set results are per-class IoU only, Table 4). Other models (validation): Original 0.7576, Double 0.7529, MU-Net 0.7764, AU-Net 0.6647. Reported as percentage in the paper; stored as fraction.",
+     "quote_in_records": "Residual U-Net (balanced extended dataset) ... a mean Dice Coef cient of 0.8763"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.824,
+     "unit": "fraction",
+     "confidence": 0.8,
+     "ambiguity": "Overall accuracy 82.4% for the Residual U-Net appears only in the literature-comparison table (Table 6) without separate derivation in the results text (which uses only IoU/Dice metrics and argues OA is less robust). Recorded as PA with reduced confidence; may reflect a different evaluation setting.",
+     "quote_in_records": "Our work 2026 Residual U-Net ... 0.8021 82.4"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "None - offline. Models trained and inferred on Google Colab Pro+ (Nvidia A100 GPU 40 GB VRAM, 83.5 GB RAM). Paper notes the 515 MB Residual U-Net is 'large for UAV-based scouting' and recommends future lightweight model compression (pruning, quantization, knowledge distillation) to enable on-device embedded inference; inference speed measured on the cloud GPU only."
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "128"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "TensorFlow/Keras 2.8.0 on Google Colab Pro+ (Nvidia A100 40 GB); Adam (lr 0.001)"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "fps",
+     "value": 17,
+     "quote_in_records": "a relatively fast inference time of 58.5 ms (17 fps) per 128 x 128 image patch (model input size), occupying 515 MB of storage"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 58.5,
+     "quote_in_records": "in a relatively fast inference time of 58.5 ms (17 fps) per 128 x 128 image patch (model input size)"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 135,
+     "quote_in_records": "The Residual U-Net model maintains the basic architecture of the U-Net but with skip connections in multiple layers. The total trained parameters were nearly 135 M, with a size of 515 MB."
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001023",
+   "title": "AgriFusion: Multiscale RGB-NIR Fusion for Semantic Segmentation in Airborne Agricultural Imagery",
+   "year": 2025,
+   "venue": "AgriEngineering",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2025_Li_AgriFusion_Multiscale_RGBNIR_Fusion_for_Semantic.md",
+   "attributed_model": "AgriFusion (MiT-B1)",
+   "attributed_backbone": "Dual encoder (CNN + Transformer, MiT-B1)",
+   "family": "CNN",
+   "dataset_name": "Agriculture-Vision benchmark",
+   "num_classes": 7,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.4931,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "",
+     "quote_in_records": "Experiments conducted on the Agriculture-Vision dataset demonstrate that AgriFusion achieves a mean Intersection over Union (mIoU) of 49.31%, Pixel Accuracy (PA) of 81.72%, and F1 score of 67.85%"
+    },
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.6785,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "",
+     "quote_in_records": "Experiments conducted on the Agriculture-Vision dataset demonstrate that AgriFusion achieves a mean Intersection over Union (mIoU) of 49.31%, Pixel Accuracy (PA) of 81.72%, and F1 score of 67.85%"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.8172,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "",
+     "quote_in_records": "Experiments conducted on the Agriculture-Vision dataset demonstrate that AgriFusion achieves a mean Intersection over Union (mIoU) of 49.31%, Pixel Accuracy (PA) of 81.72%, and F1 score of 67.85%"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch; trained on NVIDIA RTX 2080Ti GPU (22 GB) for 100 epochs, batch size 64,"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001029",
+   "title": "Enhancing sustainable Chinese cabbage production: a comparative analysis of multispectral image instance segmentation techniques",
+   "year": 2024,
+   "venue": "Frontiers in Sustainable Food Systems",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Yuan_Enhancing_sustainable_Chinese_cabbage_production_a.md",
+   "attributed_model": "YOLOv8-Seg",
+   "attributed_backbone": "YOLOv8-Seg",
+   "family": "CNN",
+   "dataset_name": "Self-collected UAV multispectral Chinese cabbage imagery",
+   "num_classes": 1,
+   "verify": [
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "640"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch 1.12.0, Python 3.8, CUDA 11.3; AMD Ryzen 7 5800X 8-core 3.8 GHz, NVIDIA "
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 11.7,
+     "quote_in_records": "Table 6: Performance comparison of YOLOv8-Seg models at different scales ... YOLOv8s-Seg ... Parameters 11.7"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001046",
+   "title": "Implementing Innovative Weed Detection Techniques for Environmental Sustainability",
+   "year": 2024,
+   "venue": "Journal of Environmental Nanotechnology",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Sreeja_Implementing_Innovative_Weed_Detection_Techniques_.md",
+   "attributed_model": "Mask R-CNN (UAV-tailored)",
+   "attributed_backbone": "MobileNetV3 (lightweight inverted-residual blocks with SE attention; chosen for real-time/low-resource deployment given UAV computational constraints)",
+   "family": "CNN",
+   "dataset_name": "Self-collected cluttered UAV plantation images",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "Keras / TensorFlow GPU 1.8.0, cuDNN 7.0, Python 3.5.2, Intel Xeon E5-2643v3 3.40"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001053",
+   "title": "Deep Learning for Weed Detection and Segmentation in Agricultural Crops Using Images Captured by an Unmanned Aerial Vehicle",
+   "year": 2024,
+   "venue": "Remote Sensing",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2024_Silva_Deep_Learning_for_Weed_Detection_and_Segmentation_.md",
+   "attributed_model": "YOLOv8s",
+   "attributed_backbone": "YOLOv8s",
+   "family": "CNN",
+   "dataset_name": "Self-collected UAV images of soybean and bean crops",
+   "num_classes": 2,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "F1",
+     "value": 0.964,
+     "unit": "fraction",
+     "confidence": 0.8,
+     "ambiguity": "Model-level F1-score of detection/segmentation for YOLOv8s (500 epochs), not per-class. YOLOv7 0.951, YOLOv5s 0.960 for comparison.",
+     "quote_in_records": "Table 10. Accuracy scores, mAP, and F1-score of the YOLOv8s, YOLOv7, and YOLOv5s models over 500 epochs ... YOLOv8s ... F1-Score 0.964"
+    },
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.961,
+     "unit": "fraction",
+     "confidence": 0.7,
+     "ambiguity": "U-Net (ResNet50) validation accuracy at 100 epochs interpreted as overall pixel accuracy of the semantic segmentation model; train accuracy 0.971. YOLO/Mask R-CNN 'Acc' values (0.95-0.99) are detection accuracy, not pixel accuracy.",
+     "quote_in_records": "The training set accuracy was 97.1%, with a loss value of 0.024, while for validation, the accuracy was 96.1%, with a loss value of 0.033."
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "NVIDIA Tesla T4 GPU (Google Colaboratory); AMD Ryzen 7 6800H CPU; 16 GB RAM; Windows 10"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "640"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "PyTorch 2.1 / CUDA 12.2 (Python 3.12), Ultralytics (YOLO), Detectron2 (Mask R-CN"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001084",
+   "title": "A Preliminary Study on U-Net for Crop Monitoring Using Low-Altitude Drone Imagery",
+   "year": 2025,
+   "venue": "Proceedings of the 8th International Conference on Engineering Mechanics and Automation ICEMA 2025",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2025_Thang_A_Preliminary_Study_on_UNet_for_Crop_Monitoring_U.md",
+   "attributed_model": "DeepLabV3+ (highest mIoU 82.90%); ResUNet SCSE best for weed IoU 77.49%",
+   "attributed_backbone": "U-Net variants (Attention / ResNet / SCSE) vs DeepLabV3+",
+   "family": "CNN",
+   "dataset_name": "WeedsGalore",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.829,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Headline mIoU 82.90% is DeepLabV3+ (highest); best U-Net variant Attention U-Net 82.82%. ResUNet SCSE weed IoU 0.7749 noted.",
+     "quote_in_records": "DeepLabV3+ achieved the highest overall performance with an mIoU of 82.90%... Attention U-Net reached 82.82% mIoU, only 0.08% lower... The developed ResUNet SCSE performed best in weed segmentation, reaching an IoU of 77.49% for the weed class."
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "No physical hardware deployed (preliminary feasibility study); training/GPU details not specified"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "600"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "params_M",
+     "value": 31.4,
+     "quote_in_records": "Relative to DeepLabV3+, Attention U-Net reduced model size by 21.1% (approx. 8.4 million parameters) while maintaining nearly identical accuracy"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001085",
+   "title": "Accelerating UAV-Based Agricultural Field Segmentation Using YOLOv11 and Rockchip NPU Quantization",
+   "year": 2026,
+   "venue": "2026 Systems of Signal Synchronization, Generating and Processing in Telecommunications (SYNCHROINFO)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2026_Andriyanov_Accelerating_UAVBased_Agricultural_Field_Segmenta.md",
+   "attributed_model": "YOLOv11s-seg (RKNN INT8) - mAP@0.5 0.85",
+   "attributed_backbone": "YOLOv11 (seg heads)",
+   "family": "CNN",
+   "dataset_name": "Combined UAE + synthetic UAV agricultural dataset",
+   "num_classes": 3,
+   "verify": [
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "Orange Pi 5+ (Rockchip RK3588, 6 TOPS NPU)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "precision",
+     "value": "INT8 (post-training quantized RKNN)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "resolution_input",
+     "value": "512"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "RKNN Toolkit2 / Ultralytics"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "fps",
+     "value": 62.5,
+     "quote_in_records": "YOLOv11s-seg.rknn  0.85  0.79  0.85  16"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 16.0,
+     "quote_in_records": "YOLOv11s-seg.rknn  0.85  0.79  0.85  16"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001090",
+   "title": "Resolution-Accuracy Trade-offs in UAV-Based Semantic Segmentation for Precision Agricultural Imagery",
+   "year": 2026,
+   "venue": "Indonesian Journal of Electrical Engineering and Informatics (IJEEI)",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2026_Amin_ResolutionAccuracy_Tradeoffs_in_UAVBased_Semant.md",
+   "attributed_model": "U-Net3+ (mIoU 0.799)",
+   "attributed_backbone": "U-Net variants / DeepLabV3+",
+   "family": "CNN",
+   "dataset_name": "Agriculture-Vision (UAV-acquired agricultural anomalies)",
+   "num_classes": null,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "mIoU",
+     "value": 0.799,
+     "unit": "fraction",
+     "confidence": 0.9,
+     "ambiguity": "Value extracted from table row U-Net3+ 79.9%; anomaly/pixel-level, not crop-vs-weed. Best overall model in table.",
+     "quote_in_records": "mIoU (79.9%) which is better than all the other models... U-Net3+ 79.9"
+    },
+    {
+     "kind": "metric",
+     "key": "Dice",
+     "value": 0.9545,
+     "unit": "fraction",
+     "confidence": 0.7,
+     "ambiguity": "Class-level Dice coefficient (DC), highest single value reported: U-Net on Water Way at both 10 and 20 cm/pixel. The headline best config (U-Net3+, 20 cm) reaches DC 0.9135 on weed cluster; per-class DC across the grid spans ~0.20-0.95. Values are per-class, not averaged.",
+     "quote_in_records": "Water Way  U-Net ... .9924  .9715  .9693  .913  .9545  ...  26"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "Not specified (training-time analysis only; no inference-hardware details given)"
+    }
+   ]
+  },
+  {
+   "workspace_id": "SCI-001173",
+   "title": "Real-time Crop Classification Using Edge Computing and Deep Learning",
+   "year": 2020,
+   "venue": "Consumer Communications and Networking Conference",
+   "extracted_md": "C:/Users/mouadh/Documents/nexus-scholar-harness/workspaces/uav-cv-precision-agriculture/extracted/2020_Yang_Realtime_Crop_Classification_Using_Edge_Computing.md",
+   "attributed_model": "SegNet",
+   "attributed_backbone": "VGG16 (SegNet encoder)",
+   "family": "CNN",
+   "dataset_name": "Self-collected UAV crop fields (NCHU Experimental Farm)",
+   "num_classes": 4,
+   "verify": [
+    {
+     "kind": "metric",
+     "key": "PA",
+     "value": 0.8944,
+     "unit": "fraction",
+     "confidence": 0.95,
+     "ambiguity": "Per-class OA values: rice 96.07%, corn 90.61%, road 77.90%, background 88.21%; SegNet OA 89.44%. Abstract states 'segmentation identification accuracy is 89%'.",
+     "quote_in_records": "SegNet 96.07 90.61 77.90 88.21 89.44"
+    },
+    {
+     "kind": "edge_field",
+     "key": "device",
+     "value": "ASUS Tinker Board S (onboard) + backend server (4G LTE offload)"
+    },
+    {
+     "kind": "edge_field",
+     "key": "framework",
+     "value": "Keras + TensorFlow (Docker/NGCT)"
+    },
+    {
+     "kind": "edge_metric",
+     "key": "fps",
+     "value": 1.43,
+     "quote_in_records": "The average inference speed of the semantic image segmentation model is 0.7s with segmentation identification accuracy is 89%."
+    },
+    {
+     "kind": "edge_metric",
+     "key": "latency_ms",
+     "value": 700,
+     "quote_in_records": "The average inference speed of the semantic image segmentation model is 0.7s with segmentation identification accuracy is 89%."
+    }
+   ]
+  }
+ ]
+}
