@@ -39,7 +39,9 @@
 ## After D1 submitted
 - [x] D3 framing prep: decision memo `reports/D3_FRAMING_DECISION.md`; Option A (early-evidence/living scoping review) adopted; 23 pending author records resolved via arXiv/OpenAlex
 - [x] D3 framing applied: `manuscript_draft.md` v2 — living-review title/front-matter, §3.8 protocol (cadence/versioning/preprint policy), §5.3 limitations, §7 declarations; 36/36 refs author-attributed
-- [ ] D3: author review of v2, then submit (Systematic Reviews / RSM)
+- [x] D3 adversarial audit: v3 fixes applied (wrong protocol fingerprint removed; ≥0.90-coverage wording; COI +44 +academic-or-public; 47/58 coverage; OpenScholar [5]/[6]; authors/funding/CRediT) — log in `reports/D3_ADVERSARIAL_AUDIT.md`
+- [ ] D3 journal-prep: Vancouver references, PRISMA-ScR flow diagram, supplementary search-log + version table, OSF protocol registration
+- [ ] D3: author review of v3, then submit (Systematic Reviews / RSM)
 - [ ] D4: software paper (JOSS) — Phase-7 P7.1–P7.9 becomes its content
 
 ---
