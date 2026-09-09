@@ -115,6 +115,12 @@ Auto-generated from `literature/extraction/merged/records.json` + `synthesis/syn
 | SCI-000754 | Google Colab T4 GPU (training and  | Cloud GPU (Colab | AMP mixe | 224 |  | 18.5 | Inference latency averaged 18 ms per 224 x 224 image (batch size = 32), confirming real-ti |
 | SCI-000816 | None - no on-device deployment per | Efficiency-only |  | 128 |  |  |  |
 
+### D1 — Target-edge evidence note (read on 2026-09-09; verbatim from source full texts)
+
+- **SCI-000067 (RoWeeder, Marinis et al. 2024):** "Inference time was calculated on a single NVIDIA RTX 4090, a consumer-grade GPU, which is more powerful than a typical edge device … Future work will focus on testing the model on edge devices to evaluate its performance in real-world scenarios." → 7.07 ms / 141 FPS is RTX 4090-only; **no on-board measurement reported**.
+- **SCI-000754 (AgroVisionNet, Mahareek et al. 2025):** "Inference latency averaged 18 ms per 224 x 224 image (batch size = 32), confirming real-time feasibility for UAV and field-robot deployment" (measured on Google Colab T4); "In future research, we aim to (1) optimize AgroVisionNet for edge deployment through model compression techniques such as pruning, quantization, and knowledge distillation" → T4-only; **no on-board measurement reported**.
+- Action: both rows are excluded from the embedded on-device cohort and must NOT be cited as on-device evidence. Optionally cite them in the Discussion as examples of the "claimed vs measured" deployment reporting gap.
+
 ## Table C — device deployed but no measured fps/latency (efficiency-only); flag for primary-justification checks
 
 | Study | Device | Family | params | note |
