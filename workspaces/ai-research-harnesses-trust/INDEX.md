@@ -1,7 +1,7 @@
 # Project Index: AI-Assisted Academic Research Harnesses: Traceability, Trust, Audit and Reproducibility
 
 - **Project Slug**: `ai-research-harnesses-trust`
-- **Last Updated**: `2026-09-09 09:29:50 UTC`
+- **Last Updated**: `2026-09-09 10:43:37 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -28,9 +28,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 09:29 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-09 07:29 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 09:29 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 10:43 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-09 09:30 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 10:43 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-08 08:11 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-08 08:12 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-08 08:17 | Verified |
@@ -42,14 +42,15 @@
 | `literature/extraction/merged/records.json` | Canonical merged extraction dataset (per-value provenance quotes) | 2026-09-08 08:51 | Merged |
 | `synthesis/synthesis_matrix.csv` | Verified one-row-per-study synthesis matrix | 2026-09-08 09:03 | Generated |
 | `synthesis/synthesis_matrix.json` | Machine-readable synthesis matrix | 2026-09-09 01:29 | Generated |
-| `synthesis/literature_review.md` | Finalized synthesis: 3 RQ chapters grounded in 510-claim ledger + 95 clusters | 2026-09-09 07:17 | Generated |
-| `synthesis/claims.json` | Canonical 510-claim evidence ledger (verbatim-backed, RQ1 166 / RQ2 132 / RQ3 212) | 2026-09-08 23:37 | Generated |
-| `synthesis/consensus.json` | 95 semantic consensus clusters (16 high / 7 debates / 37 unresolved / 35 provisional) | 2026-09-08 23:54 | Generated |
-| `reports/pipeline_engineering_report.md` | End-to-end pipeline retrospective (screening→extraction→RAG→synthesis) + 8 harness upgrade targets (U1–U8) | 2026-09-09 09:28 | Documented |
-| `reports/literature_lessons_and_reading_list.md` | 12 corpus-grounded harness lessons (L1–L12) + 24 method-paper reading list | 2026-09-09 09:29 | Documented |
+| `synthesis/claims.json` | Verified verbatim claim ledger (510 claims, RQ1+2+3) | 2026-09-09 07:16 | Verified |
+| `synthesis/consensus.json` | Consensus Cartographer clusters (95 clusters) | 2026-09-09 07:16 | Generated |
+| `synthesis/consensus.md` | Human-readable consensus cartography report | 2026-09-09 07:16 | Generated |
+| `synthesis/method_comparison.md` | RAG-baseline vs verbatim-ledger method comparison | 2026-09-09 07:16 | Generated |
+| `synthesis/literature_review.md` | Synthesis document & literature review (finalized) | 2026-09-09 07:16 | Finalized |
 | `reports/literature_lessons_and_reading_list.md` | Formal methodology or audit report | 2026-09-09 09:29 | Audited |
 | `reports/manuscript_draft.md` | Formal methodology or audit report | 2026-09-09 07:28 | Audited |
 | `reports/methodology_report.md` | Formal methodology or audit report | 2026-09-09 07:03 | Audited |
+| `reports/PHD_DELIVERABLES_PLAN.md` | Formal methodology or audit report | 2026-09-09 10:41 | Audited |
 | `reports/pipeline_engineering_report.md` | Formal methodology or audit report | 2026-09-09 09:28 | Audited |
 | `reports/screening_consensus_report.md` | Formal methodology or audit report | 2026-09-08 22:25 | Audited |
 | `pdfs/` | Downloaded Open Access full-text PDF documents (64 files) | Active | Downloaded |
