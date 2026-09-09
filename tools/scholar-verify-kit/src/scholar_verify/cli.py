@@ -19,7 +19,7 @@ from typing import Any
 
 import typer
 
-from . import coi, open_science, retraction, risk_of_bias, trust_context
+from . import coi, open_science, retraction, risk_of_bias, trust_context, verbatim
 
 app = typer.Typer(help="Verify the trustworthiness of a screened corpus (retraction status, open-science artifacts, COI, risk of bias).")
 
@@ -222,5 +222,51 @@ def all_cmd(
     _write(ws, "risk_of_bias", out3, risk_of_bias.render_report(out3))
 
 
+@app.command("verbatim-claims")
+def verbatim_claims_cmd(
+    claims_file: Path = typer.Option(..., "--claims", "-c", help="Path to claims JSON file (e.g. synthesis/claims.json)"),
+    extracted_dir: Path = typer.Option(..., "--extracted", "-e", help="Directory with extracted markdown files"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Path to write verification report JSON"),
+    threshold: float = typer.Option(0.90, "--threshold", "-t", help="Coverage threshold for verbatim match"),
+) -> None:
+    """Verify synthesis claims against extracted full-text documents via verbatim window/ngram matching."""
+    if not claims_file.exists():
+        raise typer.BadParameter(f"Claims file not found: {claims_file}")
+    if not extracted_dir.exists():
+        raise typer.BadParameter(f"Extracted directory not found: {extracted_dir}")
+
+    claims = json.loads(claims_file.read_text(encoding="utf-8"))
+    if not isinstance(claims, list):
+        raise typer.BadParameter("Claims file must contain a JSON list")
+
+    source_texts: dict[str, str] = {}
+    for md_file in extracted_dir.glob("*.md"):
+        content = md_file.read_text(encoding="utf-8", errors="replace")
+        # Map by stem, full name, and potential SCI-xxxx in file or metadata
+        source_texts[md_file.stem] = content
+        m = re.search(r"workspace_id:\s*['\"]?(SCI-\d+)['\"]?", content)
+        if m:
+            source_texts[m.group(1)] = content
+        # Also check study_id or filename patterns
+        m_id = re.search(r"(SCI-\d+)", md_file.name)
+        if m_id:
+            source_texts[m_id.group(1)] = content
+
+    verifier = verbatim.VerbatimClaimVerifier(threshold=threshold)
+    results, metrics = verifier.verify_claims_ledger(claims, source_texts)
+
+    typer.echo(f"Verified {metrics['verified_claims']}/{metrics['total_claims']} claims ({metrics['verification_rate']*100:.1f}%) at threshold {threshold}")
+
+    if output:
+        out_data = {
+            "metrics": metrics,
+            "results": [r.__dict__ for r in results]
+        }
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(out_data, indent=2, ensure_ascii=False), encoding="utf-8")
+        typer.echo(f"Report written to {output}")
+
+
 if __name__ == "__main__":
     app()
+

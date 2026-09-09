@@ -39,3 +39,10 @@ Phase 5 transitions the toolkit from a CLI engine into a collaborative, UI-drive
 - [ ] **Shared Collaborative Workspaces**: Git + append-only audit ledger as the collaboration substrate; no realtime sync engine.
 - [ ] **No-Code Workflow Builder**: `PipelineSpec` DAG editor that emits the same JSON `scholar-harness run --pipeline` consumes; dry-run on samples; exports `uv run` scripts.
 - [ ] **Domain-Specific Playbooks**: 1-click instantiation of PRISMA SLR / scoping review / REA / meta-research `PipelineSpec` archetypes.
+
+### Phase 6: Scientific Trust & External Harness Bridge (DeepSeek Harness / DSH)
+Phase 6 establishes mathematical reliability and anchors the toolkit into modern external multi-agent platforms. Full specification: [`docs/phase_6/README.md`](./phase_6/README.md).
+- [x] **Verbatim Evidence Verifier**: Promoted `VerbatimClaimVerifier` into `scholar-verify-kit` (`scholar_verify.verbatim` & `scholar-verify verbatim-claims` CLI) with dual-pass sliding character-windows (8-char, step 4) and token $n$-grams (6-token, step 3) + Unicode NFKC/hyphenation normalization to certify claims against source documents with $\ge 90\%$ verbatim threshold.
+- [x] **Multi-Screener Adjudication & Fleiss' $\kappa$**: Built into `scholar-search-kit` (`reconcile_multi_screener_decisions`, `calculate_fleiss_kappa`) to handle $n$-rater consensus ($n \ge 3$), majority voting, and deadlock isolation.
+- [x] **FastMCP Protocol Server Exposure**: Exposed `nexus_screen_reconcile` and `nexus_verify_claims` in `scholar-agent-kit` (`scholar_agent.server`), enabling seamless integration into DeepSeek Harness (`dsh`) and OpenCode over standard `stdio`.
+- [x] **Phase 6 Specification**: Created [`docs/phase_6/README.md`](./phase_6/README.md) detailing the DSH Creator Mode preset, tool access lockdown, and verifiable provenance principles.
