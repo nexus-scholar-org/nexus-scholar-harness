@@ -31,9 +31,10 @@
 ---
 
 ## D2 — parallel, weeks 1–8
-- [ ] Draft from existing material (`method_comparison.md`, `docs/phase_6/README.md`, Phase-6 tests, audit ledger)
-- [ ] Core figure: RAG baseline 43.3% entailment-VERIFIED vs verbatim pipeline 510/510 ≥90%
-- [ ] Submit (RSM / JAMIA / arXiv)
+- [x] Draft from existing material (`method_comparison.md`, `docs/phase_6/README.md`, Phase-6 tests, audit ledger) — `reports/manuscript_d2.md` v1.2
+- [x] Core figure: RAG baseline 43.3% entailment-VERIFIED vs verbatim pipeline 510/510 ≥90% (figures 1–4)
+- [x] Numbers audit: `scripts/reproduce_d2_stats.py` — 37 assertions, all pass
+- [ ] Author review of v1.2 (prose + front matter), then submit (RSM / JAMIA / arXiv)
 
 ## After D1 submitted
 - [ ] D3: re-frame meta-review as early-evidence/living review; resolve 23 pending author records; submit

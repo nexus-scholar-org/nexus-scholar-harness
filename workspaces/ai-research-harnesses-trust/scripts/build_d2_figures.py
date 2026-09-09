@@ -59,7 +59,7 @@ def fig1():
     ax2.set_ylim(0, 66)
     ax2.set_ylabel("Distinct studies represented")
     ax2.set_title("Corpus coverage")
-    ax2.annotate("43/57 included studies\ninvisible to RAG", xy=(2.0, 32), color="dimgray", fontsize=9)
+    ax2.annotate("44/58 included studies\ninvisible to RAG", xy=(2.0, 32), color="dimgray", fontsize=9)
     fig.tight_layout()
     fig.savefig(OUT / "fig1_verification_versus_coverage.png", dpi=300)
     fig.savefig(OUT / "fig1_verification_versus_coverage.pdf")
@@ -68,7 +68,7 @@ def fig1():
 
 def fig2():
     cats = ["Out-of-scope studies cited", "Studies with zero claims", "Active debates"]
-    baseline = [11, 43, 0]
+    baseline = [11, 44, 0]
     verbatim = [0, 0, 7]
     import numpy as np
 

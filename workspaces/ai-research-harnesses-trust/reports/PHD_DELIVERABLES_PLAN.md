@@ -40,11 +40,11 @@ Venue: domain flagship (e.g., *Computers and Electronics in Agriculture*, *Preci
 ### D2 — The trust-provenance method paper (co-track A; instrument chapter)
 
 Your most publishable artifact, ~80% material already in the repo:
-- Result: auto-extraction (RAG baseline) certified only **43.3% of claims** as entailment-VERIFIED (25 studies, 11 non-corpus studies cited) vs the verbatim pipeline **510/510 at ≥90%** threshold — a measurable hallucination/verification result
+- Result: auto-extraction (RAG baseline) certified only **43.3% of claims** as entailment-VERIFIED (25 studies, 11 non-corpus studies cited, verified in-scope claims for only 8/14 studies, zero claims for 44/58 included) vs the verbatim pipeline **510/510 at ≥90% threshold** — a measurable hallucination/verification result
 - Method stack: `VerbatimClaimVerifier` (NFKC, 8-char window / 6-token n-gram dual-pass), multi-screener Fleiss' κ reconciliation (n≥3, deadlock isolation), Consensus Cartographer (Jaccard 0.30 / embedding θ 0.40), Phase-4 trust streams + trust-weighted grading (BLOCKED→STRONG)
-- Evidence: `synthesis/method_comparison.md`, `docs/phase_6/README.md`, Phase-6 tests (98 pass / 3 skip), 48-event audit ledger
-- Missing: the write-up + the experimental narrative tying RAG-baseline failure to verbatim success
-- Venue: *Research Synthesis Methods*, *JAMIA*, or CS methods + arXiv. **Does not wait on D1.** ~4–6 weeks.
+- Evidence: `synthesis/method_comparison.md`, `docs/phase_6/README.md`, Phase-6 tests (98 pass / 3 skip), 50-event audit ledger
+- **Status: write-up COMPLETE.** `reports/manuscript_d2.md` v1.2 finalized (authors/affiliations/declarations, 14 references with resolved DOIs, RQ definitions, repair-loop transparency incl. first-pass 354/510, self-referential-criterion caveat, descriptive p-value framing). Every headline number recomputed and asserted by `scripts/reproduce_d2_stats.py` (37 assertions, all pass; Fisher p = 1.34e-49) against committed ledgers; figures 1–4 regenerate from `scripts/build_d2_figures.py`.
+- Venue: *Research Synthesis Methods*, *JAMIA*, or CS methods + arXiv. **Does not wait on D1.** Ready for author review → submission.
 
 ### D3 — Meta-review: "AI research harnesses and trust" (co-track A; ch.4 + instrument validation)
 
