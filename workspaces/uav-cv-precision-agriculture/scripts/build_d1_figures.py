@@ -120,7 +120,7 @@ def side(x, y, sub, colour=GREY):
 
 # ---- IDENTIFICATION ----
 phase_colour(12.0, 9.0)
-ax.text(0.45, 10.9, "IDENTIFICATION", fontsize=15, fontweight="bold", color=NAVY, zorder=4)
+ax.text(0.25, 10.5, "IDENTIFICATION", rotation=90, va="center", ha="center", fontsize=15, fontweight="bold", color=NAVY, zorder=4)
 box(0.7, 9.2, 3.4, 1.25, "Records identified from databases", "n = 1,837")
 box(5.9, 9.2, 3.4, 1.25, "Duplicate records removed", "n = 349", fc="#F5EEE1")
 arrow(4.1, 9.83, 5.9, 9.83)
@@ -129,7 +129,7 @@ arrow(2.4, 9.2, 2.4, 8.4)
 
 # ---- SCREENING & RETRIEVAL ----
 phase_colour(9.0, 6.2)
-ax.text(0.45, 8.35, "SCREENING", fontsize=15, fontweight="bold", color=NAVY, zorder=4)
+ax.text(0.25, 7.6, "SCREENING", rotation=90, va="center", ha="center", fontsize=15, fontweight="bold", color=NAVY, zorder=4)
 box(0.7, 5.1, 3.4, 1.25, "Records screened (title + abstract)", "n = 1,488")
 arrow(2.4, 7.15, 2.4, 6.35)
 side(4.7, 5.72, "Excluded at title/abstract\nn = 1,338", colour=RED)
@@ -137,7 +137,7 @@ arrow(4.1, 5.72, 4.6, 5.72)
 
 # ---- ELIGIBILITY ----
 phase_colour(6.2, 3.4)
-ax.text(0.45, 5.55, "ELIGIBILITY", fontsize=15, fontweight="bold", color=NAVY, zorder=4)
+ax.text(0.25, 4.8, "ELIGIBILITY", rotation=90, va="center", ha="center", fontsize=15, fontweight="bold", color=NAVY, zorder=4)
 box(0.7, 3.05, 3.4, 1.25, "Reports sought for retrieval", "n = 150")
 arrow(2.4, 5.1, 2.4, 4.3)
 side(4.7, 4.42, "Reports not retrieved\nn = 12", colour=RED)
@@ -149,7 +149,7 @@ arrow(4.1, 2.25, 4.6, 2.25)
 
 # ---- INCLUDED ----
 phase_colour(3.4, 0.0)
-ax.text(0.45, 1.6, "INCLUDED", fontsize=15, fontweight="bold", color=GREEN, zorder=4)
+ax.text(0.25, 1.7, "INCLUDED", rotation=90, va="center", ha="center", fontsize=15, fontweight="bold", color=GREEN, zorder=4)
 box(0.7, 0.15, 3.4, 1.0, "Studies included in quantitative synthesis", "n = 94  (audited corpus)",
     fc="#D9EDDC", text_scale=0.95)
 arrow(2.4, 1.0, 2.4, 1.15)
@@ -190,8 +190,8 @@ for b, v in zip(bars, vals[::-1]):
             va="center", fontsize=12.5, fontweight="bold", color="#111")
 ax.set_xlabel("Studies (best-reporting model / backbone)"); ax.set_xlim(0, 84)
 light_grid(ax, "x")
-ax.text(0.015, 0.98, "79/94 (84%) derive from convolutional families",
-        transform=ax.transAxes, fontsize=11.5, color=GREY, va="top")
+ax.text(0.015, 1.03, "79/94 (84%) derive from convolutional families",
+        transform=ax.transAxes, fontsize=11.5, color=GREY, va="bottom")
 fig.tight_layout()
 save(fig, "fig3_family_distribution")
 
@@ -219,7 +219,9 @@ save(fig, "fig4_dataset_reuse")
 def short_dev(d):
     d = d.replace("NVIDIA ", "").replace("ASUS ", "")
     d = re.split(r"[\\(\u2014;]", d)[0].strip()
-    return d or d
+    if "Jetson AGX Orin" in d and "Nano" in d:
+        d = "Jetson AGX Orin & Nano Super"
+    return d
 
 
 rows, lat_only = [], []
@@ -250,10 +252,10 @@ handles = [mpatches.Patch(color=GREEN, label="\u2265 40 FPS (real-time at 512 px
            mpatches.Patch(color=BLUE, label="< 20 FPS (below real-time)")]
 ax.legend(handles=handles, loc="lower right", fontsize=10.5, frameon=True, framealpha=0.95)
 if lat_only:
-    ax.text(0.012, 0.06,
+    ax.text(0.012, -0.12,
             "Latency-only cohort members: " + ", ".join(f"{s} {v:g} ms" for s, _, v in lat_only)
             + "\n(15-study embedded cohort; measurements on physical boards)",
-            transform=ax.transAxes, fontsize=10.5, color=GREY, va="bottom")
+            transform=ax.transAxes, fontsize=10.5, color=GREY, va="top")
 fig.tight_layout()
 save(fig, "fig5_edge_throughput")
 

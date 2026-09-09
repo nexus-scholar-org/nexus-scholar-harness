@@ -43,13 +43,15 @@ Recorded in `synthesis/provisional_resolution.md` (2026-09-09, pipeline files un
 | CONFIRMED_PENDING_FULLTEXT (segmentation/benchmark paper, PDF not retrieved) | 9 | out of corpus until PDF retrieval |
 | EXCLUDE_TOPIC (off-scope: sidewalk cracks, bombardment, urban traffic, human search, time-sync, amphibious, corn earworm, vineyard NMPC) | 8 | exclude - screening precision finding |
 | EXCLUDE_EXC06 (adjudicator-confirmed no numeric segmentation metric) | 5 | exclude under EXC-06 |
-| REVIEW_REQUIRED (no observable numeric metric; 10-minute human loop before any inclusion) | 13 | out of corpus until resolved |
+| REVIEW_REQUIRED (no observable numeric metric; 10-minute human loop before any inclusion) | 13 | **excluded — confirmed unretrievable** (2026-09-09: no fulltext extraction, extracted MD, or PDF; paywalled/restricted venues) |
 
 Effective fully-confirmed inclusion from the caveat stream = 4; effective corpus for quantitative synthesis
 remains the 94 audited-clean extraction studies (phase-4) with the trust filter described in the ledger.
 
 Discrepancy to reconcile: the 2026-09-04 report splits the 39 as 22 missing-abstract + 17 contested-EXC06;
 the 2026-09-09 resolution found all 39 carrying the EXC06 caveat. Document the accounting difference.
+
+**Reconciliation (2026-09-09):** both accounts cover the same 39 records. The 2026-09-04 split (22 missing-abstract + 17 contested-EXC06) is a *symptom-level* breakdown from the earlier screening batch; the CAVEAT_EXC06 flag was attached to all 39 during the stage-3 ledger for resolution bookkeeping. The canonical buckets (4 CONFIRMED / 9 PENDING / 8 EXCLUDE_TOPIC / 5 EXCLUDE_EXC06 / 13 EXCLUDED_UNRETRIEVED = 39) supersede the symptom split and are used in `synthesis/provisional_resolution.md` and manuscript §3.1.
 
 ## 4. PRISMA 2020 abstract checklist mapping
 
