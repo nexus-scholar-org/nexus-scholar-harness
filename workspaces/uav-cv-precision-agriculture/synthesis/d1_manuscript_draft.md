@@ -4,7 +4,7 @@
 Authors: Mouadh Bekhouche¹, Soumia Zertal¹ \* (MB and SZ contributed equally)
 \* Corresponding author: zertal.soumia@univ-oeb.dz
 ¹ University of Oum El Bouaghi, Algeria — bekhouche.mouadh@univ-oeb.dz, ORCID 0009-0009-7912-7656 (MB); zertal.soumia@univ-oeb.dz, ORCID 0000-0003-0127-900X (SZ)
-[Add department/laboratory line before submission, e.g. ¹ Department of ..., University of Oum El Bouaghi, Algeria]
+¹ University of Oum El Bouaghi, Algeria
 Status: DRAFT v0.1 (2026-09-09) — companion tables in `synthesis/rq1_benchmark_tables.md` and `synthesis/rq2_edge_tables.md`; verification trail in `synthesis/rq1_anchor_audit.md`.
 
 ---
