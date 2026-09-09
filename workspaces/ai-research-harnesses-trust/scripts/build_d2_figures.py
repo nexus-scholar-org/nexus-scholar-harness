@@ -94,7 +94,60 @@ def fig2():
     plt.close(fig)
 
 
+def fig3():
+    stages = ["v1 initial extraction", "v4 after repair loop", "Final (11 re-cast verbatim)"]
+    fails = [156, 11, 0]
+    passed = [510 - f for f in fails]
+    fig, ax = plt.subplots(figsize=(8.5, 4.2))
+    x = range(len(stages))
+    b1 = ax.bar([i - 0.18 for i in x], passed, 0.36, label="Passed verbatim gate", color=TEAL)
+    b2 = ax.bar([i + 0.18 for i in x], fails, 0.36, label="Failed the gate", color=GOLD)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(stages, fontsize=9)
+    ax.set_ylabel("Claims (of 510)")
+    ax.set_ylim(0, 540)
+    ax.set_title("Verbatim verification repair loop (fix-loop auditable at every stage)")
+    for bars in (b1, b2):
+        for bar in bars:
+            h = int(bar.get_height())
+            if h:
+                ax.text(bar.get_x() + bar.get_width() / 2, h + 6, str(h), ha="center", fontsize=9)
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    fig.savefig(OUT / "fig3_verification_repair_loop.png", dpi=300)
+    fig.savefig(OUT / "fig3_verification_repair_loop.pdf")
+    plt.close(fig)
+
+
+def fig4():
+    rq = ["RQ1", "RQ2", "RQ3"]
+    rate = [36.7, 46.7, 46.7]
+    lo = [21.9, 30.2, 30.2]
+    hi = [54.5, 63.9, 63.9]
+    fig, ax = plt.subplots(figsize=(7.5, 4.2))
+    xs = range(len(rq))
+    ax.errorbar(
+        xs, rate, yerr=[[rate[i] - lo[i] for i in xs], [hi[i] - rate[i] for i in xs]],
+        fmt="o", color=GOLD, capsize=5, lw=2, ms=7, label="RAG baseline (Wilson 95% CI)",
+    )
+    ax.plot(xs, [100] * 3, "s", color=TEAL, ms=8, label="Verbatim pipeline (510/510)")
+    ax.axhline(43.3, color="gray", ls=":", lw=1)
+    ax.text(2.35, 43.3, "pooled 43.3%", color="gray", fontsize=9, va="center")
+    ax.set_xticks(list(xs))
+    ax.set_xticklabels(rq)
+    ax.set_ylim(0, 115)
+    ax.set_ylabel("Verification pass rate (%)")
+    ax.set_title("Per-research-question verification rates")
+    ax.legend(frameon=False, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(OUT / "fig4_per_rq_rates.png", dpi=300)
+    fig.savefig(OUT / "fig4_per_rq_rates.pdf")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     fig1()
     fig2()
+    fig3()
+    fig4()
     print("D2 figures written to", OUT)
