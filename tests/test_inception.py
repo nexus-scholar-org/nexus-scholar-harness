@@ -144,6 +144,16 @@ def test_make_intent_golden_fields():
     assert "embedded crop-field RGB cameras" in intent["epistemological_rationale"]
 
 
+def test_make_intent_defaults_exclusion_when_none_given():
+    survey = build_survey(out_of_scope=[], extra_exclusions=[])
+    intent = make_intent(survey, "on-device-weed-detection", GENESIS_TS)
+
+    assert len(intent["exclusion_criteria"]) == 1
+    assert intent["exclusion_criteria"][0]["reason_category"] == "OUT_OF_SCOPE"
+    assert intent["exclusion_criteria"][0]["maps_to_rqs"] == ["RQ1"]
+    assert "evaluated computational artifact" in intent["exclusion_criteria"][0]["criterion"]
+
+
 def test_intent_compiles_deterministically(tmp_path):
     intent = make_intent(build_survey(), "det-compile-workspace", GENESIS_TS)
     ws = tmp_path / "ws"

@@ -40,6 +40,7 @@ app = typer.Typer(
 )
 console = Console(soft_wrap=True)
 logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 def _get_provider_instance(name: str):

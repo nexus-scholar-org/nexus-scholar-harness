@@ -386,6 +386,9 @@ def make_intent(survey: Survey, slug: str, genesis_timestamp: str) -> dict:
     ]
     for text, category in survey.extra_exclusions:
         exclusion.append({"criterion": text, "reason_category": category, "maps_to_rqs": all_rqs})
+    if not exclusion:
+        default_exclusion = PARADIGM_PROFILE[survey.paradigm]["negative_exclusions"]
+        exclusion.append({"criterion": default_exclusion, "reason_category": "OUT_OF_SCOPE", "maps_to_rqs": all_rqs})
 
     rationale = (
         f"{survey.paradigm} stance via the {survey.playbook} playbook. "
