@@ -52,7 +52,7 @@
 2. **PRISMA-ScR flow diagram** (data already available from screening ledger; PRISMA 2020 flowchart pattern used in D1).
 3. **Supplementary search-log + preprint→published version table** (named in §3.8 as deliverables of each living version).
 4. **OSF protocol registration** (disclosed as planned; PRISMA-ScR item 24).
-5. **Re-sync stale supporting reports** (`pipeline_engineering_report.md` "13 resolved / 23 pending" language; 44 vs 55 event counts).
+5. **Re-sync stale supporting reports** — DONE (2026-09-09): `pipeline_engineering_report.md` and `methodology_report.md` event counts now 57 at D3 close; pipeline report source-count wording corrected to the verifiable five federated sources.
 
 ## 5. Anchors verified clean (no action)
 

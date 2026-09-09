@@ -18,14 +18,14 @@ Discovery ─▶ Screening ─▶ Trust audit ─▶ Extraction ─▶ Indexing 
 
 Two synthesis pipelines ran over the same corpus:
 - **Approach A — Deterministic RAG** (`scholar-rag-kit synthesize`, top-30 chunks per RQ) → 90 claims, 43.3% entailment-verified. Kept as a comparison baseline.
-- **Approach B — Multi-agent full-text claim extraction** (8 full-text agents + 1 abstract agent) → 510 claims, 100% machine-verified verbatim. Authoritative source for the narrative.
+- **Approach B — Multi-agent full-text claim extraction** (8 full-text agents + 1 abstract agent) → 510 claims, 100% pass at the ≥0.90 glyph-normalized coverage gate (char-window or token 6-gram). Authoritative source for the narrative.
 
 ---
 
 ## 1. Screening
 
 ### 1.1 Search and verification
-`scholar-search-kit` federated six sources (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, bioRxiv) for 2023–2026 review-automation literature.
+`scholar-search-kit` federated five sources (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv; bioRxiv-track preprints captured via PubMed/Crossref indexing) for 2023–2026 review-automation literature.
 
 - Raw hits: **250** → deduplicated + hydrated (DOI and normalized-title resolution, abstract/DOI completion) → **239 unique verified records** (`literature/raw_search.json`, `deduped.json`, `verified.json`).
 - Provider query robustness fixes landed in this cycle (see commit `77cf2d8`): OpenAlex `AND`/`OR` clause drying + `from/to_publication_date` filters; Semantic Scholar bulk-query paren/ampersand sanitation; query-parser field aliases (`ti`,`abs`,`au`,`yr`…).
@@ -122,7 +122,7 @@ Consensus Cartographer over cached embeddings (`all-MiniLM-L6-v2`, cosine, **θ 
 ### 5.4 Narrative and deliverables
 - 3 RQ chapters drafted from the briefing packs by parallel agents; **machine-checked that every cited `SCI-###` exists in the ledger** (0 ungrounded citations).
 - `synthesis/literature_review.md` (final; stale draft archived to `literature_review_draft_v1.md`), `synthesis/method_comparison.md` (head-to-head A vs B), `reports/methodology_report.md`, `reports/manuscript_draft.md` (with 36 references auto-built from corpus metadata via Crossref/arXiv; 13 author lists resolved, 23 pending curation for synthetic-ID preprints).
-- Full pipeline recorded in `audit/journal.jsonl` (48 events at close), reflected in `project.json` stats and `INDEX.md`.
+- Full pipeline recorded in `audit/journal.jsonl` (57 events at D3 close), reflected in `project.json` stats and `INDEX.md`.
 
 ---
 

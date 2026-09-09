@@ -1,6 +1,6 @@
 # Methodology Report — AI-Assisted Academic Research Harnesses: Traceability, Trust, Audit and Reproducibility
 
-*Workspace:* `ai-research-harnesses-trust` · *Generated:* 2026-09-09 · *Append-only provenance:* `audit/journal.jsonl` (44 events)
+*Workspace:* `ai-research-harnesses-trust` · *Generated:* 2026-09-09 · *Append-only provenance:* `audit/journal.jsonl` (57 events at D3 close)
 
 ## 1. Objective and paradigm
 
@@ -53,7 +53,7 @@ A systematic scoping review of AI-assisted academic research harnesses (LLM/agen
 
 ## 5. Provenance & reproducibility
 
-- Every pipeline step is recorded in `audit/journal.jsonl` (append-only, 44 events, per-event `action`/`agent_or_tool`/`outputs`/`metrics`).
+- Every pipeline step is recorded in `audit/journal.jsonl` (append-only, 57 events at D3 close, per-event `action`/`agent_or_tool`/`outputs`/`metrics`).
 - All CLI/API versions pinned via `.agents/plugins/nexus-scholar/plugins.json` (kit source of truth); runs executed through `uv` in the shared `.venv/`.
 - Returns are deterministic: reruns of both synthesis pipelines reproduce identical claim sets and consensus scores (verified for Approach B at 510/510, 0 residual failures).
 
