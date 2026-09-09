@@ -46,3 +46,15 @@ Phase 6 establishes mathematical reliability and anchors the toolkit into modern
 - [x] **Multi-Screener Adjudication & Fleiss' $\kappa$**: Built into `scholar-search-kit` (`reconcile_multi_screener_decisions`, `calculate_fleiss_kappa`) to handle $n$-rater consensus ($n \ge 3$), majority voting, and deadlock isolation.
 - [x] **FastMCP Protocol Server Exposure**: Exposed `nexus_screen_reconcile` and `nexus_verify_claims` in `scholar-agent-kit` (`scholar_agent.server`), enabling seamless integration into DeepSeek Harness (`dsh`) and OpenCode over standard `stdio`.
 - [x] **Phase 6 Specification**: Created [`docs/phase_6/README.md`](./phase_6/README.md) detailing the DSH Creator Mode preset, tool access lockdown, and verifiable provenance principles.
+
+### Phase 7: Zero-Friction Distribution — Bench-Portable Nexus Scholar
+Phase 7 makes Nexus Scholar installable anywhere: one `uvx` command, any empty folder, any harness (DeepSeek Harness, Claude Desktop, Cursor, OpenCode, VS Code, terminal), with verifiable provenance in a local `audit/journal.jsonl`. Full blueprint + technical review + deferred checklist: [`docs/phase_7_distribution/README.md`](./phase_7_distribution/README.md). **Declared 2026-09-09 after review; implementation deferred** (see the checklist and deferral note at the end of that spec).
+- [ ] **P7.1 `--workspace` rootdir resolution**: `scholar_agent.server.main()` currently takes no args and resolves tool paths from process cwd (`workspace_dir="."`, `db_path="./chroma_db"`); must accept `--workspace <root>` and resolve all defaults against it. This is the portability enabler and blocks every `uvx` example below.
+- [ ] **P7.2 Repo-root `nexus-scholar` tool-metapackage**: `[project]` + `[project.scripts]` entrypoints; dependency pins **generated from `.agents/plugins/nexus-scholar/plugins.json`** (single source of truth) by CI; ship as GitHub-Release wheel so `uvx --from <release> nexus-scholar` works.
+- [ ] **P7.3 `nexus-scholar init <title>`**: reuse the existing `inception` Socratic wizard; scaffold canonical contract layout + `audit/journal.jsonl` + `.env.example` + `.mcp.json` + skill **symlinks** (never copies → version drift).
+- [ ] **P7.4 `nexus-scholar setup-mcp`**: emit `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and print the Claude Desktop snippet with an **absolute** workspace path baked in (`${workspaceFolder}` doesn't expand there) + `env:` block for keys.
+- [ ] **P7.5 `nexus-scholar doctor`**: validate kit versions vs `plugins.json`, API keys, skill resolvability, workspace layout.
+- [ ] **P7.6 Ship `log_event`/`batch_log`/INDEX-sync as an importable CLI (`nexus-scholar log`)**: standalone workspaces can't reach repo-relative `scripts/` today.
+- [ ] **P7.7 Lazy-import rag/graph** so `init`, `setup-mcp`, `search`, `doctor` never load torch/chromadb (keeps the 1-minute claim honest).
+- [ ] **P7.8 CI verification** that the blueprinted `uvx` commands run end-to-end in a fresh temp folder.
+- [ ] **P7.9 (deferred) PyPI publication** of the 8 kits + metapackage, only if external consumers appear; verify PyPI name availability first.
