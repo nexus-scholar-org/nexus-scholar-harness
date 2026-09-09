@@ -38,7 +38,7 @@ Inclusion:
 - INC-01: Proposes, implements, or evaluates a computational tool, system, harness, or multi-agent pipeline specifically designed for academic literature discovery, screening, extraction, citation graph analysis, or evidence synthesis. (RQ1–RQ3)
 - INC-02: Incorporates Large Language Models (LLMs), agentic orchestration, or modern RAG mechanisms within the scientific literature workflow. (RQ1–RQ3)
 - INC-03: Explicitly describes or evaluates mechanisms for execution provenance (audit logs, DAG pipelines), citation verification / hallucination mitigation, or academic integrity (retraction, risk-of-bias, or open-science checks). (RQ1, RQ2)
-- INC-04: Provides an accessible codebase, architecture specification, or quantitative empirical evaluation (precision, recall, citation accuracy, benchmark metrics, or user study). (RQ2, RQ3)
+- INC-04: Provides an accessible codebase, architecture specification, or quantitative empirical evaluation (e.g., precision, recall, citation accuracy, benchmark metrics, or user study). (RQ2, RQ3)
 
 Exclusion:
 - EXC-01: Pure academic writing, paraphrasing, grammar, or paper-authorship tools (e.g., Paperpal, generic ChatGPT writing prompts) lacking literature workflow orchestration or provenance. (PURE_WRITING_TOOL)
