@@ -1,0 +1,182 @@
+[
+  {
+    "workspace_id": "SCI-000001",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a bibliometric review of agentic AI literature, not a computational tool or system for academic literature discovery, screening, extraction, or evidence synthesis. It lacks a described system architecture or empirical evaluation of a research harness (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000002",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a systematic review of AI-powered educational systems, not a computational tool for academic literature workflow. It reviews literature about RAG in education but does not propose or evaluate a literature research harness itself (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000003",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This paper proposes an enterprise AI governance prioritization architecture for organizational AI adoption, not a tool for academic literature discovery, screening, or synthesis. It targets enterprise governance, not scholarly research workflows (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000004",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a review paper on GenAI and DevOps/MLOps pipelines, not a computational tool for academic literature research. No system for literature discovery, screening, or extraction is described (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000005",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a systematic literature review about enterprise knowledge management using RAG/LLMs, not a tool that performs literature discovery, screening, or synthesis for academic research. It reviews the field but does not implement a research harness (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000006",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This proposes an industrial multi-agent system for manufacturing data parsing and maintenance decision-making, not for academic literature workflows. The domain is industrial intelligence, not scholarly research (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000007",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "DIVE is a multi-agent extraction framework (DIVE) that transforms figure-centric scientific literature into structured, machine-actionable data, mines 4,053 publications, builds a 30,000+ entry database, and powers a downstream inverse-design agent (DigHyd). It explicitly implements: (INC-01) a computational pipeline for literature extraction and evidence synthesis; (INC-02) LLM-based multi-agent orchestration with RAG; (INC-03) quality scoring/provenance mechanisms and structured data extraction; (INC-04) architecture specification and empirical evaluation (extraction gains over direct LLM parsing). Directly relevant to all three RQs."
+  },
+  {
+    "workspace_id": "SCI-000008",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This describes a general-purpose agent-native automation framework in n8n for industrial/smart environments, not a system specifically designed for academic literature discovery, screening, or synthesis (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000009",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a comprehensive review/survey of LLM-based legal agents, not a computational tool for academic literature research. It synthesizes existing research but does not propose or evaluate a literature harness (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000010",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a book chapter reviewing multi-agent LLM systems across domains (robotics, healthcare, business), not a specific tool for academic literature workflow. No literature discovery/screening/extraction system is implemented or evaluated (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000011",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a book chapter proposing an energy-aware scheduling framework for multi-agent LLM sustainability, not a tool for academic literature research. No literature workflow orchestration is described (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000012",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This paper proposes architectural principles for enterprise workflow automation using agentic AI, targeting business process management and clinical service launches. It is not designed for academic literature discovery, screening, or synthesis (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000013",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "The title suggests a temporal knowledge graph-driven multi-agent RAG framework, but no abstract is available to confirm scholarly domain focus. Without evidence of academic literature workflow application, and given the conference venue (China Automation Congress), it appears targeted at general automation rather than scholarly research (EXC-02: NON_SCHOLARLY_DOMAIN; EXC-03: NO_COMPUTATIONAL_ARTIFACT due to insufficient description)."
+  },
+  {
+    "workspace_id": "SCI-000014",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a book chapter about Spring AI framework for enterprise RAG applications, not a system for academic literature research. It addresses proprietary enterprise data retrieval, not scholarly literature workflows (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000015",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This describes a RAG AI agent for tabular data processing in auditing procedures, a domain-specific application for financial auditing. Not a tool for academic literature discovery, screening, or synthesis (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000016",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "The TRACE Framework is a governance-first architecture for multi-agent AI systems in high-stakes domains (financial institutions), focusing on trust, accountability, and compliance. While it addresses provenance and explainability (relevant to RQ2), it is not a tool for academic literature discovery, screening, or evidence synthesis (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000017",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a systematic literature review about GenAI in EFL writing instruction, using PRISMA 2020. It is a review *about* AI tools, not a computational tool *for* literature research. No literature harness is proposed or evaluated (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000018",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This paper examines multi-agent autonomous workflow systems for business operations, healthcare, manufacturing, and logistics using agentic AI frameworks. It does not target academic literature workflows (EXC-02: NON_SCHOLARLY_DOMAIN)."
+  },
+  {
+    "workspace_id": "SCI-000019",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a structured narrative review and framework-oriented synthesis of literature on GenAI-to-agentic AI transition in higher education. It synthesizes 65 papers but does not propose or implement a computational tool for literature discovery, screening, or extraction (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  },
+  {
+    "workspace_id": "SCI-000020",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a PRISMA-guided systematic review and architectural framework for LLM-driven smart grids. It reviews 61 papers and proposes a six-layer architecture for smart grid intelligence, but does not implement a tool for academic literature research (EXC-03: NO_COMPUTATIONAL_ARTIFACT)."
+  }
+]

@@ -1,0 +1,182 @@
+[
+  {
+    "workspace_id": "SCI-000161",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a narrative review article discussing the promise and perils of ChatGPT and DeepSeek in medical/biological research. It does not propose, implement, or evaluate a computational tool, system, or harness for literature discovery, screening, extraction, or evidence synthesis. It lacks system architecture, empirical evaluation of a computational artifact, and any provenance or hallucination mitigation mechanisms. It falls under EXC-03 (narrative opinion piece lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000162",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2"],
+    "screening_reasoning": "Proposes and evaluates a RAG-based AI system for assessing regulatory compliance of drug information and clinical trial protocols. Incorporates LLMs and RAG mechanisms within a scientific document evaluation workflow. Provides quantitative empirical evaluation showing the RAG system correctly identified indications, warnings, and protocol elements aligned with manual reviews. Relevant to RQ1 (architecture for document evaluation) and RQ2 (trust/integrity mechanisms via grounded RAG)."
+  },
+  {
+    "workspace_id": "SCI-000163",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a survey paper examining open-source healthcare LLMs with a case study on personalized prescriptions. It does not propose a computational tool/harness for literature discovery, screening, or evidence synthesis. It is a narrative review/survey lacking a described system architecture for literature workflow orchestration. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000164",
+    "decision": "INCLUDE",
+    "confidence": 0.98,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ3"],
+    "screening_reasoning": "Proposes LGAR, a zero-shot LLM-guided neural ranker specifically for abstract screening in systematic literature reviews. Directly implements a computational tool for literature screening (INC-01), incorporates LLMs for graded relevance scoring (INC-02), and provides quantitative empirical evaluation showing 5-10pp MAP improvement over QA-based methods with code/data publicly available (INC-04). Highly relevant to RQ1 (SLR harness architecture) and RQ3 (empirical evaluation)."
+  },
+  {
+    "workspace_id": "SCI-000165",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Grey literature synthesis about Large Concept Models (LCMs) - a forward-looking philosophical/technical exploration of future AI architectures. Does not propose a computational tool for literature review workflows. No system architecture for literature discovery/screening, no empirical evaluation of a harness. Falls under EXC-03 (narrative manifesto lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000166",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Thesis developing PromptSLR, a tool for controlled prompt testing and performance analysis of LLMs in systematic review article screening. Implements a computational system for literature screening (INC-01), uses LLMs (INC-02), evaluates model confidence/self-evaluation as hallucination mitigation mechanism (INC-03), and provides extensive empirical evaluation across datasets/LLM families with statistical analysis of optimal prompt designs (INC-04). Directly addresses all three RQs."
+  },
+  {
+    "workspace_id": "SCI-000167",
+    "decision": "EXCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract available. Title suggests knowledge graphs and LLMs for scientometric inquiry, but without abstract or full text, cannot verify if it proposes a computational tool/harness for literature workflow with architecture specification or empirical evaluation. Insufficient information to confirm inclusion criteria; defaults to EXC-03 (cannot verify computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000168",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a systematic review OF AI's impact on research competencies - a review paper analyzing 49 studies. It does not itself propose or implement a computational tool, harness, or pipeline for literature discovery/screening. It is a synthesis/review article, not a computational artifact. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000169",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Narrative review/discussion of LLM applications across the clinical trial lifecycle. Does not propose a literature review harness or computational tool for evidence synthesis. It describes potential applications of LLMs in clinical trials but lacks system architecture for literature workflow orchestration. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000170",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic review of GAI/LLM/GVM applications in healthcare (medical imaging, patient communication, etc.). This is a review paper synthesizing 96 studies, not a computational tool/harness for conducting literature reviews. No proposed system architecture for literature workflow. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000171",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic review of GenAI/LLM pedagogical applications in sports sciences and physical education. It is a review paper following PRISMA, not a computational tool for literature review automation. No system architecture or harness proposed. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000172",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes a scalable RAG architecture on Azure (Blob Storage, AI Search, OpenAI) for advanced semantic analysis of research papers. Implements a computational system for literature analysis (INC-01), uses RAG/LLMs (INC-02), explicitly addresses hallucination mitigation through retrieval-augmented generation and provides citations for reliability/trustworthiness (INC-03), and provides architecture specification with progressive methodology testing different LLM components and empirical evaluation showing synthesis time reduction from hours to minutes (INC-04). Addresses all three RQs."
+  },
+  {
+    "workspace_id": "SCI-000173",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comprehensive review paper of AI methods for systematic review automation (52 works + survey). It surveys the landscape but does not itself propose a new computational tool/harness. It is a review/synthesis article, not a computational artifact with architecture or empirical evaluation of a novel system. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000174",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Experience paper on using GenAI tools (screening, theme finding, categorization) in business analytics research process. Describes authors' first-hand use of existing tools, but does not propose, implement, or evaluate a novel computational harness/system for literature review. No system architecture or empirical evaluation of a tool. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000175",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Focuses on using LLMs for data extraction from accounting documents (invoices, order emails) - a domain-specific information extraction task for accounting systems. Not targeted to academic literature discovery, screening, or evidence synthesis. General-purpose data extraction in non-scholarly domain. Falls under EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000176",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "General discussion of AI ethics in writing and research (plagiarism, bias, privacy, transparency). No computational tool/harness proposed. Falls under EXC-01 (writing tool discussion) and EXC-03 (opinion/commentary lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000177",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Introduces Academate (LLM-powered end-to-end systematic review assistant) and ChatDRex (multi-agent platform with biomedical knowledge graph). Academate implements RAG, chain-of-thought, and task-specific agents for literature curation, screening, and extraction - a full literature review harness (INC-01). Uses LLMs, agentic orchestration, RAG (INC-02). Demonstrates reproducibility and agreement with human reviewers in screening (INC-03). Provides empirical evaluation showing moderate-to-substantial agreement with humans, reduced workload, improved reproducibility (INC-04). Directly addresses all three RQs."
+  },
+  {
+    "workspace_id": "SCI-000178",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparative analysis of DeepSeek-R1 vs ChatGPT architectures and capabilities. Not a literature review harness or computational tool for evidence synthesis. It is a model comparison/review paper. Falls under EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000179",
+    "decision": "INCLUDE",
+    "confidence": 0.98,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes an AI-assisted research automation system for scholarly paper retrieval and review with workflow orchestration. Implements a full literature review harness supporting retrieval, screening, and review management with human oversight (INC-01). Uses NLP/LLM as supportive component (INC-02). Workflow-driven design explicitly provides transparency, traceability, and reproducibility (INC-03). Provides architecture description and empirical performance metrics (20 papers in 21.38s retrieval, 25.02s/paper for AI-assisted analysis) (INC-04). Directly addresses all three RQs."
+  },
+  {
+    "workspace_id": "SCI-000180",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-01", "EXC-05"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Paper in Portuguese investigating ChatGPT for automating literature review. Full text not in English (EXC-05). Also describes using ChatGPT as a tool for selection/confrontation of studies rather than proposing a computational harness/system with architecture - falls under EXC-01 (writing/automation tool discussion lacking workflow orchestration/provenance)."
+  }
+]

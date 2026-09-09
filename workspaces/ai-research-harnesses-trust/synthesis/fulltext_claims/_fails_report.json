@@ -1,0 +1,716 @@
+[
+ [
+  0,
+  "SCI-000140",
+  "RQ1",
+  "Brain Researcher anchors each auditable episode in a commitment card written before any an",
+  0.9
+ ],
+ [
+  26,
+  "SCI-000088",
+  "RQ1",
+  "This systematic review and meta-analysis of 18 studies (2023-2025) evaluates LLM-assisted ",
+  0.909
+ ],
+ [
+  37,
+  "SCI-000099",
+  "RQ1",
+  "M-Reason organizes evidence analysis into three agent roles - Orchestrator, BioExpert, and",
+  0.8
+ ],
+ [
+  60,
+  "SCI-000159",
+  "RQ1",
+  "The OpenScholar-Datastore (OSDS) is built from 45 million papers using peS2o v3, producing",
+  0.5
+ ],
+ [
+  61,
+  "SCI-000159",
+  "RQ1",
+  "The authors open-source all components \u2014 code, data, model checkpoints, datastores, and th",
+  0.857
+ ],
+ [
+  67,
+  "SCI-000159",
+  "RQ3",
+  "Human evaluation involved 16 Ph.D.-level expert annotators across three scientific discipl",
+  0.5
+ ],
+ [
+  70,
+  "SCI-000096",
+  "RQ1",
+  "LatteReview's ReviewWorkflow class orchestrates multi-stage review processes with sequenti",
+  0.615
+ ],
+ [
+  71,
+  "SCI-000096",
+  "RQ1",
+  "Reasoning transparency is built into the TitleAbstractReviewer agent, which provides eithe",
+  0.5
+ ],
+ [
+  72,
+  "SCI-000096",
+  "RQ1",
+  "LatteReview integrates Retrieval-Augmented Generation (RAG) workflows, allowing reviewers ",
+  0.667
+ ],
+ [
+  73,
+  "SCI-000096",
+  "RQ1",
+  "The framework is open-source and available on GitHub and PyPI, enabling reproducible insta",
+  0.667
+ ],
+ [
+  74,
+  "SCI-000096",
+  "RQ2",
+  "The TitleAbstractReviewer uses a 5-point Likert scale for article assessment (1 = absolute",
+  0.5
+ ],
+ [
+  78,
+  "SCI-000096",
+  "RQ3",
+  "Limitation: Performance variability across datasets is attributed to task heterogeneity, d",
+  0.5
+ ],
+ [
+  84,
+  "SCI-000090",
+  "RQ2",
+  "Performance tracked the density and explicitness of source text: when constructs were expl",
+  0.0
+ ],
+ [
+  88,
+  "SCI-000090",
+  "RQ3",
+  "A pragmatic deployment model is recommended: high-throughput abstract-level mapping for co",
+  0.8
+ ],
+ [
+  89,
+  "SCI-000158",
+  "RQ1",
+  "The multi-agent system operates through four sequential agents: (1) search string generati",
+  0.4
+ ],
+ [
+  90,
+  "SCI-000158",
+  "RQ1",
+  "The paper selection agent applies inclusive and exclusive filtering criteria based on titl",
+  0.818
+ ],
+ [
+  92,
+  "SCI-000158",
+  "RQ3",
+  "Limitation: The initial search strategy was suboptimal due to absence of comprehensive Boo",
+  0.846
+ ],
+ [
+  93,
+  "SCI-000158",
+  "RQ3",
+  "Limitation: No clearly defined criteria for primary and secondary exclusion, and the data ",
+  0.5
+ ],
+ [
+  94,
+  "SCI-000158",
+  "RQ3",
+  "Future work will address search strategy refinement, explicit inclusion/exclusion criteria",
+  0.167
+ ],
+ [
+  96,
+  "SCI-000129",
+  "RQ1",
+  "Verification was applied through cross-checking among human reviewers (manual) and double-",
+  0.167
+ ],
+ [
+  100,
+  "SCI-000129",
+  "RQ3",
+  "Time reduction was substantial: manual screening took ~23 days, LLM-assisted screening too",
+  0.5
+ ],
+ [
+  101,
+  "SCI-000129",
+  "RQ3",
+  "LLM effectiveness is task-dependent: Gemini PRO achieved 90% in extraction and screening, ",
+  0.333
+ ],
+ [
+  102,
+  "SCI-000129",
+  "RQ3",
+  "Limitation: The study reflects the experience of a single researcher; sample size for data",
+  0.25
+ ],
+ [
+  104,
+  "SCI-000172",
+  "RQ1",
+  "The proposed RAG architecture integrates Azure Blob Storage (crawling/storage), Azure AI S",
+  0.5
+ ],
+ [
+  108,
+  "SCI-000172",
+  "RQ3",
+  "Validation results ranged from 76% (Romanian, Exp #1) to 94% (AI-generated English, Exp #4",
+  0.0
+ ],
+ [
+  110,
+  "SCI-000172",
+  "RQ3",
+  "Limitation: All cloud services carry associated costs (Azure AI Search, Azure OpenAI, Blob",
+  0.667
+ ],
+ [
+  111,
+  "SCI-000172",
+  "RQ3",
+  "Future work should prioritize designing sophisticated testing frameworks to reconfirm reli",
+  0.5
+ ],
+ [
+  112,
+  "SCI-000117",
+  "RQ1",
+  "DeepWeaver maintains thought block chains (TBCs), an explicit data structure that decompos",
+  0.923
+ ],
+ [
+  118,
+  "SCI-000117",
+  "RQ2",
+  "On LoQA, DeepWeaver improves citation grounding and evidence synthesis quality relative to",
+  0.857
+ ],
+ [
+  131,
+  "SCI-000115",
+  "RQ2",
+  "Post-cutoff (unseen) extraction accuracy showed no decline for any system (GPT-5 86.7%, Cl",
+  0.909
+ ],
+ [
+  132,
+  "SCI-000115",
+  "RQ3",
+  "The screening gold standard showed high inter-rater reliability: across 244 screened docum",
+  0.867
+ ],
+ [
+  134,
+  "SCI-000115",
+  "RQ3",
+  "In extraction, all models exceeded 90% match rates for titles and publishing sources, but ",
+  0.857
+ ],
+ [
+  146,
+  "SCI-000125",
+  "RQ3",
+  "The evaluation benchmark collected 1,105 human-written literature reviews from 51 journals",
+  0.833
+ ],
+ [
+  147,
+  "SCI-000125",
+  "RQ3",
+  "The five evaluated LLMs (Claude-3.5-Sonnet, GPT-4o, Qwen-2.5-72B, DeepSeek-V3, Llama-3.2-3",
+  0.75
+ ],
+ [
+  150,
+  "SCI-000125",
+  "RQ3",
+  "The evaluation relies on Semantic Scholar (chosen over Google Scholar due to the latter's ",
+  0.889
+ ],
+ [
+  151,
+  "SCI-000125",
+  "RQ3",
+  "The authors acknowledge possible test-data/training-data overlap (2023 Annual Reviews arti",
+  0.5
+ ],
+ [
+  162,
+  "SCI-000179",
+  "RQ3",
+  "Stage S2 performed multi-source retrieval by querying Google Scholar and OpenAlex, retriev",
+  0.882
+ ],
+ [
+  171,
+  "SCI-000144",
+  "RQ2",
+  "Manual validation of the pipeline on a stratified sample of 100 citations gave overall agr",
+  0.714
+ ],
+ [
+  172,
+  "SCI-000144",
+  "RQ2",
+  "Non-Disclosure instructions redistribute rather than eliminate errors: DOI completeness dr",
+  0.417
+ ],
+ [
+  173,
+  "SCI-000144",
+  "RQ2",
+  "The manual audit of fabricated/unresolved citations reveals four recurring failure modes t",
+  0.857
+ ],
+ [
+  175,
+  "SCI-000144",
+  "RQ3",
+  "In the audit, only 15 of 35 'Unresolved' citations were truly unresolved; 16 of 35 were fa",
+  0.824
+ ],
+ [
+  177,
+  "SCI-000144",
+  "RQ3",
+  "As a construct-validity threat, the pipeline relies on Crossref and Semantic Scholar, neit",
+  0.667
+ ],
+ [
+  180,
+  "SCI-000141",
+  "RQ1",
+  "For transparency and reproducibility, the platform requires provenance data to be recorded",
+  0.9
+ ],
+ [
+  181,
+  "SCI-000141",
+  "RQ1",
+  "External tools (Crossref, ORCID, Semantic Scholar, ORKG) are integrated into a Tool Librar",
+  0.947
+ ],
+ [
+  189,
+  "SCI-000141",
+  "RQ3",
+  "The paper identifies four research challenges for AI-assisted research \u2014 lacking domain-sp",
+  0.737
+ ],
+ [
+  193,
+  "SCI-000137",
+  "RQ1",
+  "The analysis code, benchmark input data, LLM prompts, screening outputs, and comprehensive",
+  0.833
+ ],
+ [
+  197,
+  "SCI-000137",
+  "RQ2",
+  "A central implication is that the model name is an insufficient description of an LLM-base",
+  0.875
+ ],
+ [
+  199,
+  "SCI-000137",
+  "RQ3",
+  "Record-level consistency is a separate property from aggregate predictive performance, and",
+  0.929
+ ],
+ [
+  201,
+  "SCI-000137",
+  "RQ3",
+  "Reporting should describe enough of the complete pipeline to make the evaluated system int",
+  0.929
+ ],
+ [
+  203,
+  "SCI-000102",
+  "RQ1",
+  "A three-layer hierarchical agentic network (worker, manager, director) preserves traceabil",
+  0.615
+ ],
+ [
+  206,
+  "SCI-000102",
+  "RQ2",
+  "Blinded expert evaluation masks system identities and assigns responses for review to the ",
+  0.923
+ ],
+ [
+  215,
+  "SCI-000131",
+  "RQ2",
+  "Aris defaults to pairing executor and reviewer from different model families because singl",
+  0.882
+ ],
+ [
+  216,
+  "SCI-000131",
+  "RQ2",
+  "The experiment-audit stage detects five integrity failure modes: model-derived reference l",
+  0.467
+ ],
+ [
+  217,
+  "SCI-000131",
+  "RQ2",
+  "Aris cannot guarantee that any output is correct, novel, or scientifically sound; cross-mo",
+  0.929
+ ],
+ [
+  219,
+  "SCI-000131",
+  "RQ3",
+  "The paper-claim-audit uses a zero-context fresh reviewer (new thread with no prior convers",
+  0.733
+ ],
+ [
+  221,
+  "SCI-000131",
+  "RQ3",
+  "The main limitations are the absence of controlled evaluation and reliance on observationa",
+  0.778
+ ],
+ [
+  223,
+  "SCI-000128",
+  "RQ1",
+  "An independent Search Agent decouples evidence acquisition from downstream mechanistic rea",
+  0.778
+ ],
+ [
+  227,
+  "SCI-000128",
+  "RQ2",
+  "When no protein-protein interaction edges are found the system avoids cluster-level interp",
+  0.875
+ ],
+ [
+  231,
+  "SCI-000056",
+  "RQ1",
+  "TrialScout uses an LLM to classify publications based on the text of abstracts rather than",
+  0.765
+ ],
+ [
+  232,
+  "SCI-000056",
+  "RQ2",
+  "Manual review of 200 discrepant cases showed that 79% of initially classified false positi",
+  0.846
+ ],
+ [
+  235,
+  "SCI-000056",
+  "RQ3",
+  "TrialScout achieved an F-score of 92.7% against the human reference standard across 5,774 ",
+  0.938
+ ],
+ [
+  236,
+  "SCI-000056",
+  "RQ3",
+  "TrialScout detected published results for 63.6% of 9,600 randomly sampled trials, higher t",
+  0.909
+ ],
+ [
+  238,
+  "SCI-000142",
+  "RQ1",
+  "meta-pipe comprises 10 sequential stages each implemented as a self-contained skill module",
+  0.846
+ ],
+ [
+  240,
+  "SCI-000142",
+  "RQ1",
+  "Manuscript assembly reads effect estimates directly from R output files to prevent halluci",
+  0.8
+ ],
+ [
+  241,
+  "SCI-000142",
+  "RQ2",
+  "Title and abstract screening uses a test-retest reliability approach with two independent ",
+  0.857
+ ],
+ [
+  242,
+  "SCI-000142",
+  "RQ2",
+  "Automated overclaim detection scans generated manuscript text for 12 predefined patterns i",
+  0.0
+ ],
+ [
+  244,
+  "SCI-000142",
+  "RQ3",
+  "No validation data are reported; this is a system description not a validation study, and ",
+  0.778
+ ],
+ [
+  245,
+  "SCI-000142",
+  "RQ3",
+  "The pipeline deviates from PRISMA 2020 Item 11d which recommends at least two independent ",
+  0.818
+ ],
+ [
+  246,
+  "SCI-000089",
+  "RQ1",
+  "The LLM-based system automatically extracted and summarized structured data from research ",
+  0.412
+ ],
+ [
+  247,
+  "SCI-000089",
+  "RQ1",
+  "No task-specific training, fine-tuning, or few-shot examples were used, and the LLM is use",
+  0.6
+ ],
+ [
+  248,
+  "SCI-000089",
+  "RQ2",
+  "Data extraction accuracy was 100% in both LLM and manual conditions as assessed by an inde",
+  0.789
+ ],
+ [
+  249,
+  "SCI-000089",
+  "RQ3",
+  "LLM assistance reduced mean task completion time by 7.9 minutes (27.5 vs 34.5 minutes), re",
+  0.917
+ ],
+ [
+  250,
+  "SCI-000089",
+  "RQ3",
+  "The study was powered to detect a 10-minute difference but the observed difference was 7.9",
+  0.857
+ ],
+ [
+  252,
+  "SCI-000089",
+  "RQ3",
+  "The system requires manual downloading of PDF files meaning full automation of the evidenc",
+  0.739
+ ],
+ [
+  259,
+  "SCI-000154",
+  "RQ2",
+  "ScholarQABench introduces a rigorous evaluation protocol combining automatic metrics such ",
+  0.833
+ ],
+ [
+  265,
+  "SCI-000138",
+  "RQ1",
+  "The platform embeds explicit PICOS formalization and explainable NLP into evidence synthes",
+  0.667
+ ],
+ [
+  270,
+  "SCI-000138",
+  "RQ2",
+  "In study design classification, the Cochrane classifier achieved perfect sensitivity (100%",
+  0.846
+ ],
+ [
+  273,
+  "SCI-000138",
+  "RQ3",
+  "On the Dementia-Sport dataset the Bi-LSTM baseline achieved 87% accuracy for identifying P",
+  0.867
+ ],
+ [
+  274,
+  "SCI-000138",
+  "RQ3",
+  "Topic modeling using BERTopic identified thematic structure, redundancy, and evidence gaps",
+  0.875
+ ],
+ [
+  285,
+  "SCI-000126",
+  "RQ1",
+  "The system applies claim-level multi-model reconciliation before editorial assembly, using",
+  0.167
+ ],
+ [
+  286,
+  "SCI-000126",
+  "RQ1",
+  "The paper states that general-purpose foundation models and off-the-shelf tool-augmented o",
+  0.833
+ ],
+ [
+  287,
+  "SCI-000126",
+  "RQ3",
+  "BIORESEARCHER obtains the best overall single-step pass rate (83.49%) and average judge sc",
+  0.833
+ ],
+ [
+  288,
+  "SCI-000126",
+  "RQ3",
+  "On open-ended analysis benchmarks, BIORESEARCHER reaches 89.33% accuracy on BixBench and a",
+  0.625
+ ],
+ [
+  289,
+  "SCI-000126",
+  "RQ3",
+  "On the 30-query clinical end-to-end benchmark, BIORESEARCHER achieves the highest positive",
+  0.636
+ ],
+ [
+  291,
+  "SCI-000126",
+  "RQ3",
+  "The authors state that these results do not imply orchestration alone solves autonomous bi",
+  0.857
+ ],
+ [
+  296,
+  "SCI-000181",
+  "RQ3",
+  "Benchmark testing against standardized datasets including BioASQ shows the integrated LLM+",
+  0.889
+ ],
+ [
+  297,
+  "SCI-000181",
+  "RQ3",
+  "Expert validation through blind testing with domain experts found the system provided answ",
+  0.947
+ ],
+ [
+  303,
+  "SCI-000152",
+  "RQ2",
+  "The study finds that the human rater and both LLMs performed poorly in sensitivity, especi",
+  0.913
+ ],
+ [
+  304,
+  "SCI-000152",
+  "RQ3",
+  "The two LLMs completed the same screening task almost 25 times faster than the human rater",
+  0.5
+ ],
+ [
+  307,
+  "SCI-000152",
+  "RQ3",
+  "The authors recommend conducting title/abstract screening with two human raters if budget ",
+  0.5
+ ],
+ [
+  311,
+  "SCI-000106",
+  "RQ1",
+  "The framework adapts recent advances in declarative prompt optimisation, developed for gen",
+  0.5
+ ],
+ [
+  312,
+  "SCI-000106",
+  "RQ1",
+  "The paper notes that LLM performance is highly sensitive to the phrasing of input prompts,",
+  0.833
+ ],
+ [
+  316,
+  "SCI-000106",
+  "RQ2",
+  "The technical example fixes parameters to maximise deterministic responses, setting temper",
+  0.0
+ ],
+ [
+  319,
+  "SCI-000181",
+  "RQ2",
+  "Automated fact-checking processes that verify claims against retrieved evidence improved r",
+  0.833
+ ],
+ [
+  320,
+  "SCI-000181",
+  "RQ1",
+  "The system uses biomedical-specific vector embeddings trained on massive corpora of biomed",
+  0.882
+ ],
+ [
+  343,
+  "SCI-000135",
+  "RQ3",
+  "AutoSynthesis is not positioned as a replacement for expert reviewers; the human element r",
+  0.882
+ ],
+ [
+  405,
+  "SCI-000186",
+  "RQ1",
+  "EvoScientist formulates multi-agent evolution as a core requirement for end-to-end scienti",
+  0.778
+ ],
+ [
+  408,
+  "SCI-000186",
+  "RQ1",
+  "A dedicated Evolution Manager Agent (EMA) implements three self-evolution mechanisms \u2014 ide",
+  0.875
+ ],
+ [
+  428,
+  "SCI-000122",
+  "RQ3",
+  "Eligibility-aware weighting shifted the pooled risk ratio for olaparib-related all-grade v",
+  0.429
+ ],
+ [
+  467,
+  "SCI-000110",
+  "RQ1",
+  "The system orchestrates data flow across multiple backends: LangGraph routes multi-step qu",
+  0.9
+ ],
+ [
+  474,
+  "SCI-000110",
+  "RQ3",
+  "In the RAG-vs-GPT-4 comparison breakdown, RAG-based GPT-3.5 excelled on 25% of queries (es",
+  0.733
+ ],
+ [
+  480,
+  "SCI-000151",
+  "RQ1",
+  "LLAssist emits structured JSON and CSV outputs containing extracted semantics, relevance s",
+  0.913
+ ]
+]

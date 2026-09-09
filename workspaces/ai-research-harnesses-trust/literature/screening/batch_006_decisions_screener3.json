@@ -1,0 +1,182 @@
+[
+  {
+    "workspace_id": "SCI-000101",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a survey/review paper categorizing agentic AI systems for scientific discovery. It does not propose, implement, or evaluate a specific computational tool, harness, or pipeline for academic literature workflow (fails INC-01). It lacks a described system architecture or empirical evaluation of a concrete artifact (matches EXC-03: narrative opinion piece lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000102",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes DeepER-Med, an agentic AI framework for evidence-based medical research with explicit research planning, agentic collaboration, and evidence synthesis modules. Incorporates LLMs and agentic orchestration (INC-02). Provides empirical evaluation via DeepER-MedQA benchmark (100 expert questions) and real-world clinical cases with human clinician assessment (INC-04). Directly addresses literature workflow orchestration for evidence synthesis (INC-01)."
+  },
+  {
+    "workspace_id": "SCI-000103",
+    "decision": "EXCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "CrisiSense-RAG is a multimodal RAG framework for disaster impact assessment (flood extent, damage severity) using social media and satellite imagery. It is not targeted to academic research or scientific literature workflows (matches EXC-02: general-purpose/non-scholarly domain RAG)."
+  },
+  {
+    "workspace_id": "SCI-000104",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a narrative review/opinion piece discussing opportunities and challenges of generative AI for health technology assessment. It does not propose or implement a computational tool/harness (fails INC-01), lacks system architecture or empirical evaluation of a concrete system (matches EXC-03)."
+  },
+  {
+    "workspace_id": "SCI-000105",
+    "decision": "EXCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "This is a review paper surveying LLM applications in biomedical knowledge extraction. It does not propose/implement a computational tool or harness (fails INC-01), lacks a described system architecture or empirical evaluation of a specific artifact (matches EXC-03)."
+  },
+  {
+    "workspace_id": "SCI-000106",
+    "decision": "INCLUDE",
+    "confidence": 0.94,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes a structured, domain-specific framework for reproducible SLR workflows using declarative prompt optimization, with task declarations, test suites, and automated prompt tuning. Provides working code examples and a concrete blueprint (INC-01, INC-04). Incorporates LLMs within the scientific literature workflow (INC-02). Addresses reproducibility and transparency in evidence synthesis."
+  },
+  {
+    "workspace_id": "SCI-000107",
+    "decision": "INCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Develops ADVISE, a BERT-based AI agent incorporated into human-AI hybrid teams for evidence synthesis design. Uses active learning sampling strategies (LC, HP) with empirical evaluation showing 68.5-78.3% reduction in human screening effort. Applied to three evidence gap maps for USAID. Implements a computational tool for literature screening (INC-01), uses ML/LLM techniques (INC-02), provides quantitative empirical evaluation (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000108",
+    "decision": "INCLUDE",
+    "confidence": 0.91,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Feasibility study using GPT-4 for semi-automated data extraction in systematic reviews across clinical, animal, and social science domains. Reports accuracy metrics (~80% overall, domain-specific breakdowns) and PICO extraction evaluation on EBM-NLP dataset. Evaluates an LLM-based approach for a core SLR task (INC-01), uses LLMs in literature workflow (INC-02), provides quantitative empirical evaluation (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000109",
+    "decision": "INCLUDE",
+    "confidence": 0.96,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes TrialMind, a generative AI pipeline for study search, screening, and data extraction in systematic reviews. Builds TrialReviewBench (100 SRs, 2,220 studies) with high recall rates (0.711-0.834) and human-AI collaboration pilot showing 71.4% recall improvement and 44.2% time reduction. Uses RAG with GPT-3.5 (INC-02, INC-03), provides extensive quantitative benchmarks and user study (INC-04), implements a full literature review harness (INC-01)."
+  },
+  {
+    "workspace_id": "SCI-000110",
+    "decision": "INCLUDE",
+    "confidence": 0.94,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Develops an AI-driven living systematic review system for Brain-Heart Interconnectome with automated PICOS detection (Bi-LSTM, 87% accuracy), study design classifier (95.7%), semantic search, graph-based querying, and RAG with GPT-3.5. Provides real-time updates, living database, and interactive interface. Implements a computational harness for SR automation (INC-01), uses LLMs/RAG (INC-02), reports quantitative accuracy metrics (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000111",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes Bio-SIEVE, instruction-tuned LLaMA/Guanaco models for abstract screening in medical systematic reviews. Outperforms ChatGPT and traditional approaches, generalizes across medical domains. Releases models, code, and DOIs for dataset reconstruction. Implements a specialized LLM for literature screening (INC-01, INC-02), provides empirical evaluation with quantitative metrics and open artifacts (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000112",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "No abstract available. Title ('Beyond Frameworks: Unpacking Collaboration Strategies in Multi-Agent Systems') and venue (ACL 2025 long papers) suggest general multi-agent systems research, not a tool/harness specifically for academic literature workflow. Likely a general AI/ML paper on agent collaboration (matches EXC-02: non-scholarly domain; EXC-03: no described system for literature review)."
+  },
+  {
+    "workspace_id": "SCI-000113",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "MSR-MEL is a framework for Multimodal Entity Linking (MEL) using multi-perspective evidence synthesis with LLMs. The task is entity linking in knowledge bases, not academic literature discovery, screening, extraction, or evidence synthesis for research reviews (matches EXC-02: non-scholarly domain)."
+  },
+  {
+    "workspace_id": "SCI-000114",
+    "decision": "INCLUDE",
+    "confidence": 0.93,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Presents vitaLITy 2, an LLM-based literature review tool with semantic search via text embeddings (66,692 papers), novel RAG architecture, chat interface, and summarization capabilities. Available as open-source software. Implements a computational tool for literature discovery and review (INC-01), uses LLMs and RAG in scholarly workflow (INC-02), provides accessible codebase and usage scenarios (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000115",
+    "decision": "INCLUDE",
+    "confidence": 0.96,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Introduces Knowledge Synthesis Review (KSR), a human-in-the-loop framework decomposing evidence synthesis into screening, extraction, analysis, synthesis tasks. Benchmarks GPT-5, Claude Sonnet 4, Gemini 2.5 Pro, NotebookLM on 244-document benchmark against expert gold standard (92.2% agreement, kappa=0.80). Provides task-level benchmarking, model routing, contamination checks. Implements evaluation framework for LLM-based synthesis systems (INC-01), uses frontier LLMs (INC-02), extensive quantitative empirical evaluation (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000116",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AlphaLab is an autonomous multi-agent research harness for quantitative, computation-intensive domains (CUDA kernel optimization, LLM pretraining, traffic forecasting). It automates experimental cycles in scientific computing, not academic literature review workflows (matches EXC-02: non-scholarly domain)."
+  },
+  {
+    "workspace_id": "SCI-000117",
+    "decision": "EXCLUDE",
+    "confidence": 0.88,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "DeepWeaver is a framework for evidence synthesis in open-ended question answering (LoQA, DeepResearch Bench), using Thought Block Chains to weave retrieved evidence into answers. Target domain is general open-ended QA over knowledge bases/web, not specifically academic literature review harnesses (matches EXC-02: non-scholarly domain)."
+  },
+  {
+    "workspace_id": "SCI-000118",
+    "decision": "INCLUDE",
+    "confidence": 0.97,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Presents LUMEN, an open-source multi-agent pipeline automating six SR/MA phases with 11 specialized LLM agents and deliberate model routing. Evaluated on seven datasets (five domain reviews, two SYNERGY benchmarks) with 100% directional agreement with published meta-analyses. Provides first empirical cost characterization ($19-29 per review), phase-dependent architecture ablation (multi-agent helps extraction, hurts screening), and domain-dependent model ranking. Implements full SR/MA harness (INC-01), uses LLMs/agentic orchestration (INC-02), explicit cost/quality trade-off analysis and model routing (INC-03), extensive quantitative evaluation and open code/cost logs (INC-04)."
+  },
+  {
+    "workspace_id": "SCI-000119",
+    "decision": "INCLUDE",
+    "confidence": 0.92,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ3"],
+    "screening_reasoning": "Reproducibility and generalizability study of LLMs (ChatGPT, Mistral, Zephyr) for Boolean query generation in systematic reviews. Reproduces and extends prior work with comprehensive analysis across open-source and proprietary models. Evaluates a core SLR task (query generation) with quantitative metrics (INC-01, INC-04), uses LLMs in literature workflow (INC-02)."
+  },
+  {
+    "workspace_id": "SCI-000120",
+    "decision": "EXCLUDE",
+    "confidence": 0.87,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Assesses GPT-4o effectiveness on climate change evidence synthesis tasks using GAMI dataset. Evaluates a general-purpose LLM on extraction tasks but does not propose/implement a scholarly harness or tool for literature workflow (fails INC-01). The study assesses an existing model rather than a system designed for academic literature review (matches EXC-02: general-purpose conversational model evaluation, not a scholarly harness)."
+  }
+]

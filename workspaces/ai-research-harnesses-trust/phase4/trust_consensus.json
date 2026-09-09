@@ -1,0 +1,1540 @@
+{
+  "rq_id": null,
+  "report_rq_ids": [],
+  "input_claims": 42,
+  "total_groups": 10,
+  "total_groups_all": 10,
+  "threshold": 0.4,
+  "trust_level_counts": {
+    "WEAK": 10
+  },
+  "buckets": {
+    "high_consensus": [],
+    "active_debates": [
+      {
+        "cluster_id": "C1",
+        "theme": "Without transparent, open-source tools for AI-assisted literature review, researchers face potential limita- tions in research transparency and replicability…",
+        "claims": [
+          {
+            "claim_text": "Motivation: The motivation for the research question arises from the need to enhance the efficiency and effectiveness of literature review processes in the…",
+            "citation_tokens": [
+              "[SCI-000158#abstract#chk-2024-7dbb4b-abstract-12]"
+            ],
+            "entailment_score": 0.7797999978065491,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2024-7dbb4b-abstract-12"
+            ],
+            "study_id": "SCI-000158",
+            "stance": "POSITIVE"
+          },
+          {
+            "claim_text": "Without transparent, open-source tools for AI-assisted literature review, researchers face potential limita- tions in research transparency and replicability…",
+            "citation_tokens": [
+              "[SCI-000009#abstract#chk-2024-3bb919-abstract-05]"
+            ],
+            "entailment_score": 0.868399977684021,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2024-3bb919-abstract-05"
+            ],
+            "study_id": "SCI-000009",
+            "stance": "NEGATIVE"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000009",
+          "SCI-000158"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 1,
+          "NEGATIVE": 1,
+          "NEUTRAL": 0
+        },
+        "consensus_score": 0.5,
+        "verdict": "ACTIVE_DEBATE",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000009",
+            "SCI-000158"
+          ],
+          "studies_audited": 2,
+          "studies_total": 2,
+          "aggregates": {
+            "overall_risk": {
+              "H": 2,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 2,
+            "flagged": 0,
+            "open_science_public_link": 2,
+            "repo_links": 2
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000009",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "not-stated",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/cyharyanto/llassist",
+                  "snippet": "ty work, to achieve higher productivity across expertise and industry. 8 AVAILABILITY The source code for LLAssist is freely available at https://github.com/cyharyanto/llassist and is being actively developed to improve usability. We encourage researchers to use, modify, and contribute to this tool to further advan"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000158",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/GPT-Laboratory/SLR-",
+                  "snippet": "me and effort traditionally required for SLRs while maintaining comprehensiveness and precision. The code for this project is available at: https://github.com/GPT-Laboratory/SLR- automation . Keywords Systematic Literature Review, Large Language Model, AI Agent, Software Engineering arXiv Template A PREPRINT 1 Int"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1"
+        ],
+        "rq_id": "RQ1"
+      }
+    ],
+    "unresolved": [
+      {
+        "cluster_id": "C4",
+        "theme": "Each agent in the LLM-based multi-agent system plays a vital role in automating the systematic literature review process.",
+        "claims": [
+          {
+            "claim_text": "Each agent in the LLM-based multi-agent system plays a vital role in automating the systematic literature review process.",
+            "citation_tokens": [
+              "[SCI-000158#abstract#chk-2024-7dbb4b-abstract-17]"
+            ],
+            "entailment_score": 0.8892999887466431,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2024-7dbb4b-abstract-17"
+            ],
+            "study_id": "SCI-000158",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Recent efforts have demonstrated the potential of LLM-driven agents in supporting researchers with tasks such as literature reviews, experimentation, and…",
+            "citation_tokens": [
+              "[SCI-000101#abstract#chk-2025-2442ba-abstract-04]"
+            ],
+            "entailment_score": 0.8402000069618225,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-2442ba-abstract-04"
+            ],
+            "study_id": "SCI-000101",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000101",
+          "SCI-000158"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 2
+        },
+        "consensus_score": 0.0,
+        "verdict": "UNRESOLVED",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000101",
+            "SCI-000158"
+          ],
+          "studies_audited": 2,
+          "studies_total": 2,
+          "aggregates": {
+            "overall_risk": {
+              "H": 2,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 2,
+            "flagged": 0,
+            "open_science_public_link": 1,
+            "repo_links": 1
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000101",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000158",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/GPT-Laboratory/SLR-",
+                  "snippet": "me and effort traditionally required for SLRs while maintaining comprehensiveness and precision. The code for this project is available at: https://github.com/GPT-Laboratory/SLR- automation . Keywords Systematic Literature Review, Large Language Model, AI Agent, Software Engineering arXiv Template A PREPRINT 1 Int"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1"
+        ],
+        "rq_id": "RQ1"
+      },
+      {
+        "cluster_id": "C5",
+        "theme": "These recommendations offer a roadmap toward integrating AI in research responsibly empowering discovery, ensuring equity, and safeguarding scientific values.",
+        "claims": [
+          {
+            "claim_text": "Concurrently, a growing body of literature has examined the ethical and integrity-related implications of AI-assisted research practices.",
+            "citation_tokens": [
+              "[SCI-000042#abstractth#chk-2026-2fe713-abstract-the-rapid-g-10]"
+            ],
+            "entailment_score": 0.8720999956130981,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-2fe713-abstract-the-rapid-g-10"
+            ],
+            "study_id": "SCI-000042",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "In summary, the literature reveals that AI is not just enhancing research productivity— it is redefining what it means to do science.",
+            "citation_tokens": [
+              "[SCI-000184#harnessing#chk-2025-58e3bd-harnessing-the-power-10]"
+            ],
+            "entailment_score": 0.8966000080108643,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-harnessing-the-power-10"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "For Institutions: Universities and research centres must invest in AI infrastructure while updating training and ethical protocols.",
+            "citation_tokens": [
+              "[SCI-000184#discussion#chk-2025-58e3bd-discussion-20]"
+            ],
+            "entailment_score": 0.8798999786376953,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-discussion-20"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Impact on Peer Review and Publication Processes: AI is transforming academic publishing by aiding editors in plagiarism detection, reviewer matching, and…",
+            "citation_tokens": [
+              "[SCI-000184#methodolog#chk-2025-58e3bd-methodology-15]"
+            ],
+            "entailment_score": 0.9035999774932861,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-methodology-15"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "A recurring insight across studies is that AI literacy is no longer optional—it is foundational. Both technical experts and domain scientists must be trained…",
+            "citation_tokens": [
+              "[SCI-000184#discussion#chk-2025-58e3bd-discussion-21]"
+            ],
+            "entailment_score": 0.8406999707221985,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-discussion-21"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "In summary, the literature reveals that AI is not just enhancing research productivity— it is redefining what it means to do science.",
+            "citation_tokens": [
+              "[SCI-000184#harnessing#chk-2025-58e3bd-harnessing-the-power-10]"
+            ],
+            "entailment_score": 0.8966000080108643,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-harnessing-the-power-10"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "These recommendations offer a roadmap toward integrating AI in research responsibly empowering discovery, ensuring equity, and safeguarding scientific values.",
+            "citation_tokens": [
+              "[SCI-000184#discussion#chk-2025-58e3bd-discussion-22]"
+            ],
+            "entailment_score": 0.9308000206947327,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-discussion-22"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Autonomous research agents represent a further frontier. Recent developments in AI systems capable of conducting literature reviews, formulating hypotheses,…",
+            "citation_tokens": [
+              "[SCI-000083#abstractsa#chk-2026-149501-abstracts-and-book-c-45]"
+            ],
+            "entailment_score": 0.843500018119812,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-149501-abstracts-and-book-c-45"
+            ],
+            "study_id": "SCI-000083",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "The relevance of AI in research is accelerating as the volume, complexity, and interdisciplinarity of data exceed the limits of human processing.",
+            "citation_tokens": [
+              "[SCI-000184#harnessing#chk-2025-58e3bd-harnessing-the-power-05]"
+            ],
+            "entailment_score": 0.8533999919891357,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-harnessing-the-power-05"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Our vision for the TIB AIssistant is to empower researchers through an AI-supported, human-centered, and domain-agnostic platform that redefines the conduct of…",
+            "citation_tokens": [
+              "[SCI-000013#2visionoft#chk-2025-d696ed-vision-of-the-tib-ai-07]"
+            ],
+            "entailment_score": 0.8222000002861023,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-d696ed-vision-of-the-tib-ai-07"
+            ],
+            "study_id": "SCI-000013",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Concurrently, a growing body of literature has examined the ethical and integrity-related implications of AI-assisted research practices.",
+            "citation_tokens": [
+              "[SCI-000042#abstractth#chk-2026-2fe713-abstract-the-rapid-g-10]"
+            ],
+            "entailment_score": 0.8720999956130981,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-2fe713-abstract-the-rapid-g-10"
+            ],
+            "study_id": "SCI-000042",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Funding agencies and academic institutions have a critical role to play in this process. Research funders can promote responsible AI use by incorporating AI…",
+            "citation_tokens": [
+              "[SCI-000083#abstractsa#chk-2026-149501-abstracts-and-book-c-48]"
+            ],
+            "entailment_score": 0.9217000007629395,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-149501-abstracts-and-book-c-48"
+            ],
+            "study_id": "SCI-000083",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000013",
+          "SCI-000042",
+          "SCI-000083",
+          "SCI-000184"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 4
+        },
+        "consensus_score": 0.0,
+        "verdict": "UNRESOLVED",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000013",
+            "SCI-000042",
+            "SCI-000083",
+            "SCI-000184"
+          ],
+          "studies_audited": 4,
+          "studies_total": 4,
+          "aggregates": {
+            "overall_risk": {
+              "H": 4,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 4,
+            "flagged": 0,
+            "open_science_public_link": 1,
+            "repo_links": 2
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000013",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://gitlab.com/TIBHannover/orkg/tib-aissistant/web-app",
+                  "snippet": "n to further develop the prototype into a publicly available online service, where researchers can get started with AI-assisted research. 1https://gitlab.com/TIBHannover/orkg/tib-aissistant/web-app Acknowledgments We thank our colleague Markus Stocker for his valuable comments in reviewing this paper. This work was co-funded by NFDI4"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000042",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "explicitly-unavailable",
+              "cas": "not-stated",
+              "repo_links": [
+                {
+                  "url": "https://doi.org/10.5281/zenodo.14828619",
+                  "snippet": "the Era of Generative AI—Are We Ready to Contribute to Scientific Inquiries? GS Spark: Journal of Applied Academic Discourse, 2(1), 1–6. https://doi.org/10.5281/zenodo.14828619 De la Torre-López, J., Ramírez, A., & Romero, J. R. Leftwich, R., Koski, E., Joseph, A. L., Lopez- Gonzalez, M., Fleisher, L. A., Nolen,"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000083",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000184",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1",
+          "RQ2",
+          "RQ3"
+        ],
+        "rq_id": null
+      },
+      {
+        "cluster_id": "C2",
+        "theme": "This research contributes to the growing field of AI application in academic research, showcasing how LLMs can be effectively employed to enhance research…",
+        "claims": [
+          {
+            "claim_text": "• This work provides researchers and methodologists with a clear, actionable methodology to harness the speed of LLMs without sacrificing the scientific rigour…",
+            "citation_tokens": [
+              "[SCI-000106#abstract#chk-2025-6dd231-abstract-04]"
+            ],
+            "entailment_score": 0.7121000289916992,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-6dd231-abstract-04"
+            ],
+            "study_id": "SCI-000106",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "The rapid advancements of Large Language Models (LLMs) (Touvron et al., 2023; Anil et al., 2023; Achiam et al., 2023) have opened a new era in scientific…",
+            "citation_tokens": [
+              "[SCI-000101#abstract#chk-2025-2442ba-abstract-03]"
+            ],
+            "entailment_score": 0.779699981212616,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-2442ba-abstract-03"
+            ],
+            "study_id": "SCI-000101",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "This research contributes to the growing field of AI application in academic research, showcasing how LLMs can be effectively employed to enhance research…",
+            "citation_tokens": [
+              "[SCI-000158#abstract#chk-2024-7dbb4b-abstract-29]"
+            ],
+            "entailment_score": 0.9160000085830688,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2024-7dbb4b-abstract-29"
+            ],
+            "study_id": "SCI-000158",
+            "stance": "POSITIVE"
+          },
+          {
+            "claim_text": "Despite these advancements in automating the SLR process, there remains a notable gap in the complete automation of SLRs using LLMs.",
+            "citation_tokens": [
+              "[SCI-000158#abstract#chk-2024-7dbb4b-abstract-11]"
+            ],
+            "entailment_score": 0.8040000200271606,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2024-7dbb4b-abstract-11"
+            ],
+            "study_id": "SCI-000158",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "Support for this tension can also be found in security-focused research. Recent work by Duarte et al. [17] demonstrates how LLM-integrated applications can be…",
+            "citation_tokens": [
+              "[SCI-000019#1whatdegre#chk-2026-0f5697-what-degree-of-auton-58]"
+            ],
+            "entailment_score": 0.7031000256538391,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-0f5697-what-degree-of-auton-58"
+            ],
+            "study_id": "SCI-000019",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "The use of LLMs to support scholarly activities is a growing field. Existing approaches can be broadly categorized into single task assistance and those that…",
+            "citation_tokens": [
+              "[SCI-000013#3relatedwo#chk-2025-d696ed-related-work-09]"
+            ],
+            "entailment_score": 0.8413000106811523,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-d696ed-related-work-09"
+            ],
+            "study_id": "SCI-000013",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000013",
+          "SCI-000019",
+          "SCI-000101",
+          "SCI-000106",
+          "SCI-000158"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 1,
+          "NEGATIVE": 1,
+          "NEUTRAL": 3
+        },
+        "consensus_score": 0.2,
+        "verdict": "UNRESOLVED",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000013",
+            "SCI-000019",
+            "SCI-000101",
+            "SCI-000106",
+            "SCI-000158"
+          ],
+          "studies_audited": 5,
+          "studies_total": 5,
+          "aggregates": {
+            "overall_risk": {
+              "H": 5,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 4,
+            "flagged": 0,
+            "open_science_public_link": 2,
+            "repo_links": 2
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000013",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://gitlab.com/TIBHannover/orkg/tib-aissistant/web-app",
+                  "snippet": "n to further develop the prototype into a publicly available online service, where researchers can get started with AI-assisted research. 1https://gitlab.com/TIBHannover/orkg/tib-aissistant/web-app Acknowledgments We thank our colleague Markus Stocker for his valuable comments in reviewing this paper. This work was co-funded by NFDI4"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000019",
+              "overall_risk": "H",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "statement-only",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000101",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000106",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000158",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/GPT-Laboratory/SLR-",
+                  "snippet": "me and effort traditionally required for SLRs while maintaining comprehensiveness and precision. The code for this project is available at: https://github.com/GPT-Laboratory/SLR- automation . Keywords Systematic Literature Review, Large Language Model, AI Agent, Software Engineering arXiv Template A PREPRINT 1 Int"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1"
+        ],
+        "rq_id": "RQ1"
+      },
+      {
+        "cluster_id": "C3",
+        "theme": "Agentic AI systems are revolutionizing the scientific research process by automating and augment- ing various stages of the research lifecycle, from ideation…",
+        "claims": [
+          {
+            "claim_text": "The rapid pace of the agentic-AI literature has prompted several synthesis papers. Wang et al. [50], published in Frontiers of Computer Science, provide a…",
+            "citation_tokens": [
+              "[SCI-000038#7gametheor#chk-2026-0ae0c3-game-theoretic-and-e-43]"
+            ],
+            "entailment_score": 0.7991999983787537,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-0ae0c3-game-theoretic-and-e-43"
+            ],
+            "study_id": "SCI-000038",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Agentic AI systems are revolutionizing the scientific research process by automating and augment- ing various stages of the research lifecycle, from ideation…",
+            "citation_tokens": [
+              "[SCI-000101#abstract#chk-2025-2442ba-abstract-19]"
+            ],
+            "entailment_score": 0.9233999848365784,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2025-2442ba-abstract-19"
+            ],
+            "study_id": "SCI-000101",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "The section focuses on research methodology for developing an LLM-based multi-agent system. This system is specifically engineered to automate the entire…",
+            "citation_tokens": [
+              "[SCI-000158#abstract#chk-2024-7dbb4b-abstract-13]"
+            ],
+            "entailment_score": 0.8295999765396118,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2024-7dbb4b-abstract-13"
+            ],
+            "study_id": "SCI-000158",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Autonomous research agents represent a further frontier. Recent developments in AI systems capable of conducting literature reviews, formulating hypotheses,…",
+            "citation_tokens": [
+              "[SCI-000083#abstractsa#chk-2026-149501-abstracts-and-book-c-45]"
+            ],
+            "entailment_score": 0.843500018119812,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-149501-abstracts-and-book-c-45"
+            ],
+            "study_id": "SCI-000083",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "To better support this human-AI collaboration, methodological innovations rapidly evolved from single-phase, multi-agent ideation systems [6] to adaptive…",
+            "citation_tokens": [
+              "[SCI-000136#abstract#chk-2026-d1e768-abstract-11]"
+            ],
+            "entailment_score": 0.8159000277519226,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-d1e768-abstract-11"
+            ],
+            "study_id": "SCI-000136",
+            "stance": "POSITIVE"
+          },
+          {
+            "claim_text": "Funding agencies and academic institutions have a critical role to play in this process. Research funders can promote responsible AI use by incorporating AI…",
+            "citation_tokens": [
+              "[SCI-000083#abstractsa#chk-2026-149501-abstracts-and-book-c-48]"
+            ],
+            "entailment_score": 0.9217000007629395,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-149501-abstracts-and-book-c-48"
+            ],
+            "study_id": "SCI-000083",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Although recent frameworks for trustworthy AI formalize explainability and controllability as core principles, existing research remains largely conceptual or…",
+            "citation_tokens": [
+              "[SCI-000042#abstractth#chk-2026-2fe713-abstract-the-rapid-g-07]"
+            ],
+            "entailment_score": 0.9016000032424927,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-2fe713-abstract-the-rapid-g-07"
+            ],
+            "study_id": "SCI-000042",
+            "stance": "NEGATIVE"
+          },
+          {
+            "claim_text": "Artificial Intelligence (AI) is undeniably a",
+            "citation_tokens": [
+              "[SCI-000184#conclusion#chk-2025-58e3bd-conclusion-23]"
+            ],
+            "entailment_score": 0.7965999841690063,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-conclusion-23"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Relatedly, institutions should develop formal internal mechanisms to review AI systems. These include: creating AI review boards at the institutional level,…",
+            "citation_tokens": [
+              "[SCI-000019#1whatdegre#chk-2026-0f5697-what-degree-of-auton-98]"
+            ],
+            "entailment_score": 0.8585000038146973,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-0f5697-what-degree-of-auton-98"
+            ],
+            "study_id": "SCI-000019",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Artificial Intelligence (AI) is undeniably a",
+            "citation_tokens": [
+              "[SCI-000184#conclusion#chk-2025-58e3bd-conclusion-23]"
+            ],
+            "entailment_score": 0.7965999841690063,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-conclusion-23"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Human-AI collaborative systems emphasize the synergy between AI and researchers, combining the computational power of AI with the creativity and human…",
+            "citation_tokens": [
+              "[SCI-000101#abstract#chk-2025-2442ba-abstract-13]"
+            ],
+            "entailment_score": 0.8299999833106995,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-2442ba-abstract-13"
+            ],
+            "study_id": "SCI-000101",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "this literature consistently emphasizes that AI performs most effectively when embedded within human-in-the-loop workflows, as human judgment remains essential…",
+            "citation_tokens": [
+              "[SCI-000042#abstractth#chk-2026-2fe713-abstract-the-rapid-g-06]"
+            ],
+            "entailment_score": 0.8557000160217285,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-2fe713-abstract-the-rapid-g-06"
+            ],
+            "study_id": "SCI-000042",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "research. This analysis, from an AI technical perspective, provides concrete implementation and",
+            "citation_tokens": [
+              "[SCI-000025#methodsofd#chk-2025-b0fbd8-methods-of-data-acqu-15]"
+            ],
+            "entailment_score": 0.7470999956130981,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-b0fbd8-methods-of-data-acqu-15"
+            ],
+            "study_id": "SCI-000025",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "In a world of rapid technological changes leveraged by the emergence of AI-based products able to automate or even outperform human-based processing, it is…",
+            "citation_tokens": [
+              "[SCI-000167#8conclusio#chk-2026-dbacfe-conclusion-78]"
+            ],
+            "entailment_score": 0.8087000250816345,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-dbacfe-conclusion-78"
+            ],
+            "study_id": "SCI-000167",
+            "stance": "POSITIVE"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000019",
+          "SCI-000025",
+          "SCI-000038",
+          "SCI-000042",
+          "SCI-000083",
+          "SCI-000101",
+          "SCI-000136",
+          "SCI-000158",
+          "SCI-000167",
+          "SCI-000184"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 2,
+          "NEGATIVE": 1,
+          "NEUTRAL": 7
+        },
+        "consensus_score": 0.2,
+        "verdict": "UNRESOLVED",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000019",
+            "SCI-000025",
+            "SCI-000038",
+            "SCI-000042",
+            "SCI-000083",
+            "SCI-000101",
+            "SCI-000136",
+            "SCI-000158",
+            "SCI-000167",
+            "SCI-000184"
+          ],
+          "studies_audited": 10,
+          "studies_total": 10,
+          "aggregates": {
+            "overall_risk": {
+              "H": 10,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 9,
+            "flagged": 0,
+            "open_science_public_link": 1,
+            "repo_links": 2
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000019",
+              "overall_risk": "H",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "statement-only",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000025",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000038",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "not-stated",
+              "cas": "statement-only",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000042",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "explicitly-unavailable",
+              "cas": "not-stated",
+              "repo_links": [
+                {
+                  "url": "https://doi.org/10.5281/zenodo.14828619",
+                  "snippet": "the Era of Generative AI—Are We Ready to Contribute to Scientific Inquiries? GS Spark: Journal of Applied Academic Discourse, 2(1), 1–6. https://doi.org/10.5281/zenodo.14828619 De la Torre-López, J., Ramírez, A., & Romero, J. R. Leftwich, R., Koski, E., Joseph, A. L., Lopez- Gonzalez, M., Fleisher, L. A., Nolen,"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000083",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000101",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000136",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000158",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://github.com/GPT-Laboratory/SLR-",
+                  "snippet": "me and effort traditionally required for SLRs while maintaining comprehensiveness and precision. The code for this project is available at: https://github.com/GPT-Laboratory/SLR- automation . Keywords Systematic Literature Review, Large Language Model, AI Agent, Software Engineering arXiv Template A PREPRINT 1 Int"
+                }
+              ]
+            },
+            {
+              "workspace_id": "SCI-000167",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "request-only",
+              "cas": "not-stated",
+              "repo_links": []
+            },
+            {
+              "workspace_id": "SCI-000184",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ1",
+          "RQ2",
+          "RQ3"
+        ],
+        "rq_id": null
+      }
+    ],
+    "provisional": [
+      {
+        "cluster_id": "C6",
+        "theme": "Among these divergences, the enforcement gap may represent the most consequential limitation of the current policy landscape.",
+        "claims": [
+          {
+            "claim_text": "Among these divergences, the enforcement gap may represent the most consequential limitation of the current policy landscape.",
+            "citation_tokens": [
+              "[SCI-000083#abstractsa#chk-2026-149501-abstracts-and-book-c-23]"
+            ],
+            "entailment_score": 0.6741999983787537,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-149501-abstracts-and-book-c-23"
+            ],
+            "study_id": "SCI-000083",
+            "stance": "NEGATIVE"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000083"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 1,
+          "NEUTRAL": 0
+        },
+        "consensus_score": 1.0,
+        "verdict": "PROVISIONAL",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000083"
+          ],
+          "studies_audited": 1,
+          "studies_total": 1,
+          "aggregates": {
+            "overall_risk": {
+              "H": 1,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 1,
+            "flagged": 0,
+            "open_science_public_link": 0,
+            "repo_links": 0
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000083",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ2"
+        ],
+        "rq_id": "RQ2"
+      },
+      {
+        "cluster_id": "C7",
+        "theme": "We evaluated Brain Researcher in three settings. First, a paired seven-model tool-calling bench- mark and a separate evidence-citation benchmark tested whether…",
+        "claims": [
+          {
+            "claim_text": "We evaluated Brain Researcher in three settings. First, a paired seven-model tool-calling bench- mark and a separate evidence-citation benchmark tested whether…",
+            "citation_tokens": [
+              "[SCI-000140#abstract#chk-2026-d8ec89-abstract-07]"
+            ],
+            "entailment_score": 0.9034000039100647,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-d8ec89-abstract-07"
+            ],
+            "study_id": "SCI-000140",
+            "stance": "NEUTRAL"
+          },
+          {
+            "claim_text": "Here we present Brain Researcher, a researcher-governed, domain-specific agentic harness that operates inside a neuroimaging researcher’s existing…",
+            "citation_tokens": [
+              "[SCI-000140#abstract#chk-2026-d8ec89-abstract-06]"
+            ],
+            "entailment_score": 0.8532000184059143,
+            "entailment_status": "VERIFIED",
+            "supporting_chunk_ids": [
+              "chk-2026-d8ec89-abstract-06"
+            ],
+            "study_id": "SCI-000140",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000140"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 1
+        },
+        "consensus_score": 0.0,
+        "verdict": "PROVISIONAL",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000140"
+          ],
+          "studies_audited": 1,
+          "studies_total": 1,
+          "aggregates": {
+            "overall_risk": {
+              "H": 1,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 0,
+            "flagged": 0,
+            "open_science_public_link": 1,
+            "repo_links": 6
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000140",
+              "overall_risk": "H",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://doi.org/10.5281/zenodo.21966011",
+                  "snippet": "approvals and consents, and generated no new human- or animal-subjects data or materials. Data availability BR-KG is archived at Zenodo (https://doi.org/10.5281/zenodo.21966011) and linked from the public project site (https://brain-researcher.com/). The release includes graph snapshots, node and edge schemas, prov"
+                },
+                {
+                  "url": "https://github.com/brain-researcher/brain-researcher-public",
+                  "snippet": "gent runtime, MCP server with versioned tool contracts, orchestrator, web UI, and deployment recipes) is available under the MIT license at https://github.com/brain-researcher/brain-researcher-public, with the companion agent layer (skills, agent templates, MCP adapters, and AutoResearch evaluation rubrics) at https: //github.com/brain-re"
+                },
+                {
+                  "url": "https://doi.org/10.5281/zenodo.21966011",
+                  "snippet": "-researcher-agent-kit; both are linked from the project site (https://brain-researcher.com/), and the v0.3.0 release is archived at Zenodo (https://doi.org/10.5281/zenodo.21966011). Analysis code and per-specification outputs for the NeuroMark collaborator case are available at https://github.com/XinhuiLi/BR-NeuroMark"
+                },
+                {
+                  "url": "https://github.com/XinhuiLi/BR-NeuroMark",
+                  "snippet": "(https://doi.org/10.5281/zenodo.21966011). Analysis code and per-specification outputs for the NeuroMark collaborator case are available at https://github.com/XinhuiLi/BR-NeuroMark. 14 Author contributions Z.C. and R.P. initiated and conceived the project. Z.C. designed and implemented the Brain Re- searcher system,"
+                },
+                {
+                  "url": "https://doi.org/10.5281/zenodo.7217447",
+                  "snippet": "es D. Kent, John A. Lee, Shashank Bansal, Russell A. Poldrack, and Krzysztof J. Gorgolewski. poldracklab/fitlins: 0.11.0. Zenodo, 2022. URL https://doi.org/10.5281/zenodo.7217447. Version 0.11.0. [41] L. Mitchener, A. Yiu, B. Chang, et al. Kosmos: An AI Scientist for Autonomous Discovery, 2025. URL https://doi.org/1"
+                },
+                {
+                  "url": "https://github.com/XinhuiLi/BR-NeuroMark",
+                  "snippet": "de, specification ledger, and per-hypothesis outputs (including the generated run report and figures) for this case are openly available at https://github.com/XinhuiLi/BR-NeuroMark. The analysis was expanded into a 480-specification multiverse crossing four connectivity esti- mators, three confound strategies, five dim"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ2"
+        ],
+        "rq_id": "RQ2"
+      },
+      {
+        "cluster_id": "C8",
+        "theme": "Runtime and researcher effort were not measured. Review-layer error was estimated against a 60-case calibration library (16 invalid, 5 valid controls, 39…",
+        "claims": [
+          {
+            "claim_text": "Runtime and researcher effort were not measured. Review-layer error was estimated against a 60-case calibration library (16 invalid, 5 valid controls, 39…",
+            "citation_tokens": [
+              "[SCI-000140#discussion#chk-2026-d8ec89-discussion-36]"
+            ],
+            "entailment_score": 0.7961000204086304,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2026-d8ec89-discussion-36"
+            ],
+            "study_id": "SCI-000140",
+            "stance": "NEGATIVE"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000140"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 1,
+          "NEUTRAL": 0
+        },
+        "consensus_score": 1.0,
+        "verdict": "PROVISIONAL",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000140"
+          ],
+          "studies_audited": 1,
+          "studies_total": 1,
+          "aggregates": {
+            "overall_risk": {
+              "H": 1,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 0,
+            "flagged": 0,
+            "open_science_public_link": 1,
+            "repo_links": 6
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000140",
+              "overall_risk": "H",
+              "coi_label": "declared-no-conflict",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://doi.org/10.5281/zenodo.21966011",
+                  "snippet": "approvals and consents, and generated no new human- or animal-subjects data or materials. Data availability BR-KG is archived at Zenodo (https://doi.org/10.5281/zenodo.21966011) and linked from the public project site (https://brain-researcher.com/). The release includes graph snapshots, node and edge schemas, prov"
+                },
+                {
+                  "url": "https://github.com/brain-researcher/brain-researcher-public",
+                  "snippet": "gent runtime, MCP server with versioned tool contracts, orchestrator, web UI, and deployment recipes) is available under the MIT license at https://github.com/brain-researcher/brain-researcher-public, with the companion agent layer (skills, agent templates, MCP adapters, and AutoResearch evaluation rubrics) at https: //github.com/brain-re"
+                },
+                {
+                  "url": "https://doi.org/10.5281/zenodo.21966011",
+                  "snippet": "-researcher-agent-kit; both are linked from the project site (https://brain-researcher.com/), and the v0.3.0 release is archived at Zenodo (https://doi.org/10.5281/zenodo.21966011). Analysis code and per-specification outputs for the NeuroMark collaborator case are available at https://github.com/XinhuiLi/BR-NeuroMark"
+                },
+                {
+                  "url": "https://github.com/XinhuiLi/BR-NeuroMark",
+                  "snippet": "(https://doi.org/10.5281/zenodo.21966011). Analysis code and per-specification outputs for the NeuroMark collaborator case are available at https://github.com/XinhuiLi/BR-NeuroMark. 14 Author contributions Z.C. and R.P. initiated and conceived the project. Z.C. designed and implemented the Brain Re- searcher system,"
+                },
+                {
+                  "url": "https://doi.org/10.5281/zenodo.7217447",
+                  "snippet": "es D. Kent, John A. Lee, Shashank Bansal, Russell A. Poldrack, and Krzysztof J. Gorgolewski. poldracklab/fitlins: 0.11.0. Zenodo, 2022. URL https://doi.org/10.5281/zenodo.7217447. Version 0.11.0. [41] L. Mitchener, A. Yiu, B. Chang, et al. Kosmos: An AI Scientist for Autonomous Discovery, 2025. URL https://doi.org/1"
+                },
+                {
+                  "url": "https://github.com/XinhuiLi/BR-NeuroMark",
+                  "snippet": "de, specification ledger, and per-hypothesis outputs (including the generated run report and figures) for this case are openly available at https://github.com/XinhuiLi/BR-NeuroMark. The analysis was expanded into a 480-specification multiverse crossing four connectivity esti- mators, three confound strategies, five dim"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ2"
+        ],
+        "rq_id": "RQ2"
+      },
+      {
+        "cluster_id": "C9",
+        "theme": "This study employs a qualitative thematic",
+        "claims": [
+          {
+            "claim_text": "This study employs a qualitative thematic",
+            "citation_tokens": [
+              "[SCI-000184#methodolog#chk-2025-58e3bd-methodology-11]"
+            ],
+            "entailment_score": 0.7523999810218811,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-58e3bd-methodology-11"
+            ],
+            "study_id": "SCI-000184",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000184"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 1
+        },
+        "consensus_score": 0.0,
+        "verdict": "PROVISIONAL",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000184"
+          ],
+          "studies_audited": 1,
+          "studies_total": 1,
+          "aggregates": {
+            "overall_risk": {
+              "H": 1,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 1,
+            "flagged": 0,
+            "open_science_public_link": 0,
+            "repo_links": 0
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000184",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": false,
+              "das": "not-stated",
+              "cas": "not-stated",
+              "repo_links": []
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ3"
+        ],
+        "rq_id": "RQ3"
+      },
+      {
+        "cluster_id": "C10",
+        "theme": "An initial prototype is implemented, integrating the proposed framework concepts into a workable research life cycle. A demonstration of this approach is…",
+        "claims": [
+          {
+            "claim_text": "An initial prototype is implemented, integrating the proposed framework concepts into a workable research life cycle. A demonstration of this approach is…",
+            "citation_tokens": [
+              "[SCI-000013#5conclusio#chk-2025-d696ed-conclusion-and-outlo-23]"
+            ],
+            "entailment_score": 0.7971000075340271,
+            "entailment_status": "AMBIGUOUS",
+            "supporting_chunk_ids": [
+              "chk-2025-d696ed-conclusion-and-outlo-23"
+            ],
+            "study_id": "SCI-000013",
+            "stance": "NEUTRAL"
+          }
+        ],
+        "supporting_studies": [
+          "SCI-000013"
+        ],
+        "stance_distribution": {
+          "POSITIVE": 0,
+          "NEGATIVE": 0,
+          "NEUTRAL": 1
+        },
+        "consensus_score": 0.0,
+        "verdict": "PROVISIONAL",
+        "trust": {
+          "trust_level": "WEAK",
+          "flags": [
+            "high-risk-study"
+          ],
+          "coverage": 1.0,
+          "supporting_studies": [
+            "SCI-000013"
+          ],
+          "studies_audited": 1,
+          "studies_total": 1,
+          "aggregates": {
+            "overall_risk": {
+              "H": 1,
+              "L": 0,
+              "?": 0
+            },
+            "industry_money": 0,
+            "industry_any_ties": 0,
+            "no_coi_statement": 1,
+            "flagged": 0,
+            "open_science_public_link": 1,
+            "repo_links": 1
+          },
+          "studies": [
+            {
+              "workspace_id": "SCI-000013",
+              "overall_risk": "H",
+              "coi_label": "no-statement",
+              "adjusted_from": null,
+              "industry_entities": [],
+              "flagged": false,
+              "flag_reasons": [],
+              "openalex_retracted": null,
+              "das": "public+link",
+              "cas": "public+link",
+              "repo_links": [
+                {
+                  "url": "https://gitlab.com/TIBHannover/orkg/tib-aissistant/web-app",
+                  "snippet": "n to further develop the prototype into a publicly available online service, where researchers can get started with AI-assisted research. 1https://gitlab.com/TIBHannover/orkg/tib-aissistant/web-app Acknowledgments We thank our colleague Markus Stocker for his valuable comments in reviewing this paper. This work was co-funded by NFDI4"
+                }
+              ]
+            }
+          ]
+        },
+        "rq_ids": [
+          "RQ3"
+        ],
+        "rq_id": "RQ3"
+      }
+    ]
+  }
+}

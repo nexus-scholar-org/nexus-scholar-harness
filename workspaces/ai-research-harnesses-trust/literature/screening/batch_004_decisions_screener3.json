@@ -1,0 +1,182 @@
+[
+  {
+    "workspace_id": "SCI-000061",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Paper focuses on data-free knowledge distillation for recommender systems (CTR prediction models). No connection to academic literature review harnesses, LLM-based literature workflows, or evidence synthesis tools. Falls under EXC-02 (general-purpose ML technique not targeted to scholarly literature workflow)."
+  },
+  {
+    "workspace_id": "SCI-000062",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Proposes a responsible AI integration framework for psychiatric clinical guidelines. Addresses clinical AI deployment ethics, not computational tools for literature discovery, screening, or synthesis. Falls under EXC-02 (non-scholarly domain - clinical practice framework)."
+  },
+  {
+    "workspace_id": "SCI-000063",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Narrative review of generative AI applications in ophthalmology education. Discusses LLM capabilities/challenges but does not propose, implement, or evaluate a computational harness for literature review workflows. Falls under EXC-03 (narrative piece lacking computational artifact for evidence synthesis)."
+  },
+  {
+    "workspace_id": "SCI-000064",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Editorial arguing for behavioral safety testing of AI companion chatbots. Opinion piece on regulation/clinical safety, not a computational tool for literature review or evidence synthesis. Falls under EXC-03 (narrative commentary lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000065",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Title indicates comparison of dental knowledge across LLMs. No abstract available, but scope appears to be domain-specific knowledge evaluation, not a literature review harness or evidence synthesis tool. Falls under EXC-02 (general LLM evaluation not targeted to scholarly literature workflow)."
+  },
+  {
+    "workspace_id": "SCI-000066",
+    "decision": "INCLUDE",
+    "confidence": 0.98,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-03", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Proposes and validates a locally executed multi-agent AI framework for deduplication, screening, and structured data extraction in systematic reviews (spine surgery). Explicitly incorporates LLMs/agentic orchestration (INC-02), describes execution provenance via PRISMA-trAIce compliance and local execution for data governance (INC-03), and provides quantitative empirical evaluation across 3 SRs with Cohen's κ, accuracy, time savings, and critical error rates (INC-04). Directly addresses all three RQs: architecture/provenance (RQ1), trust/integrity mechanisms including hallucination checks (RQ2), and empirical evaluation with benchmarks (RQ3)."
+  },
+  {
+    "workspace_id": "SCI-000067",
+    "decision": "EXCLUDE",
+    "confidence": 0.99,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Plant metabolomics review on environmental stress responses. No connection to AI research harnesses, literature review automation, or evidence synthesis tools. Falls under EXC-02 (non-scholarly domain - plant biology)."
+  },
+  {
+    "workspace_id": "SCI-000068",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Empirical study critically assessing ChatGPT (GPT-4) for data extraction in systematic reviews (COVID-19 modeling studies). Evaluates LLM performance on explicit vs. contextual data extraction with iterative prompt refinement, reporting accuracy metrics (71.7% final accuracy, 93.3% for explicit settings). Matches INC-01 (evaluates computational tool for evidence synthesis), INC-02 (uses LLMs in literature workflow), INC-04 (quantitative empirical evaluation with benchmarks). Addresses RQ1 (LLM-based extraction architecture), RQ2 (hallucination/accuracy limitations), RQ3 (empirical evaluation with iterative prompting)."
+  },
+  {
+    "workspace_id": "SCI-000069",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Policy framework for agentic generative AI in cancer care (SSRN preprint). No abstract available, but title indicates clinical policy/architecture focus, not a computational harness for literature review or evidence synthesis. Falls under EXC-03 (policy manifesto lacking computational artifact for scholarly workflow)."
+  },
+  {
+    "workspace_id": "SCI-000070",
+    "decision": "EXCLUDE",
+    "confidence": 1.0,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Published in 2020, predating the 2023–2026 LLM era. Discusses AI impact on radiography profession, not literature review harnesses. Falls under EXC-04 (temporal out of bounds)."
+  },
+  {
+    "workspace_id": "SCI-000071",
+    "decision": "INCLUDE",
+    "confidence": 0.97,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Introduces ENTGPT (GPT-4o based) with novel STARR protocol for systematic review screening in otolaryngology. Evaluates LLM against human reviewers with traditional vs. STARR protocols, reporting accuracy (99.87%), sensitivity (95%), specificity (100%), and CI. Matches INC-01 (computational tool for literature screening), INC-02 (LLM/agentic orchestration), INC-04 (quantitative empirical evaluation with benchmarks). Addresses RQ1 (screening architecture/protocol), RQ2 (accuracy/hallucination mitigation via STARR re-evaluation), RQ3 (empirical evaluation with inter-rater comparison)."
+  },
+  {
+    "workspace_id": "SCI-000072",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comment/letter on bariatric surgery complications study. No computational tool, literature workflow, or evidence synthesis system described. Falls under EXC-03 (narrative commentary lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000073",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Perspective article discussing AI tools for systematic reviews in health research. Highlights advancements/challenges but does not propose, implement, or evaluate a specific computational harness or system architecture. Falls under EXC-03 (narrative perspective lacking described system architecture or empirical evaluation of a specific tool)."
+  },
+  {
+    "workspace_id": "SCI-000074",
+    "decision": "EXCLUDE",
+    "confidence": 1.0,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Published in 2019 (arXiv), predating the 2023–2026 scope. Seminal work on RLHF but not a literature review harness. Falls under EXC-04 (temporal out of bounds)."
+  },
+  {
+    "workspace_id": "SCI-000075",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Proposes 'Agent4S' five-level classification for LLM-driven research automation as a conceptual paradigm shift. While it proposes agentic AI for science (touching INC-01/INC-02 conceptually), it lacks a described system architecture, empirical evaluation, accessible codebase, or explicit provenance/hallucination mechanisms. Falls under EXC-03 (philosophical manifesto/roadmap lacking computational artifact and empirical evaluation)."
+  },
+  {
+    "workspace_id": "SCI-000076",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "UNESCO guidance document on generative AI in education/research. Policy/guidance document, not a computational tool or system for literature review automation. Falls under EXC-03 (guidance manifesto lacking computational artifact)."
+  },
+  {
+    "workspace_id": "SCI-000077",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Evaluates fine-tuned LLMs (QLoRA) and few-shot GPT-4.1 for SQL query execution in hospital management. Domain is medical data inquiry/SQL generation, not academic literature discovery, screening, or evidence synthesis. Falls under EXC-02 (non-scholarly domain - hospital data management)."
+  },
+  {
+    "workspace_id": "SCI-000078",
+    "decision": "EXCLUDE",
+    "confidence": 0.99,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Minireview on mycoviruses in phytobiome (plant-fungus-virus interactions). Plant virology/ecology domain, no connection to AI research harnesses or literature workflows. Falls under EXC-02 (non-scholarly domain)."
+  },
+  {
+    "workspace_id": "SCI-000079",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of empirical research on conversational AI reducing science skepticism. Synthesizes findings on LLMs for science communication, but does not propose or evaluate a computational harness for literature review or evidence synthesis. Falls under EXC-03 (narrative review lacking computational artifact for scholarly workflow)."
+  },
+  {
+    "workspace_id": "SCI-000080",
+    "decision": "EXCLUDE",
+    "confidence": 1.0,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-04"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Published in 2001, far predating the 2023–2026 scope. Organizational psychology study on job dissatisfaction and creativity. Falls under EXC-04 (temporal out of bounds)."
+  }
+]

@@ -39,60 +39,35 @@
   ],
   "core_concepts": [
     {
-      "concept": "research harness",
+      "concept": "literature review automation",
       "synonyms": [
-        "literature review tool",
         "systematic review automation",
+        "research harness",
         "scholarly workflow",
-        "evidence synthesis platform",
-        "academic literature RAG"
+        "evidence synthesis",
+        "academic literature review"
       ],
       "boolean_operator": "OR"
     },
     {
-      "concept": "AI assistance",
+      "concept": "large language model",
       "synonyms": [
-        "large language model",
         "LLM",
         "agentic AI",
         "AI agent",
+        "retrieval-augmented generation",
         "generative AI",
-        "retrieval-augmented generation"
-      ],
-      "boolean_operator": "OR"
-    },
-    {
-      "concept": "traceability & audit",
-      "synonyms": [
-        "provenance",
-        "audit trail",
-        "audit ledger",
-        "reproducibility",
-        "process transparency"
-      ],
-      "boolean_operator": "OR"
-    },
-    {
-      "concept": "trust & integrity",
-      "synonyms": [
-        "trustworthiness",
-        "verification",
-        "hallucination mitigation",
-        "citation accuracy",
-        "retraction check",
-        "risk of bias",
-        "open science"
+        "multi-agent"
       ],
       "boolean_operator": "OR"
     }
   ],
   "target_databases": [
     "openalex",
-    "semantic_scholar",
+    "semanticscholar",
     "arxiv",
     "crossref",
-    "pubmed",
-    "dblp"
+    "pubmed"
   ],
   "start_year": 2023,
   "end_year": 2026,
@@ -300,9 +275,9 @@
   "reproducibility_das_cas_check": true,
   "minimum_trust_score_threshold": 6.0,
   "_meta": {
-    "revision": 2,
-    "revision_note": "Socratic refinement: relaxed INC-03/INC-04 from hard gates to enrichment flags with dedicated extraction dimensions (provenance_maturity L0-L3, evidence_availability categorical, provenance_standard_compliance). Added PubMed + DBLP to target databases. Restructured ai_agent_architecture as multi-label. Added 3-agent majority-vote screening methodology with Fleiss' kappa reporting. Added workflow_stages extraction vocabulary. Target venue upgraded to top-tier CS (ACM JCDL / EMNLP / CSCW). Nexus Scholar excluded from review matrix (clean separation for toolkit paper).",
-    "revision_timestamp": "2026-09-08T08:44:00+00:00",
+    "revision": 3,
+    "revision_note": "Discovery refinement v3: focused search strategy on core population/intervention facets (literature review automation & evidence synthesis AND large language models & agentic AI). Provenance, trust, and audit dimensions remain foundational extraction dimensions (provenance_maturity L0-L3, trust_layers, evidence_availability) to avoid survivorship/selection bias during initial discovery. Removed DBLP from active databases.",
+    "revision_timestamp": "2026-09-08T09:08:00+00:00",
     "publication_strategy": {
       "paper_1": "Standalone scoping review (this workspace) — ACM JCDL / EMNLP / CSCW",
       "paper_2": "Nexus Scholar toolkit paper — JOSS / SoftwareX / ACM CSCW System Demos",

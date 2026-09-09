@@ -1,0 +1,294 @@
+[
+  {
+    "workspace_id": "SCI-000141",
+    "decision": "INCLUDE",
+    "confidence": 0.75,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1"
+    ],
+    "screening_reasoning": "Presents the vision and early prototype of the TIB AIssistant, a domain-agnostic platform with modular orchestration for research-lifecycle tasks including literature analysis. No formal quantitative evaluation yet, hence moderate confidence."
+  },
+  {
+    "workspace_id": "SCI-000142",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "meta-pipe is an open-source 10-stage LLM-agent pipeline covering the full SR/MA workflow with five mandatory human gates, GRADE assessment, and overclaim detection across 12 hallucination patterns. System description with quantitative cost analysis and architectural comparison against five existing tools."
+  },
+  {
+    "workspace_id": "SCI-000143",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "QBD-RankedDataGen generates custom ranked datasets for query-by-document retrieval in IR engineering (TREC benchmarks, BM25 tuning). The work addresses information retrieval dataset creation, not a scholarly literature review workflow or harness."
+  },
+  {
+    "workspace_id": "SCI-000144",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [
+      "INC-02",
+      "INC-03",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "Empirical study of citation hallucination across four LLMs under deployment-motivated prompting constraints, using a deterministic Crossref+Semantic Scholar verification pipeline over 17,443 citations. Directly addresses citation integrity (INC-03) with quantitative evaluation; does not propose a literature workflow tool (no INC-01)."
+  },
+  {
+    "workspace_id": "SCI-000145",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Narrative review of discriminative and generative AI applications in rheumatology (diagnosis, prognosis, drug discovery). Domain-specific clinical review with no computational system, architecture, or empirical artifact for literature workflows."
+  },
+  {
+    "workspace_id": "SCI-000146",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ3"
+    ],
+    "screening_reasoning": "Evaluates LLM probability-score outputs for title/abstract screening in SLR automation, comparing four models on consistency between qualitative and continuous ratings. Provides quantitative performance metrics directly relevant to SLR screening tool evaluation."
+  },
+  {
+    "workspace_id": "SCI-000147",
+    "decision": "INCLUDE",
+    "confidence": 0.65,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "Evaluates the use of LLMs for SLR automation focusing on quality and time savings. No abstract available; inclusion is based on title and venue signaling an empirical evaluation of LLM-based SLR automation, hence lower confidence."
+  },
+  {
+    "workspace_id": "SCI-000148",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ3"
+    ],
+    "screening_reasoning": "Proposes an LLM-based screening prioritization method for SLR automation achieving ~70% work-effort savings at 95% recall across four zoonotic-disease datasets. Includes explainable-AI rationales and validates recall metrics, directly relevant to literature review tool evaluation."
+  },
+  {
+    "workspace_id": "SCI-000149",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Framework and review of LLM applications in the healthcare/medical domain covering clinical tasks and research workflows. Healthcare domain focus, not an academic literature research harness or tool."
+  },
+  {
+    "workspace_id": "SCI-000150",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Commentary discussing LLM data extraction findings from a living review of clinical evidence synthesis and their implications for toxicology. No computational system or artifact; primarily opinion and discussion of existing work."
+  },
+  {
+    "workspace_id": "SCI-000151",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ3"
+    ],
+    "screening_reasoning": "LLAssist is an open-source tool leveraging LLMs and NLP to automate literature review by extracting key information and evaluating relevance to user-defined research questions. Directly targets literature review automation with an accessible codebase."
+  },
+  {
+    "workspace_id": "SCI-000152",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "Case study evaluating GPT-4o Mini and Claude 3.5 Sonnet for title/abstract screening in a precision-livestock-farming SLR, comparing accuracy, time, and cost against two human raters. Provides empirical evaluation of LLM-assisted screening tools."
+  },
+  {
+    "workspace_id": "SCI-000153",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Clinical study evaluating eight LLMs for reliability of parental health information on early maxillary expansion in dentistry. Medical/clinical domain; no scholarly literature workflow or research harness."
+  },
+  {
+    "workspace_id": "SCI-000154",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "OpenScholar (Nature publication) is a retrieval-augmented LM over 45M open-access papers that achieves citation accuracy on par with experts while GPT-4o hallucinates 78–90% of citations. Fully open-source with code, models, datastore, and a new multi-domain ScholarQABench benchmark."
+  },
+  {
+    "workspace_id": "SCI-000155",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "Living systematic review tracking 117 publications on (semi)automated data-extraction methods for SRs, including LLMs. Provides a broad evidence base with code/data availability analysis and documents emerging LLM-based extraction trends and reporting-quality concerns."
+  },
+  {
+    "workspace_id": "SCI-000156",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ3"
+    ],
+    "screening_reasoning": "Presents and compares NLP approaches (spaCy, Simple T5, GPT-3.5-turbo RAG) for automated literature review generation from PDFs, evaluated via ROUGE scores on SciTLDR. Includes a GUI prototype for the best-performing system."
+  },
+  {
+    "workspace_id": "SCI-000157",
+    "decision": "INCLUDE",
+    "confidence": 0.6,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1"
+    ],
+    "screening_reasoning": "Proposes a transformer-based QA model for citation-context extraction from academic papers. No abstract available; inclusion is based on title and venue indicating a computational tool for scholarly citation analysis, but no quantitative evaluation is confirmed."
+  },
+  {
+    "workspace_id": "SCI-000158",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ3"
+    ],
+    "screening_reasoning": "Introduces a multi-AI-agent system that automates the full SLR workflow—search string generation, screening, summarization, and research-question analysis—with empirical evaluation and open-source code on GitHub."
+  },
+  {
+    "workspace_id": "SCI-000159",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "OpenScholar (arXiv original) is a retrieval-augmented LM querying 45M papers with citation accuracy on par with experts versus 78–90% hallucination in GPT-4o. Evaluated on ScholarQABench with fully open-source code, models, and datastore."
+  },
+  {
+    "workspace_id": "SCI-000160",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Review of machine learning methods for analyzing construction-industry accident reports, focusing on NLP text preprocessing and data mining. Construction safety domain, not an academic literature research harness."
+  }
+]

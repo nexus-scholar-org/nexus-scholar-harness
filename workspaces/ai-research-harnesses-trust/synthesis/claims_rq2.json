@@ -1,0 +1,2642 @@
+[
+  {
+    "claim_text": "Human error accounted for a larger proportion of discrepancies (61.5%) than TrialScout error across all 200 reviewed cases, suggesting the tool may be more accurate than manual search in practice.",
+    "citation_tokens": [
+      "[SCI-000056#results-validation-of-trialscout-against#FULLTEXT-003]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-003"
+    ],
+    "study_id": "SCI-000056",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "TrialScout links published results to trial registrations",
+    "year": 2026,
+    "evidence_quote": "Overall, across all 200 cases with discrepancies, human error accounted for a larger proportion (123/200, 61.5%, 95% CI, 54.4–68.3%) than TrialScout error.",
+    "section": "Results > Validation of TrialScout Against Human Assessment",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Manual review of 200 discrepant cases showed that 79% of initially classified false positives were in fact true positives missed by the original manual search, and 44% of false negatives were true negatives, suggesting TrialScout's true performance is higher than metrics suggest.",
+    "citation_tokens": [
+      "[SCI-000056#results-validation-of-trialscout-against#FULLTEXT-004]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-004"
+    ],
+    "study_id": "SCI-000056",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "TrialScout links published results to trial registrations",
+    "year": 2026,
+    "evidence_quote": "Of 100 false positive cases, 79 (79.0%, 95% CI, 69.7–86.5%) were in fact true positives missed by the original manual search. Of 100 false negative cases, 44 (44.0%, 95% CI, 34.1–54.3%) were found to be true negatives upon review.",
+    "section": "Results > Validation of TrialScout Against Human Assessment",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "TrialScout's classifications are not deterministic; repeating a run can produce different results and this variability was not quantified, representing a reproducibility limitation.",
+    "citation_tokens": [
+      "[SCI-000056#discussion-limitations#FULLTEXT-005]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-005"
+    ],
+    "study_id": "SCI-000056",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "TrialScout links published results to trial registrations",
+    "year": 2026,
+    "evidence_quote": "TrialScout has further limitations. Its classifications are not deterministic. Repeating a run can produce different results, and we did not quantify this variability.",
+    "section": "Discussion > Limitations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Each hypothesis was independently evaluated against a randomized baseline of 1,000 XGBoost models trained on random gene sets, guarding against spurious gene-set signal.",
+    "citation_tokens": [
+      "[SCI-000082#body#FULLTEXT-018]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-018"
+    ],
+    "study_id": "SCI-000082",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "EcoXAI: Autonomous Agentic Ecosystem for Explainable Artificial Intelligence and Biomedical Discovery",
+    "year": 2026,
+    "evidence_quote": "Each hypothesis was independently evaluated against a randomized baseline consisting of 1,000 XGBoost models trained on random gene sets containing up to 100 genes.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Integration with public biological knowledge graphs grounds analyses in established biological knowledge, reducing the risk of hallucinations and implausible results.",
+    "citation_tokens": [
+      "[SCI-000082#body#FULLTEXT-019]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-019"
+    ],
+    "study_id": "SCI-000082",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "EcoXAI: Autonomous Agentic Ecosystem for Explainable Artificial Intelligence and Biomedical Discovery",
+    "year": 2026,
+    "evidence_quote": "A key feature is EcoXAI's integration with public biological knowledge graphs, which grounds analyses in established biological knowledge within the graph, reducing the risk of hallucinations and implausible results",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "To mitigate susceptibility to planning errors and cascading failures, EcoXAI enforces strict isolation across pipeline stages and persists intermediate code and experimental logic for human inspection and reproduction.",
+    "citation_tokens": [
+      "[SCI-000082#body#FULLTEXT-020]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-020"
+    ],
+    "study_id": "SCI-000082",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "EcoXAI: Autonomous Agentic Ecosystem for Explainable Artificial Intelligence and Biomedical Discovery",
+    "year": 2026,
+    "evidence_quote": "Like other autonomous AI systems, EcoXAI is susceptible to planning errors and cascading failures. To mitigate this, the framework enforces strict isolation across its pipeline stages, persisting intermediate code execution scripts and experimental logic so human researchers can inspect, reproduce, or modify tasks mid-loop.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The review applies PROBAST + AI and QUADAS-2 to rate the methodological quality and risk of bias of the included LLM screening studies; most studies demonstrated low risk of bias, and agreement of screening decisions with human-defined reference standards was the evaluation backbone.",
+    "citation_tokens": [
+      "[SCI-000088#methods-risk-of-bias-and-applicability-a#FULLTEXT-026]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-026"
+    ],
+    "study_id": "SCI-000088",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Performance of Large Language Models in Automated Medical Literature Screening: A Systematic Review and Meta‐Analysis",
+    "year": 2026,
+    "evidence_quote": "To evaluate the methodological quality and risk of bias of the included models and studies, we applied the Prediction Model Risk of Bias Assessment Tool + AI tool (PROBAST + AI) and the Quality Assessment of Diagnostic Accuracy Studies-2 tool, respectively.",
+    "section": "Methods > Risk of Bias and Applicability Assessment",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The review finds that LLMs are positioned as assistive, high-sensitivity tools that prioritize potentially relevant studies for human verification rather than replacements for human reviewers.",
+    "citation_tokens": [
+      "[SCI-000088#discussion#FULLTEXT-027]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-027"
+    ],
+    "study_id": "SCI-000088",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Performance of Large Language Models in Automated Medical Literature Screening: A Systematic Review and Meta‐Analysis",
+    "year": 2026,
+    "evidence_quote": "LLMs are not intended to replace human reviewers. Instead, they function as assistive tools within the screening framework to streamline systematic review processes",
+    "section": "Discussion",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Data extraction accuracy was 100% in both LLM and manual conditions as assessed by an independent evaluator who was unaware of group allocation, with no adverse events or participant burden reported.",
+    "citation_tokens": [
+      "[SCI-000089#results-secondary-outcomes#FULLTEXT-037]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-037"
+    ],
+    "study_id": "SCI-000089",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Efficacy of a Large Language Model Data Extraction System in Evidence Reviews for Emerging Infectious Diseases: A Randomized Crossover Trial",
+    "year": 2026,
+    "evidence_quote": "Based on expert review of the intended meaning of each extracted item, accuracy was 100% in both conditions (LLM 9/9; no LLM 11/11). Comparative modeling was not estimable because there was no between-group variability. No harm or adverse events, as prespecified (eg, excessive psychological stress or significant task difficulty), were reported by participants in either condition during the study.",
+    "section": "Results > Secondary Outcomes",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "On the ketamine/neuroimaging benchmark, the pipeline achieved 100% recall, 97.9% precision, 99.4% accuracy, and 98.9% F1 — the best performance across all three benchmarks.",
+    "citation_tokens": [
+      "[SCI-000090#table-2-pooled-performance-summary#FULLTEXT-045]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-045"
+    ],
+    "study_id": "SCI-000090",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "Benchmarking a Local Schema-Constrained Large Language Model Pipeline for Systematic Scoping Reviews",
+    "year": 2026,
+    "evidence_quote": "Recall/Precision/Accuracy/F1 (%) 100.0/97.9/99.4/98.9",
+    "section": "Table 2 (Pooled performance summary)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Performance tracked the density and explicitness of source text: when constructs were explicitly encoded in abstracts, maximal sensitivity was achieved; when outcomes were inconsistently reported, screening was rate-limited by missing or underspecified inputs.",
+    "citation_tokens": [
+      "[SCI-000090#discussion#FULLTEXT-046]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-046"
+    ],
+    "study_id": "SCI-000090",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "Benchmarking a Local Schema-Constrained Large Language Model Pipeline for Systematic Scoping Reviews",
+    "year": 2026,
+    "evidence_quote": "performance tracked the density and explicitness of the source text: when the construct of interest was explicitly encoded in abstracts (ketamine-neuroimaging), the pipeline achieved maximal sensitivity with high precision ... when outcomes were inconsistently reported at abstract level (clozapine-suicidality; clozapine experiences), screening and synthesis were predictably rate-limited by missing or underspecified inputs.",
+    "section": "Discussion",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Schema enforcement and conservative missingness handling were specifically designed to minimize hallucination risk, and performed well in audited fields — residual hallucination risk remains but is addressed through structural constraints.",
+    "citation_tokens": [
+      "[SCI-000090#discussion-limitations#FULLTEXT-047]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-047"
+    ],
+    "study_id": "SCI-000090",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "Benchmarking a Local Schema-Constrained Large Language Model Pipeline for Systematic Scoping Reviews",
+    "year": 2026,
+    "evidence_quote": "Residual hallucination risk also remains [25,26], although schema enforcement (constrained enumerations rather than free generation) and conservative missingness handling (returning 'NR') were designed to minimize fabrication and performed well in audited fields.",
+    "section": "Discussion (Limitations)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The TitleAbstractReviewer uses a 5-point Likert scale for article assessment (1 = absolutely exclude, 5 = absolutely include), with hierarchical decision-making: when junior reviewers disagree, a senior reviewer's assessment becomes definitive.",
+    "citation_tokens": [
+      "[SCI-000096#section-4-evaluation#FULLTEXT-055]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-055"
+    ],
+    "study_id": "SCI-000096",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "LatteReview: A Multi-Agent Framework for Systematic Reviews",
+    "year": 2025,
+    "evidence_quote": "The TitleAbstractReviewer agents in our workflow employ a 5-point Likert scale for article assessment ... when the junior reviewers' scores differ or both assign a score of 3, the senior reviewer's assessment is sought and becomes definitive.",
+    "section": "Section 4 (Evaluation)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The framework encourages human oversight, recommending researchers break reviews into stages with manual review checkpoints rather than pursuing fully automated end-to-end processes.",
+    "citation_tokens": [
+      "[SCI-000096#section-5-8-integrate-human-oversight#FULLTEXT-056]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-056"
+    ],
+    "study_id": "SCI-000096",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "LatteReview: A Multi-Agent Framework for Systematic Reviews",
+    "year": 2025,
+    "evidence_quote": "it's crucial to design your LatteReview workflows with human oversight in mind. Rather than aiming for a fully automated end-to-end process, consider breaking your review into stages punctuated by manual review.",
+    "section": "Section 5.8 (Integrate Human Oversight)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A Critical Reviewer agent performs adversarial analysis focusing on bias detection and identification of unsupported claims, running in parallel with a Content Validator and a Relevance Validator under a three-reviewer unanimous-consensus approval rule.",
+    "citation_tokens": [
+      "[SCI-000099#3-2-1-overview-and-workflow#FULLTEXT-065]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-065"
+    ],
+    "study_id": "SCI-000099",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "CriticalReviewer: Provides adversarial analysis, focusing on bias detection, identification of unsupported claims, and suggesting alternative interpretations. This agent plays a key role in challenging assumptions and ensuring scientific rigor.",
+    "section": "3.2.1 Overview and Workflow",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "All M-Reason agent prompts include explicit anti-hallucination instructions requiring agents to refrain from introducing any information not directly present in the supplied evidence, and a Content Validator additionally ensures no information outside the provided evidence is introduced.",
+    "citation_tokens": [
+      "[SCI-000099#3-3-prompt-engineering-and-message-struc#FULLTEXT-066]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-066"
+    ],
+    "study_id": "SCI-000099",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "All agent prompts include explicit anti-hallucination instructions, requiring agents to refrain from introducing any information not directly present in the supplied evidence.",
+    "section": "3.3 Prompt Engineering and Message Structures",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "All synthesized outputs are fully traceable to their source evidence with explicit citations (including direct links when available), which the authors state lets users independently verify findings and directly addresses concerns about LLM hallucinations.",
+    "citation_tokens": [
+      "[SCI-000099#3-4-design-principles-and-rationale#FULLTEXT-067]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-067"
+    ],
+    "study_id": "SCI-000099",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "All synthesized outputs are fully traceable to their source evidence, with explicit ci- tations (including direct links when available). This enhances transparency, user trust, and allows users to independently verify findings, directly addressing concerns about LLM hallucinations.",
+    "section": "3.4 Design Principles and Rationale",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "M-Reason integrates deterministic code for validation alongside LLM reasoning; the authors report that combining LLM-driven analysis with deterministic code offers greater confidence but at the expense of speed and flexibility.",
+    "citation_tokens": [
+      "[SCI-000099#6-conclusions#FULLTEXT-068]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-068"
+    ],
+    "study_id": "SCI-000099",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "Similarly, combining LLM-driven analysis with deterministic code offers greater confidence, but at the expense of speed and flexibility—a tradeoff that remains central in system design.",
+    "section": "6 Conclusions",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A multi-agent validation loop uses a generator LLM to draft cited answers and a secondary QA agent LLM to audit factual accuracy, logical consistency, and adherence to citation protocols.",
+    "citation_tokens": [
+      "[SCI-000100#body#FULLTEXT-076]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-076"
+    ],
+    "study_id": "SCI-000100",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "HySemRAG: A Hybrid Semantic Retrieval-Augmented Generation Framework for Automated Literature Synthesis and Methodological Gap Analysis",
+    "year": 2025,
+    "evidence_quote": "It implements a multi-agent system where a primary “generator” LLM drafts a cited answer, and a secondary “QA agent” LLM audits that output for factual accuracy, logical consistency, and adherence to citation protocols.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "HySemRAG performs post-hoc citation verification in combination with an agentic self-correction framework with iterative quality assurance, ensuring complete traceability.",
+    "citation_tokens": [
+      "[SCI-000100#abstract#FULLTEXT-077]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-077"
+    ],
+    "study_id": "SCI-000100",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "HySemRAG: A Hybrid Semantic Retrieval-Augmented Generation Framework for Automated Literature Synthesis and Methodological Gap Analysis",
+    "year": 2025,
+    "evidence_quote": "The system addresses limitations in existing RAG architectures through a multi-layered approach: hybrid retrieval combining semantic search, keyword filtering, and knowledge graph traversal; an agentic self-correction framework with iterative quality assurance; and post-hoc citation verification ensuring complete traceability.",
+    "section": "abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The system enforces single-source observations and rejects mixed-source citations to prevent hallucination in generated responses.",
+    "citation_tokens": [
+      "[SCI-000100#body#FULLTEXT-078]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-078"
+    ],
+    "study_id": "SCI-000100",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "HySemRAG: A Hybrid Semantic Retrieval-Augmented Generation Framework for Automated Literature Synthesis and Methodological Gap Analysis",
+    "year": 2025,
+    "evidence_quote": "The system enforces single-source observations and rejects mixed-source citations to prevent hallucination.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Blinded expert evaluation masks system identities and assigns responses for review to the author who contributed the corresponding questions, designed to support fair, domain-informed, and unbiased assessment of evidence quality.",
+    "citation_tokens": [
+      "[SCI-000102#methods-answer-generation#FULLTEXT-086]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-086"
+    ],
+    "study_id": "SCI-000102",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "DeepER-Med: Advancing Deep Evidence-Based Medical Research with Agentic AI",
+    "year": 2026,
+    "evidence_quote": "a Streamlit-based assessment workflow that masks system identities and assigns responses for review to the author who contributed the corresponding questions. This blinded annotation strategy is designed to support fair, domain-informed, and unbiased assessment of evidence quality and reasoning across systems.",
+    "section": "Methods > Answer generation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Domain experts and LLM judgment jointly validate correctness and evidence grounding of each reference answer; if either assessment identifies deficiencies the answer is returned for revision until consensus is reached.",
+    "citation_tokens": [
+      "[SCI-000102#methods-reference-answer-curation#FULLTEXT-087]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-087"
+    ],
+    "study_id": "SCI-000102",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "DeepER-Med: Advancing Deep Evidence-Based Medical Research with Agentic AI",
+    "year": 2026,
+    "evidence_quote": "domain experts assess factual accuracy, logical coherence, and evidence alignment, while GPT-5.2-pro provides sentence-level judgements of consistency and evidentiary support using predefined criteria. If both expert review and LLM judgment confirm that the reference answer is correct and sufficiently supported by traceable evidence, it is accepted and incorporated into the curated benchmark.",
+    "section": "Methods > Reference answer curation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Hallucinated or unverifiable references are detected during expert evaluation and the corresponding response is excluded and replaced with an alternative exhibiting high accuracy and reliable citation.",
+    "citation_tokens": [
+      "[SCI-000102#methods-answer-evaluation#FULLTEXT-088]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-088"
+    ],
+    "study_id": "SCI-000102",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "DeepER-Med: Advancing Deep Evidence-Based Medical Research with Agentic AI",
+    "year": 2026,
+    "evidence_quote": "In cases where hallucinated or unverifiable references are detected, the corresponding response is excluded and replaced with an alternative response exhibiting high accuracy and reliable citation.",
+    "section": "Methods > Answer evaluation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The Gemini-3-pro LLM response component is activated only when no high-quality evidence is available, and its generated content is retained only if subsequently supported by evidence retrieved from source databases.",
+    "citation_tokens": [
+      "[SCI-000102#methods-director-layer-processing-strate#FULLTEXT-089]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-089"
+    ],
+    "study_id": "SCI-000102",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "DeepER-Med: Advancing Deep Evidence-Based Medical Research with Agentic AI",
+    "year": 2026,
+    "evidence_quote": "The LLM response component (Gemini-3-pro in our implementation) is activated only when no high-quality evidence is available. Its generated content is retained only if it is subsequently supported by evidence retrieved from source databases.",
+    "section": "Methods > Director layer processing strategy",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The technical example fixes parameters to maximise deterministic responses, setting temperature 0.0 and seed 42 within a DSPy-based AbstractScreening module, translating the declarative framework into a verifiable, reproducible digital artefact.",
+    "citation_tokens": [
+      "[SCI-000106#susnjak-et-al-example-implementation#FULLTEXT-100]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-100"
+    ],
+    "study_id": "SCI-000106",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Compiling Prompts, Not Crafting Them: A Reproducible Workflow for AI-Assisted Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "The conceptual blueprint described in Box 1 can be implemented using programmatic LLM tools like DSPy. The following Python code provides a minimal functional example of how an AbstractScreening module would be structured, tested, and compiled into a verifiable, reproducible digital artefact.",
+    "section": "Susnjak et al. > Example implementation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "ADVISE identifies a trust risk in human-AI screening teams: the cold-start problem, where the AI agent must rank documents before knowing the domain, can lead to distrust if initial rankings are incorrect, and model output quality is bounded by the consistency of human-provided training labels.",
+    "citation_tokens": [
+      "[SCI-000107#discussion-trust-in-ai#FULLTEXT-106]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-106"
+    ],
+    "study_id": "SCI-000107",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "ADVISE: AI-accelerated Design of Evidence Synthesis for Global Development",
+    "year": 2023,
+    "evidence_quote": "This challenge, while common, can lead to distrust in AI from the human team, if they find the initial rankings to be incorrect. Additionally, the training data for our models are labels from people, which can be noisy. The AI model’s performance is constrained by the quality of its training data",
+    "section": "Discussion > Trust in AI",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Causal inference methods and study design were the data extraction items with the most errors, identifying the items most vulnerable to incorrect extraction and raising reliability concerns for downstream synthesis.",
+    "citation_tokens": [
+      "[SCI-000108#abstract#FULLTEXT-116]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-116"
+    ],
+    "study_id": "SCI-000108",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study",
+    "year": 2024,
+    "evidence_quote": "Causal inference methods and study design were the data extraction items with the most errors.",
+    "section": "ABSTRACT",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "In the PICO prediction study participants and intervention/control showed high accuracy (greater than 80%), while outcomes were more challenging to extract, evidencing variable reliability across data items.",
+    "citation_tokens": [
+      "[SCI-000108#results#FULLTEXT-117]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-117"
+    ],
+    "study_id": "SCI-000108",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study",
+    "year": 2024,
+    "evidence_quote": "The results shown in Figure 4 show a similar trend to the human clinical studies in figure 2. The quality of automatic participant and intervention/control entity extraction was high, with over 80% rated as 'Complete'. As also found above (see Figure 2), outcomes were more challenging to extract completely and accurately.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The language model found it particularly difficult to name the type of study being reported; in the extraction results study design was rated complete only 47% of the time with 27% incorrect, identifying it as the most error-prone data extraction item.",
+    "citation_tokens": [
+      "[SCI-000108#results#FULLTEXT-118]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-118"
+    ],
+    "study_id": "SCI-000108",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study",
+    "year": 2024,
+    "evidence_quote": "The language model found it particularly difficult to name the type of study being reported, though there was considerable variation on performance across the three domains of study in response to this question.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The study reports a case where the LLM hallucinated the study design, labeling an abstract as a 'Randomized controlled trial' when there was no mention of random allocation, evidencing a factual-extraction hallucination risk in SLR automation.",
+    "citation_tokens": [
+      "[SCI-000108#results#FULLTEXT-119]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-119"
+    ],
+    "study_id": "SCI-000108",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study",
+    "year": 2024,
+    "evidence_quote": "instance, the LLM \"hallucinated\" the study design, indicating that the abstract described a \"Randomized controlled trial\", when there was no mention of random allocation.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Extracted values include indices that link back to their locations in the source content, enabling easy checking and correction by sourcing the origin.",
+    "citation_tokens": [
+      "[SCI-000109#body#FULLTEXT-128]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-128"
+    ],
+    "study_id": "SCI-000109",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Accelerating clinical evidence synthesis with large language models",
+    "year": 2025,
+    "evidence_quote": "Hence, it is convenient to check and correct mistakes made in the extraction by sourcing the origin.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "TrialMind generates and executes Python code for result standardization, keeping the calculation process transparent and enhancing the reliability and reproducibility of synthesized evidence.",
+    "citation_tokens": [
+      "[SCI-000109#body#FULLTEXT-129]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-129"
+    ],
+    "study_id": "SCI-000109",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Accelerating clinical evidence synthesis with large language models",
+    "year": 2025,
+    "evidence_quote": "Additionally, it ensures that the calculation process remains transparent, enhancing the reliability and reproducibility of the synthesized evidence.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "TrialMind's source code for study search, study screening, data extraction, and result extraction is publicly released on GitHub, supporting reproducibility.",
+    "citation_tokens": [
+      "[SCI-000109#body#FULLTEXT-130]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-130"
+    ],
+    "study_id": "SCI-000109",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Accelerating clinical evidence synthesis with large language models",
+    "year": 2025,
+    "evidence_quote": "TrialMind can be accessed at https://github.com/RyanWangZf/ TrialMind-SLR, including the source code for implementing Trial- Mind's study search, study screening, data extraction, and result extraction components",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A Bi-LSTM model trained on an extended PubMed-PICO dataset identifies whether an abstract conforms to PICOS standards, and LLM-based hierarchical classification of study designs is stored in PostgreSQL for later query-based filtering — a methodological-quality screen before inclusion.",
+    "citation_tokens": [
+      "[SCI-000110#2-3-automated-pico-compliance-detection-#FULLTEXT-139]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-139"
+    ],
+    "study_id": "SCI-000110",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "An AI-Driven Live Systematic Reviews in the Brain-Heart Interconnectome: Minimizing Research Waste and Advancing Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "PICO Compliance: A Bi-LSTM model, trained on an extended PubMed-PICO dataset [10], identifies whether a given abstract conforms to PICOS standards.",
+    "section": "2.3 Automated PICO Compliance Detection and Study Design Classification",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Named trust limitation: verifying the trustworthiness of newly incorporated studies in the live database demands structured pipelines or human oversight — a gap the authors explicitly acknowledge.",
+    "citation_tokens": [
+      "[SCI-000110#5-limitations-and-future-directions#FULLTEXT-140]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-140"
+    ],
+    "study_id": "SCI-000110",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "An AI-Driven Live Systematic Reviews in the Brain-Heart Interconnectome: Minimizing Research Waste and Advancing Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "Verification Overheads: While continuous updates ensure currency, verifying the trustworthiness of new studies demands structured pipelines or human oversight.",
+    "section": "5 Limitations and Future Directions",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The LangGraph module minimized hallucination by mapping retrieved texts back to the original user queries, drastically reducing irrelevant or fabricated outputs common in standalone LLM-generated answers.",
+    "citation_tokens": [
+      "[SCI-000110#3-3-document-relevance-and-hallucination#FULLTEXT-141]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-141"
+    ],
+    "study_id": "SCI-000110",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "An AI-Driven Live Systematic Reviews in the Brain-Heart Interconnectome: Minimizing Research Waste and Advancing Evidence Synthesis",
+    "year": 2025,
+    "evidence_quote": "The LangGraph module proved successful at minimizing off-target references. By mapping retrieved texts back to original user queries, the system drastically reduced irrelevant or fabricated outputs commonly seen in standalone LLM- generated answers (Figure 11).",
+    "section": "3.3 Document Relevance and Hallucination Prevention",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "ChatGPT performance varies greatly across review topics, drawing into question its generality and requiring assessment of model blind spots prior to real-world endorsement.",
+    "citation_tokens": [
+      "[SCI-000111#body#FULLTEXT-152]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-152"
+    ],
+    "study_id": "SCI-000111",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Bio-SIEVE: Exploring Instruction Tuning Large Language Models for Systematic Review Automation",
+    "year": 2023,
+    "evidence_quote": "Our models perform consistently across review topics whereas ChatGPT performance varies greatly. For ”Genetic Disorders” ChatGPT results are significantly below other models; for ”Heart & Circulation” and ”Infectious Disease” topics, it predicted ”Include” for all samples and never ”Exclude”. This draws into question the extent of ChatGPT’s generality and underscores the necessity to assess model blind spots prior to their endorsement for real world application.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Multi-task training harms include/exclude classification performance, with hallucinations hypothesized because exclusion reasoning and PICO information often relied on information from full-text screening not present in abstracts.",
+    "citation_tokens": [
+      "[SCI-000111#body#FULLTEXT-153]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-153"
+    ],
+    "study_id": "SCI-000111",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Bio-SIEVE: Exploring Instruction Tuning Large Language Models for Systematic Review Automation",
+    "year": 2023,
+    "evidence_quote": "We generally find that for multi-task models, cross-task transfer between PIO, Exclusion reasoning and Include/Exclude classification harms performance. We speculate two reasons for this 1) Dataset Imbalance: PIO data was only available for included studies which may have resulted in tasks concentrated around a smaller subset of topics with reduced variation 2) Hallucinations - exclusion reasons and PIO information often relied on information from full-text screening.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The overall quality of model-generated exclusion reasons remains poor, with ChatGPT generating subpar or incorrect reasons for 83% of samples.",
+    "citation_tokens": [
+      "[SCI-000111#body#FULLTEXT-154]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-154"
+    ],
+    "study_id": "SCI-000111",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Bio-SIEVE: Exploring Instruction Tuning Large Language Models for Systematic Review Automation",
+    "year": 2023,
+    "evidence_quote": "Overall, the quality of exclusion reasons remains poor: ChatGPT generated subpar or incorrect reasons for 83% of samples.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A documented hallucination episode shows the raw LLM citing a paper absent from the corpus, and — when asked for additional relevant papers within the corpus — returning fabricated titles found neither in the database nor via Google Scholar.",
+    "citation_tokens": [
+      "[SCI-000114#6-discussion-limitations-future-work#FULLTEXT-163]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-163"
+    ],
+    "study_id": "SCI-000114",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "vitaLITy 2: Reviewing Academic Literature Using Large Language Models",
+    "year": 2024,
+    "evidence_quote": "when asking for additional relevant papers on the topic of grounded theory (implying that they come from the VITALITY 2 corpus), the LLM responded with some paper titles that were nei- ther contained in the VITALITY 2 database, nor obvious paper titles outside the database according to a Google Scholar search.",
+    "section": "6 Discussion, Limitations, & Future Work",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The RAG architecture is positioned as a hallucination-mitigation mechanism: retrieving only relevant information from the local corpus reduces prompt size and minimizes the risk of hallucination.",
+    "citation_tokens": [
+      "[SCI-000114#4-vitality-2#FULLTEXT-164]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-164"
+    ],
+    "study_id": "SCI-000114",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "vitaLITy 2: Reviewing Academic Literature Using Large Language Models",
+    "year": 2024,
+    "evidence_quote": "RAG. RAG semantically processes the user's input query to only retrieve relevant information from within the data corpus, thereby reducing the subsequent prompt size and also minimizing the risk of hallucination.",
+    "section": "4 VITALITY 2",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "To mitigate erroneous outputs stemming from training-data biases, the authors propose adding a user-facing prompt in vitaLITy 2 that explicitly warns users about the limitations of generated content.",
+    "citation_tokens": [
+      "[SCI-000114#6-discussion-limitations-future-work#FULLTEXT-165]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-165"
+    ],
+    "study_id": "SCI-000114",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "vitaLITy 2: Reviewing Academic Literature Using Large Language Models",
+    "year": 2024,
+    "evidence_quote": "To mitigate this problem, we suggest adding a user prompt in VITALITY 2 to explicitly warn users about the lim- itations of content generated by VITALITY 2, thereby reminding and cautioning users to use this tool with care.",
+    "section": "6 Discussion, Limitations, & Future Work",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A contamination check on documents published after the model providers' training cutoffs showed no evidence that prior exposure inflated the reported extraction results.",
+    "citation_tokens": [
+      "[SCI-000115#abstract#FULLTEXT-174]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-174"
+    ],
+    "study_id": "SCI-000115",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Knowledge Synthesis Review Framework: Task-Level Benchmarking of LLM-Based Systems for Multi-Source Evidence Synthesis",
+    "year": 2026,
+    "evidence_quote": "A contamination check on post-cutoff documents showed no evidence that prior exposure inflated results.",
+    "section": "Abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Post-cutoff (unseen) extraction accuracy showed no decline for any system (GPT-5 86.7%, Claude 88.9%, Gemini 85.2%), all exceeding the full-corpus values of 80.0%, 80.3%, and 74.5%, respectively.",
+    "citation_tokens": [
+      "[SCI-000115#3-results-3-1-1-robustness-to-training-d#FULLTEXT-175]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-175"
+    ],
+    "study_id": "SCI-000115",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Knowledge Synthesis Review Framework: Task-Level Benchmarking of LLM-Based Systems for Multi-Source Evidence Synthesis",
+    "year": 2026,
+    "evidence_quote": "Post-cutoff accuracy showed no decline for any system. Total post-cutoff accuracy was 86.7 percent for GPT-5, 88.9 percent for Claude, and 85.2 percent for Gemini, against full-corpus values of 80.0, 80.3, and 74.5 percent.",
+    "section": "3 Results > 3.1.1 Robustness to training data contamination",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "DeepWeaver evaluates citation grounding via three metrics (Citation Count, Relevant Count, Relevant Ratio) that measure whether a system actively uses evidence and avoids citing or integrating irrelevant evidence.",
+    "citation_tokens": [
+      "[SCI-000117#2-2-2-the-loqa-benchmark#FULLTEXT-188]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-188"
+    ],
+    "study_id": "SCI-000117",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "DeepWeaver: Bridging the Evidence Synthesis Gap in Open-Ended Question Answering",
+    "year": 2026,
+    "evidence_quote": "We compute three citation metrics: (1) Citation Count (CC): |C|, (2) Relevant Count (RC): |C ∩ER|, and (3) Relevant Ratio (RR): |C ∩ER|/|C|. These metrics measure whether the system actively uses evidence and properly avoids citing or integrating irrelevant evidence.",
+    "section": "2 > 2.2 The LoQA Benchmark",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "On LoQA, DeepWeaver improves citation grounding and evidence synthesis quality relative to the retrieval-augmented generation baseline, surpassing E-RAG by 15.5% in Argument Sufficiency, +14.7 in Relevant Citations, 14.5% in Relevant Citation Ratio, and 16.6% in Detail Preservation on Qwen3-30B-A3B-Instruct-2507.",
+    "citation_tokens": [
+      "[SCI-000117#4-experiments-4-4-main-results#FULLTEXT-189]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-189"
+    ],
+    "study_id": "SCI-000117",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "DeepWeaver: Bridging the Evidence Synthesis Gap in Open-Ended Question Answering",
+    "year": 2026,
+    "evidence_quote": "With Qwen3-30B-A3B-Instruct-2507, DeepWeaver surpasses E-RAG by 15.5% in Argument Sufficiency, +14.7 Relevant Citations, 14.5% in Relevant Citation Ratio, and 16.6% in Detail Preservation.",
+    "section": "4 Experiments > 4.4 Main Results",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "On the web-based DeepResearch Bench, DeepWeaver substantially improves effective citation and citation accuracy over the WebWeaver baseline on the FACT split, organizing web evidence into reliable support for answer claims.",
+    "citation_tokens": [
+      "[SCI-000117#4-experiments-4-7-extension-to-web-based#FULLTEXT-190]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-190"
+    ],
+    "study_id": "SCI-000117",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "DeepWeaver: Bridging the Evidence Synthesis Gap in Open-Ended Question Answering",
+    "year": 2026,
+    "evidence_quote": "Notably, our method also substantially improves effective citation and citation accuracy over WebWeaver on FACT, indicating that it organizes web evidence into reliable support for answer claims.",
+    "section": "4 Experiments > 4.7 Extension to Web-Based Deep Research",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Screening benchmark results demonstrate that model ranking is domain-dependent and not transferable across review topics.",
+    "citation_tokens": [
+      "[SCI-000118#abstract#FULLTEXT-200]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-200"
+    ],
+    "study_id": "SCI-000118",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "LUMEN: Cost-Transparent Multi-Agent Pipeline for Automated Systematic Review and Meta-Analysis",
+    "year": 2026,
+    "evidence_quote": "A two-dataset screening benchmark demonstrates that model ranking is domain-dependent and not transferable across review topics.",
+    "section": "abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Title-abstarct screening employs a dual-screener mechanism with two independent models scoring on a five-point scale and an arbiter applying a lean-toward-inclusion policy for disagreements.",
+    "citation_tokens": [
+      "[SCI-000118#body#FULLTEXT-201]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-201"
+    ],
+    "study_id": "SCI-000118",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "LUMEN: Cost-Transparent Multi-Agent Pipeline for Automated Systematic Review and Meta-Analysis",
+    "year": 2026,
+    "evidence_quote": "Phase 3.1 (Title–Abstract Screening) employs a dual-screener mechanism: two independent models (Gemini 3.1 Pro and GPT-4.1 Mini) each assign a five-point relevance score using identical static-plus-dynamic prompts, and Claude Sonnet 4.6 arbitrates disagreements with a lean-toward-inclusion policy.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "On the high-expertise depth-of-adaptation-response task, GPT-4o exhibited a systematically more optimistic view than human annotators, often overestimating the impact of adaptation responses, and in 10.4% of cases produced per-response instead of aggregate assessments requiring evaluation isolation.",
+    "citation_tokens": [
+      "[SCI-000120#4-results-high-expertise-tasks#FULLTEXT-210]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-210"
+    ],
+    "study_id": "SCI-000120",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Assessing the Effectiveness of GPT-4o in Climate Change Evidence Synthesis and Systematic Assessments: Preliminary Insights",
+    "year": 2024,
+    "evidence_quote": "the model, in some cases (10.4% of the time), provides indi- vidual assessments for each adaptation response rather than an aggregate assessment of the impact of a set of responses. This behavior complicated the evaluation process.",
+    "section": "4 Results > High Expertise Tasks",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The authors motivate the work by the need for a reliable model that ensures factual accuracy during the evidence-extraction phase for decision-making, and they position the assessment of model factuality as contingent on a system that keeps humans in the loop, concluding that a human-in-the-loop system is extremely beneficial for ensuring the integrity and effectiveness of the process.",
+    "citation_tokens": [
+      "[SCI-000120#6-conclusion#FULLTEXT-211]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-211"
+    ],
+    "study_id": "SCI-000120",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Assessing the Effectiveness of GPT-4o in Climate Change Evidence Synthesis and Systematic Assessments: Preliminary Insights",
+    "year": 2024,
+    "evidence_quote": "However, it is important to emphasize that these models cannot completely replace the expert-driven process, rather a human-in-the loop system would be extremely beneficial for ensuring the integrity and effectiveness of this process.",
+    "section": "6 Conclusion",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "FDA approval status — an inherently dynamic filtering criterion — is validated through an agentic retrieval module querying Drugs.com as a curated, versioned reference, rather than trusting model or registry knowledge.",
+    "citation_tokens": [
+      "[SCI-000122#2-1-trial-selection-and-structuring#FULLTEXT-223]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-223"
+    ],
+    "study_id": "SCI-000122",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Eligibility-Aware Evidence Synthesis: An Agentic Framework for Clinical Trial Meta-Analysis",
+    "year": 2026,
+    "evidence_quote": "FDA approval status, a common filtering criterion, is inherently dynamic and requires validation against reliable external sources. We address this through an agentic retrieval module (Supplementary Section A.3) that queries Drugs.com as a curated, versioned reference to determine approval status for each drug under investigation.",
+    "section": "2.1 Trial Selection and Structuring",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The hybrid architecture is argued to reduce hallucination risk while allowing LLM integration in high-stakes biomedical applications without sacrificing reliability.",
+    "citation_tokens": [
+      "[SCI-000122#4-discussion#FULLTEXT-224]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-224"
+    ],
+    "study_id": "SCI-000122",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Eligibility-Aware Evidence Synthesis: An Agentic Framework for Clinical Trial Meta-Analysis",
+    "year": 2026,
+    "evidence_quote": "This design reduces hallucination risk while maintaining flexibility in handling complex clinical queries, enabling integration of language models into high-stakes biomedical applications without sacrificing reliability.",
+    "section": "4 Discussion",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "AutoConfidenceScore is an advanced automated framework for predicting preprint publication, aimed at improving quality assessment of preprint articles for evidence inclusion in systematic reviews.",
+    "citation_tokens": [
+      "[SCI-000123#abstract#FULLTEXT-231]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-231"
+    ],
+    "study_id": "SCI-000123",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Enabling inclusive systematic reviews: incorporating preprint articles with large language model-driven evaluations",
+    "year": 2025,
+    "evidence_quote": "We developed AutoConfidenceScore (automated confidence score assessment), an advanced framework for predicting preprint publication, which reduces reli",
+    "section": "ABSTRACT",
+    "evidence_level": "abstract_only",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Errors commonly resulted from superficial linguistic cues, with models frequently misinterpreting keywords like longitudinal or sensitivity as automatic evidence of rigorous methodological approaches.",
+    "citation_tokens": [
+      "[SCI-000124#abstract#FULLTEXT-234]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-234"
+    ],
+    "study_id": "SCI-000124",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Large language models for full-text methods assessment: a case study on mediation analysis",
+    "year": 2026,
+    "evidence_quote": "Errors commonly resulted from superficial linguistic cues—for instance, models frequently misinterpreted keywords like “longitudinal” or “sensitivity” as automatic evidence of rigorous methodological approaches—leading to systematic misclassifications.",
+    "section": "abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Gold-standard labels rest on expert consensus, with each article independently evaluated by two reviewers who engaged in written, evidence-based reconciliation on disagreement.",
+    "citation_tokens": [
+      "[SCI-000124#body#FULLTEXT-235]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-235"
+    ],
+    "study_id": "SCI-000124",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Large language models for full-text methods assessment: a case study on mediation analysis",
+    "year": 2026,
+    "evidence_quote": "Whenever reviewers disagreed on the answer, they engaged in a structured reconciliation process: each reviewer provided written, evidence-based justifications, followed by detailed discussions to determine whether disagreement stemmed from oversight, interpretive differences, or unclear article content.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Identifying post-exposure controls proved particularly challenging, with LLM precision (0.15–0.30) far below the best human reviewer (0.89).",
+    "citation_tokens": [
+      "[SCI-000124#body#FULLTEXT-236]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-236"
+    ],
+    "study_id": "SCI-000124",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Large language models for full-text methods assessment: a case study on mediation analysis",
+    "year": 2026,
+    "evidence_quote": "Identifying whether the model included post- exposure controls proved particularly challenging: despite high accuracy (>0.86), F1 scores were low (<0.37) due to poor precision (LLMs: 0.15–0.30 vs. the best human reviewer: 0.89).",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "All LLMs demonstrated a significant increase in reference precision when generating references within the Review Composition task compared to the standalone Reference Generation task.",
+    "citation_tokens": [
+      "[SCI-000125#4-experiments-4-2-main-results#FULLTEXT-241]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-241"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "compared to the Reference Generation task, all LLMs demonstrate a significant increase in precision when generating references within the Review Composition task.",
+    "section": "4 Experiments > 4.2 Main Results",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Experimental results show that even the most advanced evaluated LLMs still generate hallucinated references despite recent progress.",
+    "citation_tokens": [
+      "[SCI-000125#abstract#FULLTEXT-242]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-242"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "The experimental results reveal that even the most advanced models still generate hallucinated references, despite recent progress.",
+    "section": "Abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Generating complete and accurate author lists remains a major challenge for LLMs; applying a first-author-only matching criterion raised precision by only 1-3% across all models.",
+    "citation_tokens": [
+      "[SCI-000125#4-experiments-4-2-main-results#FULLTEXT-243]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-243"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "Applying this criterion results in a 1-3% increase in precision scores across all models. This suggests that generating complete and accurate author lists remains a major challenge for LLMs.",
+    "section": "4 Experiments > 4.2 Main Results",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Grounding generated text with real external citations reduces hallucination: when LLMs generate references alongside the review text, reference accuracy improves markedly, suggesting a mutual constraint between references and review text that enhances reliability.",
+    "citation_tokens": [
+      "[SCI-000125#4-experiments-4-2-main-results#FULLTEXT-244]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-244"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "our experiments reveal that when LLMs generate references alongside the literature review, the accuracy of these references improves markedly. This suggests a mutual constraint between the generated references and the review text, leading to enhanced overall reliability.",
+    "section": "4 Experiments > 4.2 Main Results",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "In reference generation, Claude-3.5-Sonnet achieved the highest title search rate (St 64.82) and precision (51.59), while Llama-3.2-3B performed worst across all three metrics.",
+    "citation_tokens": [
+      "[SCI-000125#4-experiments-4-2-main-results#FULLTEXT-245]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-245"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "In Table 1, Claude-3.5-Sonnet achieves the highest precision, overlap rate, and St, while Llama-3.2-3B performs the worst on three metrics.",
+    "section": "4 Experiments > 4.2 Main Results",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The automatic hallucination-assessment method was validated against human judgments: kappa agreement of 0.71 and 86% accuracy with human assessment as the gold standard, using three annotators and majority vote on 100 generated references.",
+    "citation_tokens": [
+      "[SCI-000125#4-experiments-4-5-human-evaluation#FULLTEXT-246]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-246"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "The results demonstrated a kappa agreement of 0.71 between the automatic and human assessments, signifying a relatively high level of consistency and supporting the reliability of our method. Furthermore, when using human assessment results as the gold standard, the automatic assessment method achieved an accuracy of 86%, further validating its effectiveness.",
+    "section": "4 Experiments > 4.5 Human Evaluation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The framework's hallucination metric defines precision such that a higher precision indicates a lower hallucination rate, and also computes the overlap rate with human-cited references and a title search rate per LLM.",
+    "citation_tokens": [
+      "[SCI-000125#3-methodology-3-3-evaluation-metrics#FULLTEXT-247]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-247"
+    ],
+    "study_id": "SCI-000125",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+    "year": 2025,
+    "evidence_quote": "In this section, we introduce the calculation process of the reference precision Precision, reference overlap rate with human-cited references Overlap rate, and title search rate St for each LLM. A higher precision metric indicates a lower hallucination rate.",
+    "section": "3 Methodology > 3.3 Evaluation Metrics",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A universal vulnerability is documented: every tested model, when fed systematically negated (factually inverted) abstracts in the N-RAG workflow, synthesized the false claims into coherent but false conclusions scoring below even the parametric zero-shot baseline.",
+    "citation_tokens": [
+      "[SCI-000127#4-results-vulnerability-to-misinformatio#FULLTEXT-266]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-266"
+    ],
+    "study_id": "SCI-000127",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "MedMeta: A Benchmark for LLMs in Synthesizing Meta-Analysis Conclusion from Medical Studies",
+    "year": 2026,
+    "evidence_quote": "Despite being provided with factually inverted and contradictory information, every model proceeded to synthesize these incorrect claims into a coherent but false conclusion. The resulting scores are significantly lower than even the “P-ZS” baseline.",
+    "section": "4 Results > Vulnerability to Misinformation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The RAG paradigm's susceptibility to noisy or factually incorrect retrievals is flagged: models often uncritically synthesize such context, failing to cross-check against parametric knowledge or detect internal contradictions.",
+    "citation_tokens": [
+      "[SCI-000127#2-1-retrieval-augmented-generation-and-m#FULLTEXT-267]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-267"
+    ],
+    "study_id": "SCI-000127",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "MedMeta: A Benchmark for LLMs in Synthesizing Meta-Analysis Conclusion from Medical Studies",
+    "year": 2026,
+    "evidence_quote": "A further limitation of the RAG paradigm is its susceptibility to noisy or factually incorrect retrievals Zhang & Gao (2024); Fang et al. (2024). Current models often uncritically synthesize such context, failing to cross-check against parametric knowledge or detect internal contradictions Yu et al. (2024); Hong et al. (2024), a vulnerability in medicine implications.",
+    "section": "2.1 Retrieval-Augmented Generation and Medical Applications",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The authors conclude that current models act as 'obedient synthesizers rather than critical reasoners', lacking the ability to detect and reject misinformation based on internal knowledge or logical inconsistency.",
+    "citation_tokens": [
+      "[SCI-000127#4-results-vulnerability-to-misinformatio#FULLTEXT-268]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-268"
+    ],
+    "study_id": "SCI-000127",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "MedMeta: A Benchmark for LLMs in Synthesizing Meta-Analysis Conclusion from Medical Studies",
+    "year": 2026,
+    "evidence_quote": "This finding empirically confirms the vulnerability of RAG systems to faulty evidence and demonstrates that current models act as obedient synthesizers rather than critical reasoners, lacking the capability to identify and reject misinformation based on internal knowledge or logical inconsistency.",
+    "section": "4 Results > Vulnerability to Misinformation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "BioInsight preserves citation links, protein-level statistics, intermediate artifacts, uncertainty notes, and failure-handling behaviors, allowing users to inspect how each claim is supported, though these mechanisms are intended to support expert review rather than replace it.",
+    "citation_tokens": [
+      "[SCI-000128#limitations#FULLTEXT-279]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-279"
+    ],
+    "study_id": "SCI-000128",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "BioInsight: Multi-Agent Orchestration for Interactive Biomedical Knowledge Discovery",
+    "year": 2026,
+    "evidence_quote": "To mitigate these risks, BioInsight preserves citation links, protein-level statistics, intermediate artifacts, uncertainty notes, and failure-handling behaviors, allowing users to inspect how each claim is supported. However, these mechanisms are intended to support expert review rather than replace it.",
+    "section": "Limitations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "If the Reasoning Agent returns malformed JSON the raw response is preserved as an inspectable artifact and can be retried or excluded from final report assembly; if a coherence revision damages tables both pre-revision and post-revision drafts are stored.",
+    "citation_tokens": [
+      "[SCI-000128#appendix-a-4-quality-control-and-failure#FULLTEXT-280]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-280"
+    ],
+    "study_id": "SCI-000128",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "BioInsight: Multi-Agent Orchestration for Interactive Biomedical Knowledge Discovery",
+    "year": 2026,
+    "evidence_quote": "If the Reasoning Agent returns malformed JSON, the raw response is preserved as an inspectable artifact and can be retried or excluded from final report assembly. If a coherence revision damages tables, links, or image syntax, downstream parsing and manual inspection can identify the failure because the pre-revision and post-revision drafts are both stored.",
+    "section": "Appendix A.4 > Quality Control and Failure Handling",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "When no protein-protein interaction edges are found the system avoids cluster-level interpretation and instead treats proteins individually; if an enriched pathway has weak literature support its narrative interpretation is marked as literature-weak or exploratory.",
+    "citation_tokens": [
+      "[SCI-000128#appendix-a-4-quality-control-and-failure#FULLTEXT-281]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-281"
+    ],
+    "study_id": "SCI-000128",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "BioInsight: Multi-Agent Orchestration for Interactive Biomedical Knowledge Discovery",
+    "year": 2026,
+    "evidence_quote": "If no protein-protein interaction edges are found, the system avoids cluster-level interpretation and instead treats proteins individually. If a pathway is statistically enriched but has little or no PubMed support, it can remain in the ranked table, but its narrative interpretation should be marked as literature-weak or exploratory.",
+    "section": "Appendix A.4 > Quality Control and Failure Handling",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Hybrid workflows are essential: LLMs should be embedded in workflows combining partial automation with targeted human supervision — complete delegation risks loss of methodological rigor.",
+    "citation_tokens": [
+      "[SCI-000129#section-5-discussion#FULLTEXT-287]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-287"
+    ],
+    "study_id": "SCI-000129",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "On the Use of a Large Language Model to Support a Systematic Mapping Study: A Practitioner's View",
+    "year": 2026,
+    "evidence_quote": "LLMs should be integrated cautiously and deliberately, as complementary tools within human-centered workflows. Their value lies in supporting efficiency in operational stages, while preserving direct engagement with the source material as a prerequisite for trustworthy interpretation and synthesis.",
+    "section": "Section 5 (Discussion)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "LLM achieved approximately 95% accuracy in screening (208/219 correct) but 11 hallucination cases were identified where the model answered with information from other works; extraction accuracy was 92.3% (12/13 correct) with 1 error.",
+    "citation_tokens": [
+      "[SCI-000129#section-4-1-comparison-of-time-and-accur#FULLTEXT-288]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-288"
+    ],
+    "study_id": "SCI-000129",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "On the Use of a Large Language Model to Support a Systematic Mapping Study: A Practitioner's View",
+    "year": 2026,
+    "evidence_quote": "the LLM achieved approximately 95.0% accuracy (208 correct out of 219 studies), with 11 hallucination cases in which it began answering the questionnaire with information from other works. In the data extraction stage, the LLM reached approximately 92% accuracy (12 correct out of 13 studies), with 1 error identified.",
+    "section": "Section 4.1 (Comparison of Time and Accuracy)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Prompt design sensitivity was demonstrated: the screening prompt was refined 4 times and extraction prompt refined 6 times to improve precision and reduce ambiguity, showing LLM performance is highly sensitive to prompt wording.",
+    "citation_tokens": [
+      "[SCI-000129#section-4-2-adjustments-during-conductio#FULLTEXT-289]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-289"
+    ],
+    "study_id": "SCI-000129",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "On the Use of a Large Language Model to Support a Systematic Mapping Study: A Practitioner's View",
+    "year": 2026,
+    "evidence_quote": "the screening prompt was refined four times and the extraction prompt six times to improve precision and reduce ambiguity, demonstrating the sensitivity of LLM performance to prompt wording.",
+    "section": "Section 4.2 (Adjustments During Conduction) / Lesson 2",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Aris cannot guarantee that any output is correct, novel, or scientifically sound; cross-model review reduces some failure modes without eliminating them, and citation grounding via DBLP and CrossRef reduces but does not eliminate bibliography fabrication.",
+    "citation_tokens": [
+      "[SCI-000131#discussion-limitations-and-responsible-u#FULLTEXT-297]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-297"
+    ],
+    "study_id": "SCI-000131",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "ARIS: Autonomous Research via Adversarial Multi-Agent Collaboration",
+    "year": 2026,
+    "evidence_quote": "Aris cannot guarantee that any output is correct, novel, or scientifically sound. LLM outputs can include factual hallucinations and methodological gaps; cross-model review reduces some failure modes without eliminating them. Citation grounding via DBLP and CrossRef reduces but does not eliminate bibliography fabrication.",
+    "section": "Discussion > Limitations and Responsible Use",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Aris defaults to pairing executor and reviewer from different model families because single-model self-refinement loops share inductive biases, whereas heterogeneous multi-agent debate has been reported to elicit more diverse critiques.",
+    "citation_tokens": [
+      "[SCI-000131#methods-design-principles#FULLTEXT-298]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-298"
+    ],
+    "study_id": "SCI-000131",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "ARIS: Autonomous Research via Adversarial Multi-Agent Collaboration",
+    "year": 2026,
+    "evidence_quote": "Single-model self-refinement loops (Madaan et al., 2023; Shinn et al., 2024) have generator and validator that share inductive biases; heterogeneous multi-agent debate has been reported to elicit more diverse critiques than homogeneous configurations (Liang et al., 2024a; Du et al., 2024). Aris defaults to pairing executor and reviewer from different model families.",
+    "section": "Methods > Design Principles",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The experiment-audit stage detects five integrity failure modes: model-derived reference labels, self-normalized scores, phantom results, dead-code or unused-metric inflation, and scope inflation.",
+    "citation_tokens": [
+      "[SCI-000131#methods-stage-1-experiment-integrity-aud#FULLTEXT-299]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-299"
+    ],
+    "study_id": "SCI-000131",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "ARIS: Autonomous Research via Adversarial Multi-Agent Collaboration",
+    "year": 2026,
+    "evidence_quote": "A cross-model reviewer audits the evaluation code and outputs against the following integrity failure modes: (1) model-derived reference labels—reference targets are synthesized from model outputs rather than obtained from the dataset; (2) self-normalized scores; (3) phantom results; (4) dead-code or unused-metric inflation; (5) scope inflation.",
+    "section": "Methods > Stage 1: Experiment-integrity audit",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The review loop can amplify reviewer biases: if the reviewer consistently demands a particular methodology, the loop may overfit to the reviewer model's preferences rather than improve broader scientific quality.",
+    "citation_tokens": [
+      "[SCI-000131#discussion-limitations-and-responsible-u#FULLTEXT-300]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-300"
+    ],
+    "study_id": "SCI-000131",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "ARIS: Autonomous Research via Adversarial Multi-Agent Collaboration",
+    "year": 2026,
+    "evidence_quote": "The review loop can amplify reviewer biases: if the reviewer consistently demands a particular methodology, the loop may overfit to the reviewer model's preferences rather than improve broader scientific quality. Over-iteration past diminishing returns can degrade paper quality.",
+    "section": "Discussion > Limitations and Responsible Use",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "AutoSynthesis performs study-level risk-of-bias assessment following ROBINS-I, covering bias from confounding through selection of the reported result.",
+    "citation_tokens": [
+      "[SCI-000135#body#FULLTEXT-307]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-307"
+    ],
+    "study_id": "SCI-000135",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "AutoSynthesis: An agentic system for automated meta-analysis",
+    "year": 2026,
+    "evidence_quote": "Study-level risk-of-bias assessment following ROINS-I [32], where the assessment is varies from low to high concern.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "AutoSynthesis produces PRISMA 2020 flow diagrams, forest plots, and funnel plots to assess small-study effects and potential publication bias.",
+    "citation_tokens": [
+      "[SCI-000135#body#FULLTEXT-308]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-308"
+    ],
+    "study_id": "SCI-000135",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "AutoSynthesis: An agentic system for automated meta-analysis",
+    "year": 2026,
+    "evidence_quote": "As a result, AUTOSYNTHESIS produces the following output: b, PRISMA 2020 [2] flow diagram summarizing the screening process and the final study inclusion. c, The forest plot shows the study-level effects (in terms of Hedges’ g) and the pooled random-effects estimate with 95% confidence intervals (CIs). d, Funnel plot to assess small-study effects and potential publication bias.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Automated heterogeneity diagnostics and publication bias tests were broadly comparable to the human benchmark, finding substantial between-study heterogeneity and small-study effects.",
+    "citation_tokens": [
+      "[SCI-000135#body#FULLTEXT-309]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-309"
+    ],
+    "study_id": "SCI-000135",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "AutoSynthesis: An agentic system for automated meta-analysis",
+    "year": 2026,
+    "evidence_quote": "both the between-study heterogeneity analysis and the publication bias diagnostics were also broadly comparable between the automated and human syntheses: both found substantial between-study heterogeneity (I2 = 88.3% vs. 75.97%) and evidence of small-study effects based on Egger’s test (p = 0.006 vs. p = 0.018; Table S2).",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A central implication is that the model name is an insufficient description of an LLM-based decision system; the implemented workflow also comprises input preparation, prompt instructions, uncertainty handling, processing configuration, interaction structure, output generation, integrity checks, and post-processing.",
+    "citation_tokens": [
+      "[SCI-000137#discussion-implications-for-llm-workflow#FULLTEXT-319]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-319"
+    ],
+    "study_id": "SCI-000137",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Evaluating human and LLM screening workflows in a conceptually complex scoping review: Recall–workload trade-offs and run-to-run consistency",
+    "year": 2026,
+    "evidence_quote": "A central implication is that the model name is an insufficient description of an LLM-based decision system. The implemented workflow also comprises input preparation, prompt instructions, uncertainty handling, processing configuration, interaction structure, output generation, integrity checks, post-processing, and the rule by which classifications are translated into downstream actions.",
+    "section": "Discussion > Implications for LLM workflow evaluation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Full-text eligibility was assessed by a single reviewer rather than multiple independent assessors, and the review lead had previously completed the single-reviewer title-and-abstract screen, so the verified eligible set is an operational reference standard rather than an independent consensus gold standard.",
+    "citation_tokens": [
+      "[SCI-000137#discussion-strengths-and-limitations#FULLTEXT-320]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-320"
+    ],
+    "study_id": "SCI-000137",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Evaluating human and LLM screening workflows in a conceptually complex scoping review: Recall–workload trade-offs and run-to-run consistency",
+    "year": 2026,
+    "evidence_quote": "Full-text eligibility was assessed by the review lead rather than by multiple independent assessors. Although workflow-specific title-and-abstract decisions were not displayed during full-text assessment, the review lead had previously completed the single-reviewer title-and-abstract screen. The verified eligible set should therefore be interpreted as an operational reference standard rather than an independent consensus gold standard.",
+    "section": "Discussion > Strengths and limitations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Re-execution of proprietary hosted LLM workflows cannot be guaranteed to reproduce original outputs because the underlying models and web interfaces are externally controlled and may change over time.",
+    "citation_tokens": [
+      "[SCI-000137#methods-software-and-computational-repro#FULLTEXT-321]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-321"
+    ],
+    "study_id": "SCI-000137",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Evaluating human and LLM screening workflows in a conceptually complex scoping review: Recall–workload trade-offs and run-to-run consistency",
+    "year": 2026,
+    "evidence_quote": "Re-execution of the proprietary hosted LLM workflows cannot be guaranteed to reproduce the original outputs because the underlying models and web interfaces are externally controlled and may change over time.",
+    "section": "Methods > Software and computational reproducibility",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Two nominally identical GPT-5.4 file-batch runs agreed on 91.7% of records but disagreed on 94 individual records including 29 verified eligible records retained by only one run, showing that aggregate similarity concealed meaningful item-level instability.",
+    "citation_tokens": [
+      "[SCI-000137#results-rq4-run-to-run-consistency#FULLTEXT-322]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-322"
+    ],
+    "study_id": "SCI-000137",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Evaluating human and LLM screening workflows in a conceptually complex scoping review: Recall–workload trade-offs and run-to-run consistency",
+    "year": 2026,
+    "evidence_quote": "The two GPT-5.4 file-batch runs conducted under nominally identical conditions produced closely similar aggregate performance but differed at the record level. Across the 1,131 benchmark records, the runs agreed on 1,037 records (91.7%) and disagreed on 94 (8.3%).",
+    "section": "Results > RQ4: Run-to-run consistency",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "All 26 false positives produced by the Cochrane classifier corresponded to maybe judgments in both expert annotations and Kernel's ternary output, where Kernel preserved calibrated uncertainty by highlighting textual cues of randomization without confirming them.",
+    "citation_tokens": [
+      "[SCI-000138#results#FULLTEXT-331]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-331"
+    ],
+    "study_id": "SCI-000138",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept",
+    "year": 2026,
+    "evidence_quote": "Detailed error analysis showed that all 26 false positives produced by the Cochrane classifier corresponded to maybe judgments in both expert annotations and Kernel's ternary output (true, false, maybe). In these borderline cases, Kernel's explanations consistently highlighted textual cues suggestive of randomization, such as implied allocation or trial language, without explicit confirmation.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "In study design classification, the Cochrane classifier achieved perfect sensitivity (100%) for identifying RCTs but low specificity (42%) with 26 false positives, whereas Kernel's deployed domain-adapted configuration achieved perfect sensitivity and specificity on the same expert-annotated benchmark.",
+    "citation_tokens": [
+      "[SCI-000138#results#FULLTEXT-332]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-332"
+    ],
+    "study_id": "SCI-000138",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept",
+    "year": 2026,
+    "evidence_quote": "the Cochrane classifier achieved perfect sensitivity (100%) for identifying randomized controlled trials (RCTs) but low specificity (42%). This imbalance resulted from 26 false positives, indicating a tendency to overclassify studies as RCTs when experts judged them to be non-randomized.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Machine-human discord in screening was largely attributable to missing or weakly articulated PICOS elements rather than definitional conflicts, indicating that disagreement reflected borderline eligibility rather than systematic model error.",
+    "citation_tokens": [
+      "[SCI-000138#results#FULLTEXT-333]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-333"
+    ],
+    "study_id": "SCI-000138",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept",
+    "year": 2026,
+    "evidence_quote": "Most disagreements were concentrated in abstracts with underspecified PICOS elements, where experts themselves expressed uncertainty, indicating that discordance primarily reflected borderline eligibility rather than systematic model error.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "On the NCD corpus, Kernel achieved 95% agreement with expert inclusion/exclusion judgments and three-way concordance among Kernel, the LLM, and the human assessor reached 91%, with Cohen's Kappa of 0.70 for Kernel versus human annotations, evidencing inter-rater reliability.",
+    "citation_tokens": [
+      "[SCI-000138#results#FULLTEXT-334]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-334"
+    ],
+    "study_id": "SCI-000138",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept",
+    "year": 2026,
+    "evidence_quote": "Kernel and the prompted LLM each achieved 95% agreement with expert judgments, and three-way concordance among Kernel, the LLM, and the human assessor reached 91%. Agreement beyond chance was moderate, with Cohen's Kappa of 0.70 for Kernel versus human annotations and 0.65 for the LLM versus human annotations.",
+    "section": "RESULTS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "A reproducible human audit of a 20% random sample (272 of roughly 1,360 items) of the scored benchmark results agreed with 96% of automated judge verdicts (Cohen’s κ = 0.94), with all 11 discrepancies confined to one-step severity nuances in the grounding benchmark and none reversing a supported/unsupported call.",
+    "citation_tokens": [
+      "[SCI-000140#discussion-limitations#FULLTEXT-345]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-345"
+    ],
+    "study_id": "SCI-000140",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Bringing analytic rigor to agentic AI for science: The Brain Researcher platform for neuroimaging data analysis",
+    "year": 2026,
+    "evidence_quote": "A reproducible human audit of 20% of scored results (272 of roughly 1,360 items) agreed with 96% of verdicts (Cohen’s κ = 0.94); dis- crepancies were one-step severity differences, never reversals between supported and unsupported, and the judges erred strictly",
+    "section": "Discussion > Limitations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "BR-KG attaches explicit provenance to source-backed facts, including a verbatim supporting quote and grounding label wherever available, so a retrieved claim can be traced to the study and passage that support it, and coverage is partial and tracked.",
+    "citation_tokens": [
+      "[SCI-000140#results-figure-2-caption-br-kg#FULLTEXT-346]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-346"
+    ],
+    "study_id": "SCI-000140",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Bringing analytic rigor to agentic AI for science: The Brain Researcher platform for neuroimaging data analysis",
+    "year": 2026,
+    "evidence_quote": "Crucially, source-backed facts carry explicit provenance (their source, and where available a verbatim supporting quote and grounding label), so a retrieved claim can be traced back to the study and passage that support it rather than taken on trust; coverage is partial and tracked, and this is what makes retrieval here auditable.",
+    "section": "Results > Figure 2 caption: BR-KG",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "In the evidence-citation benchmark, Brain Researcher raised verifiable grounding from 4.6% to 22.0%: a claim is counted grounded only when its cited evidence can be located and judged supportive, and the dominant with-BR failure modes were off-topic or partially-supporting retrieved sources rather than fabricated references.",
+    "citation_tokens": [
+      "[SCI-000140#supplementary-methods-s11-1-2-evidence-c#FULLTEXT-347]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-347"
+    ],
+    "study_id": "SCI-000140",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Bringing analytic rigor to agentic AI for science: The Brain Researcher platform for neuroimaging data analysis",
+    "year": 2026,
+    "evidence_quote": "Among all 814 with-BR rows present in the three judge outputs, 777 (95%) cited a retrieved document, of which 367 (47%) received a verified majority; 3 of 37 (8%) specific citations produced from the model’s own parameters were verified. The three-judge diagnostic therefore points chiefly to retrieval returning an off-topic or partially-supporting source rather than the model fabricating references.",
+    "section": "Supplementary Methods > S11.1.2: Evidence-citation benchmark",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The paper identifies the unclear accuracy of Generative AI in research as one of the challenges for effectively integrating AI into research workflows.",
+    "citation_tokens": [
+      "[SCI-000141#abstract#FULLTEXT-358]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-358"
+    ],
+    "study_id": "SCI-000141",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Towards AI-Supported Research: a Vision of the TIB AIssistant",
+    "year": 2025,
+    "evidence_quote": "effectively integrating AI into research remains a challenge due to varying domain requirements, limited AI literacy, the complexity of coordinating tools and agents, and the unclear accuracy of Generative AI in research.",
+    "section": "Abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The provenance-recording design is motivated in part by integrity verification: recording provenance data and publishing it will help users verify the accuracy and originality of AI-generated content.",
+    "citation_tokens": [
+      "[SCI-000141#4-framework-for-ai-assisted-research-4-2#FULLTEXT-359]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-359"
+    ],
+    "study_id": "SCI-000141",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Towards AI-Supported Research: a Vision of the TIB AIssistant",
+    "year": 2025,
+    "evidence_quote": "These aspects will also help users verify the accuracy and originality of the generated content.",
+    "section": "4 Framework for AI-Assisted Research > 4.2 Design Principles > Transparency and Trustworthiness",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Automated overclaim detection scans generated manuscript text for 12 predefined patterns including causal language for non-randomized data, overgeneralization, recommendations without evidence level, and absence of evidence as evidence of absence.",
+    "citation_tokens": [
+      "[SCI-000142#meta-pipe-s4-overclaim-detection-pattern#FULLTEXT-366]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-366"
+    ],
+    "study_id": "SCI-000142",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "meta-pipe: An LLM-agent pipeline for end-to-end automated systematic review and meta-analysis",
+    "year": 2026,
+    "evidence_quote": "The automated overclaim detection system (Stage 09) scans generated manuscript text for the following 12 patterns: 1 Causal language for non-randomized data Causal verbs (caused, led to, resulted in) used for observational findings",
+    "section": "meta-pipe > S4 Overclaim Detection Patterns",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Title and abstract screening uses a test-retest reliability approach with two independent LLM screening passes at temperature 0.3, quantified using Cohen's kappa, with a minimum threshold of 0.60 below Cochrane's 0.80 for dual review.",
+    "citation_tokens": [
+      "[SCI-000142#methods-search-and-screening#FULLTEXT-367]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-367"
+    ],
+    "study_id": "SCI-000142",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "meta-pipe: An LLM-agent pipeline for end-to-end automated systematic review and meta-analysis",
+    "year": 2026,
+    "evidence_quote": "Title and abstract screening employs a test-retest reliability approach: the LLM performs two independent screening passes at temperature 0.3, and agreement is quantified using Cohen's kappa. The minimum kappa threshold is 0.60 (moderate agreement per Landis and Koch), below Cochrane's 0.80 for dual review.",
+    "section": "Methods > Search and Screening",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Across 17,443 generated citations, no model exceeds a citation-level existence rate of 0.475, with Temporal and Combo conditions producing the steepest drops while outputs remain format-compliant.",
+    "citation_tokens": [
+      "[SCI-000144#abstract#FULLTEXT-373]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-373"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "Across 17,443 generated citations, no model exceeds a citation-level existence rate of 0.475; Temporal and Combo conditions produce the steepest drops while outputs remain format-compliant (well-formed bibliographic fields).",
+    "section": "Abstract",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Manual validation of the pipeline on a stratified sample of 100 citations gave overall agreement of 75% and Cohen's kappa 0.63, with precision 0.97 for Existing, 0.88 for Fabricated but only 0.43 for Unresolved; the dominant error was Unresolved-to-Fabricated (16 cases).",
+    "citation_tokens": [
+      "[SCI-000144#4-verification-pipeline-pipeline-validat#FULLTEXT-374]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-374"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "Overall agreement was 75% and Cohen's 𝜅 (pipeline vs. human) was 0.63. Precision was 0.97 for Existing and 0.88 for Fabricated, but only 0.43 for Unresolved. The dominant error was Unresolved →Fabricated (16 cases), so our reported fabrication rates are likely conservative.",
+    "section": "4 Verification Pipeline > Pipeline validation",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Non-Disclosure instructions redistribute rather than eliminate errors: DOI completeness drops (most pronounced for LLaMA, -11.4 percentage points) and, because DOI is the strongest verification signal, citations shift from Existing into Unresolved — moving errors from 'obviously wrong' into 'hard to tell.'",
+    "citation_tokens": [
+      "[SCI-000144#zhao-et-al-non-disclosure-ablated-analys#FULLTEXT-375]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-375"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "DOI completeness drops under Non-Disclosure (most pronounced for LLaMA, 11.4 percentage points), and because DOI is the strongest verification signal, its suppression pushes citations from Existing into Unresolved",
+    "section": "Zhao et al. > Non-Disclosure ablated analysis",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The manual audit of fabricated/unresolved citations reveals four recurring failure modes that format-level checks miss: venue laundering, author bricolage, identifier fabrication and omission, and title drift.",
+    "citation_tokens": [
+      "[SCI-000144#6-discussion-6-1-qualitative-error-patte#FULLTEXT-376]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-376"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "Manual inspection of fabricated and unresolved citations reveals four recurring failure modes that format-level checks would not catch: · Venue laundering. A plausible venue name (e.g., IEEE TSE, ICSE) is paired with a title that does not appear in that venue's index—or in any index. · Author bricolage. Real-sounding surnames from the target field are recombined into author lists that do not correspond to any actual paper.",
+    "section": "6 Discussion > 6.1 Qualitative Error Patterns",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The paper recommends that systems surfacing LLM-generated references run post-hoc verification against multiple databases and treat Unresolved citations as high risk.",
+    "citation_tokens": [
+      "[SCI-000144#6-discussion-6-2-implications-for-practi#FULLTEXT-377]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-377"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "Systems surfacing LLM-generated references should run post-hoc verification against multiple databases and treat Unresolved as high risk.",
+    "section": "6 Discussion > 6.2 Implications for Practice",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The verification pipeline assigns a three-way label (Existing, Unresolved, Fabricated) and was audited against human labels with Cohen's kappa = 0.63.",
+    "citation_tokens": [
+      "[SCI-000144#abstract-contributions#FULLTEXT-378]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-378"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "Our contributions are (1) a curated dataset of 144 claims spanning six academic domains (including 24 in SE & CS), (2) an automated verification pipeline with an audited three-way label taxonomy (Cohen's 𝜅=0.63 vs. human labels), and (3) an empirical analysis of how deployment constraints and the proprietary–open-weight distinction affect citation verifiability.",
+    "section": "Abstract > Contributions",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Under the Temporal condition every model produces well-formed bibliographic entries respecting the requested year window, yet GPT-4o's existence rate drops from 0.235 to 0.019, so format compliance masks a near-complete loss of verifiability ('compliance without substance').",
+    "citation_tokens": [
+      "[SCI-000144#6-discussion#FULLTEXT-379]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-379"
+    ],
+    "study_id": "SCI-000144",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+    "year": 2026,
+    "evidence_quote": "First, compliance without substance: under the Temporal condition every model produces well-formed bibliographic entries that respect the requested year window, yet existence rates fall sharply—GPT-4o drops from 0.235 to 0.019, and both open-weight models reach effectively zero.",
+    "section": "6 Discussion",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "LLMs do not always perform well in mathematical reasoning tasks, which raises questions about whether their probability outputs for screening decisions are meaningful.",
+    "citation_tokens": [
+      "[SCI-000146#abstract#FULLTEXT-384]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-384"
+    ],
+    "study_id": "SCI-000146",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Assessing Probability Rating Performance for Large Language Models in Systematic Literature Review Automation",
+    "year": 2026,
+    "evidence_quote": "LLMs do not always perform well in mathematical reasoning tasks, which raises the question whether their probability outputs are meaningful.",
+    "section": "ABSTRACT",
+    "evidence_level": "abstract_only",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Consumer LLM interfaces such as ChatGPT are reported to face significant challenges in output reliability and consistency, adherence to systematic-review methodology, and academic-integrity ethics.",
+    "citation_tokens": [
+      "[SCI-000151#1-introduction#FULLTEXT-390]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-390"
+    ],
+    "study_id": "SCI-000151",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "LLAssist: Simple Tools for Automating Literature Review Using Large Language Models",
+    "year": 2024,
+    "evidence_quote": "Yet, various consumer LLM interfaces such as ChatGPT encountered significant challenges in ensuring reliability and consistency of outputs, adhering to rigorous systematic review methodologies, and addressing ethical concerns related to academic integrity [Cong- Lem et al., 2024].",
+    "section": "1 Introduction",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "LLAssist requires its LLMs to output reasoning for every relevance/contribution judgment, which doubles as a cognitive forcing function acting as a checkpoint before downstream processing.",
+    "citation_tokens": [
+      "[SCI-000151#4-1-4-reasoning-quality#FULLTEXT-391]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-391"
+    ],
+    "study_id": "SCI-000151",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "LLAssist: Simple Tools for Automating Literature Review Using Large Language Models",
+    "year": 2024,
+    "evidence_quote": "The LLMs have to output their reasoning to help the researchers in manually discriminating the articles [Vasconcelos et al., 2023] and can be also part of cognitive forcing functions to be the checkpoint before downstream processing [Bu¸cinca et al., 2021].",
+    "section": "4.1.4 Reasoning Quality",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The authors argue that reliance on closed, proprietary AI systems compromises reproducibility, and position LLAssist as a transparent, freely-modifiable open-source alternative.",
+    "citation_tokens": [
+      "[SCI-000151#1-introduction#FULLTEXT-392]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-392"
+    ],
+    "study_id": "SCI-000151",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "LLAssist: Simple Tools for Automating Literature Review Using Large Language Models",
+    "year": 2024,
+    "evidence_quote": "Without transparent, open-source tools for AI-assisted literature review, researchers face potential limita- tions in research transparency and replicability that potentially perpetuate biases. These challenges include overlooking critical publications due to time constraints, decreased accuracy from cognitive overload during manual screening, and compromised reproducibility from reliance on closed, proprietary AI systems.",
+    "section": "1 Introduction",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The authors conclude that while LLMs were not trustworthy as independent reviewers, they improved the human results by reducing the number of false negatives and false positives after rescreening was completed.",
+    "citation_tokens": [
+      "[SCI-000152#discussion#FULLTEXT-401]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-401"
+    ],
+    "study_id": "SCI-000152",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Title/Abstract Screening in Systematic Literature Reviews: A Case Study in Precision Livestock Farming",
+    "year": 2025,
+    "evidence_quote": "While LLMs were not trustworthy as independent reviewers, they improved the human results by reducing the number of false negatives and false positives after rescreening was completed.",
+    "section": "DISCUSSION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The study finds that the human rater and both LLMs performed poorly in sensitivity, especially GPT-4o Mini, meaning they failed to include all relevant articles, which is problematic because the main goal of SLRs is to include all available research results on a topic.",
+    "citation_tokens": [
+      "[SCI-000152#discussion#FULLTEXT-402]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-402"
+    ],
+    "study_id": "SCI-000152",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Title/Abstract Screening in Systematic Literature Reviews: A Case Study in Precision Livestock Farming",
+    "year": 2025,
+    "evidence_quote": "The human rater and both LLMs performed poorly in sensitivity, especially GPT-4o Mini, meaning that they failed to include all relevant articles. For SLRs, low specificity means more rescreening time due to including potentially irrelevant studies in the screening. On the other hand, low sensitivity means excluding relevant articles, which is more problematic, as the main goal of SLRs is to include all available research results on a topic.",
+    "section": "DISCUSSION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The study uses a benchmark constructed by combining the title/abstract ratings of the human rater and both LLMs as the ground truth, which the authors acknowledge has limitations in measuring human performance reliably.",
+    "citation_tokens": [
+      "[SCI-000152#conclusions#FULLTEXT-403]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-403"
+    ],
+    "study_id": "SCI-000152",
+    "stance": "NEUTRAL",
+    "rq_id": "RQ2",
+    "title": "Large Language Models for Title/Abstract Screening in Systematic Literature Reviews: A Case Study in Precision Livestock Farming",
+    "year": 2025,
+    "evidence_quote": "We combined the title/abstract ratings of the human rater and both LLMs to create a benchmark. We evaluated the accuracy, sensitivity and specificity of the human rater and LLMs against the benchmark.",
+    "section": "CONCLUSIONS",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "In experiments, GPT-4o fabricated citations in 78-90% of cases when asked to cite recent literature across fields such as computer science and biomedicine, whereas OpenScholar achieved citation accuracy on par with human experts, addressing a key hallucination/verifiability risk.",
+    "citation_tokens": [
+      "[SCI-000154#introduction#FULLTEXT-414]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-414"
+    ],
+    "study_id": "SCI-000154",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Synthesizing scientific literature with retrieval-augmented language models",
+    "year": 2026,
+    "evidence_quote": "LLMs can assist but suffer from hallucinations2,3, outdated pre-training data4 and limited attribution. In our experiments, GPT-4o fabricated citations in 78-90% of cases when asked to cite recent literature across fields such as computer science and biomedicine.",
+    "section": "INTRODUCTION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "OpenScholar produces citation-backed, retrievable responses by identifying relevant passages from the open-access corpus and synthesizing citation-backed answers, giving users a verifiable provenance chain from answer to source passage.",
+    "citation_tokens": [
+      "[SCI-000154#abstract#FULLTEXT-415]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-415"
+    ],
+    "study_id": "SCI-000154",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Synthesizing scientific literature with retrieval-augmented language models",
+    "year": 2026,
+    "evidence_quote": "a specialized retrieval-augmented language model (LM)1 that answers scientific queries by identifying relevant passages from 45 million open-access papers and synthesizing citation-backed responses.",
+    "section": "ABSTRACT",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "ScholarQABench introduces a rigorous evaluation protocol combining automatic metrics such as citation accuracy with human rubric-based assessments of coverage, coherence, writing quality and factual correctness, enabling reliable assessment of long-form answers.",
+    "citation_tokens": [
+      "[SCI-000154#evaluation#FULLTEXT-416]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-416"
+    ],
+    "study_id": "SCI-000154",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Synthesizing scientific literature with retrieval-augmented language models",
+    "year": 2026,
+    "evidence_quote": "ScholarQABench introduces a rigorous evaluation pro-tocol combining automatic metrics (for example, citation accuracy) with human rubric-based assessments of coverage, coherence, writing quality and factual correctness to enable reliable assessments of the detailed long-form answers of LMs.",
+    "section": "EVALUATION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Generated summaries are required to mention the first author's name and paper title, providing basic attribution grounding.",
+    "citation_tokens": [
+      "[SCI-000156#body#FULLTEXT-424]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-424"
+    ],
+    "study_id": "SCI-000156",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Automated Literature Review Using NLP Techniques and LLM-Based Retrieval-Augmented Generation",
+    "year": 2024,
+    "evidence_quote": "Please mention the first author’s name and paper title.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The pipeline merges assistant responses per paper into a final review segment without any described verification or cross-checking of the generated content against sources.",
+    "citation_tokens": [
+      "[SCI-000156#body#FULLTEXT-425]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-425"
+    ],
+    "study_id": "SCI-000156",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "Automated Literature Review Using NLP Techniques and LLM-Based Retrieval-Augmented Generation",
+    "year": 2024,
+    "evidence_quote": "Then the response from the assistant is retrieved and the outputs of each paper are merged for the final literature review segment.",
+    "section": "body",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The system's standardization of the SLR process can potentially lead to more consistent and replicable research outcomes, though it requires human oversight in guiding and interpreting results.",
+    "citation_tokens": [
+      "[SCI-000158#section-5-discussion-section-8-conclusio#FULLTEXT-433]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-433"
+    ],
+    "study_id": "SCI-000158",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "System for Systematic Literature Review Using Multi-AI Agent System",
+    "year": 2024,
+    "evidence_quote": "the system's standardization of the SLR process can potentially lead to more consistent and replicable research outcomes, a cornerstone in scientific research. ... it is important to acknowledge the role of human oversight in guiding and interpreting the results, ensuring that the final output maintains the depth required in scholarly research.",
+    "section": "Section 5 (Discussion) / Section 8 (Conclusions)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Non-retrieval augmented LLMs fabricate 78–98% of cited papers, with the problem exacerbated in biomedical domains; even when citations refer to real papers, the majority are not substantiated by corresponding abstracts, resulting in near-zero citation accuracy.",
+    "citation_tokens": [
+      "[SCI-000159#section-4-2-results-limitations-of-param#FULLTEXT-442]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-442"
+    ],
+    "study_id": "SCI-000159",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "OpenScholar: Synthesizing Scientific Literature with Retrieval-Augmented LMs",
+    "year": 2024,
+    "evidence_quote": "the proportion of cited papers that actually exist is strikingly low. In particular, while models such as GPT4o and Llama can generate plausible reference lists, we find that 78-98% of the cited papers are fabricated, and the issue is exacerbated in biomedical domains.",
+    "section": "Section 4.2 (Results) / Limitations of parametric LMs",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "OpenScholar-8B achieves zero hallucinated papers in both computer science and biomedicine, in stark contrast to baseline LLMs (Llama 3.1 8B: 92.1% CS, 97.6% Bio hallucination ratios).",
+    "citation_tokens": [
+      "[SCI-000159#table-3-statistics-of-hallucinated-paper#FULLTEXT-443]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-443"
+    ],
+    "study_id": "SCI-000159",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "OpenScholar: Synthesizing Scientific Literature with Retrieval-Augmented LMs",
+    "year": 2024,
+    "evidence_quote": "OS-8B 9.65 0.0 0.0 6.25 0.0 0.0 Llama 3.1 8B 5.20 4.79 92.1% 5.58 5.46 97.6%",
+    "section": "Table 3 (Statistics of hallucinated papers)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The self-feedback mechanism iteratively refines outputs: the LM generates an initial response, self-feedback, and incorporates feedback to produce an updated response, addressing unsupported claims and incomplete outputs.",
+    "citation_tokens": [
+      "[SCI-000159#section-2-2-inference-iterative-generati#FULLTEXT-444]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-444"
+    ],
+    "study_id": "SCI-000159",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "OpenScholar: Synthesizing Scientific Literature with Retrieval-Augmented LMs",
+    "year": 2024,
+    "evidence_quote": "this one-step generation can lead to unsupported claims (Liu et al., 2023) or incomplete output due to missing information (Asai et al., 2024; Jiang et al., 2023). To address these challenges, in OPENSCHOLAR, we introduce an iterative generation approach with self-feedback",
+    "section": "Section 2.2 (Inference: Iterative Generation with Retrieval-Augmented Self-Feedback)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The authors report a trust risk: since LLMs can perpetuate and amplify training-data biases, LGAR may inadvertently reinforce these biases when ranking abstracts, potentially skewing SLR outcomes.",
+    "citation_tokens": [
+      "[SCI-000164#6-limitations#FULLTEXT-452]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-452"
+    ],
+    "study_id": "SCI-000164",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "LGAR: Zero-Shot LLM-Guided Neural Ranking for Abstract Screening in Systematic Literature Reviews",
+    "year": 2025,
+    "evidence_quote": "Furthermore, since LLMs can perpetuate and amplify biases present in the training data, LGAR may inadvertently reinforce these biases when rank- ing abstracts. This could lead to certain research being unfairly prioritized or overlooked, potentially skewing the outcomes of SLRs.",
+    "section": "6 Limitations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The evaluation cannot exclude data contamination because many benchmark SLRs were published years ago and their data may already have been exposed to LLMs during pre-training.",
+    "citation_tokens": [
+      "[SCI-000164#6-limitations#FULLTEXT-453]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-453"
+    ],
+    "study_id": "SCI-000164",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "LGAR: Zero-Shot LLM-Guided Neural Ranking for Abstract Screening in Systematic Literature Reviews",
+    "year": 2025,
+    "evidence_quote": "In addition, since many of these SLRs were pub- lished several years ago, some of their data may have already been exposed to the LLMs in their training. Hence, we can not exclude the possibility of data contamination.",
+    "section": "6 Limitations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Feeding curated data via Azure AI Search to the LLM is described as the first step for avoiding hallucinations; the LLM is instructed to return citations linked to response, pointing to original documents — a decisive factor for raising trust.",
+    "citation_tokens": [
+      "[SCI-000172#methodology-avoiding-hallucinations#FULLTEXT-464]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-464"
+    ],
+    "study_id": "SCI-000172",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "Advanced Semantic Analysis of Research Papers Using a Retrieval-Augmented Architecture",
+    "year": 2026,
+    "evidence_quote": "feeding curated data via Azure AI Search to an LLM is the first step. The LLM model will receive a specific context, a specific prompt and it will respond only with information from the private data to queries. In will also be instructed to return citations linked to the response, pointing to the places in the original documents where the info was taken, a decisive factor for raising the trust on the solution.",
+    "section": "Methodology (avoiding hallucinations)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Temperature was decreased to 0.1 (from default 0.7) and Top P set to 0.95 to maximize precision and restrict the model to high-probability tokens, with the Assistant instructed to answer only from custom indexed information.",
+    "citation_tokens": [
+      "[SCI-000172#methodology#FULLTEXT-465]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-465"
+    ],
+    "study_id": "SCI-000172",
+    "stance": "supportive",
+    "rq_id": "RQ2",
+    "title": "Advanced Semantic Analysis of Research Papers Using a Retrieval-Augmented Architecture",
+    "year": 2026,
+    "evidence_quote": "The standard Temperature value of 0.7, was decreased to 0.1, since the intention of the solution is to deliver very precise answers, based only on the information indexed into Azure AI. In the same direction, Top P value used was 0.95, so only high probability tokens will be considered when building the response.",
+    "section": "Methodology",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Systematic reviews guided by PRISMA frameworks are acknowledged as thorough but labor-intensive and prone to human bias, motivating the need for AI-assisted evidence synthesis.",
+    "citation_tokens": [
+      "[SCI-000177#abstract#FULLTEXT-471]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-471"
+    ],
+    "study_id": "SCI-000177",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "From Literature to Knowledge Graphs to Drug Repurposing",
+    "year": 2025,
+    "evidence_quote": "Systematic reviews, guided by frameworks like PRISMA [3], can be thorough but also labor-intensive and prone to human bias [4,5]",
+    "section": "ABSTRACT",
+    "evidence_level": "abstract_only",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The current implementation has no formal mechanism for detecting misinformation or verifying the factual correctness of AI-generated outputs, a limitation the authors flag for future development.",
+    "citation_tokens": [
+      "[SCI-000179#results-and-discussion-limitations-and-f#FULLTEXT-478]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-478"
+    ],
+    "study_id": "SCI-000179",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "An AI-Assisted Research Automation System for Scholarly Paper Retrieval and Review With Workflow Orchestration",
+    "year": 2026,
+    "evidence_quote": "the current implementation does not include a formal mechanism for detecting misinformation or verifying the factual correctness of AI-generated outputs.",
+    "section": "Results and Discussion > Limitations and Future Directions",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "When abstracts were unavailable, the AI module explicitly documented the limitation and generated context-aware summaries from available bibliographic information rather than silently fabricating content.",
+    "citation_tokens": [
+      "[SCI-000179#results-and-discussion-ai-assisted-abstr#FULLTEXT-479]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-479"
+    ],
+    "study_id": "SCI-000179",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "An AI-Assisted Research Automation System for Scholarly Paper Retrieval and Review With Workflow Orchestration",
+    "year": 2026,
+    "evidence_quote": "When abstracts were unavailable, the AI module explicitly documented this limitation and generated context-aware summaries based on available bibliographic information.",
+    "section": "Results and Discussion > AI-Assisted Abstract Review Performance",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Automated fact-checking processes that verify claims against retrieved evidence improved response accuracy, and comprehensive citation tracking that links specific claims to source documents achieved high traceability, allowing users to directly verify information sources.",
+    "citation_tokens": [
+      "[SCI-000181#llm-integration#FULLTEXT-490]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-490"
+    ],
+    "study_id": "SCI-000181",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Building an LLM Agent for Life Sciences Literature QA and Summarization",
+    "year": 2025,
+    "evidence_quote": "Implementation of automated fact-checking processes that verify claims against retrieved evidence improved response accuracy in controlled evaluations. Additionally, comprehensive citation tracking that links specific claims to source documents achieved high traceability, allowing users to directly verify information sources.",
+    "section": "LLM INTEGRATION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Citation accuracy evaluation found that the vast majority of system-generated citations directly supported the associated claims, with a small percentage providing partial support and only a tiny fraction being irrelevant or misleading, described as approaching human literature reviews.",
+    "citation_tokens": [
+      "[SCI-000181#evaluation#FULLTEXT-491]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-491"
+    ],
+    "study_id": "SCI-000181",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Building an LLM Agent for Life Sciences Literature QA and Summarization",
+    "year": 2025,
+    "evidence_quote": "Detailed analysis of system-generated citations found that the vast majority of provided citations directly supported the associated claims, with a small percentage providing partial support, and only a tiny fraction being irrelevant or misleading. This level of citation accuracy approaches that of human literature reviews and provides the verification capability essential for scientific work.",
+    "section": "EVALUATION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Experimental comparisons revealed that prompts incorporating domain guidance, explicitly requesting scientific rigor, and specifying citation requirements reduced hallucination compared to general-purpose prompts.",
+    "citation_tokens": [
+      "[SCI-000181#llm-integration#FULLTEXT-492]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-492"
+    ],
+    "study_id": "SCI-000181",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Building an LLM Agent for Life Sciences Literature QA and Summarization",
+    "year": 2025,
+    "evidence_quote": "Experimental comparisons of different prompting strategies revealed that prompts incorporating domain guidance, explicitly requesting scientific rigor, and specifying citation requirements reduced hallucination compared to general-purpose prompts.",
+    "section": "LLM INTEGRATION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The citation accuracy result is described as providing the verification capability essential for scientific work, directly addressing answer-to-source verifiability.",
+    "citation_tokens": [
+      "[SCI-000181#evaluation#FULLTEXT-493]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-493"
+    ],
+    "study_id": "SCI-000181",
+    "stance": "POSITIVE",
+    "rq_id": "RQ2",
+    "title": "Building an LLM Agent for Life Sciences Literature QA and Summarization",
+    "year": 2025,
+    "evidence_quote": "This level of citation accuracy approaches that of human literature reviews and provides the verification capability essential for scientific work.",
+    "section": "EVALUATION",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "Peer-review feedback on EvoScientist-generated manuscripts exposed protocol-level issues (ambiguities in stability gating, metric reporting, and baseline fairness), leading the authors to conclude that strict consistency auditing and reproducibility-complete reporting are required in end-to-end discovery systems.",
+    "citation_tokens": [
+      "[SCI-000186#appendix-e-case-studies-peer-review-feed#FULLTEXT-503]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-503"
+    ],
+    "study_id": "SCI-000186",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "EvoScientist: Towards Multi-Agent Evolving AI Scientists for End-to-End Scientific Discovery",
+    "year": 2026,
+    "evidence_quote": "Reviewer feedback also identified several internal- consistency and protocol-level issues, including ambiguities in stabil- ity gating, metric reporting, and baseline fairness. These critiques underscore the importance of strict consistency auditing and reproducibility-complete reporting in end-to-end scientific discov- ery.",
+    "section": "Appendix E (Case Studies / Peer Review Feedback)",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  },
+  {
+    "claim_text": "The authors flag that EvoScientist, because it learns from existing literature, may reproduce biases in data and writing and therefore should be monitored and audited — an acknowledgment that its self-evolution mechanism carries academic-integrity risk.",
+    "citation_tokens": [
+      "[SCI-000186#7-limitations-and-ethical-considerations#FULLTEXT-504]"
+    ],
+    "entailment_score": 0.97,
+    "entailment_status": "VERIFIED",
+    "supporting_chunk_ids": [
+      "FULLTEXT-504"
+    ],
+    "study_id": "SCI-000186",
+    "stance": "NEGATIVE",
+    "rq_id": "RQ2",
+    "title": "EvoScientist: Towards Multi-Agent Evolving AI Scientists for End-to-End Scientific Discovery",
+    "year": 2026,
+    "evidence_quote": "Since the system learns from existing literature, it may reproduce biases in data and writing [27, 28, 32], and should be monitored and audited accordingly.",
+    "section": "7 Limitations and Ethical Considerations",
+    "evidence_level": "fulltext",
+    "verification": "verbatim"
+  }
+]

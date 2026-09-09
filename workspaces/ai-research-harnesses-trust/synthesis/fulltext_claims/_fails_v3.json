@@ -1,0 +1,3066 @@
+[
+ {
+  "idx": 0,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ1",
+  "claim_text": "Brain Researcher anchors each auditable episode in a commitment card written before any analysis, sealed with a content ",
+  "quote": "A commitment card, written before any analysis runs, fixes the question, the allowed alternatives, and the success and failure criteria, and is sealed with a co",
+  "cov": 0.0
+ },
+ {
+  "idx": 2,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ1",
+  "claim_text": "The scientific verification layer consumes the run bundle (rather than the model transcript alone), checking the selecte",
+  "quote": "Scientific verification consumes the run bundle, not the model transcript alone. It checks the selected plan, active constraints, execution trace, artifact mani",
+  "cov": 0.083
+ },
+ {
+  "idx": 4,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ1",
+  "claim_text": "The run-bundle card records the event trace, trajectory document, observation record, analysis bundle, expected and prod",
+  "quote": "The run-bundle card records event trace, trajectory document, observation record, analysis bundle, run card, expected artifacts, produced artifacts, missing art",
+  "cov": 0.083
+ },
+ {
+  "idx": 5,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ1",
+  "claim_text": "In the NeuroMark collaborator case, Brain Researcher expanded a single pre-specified pipeline into a 480-specification m",
+  "quote": "Brain Researcher expanded the analysis into a 480-specification multi- verse spanning connectivity, confound, dimensionality-reduction, classifier, and domain-g",
+  "cov": 0.0
+ },
+ {
+  "idx": 7,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ2",
+  "claim_text": "BR-KG attaches explicit provenance to source-backed facts, including a verbatim supporting quote and grounding label whe",
+  "quote": "Crucially, source-backed facts carry explicit provenance (their source, and where available a verbatim supporting quote and grounding label), so a retrieved cla",
+  "cov": 0.0
+ },
+ {
+  "idx": 8,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ2",
+  "claim_text": "In the evidence-citation benchmark, Brain Researcher raised verifiable grounding from 4.6% to 22.0%: a claim is counted ",
+  "quote": "Among all 814 with-BR rows present in the three judge outputs, 777 (95%) cited a retrieved document, of which 367 (47%) received a verified majority; 3 of 37 (8",
+  "cov": 0.0
+ },
+ {
+  "idx": 10,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ3",
+  "claim_text": "Across 60 tool-calling tasks and seven frontier models, Brain Researcher improved first-action correct route/tool select",
+  "quote": "Across 60 tool-calling tasks and seven models, scores without versus with Brain Researcher were 23.3% versus 93.6% for first-action correct route/tool selection",
+  "cov": 0.0
+ },
+ {
+  "idx": 11,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ3",
+  "claim_text": "In the HCP self-evolving episode, Brain Researcher evaluated 116 candidate prediction-pipeline configurations for Cognit",
+  "quote": "Brain Researcher allocated 116 candidate prediction-pipeline evaluations for Cognition, of which 104 returned scored results in the parent runs. Following a sel",
+  "cov": 0.05
+ },
+ {
+  "idx": 13,
+  "study_id": "SCI-000140",
+  "rq_id": "RQ3",
+  "claim_text": "On the grounding benchmark, inter-judge reliability is moderate (three-judge Fleiss’ κ = 0.50 with-BR and 0.72 without-B",
+  "quote": "On the grounding surface, inter-judge reliability is moderate (three-judge Fleiss’ κ = 0.50 with-BR and 0.72 without-BR, binary verified versus not), and is set",
+  "cov": 0.0
+ },
+ {
+  "idx": 14,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ1",
+  "claim_text": "ADVISE embeds a fine-tuned BERT AI agent in the human title-and-abstract screening workflow with a screen-update-predict",
+  "quote": "Priority score is the probability that a paper is a relevant paper predicted by the AI agent, which is calculated by 𝑃𝑆(𝑝) = 𝑠𝑜𝑓𝑡𝑚𝑎𝑥(𝑃𝑟𝑒𝑑(𝑝))[1], where 𝑃𝑟𝑒𝑑(𝑝) ",
+  "cov": 0.0
+ },
+ {
+  "idx": 15,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ1",
+  "claim_text": "ADVISE preserves human verification of all relevant papers by design: because 'for evidence synthesis, all relevant pape",
+  "quote": "This query strategy is adapted from the uncertainty sampling strategies [36]. For evidence synthesis, all relevant papers need to be verified by a human agent, ",
+  "cov": 0.0
+ },
+ {
+  "idx": 16,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ1",
+  "claim_text": "Reproducibility in ADVISE is handled by repeating every experiment five times and averaging predicted uncertainties and ",
+  "quote": "When the predicted uncertainties and PSs are needed to sample new papers with the LC and HP strategies, we use the mean values of the predictions from the five ",
+  "cov": 0.0
+ },
+ {
+  "idx": 19,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ3",
+  "claim_text": "Incorporating the BERT-based AI agent into the human team reduces human screening effort by 68.5% compared to no AI assi",
+  "quote": "Results show that incorporat- ing the BERT-based AI agent into the human team can reduce the human screening effort by 68.5% compared to the case of no AI assis",
+  "cov": 0.107
+ },
+ {
+  "idx": 21,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ3",
+  "claim_text": "Using the least-confidence (LC) active-learning strategy produced better classification models (higher F1 score) than ra",
+  "quote": "Overall, sampling new papers using the LC strategy leads to better classification models than randomly sam- pling new papers, as indicated by the higher F1 scor",
+  "cov": 0.0
+ },
+ {
+  "idx": 23,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ3",
+  "claim_text": "Using records from twelve human screeners (averaging 38.6 papers per hour, SE=1.00) on an agriculture development EGM, t",
+  "quote": "From the records of twelve human screeners working on an agriculture development EGM, we learn that a human screener can screen 38.6 (𝑆𝐸= 1.00 ) papers per hour",
+  "cov": 0.0
+ },
+ {
+  "idx": 24,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ3",
+  "claim_text": "ADVISE acknowledges it lacks true counterfactual analysis of the EGM process without AI assistance, because it was infea",
+  "quote": "However, this challenge means we do not have true counterfactual analyses of how the EGM process would have proceeded without any AI assistance. Future work cou",
+  "cov": 0.0
+ },
+ {
+  "idx": 25,
+  "study_id": "SCI-000107",
+  "rq_id": "RQ3",
+  "claim_text": "ADVISE was restricted to title-and-abstract screening because copyright and subscription issues make downloading and usi",
+  "quote": "While many institutions have subscription-based access to scholarly article databases, copy- right issues make downloading and using full-text documents a chall",
+  "cov": 0.0
+ },
+ {
+  "idx": 26,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ1",
+  "claim_text": "This systematic review and meta-analysis of 18 studies (2023-2025) evaluates LLM-assisted medical literature screening a",
+  "quote": "This systematic review and meta-analysis was conducted according to PRISMA DTA guidance. PubMed, Web of Science, Embase, the Cochrane Library and Google Scholar",
+  "cov": 0.0
+ },
+ {
+  "idx": 27,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ1",
+  "claim_text": "The majority of the included studies used off-the-shelf LLMs without task-specific fine-tuning and instead emphasized pr",
+  "quote": "Importantly, the majority of studies used off-the-shelf LLMs without task-specific fine-tuning, emphasizing prompt engineering as the primary optimization strat",
+  "cov": 0.0
+ },
+ {
+  "idx": 28,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ2",
+  "claim_text": "The review applies PROBAST + AI and QUADAS-2 to rate the methodological quality and risk of bias of the included LLM scr",
+  "quote": "To evaluate the methodological quality and risk of bias of the included models and studies, we applied the Prediction Model Risk of Bias Assessment Tool + AI to",
+  "cov": 0.0
+ },
+ {
+  "idx": 29,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ2",
+  "claim_text": "The review finds that LLMs are positioned as assistive, high-sensitivity tools that prioritize potentially relevant stud",
+  "quote": "LLMs are not intended to replace human reviewers. Instead, they function as assistive tools within the screening framework to streamline systematic review proce",
+  "cov": 0.0
+ },
+ {
+  "idx": 30,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ3",
+  "claim_text": "In 18 included studies, LLMs in title-and-abstract screening achieved pooled sensitivity of 0.92 (95% CI 0.81-0.96, I²=9",
+  "quote": "In automated title and abstract screening, the pooled sensitivity was 0.92 with 95% confidence interval (95% CI) from 0.81 to 0.96. Substantial heterogeneity wa",
+  "cov": 0.0
+ },
+ {
+  "idx": 31,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ3",
+  "claim_text": "For full-text screening (4 studies), the pooled sensitivity and specificity both reached 0.99 (95% CI 0.95-1.00) with an",
+  "quote": "The meta-analysis of full-text screening included 4 studies. The pooled sensitivity reached 0.99 with 95% CI from 0.95 to 1.00. No substantial heterogeneity was",
+  "cov": 0.105
+ },
+ {
+  "idx": 32,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ3",
+  "claim_text": "Prompt strategies incorporating examples or chain-of-thought reasoning significantly improved sensitivity: pooled sensit",
+  "quote": "The pooled sensitivity was 0.95 with 95% CI from 0.92 to 0.99 in the example-based or chain-of-thought group and 0.86 from 0.78 to 0.94 in the group without the",
+  "cov": 0.133
+ },
+ {
+  "idx": 33,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ3",
+  "claim_text": "Comparing GPT-4T and GPT-4o (4 and 5 studies respectively), pooled sensitivity was numerically higher for GPT-4o (0.88 v",
+  "quote": "The pooled sensitivity was 0.81 with 95% CI from 0.69 to 0.93 for GPT-4T and 0.88 from 0.82 to 0.95 for GPT-4o. The difference in sensitivity was not statistica",
+  "cov": 0.0
+ },
+ {
+  "idx": 35,
+  "study_id": "SCI-000088",
+  "rq_id": "RQ3",
+  "claim_text": "Stated limitations include unexplained residual heterogeneity (particularly for specificity in title/abstract screening)",
+  "quote": "First, substantial heterogeneity was observed across studies, particularly for specificity in title and abstract screening. Although subgroup analyses and meta-",
+  "cov": 0.0
+ },
+ {
+  "idx": 37,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ1",
+  "claim_text": "M-Reason organizes evidence analysis into three agent roles - Orchestrator, BioExpert, and Evaluator - where the Orchest",
+  "quote": "The Orchestrator does not interact with any large language model; instead, its role is to sequence the workflow and return workflow status. All substantive anal",
+  "cov": 0.0
+ },
+ {
+  "idx": 40,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ1",
+  "claim_text": "The authors position M-Reason as improving predictability and reproducibility but note it operates more as a determinist",
+  "quote": "The system operates more as a deterministic workflow than a fully autonomous agent; while this improves predictability and reproducibility, it restricts adaptiv",
+  "cov": 0.0
+ },
+ {
+  "idx": 44,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ2",
+  "claim_text": "M-Reason integrates deterministic code for validation alongside LLM reasoning; the authors report that combining LLM-dri",
+  "quote": "Similarly, combining LLM-driven analysis with deterministic code offers greater confidence, but at the expense of speed and flexibility—a tradeoff that remains ",
+  "cov": 0.0
+ },
+ {
+  "idx": 45,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ3",
+  "claim_text": "In the largest evaluation scenario (S4, 82 genes, evidence sets up to 81,627 words), M-Reason generated a comprehensive ",
+  "quote": "We baselined human expert reading speed at 200 words per minute, disregarding additional time for analysis or note-taking. As illustrated in Fig.5, M-Reason acc",
+  "cov": 0.0
+ },
+ {
+  "idx": 46,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ3",
+  "claim_text": "Across four scenarios with increasing gene-list sizes (S1: 13, S2: 28, S3: 52, S4: 82 genes), M-Reason consistently pres",
+  "quote": "The results demonstrate that M-Reason consistently preserved all critical findings, regardless of evidence size. To assess consistency, we performed five indepe",
+  "cov": 0.0
+ },
+ {
+  "idx": 47,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ3",
+  "claim_text": "Reported evaluation limitations include only a small number of test cases that may not capture robustness or generalizab",
+  "quote": "The current evaluation of the system is based on only a small number of test cases, which may not fully capture its robustness or generalizability.",
+  "cov": 0.0
+ },
+ {
+  "idx": 48,
+  "study_id": "SCI-000099",
+  "rq_id": "RQ3",
+  "claim_text": "The authors report that increasing agent specialization can enhance accuracy but comes with higher operational and maint",
+  "quote": "Our findings highlight that increasing agent specialization can enhance accuracy but comes with higher operational and maintenance costs.",
+  "cov": 0.0
+ },
+ {
+  "idx": 49,
+  "study_id": "SCI-000120",
+  "rq_id": "RQ1",
+  "claim_text": "The study embeds GPT-4o in an evidence-extraction workflow that first converts PDF files to markdown with LlamaParse, in",
+  "quote": "We prompted GPT-4o1 for this task by first con- verting the PDF files to markdown format using LlamaParse2. To guide the model effectively, we included an inter",
+  "cov": 0.0
+ },
+ {
+  "idx": 50,
+  "study_id": "SCI-000120",
+  "rq_id": "RQ1",
+  "claim_text": "The evaluation corpus is a 586-document sample from the GAMI database (food sector focus group) of 1,682 peer-reviewed a",
+  "quote": "The curation of this dataset was rigorous wherein each peer-reviewed article was assigned to two human-labelers with climate change adaptation expertise and any",
+  "cov": 0.0
+ },
+ {
+  "idx": 51,
+  "study_id": "SCI-000120",
+  "rq_id": "RQ2",
+  "claim_text": "The authors motivate the work by the need for a reliable model that ensures factual accuracy during the evidence-extract",
+  "quote": "However, it is important to emphasize that these models cannot completely replace the expert-driven process, rather a human-in-the loop system would be extremel",
+  "cov": 0.0
+ },
+ {
+  "idx": 55,
+  "study_id": "SCI-000120",
+  "rq_id": "RQ3",
+  "claim_text": "For high-expertise depth-of-adaptation-response classification, GPT-4o achieved accuracy of 22.7% and micro-averaged F1 ",
+  "quote": "GPT-4o achieved an ac- curacy of 22.7% and a micro-averaged F1 score of 0.22 (macro F1: 0.17). Closer examination of the instances of disagreement revealed that",
+  "cov": 0.0
+ },
+ {
+  "idx": 56,
+  "study_id": "SCI-000120",
+  "rq_id": "RQ3",
+  "claim_text": "The authors recommend prompting methods that elicit reasoning and verification capabilities to improve stakeholder-ident",
+  "quote": "Given the task re- quires the model to use a taxonomy to classify the stakeholders, the model’s performance on this task suggests that improvements can be made ",
+  "cov": 0.091
+ },
+ {
+  "idx": 57,
+  "study_id": "SCI-000120",
+  "rq_id": "RQ3",
+  "claim_text": "Stated limitations include findings specific to climate change adaptation literature in the food sector, evaluation cond",
+  "quote": "our findings are specific to the climate change adaptation literature and in food sec- tor, limiting their generalizability to other domains or sub-fields of cl",
+  "cov": 0.0
+ },
+ {
+  "idx": 58,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ1",
+  "claim_text": "OpenScholar's iterative self-feedback retrieval-augmented inference pipeline generates outputs with inline citations lin",
+  "quote": "These citations allow researchers to trace the output back to the original literature, ensuring transparency and verifiability.",
+  "cov": 0.0
+ },
+ {
+  "idx": 60,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ1",
+  "claim_text": "The OpenScholar-Datastore (OSDS) is built from 45 million papers using peS2o v3, producing 234 million passages — descri",
+  "quote": "we use peS2o v3, which includes 45 million papers up until October 2024. ... Our datastore consists of 234 million passages. To our knowledge, this is the large",
+  "cov": 0.111
+ },
+ {
+  "idx": 61,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ1",
+  "claim_text": "The authors open-source all components — code, data, model checkpoints, datastores, and the SCHOLARQABENCH benchmark — t",
+  "quote": "We open-source the OPENSCHOLAR code, data, model checkpoints, datastores, and SCHOLARQABENCH, along with a public demo, to support and accelerate future researc",
+  "cov": 0.0
+ },
+ {
+  "idx": 62,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ1",
+  "claim_text": "High-quality training data is generated synthetically using the inference-time pipeline, with a two-step data filtering ",
+  "quote": "Despite its effectiveness and scalability, synthetic data may also contain issues such as hallucinations, repetitive writing, or limited instruction-following .",
+  "cov": 0.0
+ },
+ {
+  "idx": 63,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ2",
+  "claim_text": "Non-retrieval augmented LLMs fabricate 78–98% of cited papers, with the problem exacerbated in biomedical domains; even ",
+  "quote": "the proportion of cited papers that actually exist is strikingly low. In particular, while models such as GPT4o and Llama can generate plausible reference lists",
+  "cov": 0.0
+ },
+ {
+  "idx": 64,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ2",
+  "claim_text": "OpenScholar-8B achieves zero hallucinated papers in both computer science and biomedicine, in stark contrast to baseline",
+  "quote": "OS-8B 9.65 0.0 0.0 6.25 0.0 0.0 Llama 3.1 8B 5.20 4.79 92.1% 5.58 5.46 97.6%",
+  "cov": 0.0
+ },
+ {
+  "idx": 65,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ2",
+  "claim_text": "The self-feedback mechanism iteratively refines outputs: the LM generates an initial response, self-feedback, and incorp",
+  "quote": "this one-step generation can lead to unsupported claims (Liu et al., 2023) or incomplete output due to missing information (Asai et al., 2024; Jiang et al., 202",
+  "cov": 0.0
+ },
+ {
+  "idx": 66,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ3",
+  "claim_text": "SCHOLARQABENCH introduces a multifaceted automatic evaluation pipeline measuring Correctness, Citation accuracy (precisi",
+  "quote": "We developed a multifaceted automatic evaluation pipeline to facilitate reproducible and efficient evaluations, complementing expert assessments.",
+  "cov": 0.0
+ },
+ {
+  "idx": 67,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ3",
+  "claim_text": "Human evaluation involved 16 Ph.D.-level expert annotators across three scientific disciplines, producing over 400 fine-",
+  "quote": "A total of 16 expert annotators from the three fields contributed to our evaluations ... OPENSCHOLAR-GPT4o and OPENSCHOLAR-8B are rated as Useful in 80% and 72%",
+  "cov": 0.375
+ },
+ {
+  "idx": 68,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: OpenScholar does not consistently retrieve the most representative or relevant papers for certain queries; e",
+  "quote": "OPENSCHOLAR does not consistently retrieve the most representative or relevant papers for certain queries. ... annotators also noted that the citations provided",
+  "cov": 0.0
+ },
+ {
+  "idx": 69,
+  "study_id": "SCI-000159",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: The evaluation dataset with human-written answers is relatively small (110 for CS-LFQA, 108 for expert-writt",
+  "quote": "the evaluation dataset with human-written answers is relatively small (e.g., 110 for CS-LFQA and 108 for expert-written answers). This limited dataset may intro",
+  "cov": 0.25
+ },
+ {
+  "idx": 70,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ1",
+  "claim_text": "LatteReview's ReviewWorkflow class orchestrates multi-stage review processes with sequential rounds, parallel reviews, c",
+  "quote": "The ReviewWorkflow class allows users to define multi-stage review processes with: Sequential Rounds: Execute reviews in predefined stages, where the output of ",
+  "cov": 0.0
+ },
+ {
+  "idx": 71,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ1",
+  "claim_text": "Reasoning transparency is built into the TitleAbstractReviewer agent, which provides either brief or chain-of-thought (C",
+  "quote": "the agent provides reasoning for its decisions, which could be 'brief' or 'cot', where the former means the agent should return a brief reasoning in 1-2 sentenc",
+  "cov": 0.333
+ },
+ {
+  "idx": 72,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ1",
+  "claim_text": "LatteReview integrates Retrieval-Augmented Generation (RAG) workflows, allowing reviewers to dynamically fetch relevant ",
+  "quote": "LatteReview integrates seamlessly with retrieval-augmented generation workflows, enabling reviewers to: Leverage External Knowledge: Fetch relevant information ",
+  "cov": 0.0
+ },
+ {
+  "idx": 73,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ1",
+  "claim_text": "The framework is open-source and available on GitHub and PyPI, enabling reproducible installations and community contrib",
+  "quote": "LatteReview is designed to be straightforward to install ... The package is available on PyPI and can be installed using the following command: pip install latt",
+  "cov": 0.0
+ },
+ {
+  "idx": 74,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ2",
+  "claim_text": "The TitleAbstractReviewer uses a 5-point Likert scale for article assessment (1 = absolutely exclude, 5 = absolutely inc",
+  "quote": "The TitleAbstractReviewer agents in our workflow employ a 5-point Likert scale for article assessment ... when the junior reviewers' scores differ or both assig",
+  "cov": 0.0
+ },
+ {
+  "idx": 77,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ3",
+  "claim_text": "A review workflow of two junior reviewers (Gemini-1.5-flash and GPT-4O-mini) reviewing 1,000 title/abstract pairs took a",
+  "quote": "a review workflow consisting of two junior reviewers using Gemini 1.5 Flash and OpenAI GPT-4O-mini ... took, on average, about one minute to review 1,000 pairs ",
+  "cov": 0.455
+ },
+ {
+  "idx": 78,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: Performance variability across datasets is attributed to task heterogeneity, dataset size differences, varyi",
+  "quote": "This variability can be attributed to several key factors: Task Heterogeneity ... Dataset Characteristics: The datasets exhibit substantial heterogeneity in bot",
+  "cov": 0.0
+ },
+ {
+  "idx": 79,
+  "study_id": "SCI-000096",
+  "rq_id": "RQ3",
+  "claim_text": "Future development priorities include supporting a broader range of language models, enhancing memory and context manage",
+  "quote": "Future development will focus on expanding LatteReview's capabilities and accessibility. Priorities include supporting a broader range of language models, facil",
+  "cov": 0.0
+ },
+ {
+  "idx": 80,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ1",
+  "claim_text": "The pipeline is fully local and zero-shot, running on consumer-grade hardware (Apple M1 Max) with the gpt-oss-20b model ",
+  "quote": "This study benchmarked a fully local, zero-shot, schema-constrained LLM pipeline for title/abstract screening and abstract-based extraction and synthesis under ",
+  "cov": 0.0
+ },
+ {
+  "idx": 81,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ1",
+  "claim_text": "Schema-constrained extraction uses fixed prompts and structured enumerations rather than free generation, with conservat",
+  "quote": "schema enforcement (constrained enumerations rather than free generation) and conservative missingness handling (returning 'NR') were designed to minimize fabri",
+  "cov": 0.0
+ },
+ {
+  "idx": 83,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ2",
+  "claim_text": "On the ketamine/neuroimaging benchmark, the pipeline achieved 100% recall, 97.9% precision, 99.4% accuracy, and 98.9% F1",
+  "quote": "Recall/Precision/Accuracy/F1 (%) 100.0/97.9/99.4/98.9",
+  "cov": 0.0
+ },
+ {
+  "idx": 84,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ2",
+  "claim_text": "Performance tracked the density and explicitness of source text: when constructs were explicitly encoded in abstracts, m",
+  "quote": "performance tracked the density and explicitness of the source text: when the construct of interest was explicitly encoded in abstracts (ketamine-neuroimaging),",
+  "cov": 0.0
+ },
+ {
+  "idx": 85,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ2",
+  "claim_text": "Schema enforcement and conservative missingness handling were specifically designed to minimize hallucination risk, and ",
+  "quote": "Residual hallucination risk also remains [25,26], although schema enforcement (constrained enumerations rather than free generation) and conservative missingnes",
+  "cov": 0.0
+ },
+ {
+  "idx": 86,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: The evaluation was proof-of-concept benchmarking against three published systematic reviews rather than full",
+  "quote": "The present evaluation should be understood as proof-of-concept workflow benchmarking against three published systematic reviews, rather than as fully independe",
+  "cov": 0.0
+ },
+ {
+  "idx": 87,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ3",
+  "claim_text": "The central trade-off is reduced mechanistic resolution relative to full-text synthesis; abstract-only processing entail",
+  "quote": "A consistent methodological trade-off emerged across the three targets: abstract-only processing entails partial information loss relative to full text [20-22],",
+  "cov": 0.0
+ },
+ {
+  "idx": 88,
+  "study_id": "SCI-000090",
+  "rq_id": "RQ3",
+  "claim_text": "A pragmatic deployment model is recommended: high-throughput abstract-level mapping for coverage, paired with periodic h",
+  "quote": "A pragmatic deployment model is therefore hybrid: high-throughput abstract-level mapping for coverage, paired with periodic human audits and targeted full-text ",
+  "cov": 0.778
+ },
+ {
+  "idx": 89,
+  "study_id": "SCI-000158",
+  "rq_id": "RQ1",
+  "claim_text": "The multi-agent system operates through four sequential agents: (1) search string generation agent, (2) paper selection ",
+  "quote": "The process begins with the input of a research topic ... the system systematically generates a pertinent set of research questions ... the system proceeds to g",
+  "cov": 0.231
+ },
+ {
+  "idx": 90,
+  "study_id": "SCI-000158",
+  "rq_id": "RQ1",
+  "claim_text": "The paper selection agent applies inclusive and exclusive filtering criteria based on titles to refine search results, e",
+  "quote": "the system is equipped with the capability to apply inclusive and exclusive criteria based on titles, which further refines the search results to ensure only th",
+  "cov": 0.0
+ },
+ {
+  "idx": 91,
+  "study_id": "SCI-000158",
+  "rq_id": "RQ2",
+  "claim_text": "The system's standardization of the SLR process can potentially lead to more consistent and replicable research outcomes",
+  "quote": "the system's standardization of the SLR process can potentially lead to more consistent and replicable research outcomes, a cornerstone in scientific research. ",
+  "cov": 0.5
+ },
+ {
+  "idx": 92,
+  "study_id": "SCI-000158",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: The initial search strategy was suboptimal due to absence of comprehensive Boolean operators (lack of 'AND' ",
+  "quote": "the initial search strategy employed for identifying relevant literature was sub optimal. The absence of a comprehensive use of Boolean operators, notably the l",
+  "cov": 0.083
+ },
+ {
+  "idx": 93,
+  "study_id": "SCI-000158",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: No clearly defined criteria for primary and secondary exclusion, and the data extraction reliability is ques",
+  "quote": "a significant gap in its approach to literature selection, characterized by an absence of clearly defined criteria for primary and secondary exclusion ... the r",
+  "cov": 0.833
+ },
+ {
+  "idx": 94,
+  "study_id": "SCI-000158",
+  "rq_id": "RQ3",
+  "claim_text": "Future work will address search strategy refinement, explicit inclusion/exclusion criteria, advanced data extraction alg",
+  "quote": "Refinement of search strategy ... Implementation of explicit exclusion and inclusion criteria ... Advancement of data extraction methods ... Enhancement of anal",
+  "cov": 0.0
+ },
+ {
+  "idx": 96,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ1",
+  "claim_text": "Verification was applied through cross-checking among human reviewers (manual) and double-checking via comparison with m",
+  "quote": "Verification Applied: Cross-checking among human reviewers (Manual) / Double-checking: comparison with manual results + review of discrepancies (LLM-Assisted Ex",
+  "cov": 0.0
+ },
+ {
+  "idx": 97,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ2",
+  "claim_text": "LLM achieved approximately 95% accuracy in screening (208/219 correct) but 11 hallucination cases were identified where ",
+  "quote": "the LLM achieved approximately 95.0% accuracy (208 correct out of 219 studies), with 11 hallucination cases in which it began answering the questionnaire with i",
+  "cov": 0.0
+ },
+ {
+  "idx": 99,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ2",
+  "claim_text": "Hybrid workflows are essential: LLMs should be embedded in workflows combining partial automation with targeted human su",
+  "quote": "LLMs should be integrated cautiously and deliberately, as complementary tools within human-centered workflows. Their value lies in supporting efficiency in oper",
+  "cov": 0.0
+ },
+ {
+  "idx": 100,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ3",
+  "claim_text": "Time reduction was substantial: manual screening took ~23 days, LLM-assisted screening took ~9 hours (98% reduction); ma",
+  "quote": "the complete manual process of screening and data extraction required approximately 23 days for the screening of 219 studies and 7 days for the data extraction ",
+  "cov": 0.0
+ },
+ {
+  "idx": 101,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ3",
+  "claim_text": "LLM effectiveness is task-dependent: Gemini PRO achieved 90% in extraction and screening, Manus 98% in screening but onl",
+  "quote": "Manus correctly classified 49 (98%), Gemini PRO 45 (90%), and Copilot 30 (60%). In the data extraction process ... Manus achieved 4 correct (40%), Gemini PRO 9 ",
+  "cov": 0.357
+ },
+ {
+  "idx": 102,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: The study reflects the experience of a single researcher; sample size for data extraction was small (13 stud",
+  "quote": "This experience report is subject to limitations related to sample size and scope ... the data extraction phase was conducted on a smaller subset of 13 studies ",
+  "cov": 0.267
+ },
+ {
+  "idx": 103,
+  "study_id": "SCI-000129",
+  "rq_id": "RQ3",
+  "claim_text": "Five lessons learned: (1) time efficiency is significant but contextual, (2) prompt design is critical, (3) human oversi",
+  "quote": "Lesson 1: Time Efficiency is Significant but Contextual ... Lesson 2: Prompt Design is Critical ... Lesson 3: Human Oversight Remains Essential ... Lesson 4: Hy",
+  "cov": 0.1
+ },
+ {
+  "idx": 104,
+  "study_id": "SCI-000172",
+  "rq_id": "RQ1",
+  "claim_text": "The proposed RAG architecture integrates Azure Blob Storage (crawling/storage), Azure AI Search (embedding/indexing), an",
+  "quote": "The solution architecture used in this study aggregates: crawling, cloud storage, embedding, indexing, LLM, and automation services ... integrating mature softw",
+  "cov": 0.867
+ },
+ {
+  "idx": 108,
+  "study_id": "SCI-000172",
+  "rq_id": "RQ3",
+  "claim_text": "Validation results ranged from 76% (Romanian, Exp #1) to 94% (AI-generated English, Exp #4), with Romanian consistently ",
+  "quote": "Experiment # 1 Manually generated 76% 80% Researcher # 2 Manually generated 80% 100% Researcher # 3 Manually generated - 85% Researcher # 4 AI generated - 94% G",
+  "cov": 0.0
+ },
+ {
+  "idx": 110,
+  "study_id": "SCI-000172",
+  "rq_id": "RQ3",
+  "claim_text": "Limitation: All cloud services carry associated costs (Azure AI Search, Azure OpenAI, Blob Storage, Compute) that must b",
+  "quote": "all cloud services come with an associated cost ... Other important point of attention for adopting a solution like the one proposed in this article, is mainly ",
+  "cov": 0.294
+ },
+ {
+  "idx": 111,
+  "study_id": "SCI-000172",
+  "rq_id": "RQ3",
+  "claim_text": "Future work should prioritize designing sophisticated testing frameworks to reconfirm reliability; Agentic AI is anticip",
+  "quote": "future works should prioritize the design of sophisticated testing ways to reconfirm the reliability of the proposed solution. An evolution that can be easily a",
+  "cov": 0.0
+ },
+ {
+  "idx": 112,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ1",
+  "claim_text": "DeepWeaver maintains thought block chains (TBCs), an explicit data structure that decomposes open-ended answers into seq",
+  "quote": "We define the Thought Block Chain (TBC) as an explicit data structure that bridges retrieved evidence and final answer generation. The TBC serves as the core in",
+  "cov": 0.0
+ },
+ {
+  "idx": 113,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ1",
+  "claim_text": "The core evidence-weaving mechanism of DeepWeaver iterates over three ordered stages for refining its main TBC: Draft, S",
+  "quote": "The core mechanism of DeepWeaver (Figure 2(B)) lies in the maintenance of a main TBC TM. It updates TM through multi-stage refinement. Overall, DeepWeaver consi",
+  "cov": 0.0
+ },
+ {
+  "idx": 114,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ1",
+  "claim_text": "DeepWeaver generates final answers block-by-block from the refined TBC, a strategy that decomposes context pressure into",
+  "quote": "This block-wise generation strategy has two advantages: (1) it decomposes context pressure into claim-level generation, and (2) it improves citation grounding b",
+  "cov": 0.0
+ },
+ {
+  "idx": 115,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ1",
+  "claim_text": "To control context burden during TBC construction, the draft and subordinate stages randomly sample subsets of evidence ",
+  "quote": "Furthermore, to reduce the context burden during TBC construction, the draft and subordinate stages randomly sample r (r < |E|) evidence fragments from E and Rt",
+  "cov": 0.0
+ },
+ {
+  "idx": 116,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ1",
+  "claim_text": "Two refinement rounds over the initial TBC are sufficient to produce large answer-quality gains, and the paper sets n = ",
+  "quote": "With only two rounds of refinement over the initial TBC, DeepWeaver brings large gains. This demonstrates the efficiency of the evidence weaving mechanism.",
+  "cov": 0.0
+ },
+ {
+  "idx": 117,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ2",
+  "claim_text": "DeepWeaver evaluates citation grounding via three metrics (Citation Count, Relevant Count, Relevant Ratio) that measure ",
+  "quote": "We compute three citation metrics: (1) Citation Count (CC): |C|, (2) Relevant Count (RC): |C ∩ER|, and (3) Relevant Ratio (RR): |C ∩ER|/|C|. These metrics measu",
+  "cov": 0.0
+ },
+ {
+  "idx": 118,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ2",
+  "claim_text": "On LoQA, DeepWeaver improves citation grounding and evidence synthesis quality relative to the retrieval-augmented gener",
+  "quote": "With Qwen3-30B-A3B-Instruct-2507, DeepWeaver surpasses E-RAG by 15.5% in Argument Sufficiency, +14.7 Relevant Citations, 14.5% in Relevant Citation Ratio, and 1",
+  "cov": 0.75
+ },
+ {
+  "idx": 121,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ3",
+  "claim_text": "Evaluation on LoQA uses DeepSeek-V3.2 as the LLM judge for Argument Sufficiency and Detail Preservation (temperature 0),",
+  "quote": "For LoQA evaluation, we use DeepSeek-V3.2 as the judge for Argument Sufficiency (AS) and Detail Preservation (DP), with temperature set to 0. For DeepResearch B",
+  "cov": 0.0
+ },
+ {
+  "idx": 122,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ3",
+  "claim_text": "Ablation results show that removing TBC subordination hurts all three dimensions of evidence synthesis quality, while re",
+  "quote": "Table 2 shows that removing subordination hurts all three dimensions of evidence synthesis quality, indicating that the initial TBC is often incomplete and requ",
+  "cov": 0.0
+ },
+ {
+  "idx": 123,
+  "study_id": "SCI-000117",
+  "rq_id": "RQ3",
+  "claim_text": "DeepWeaver is limited to text-only evidence and its authors acknowledge that model-generated content still requires care",
+  "quote": "Finally, although DeepWeaver improves evidence synthesis, model-generated content still requires careful verification.",
+  "cov": 0.0
+ },
+ {
+  "idx": 125,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ1",
+  "claim_text": "The Knowledge Synthesis Review (KSR) framework decomposes evidence synthesis into four cognitive tasks (screening, extra",
+  "quote": "We introduce the Knowledge Synthesis Review (KSR), a human-in-the-loop framework that decomposes evidence synthesis into screening, extraction, analysis, and sy",
+  "cov": 0.0
+ },
+ {
+  "idx": 127,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ1",
+  "claim_text": "To limit evaluator bias, all LLM outputs in the KSR benchmark were anonymized and randomized before evaluation so that e",
+  "quote": "To limit bias toward any particular system, all model outputs were anonymized and randomized prior to evaluation, so that evaluators could not identify which sy",
+  "cov": 0.0
+ },
+ {
+  "idx": 128,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ1",
+  "claim_text": "Human oversight in KSR is embedded at every review stage (not only final synthesis) to prevent error propagation, since ",
+  "quote": "Rather than reserving human evaluation for the final synthesis stage, oversight was embedded throughout to prevent error propagation, as inaccuracies in early s",
+  "cov": 0.0
+ },
+ {
+  "idx": 129,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ1",
+  "claim_text": "KSR argues that oversight in LLM-assisted synthesis must be operationalized as auditable workflows with transparent prom",
+  "quote": "oversight must be operationalized through auditable workflows, transparent prompt and model documentation, explicit evaluation criteria, and mechanisms for pres",
+  "cov": 0.0
+ },
+ {
+  "idx": 131,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ2",
+  "claim_text": "Post-cutoff (unseen) extraction accuracy showed no decline for any system (GPT-5 86.7%, Claude 88.9%, Gemini 85.2%), all",
+  "quote": "Post-cutoff accuracy showed no decline for any system. Total post-cutoff accuracy was 86.7 percent for GPT-5, 88.9 percent for Claude, and 85.2 percent for Gemi",
+  "cov": 0.0
+ },
+ {
+  "idx": 133,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ3",
+  "claim_text": "In screening, Claude Sonnet 4 achieved the highest accuracy (82.8%) while GPT-5 achieved the highest recall (91.8%) but ",
+  "quote": "In screening, Claude Sonnet 4 achieved the most balanced performance, with an accuracy of 82.8% (Fig. 3) and the most balanced performance across metrics. ... G",
+  "cov": 0.471
+ },
+ {
+  "idx": 134,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ3",
+  "claim_text": "In extraction, all models exceeded 90% match rates for titles and publishing sources, but author attribution and referen",
+  "quote": "In extraction, all models robustly identified titles and publishing sources, with match rates exceeding 90%. Author attribution and reference identification, ho",
+  "cov": 0.0
+ },
+ {
+  "idx": 136,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ3",
+  "claim_text": "Applied to the full 1,893-document corpus, the routed KSR workflow surfaced cross-source asymmetries and blind spots (wo",
+  "quote": "Applied to the full corpus, the routed workflow surfaced cross-source asymmetries and blind spots that single-source synthesis would miss, including worker well",
+  "cov": 0.0
+ },
+ {
+  "idx": 138,
+  "study_id": "SCI-000115",
+  "rq_id": "RQ3",
+  "claim_text": "While screening reliability was high (kappa = 0.80), reliability statistics were not computed for the analysis and synth",
+  "quote": "although screening reliability was high (𝜅= 0.80), reliability statistics were not computed for the analysis and synthesis rubric scores, which were reconciled ",
+  "cov": 0.0
+ },
+ {
+  "idx": 139,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ2",
+  "claim_text": "Experimental results show that even the most advanced evaluated LLMs still generate hallucinated references despite rece",
+  "quote": "The experimental results reveal that even the most advanced models still generate hallucinated references, despite recent progress.",
+  "cov": 0.0
+ },
+ {
+  "idx": 140,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ2",
+  "claim_text": "In reference generation, Claude-3.5-Sonnet achieved the highest title search rate (St 64.82) and precision (51.59), whil",
+  "quote": "In Table 1, Claude-3.5-Sonnet achieves the highest precision, overlap rate, and St, while Llama-3.2-3B performs the worst on three metrics.",
+  "cov": 0.0
+ },
+ {
+  "idx": 142,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ2",
+  "claim_text": "All LLMs demonstrated a significant increase in reference precision when generating references within the Review Composi",
+  "quote": "compared to the Reference Generation task, all LLMs demonstrate a significant increase in precision when generating references within the Review Composition tas",
+  "cov": 0.0
+ },
+ {
+  "idx": 145,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ2",
+  "claim_text": "The automatic hallucination-assessment method was validated against human judgments: kappa agreement of 0.71 and 86% acc",
+  "quote": "The results demonstrated a kappa agreement of 0.71 between the automatic and human assessments, signifying a relatively high level of consistency and supporting",
+  "cov": 0.0
+ },
+ {
+  "idx": 146,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ3",
+  "claim_text": "The evaluation benchmark collected 1,105 human-written literature reviews from 51 journals across six disciplines (Annua",
+  "quote": "we collect 1,105 literature reviews from 51 journals across six disciplines as the ground truth. We then design three tasks for assessing LLMs in literature wri",
+  "cov": 0.091
+ },
+ {
+  "idx": 147,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ3",
+  "claim_text": "The five evaluated LLMs (Claude-3.5-Sonnet, GPT-4o, Qwen-2.5-72B, DeepSeek-V3, Llama-3.2-3B) were generated via official",
+  "quote": "We evaluate five LLMs: Claude-3.5-Sonnet-20240620, GPT-4o-2024-08-16, Qwen-2.5-72B-Instruct, DeepSeek-V3, and Llama-3.2-3B-Instruct. All model outputs were gene",
+  "cov": 0.625
+ },
+ {
+  "idx": 149,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ3",
+  "claim_text": "Reference generation performance varied significantly across disciplines: almost all models exhibited the highest precis",
+  "quote": "almost all models exhibit the highest precision in the Mathematics discipline and the lowest precision in the Chemistry discipline. To validate these difference",
+  "cov": 0.0
+ },
+ {
+  "idx": 150,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ3",
+  "claim_text": "The evaluation relies on Semantic Scholar (chosen over Google Scholar due to the latter's lack of an accessible API), wh",
+  "quote": "to verify the precision of LLM-generated references, we primarily used Semantic Scholar as our auxiliary tool. Although we also experimented with Google Scholar",
+  "cov": 0.882
+ },
+ {
+  "idx": 151,
+  "study_id": "SCI-000125",
+  "rq_id": "RQ3",
+  "claim_text": "The authors acknowledge possible test-data/training-data overlap (2023 Annual Reviews articles) and note that metrics co",
+  "quote": "there is a possibility that our test data overlaps with the training data of the LLMs. ... instead of evaluating the generated reviews from conventional perspec",
+  "cov": 0.0
+ },
+ {
+  "idx": 152,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ1",
+  "claim_text": "The system's core is a workflow orchestration engine implemented using n8n that enables sequential and conditional execu",
+  "quote": "At the core of the architecture is a workflow orchestration engine implemented using n8n, enabling sequential and conditional execution across multiple heteroge",
+  "cov": 0.0
+ },
+ {
+  "idx": 153,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ1",
+  "claim_text": "Stage S1 (request intake) logs validated requests and assigns unique identifiers to guarantee idempotent behavior, preve",
+  "quote": "Validated requests are logged and assigned unique identifiers to ensure idempotent behavior, thereby preventing duplicate processing. This stage establishes a s",
+  "cov": 0.0
+ },
+ {
+  "idx": 154,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ1",
+  "claim_text": "Stage S6 (persistence and status tracking) stores explicit processing-status indicators per record, enabling incremental",
+  "quote": "This design enables incremental execution and workflow resumption, ensuring that previously processed records are not reanalyzed.",
+  "cov": 0.0
+ },
+ {
+  "idx": 155,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ1",
+  "claim_text": "The separation of the AI-assisted analysis stage (S5) from persistence and status management (S6) is described as reinfo",
+  "quote": "The separation of AI-assisted analysis (S5) from persistence and status management (S6) reinforces transparency, accountability, and responsible use of AI.",
+  "cov": 0.0
+ },
+ {
+  "idx": 156,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ1",
+  "claim_text": "The authors state the workflow supports transparent processing, enables traceability of analytical states, and facilitat",
+  "quote": "Overall, the workflow supports transparent processing, enables traceability of analytical states, and facilitates efficient management of repeated executions.",
+  "cov": 0.0
+ },
+ {
+  "idx": 157,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ1",
+  "claim_text": "The workflow supports multiple literature-review stages (paper retrieval, preliminary screening, review management) whil",
+  "quote": "The workflow supports multiple stages of the literature review process, including paper retrieval, preliminary screening, and review management, while maintaini",
+  "cov": 0.0
+ },
+ {
+  "idx": 159,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ2",
+  "claim_text": "When abstracts were unavailable, the AI module explicitly documented the limitation and generated context-aware summarie",
+  "quote": "When abstracts were unavailable, the AI module explicitly documented this limitation and generated context-aware summaries based on available bibliographic info",
+  "cov": 0.0
+ },
+ {
+  "idx": 161,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ3",
+  "claim_text": "The AI-assisted abstract review (including abstract verification, bilingual Thai/English summarization, and structured o",
+  "quote": "The AI review process, including abstract verification, bilingual summarization (Thai and English), and structured output parsing, required 25.02 seconds per pa",
+  "cov": 0.0
+ },
+ {
+  "idx": 162,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ3",
+  "claim_text": "Stage S2 performed multi-source retrieval by querying Google Scholar and OpenAlex, retrieving and normalizing 20 candida",
+  "quote": "During Stage S2, the workflow performed a multi-source scholarly search by querying Google Scholar and OpenAlex. This design enabled the retrieval of heterogene",
+  "cov": 0.0
+ },
+ {
+  "idx": 163,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ3",
+  "claim_text": "In Stage S3, DOI-based deduplication detected no duplicate records, yielding a clean dataset of 20 unique publications.",
+  "quote": "the workflow integrated results from multiple sources and applied DOI-based deduplication in Stage S3. In the observed execution, no duplicate records were dete",
+  "cov": 0.0
+ },
+ {
+  "idx": 164,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ3",
+  "claim_text": "The authors acknowledge the absence of controlled benchmarking against manual review or alternative automation approache",
+  "quote": "The absence of controlled benchmarking against manual review processes or alternative automation approaches limits the ability to generalize the observed perfor",
+  "cov": 0.0
+ },
+ {
+  "idx": 165,
+  "study_id": "SCI-000179",
+  "rq_id": "RQ3",
+  "claim_text": "AI-intensive stage latency is expected to scale proportionally with dataset size, so scalability may become a constraint",
+  "quote": "the cumulative processing time of AI-intensive stages is expected to increase proportionally with dataset size. This suggests that scalability may become a cons",
+  "cov": 0.0
+ },
+ {
+  "idx": 168,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "Across 17,443 generated citations, no model exceeds a citation-level existence rate of 0.475, with Temporal and Combo co",
+  "quote": "Across 17,443 generated citations, no model exceeds a citation-level existence rate of 0.475; Temporal and Combo conditions produce the steepest drops while out",
+  "cov": 0.0
+ },
+ {
+  "idx": 169,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "The verification pipeline assigns a three-way label (Existing, Unresolved, Fabricated) and was audited against human lab",
+  "quote": "Our contributions are (1) a curated dataset of 144 claims spanning six academic domains (including 24 in SE & CS), (2) an automated verification pipeline with a",
+  "cov": 0.0
+ },
+ {
+  "idx": 170,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "Under the Temporal condition every model produces well-formed bibliographic entries respecting the requested year window",
+  "quote": "First, compliance without substance: under the Temporal condition every model produces well-formed bibliographic entries that respect the requested year window,",
+  "cov": 0.0
+ },
+ {
+  "idx": 171,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "Manual validation of the pipeline on a stratified sample of 100 citations gave overall agreement of 75% and Cohen's kapp",
+  "quote": "Overall agreement was 75% and Cohen's 𝜅 (pipeline vs. human) was 0.63. Precision was 0.97 for Existing and 0.88 for Fabricated, but only 0.43 for Unresolved. Th",
+  "cov": 0.0
+ },
+ {
+  "idx": 172,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "Non-Disclosure instructions redistribute rather than eliminate errors: DOI completeness drops (most pronounced for LLaMA",
+  "quote": "DOI completeness drops under Non-Disclosure (most pronounced for LLaMA, −11.4 percentage points), and because DOI is the strongest verification signal, its supp",
+  "cov": 0.0
+ },
+ {
+  "idx": 173,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "The manual audit of fabricated/unresolved citations reveals four recurring failure modes that format-level checks miss: ",
+  "quote": "Manual inspection of fabricated and unresolved citations reveals four recurring failure modes that format-level checks would not catch: · Venue laundering. A pl",
+  "cov": 0.238
+ },
+ {
+  "idx": 174,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ2",
+  "claim_text": "The paper recommends that systems surfacing LLM-generated references run post-hoc verification against multiple database",
+  "quote": "Systems surfacing LLM-generated references should run post-hoc verification against multiple databases and treat Unresolved as high risk.",
+  "cov": 0.0
+ },
+ {
+  "idx": 175,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ3",
+  "claim_text": "In the audit, only 15 of 35 'Unresolved' citations were truly unresolved; 16 of 35 were fabricated and 4 of 35 were exis",
+  "quote": "In the audit, only 15/35 'Unresolved' citations were truly unresolved; 16/35 were fabricated and 4/35 were existing (Table 1). If we proportionally reassign eac",
+  "cov": 0.0
+ },
+ {
+  "idx": 176,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ3",
+  "claim_text": "The proprietary-open-weight gap in citation existence rate is large and statistically clear (delta = +0.229 at Baseline,",
+  "quote": "The proprietary–open-weight gap is large and statistically clear (Δ = +0.229, 95% CI [0.191, 0.266]; Table 3), not explained by citation volume (≈5 per claim fo",
+  "cov": 0.0
+ },
+ {
+  "idx": 177,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ3",
+  "claim_text": "As a construct-validity threat, the pipeline relies on Crossref and Semantic Scholar, neither of which indexes everythin",
+  "quote": "Our pipeline relies on Crossref and Semantic Scholar; neither indexes everything, so some 'fabricated' labels may be false positives (e.g., preprints, workshop ",
+  "cov": 0.833
+ },
+ {
+  "idx": 178,
+  "study_id": "SCI-000144",
+  "rq_id": "RQ3",
+  "claim_text": "The paper concludes that prompt engineering alone is unlikely to solve citation hallucination and that reliable generati",
+  "quote": "These patterns suggest that prompt engineering alone is unlikely to solve citation hallucination; reliable generation will require retrieval-augmented architect",
+  "cov": 0.0
+ },
+ {
+  "idx": 179,
+  "study_id": "SCI-000141",
+  "rq_id": "RQ1",
+  "claim_text": "The TIB AIssistant enables agent communication through a centralized data store, which the authors argue makes the conte",
+  "quote": "The ability of different agents to communicate with each other can be accomplished via a centralized data store. Compared to keeping all generated content in th",
+  "cov": 0.0
+ },
+ {
+  "idx": 180,
+  "study_id": "SCI-000141",
+  "rq_id": "RQ1",
+  "claim_text": "For transparency and reproducibility, the platform requires provenance data to be recorded for all generated artifacts (",
+  "quote": "for all generated artifacts, provenance data has to be recorded, capturing the creators, model name, and model version, system and user prompts, invoked tools, ",
+  "cov": 0.0
+ },
+ {
+  "idx": 181,
+  "study_id": "SCI-000141",
+  "rq_id": "RQ1",
+  "claim_text": "External tools (Crossref, ORCID, Semantic Scholar, ORKG) are integrated into a Tool Library, called automatically by the",
+  "quote": "To ensure tools can be added dynamically, a Model Context Protocol (MCP) can be used. MCP provides a standardized approach to provide external access to LLMs. I",
+  "cov": 0.778
+ },
+ {
+  "idx": 184,
+  "study_id": "SCI-000141",
+  "rq_id": "RQ1",
+  "claim_text": "An error-tolerant interface lets users see which data is provided as input when the LLM calls a tool, helping determine ",
+  "quote": "the user should be able to see which data is provided as input when the LLM calls a tool. This helps determine whether the tool was called as expected.",
+  "cov": 0.0
+ },
+ {
+  "idx": 187,
+  "study_id": "SCI-000141",
+  "rq_id": "RQ3",
+  "claim_text": "Only domain-agnostic assistants (ideation, research questions, state-of-the-art, paper writing) are implemented in the e",
+  "quote": "Only domain-agnostic assistants are implemented in the prototype (i.e., ideation, research questions, state-of-the-art, paper writing). Outputs from, for exampl",
+  "cov": 0.0
+ },
+ {
+  "idx": 189,
+  "study_id": "SCI-000141",
+  "rq_id": "RQ3",
+  "claim_text": "The paper identifies four research challenges for AI-assisted research — lacking domain-specific AI literacy, prompt-eng",
+  "quote": "Challenge 1: lacking domain-specific AI literacy to leverage AI for research tasks effectively. Challenge 2: the skill to effectively engineer prompts and conte",
+  "cov": 0.0
+ },
+ {
+  "idx": 190,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ1",
+  "claim_text": "Stable record identifiers were preserved throughout the entire input, model-output, merging, and analysis pipeline, enab",
+  "quote": "Stable record identifiers were preserved throughout the input, model-output, merging, and analysis pipeline. During import and merging, outputs were inspected f",
+  "cov": 0.0
+ },
+ {
+  "idx": 191,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ1",
+  "claim_text": "LLM outputs were saved before being linked to human decisions or full-text outcomes, and manual post-processing was rest",
+  "quote": "LLM outputs were saved before they were linked to human decisions or full-text outcomes. Manual post-processing was restricted to identifier-based merging and f",
+  "cov": 0.0
+ },
+ {
+  "idx": 192,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ1",
+  "claim_text": "Safeguards against outcome leakage included disabling memory, processing file-batch inputs in separate conversations, re",
+  "quote": "Memory was disabled; file-batch inputs were processed in separate conversations; stable identifiers were retained throughout; and the instructions explicitly re",
+  "cov": 0.0
+ },
+ {
+  "idx": 193,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ1",
+  "claim_text": "The analysis code, benchmark input data, LLM prompts, screening outputs, and comprehensive analytical results are archiv",
+  "quote": "The analysis code, benchmark input data, LLM prompts, screening outputs, detailed statistical definitions, and comprehensive analytical results are archived in ",
+  "cov": 0.0
+ },
+ {
+  "idx": 194,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ2",
+  "claim_text": "Re-execution of proprietary hosted LLM workflows cannot be guaranteed to reproduce original outputs because the underlyi",
+  "quote": "Re-execution of the proprietary hosted LLM workflows cannot be guaranteed to reproduce the original outputs because the underlying models and web interfaces are",
+  "cov": 0.0
+ },
+ {
+  "idx": 195,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ2",
+  "claim_text": "Full-text eligibility was assessed by a single reviewer rather than multiple independent assessors, and the review lead ",
+  "quote": "Full-text eligibility was assessed by the review lead rather than by multiple independent assessors. Although workflow-specific title-and-abstract decisions wer",
+  "cov": 0.0
+ },
+ {
+  "idx": 196,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ2",
+  "claim_text": "Two nominally identical GPT-5.4 file-batch runs agreed on 91.7% of records but disagreed on 94 individual records includ",
+  "quote": "The two GPT-5.4 file-batch runs conducted under nominally identical conditions produced closely similar aggregate performance but differed at the record level. ",
+  "cov": 0.154
+ },
+ {
+  "idx": 197,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ2",
+  "claim_text": "A central implication is that the model name is an insufficient description of an LLM-based decision system; the impleme",
+  "quote": "A central implication is that the model name is an insufficient description of an LLM-based decision system. The implemented workflow also comprises input prepa",
+  "cov": 0.0
+ },
+ {
+  "idx": 198,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ3",
+  "claim_text": "No individual screening output recovered all 316 verified eligible records, and greater retention of benchmark records d",
+  "quote": "No individual screening output recovered all 316 verified eligible records, and greater retention of benchmark records did not consistently correspond to greate",
+  "cov": 0.0
+ },
+ {
+  "idx": 200,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ3",
+  "claim_text": "The study supports using LLMs as documented, auditable, and human-supervised components of evidence-synthesis workflows ",
+  "quote": "These findings support using LLMs as documented, auditable, and human-supervised components of evidence-synthesis workflows rather than as autonomous replacemen",
+  "cov": 0.0
+ },
+ {
+  "idx": 201,
+  "study_id": "SCI-000137",
+  "rq_id": "RQ3",
+  "claim_text": "Reporting should describe enough of the complete pipeline to make the evaluated system interpretable: model and interfac",
+  "quote": "Reporting should correspondingly describe enough of the complete pipeline to make the evaluated system interpretable: model and interface version, prompts, inpu",
+  "cov": 0.0
+ },
+ {
+  "idx": 202,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ1",
+  "claim_text": "DeepER-Med structures evidence-based medical research as an explicit and inspectable workflow comprising three stages—re",
+  "quote": "DeepER-Med, an agentic AI system, structures evidence-based medical research as an explicit and inspectable workflow comprising three stages: research intent in",
+  "cov": 0.0
+ },
+ {
+  "idx": 203,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ1",
+  "claim_text": "A three-layer hierarchical agentic network (worker, manager, director) preserves traceability and transparency, with 13 ",
+  "quote": "To preserve traceability and transparency, we implement a three-layer hierarchical agentic network: At the worker layer, DeepER-Med configures 13 APIs to access",
+  "cov": 0.0
+ },
+ {
+  "idx": 204,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ1",
+  "claim_text": "All cited sources are listed in the reference section in order of appearance, enabling efficient review, verification, a",
+  "quote": "All cited sources are listed in the reference section in order of appearance, enabling efficient review, verification, and downstream analysis by researchers.",
+  "cov": 0.0
+ },
+ {
+  "idx": 205,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ2",
+  "claim_text": "Hallucinated or unverifiable references are detected during expert evaluation and the corresponding response is excluded",
+  "quote": "In cases where hallucinated or unverifiable references are detected, the corresponding response is excluded and replaced with an alternative response exhibiting",
+  "cov": 0.0
+ },
+ {
+  "idx": 206,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ2",
+  "claim_text": "Blinded expert evaluation masks system identities and assigns responses for review to the author who contributed the cor",
+  "quote": "a Streamlit-based assessment workflow that masks system identities and assigns responses for review to the author who contributed the corresponding questions. T",
+  "cov": 0.0
+ },
+ {
+  "idx": 207,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ2",
+  "claim_text": "Domain experts and LLM judgment jointly validate correctness and evidence grounding of each reference answer; if either ",
+  "quote": "domain experts assess factual accuracy, logical coherence, and evidence alignment, while GPT-5.2-pro provides sentence-level judgements of consistency and evide",
+  "cov": 0.0
+ },
+ {
+  "idx": 208,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ2",
+  "claim_text": "The Gemini-3-pro LLM response component is activated only when no high-quality evidence is available, and its generated ",
+  "quote": "The LLM response component (Gemini-3-pro in our implementation) is activated only when no high-quality evidence is available. Its generated content is retained ",
+  "cov": 0.0
+ },
+ {
+  "idx": 209,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ3",
+  "claim_text": "Error analysis reveals three failure types: low logical coherence from assembling fragmented pieces, misalignment with q",
+  "quote": "Error Type Question Answer generated by DeepER-Med ... Assemble of fragmented pieces ... Misalignment with question intent ... Inclusion of outdated conclusions",
+  "cov": 0.0
+ },
+ {
+  "idx": 211,
+  "study_id": "SCI-000102",
+  "rq_id": "RQ3",
+  "claim_text": "Clinician assessment of 8 clinical cases found the system could generate conclusions consistent with tumor board recomme",
+  "quote": "Three clinicians from UIC participated throughout the entire case study process, including clinical case construction, question formulation, and evaluation of D",
+  "cov": 0.0
+ },
+ {
+  "idx": 212,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ1",
+  "claim_text": "ARIS decomposes the research workflow into five end-to-end workflows chained through plain-text artifact contracts, with",
+  "quote": "Five workflows—idea discovery, experiment bridge, auto-review, paper writing, and rebuttal—chained through plain-text artifact contracts and grouped into four r",
+  "cov": 0.0
+ },
+ {
+  "idx": 214,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ1",
+  "claim_text": "Each research capability is defined by a SKILL.md file containing YAML frontmatter followed by a natural-language workfl",
+  "quote": "Each research capability is defined primarily by a SKILL.md file, a plain-text Markdown specification that can be interpreted by multiple LLM-based coding agent",
+  "cov": 0.0
+ },
+ {
+  "idx": 215,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ2",
+  "claim_text": "Aris defaults to pairing executor and reviewer from different model families because single-model self-refinement loops ",
+  "quote": "Single-model self-refinement loops (Madaan et al., 2023; Shinn et al., 2024) have generator and validator that share inductive biases; heterogeneous multi-agent",
+  "cov": 0.0
+ },
+ {
+  "idx": 216,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ2",
+  "claim_text": "The experiment-audit stage detects five integrity failure modes: model-derived reference labels, self-normalized scores,",
+  "quote": "A cross-model reviewer audits the evaluation code and outputs against the following integrity failure modes: (1) model-derived reference labels—reference target",
+  "cov": 0.0
+ },
+ {
+  "idx": 217,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ2",
+  "claim_text": "Aris cannot guarantee that any output is correct, novel, or scientifically sound; cross-model review reduces some failur",
+  "quote": "Aris cannot guarantee that any output is correct, novel, or scientifically sound. LLM outputs can include factual hallucinations and methodological gaps; cross-",
+  "cov": 0.0
+ },
+ {
+  "idx": 219,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ3",
+  "claim_text": "The paper-claim-audit uses a zero-context fresh reviewer (new thread with no prior conversation history) to cross-check ",
+  "quote": "A fresh zero-context reviewer—implemented as a new Codex thread with no prior conversation history—reads the manuscript LATEX source together with raw result an",
+  "cov": 0.0
+ },
+ {
+  "idx": 221,
+  "study_id": "SCI-000131",
+  "rq_id": "RQ3",
+  "claim_text": "The main limitations are the absence of controlled evaluation and reliance on observational deployment evidence; future ",
+  "quote": "The main limitations are the absence of controlled evaluation and the reliance on observational deployment evidence. Future work includes compute-matched compar",
+  "cov": 0.0
+ },
+ {
+  "idx": 222,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ1",
+  "claim_text": "BioInsight uses typed artifact contracts between retrieval, reasoning, writing, and dashboard construction agents, expos",
+  "quote": "By enforcing artifact contracts between retrieval, reasoning, writing, and dashboard construction, BioInsight exposes protein, pathway, publication, and citatio",
+  "cov": 0.0
+ },
+ {
+  "idx": 223,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ1",
+  "claim_text": "An independent Search Agent decouples evidence acquisition from downstream mechanistic reasoning, so the reasoning and v",
+  "quote": "an independent Search Agent that decouples evidence acquisition from downstream mechanistic reasoning, supporting both the citation-grounded report and an inter",
+  "cov": 0.0
+ },
+ {
+  "idx": 226,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ2",
+  "claim_text": "If the Reasoning Agent returns malformed JSON the raw response is preserved as an inspectable artifact and can be retrie",
+  "quote": "If the Reasoning Agent returns malformed JSON, the raw response is preserved as an inspectable artifact and can be retried or excluded from final report assembl",
+  "cov": 0.0
+ },
+ {
+  "idx": 227,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ2",
+  "claim_text": "When no protein-protein interaction edges are found the system avoids cluster-level interpretation and instead treats pr",
+  "quote": "If no protein-protein interaction edges are found, the system avoids cluster-level interpretation and instead treats proteins individually. If a pathway is stat",
+  "cov": 0.267
+ },
+ {
+  "idx": 228,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ3",
+  "claim_text": "Retrieval can miss relevant studies, select papers that are topically related but mechanistically weak, or suffer from p",
+  "quote": "Retrieval can miss relevant studies, select papers that are topically related but mechanistically weak, or suffer from protein synonym ambiguity, incomplete dat",
+  "cov": 0.0
+ },
+ {
+  "idx": 229,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ3",
+  "claim_text": "Human evaluation used four domain experts scoring five dimensions (comprehensiveness, biomedical validity, evidence trac",
+  "quote": "The evaluation is blinded with respect to system identity, but it is still limited by the number of disease cases and expert evaluators. Biomedical interpretati",
+  "cov": 0.0
+ },
+ {
+  "idx": 230,
+  "study_id": "SCI-000128",
+  "rq_id": "RQ3",
+  "claim_text": "BioInsight achieves best QA performance, the highest expert score on BioInsight-100, and stronger expert ratings for tra",
+  "quote": "best QA performance, the highest expert score on BioInsight-100, and stronger expert ratings for traceability, ranking quality, and dashboard usability in disea",
+  "cov": 0.0
+ },
+ {
+  "idx": 231,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ1",
+  "claim_text": "TrialScout uses an LLM to classify publications based on the text of abstracts rather than relying on NCT-ID searches or",
+  "quote": "Where existing automated methods rely on NCT-ID searches or metadata matching between trial registrations and publications, TrialScout uses an LLM to classify p",
+  "cov": 0.75
+ },
+ {
+  "idx": 232,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ2",
+  "claim_text": "Manual review of 200 discrepant cases showed that 79% of initially classified false positives were in fact true positive",
+  "quote": "Of 100 false positive cases, 79 (79.0%, 95% CI, 69.7–86.5%) were in fact true positives missed by the original manual search. Of 100 false negative cases, 44 (4",
+  "cov": 0.5
+ },
+ {
+  "idx": 233,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ2",
+  "claim_text": "TrialScout's classifications are not deterministic; repeating a run can produce different results and this variability w",
+  "quote": "TrialScout has further limitations. Its classifications are not deterministic. Repeating a run can produce different results, and we did not quantify this varia",
+  "cov": 0.0
+ },
+ {
+  "idx": 234,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ2",
+  "claim_text": "Human error accounted for a larger proportion of discrepancies (61.5%) than TrialScout error across all 200 reviewed cas",
+  "quote": "Overall, across all 200 cases with discrepancies, human error accounted for a larger proportion (123/200, 61.5%, 95% CI, 54.4–68.3%) than TrialScout error.",
+  "cov": 0.143
+ },
+ {
+  "idx": 235,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ3",
+  "claim_text": "TrialScout achieved an F-score of 92.7% against the human reference standard across 5,774 trials, with sensitivity of 92",
+  "quote": "In the validation dataset, TrialScout performed well against the human reference standard (N=5,774 trials) (Table 1), F-score = 92.7%. The tool detected publish",
+  "cov": 0.059
+ },
+ {
+  "idx": 236,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ3",
+  "claim_text": "TrialScout detected published results for 63.6% of 9,600 randomly sampled trials, higher than the 53% estimated in a rec",
+  "quote": "TrialScout detected results published in a scientific journal for 63.6% (n=6,110) of a random sample of 9,600 trials. The proportion of trials with reported res",
+  "cov": 0.0
+ },
+ {
+  "idx": 237,
+  "study_id": "SCI-000056",
+  "rq_id": "RQ3",
+  "claim_text": "Performance was lowest for the DRKS registry where negative predictive value was 63.4% compared to 82.8% for ClinicalTri",
+  "quote": "Performance was lowest for DRKS, where negative predictive value was 63.4% against 82.8% for ClinicalTrials.gov. Several factors may contribute, including fewer",
+  "cov": 0.0
+ },
+ {
+  "idx": 238,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ1",
+  "claim_text": "meta-pipe comprises 10 sequential stages each implemented as a self-contained skill module with defined inputs, outputs,",
+  "quote": "meta-pipe comprises 10 sequential stages (Table 1), each implemented as a self-contained skill module with defined inputs, outputs, and quality thresholds. Each",
+  "cov": 0.0
+ },
+ {
+  "idx": 239,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ1",
+  "claim_text": "Five mandatory human decision points enforce oversight at PICO definition, screening disagreement resolution, analysis t",
+  "quote": "Human decision points are embedded at five junctures: (1) PICO definition and eligibility criteria; (2) screening disagreement resolution; (3) analysis type sel",
+  "cov": 0.0
+ },
+ {
+  "idx": 240,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ1",
+  "claim_text": "Manuscript assembly reads effect estimates directly from R output files to prevent hallucination of statistical results,",
+  "quote": "Manuscript assembly uses Quarto templates for each IMRaD section, reading effect estimates directly from R output files to prevent hallucination of statistical ",
+  "cov": 0.0
+ },
+ {
+  "idx": 241,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ2",
+  "claim_text": "Title and abstract screening uses a test-retest reliability approach with two independent LLM screening passes at temper",
+  "quote": "Title and abstract screening employs a test-retest reliability approach: the LLM performs two independent screening passes at temperature 0.3, and agreement is ",
+  "cov": 0.0
+ },
+ {
+  "idx": 242,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ2",
+  "claim_text": "Automated overclaim detection scans generated manuscript text for 12 predefined patterns including causal language for n",
+  "quote": "The automated overclaim detection system (Stage 09) scans generated manuscript text for the following 12 patterns: 1. Causal language for non-randomized data ..",
+  "cov": 0.333
+ },
+ {
+  "idx": 244,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ3",
+  "claim_text": "No validation data are reported; this is a system description not a validation study, and formal validation reproducing ",
+  "quote": "No validation data are reported; this is a system description, not a validation study. Formal validation reproducing published Cochrane reviews is underway and ",
+  "cov": 0.375
+ },
+ {
+  "idx": 245,
+  "study_id": "SCI-000142",
+  "rq_id": "RQ3",
+  "claim_text": "The pipeline deviates from PRISMA 2020 Item 11d which recommends at least two independent extractors, and the default se",
+  "quote": "This deviates from PRISMA 2020 Item 11d, which recommends at least two independent extractors. The default selection does not include CENTRAL or Embase, standar",
+  "cov": 0.5
+ },
+ {
+  "idx": 246,
+  "study_id": "SCI-000089",
+  "rq_id": "RQ1",
+  "claim_text": "The LLM-based system automatically extracted and summarized structured data from research paper PDFs using OpenAI's o3 m",
+  "quote": "The intervention group used an LLM-based system to automatically extract and summarize structured data from research paper PDFs using OpenAI's o3 model via Open",
+  "cov": 0.375
+ },
+ {
+  "idx": 247,
+  "study_id": "SCI-000089",
+  "rq_id": "RQ1",
+  "claim_text": "No task-specific training, fine-tuning, or few-shot examples were used, and the LLM is used only for summarizing article",
+  "quote": "No task-specific training, fine-tuning, or few-shot examples were used. The temperature parameter was not set because it was not supported by the o3 model in ou",
+  "cov": 0.0
+ },
+ {
+  "idx": 248,
+  "study_id": "SCI-000089",
+  "rq_id": "RQ2",
+  "claim_text": "Data extraction accuracy was 100% in both LLM and manual conditions as assessed by an independent evaluator who was unaw",
+  "quote": "Based on expert review of the intended meaning of each extracted item, accuracy was 100% in both conditions (LLM 9/9; no LLM 11/11). Comparative modeling was no",
+  "cov": 0.368
+ },
+ {
+  "idx": 250,
+  "study_id": "SCI-000089",
+  "rq_id": "RQ3",
+  "claim_text": "The study was powered to detect a 10-minute difference but the observed difference was 7.9 minutes with greater within-g",
+  "quote": "the study was powered to detect a 10-minute difference; however, the observed difference was 7.9 minutes with greater within-group variability than assumed, sug",
+  "cov": 0.429
+ },
+ {
+  "idx": 251,
+  "study_id": "SCI-000089",
+  "rq_id": "RQ3",
+  "claim_text": "Formal output stability under repeated prompting was not assessed, though potential run-to-run variability did not affec",
+  "quote": "we did not formally assess output stability under repeated prompting. However, potential run-to-run variability did not affect the trial exposure because all LL",
+  "cov": 0.0
+ },
+ {
+  "idx": 252,
+  "study_id": "SCI-000089",
+  "rq_id": "RQ3",
+  "claim_text": "The system requires manual downloading of PDF files meaning full automation of the evidence synthesis workflow has not y",
+  "quote": "our LLM-assisted system requires the manual downloading of PDF files, indicating that full automation of the evidence synthesis workflow has not yet been achiev",
+  "cov": 0.227
+ },
+ {
+  "idx": 254,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ1",
+  "claim_text": "OpenScholar is described as the first fully open, retrieval-augmented LM specifically designed for scientific research t",
+  "quote": "to our knowledge the first fully open, retrieval-augmented LM specifically designed for scientific research tasks. OpenScholar integrates a domain-specialized d",
+  "cov": 0.0
+ },
+ {
+  "idx": 255,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ1",
+  "claim_text": "OpenScholar can enhance off-the-shelf LMs: when GPT-4o is used as the underlying model, OpenScholar-GPT-4o achieves a 12",
+  "quote": "Furthermore, OpenScholar's use of smaller, efficient retrievers substantially reduced costs. The OpenScholar pipeline can also enhance off-the-shelf LMs. For ex",
+  "cov": 0.0
+ },
+ {
+  "idx": 256,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ1",
+  "claim_text": "The self-feedback inference loop, reranking and retrieval are core components that evaluation demonstrates as important ",
+  "quote": "Our extensive evaluations demonstrate the importance of the core components of OpenScholar, including reranking, self-feedback and",
+  "cov": 0.0
+ },
+ {
+  "idx": 258,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ2",
+  "claim_text": "OpenScholar produces citation-backed, retrievable responses by identifying relevant passages from the open-access corpus",
+  "quote": "a specialized retrieval-augmented language model (LM)1 that answers scientific queries by identifying relevant passages from 45 million open-access papers and s",
+  "cov": 0.0
+ },
+ {
+  "idx": 259,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ2",
+  "claim_text": "ScholarQABench introduces a rigorous evaluation protocol combining automatic metrics such as citation accuracy with huma",
+  "quote": "ScholarQABench introduces a rigorous evaluation pro-tocol combining automatic metrics (for example, citation accuracy) with human rubric-based assessments of co",
+  "cov": 0.818
+ },
+ {
+  "idx": 260,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ3",
+  "claim_text": "Despite being a smaller open model, OpenScholar-8B outperforms GPT-4o by 6.1% and PaperQA2 by 5.5% in correctness on a c",
+  "quote": "Despite being a smaller open model, OpenScholar-8B outperforms  GPT-4o by 6.1% and PaperQA2 by 5.5% in correctness on a challenging multi-paper synthesis task f",
+  "cov": 0.0
+ },
+ {
+  "idx": 261,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ3",
+  "claim_text": "ScholarQABench is the first large-scale multi-domain benchmark for literature search, comprising 2,967 expert-written qu",
+  "quote": "we develop ScholarQABench, the first large-scale multi-domain benchmark for literature search, comprising 2,967 expert-written queries and 208 long-form answers",
+  "cov": 0.0
+ },
+ {
+  "idx": 263,
+  "study_id": "SCI-000154",
+  "rq_id": "RQ3",
+  "claim_text": "OpenScholar systems match or surpass expert humans in both answer correctness and citation accuracy, despite expert huma",
+  "quote": "Furthermore, although expert human performance exceeds that of GPT-4o and other competitive baselines, OpenScholar systems match or surpass expert humans in bot",
+  "cov": 0.0
+ },
+ {
+  "idx": 264,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ1",
+  "claim_text": "The AI co-scientist is designed as a multi-representational platform integrating relational databases, vector-based sema",
+  "quote": "We designed a multi-representational platform integrating relational databases, vector-based semantic retrieval, and a Neo4j knowledge graph, evaluated on demen",
+  "cov": 0.143
+ },
+ {
+  "idx": 265,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ1",
+  "claim_text": "The platform embeds explicit PICOS formalization and explainable NLP into evidence synthesis workflows to improve scalab",
+  "quote": "This AI co-scientist demonstrates that embedding PICOS-aware, explainable NLP into evidence synthesis workflows can improve scalability, transparency, and effic",
+  "cov": 0.0
+ },
+ {
+  "idx": 266,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ1",
+  "claim_text": "Full-text synthesis employs retrieval-augmented generation (RAG) with hybrid vector and graph-based retrieval, and RAG o",
+  "quote": "RAG outperformed non-retrieval generation for queries requiring structured constraints, cross-study integration, and graph-based reasoning, whereas non-RAG appr",
+  "cov": 0.0
+ },
+ {
+  "idx": 268,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ2",
+  "claim_text": "On the NCD corpus, Kernel achieved 95% agreement with expert inclusion/exclusion judgments and three-way concordance amo",
+  "quote": "Kernel and the prompted LLM each achieved 95% agreement with expert judgments, and three-way concordance among Kernel, the LLM, and the human assessor reached 9",
+  "cov": 0.0
+ },
+ {
+  "idx": 269,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ2",
+  "claim_text": "Machine-human discord in screening was largely attributable to missing or weakly articulated PICOS elements rather than ",
+  "quote": "Most disagreements were concentrated in abstracts with underspecified PICOS elements, where experts themselves expressed uncertainty, indicating that discordanc",
+  "cov": 0.0
+ },
+ {
+  "idx": 270,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ2",
+  "claim_text": "In study design classification, the Cochrane classifier achieved perfect sensitivity (100%) for identifying RCTs but low",
+  "quote": "the Cochrane classifier achieved perfect sensitivity (100%) for identifying randomized controlled trials (RCTs) but low specificity (42%). This imbalance result",
+  "cov": 0.25
+ },
+ {
+  "idx": 273,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ3",
+  "claim_text": "On the Dementia-Sport dataset the Bi-LSTM baseline achieved 87% accuracy for identifying PICOS-compliant abstracts, illu",
+  "quote": "On the Dementia-Sport dataset, the Bi-LSTM baseline achieved an accu-racy of 87% for identifying PICOS-compliant abstracts. While substantially less expressive ",
+  "cov": 0.0
+ },
+ {
+  "idx": 274,
+  "study_id": "SCI-000138",
+  "rq_id": "RQ3",
+  "claim_text": "Topic modeling using BERTopic identified thematic structure, redundancy, and evidence gaps, revealing substantial themat",
+  "quote": "Topic mod-eling using BERTopic identified thematic structure, redundancy, and evidence gaps. Performance was assessed via classification metrics, expert review,",
+  "cov": 0.0
+ },
+ {
+  "idx": 276,
+  "study_id": "SCI-000108",
+  "rq_id": "RQ2",
+  "claim_text": "The study reports a case where the LLM hallucinated the study design, labeling an abstract as a 'Randomized controlled t",
+  "quote": "instance, the LLM \"hallucinated\" the study design, indicating that the abstract described a \"Randomized controlled trial\", when there was no mention of random a",
+  "cov": 0.0
+ },
+ {
+  "idx": 278,
+  "study_id": "SCI-000108",
+  "rq_id": "RQ2",
+  "claim_text": "In the PICO prediction study participants and intervention/control showed high accuracy (greater than 80%), while outcom",
+  "quote": "The results shown in Figure 4 show a similar trend to the human clinical studies in figure 2. The quality of automatic participant and intervention/control enti",
+  "cov": 0.0
+ },
+ {
+  "idx": 279,
+  "study_id": "SCI-000108",
+  "rq_id": "RQ3",
+  "claim_text": "Overall results indicated extraction accuracy of around 80%, with variability across domains: 82% for human clinical, 80",
+  "quote": "Overall, 260 pieces of information were extracted from the 30 studies in the test set. 78% (n=194) were adjudged to be completely correct; 13% (n=32) partially ",
+  "cov": 0.0
+ },
+ {
+  "idx": 280,
+  "study_id": "SCI-000108",
+  "rq_id": "RQ3",
+  "claim_text": "Evaluation of the extraction was done manually, and automatic scoring methods such as BLEU and ROUGE showed limited valu",
+  "quote": "We also computed BLEU6 and ROUGE7 scores between gold-standard labels and the LLM answers. These scores are commonly used to evaluate automatic summarisation an",
+  "cov": 0.095
+ },
+ {
+  "idx": 281,
+  "study_id": "SCI-000108",
+  "rq_id": "RQ3",
+  "claim_text": "The study observed variability in the LLM's predictions and changes in response quality, indicating instability in outpu",
+  "quote": "We found that responses for \"Boolean\" and \"Number\" questions were entirely stable. However, for \"String\" questions, answers were identical only 69% of the time,",
+  "cov": 0.0
+ },
+ {
+  "idx": 283,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ1",
+  "claim_text": "BIORESEARCHER is a scenario-guided multi-agent system in which a master orchestrator selects a versioned scenario playbo",
+  "quote": "A master orchestrator selects a versioned scenario playbook, decomposes the query, and delegates to specialized, state-isolated subagents that publish provenanc",
+  "cov": 0.0
+ },
+ {
+  "idx": 285,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ1",
+  "claim_text": "The system applies claim-level multi-model reconciliation before editorial assembly, using claim extraction, cross-model",
+  "quote": "reconciles outputs via structured claim-level debate-claim extraction, cross-model grouping, multi-round argumentation, and quantitative consensus detection-for",
+  "cov": 0.0
+ },
+ {
+  "idx": 286,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ1",
+  "claim_text": "The paper states that general-purpose foundation models and off-the-shelf tool-augmented or multi-agent systems fall sho",
+  "quote": "General-purpose foundation models and off-the-shelf tool-augmented or multi-agent systems are not built for this: they tend to produce single-shot answers or ru",
+  "cov": 0.0
+ },
+ {
+  "idx": 287,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ3",
+  "claim_text": "BIORESEARCHER obtains the best overall single-step pass rate (83.49%) and average judge score (0.892) on the 109-questio",
+  "quote": "BIORESEARCHER obtains the best overall single-step pass rate (83.49%) and average judge score (0.892) on the 109-question suite (Table 1), surpassing the specia",
+  "cov": 0.0
+ },
+ {
+  "idx": 288,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ3",
+  "claim_text": "On open-ended analysis benchmarks, BIORESEARCHER reaches 89.33% accuracy on BixBench and a mean score of 0.758 +/- 0.005",
+  "quote": "On BixBench, BIORESEARCHER reaches 89.33% accuracy on the full set and 81.82% on the human-biology subset, competitive with package-augmented coding agents (Tab",
+  "cov": 0.611
+ },
+ {
+  "idx": 289,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ3",
+  "claim_text": "On the 30-query clinical end-to-end benchmark, BIORESEARCHER achieves the highest positive hit rate (74.7% +/- 3.3%) and",
+  "quote": "On the end-to-end benchmark, BIORESEARCHER achieves the highest positive hit rate (74.7% +/- 3.3%; Table 3) and the highest negative clear rate (96.8% +/- 0.2%)",
+  "cov": 0.25
+ },
+ {
+  "idx": 290,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ3",
+  "claim_text": "BIORESEARCHER is not uniformly dominant at every layer: CellType achieves a higher L2 pass rate (77.48% vs 68.47-74.77%)",
+  "quote": "At the same time, BIORESEARCHER is not uniformly dominant at every layer: CellType achieves a higher L2 pass rate (77.48% vs. 68.47-74.77%) on qualitative-synth",
+  "cov": 0.0
+ },
+ {
+  "idx": 291,
+  "study_id": "SCI-000126",
+  "rq_id": "RQ3",
+  "claim_text": "The authors state that these results do not imply orchestration alone solves autonomous biological discovery, but that a",
+  "quote": "These results do not imply that orchestration alone solves autonomous biological discovery. Rather, they show that a translational agent can retain competitive ",
+  "cov": 0.0
+ },
+ {
+  "idx": 293,
+  "study_id": "SCI-000181",
+  "rq_id": "RQ1",
+  "claim_text": "Domain-specific optimizations such as biomedical entity recognition, relationship extraction and specialized embeddings ",
+  "quote": "Domain-specific optimizations such as biomedical entity recognition, relationship extraction, and specialized embeddings further enhance performance across dive",
+  "cov": 0.0
+ },
+ {
+  "idx": 296,
+  "study_id": "SCI-000181",
+  "rq_id": "RQ3",
+  "claim_text": "Benchmark testing against standardized datasets including BioASQ shows the integrated LLM+RAG approach achieves good acc",
+  "quote": "Benchmark testing against standardized datasets including BioASQ, a community-organized challenge for biomedical semantic indexing and question answering, demon",
+  "cov": 0.0
+ },
+ {
+  "idx": 298,
+  "study_id": "SCI-000181",
+  "rq_id": "RQ1",
+  "claim_text": "Traditional keyword-based search tools like PubMed lack the semantic understanding to answer nuanced questions or summar",
+  "quote": "Traditional keyword-based search tools like PubMed provide access to vast repositories but lack the semantic understanding to answer nuanced questions or summar",
+  "cov": 0.0
+ },
+ {
+  "idx": 299,
+  "study_id": "SCI-000152",
+  "rq_id": "RQ3",
+  "claim_text": "Compared to the benchmark ratings, accuracy and specificity were above 90% for the human rater and both LLMs, while sens",
+  "quote": "GPT-4o Mini (94.31%) has slightly outperformed Claude 3.5 Sonnet (92.25%) in specificity. However, the Claude Sonnet model had remarkably higher sensitivity at ",
+  "cov": 0.0
+ },
+ {
+  "idx": 301,
+  "study_id": "SCI-000152",
+  "rq_id": "RQ3",
+  "claim_text": "Combining the three different ratings revealed that 17.1% of the articles had to be rescreened due to discrepancies (152",
+  "quote": "After screening the abstracts, 80 articles were selected for full text screening by the human rater. The results of the human rater and two LLMs were compared a",
+  "cov": 0.0
+ },
+ {
+  "idx": 303,
+  "study_id": "SCI-000152",
+  "rq_id": "RQ2",
+  "claim_text": "The study finds that the human rater and both LLMs performed poorly in sensitivity, especially GPT-4o Mini, meaning they",
+  "quote": "The human rater and both LLMs performed poorly in sensitivity, especially GPT-4o Mini, meaning that they failed to include all relevant articles. For SLRs, low ",
+  "cov": 0.045
+ },
+ {
+  "idx": 305,
+  "study_id": "SCI-000152",
+  "rq_id": "RQ3",
+  "claim_text": "The LLM-assisted screening required almost half of the time and costs than the screening completed by two human raters, ",
+  "quote": "The LLM-assisted screening required almost half of the time and costs than the screening completed by two human raters. However, the two human raters outperform",
+  "cov": 0.0
+ },
+ {
+  "idx": 307,
+  "study_id": "SCI-000152",
+  "rq_id": "RQ3",
+  "claim_text": "The authors recommend conducting title/abstract screening with two human raters if budget and time constraints allow, ac",
+  "quote": "We recommend conducting the title/abstract screening task with two human raters if the budget and time constraints allow for it, accompanied by LLMs to correct ",
+  "cov": 0.0
+ },
+ {
+  "idx": 308,
+  "study_id": "SCI-000152",
+  "rq_id": "RQ1",
+  "claim_text": "A limitation noted is that timing the entire screening process for two raters would have provided more reliable results,",
+  "quote": "Our current study gives a close estimation of performance, but timing the entire process for two raters would have provided more reliable results. A well-planne",
+  "cov": 0.0
+ },
+ {
+  "idx": 310,
+  "study_id": "SCI-000106",
+  "rq_id": "RQ1",
+  "claim_text": "The paper argues that current LLM-assisted SLR approaches rely on brittle, manually crafted prompts that compromise reli",
+  "quote": "current approaches often rely on brittle, manually crafted prompts that compromise reliability and reproducibility. This fragility undermines scientific confide",
+  "cov": 0.0
+ },
+ {
+  "idx": 312,
+  "study_id": "SCI-000106",
+  "rq_id": "RQ1",
+  "claim_text": "The paper notes that LLM performance is highly sensitive to the phrasing of input prompts, making LLM-assisted workflows",
+  "quote": "LLMs show significant promise for automating SLR tasks, but their performance is highly sensitive to the phrasing of input prompts. This \"prompt fragility\" make",
+  "cov": 0.0
+ },
+ {
+  "idx": 314,
+  "study_id": "SCI-000106",
+  "rq_id": "RQ1",
+  "claim_text": "The framework replaces manual, ad-hoc 'prompt alchemy' with a rigorous, four-step programmatic process: formally definin",
+  "quote": "It replaces manual, ad-hoc \"prompt alchemy\" with a rigorous, four-step programmatic process: (1) formally defining the research goal, (2) codifying the quality ",
+  "cov": 0.0
+ },
+ {
+  "idx": 316,
+  "study_id": "SCI-000106",
+  "rq_id": "RQ2",
+  "claim_text": "The technical example fixes parameters to maximise deterministic responses, setting temperature 0.0 and seed 42 within a",
+  "quote": "The conceptual blueprint described in Box 1 can be implemented using programmatic LLM tools like DSPy. The following Python code provides a minimal functional e",
+  "cov": 0.05
+ },
+ {
+  "idx": 317,
+  "study_id": "SCI-000106",
+  "rq_id": "RQ1",
+  "claim_text": "The paper identifies that model updates can invalidate previously crafted prompts and break reliable pipelines, while cr",
+  "quote": "Model updates can invalidate previously crafted prompts and break reliable pipelines, while cross-model behaviour and accuracy diverges significantly using iden",
+  "cov": 0.0
+ },
+ {
+  "idx": 319,
+  "study_id": "SCI-000181",
+  "rq_id": "RQ2",
+  "claim_text": "Automated fact-checking processes that verify claims against retrieved evidence improved response accuracy, and comprehe",
+  "quote": "Implementation of automated fact-checking processes that verify claims against retrieved evidence improved response accuracy in controlled evaluations. Addition",
+  "cov": 0.0
+ },
+ {
+  "idx": 320,
+  "study_id": "SCI-000181",
+  "rq_id": "RQ1",
+  "claim_text": "The system uses biomedical-specific vector embeddings trained on massive corpora of biomedical text, with comparative ev",
+  "quote": "Generation of biomedical-specific embeddings involves training or fine-tuning embedding models on massive corpora of biomedical text, resulting in vector repres",
+  "cov": 0.0
+ },
+ {
+  "idx": 323,
+  "study_id": "SCI-000108",
+  "rq_id": "RQ3",
+  "claim_text": "The automated data extraction never reached 100% accuracy in any area or study across the three domains, with the highes",
+  "quote": "In no areas, and in no studies, did the automated data extraction reach 100%. However, the highest accuracy was for the extraction of country, and this was corr",
+  "cov": 0.0
+ },
+ {
+  "idx": 324,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ1",
+  "claim_text": "HySemRAG implements an eight-stage ETL pipeline integrated with a multi-agent RAG framework rather than a single monolit",
+  "quote": "HySemRAG implements an eight-stage ETL pipeline integrated with a multi-agent RAG framework.",
+  "cov": 0.0
+ },
+ {
+  "idx": 325,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ1",
+  "claim_text": "The framework creates a chain of custody for every piece of information, combining semantic search (Qdrant), keyword sea",
+  "quote": "The core of the framework creates a chain of custody for every piece of information. This begins with a hybrid retrieval engine that goes beyond simple vector s",
+  "cov": 0.0
+ },
+ {
+  "idx": 327,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ2",
+  "claim_text": "HySemRAG performs post-hoc citation verification in combination with an agentic self-correction framework with iterative",
+  "quote": "The system addresses limitations in existing RAG architectures through a multi-layered approach: hybrid retrieval combining semantic search, keyword filtering, ",
+  "cov": 0.0
+ },
+ {
+  "idx": 329,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ2",
+  "claim_text": "A multi-agent validation loop uses a generator LLM to draft cited answers and a secondary QA agent LLM to audit factual ",
+  "quote": "It implements a multi-agent system where a primary “generator” LLM drafts a cited answer, and a secondary “QA agent” LLM audits that output for factual accuracy",
+  "cov": 0.0
+ },
+ {
+  "idx": 330,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ3",
+  "claim_text": "Structured field extraction achieved 35.1% higher semantic similarity than PDF chunking, statistically significant at p ",
+  "quote": "Evaluation across 643 observations from 60 testing sessions demonstrates structured field extraction achieving 35.1% higher semantic similarity scores (0.655 ± ",
+  "cov": 0.364
+ },
+ {
+  "idx": 332,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ3",
+  "claim_text": "Field-level citation accuracy was imperfect across all components, with DOI matching at 74.4% and in-text citations at 7",
+  "quote": "Citation component analysis revealed field-level accuracy: DOI matching (74.4%), in-text citations (73.9%), full citation formatting (73.9%), and Zotero key mat",
+  "cov": 0.0
+ },
+ {
+  "idx": 333,
+  "study_id": "SCI-000100",
+  "rq_id": "RQ3",
+  "claim_text": "The system exhibited temporal instability with performance declining at -1.9% per day over the evaluation period, an arc",
+  "quote": "The system exhibited temporal instability with performance declining at -1.9% per day over the evaluation period.",
+  "cov": 0.0
+ },
+ {
+  "idx": 334,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ1",
+  "claim_text": "AutoSynthesis is an end-to-end multi-agent framework that automates the complete meta-analysis workflow from literature ",
+  "quote": "In this work, we introduced AUTOSYNTHESIS, an end-to-end multi-agent framework that automates the complete meta-analysis workflow, from literature retrieval and",
+  "cov": 0.0
+ },
+ {
+  "idx": 335,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ1",
+  "claim_text": "AutoSynthesis records traceable audit logs and intermediate outputs, including screening decisions, eligibility judgment",
+  "quote": "AUTOSYNTHESIS records traceable audit logs and intermediate outputs, including screening decisions, eligibility judgments, extracted statistics, and effect size",
+  "cov": 0.0
+ },
+ {
+  "idx": 336,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ1",
+  "claim_text": "The modular, multi-agentic design allows users to start the workflow at later stages, for example when updating an exist",
+  "quote": "The modular, multi-agentic design also allows users to start the workflow at later stages, for example, when updating an existing meta-analysis for which parts ",
+  "cov": 0.0
+ },
+ {
+  "idx": 338,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ2",
+  "claim_text": "AutoSynthesis performs study-level risk-of-bias assessment following ROBINS-I, covering bias from confounding through se",
+  "quote": "Study-level risk-of-bias assessment following ROINS-I [32], where the assessment is varies from low to high concern.",
+  "cov": 0.0
+ },
+ {
+  "idx": 339,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ2",
+  "claim_text": "Automated heterogeneity diagnostics and publication bias tests were broadly comparable to the human benchmark, finding s",
+  "quote": "both the between-study heterogeneity analysis and the publication bias diagnostics were also broadly comparable between the automated and human syntheses: both ",
+  "cov": 0.0
+ },
+ {
+  "idx": 340,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ3",
+  "claim_text": "AutoSynthesis's evidence base showed substantial agreement with the human benchmark, with recall of 71.4% and precision ",
+  "quote": "five of the seven studies included in the human meta-analysis were also included by AUTOSYNTHESIS, corresponding to a recall of 71.4%. At the same time, AUTOSYN",
+  "cov": 0.071
+ },
+ {
+  "idx": 341,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ3",
+  "claim_text": "AutoSynthesis's random-effects meta-analysis produced a pooled effect of Hedges' g = 0.143 (95% CI [0.059, 0.226], p < 0",
+  "quote": "The resulting random-effects meta-analysis estimated a pooled effect of Hedges' g = 0.143 (95% CI [0.059, 0.226], p < 0.001; Fig. 2c)",
+  "cov": 0.286
+ },
+ {
+  "idx": 342,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ3",
+  "claim_text": "The observed differences from the benchmark primarily originated from literature retrieval rather than downstream statis",
+  "quote": "The observed differences between AUTOSYNTHESIS and the published benchmark primarily originated from literature retrieval rather than downstream statistical ana",
+  "cov": 0.0
+ },
+ {
+  "idx": 343,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ3",
+  "claim_text": "AutoSynthesis is not positioned as a replacement for expert reviewers; the human element remains integral to formulating",
+  "quote": "Importantly, we do not view AUTOSYNTHESIS as a replacement for expert reviewers. The human element remains integral to many stages of the meta-analysis workflow",
+  "cov": 0.688
+ },
+ {
+  "idx": 344,
+  "study_id": "SCI-000135",
+  "rq_id": "RQ3",
+  "claim_text": "Evaluation is limited by the number of benchmark meta-analyses and cannot establish robust performance across all potent",
+  "quote": "First, our evaluation is limited by the number of benchmark meta-analyses. Hence, although the results demonstrate the feasibility of automated meta-analysis, t",
+  "cov": 0.0
+ },
+ {
+  "idx": 345,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ1",
+  "claim_text": "TrialMind incorporates RAG to enrich context with knowledge sourced from PubMed and employs chain-of-thought processing ",
+  "quote": "TrialMind incorporates RAG to enrich the context with knowledge sourced from PubMed and employs CoT processing to facilitate a more exhaustive generation of rel",
+  "cov": 0.0
+ },
+ {
+  "idx": 346,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ1",
+  "claim_text": "TrialMind follows PRISMA for transparent screening, creating eligibility criteria based on the input PICO as the basis f",
+  "quote": "TrialMind follows PRISMA to take a transparent approach to study screening. It creates a set of eligibility criteria based on the input PICOas the basis for stu",
+  "cov": 0.0
+ },
+ {
+  "idx": 347,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ1",
+  "claim_text": "Result extraction uses a specialized three-step pipeline: identifying relevant content, extracting and logically process",
+  "quote": "This enhanced pipeline consists of three crucial steps: (1) identifying the relevant content within the study (Prompt in Supplementary Fig. 11), (2) extracting ",
+  "cov": 0.0
+ },
+ {
+  "idx": 348,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ2",
+  "claim_text": "Extracted values include indices that link back to their locations in the source content, enabling easy checking and cor",
+  "quote": "Hence, it is convenient to check and correct mistakes made in the extraction by sourcing the origin.",
+  "cov": 0.0
+ },
+ {
+  "idx": 349,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ2",
+  "claim_text": "TrialMind generates and executes Python code for result standardization, keeping the calculation process transparent and",
+  "quote": "Additionally, it ensures that the calculation process remains transparent, enhancing the reliability and reproducibility of the synthesized evidence.",
+  "cov": 0.0
+ },
+ {
+  "idx": 351,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ3",
+  "claim_text": "Study search performance is assessed using overall Recall to evaluate effectiveness in identifying all relevant studies ",
+  "quote": "In study search experiments, we assessed performance using the overall Recall, aiming to evaluate the effectiveness of different methods in identifying all rele",
+  "cov": 0.0
+ },
+ {
+  "idx": 352,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ3",
+  "claim_text": "Citation screening is evaluated with Recall@20 and Recall@50, where TrialMind greatly improved ranking performances over",
+  "quote": "We evaluated the ranking performance using the Recall@20 and Recall@50 metrics. We found that TrialMind greatly improved ranking performances, with the fold cha",
+  "cov": 0.0
+ },
+ {
+  "idx": 353,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ3",
+  "claim_text": "Human annotators evaluated forest plots in a win/lose assessment, determining how closely each generated plot aligned wi",
+  "quote": "The annotators were required to determine how closely each generated plot aligned with a reference forest plot taken from the target review paper. Additionally,",
+  "cov": 0.0
+ },
+ {
+  "idx": 354,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ3",
+  "claim_text": "Data extraction performs well for study design and population-related fields but extracting study results presents chall",
+  "quote": "Our analysis indicates that data extraction generally performs well for study design and population-related fields; however, extracting study results",
+  "cov": 0.0
+ },
+ {
+  "idx": 355,
+  "study_id": "SCI-000109",
+  "rq_id": "RQ3",
+  "claim_text": "A vanilla prompting strategy with GPT-4 and Sonnet models served as the baseline for result extraction, with baseline ou",
+  "quote": "We designed a vanilla prompting strategy for GPT-4 and Sonnet models to set the baselines for the result extraction.",
+  "cov": 0.0
+ },
+ {
+  "idx": 356,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ1",
+  "claim_text": "Bio-SIEVE uses QLoRA fine-tuning on the LLaMA-7b and Guanaco-7B models trained on the Instruct Cochrane train split.",
+  "quote": "We used QLoRA fine-tuning to train LLaMA7b and Guanaco7B on the Instruct Cochrane Train split.",
+  "cov": 0.0
+ },
+ {
+  "idx": 357,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ1",
+  "claim_text": "The evaluation benchmark is safety-first, rewarding cautious models with high include recall and using professional syst",
+  "quote": "This results in a benchmark that rewards cautious models with high include recall.",
+  "cov": 0.0
+ },
+ {
+  "idx": 358,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ1",
+  "claim_text": "The paper highlights reproducibility concerns arising from the opacity of closed-source models in systematic review auto",
+  "quote": "is in addition to reproducibility concerns arising from the opacity of closed-source models",
+  "cov": 0.0
+ },
+ {
+  "idx": 359,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ2",
+  "claim_text": "Multi-task training harms include/exclude classification performance, with hallucinations hypothesized because exclusion",
+  "quote": "We generally find that for multi-task models, cross-task transfer between PIO, Exclusion reasoning and Include/Exclude classification harms performance. We spec",
+  "cov": 0.0
+ },
+ {
+  "idx": 361,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ2",
+  "claim_text": "ChatGPT performance varies greatly across review topics, drawing into question its generality and requiring assessment o",
+  "quote": "Our models perform consistently across review topics whereas ChatGPT performance varies greatly. For ”Genetic Disorders” ChatGPT results are significantly below",
+  "cov": 0.0
+ },
+ {
+  "idx": 362,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ3",
+  "claim_text": "The best performing model, Guanaco7B (Single), achieved 0.82 accuracy on the test set while ChatGPT achieved 0.6 accurac",
+  "quote": "Our best performing model, Guanaco7B (Single), achieved 0.82 accuracy on the Test Set. By comparison, ChatGPT achieved 0.6 accuracy.",
+  "cov": 0.0
+ },
+ {
+  "idx": 363,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ3",
+  "claim_text": "Inter-rater agreement between two independent experts ranking exclusion reasons reached r=.84 for the Guanaco7B variant ",
+  "quote": "Agreement via Pearson’s correlation coefficient between our two independent experts was r=.84 for our Guanaco7B variant, r=.42 for our LLaMA7b variant and r=.62",
+  "cov": 0.0
+ },
+ {
+  "idx": 365,
+  "study_id": "SCI-000111",
+  "rq_id": "RQ3",
+  "claim_text": "Single-task models were higher performing, with Guanaco7B-Single outperforming all other models by at least 0.07 accurac",
+  "quote": "The single-task models tended to be include recall oriented and higher performing with the Guanaco7B- Single variant outperforming all our other models by at le",
+  "cov": 0.0
+ },
+ {
+  "idx": 366,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ1",
+  "claim_text": "Four state-of-the-art LLMs as of September 2025 (GPT-4o, GPT-4o-mini, GPT-o3, GPT-5) were evaluated on 14 binary methodo",
+  "quote": "In this study, we evaluated four state-of-the-art language models’ (as of September 2025) ability to predict the binary labels across the 14 categories",
+  "cov": 0.0
+ },
+ {
+  "idx": 367,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ1",
+  "claim_text": "Two complementary prompting strategies were used: BASIC prompts requesting direct binary responses, and DETAILED prompts",
+  "quote": "We implemented two complementary prompting strategies: BASIC prompts, which requested direct binary (Yes/No) responses without explanations, and DETAILED prompt",
+  "cov": 0.0
+ },
+ {
+  "idx": 368,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ2",
+  "claim_text": "Gold-standard labels rest on expert consensus, with each article independently evaluated by two reviewers who engaged in",
+  "quote": "Whenever reviewers disagreed on the answer, they engaged in a structured reconciliation process: each reviewer provided written, evidence-based justifications, ",
+  "cov": 0.0
+ },
+ {
+  "idx": 369,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ2",
+  "claim_text": "Errors commonly resulted from superficial linguistic cues, with models frequently misinterpreting keywords like longitud",
+  "quote": "Errors commonly resulted from superficial linguistic cues—for instance, models frequently misinterpreted keywords like “longitudinal” or “sensitivity” as automa",
+  "cov": 0.0
+ },
+ {
+  "idx": 370,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ2",
+  "claim_text": "Identifying post-exposure controls proved particularly challenging, with LLM precision (0.15–0.30) far below the best hu",
+  "quote": "Identifying whether the model included post- exposure controls proved particularly challenging: despite high accuracy (>0.86), F1 scores were low (<0.37) due to",
+  "cov": 0.091
+ },
+ {
+  "idx": 371,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ3",
+  "claim_text": "Individual human reviewers averaged 88.8% accuracy and 57.1% F1, while advanced reasoning LLMs achieved 87.5% accuracy a",
+  "quote": "individual human reviewers (before reconciliation) averaged 88.8% accuracy and 57.1% F1 when compared to the gold standard labels. Advanced reasoning LLMs (GPT-",
+  "cov": 0.0
+ },
+ {
+  "idx": 372,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ3",
+  "claim_text": "LLM accuracy declined with article length: top-accuracy articles averaged 623 words versus 3,089 words for the bottom qu",
+  "quote": "Articles in the top accuracy quintile (highest 20%) averaged only 623 words, whereas those in the bottom accuracy quintile (lowest 20%) averaged significantly l",
+  "cov": 0.0
+ },
+ {
+  "idx": 373,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ3",
+  "claim_text": "Performance was strongest for explicitly stated criteria, moderate for structural requirements, and weakest for inferenc",
+  "quote": "LLM performance was strongest for explicitly stated criteria (randomization, covariates), moderate for structural requirements (temporal ordering, baseline adju",
+  "cov": 0.0
+ },
+ {
+  "idx": 374,
+  "study_id": "SCI-000124",
+  "rq_id": "RQ3",
+  "claim_text": "Detailed prompting significantly improved identification of causal mediation methods (GPT-5: F1 +0.30; GPT-o3: F1 +0.35)",
+  "quote": "Specifically, detailed prompting significantly improved performance in identifying studies that explicitly used causal mediation  methods (GPT-5: F1 +0.30; GPT-",
+  "cov": 0.0
+ },
+ {
+  "idx": 376,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ1",
+  "claim_text": "Every API call is logged locally in structured JSON with model identity, token counts, latency, retry count, and initiat",
+  "quote": "Every API call is logged locally in structured JSON: model identity, input/output token counts, call latency, retry count, and the initiating phase and agent. C",
+  "cov": 0.0
+ },
+ {
+  "idx": 378,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ1",
+  "claim_text": "LUMEN automates six SR/MA phases end-to-end with automated RoB-2/ROBINS-I and GRADE assessment in addition to statistica",
+  "quote": "LUMEN automates six phases end-to-end—search strategy, title–abstract screening, full-text review, structured extraction, statistical synthesis, and manuscript ",
+  "cov": 0.0
+ },
+ {
+  "idx": 379,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ2",
+  "claim_text": "Title-abstarct screening employs a dual-screener mechanism with two independent models scoring on a five-point scale and",
+  "quote": "Phase 3.1 (Title–Abstract Screening) employs a dual-screener mechanism: two independent models (Gemini 3.1 Pro and GPT-4.1 Mini) each assign a five-point releva",
+  "cov": 0.0
+ },
+ {
+  "idx": 380,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ2",
+  "claim_text": "Screening benchmark results demonstrate that model ranking is domain-dependent and not transferable across review topics",
+  "quote": "A two-dataset screening benchmark demonstrates that model ranking is domain-dependent and not transferable across review topics.",
+  "cov": 0.0
+ },
+ {
+  "idx": 381,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ3",
+  "claim_text": "Total pipeline cost ranged from $19.51 to $29.04 across five domain reviews with a median of $22.65, establishing the fi",
+  "quote": "Total cost ranged from $19.51 (D3, 46 included studies) to $29.04 (D5, 11 included studies), with a median of $22.65",
+  "cov": 0.0
+ },
+ {
+  "idx": 383,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ3",
+  "claim_text": "Across 13 ground-truth-comparable outcomes LUMEN achieved 100% directional agreement with published meta-analyses, with ",
+  "quote": "Across 13 ground-truth-comparable outcomes, the pipeline achieved 100% directional agreement with published meta-analyses. Effect magnitude concordance was stro",
+  "cov": 0.0
+ },
+ {
+  "idx": 384,
+  "study_id": "SCI-000118",
+  "rq_id": "RQ3",
+  "claim_text": "A three-arm extraction ablation reveals a phase-dependent architecture reversal: multi-agent design hurts screening but ",
+  "quote": "A three-arm extraction ablation reveals a phase-dependent architecture reversal: multi-agent design hurts screening but is essential for extraction, producing 5",
+  "cov": 0.0
+ },
+ {
+  "idx": 386,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ1",
+  "claim_text": "The RAG approach builds a custom OpenAI Assistant with the SciTLDR dataset as the LLM knowledge base with retrieval enab",
+  "quote": "The third procedure utilizes the RAG-based approach by using the Large Language Model: GPT-3.5-TURBO-0125. The first task is to create a custom OpenAI Assistant",
+  "cov": 0.0
+ },
+ {
+  "idx": 387,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ1",
+  "claim_text": "The primary objective is a system that automatically generates the literature review segment of a research paper using o",
+  "quote": "The primary objective of this research is to develop a system that can automatically generate the literature review segment of a research paper by using only th",
+  "cov": 0.0
+ },
+ {
+  "idx": 388,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ2",
+  "claim_text": "Generated summaries are required to mention the first author's name and paper title, providing basic attribution groundi",
+  "quote": "Please mention the first author’s name and paper title.",
+  "cov": 0.0
+ },
+ {
+  "idx": 389,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ2",
+  "claim_text": "The pipeline merges assistant responses per paper into a final review segment without any described verification or cros",
+  "quote": "Then the response from the assistant is retrieved and the outputs of each paper are merged for the final literature review segment.",
+  "cov": 0.0
+ },
+ {
+  "idx": 391,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ3",
+  "claim_text": "GPT-3.5-turbo achieved the highest ROUGE-1 score of 0.364 versus 0.268 for T5 and 0.257 for spaCy, showing better unigra",
+  "quote": "The overall ROUGE-1 score for the LLM is 0.364 while the score for T5 is 0.268 and spaCy is 0.257. It shows that the LLM-generated summaries have better unigram",
+  "cov": 0.0
+ },
+ {
+  "idx": 392,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ3",
+  "claim_text": "The LLM-based approach is proven to be the best-performing one based on ROUGE-N scores across all compared NLP technique",
+  "quote": "Based on the comparisons, the LLM-based approach is proven to be the best-performing one based on ROUGE-N scores.",
+  "cov": 0.0
+ },
+ {
+  "idx": 393,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ3",
+  "claim_text": "User evaluation of the LLM-based UI used only four research articles as input, with no quantitative metrics or inter-rat",
+  "quote": "The user evaluation was performed on the LLM-based UI system. The user chose 4 research articles as input.",
+  "cov": 0.0
+ },
+ {
+  "idx": 394,
+  "study_id": "SCI-000156",
+  "rq_id": "RQ3",
+  "claim_text": "Future work is scoped to extending the GUI and adding more models such as BERT, Gemini, and LLaMA rather than adding ver",
+  "quote": "More functionality can be added to the Graphical User Interface such as model options, output size, etc. More models such as Bert, Gemini, and LLaMA can be util",
+  "cov": 0.0
+ },
+ {
+  "idx": 395,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ1",
+  "claim_text": "EcoXAI is organized around discrete, auditable pipelines rather than a single monolithic agent, spanning ingestion, EDA,",
+  "quote": "EcoXAI is organized around discrete, auditable pipelines rather than a single monolithic agent.",
+  "cov": 0.0
+ },
+ {
+  "idx": 396,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ1",
+  "claim_text": "Each pipeline step is auditable with its own logging of agent behavior, scripts, images, and reports.",
+  "quote": "Each step is auditable with its own logging of agent behavior, scripts, images, and reports.",
+  "cov": 0.0
+ },
+ {
+  "idx": 397,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ1",
+  "claim_text": "A microservices architecture using Docker containers ensures portability and reproducible performance across diverse com",
+  "quote": "EcoXAI’s architecture is built upon modern software engineering principles, employing a microservices approach facilitated by Docker containers. This containeri",
+  "cov": 0.0
+ },
+ {
+  "idx": 398,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ1",
+  "claim_text": "Discovery memory stores prior hypotheses and validation outcomes in semantic vector format, enabling RAG-based similarit",
+  "quote": "EcoXAI stores prior hypotheses, validation outcomes, and supporting evidence. The hypotheses are stored in a semantic vector format, enabling the ability to per",
+  "cov": 0.0
+ },
+ {
+  "idx": 399,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ2",
+  "claim_text": "Integration with public biological knowledge graphs grounds analyses in established biological knowledge, reducing the r",
+  "quote": "A key feature is EcoXAI's integration with public biological knowledge graphs, which grounds analyses in established biological knowledge within the graph, redu",
+  "cov": 0.0
+ },
+ {
+  "idx": 401,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ2",
+  "claim_text": "Each hypothesis was independently evaluated against a randomized baseline of 1,000 XGBoost models trained on random gene",
+  "quote": "Each hypothesis was independently evaluated against a randomized baseline consisting of 1,000 XGBoost models trained on random gene sets containing up to 100 ge",
+  "cov": 0.0
+ },
+ {
+  "idx": 402,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ3",
+  "claim_text": "Of 103 candidate drugs evaluated, 79 produced models exceeding the randomized baseline AUC of 0.582, indicating knowledg",
+  "quote": "Of the 103 candidate drugs evaluated, 79 produced models exceeding the randomized baseline AUC of 0.582, indicating that their corresponding knowledge graph der",
+  "cov": 0.0
+ },
+ {
+  "idx": 403,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ3",
+  "claim_text": "The Maraviroc hypothesis achieved a cross-validated XGBoost AUC of 0.6013 on the 20% test split, explicitly excluding al",
+  "quote": "Starting from experimentally validated drug targets, EcoXAI queried AlzKB to construct a 77-gene interaction network while explicitly excluding all Alzheimer’s ",
+  "cov": 0.0
+ },
+ {
+  "idx": 404,
+  "study_id": "SCI-000082",
+  "rq_id": "RQ3",
+  "claim_text": "A local Qwen 3.6 27B model running continuously for two days generated and evaluated 103 hypotheses, avoiding an estimat",
+  "quote": "Using a local Qwen 3.6 27B model running continuously for two days, which would have otherwise cost over $300 using Anthropic’s Sonnet 4.6 token pricing, EcoXAI",
+  "cov": 0.0
+ },
+ {
+  "idx": 405,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ1",
+  "claim_text": "EvoScientist formulates multi-agent evolution as a core requirement for end-to-end scientific discovery, explicitly trea",
+  "quote": "This motivates the formulation of multi-agent evolution as a core requirement for end-to-end scientific discovery, where interaction histories are treated as a ",
+  "cov": 0.75
+ },
+ {
+  "idx": 406,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ1",
+  "claim_text": "The EvoScientist experiment-execution stage is designed to yield verifiable outputs (logs and metrics) and to produce a ",
+  "quote": "Stage 2 (Experiment Execution) validates 𝑃by searching for and running executable code 𝐶to yield verifiable outputs (e.g., logs and metrics) and to produce an e",
+  "cov": 0.0
+ },
+ {
+  "idx": 407,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ1",
+  "claim_text": "The engineer agent's experiment tree search stores a structured execution record per attempt that includes run status, l",
+  "quote": "is a structured execution record that includes run status, logs, and evaluation metrics. The best-performing code at each stage is selected as:",
+  "cov": 0.833
+ },
+ {
+  "idx": 408,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ1",
+  "claim_text": "A dedicated Evolution Manager Agent (EMA) implements three self-evolution mechanisms — idea direction, idea validation, ",
+  "quote": "The evolution manager agent (EMA) converts interaction histories into reusable strategies so that the system can learn from outcomes and failures and improve bo",
+  "cov": 0.0
+ },
+ {
+  "idx": 411,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ2",
+  "claim_text": "Peer-review feedback on EvoScientist-generated manuscripts exposed protocol-level issues (ambiguities in stability gatin",
+  "quote": "Reviewer feedback also identified several internal- consistency and protocol-level issues, including ambiguities in stabil- ity gating, metric reporting, and ba",
+  "cov": 0.0
+ },
+ {
+  "idx": 413,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ3",
+  "claim_text": "Ablation shows that removing all idea evolution mechanisms degrades idea quality substantially on novelty (loses in 80.0",
+  "quote": "When removing all idea evolution (-all), perfor- mance degrades on Novelty (Lose: 80.00%) and Feasibility (Lose: 83.33%). In contrast, the differences are less ",
+  "cov": 0.0
+ },
+ {
+  "idx": 415,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ3",
+  "claim_text": "Under human expert evaluation, EvoScientist achieved a Novelty win rate of 82.50% and a Feasibility win rate of 64.17% a",
+  "quote": "Averaged across four represen- tative comparisons (InternAgent, AI Scientist-v2, Novix, and K-Dense), EvoScientist achieves a Novelty win rate of 82.50% and a F",
+  "cov": 0.0
+ },
+ {
+  "idx": 416,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ3",
+  "claim_text": "The LLM-based automatic evaluation framework for idea generation was validated against human experts on 120 idea pairs, ",
+  "quote": "Overall judgment agreement reached 90.0% (108/120). Among individual dimensions, Clarity achieved the highest agreement rate of 90.8% (109/120), followed by Nov",
+  "cov": 0.0
+ },
+ {
+  "idx": 417,
+  "study_id": "SCI-000186",
+  "rq_id": "RQ3",
+  "claim_text": "Named limitation: EvoScientist is only evaluated on computational research tasks; generalization to domains requiring ph",
+  "quote": "Generalization to domains that require physical experimentation (e.g., materials science and drug discov- ery) remains open, and will require integration with l",
+  "cov": 0.0
+ },
+ {
+  "idx": 418,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ1",
+  "claim_text": "EligMeta separates LLM-based reasoning/orchestration from deterministic, version-controlled execution of numerically cri",
+  "quote": "To ensure reproducibility and transparency, EligMeta employs a hybrid architecture: LLMs provide high-level reasoning and orchestration for natural language und",
+  "cov": 0.0
+ },
+ {
+  "idx": 419,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ1",
+  "claim_text": "All intermediate outputs — rule sets, function plans, parsed field values, and trial-level filtering outcomes — are logg",
+  "quote": "All intermediate outputs, including rule sets, function plans, parsed field values, and trial-level filtering outcomes, are logged to provide a complete audit t",
+  "cov": 0.0
+ },
+ {
+  "idx": 420,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ1",
+  "claim_text": "In the meta-analysis stage, LLM usage is restricted to penalty-rule specification and schema-constrained parsing, while ",
+  "quote": "LLM usage is restricted to penalty rule specification and schema-constrained parsing, while penalty evaluation, score transformation, and statistical estimation",
+  "cov": 0.0
+ },
+ {
+  "idx": 422,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ1",
+  "claim_text": "The generated rule set is surfaced for expert review before execution, allowing conditions to be inspected and refined s",
+  "quote": "The rule set is surfaced for expert review prior to execution, allowing conditions to be inspected and refined to ensure alignment with clinical intent.",
+  "cov": 0.0
+ },
+ {
+  "idx": 425,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ3",
+  "claim_text": "In a head-to-head landscape analysis, the agentic coding system Codex returned 28 trials (only 7 NCCN-covered) and viola",
+  "quote": "In addition, the Codex output included the FLX475 trial (NCT04768686), despite FLX475 not being FDA-approved, thereby violating the predefined inclusion criteri",
+  "cov": 0.0
+ },
+ {
+  "idx": 426,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ3",
+  "claim_text": "For the gastric cancer query, EligMeta reduced 4,044 ClinicalTrials.gov trials to 700 after generic pre-filtering and th",
+  "quote": "The initial query to ClinicalTrials.gov returns 4,044 trials. After generic pre-filtering, the candidate set is reduced to 700 trials. The six rules are then ap",
+  "cov": 0.0
+ },
+ {
+  "idx": 427,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ3",
+  "claim_text": "Among the 39 selected gastric-cancer trials, 13 are explicitly cited in the NCCN guideline's targeted therapy / immunoth",
+  "quote": "Among the 39 trials, 13 are explicitly cited in the National Comprehensive Cancer Network (NCCN) guideline [24]",
+  "cov": 0.0
+ },
+ {
+  "idx": 428,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ3",
+  "claim_text": "Eligibility-aware weighting shifted the pooled risk ratio for olaparib-related all-grade vomiting from 2.18 (95% CI 1.71",
+  "quote": "Under classical precision-based MH weighting, the pooled risk ratio is 𝜃̂MH=2.18 (95% CI 1.71–2.79). Under eligibility-aware weighting: 𝜃̂EW −MH=1.97 (95% CI 1.",
+  "cov": 0.125
+ },
+ {
+  "idx": 429,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ3",
+  "claim_text": "Eligibility-aware reweighting increased Golan 2019's contribution from 13.6% to 34.6% (best population alignment) while ",
+  "quote": "Under eligibility-aware weighting, Golan 2019's display weight increases from 13.6% to 34.6% due to its perfect alignment with the target population, while Moor",
+  "cov": 0.0
+ },
+ {
+  "idx": 430,
+  "study_id": "SCI-000122",
+  "rq_id": "RQ3",
+  "claim_text": "Named limitation: the framework depends on accurate extraction/structuring of eligibility criteria (bounded by trial rep",
+  "quote": "First, the framework depends on accurate extraction and structuring of eligibility criteria, which may be limited by inconsistencies in trial reporting quality.",
+  "cov": 0.0
+ },
+ {
+  "idx": 431,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ1",
+  "claim_text": "LGAR's output parsing is engineered for determinism and reproducibility: temperature 0, regular-expression extraction of",
+  "quote": "Output Parsing. To make the responses as de- terministic and reproducible as possible, we use a temperature of 0. The scores are extracted using regular express",
+  "cov": 0.0
+ },
+ {
+  "idx": 433,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ1",
+  "claim_text": "For fair comparison, the authors replicate the QA-based baseline with open-weights embeddings and a temperature of 0 ins",
+  "quote": "To in- crease reproducibility, we use a temperature of 0 instead of 0.2 as in the original work.",
+  "cov": 0.0
+ },
+ {
+  "idx": 434,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ2",
+  "claim_text": "The authors report a trust risk: since LLMs can perpetuate and amplify training-data biases, LGAR may inadvertently rein",
+  "quote": "Furthermore, since LLMs can perpetuate and amplify biases present in the training data, LGAR may inadvertently reinforce these biases when rank- ing abstracts. ",
+  "cov": 0.0
+ },
+ {
+  "idx": 436,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ3",
+  "claim_text": "The manual extraction of inclusion/exclusion criteria and research questions for the benchmark was validated with a seco",
+  "quote": "For the 15 SLRs in our validation study, the first and second author each extracted 23 research questions, which matched exactly. This high inter- rater agreeme",
+  "cov": 0.0
+ },
+ {
+  "idx": 437,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ3",
+  "claim_text": "Named risk of the approach: applying LGAR to define a cut-off in the ranked list could cause a relevant paper to be over",
+  "quote": "When using this approach in conducting an SLR, the main risk is to overlook a paper that is relevant to the research questions being addressed in the SLR.",
+  "cov": 0.0
+ },
+ {
+  "idx": 439,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ3",
+  "claim_text": "On the TAR2019 dataset, LGAR (T+R, monoT5) achieves MAP 50.6 versus 45.1 for the replicated QA-based baseline (Akinseloy",
+  "quote": "Akinseloyin et al. (ours) † 45.1 70.8 26.8 57.5 72.9 83.4 96.6 66.1 53.0 LGAR (T, monoT5) † 48.4 76.4 26.0 60.9 75.7 86.8 96.2 69.9 61.1 LGAR (T+R, monoT5) 50.6",
+  "cov": 0.2
+ },
+ {
+  "idx": 440,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ3",
+  "claim_text": "Chain-of-thought prompting did not improve LGAR's ranking performance, suggesting graded relevance generation without st",
+  "quote": "CoT prompting. Instructing the model to think step by step does not improve the performance of LGAR.",
+  "cov": 0.25
+ },
+ {
+  "idx": 441,
+  "study_id": "SCI-000164",
+  "rq_id": "RQ3",
+  "claim_text": "Ablation shows the dense re-ranker (monoT5) contributes workload savings by rescuing articles the LLM scored too low, yi",
+  "quote": "Nevertheless, the dense re-ranker contributes to workload savings by mov- ing up articles that were incorrectly assigned a low relevance score by the LLM, which",
+  "cov": 0.0
+ },
+ {
+  "idx": 444,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ1",
+  "claim_text": "MedMeta's synthesis workflows are orchestrated with LangGraph, open-weights inference is optimized with vLLM, and closed",
+  "quote": "Implementation. Workflow orchestration was implemented with LangGraph LangChain (2024), and inference of open-weights models was optimized using vLLM Kwon et al",
+  "cov": 0.0
+ },
+ {
+  "idx": 445,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ1",
+  "claim_text": "The benchmark defines six distinct synthesis workflows varying input type (parametric vs. retrieved), reasoning strategy",
+  "quote": "The benchmark includes six distinct synthesis workflows varying in input type (parametric vs. retrieved), reasoning strategy (zero-shot vs. chain-of-thought), a",
+  "cov": 0.0
+ },
+ {
+  "idx": 446,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ1",
+  "claim_text": "Reproducibility is supported by releasing source code, step-by-step reproduction scripts, the preprocessed dataset, and ",
+  "quote": "To facilitate reproducibility, we will release the source code and scripts in an anonymous repository during the review process. The repository will include: (i",
+  "cov": 0.0
+ },
+ {
+  "idx": 447,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ2",
+  "claim_text": "A universal vulnerability is documented: every tested model, when fed systematically negated (factually inverted) abstra",
+  "quote": "Despite being provided with factually inverted and contradictory information, every model proceeded to synthesize these incorrect claims into a coherent but fal",
+  "cov": 0.0
+ },
+ {
+  "idx": 448,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ2",
+  "claim_text": "The authors conclude that current models act as 'obedient synthesizers rather than critical reasoners', lacking the abil",
+  "quote": "This finding empirically confirms the vulnerability of RAG systems to faulty evidence and demonstrates that current models act as obedient synthesizers rather t",
+  "cov": 0.0
+ },
+ {
+  "idx": 449,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ2",
+  "claim_text": "The RAG paradigm's susceptibility to noisy or factually incorrect retrievals is flagged: models often uncritically synth",
+  "quote": "A further limitation of the RAG paradigm is its susceptibility to noisy or factually incorrect retrievals Zhang & Gao (2024); Fang et al. (2024). Current models",
+  "cov": 0.0
+ },
+ {
+  "idx": 451,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ3",
+  "claim_text": "Even under ideal oracle retrieval (G-RAG), the top-performing model Gemini Flash 2.5 reaches only 3.16 on a 0–5 scale (3",
+  "quote": "Gemini Flash 2.5 2.10 2.90 ± 0.21 3.16 ± 0.18 3.03 ± 0.16 3.17 ± 0.18 1.01 ± 0.19",
+  "cov": 0.0
+ },
+ {
+  "idx": 452,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ3",
+  "claim_text": "The LLM-as-a-Judge protocol was validated against human medical experts, yielding strong Pearson correlations (r = 0.65–",
+  "quote": "Strong Pearson correlations emerged across all models and workflows (r = 0.65-0.81, p < 0.01; Table 3), demonstrating a positive relationship human experts and ",
+  "cov": 0.0
+ },
+ {
+  "idx": 453,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ3",
+  "claim_text": "Information-grounding hypothesis (H2) was confirmed: G-RAG conclusions were rated significantly superior to P-CoT across",
+  "quote": "In all tested conditions, conclusions generated via the G-RAG workflow were rated as significantly superior to those from the P-CoT approach (Table 4). This fin",
+  "cov": 0.0
+ },
+ {
+  "idx": 454,
+  "study_id": "SCI-000127",
+  "rq_id": "RQ3",
+  "claim_text": "Domain adaptation (H3) shows no statistically significant advantage for domain-fine-tuned MedGemma over Gemma when RAG p",
+  "quote": "In the G-RAG setting, we observed no statistically significant performance difference between MedGemma and Gemma, as evaluated by either experts or LLM judges (",
+  "cov": 0.0
+ },
+ {
+  "idx": 457,
+  "study_id": "SCI-000114",
+  "rq_id": "RQ1",
+  "claim_text": "vitaLITy 2 manages LLM context and conversation state through prompt chaining: a first API call produces a 'condensed co",
+  "quote": "we adopt a two-step approach in VITALITY 2: first, a summary of recent con- versations is generated by calling the LLM API once to obtain a “condensed conversat",
+  "cov": 0.0
+ },
+ {
+  "idx": 458,
+  "study_id": "SCI-000114",
+  "rq_id": "RQ1",
+  "claim_text": "The tool combines RAG with prompt chaining, implemented with the LangChain open-source library, breaking complex literat",
+  "quote": "Prompt Chaining. Prompt chaining breaks down complex tasks to a series of smaller steps and provides specific prompts that are known to be effective for each of",
+  "cov": 0.0
+ },
+ {
+  "idx": 462,
+  "study_id": "SCI-000114",
+  "rq_id": "RQ2",
+  "claim_text": "A documented hallucination episode shows the raw LLM citing a paper absent from the corpus, and — when asked for additio",
+  "quote": "when asking for additional relevant papers on the topic of grounded theory (implying that they come from the VITALITY 2 corpus), the LLM responded with some pap",
+  "cov": 0.0
+ },
+ {
+  "idx": 464,
+  "study_id": "SCI-000114",
+  "rq_id": "RQ3",
+  "claim_text": "Based on own testing consistent with prior benchmarks, OpenAI ADA embeddings performed better than GloVe and SPECTER on ",
+  "quote": "Based on our own testing and con- sistent with prior benchmarks [25], we found ADA embeddings to perform better than GloVe and SPECTER on VITALITY 2 features.",
+  "cov": 0.0
+ },
+ {
+  "idx": 465,
+  "study_id": "SCI-000114",
+  "rq_id": "RQ3",
+  "claim_text": "Named limitation: LLM-generated literature summaries are 'far from sufficient' for direct paper inclusion because the co",
+  "quote": "First, while using LLMs to summarize a set of papers can be a useful starting point for a literature review, the quality of the output is far from sufficient fo",
+  "cov": 0.0
+ },
+ {
+  "idx": 466,
+  "study_id": "SCI-000114",
+  "rq_id": "RQ3",
+  "claim_text": "Context-window limits are identified as a design constraint: token limits (e.g., 16K tokens for GPT-3.5) can restrict an",
+  "quote": "More recent ver- sions have a larger limit, e.g., up to 16K tokens for GPT 3.5 [11]. However, this can still limit analyses involving a large corpus of papers, ",
+  "cov": 0.0
+ },
+ {
+  "idx": 467,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ1",
+  "claim_text": "The system orchestrates data flow across multiple backends: LangGraph routes multi-step queries to the appropriate data ",
+  "quote": "LangGraph: Directs complex, multi-step queries to the appropriate data store (graph, relational, or vector) while minimizing hallucinations by verifying documen",
+  "cov": 0.0
+ },
+ {
+  "idx": 469,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ1",
+  "claim_text": "A continuously updated 'living' database structure lets the review reflect near real-time shifts in the evidence base, a",
+  "quote": "This system's living database structure updates continuously, ensuring that reviews reflect near real-time shifts in the evidence base.",
+  "cov": 0.0
+ },
+ {
+  "idx": 470,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ2",
+  "claim_text": "The LangGraph module minimized hallucination by mapping retrieved texts back to the original user queries, drastically r",
+  "quote": "The LangGraph module proved successful at minimizing off-target references. By mapping retrieved texts back to original user queries, the system drastically red",
+  "cov": 0.0
+ },
+ {
+  "idx": 471,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ2",
+  "claim_text": "A Bi-LSTM model trained on an extended PubMed-PICO dataset identifies whether an abstract conforms to PICOS standards, a",
+  "quote": "PICO Compliance: A Bi-LSTM model, trained on an extended PubMed-PICO dataset [10], identifies whether a given abstract conforms to PICOS standards.",
+  "cov": 0.0
+ },
+ {
+  "idx": 472,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ2",
+  "claim_text": "Named trust limitation: verifying the trustworthiness of newly incorporated studies in the live database demands structu",
+  "quote": "Verification Overheads: While continuous updates ensure currency, verifying the trustworthiness of new studies demands structured pipelines or human oversight.",
+  "cov": 0.0
+ },
+ {
+  "idx": 473,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ3",
+  "claim_text": "In expert review, 75% of RAG-augmented responses met or exceeded expert expectations for relevance, accuracy, and suffic",
+  "quote": "Overall, 75% of RAG-augmented responses met or exceeded expert expectations, with:",
+  "cov": 0.0
+ },
+ {
+  "idx": 474,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ3",
+  "claim_text": "In the RAG-vs-GPT-4 comparison breakdown, RAG-based GPT-3.5 excelled on 25% of queries (especially relationship-centric ",
+  "quote": "25% where RAG-based GPT-3.5 excelled, especially for relationship-centric queries leveraging Neo4j. 20% where GPT-4's broader generative capacity performed bett",
+  "cov": 0.0
+ },
+ {
+  "idx": 475,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ3",
+  "claim_text": "The Bi-LSTM PICOS-compliance model achieved 87% accuracy in identifying PICOS-compliant abstracts, helping curators avoi",
+  "quote": "The Bi-LSTM model recorded an accuracy of 87% in identifying PICOS-compliant abstracts.",
+  "cov": 0.0
+ },
+ {
+  "idx": 476,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ3",
+  "claim_text": "On a validation study of 164 references, the hierarchical study-design classifier achieved precision 91.4%, recall 100%,",
+  "quote": "Metric Precision Recall Specificity Accuracy Value 91.4% 100% 92.2% 95.7%",
+  "cov": 0.0
+ },
+ {
+  "idx": 478,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ3",
+  "claim_text": "Named limitations include dependence of classification/clustering accuracy on training-data quality (with diminished per",
+  "quote": "Data Quality and Representativeness: The accuracy of classification models and topic clustering heavily depends on the quality and diversity of training data. U",
+  "cov": 0.0
+ },
+ {
+  "idx": 479,
+  "study_id": "SCI-000110",
+  "rq_id": "RQ3",
+  "claim_text": "Formal usability assessments are called essential before the system's real-world utility can be established — a clear ev",
+  "quote": "Formal usability assessments and iterative improvements will be essential to refine the interface and outputs.",
+  "cov": 0.0
+ },
+ {
+  "idx": 481,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ1",
+  "claim_text": "LLAssist implements Chain-of-Thought as a two-step pipeline — key-semantics extraction followed by self-consistency-base",
+  "quote": "In LLAssist, CoT is simulated through two main steps: 1. Extract Key Semantics: The model helps to generate intermediate reasoning steps, expanding on key conce",
+  "cov": 0.0
+ },
+ {
+  "idx": 482,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ1",
+  "claim_text": "LLAssist supports both local models provisioned via Ollama (Llama 3, Gemma 2) and cloud models (GPT-3.5, GPT-4), letting",
+  "quote": "This flexibility allows researchers to choose models based on their specific requirements, such as processing speed, accuracy, or data privacy concerns.",
+  "cov": 0.0
+ },
+ {
+  "idx": 483,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ2",
+  "claim_text": "The authors argue that reliance on closed, proprietary AI systems compromises reproducibility, and position LLAssist as ",
+  "quote": "Without transparent, open-source tools for AI-assisted literature review, researchers face potential limita- tions in research transparency and replicability th",
+  "cov": 0.0
+ },
+ {
+  "idx": 484,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ2",
+  "claim_text": "Consumer LLM interfaces such as ChatGPT are reported to face significant challenges in output reliability and consistenc",
+  "quote": "Yet, various consumer LLM interfaces such as ChatGPT encountered significant challenges in ensuring reliability and consistency of outputs, adhering to rigorous",
+  "cov": 0.0
+ },
+ {
+  "idx": 485,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ2",
+  "claim_text": "LLAssist requires its LLMs to output reasoning for every relevance/contribution judgment, which doubles as a cognitive f",
+  "quote": "The LLMs have to output their reasoning to help the researchers in manually discriminating the articles [Vasconcelos et al., 2023] and can be also part of cogni",
+  "cov": 0.0
+ },
+ {
+  "idx": 487,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ3",
+  "claim_text": "Cost evaluation: GPT-4o costs approximately $3.16 per 100 articles, GPT-3.5 about $0.22 per 100 articles, while locally-",
+  "quote": "Cost-wise, GPT-4o is the most expensive at approximately $3.16 per 100 articles while GPT-3.5 offers a more budget-friendly option at about $0.22 per 100 articl",
+  "cov": 0.0
+ },
+ {
+  "idx": 488,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ3",
+  "claim_text": "GPT-3.5-turbo showed the least discrimination across research questions, consistently overestimating relevance and riski",
+  "quote": "GPT-3.5-turbo-0125 consistently shows high relevance scores and classifications across all research questions and datasets. It demonstrates the least discrimina",
+  "cov": 0.0
+ },
+ {
+  "idx": 489,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ3",
+  "claim_text": "Llama 3:8B displayed significant inconsistency between relevance scores and binary classifications, leading the authors ",
+  "quote": "Llama 3:8B exhibits a significant discrepancy between its relevance scores and binary classifications. In binary classification, it's the most conservative and ",
+  "cov": 0.0
+ },
+ {
+  "idx": 490,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ3",
+  "claim_text": "On the large Scopus dataset (2,576 articles), LLAssist flagged 324 articles (12.6%) as must-read but only 100 (3.9%) as ",
+  "quote": "While 324 articles (12.6%) are identified as must-read, only 100 articles (3.9%) are classified as potentially contributing.",
+  "cov": 0.0
+ },
+ {
+  "idx": 491,
+  "study_id": "SCI-000151",
+  "rq_id": "RQ3",
+  "claim_text": "The authors concede the accuracy assessment was conducted in an uncontrolled environment and position LLAssist as a ligh",
+  "quote": "It is important to note that the assessment of accuracy in matching papers to relevant research questions and the ability to provide meaningful insights and rea",
+  "cov": 0.0
+ },
+ {
+  "idx": 493,
+  "study_id": "SCI-000007",
+  "rq_id": "RQ1",
+  "claim_text": "DIVE is a multi-agent extraction framework that transforms figure-centric scientific content into structured, machine-ac",
+  "quote": "DIVE (Descriptive Interpretation of Visual Expression), a multi-agent extraction framework that transforms figure-centric scientific content into structured, ma",
+  "cov": 0.0
+ },
+ {
+  "idx": 495,
+  "study_id": "SCI-000066",
+  "rq_id": "RQ1",
+  "claim_text": "The framework consists of a multiagent pipeline of specialized agents for deduplication, title/abstract screening, struc",
+  "quote": "A multiagent pipeline of specialized agents for deduplication, title/abstract screening, structured data extraction, and verification was executed entirel",
+  "cov": 0.0
+ },
+ {
+  "idx": 496,
+  "study_id": "SCI-000068",
+  "rq_id": "RQ3",
+  "claim_text": "The study explores the capability of LLMs to accurately extract explicit data from academic papers, contributing to adva",
+  "quote": "understanding their ability to accurately extract explicit data from academic papers is critical for advancing SLRs.",
+  "cov": 0.0
+ },
+ {
+  "idx": 497,
+  "study_id": "SCI-000071",
+  "rq_id": "RQ1",
+  "claim_text": "ENTGPT is a GPT-4o-based screening system that implements the novel STARR (screening of title and abstracts, reevaluatio",
+  "quote": "we investigate an LLM's performance in screening relevant articles for a SLR with the novel screening of title and abstracts, reevaluation, and full‐text review",
+  "cov": 0.0
+ },
+ {
+  "idx": 500,
+  "study_id": "SCI-000119",
+  "rq_id": "RQ3",
+  "claim_text": "The paper reports an extensive study of Boolean query generation using LLMs for systematic reviews, reproducing and exte",
+  "quote": "This paper presents an extensive study of Boolean query generation using LLMs for systematic reviews, reproducing and extending the work",
+  "cov": 0.0
+ },
+ {
+  "idx": 501,
+  "study_id": "SCI-000121",
+  "rq_id": "RQ3",
+  "claim_text": "LLMs (GPT-3.5 Turbo, GPT-4 Turbo, GPT-4o, Llama 3 70B, Gemini 1.5 Pro, and Claude Sonnet 3.5) were trialed across 23 Coc",
+  "quote": "LLMs (GPT-3.5 Turbo, GPT-4 Turbo, GPT-4o, Llama 3 70B, Gemini 1.5 Pro, and Claude Sonnet 3.5) were trialed across 23 Cochrane Library systematic reviews to eval",
+  "cov": 0.0
+ },
+ {
+  "idx": 504,
+  "study_id": "SCI-000146",
+  "rq_id": "RQ3",
+  "claim_text": "Four LLMs were evaluated for their accuracy in title/abstract screening based on their probability outputs, motivated by",
+  "quote": "We evaluated the accuracy of four LLMs in title/abstract screening, using qualitati",
+  "cov": 0.0
+ },
+ {
+  "idx": 505,
+  "study_id": "SCI-000148",
+  "rq_id": "RQ1",
+  "claim_text": "An LLM-based ranking approach is proposed to select initial studies for literature review automation, addressing the bot",
+  "quote": "This study examines the application of a lar",
+  "cov": 0.0
+ },
+ {
+  "idx": 507,
+  "study_id": "SCI-000177",
+  "rq_id": "RQ2",
+  "claim_text": "Systematic reviews guided by PRISMA frameworks are acknowledged as thorough but labor-intensive and prone to human bias,",
+  "quote": "Systematic reviews, guided by frameworks like PRISMA [3], can be thorough but also labor-intensive and prone to human bias [4,5]",
+  "cov": 0.0
+ },
+ {
+  "idx": 508,
+  "study_id": "SCI-000182",
+  "rq_id": "RQ1",
+  "claim_text": "An AI-assisted, multi-phase framework leverages LLMs to automate major stages of the SLR workflow through an end-to-end ",
+  "quote": "This research presents an AI-assisted, multi-phase framework that leverages Large Language Models (LLMs) to automate and enhance the major stages of the SLR wor",
+  "cov": 0.071
+ },
+ {
+  "idx": 509,
+  "study_id": "SCI-000182",
+  "rq_id": "RQ1",
+  "claim_text": "The conventional SLR process is characterized as time-consuming, labor-intensive, and susceptible to human bias, motivat",
+  "quote": "the conventional SLR process is time-consuming, labor-intensive, and susceptible to human bias.",
+  "cov": 0.0
+ }
+]

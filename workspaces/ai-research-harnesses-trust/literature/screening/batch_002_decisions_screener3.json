@@ -1,0 +1,182 @@
+[
+  {
+    "workspace_id": "SCI-000021",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic literature review about multi-agent systems for educational content generation. This is a review paper synthesizing existing work, not a computational tool/system/harness for academic literature discovery, screening, extraction, or evidence synthesis. Lacks system architecture for literature workflow and empirical evaluation of such a system. Matches EXC-03 (narrative/commentary lacking computational artifact for literature workflow)."
+  },
+  {
+    "workspace_id": "SCI-000022",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic literature review of security, privacy, and trust in decentralised and agentic AI systems (140 studies). This is a review paper about agentic AI systems, not a tool/harness for academic literature workflow. Does not propose or implement a system for literature discovery, screening, extraction, or synthesis. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000023",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Perspective/framework paper on AI agents in energy materials research (discovery, design, automation). Discusses agentic AI for scientific discovery in materials science, not for academic literature discovery/screening/extraction. Not targeted to scholarly literature workflow. Matches EXC-02 (general-purpose/not scholarly domain)."
+  },
+  {
+    "workspace_id": "SCI-000024",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Literature review on hybridization of metaheuristics and multi-agent systems for tourist trip design problem. Review paper about optimization algorithms, not a computational tool for academic literature workflow. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000025",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-agent workflow for visual design using LLMs (Double Diamond model). Prototype on n8n platform for image generation workflow. Not targeted to academic research or scientific literature processing. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000026",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-agent system for autonomous optimization of agentic AI solutions across industries (NLG-driven enterprise applications). Uses iterative refinement with Llama 3.2-3B. Not designed for academic literature discovery, screening, or synthesis. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000027",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Financial AI research agent for automated equity analysis using LangGraph and RAG. Domain-specific to financial analysis, not academic literature workflow. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000028",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "RAG-LLM system for automated clinical trial data analysis and report generation. Strong empirical evaluation (CQI metrics, comparison to Med-PaLM 2) but for clinical reporting domain, not academic literature discovery/screening/extraction. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000029",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-agent architecture for autonomous software testing/QA (test generation, self-healing, defect triage). Not targeted to academic literature workflow. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000030",
+    "decision": "INCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": ["INC-01", "INC-02", "INC-04"],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": ["RQ1", "RQ2", "RQ3"],
+    "screening_reasoning": "Systematic comparison of agentic AI frameworks for scholarly literature processing. Directly evaluates/compares computational tools/frameworks for academic literature processing. Incorporates agentic AI/LLMs within scholarly literature workflow (INC-01, INC-02). Provides comparative evaluation/analysis (INC-04). Highly relevant to all three RQs: architecture/provenance (RQ1), trust mechanisms (RQ2), empirical evaluation/gaps (RQ3). No exclusion criteria matched."
+  },
+  {
+    "workspace_id": "SCI-000031",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic literature review on Text-to-SQL AI agentic workflow implementations. Review paper synthesizing literature on Text-to-SQL systems with agentic RAG/Graph-RAG. Not a tool for academic literature workflow itself. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000032",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "NIST IR on control overlays for securing AI systems using agentic AI (single/multi-agent). Security-focused technical report, not a system for academic literature discovery/screening/extraction. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000033",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic literature review on AI-driven semantic information retrieval for Arabic language. Review paper, not a computational tool for literature workflow. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000034",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Privacy-preserving on-device multi-agent architecture for AI PC workflow automation (POMA). General workflow automation for PC usage, not specifically for academic literature processing. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000035",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "AI Nexus 910+: multi-agent orchestration platform unifying 910+ heterogeneous AI tools. General-purpose AI tool orchestration, not specifically designed for academic literature discovery, screening, extraction, or synthesis. Matches EXC-02."
+  },
+  {
+    "workspace_id": "SCI-000036",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic literature review on generative AI in software engineering (code generation and refactoring). Review paper synthesizing existing research, not a tool for academic literature workflow. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000037",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Book chapter providing overview of LLM-based multi-agent systems (construction, capabilities, applications, limitations, future trends). Narrative overview lacking a specific computational system for literature workflow. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000038",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02", "EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Book chapter on security and privacy in multi-agent LLM networks (adversarial attacks, data leakage, encryption frameworks). Security domain, not academic literature workflow; also a narrative chapter. Matches EXC-02 and EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000039",
+    "decision": "EXCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-03"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Systematic literature review on generative AI for synthetic clinical data generation. Review paper, not a tool for academic literature workflow. Matches EXC-03."
+  },
+  {
+    "workspace_id": "SCI-000040",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": ["EXC-02"],
+    "relevant_rqs": [],
+    "screening_reasoning": "Multi-agent workflow automation using LangChain/LangGraph with graph-based reasoning, state management, checkpointers. Discusses architectural patterns relevant to agentic systems but targets general workflow automation, not specifically academic literature discovery/screening/extraction/synthesis. Matches EXC-02."
+  }
+]

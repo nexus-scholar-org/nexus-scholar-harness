@@ -1,0 +1,989 @@
+{
+  "run_metadata": {
+    "tool": "scholar-verify-kit/retraction",
+    "run_date_utc": "2026-09-08T09:45:06.924631+01:00",
+    "data_sources": [
+      "OpenAlex works API",
+      "Crossref works API"
+    ],
+    "corpus_size": 48
+  },
+  "summary": {
+    "studies_checked": 48,
+    "flagged_any": 0,
+    "retracted_openalex": 0,
+    "crossref_update_events": {},
+    "openalex_provenance_status": {},
+    "api_errors": 28,
+    "unresolved_lookups": []
+  },
+  "results": [
+    {
+      "workspace_id": "SCI-000001",
+      "title": "The Age of Autonomous Agents: A Bibliometric Review of Agentic AI Architectures, Applications, and Emerging Challenges",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.63646/kpqm1958",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7169132431",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000002",
+      "title": "From Large Language Models to Retrieval-Augmented Generation: A Systematic Review of AI-Powered Educational Systems From Large Language Models to Retrieval-Augmented Generation: A Systematic Review of AI-Powered Educational Systems",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.32622/ijrat.1401202613",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7170169161",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000003",
+      "title": "2023 Sušnjak PRISMADFLLM An Extension of PRISMA for Systemati",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000156",
+      "title": "Automated Literature Review Using NLP Techniques and LLM-Based Retrieval-Augmented Generation",
+      "year": 2024,
+      "provider": "openalex",
+      "doi": "10.48550/arxiv.2411.18583",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2024,
+        "openalex_id": "https://openalex.org/W4404996076",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": [],
+        "note": "DataCite-managed arXiv DOI; Crossref record not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000005",
+      "title": "2024 An vitaLITy 2 Reviewing Academic Literature Using La",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000154",
+      "title": "Synthesizing scientific literature with retrieval-augmented language models",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.1038/s41586-025-10072-4",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7127589252",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000104",
+      "title": "Generative AI for Health Technology Assessment: Opportunities, Challenges, and Policy Considerations",
+      "year": 2024,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2407.11054",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000105",
+      "title": "A Review on Scientific Knowledge Extraction using Large Language Models in Biomedical Sciences",
+      "year": 2024,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2412.03531",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000009",
+      "title": "2024 Haryanto LLAssist Simple Tools for Automating Literature R",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000120",
+      "title": "Assessing the Effectiveness of GPT-4o in Climate Change Evidence Synthesis and Systematic Assessments: Preliminary Insights",
+      "year": 2024,
+      "provider": "crossref",
+      "doi": "10.18653/v1/2024.climatenlp-1.20",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2024,
+        "openalex_id": "https://openalex.org/W4402671092",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000158",
+      "title": "System for systematic literature review using multiple AI agents: Concept and an empirical evaluation",
+      "year": 2024,
+      "provider": "openalex",
+      "doi": "10.48550/arxiv.2403.08399",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2024,
+        "openalex_id": "https://openalex.org/W4392822596",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": [],
+        "note": "DataCite-managed arXiv DOI; Crossref record not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000108",
+      "title": "Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study",
+      "year": 2024,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2405.14445",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000013",
+      "title": "2025 Auer Towards AI-Supported Research a Vision ",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000014",
+      "title": "2025 Godinez HySemRAG A Hybrid Semantic RetrievalAugmented Ge",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000101",
+      "title": "Agentic AI for Scientific Discovery: A Survey of Progress, Challenges, and Future Directions",
+      "year": 2025,
+      "provider": "openalex",
+      "doi": "10.48550/arxiv.2503.08979",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4415101359",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": [],
+        "note": "DataCite-managed arXiv DOI; Crossref record not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000184",
+      "title": "Harnessing the Power of AI for Transforming Research",
+      "year": 2025,
+      "provider": "crossref",
+      "doi": "10.62223/amjr.2025.150205",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4412955998",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000017",
+      "title": "2025 Jaumann LGAR ZeroShot LLMGuided Neural Ranking for Abst",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000161",
+      "title": "Artificial intelligence in medical and biological research: promise and perils of ChatGPT and DeepSeek in advancing healthcare",
+      "year": 2025,
+      "provider": "crossref",
+      "doi": "10.55730/1300-0152.2765",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4415834810",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000181",
+      "title": "Building an LLM Agent for Life Sciences Literature QA and Summarization",
+      "year": 2025,
+      "provider": "crossref",
+      "doi": "10.30574/wjarr.2025.26.2.1665",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4410236911",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000020",
+      "title": "2025 Rahgozar An AIDriven Live Systematic Reviews in the Brain",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000145",
+      "title": "Artificial intelligence in rheumatology research: what is it good for?",
+      "year": 2025,
+      "provider": "crossref",
+      "doi": "10.1136/rmdopen-2024-004309",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4406179873",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000106",
+      "title": "Compiling Prompts, Not Crafting Them: A Reproducible Workflow for AI-Assisted Evidence Synthesis",
+      "year": 2025,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2509.00038",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000125",
+      "title": "Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition",
+      "year": 2025,
+      "provider": "crossref",
+      "doi": "10.18653/v1/2025.emnlp-main.83",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4416037345",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000099",
+      "title": "Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis",
+      "year": 2025,
+      "provider": "openalex",
+      "doi": "10.48550/arxiv.2510.05335",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2025,
+        "openalex_id": "https://openalex.org/W4414976147",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": [],
+        "note": "DataCite-managed arXiv DOI; Crossref record not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000025",
+      "title": "2025 Zheng Agent4S The Transformation of Research Paradigms ",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000154",
+      "title": "Synthesizing scientific literature with retrieval-augmented language models",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.1038/s41586-025-10072-4",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7127589252",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000027",
+      "title": "2026 Bansal Beyond the Parameters A Technical Surve",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000171",
+      "title": "Generative Artificial Intelligence and Large Language Models in Didactics of Sports Sciences and Physical Education: A Comprehensive Review of Pedagogical Applications, Teaching Innovations, and Research Implications",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.61838/kman.intjssh.4891",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7203451276",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000140",
+      "title": "Bringing analytic rigor to agentic AI for science: The Brain Researcher platform for neuroimaging data analysis",
+      "year": 2026,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2608.19902",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000167",
+      "title": "Knowledge graphs and large language models for prompt-based scientometric inquiry",
+      "year": 2026,
+      "provider": "openalex",
+      "doi": "10.1016/j.ipm.2026.104882&quot",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7197003506",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": [],
+        "error": {
+          "_status": 404
+        }
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000083",
+      "title": "Large Language Models and the Future of Peer-Reviewed Medical Publishing: Challenges, Editorial Responses, and a Framework for Responsible Integration",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.3346/jkms.2026.41.e306",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7170095033",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000032",
+      "title": "2026 Kinas BioResearcher Scenario-Guided Multi-Age",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000033",
+      "title": "2026 Koch Beyond Task Success An Evidence-Synthes",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000034",
+      "title": "2026 Lin meta-pipe An LLM-agent pipeline for end",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000172",
+      "title": "Advanced Semantic Analysis of Research Papers Using a Retrieval-Augmented Architecture",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.2478/picbe-2026-0107",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7171779435",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000019",
+      "title": "From Generative AI to Agentic AI in Higher Education: A Structured Literature Synthesis of Instructional, Human Agency, and Governance Tensions",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.21203/rs.3.rs-10090015/v1",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7167644068",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000138",
+      "title": "AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept",
+      "year": 2026,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2601.11825",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000038",
+      "title": "2026 Rai From MultiAgent Reinforcement Learning to Agentic",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000134",
+      "title": "How Software Engineering Students Use LLMs to Write Research Papers: An Experience Report",
+      "year": 2026,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2606.05114",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000115",
+      "title": "Knowledge Synthesis Review Framework: Task-Level Benchmarking of LLM-Based Systems for Multi-Source Evidence Synthesis",
+      "year": 2026,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2608.12741",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000041",
+      "title": "2026 Taherinezhad AutoSynthesis An agentic system for aut",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000042",
+      "title": "2026 Tongnamtiang An AIAssisted Research Automation System for Scho",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000043",
+      "title": "From Multi-Agent Reinforcement Learning to Agentic AI: A Comprehensive Literature Review of Algorithmic Advances and Decision-Analytic Implications (2020-2025)",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.66972/ada202734",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7172537317",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000044",
+      "title": "2026 Wang DeepER-Med Advancing Deep Evidence-Base",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000045",
+      "title": "Agent-based Hybrid AI Models and Technologies: A systematic Literature Review",
+      "year": 2026,
+      "provider": "crossref",
+      "doi": "10.36227/techrxiv.176761760.06773652/v1",
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": false,
+        "last_status_in_oa": null,
+        "year_published": 2026,
+        "openalex_id": "https://openalex.org/W7118194019",
+        "lookup": "via_doi"
+      },
+      "crossref": {
+        "update_to": []
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000046",
+      "title": "2026 Yang ARIS Autonomous Research via Adversaria",
+      "year": 2024,
+      "provider": null,
+      "doi": null,
+      "arxiv_id": null,
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "via_openalex_id",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000136",
+      "title": "Investigating Novice Researchers' Perceptions of Research Privacy Within LLM-Assisted Workflows",
+      "year": 2026,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2606.03248",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    },
+    {
+      "workspace_id": "SCI-000144",
+      "title": "Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes",
+      "year": 2026,
+      "provider": "arxiv",
+      "doi": null,
+      "arxiv_id": "2603.07287",
+      "openalex": {
+        "is_retracted": null,
+        "lookup": "unresolved",
+        "error": {
+          "_status": 404
+        }
+      },
+      "crossref": {
+        "note": "no DOI; Crossref lookup not applicable"
+      },
+      "flagged": false,
+      "flag_reasons": []
+    }
+  ]
+}

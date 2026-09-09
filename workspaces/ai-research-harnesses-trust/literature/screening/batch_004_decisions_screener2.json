@@ -1,0 +1,239 @@
+[
+  {
+    "workspace_id": "SCI-000061",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Data-free knowledge distillation for recommender system models (CTR prediction); this is a machine-learning/RecSys paper with no connection to academic literature workflows or scholarly research harnesses."
+  },
+  {
+    "workspace_id": "SCI-000062",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A responsible-AI integration framework for psychiatric clinical guidelines covering explainability, shared decision-making, and EHR integration; this is a clinical-psychiatry governance paper, not about literature review tooling."
+  },
+  {
+    "workspace_id": "SCI-000063",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of generative-AI applications in ophthalmology education and clinical practice; this addresses medical education rather than academic literature research harnesses or evidence synthesis tooling."
+  },
+  {
+    "workspace_id": "SCI-000064",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "An editorial arguing that AI companion chatbot regulation should prioritize real-world behavioral safety over procedural compliance; this is a commentary piece with no computational system or empirical evaluation."
+  },
+  {
+    "workspace_id": "SCI-000065",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Comparison of LLMs' dental knowledge for clinical dentistry applications; this is a clinical domain study with no abstract and no relevance to scholarly literature review workflows."
+  },
+  {
+    "workspace_id": "SCI-000066",
+    "decision": "INCLUDE",
+    "confidence": 0.95,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-03",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "A locally executed agentic-AI framework for deduplication, screening, and structured data extraction in systematic reviews, reported per PRISMA-trAIce guidelines with quantitative evaluation (κ = 0.87–0.98, 91.1% time reduction, no hallucinated data). Directly addresses all three RQs."
+  },
+  {
+    "workspace_id": "SCI-000067",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A plant metabolomics overview of primary and secondary metabolites under environmental stress; this is a plant science review with no connection to AI-assisted literature research or scholarly tooling."
+  },
+  {
+    "workspace_id": "SCI-000068",
+    "decision": "INCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ2",
+      "RQ3"
+    ],
+    "screening_reasoning": "An exploratory study evaluating ChatGPT/GPT-4 for data extraction in systematic reviews, showing accuracy improvements with prompt refinement (43.3% to 71.7%) and distinguishing explicit vs. contextual extraction performance. Provides quantitative evaluation of LLM use in the SR workflow."
+  },
+  {
+    "workspace_id": "SCI-000069",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A national policy and system-architecture framework for agentic generative AI in cancer care; this is a clinical/oncology policy paper with no abstract and no relevance to academic literature review tooling."
+  },
+  {
+    "workspace_id": "SCI-000070",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-04"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Published in 2020, this paper discusses AI's impact on the radiography profession and clinical imaging workflows; it predates the 2023 cutoff and does not address literature review harnesses."
+  },
+  {
+    "workspace_id": "SCI-000071",
+    "decision": "INCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [
+      "INC-01",
+      "INC-02",
+      "INC-04"
+    ],
+    "violated_exclusion_criteria": [],
+    "relevant_rqs": [
+      "RQ1",
+      "RQ3"
+    ],
+    "screening_reasoning": "ENTGPT applies GPT-4o to systematic review screening via the novel STARR protocol, achieving 99.87% classification accuracy with 95% sensitivity versus human reviewers; demonstrates quantitative evaluation of an LLM-based SR screening tool."
+  },
+  {
+    "workspace_id": "SCI-000072",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A comment letter on a bariatric surgery study; this is a brief editorial commentary with no computational artifact, system, or empirical evaluation relevant to literature review automation."
+  },
+  {
+    "workspace_id": "SCI-000073",
+    "decision": "EXCLUDE",
+    "confidence": 0.8,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A perspective piece on leveraging AI tools for health systematic reviews; while topically adjacent, it presents a high-level commentary without describing a specific system, architecture, or quantitative evaluation."
+  },
+  {
+    "workspace_id": "SCI-000074",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-04"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Published in 2019, this paper on fine-tuning language models from human preferences (RLHF) is a foundational NLP methods paper that predates the 2023 cutoff and does not address scholarly literature workflows."
+  },
+  {
+    "workspace_id": "SCI-000075",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A manifesto-style proposal for 'Agent4S' (LLM-driven agents to automate research) with a five-level classification but no implemented system, architecture, or empirical evaluation of any prototype."
+  },
+  {
+    "workspace_id": "SCI-000076",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-03"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "UNESCO guidance document on generative AI in education and research; this is a policy/advisory publication with no abstract and no computational system or empirical artifact."
+  },
+  {
+    "workspace_id": "SCI-000077",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A fine-tuned LLM system for SQL query generation over hospital medical data (ChatGLM2, Llama2); this is a clinical data-management application unrelated to academic literature workflows."
+  },
+  {
+    "workspace_id": "SCI-000078",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A minireview of mycoviruses and their cross-kingdom interactions with plants; this is a plant pathology/biology paper entirely outside the scholarly literature research domain."
+  },
+  {
+    "workspace_id": "SCI-000079",
+    "decision": "EXCLUDE",
+    "confidence": 0.85,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-02"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "A review of conversational AI for reducing science skepticism and misinformation in science communication; this addresses public trust in science, not academic literature review workflows or evidence synthesis tooling."
+  },
+  {
+    "workspace_id": "SCI-000080",
+    "decision": "EXCLUDE",
+    "confidence": 0.9,
+    "matched_inclusion_criteria": [],
+    "violated_exclusion_criteria": [
+      "EXC-04"
+    ],
+    "relevant_rqs": [],
+    "screening_reasoning": "Published in 2001, this organizational-behavior study examines job dissatisfaction and creativity through employee voice; it predates the 2023 cutoff and is unrelated to AI research harnesses."
+  }
+]
