@@ -1,7 +1,7 @@
 # Project Index: AI-Assisted Academic Research Harnesses: Traceability, Trust, Audit and Reproducibility
 
 - **Project Slug**: `ai-research-harnesses-trust`
-- **Last Updated**: `2026-09-09 10:43:37 UTC`
+- **Last Updated**: `2026-09-09 14:43:07 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -28,9 +28,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 10:43 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-09 09:30 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 10:43 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 14:43 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-09 10:44 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 14:43 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-08 08:11 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-08 08:12 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-08 08:17 | Verified |
@@ -42,12 +42,9 @@
 | `literature/extraction/merged/records.json` | Canonical merged extraction dataset (per-value provenance quotes) | 2026-09-08 08:51 | Merged |
 | `synthesis/synthesis_matrix.csv` | Verified one-row-per-study synthesis matrix | 2026-09-08 09:03 | Generated |
 | `synthesis/synthesis_matrix.json` | Machine-readable synthesis matrix | 2026-09-09 01:29 | Generated |
-| `synthesis/claims.json` | Verified verbatim claim ledger (510 claims, RQ1+2+3) | 2026-09-09 07:16 | Verified |
-| `synthesis/consensus.json` | Consensus Cartographer clusters (95 clusters) | 2026-09-09 07:16 | Generated |
-| `synthesis/consensus.md` | Human-readable consensus cartography report | 2026-09-09 07:16 | Generated |
-| `synthesis/method_comparison.md` | RAG-baseline vs verbatim-ledger method comparison | 2026-09-09 07:16 | Generated |
-| `synthesis/literature_review.md` | Synthesis document & literature review (finalized) | 2026-09-09 07:16 | Finalized |
+| `synthesis/literature_review.md` | Synthesis document & literature review | 2026-09-09 07:16 | In Progress |
 | `reports/literature_lessons_and_reading_list.md` | Formal methodology or audit report | 2026-09-09 09:29 | Audited |
+| `reports/manuscript_d2.md` | Formal methodology or audit report | 2026-09-09 14:43 | Audited |
 | `reports/manuscript_draft.md` | Formal methodology or audit report | 2026-09-09 07:28 | Audited |
 | `reports/methodology_report.md` | Formal methodology or audit report | 2026-09-09 07:03 | Audited |
 | `reports/PHD_DELIVERABLES_PLAN.md` | Formal methodology or audit report | 2026-09-09 10:41 | Audited |
