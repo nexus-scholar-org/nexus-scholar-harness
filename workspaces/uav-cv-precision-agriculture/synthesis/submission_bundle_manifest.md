@@ -12,7 +12,7 @@ Version 2026-09-09. Bundle root: `workspaces/uav-cv-precision-agriculture/`. Upl
 - [ ] `synthesis/figures/fig6_ro_bias_heatmap.png` (+ .pdf) — risk-of-bias heatmap
 - [ ] `synthesis/d1_tables.md` — Tables 1–3 (metric reporting, embedded cohort, RoB)
 - [ ] `synthesis/d1_references.md` — 94-study audited bibliography (APA)
-- [ ] `synthesis/cover_letter.md` — cover letter ([Journal Name] and date to fill)
+- [ ] `synthesis/cover_letter.md` — cover letter (target: Computers and Electronics in Agriculture; date to fill)
 - [ ] `synthesis/osf_registration_draft.md` — preregistration (submit to OSF before submission)
 
 ## Supporting methods / transparency artifacts
@@ -36,8 +36,12 @@ Version 2026-09-09. Bundle root: `workspaces/uav-cv-precision-agriculture/`. Upl
 - `synthesis/fulltext_audit/` per-study reports (kept for reviewer evidence if requested)
 - `rag/chroma_db/`, `workspaces/**/pdfs/`, `lib/` (heavy/generated; gitignored)
 
+## Target journal
+- **Primary:** Computers and Electronics in Agriculture (Elsevier) — top agri-informatics venue, corpus's leading journal, accepts systematic reviews, values deployment + trust evidence.
+- **Plan B (OA):** Smart Agricultural Technology (Elsevier) if open access / faster decisions preferred; fallback Remote Sensing (MDPI) for maximum in-corpus readership overlap.
+
 ## Required human actions before upload
-- [ ] Fill `[Journal Name]` + date in `synthesis/cover_letter.md`
+- [ ] Fill date in `synthesis/cover_letter.md`
 - [ ] Confirm department/lab brain optionality: affiliation currently "University of Oum El Bouaghi, Algeria"
 - [ ] Submit OSF registration and record returned ID in manuscript Data Availability + cover letter
 - [ ] Render manuscript to journal template; verify figure PNG resolution ≥ 300 dpi (PDF vectors provided)

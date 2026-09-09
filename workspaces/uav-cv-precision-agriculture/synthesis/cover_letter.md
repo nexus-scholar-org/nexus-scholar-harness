@@ -1,13 +1,13 @@
 # Cover Letter — D1 Submission
 
 Date: [YYYY-MM-DD]
-To: The Editor, **[Journal Name]**
+To: The Editor, **Computers and Electronics in Agriculture (Elsevier)**
 
 **Re:** Submission of "Deep Learning Segmentation and Edge Inference on Agricultural UAV Imagery: A Systematic Review of Empirical Benchmarks"
 
 Dear Editor,
 
-Please consider our systematic review for publication in **[Journal Name]**. We report the first *trust-audited* quantitative synthesis of deep-learning segmentation and on-device edge-inference evidence on agricultural UAV imagery.
+Please consider our systematic review for publication in **Computers and Electronics in Agriculture (Elsevier)**. We report the first *trust-audited* quantitative synthesis of deep-learning segmentation and on-device edge-inference evidence on agricultural UAV imagery.
 
 **What the review contributes**
 
@@ -24,7 +24,7 @@ Please consider our systematic review for publication in **[Journal Name]**. We 
 - The protocol is preregistered (OSF Registration [`[OSF-REGISTRATION-ID]`], applied before submission; canonical protocol fingerprint `sha256:e1bbcb791d9108b2277fa468982f59cbdc611a66288556c5f4812fde34f1b077`).
 - All screening, extraction, verification, and audit artifacts are versioned in the project workspace with an append-only audit ledger, and the full corpus bibliography is provided.
 
-We believe the review fits the scope of **[Journal Name]** and will interest its readership in precision agriculture, UAV-based remote sensing, and applied computer vision.
+We believe the review fits the scope of **Computers and Electronics in Agriculture (Elsevier)** and will interest its readership in precision agriculture, UAV-based remote sensing, and applied computer vision.
 
 Sincerely,
 
