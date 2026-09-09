@@ -2,19 +2,18 @@
 
 Registration-ready content derived from `protocol.json`. Submit to OSF Registries as a
 "research plan / systematic review" preregistration before manuscript submission (planned: 2026-09-22).
-Registrator must fill [bracketed] fields.
 
 ## 1. General information
 
 - Title: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation and Edge Inference Benchmark Review
-- Registration date: [YYYY-MM-DD]
-- Principal investigator: [Name, affiliation, ORCID]
-- Contributing reviewers: [Names]
-- Corresponding author: [email]
+- Registration date: 2026-09-22 (planned, before submission)
+- Principal investigator: Mouadh Bekhouche, University of Oum El Bouaghi, ORCID 0009-0009-7912-7656
+- Contributing reviewers: Mouadh Bekhouche; Soumia Zertal (supervisor); six third-party adjudication panels
+- Corresponding author: Soumia Zertal (zertal.soumia@univ-oeb.dz)
 - Planned registration type: Preregistration (review protocol)
 - Protocol fingerprint (canonical sha256, scholar-protocol-kit): `sha256:e1bbcb791d9108b2277fa468982f59cbdc611a66288556c5f4812fde34f1b077`
 - Protocol source: `workspaces/uav-cv-precision-agriculture/protocol.json` (schema-validated, compiled 2026-09-03)
-- Review registrant entity: [institution / IRB as applicable]
+- Review registrant entity: University of Oum El Bouaghi, Algeria
 - Funding / COI declaration: none known; all reviewers declare no conflict of interest
 
 ## 2. Research questions
@@ -75,3 +74,17 @@ Exclusion:
 - Publicly available literature only; no human subjects.
 - All pipeline artifacts (screening batches, decisions, extraction, audit ledger) versioned in the review repository.
 - Deviation handling: any divergence from this protocol must be logged in the append-only audit ledger (audit/journal.jsonl) with timestamp and justification.
+
+## 9. Completed-work alignment (drafted 2026-09-09; finalise at registration)
+
+Registration is retrospective relative to the review work (2026-09-03 to 2026-09-09). The plan above
+matches the final manuscript; this section records the post-hoc decisions so the registration and the
+paper tell one story:
+
+- Corpus: 138 full texts assessed; 94 clean, trust-audited extractions enter the quantitative corpus; 44 excluded at full-text verification (non-verifiable metric / retrieval / curation).
+- EXC-06 (English + retrievable quantitative results) applied at search and verification stages; 12/150 reports were unretrievable (paywalled/restricted).
+- The 13 REVIEW_REQUIRED provisional caveats were resolved on 2026-09-09 as **EXCLUDED_UNRETRIEVED** (no full-text extraction, extracted Markdown, or PDF available) and excluded from the corpus.
+- Every numeric claim was re-verified against source full texts: 354 claim-level checks across all 94 studies, with 3 quote-backed corrections recorded (SCI-000005 pixel-accuracy mislabel, SCI-001333 input resolution, SCI-000962 efficiency-column mis-assignment).
+- RQ2 definitions final: embedded true-edge cohort n=15 (Jetson family, RK3588, Tinker Board, laptop CPU); precision reported in 13 studies, of which 6 explicitly FP16/INT8; FPS 28 / latency 32 / params 34 / FLOPs 21 reporting rates.
+- Preprint sensitivity: 19/94 records published in 2026 (40/94 in 2025-2026); reported with an explicit sensitivity framing.
+- Risk of bias (QUADAS-2-adapted): overall low 2 / unclear 77 / high 15; no study retracted or flagged for correction.
