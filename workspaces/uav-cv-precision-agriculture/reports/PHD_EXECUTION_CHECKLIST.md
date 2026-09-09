@@ -37,7 +37,9 @@
 - [ ] Author review of v1.2 (prose + front matter), then submit (RSM / JAMIA / arXiv)
 
 ## After D1 submitted
-- [ ] D3: re-frame meta-review as early-evidence/living review; resolve 23 pending author records; submit
+- [x] D3 framing prep: decision memo `reports/D3_FRAMING_DECISION.md`; Option A (early-evidence/living scoping review) adopted; 23 pending author records resolved via arXiv/OpenAlex
+- [x] D3 framing applied: `manuscript_draft.md` v2 — living-review title/front-matter, §3.8 protocol (cadence/versioning/preprint policy), §5.3 limitations, §7 declarations; 36/36 refs author-attributed
+- [ ] D3: author review of v2, then submit (Systematic Reviews / RSM)
 - [ ] D4: software paper (JOSS) — Phase-7 P7.1–P7.9 becomes its content
 
 ---

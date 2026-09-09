@@ -1,11 +1,12 @@
 # AI-Assisted Research Harnesses: Traceability, Evidence Trust, and Reproducibility in Agentic Systematic Review Systems
-## A Grounded, Verbatim-Verified Systematic Scoping Review of the 2023–2026 Corpus
+## A Grounded, Verbatim-Verified Early-Evidence Living Scoping Review of the 2023–2026 Corpus (Version 1.0)
 
 ---
 
 **Protocol ID**: PROTO-20260908-AI-RESEARCH-HARNESSES-TRUST
-**Type**: Systematic scoping review (protocol-based), PRISMA-ScR compliant
-**Manuscript status**: Draft v1 for author review
+**Type**: Early-evidence living scoping review (protocol-based), PRISMA-ScR compliant
+**Manuscript status**: Draft v2 for author review
+**Review version**: 1.0 (corpus finalized 2026-09-09; aggregates reported as-of this date)
 **Prepared by**: The Nexus Scholar Research Pipeline (multi-agent orchestration, throwaway prompts; all claims machine-verified verbatim against full text — see §3.5 and §7)
 **Corpus window**: January 2023 – September 2026
 
@@ -15,7 +16,7 @@
 
 **Background.** Large language model (LLM) and agentic systems are being pressed into service across the systematic-review lifecycle — search, screening, extraction, and synthesis — yet the trustworthiness of their outputs (citation verifiability, provenance, reproducibility) is not established.
 
-**Methods.** We conducted a protocol-driven systematic scoping review across six scholarly sources (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, bioRxiv; January 2023–September 2026). 239 deduplicated records were screened by four independent AI screeners (Fleiss' κ = 0.408) with majority voting and adjudicated deadlock resolution, yielding 58 included studies. Full text (64 Open-Access extractions, 3,814 AST chunks) was subjected to a four-stream trust audit (retraction status, open-science artifact scan, conflict-of-interest audit, risk-of-bias attestation). Evidence was synthesized by two competing pipelines: a deterministic top-k retrieval-augmented generation (RAG) baseline (90 claims, 43.3% entailment-verified) and an authoritative **multi-agent full-text claim-extraction pipeline** (8 full-text agents + 1 abstract agent) whose 510 claims were each **machine-verified verbatim** (char-window and token 6-gram coverage ≥ 0.90; 100% pass). Claims were clustered into a semantic consensus map.
+**Methods.** We conducted a protocol-driven early-evidence living scoping review across six scholarly sources (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, bioRxiv; January 2023–September 2026). The field is preprint-dominated and publication-lagging — 32/58 included records (55%) are preprint-track and 2026 alone accounts for 30/58 (52%) of the corpus — so the review is explicitly framed as a living review (Version 1.0, corpus finalized 2026-09-09; re-run protocol in §3.8). 239 deduplicated records were screened by four independent AI screeners (Fleiss' κ = 0.408) with majority voting and adjudicated deadlock resolution, yielding 58 included studies. Full text (64 Open-Access extractions, 3,814 AST chunks) was subjected to a four-stream trust audit (retraction status, open-science artifact scan, conflict-of-interest audit, risk-of-bias attestation). Evidence was synthesized by two competing pipelines: a deterministic top-k retrieval-augmented generation (RAG) baseline (90 claims, 43.3% entailment-verified) and an authoritative **multi-agent full-text claim-extraction pipeline** (8 full-text agents + 1 abstract agent) whose 510 claims were each **machine-verified verbatim** (char-window and token 6-gram coverage ≥ 0.90; 100% pass). Claims were clustered into a semantic consensus map.
 
 **Results.** Architectures converge on auditable, provenance-bearing workflows: multi-agent role specialization, end-to-end orchestrated pipelines, retrieval- (RAG) and knowledge-graph-grounded designs, and prompt-compilation systems. Execution provenance is increasingly structured and append-only (deterministic IDs, immutable content-hashed run records, temperature-0 decoding, open-weights selection). Citation verifiability is the binding trust constraint: across 17,443 generated citations no model exceeded a 0.475 existence rate, while retrieval grounding reduced hallucinated papers to zero in OpenScholar-8B versus 78–98% for non-retrieval LLMs. Pooled LLM screening sensitivity/specificity reached 0.92/0.94 (I² = 95.8%), but temporal drift (−1.9%/day), run-to-run item-level discordance, and prompt fragility (up to 76-point accuracy swings) are not captured by standard reporting. The deterministic RAG pipeline cited 11 screened-out studies (corpus contamination) and verified only 43.3% of its claims; the multi-agent ledger reached 100% verbatim grounding across 57 included studies and surfaced a consensus structure (95 clusters: 16 high-consensus, 7 active debates, 37 unresolved, 35 provisional) invisible to RAG.
 
@@ -33,13 +34,15 @@ This review asks three questions. **RQ1** — What is the state of the art in ac
 
 Our contribution is methodological as much as substantive: the synthesis itself is generated and audited by the same class of systems under study. Every claim in this manuscript is backed by a machine-verified, word-for-word verbatim quote from the included full text, and every pipeline step is recorded in an append-only audit journal.
 
+Because the field is preprint-dominated and publication-lagging (55% of included records are preprint-track, and 2026 accounts for 52% of the corpus), we frame this as an **early-evidence living scoping review**: Version 1.0 reports the aggregate state of evidence as of corpus finalization (2026-09-09), and §3.8 specifies a re-run protocol for subsequent versions.
+
 ## 2. Related Work
 
 Prior evaluations have been narrow and siloed. Screening-performance meta-analyses report strong pooled sensitivity but extreme heterogeneity [3]. Citation-fabrication studies establish low existence ceilings but stop at measurement [4]. System papers demonstrate retrieval-grounded claim generation but evaluate on narrow benchmarks [5][6]. Reviews of agentic scientific tools remain taxonomical [7], and reproducibility audits document run-to-run instability without remediating it [8]. Missing is a protocol-driven, corpus-scoped, verbatim-verified synthesis that simultaneously characterizes design, trust mechanisms, and evaluation maturity — the gap this review addresses. Our retrieval-augmented baseline further contributes a direct, quantitative comparison of deterministic RAG synthesis versus full-text multi-agent extraction over an identical corpus.
 
 ## 3. Methods
 
-The review follows a registered protocol compiled with a protocol compiler (`protocol.json`, `SCREENING_CRITERIA.md`, `intent.json`) under the Design Science paradigm, and is reported in line with PRISMA-ScR. All stages were executed through a shared vectorized Python environment; every step is recorded in an append-only audit journal (`audit/journal.jsonl`, 47 events).
+The review follows a registered protocol compiled with a protocol compiler (`protocol.json`, `SCREENING_CRITERIA.md`, `intent.json`) under the Design Science paradigm, and is reported in line with PRISMA-ScR and the living-review extension. All stages were executed through a shared vectorized Python environment; every step is recorded in an append-only audit journal (`audit/journal.jsonl`, 55 events). The corpus window (January 2023 – September 2026) is intentionally shut at this frontier; §3.8 defines how subsequent evidence is absorbed as a living review.
 
 ### 3.1 Search and record verification
 Six sources were federated in a single pass (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, bioRxiv) with search strings targeting LLM/agentic review automation, 2023–2026. 250 raw hits were deduplicated and hydrated (DOI and normalized-title resolution, abstract and DOI completion), yielding **239 unique verified records**.
@@ -63,6 +66,13 @@ The 510-claim ledger was clustered with cached-embedding cosine similarity (`all
 
 ### 3.7 Analysis and integrity of the synthesis
 Results are reported per research question from the verbatim ledger, with cluster references; direct quotes are drawn verbatim from `claims.json`. Aggregates (e.g., citation existence, pooled sensitivity) are reported as stated by the source studies and cross-checked between claims.
+
+### 3.8 Living-review protocol (Version 1.0)
+This Version 1.0 report is the initial snapshot of a living scoping review. The underlying pipeline (federated discovery → dedup/hydration → screening → verbatim-verified extraction → trust verification → synthesis) is deterministic and fully re-runnable from committed inputs [§7]. Planned update policy:
+- **Cadence**: quarterly re-run of the six-source federation (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, bioRxiv) against the same search strings and criteria; out-of-window and pre-print-track evidence already eligible.
+- **Versioning**: each update stamps a new version and corpus-finalization date (§front matter); aggregate figures below carry the version stamp of their corpus. A search-log appendix records each run's query set, window, and dedup threshold.
+- **Preprint policy**: preprint-track records (arXiv/bioRxiv/institutional repositories) are eligible and explicitly retained as the field's leading edge; each preprint is tracked against a published version where one appears (Crossref `update-to` / OpenAlex status), and the version table ships in the appendix.
+- **Diff discipline**: the authoritative verbatim claim ledger is append-only; revisions re-verify affected quotes against attached full text rather than restating aggregates, so every claim statistic remains machine-checkable in any version.
 
 ## 4. Results
 
@@ -116,7 +126,7 @@ Three findings carry design consequences. **First**, provenance engineering has 
 5. **The field lacks its own benchmark.** Systems auditing review automation are themselves unaudited end-to-end; cross-domain, externally validated, jointly-evaluating infrastructure is the prerequisite for generalizable trust.
 
 ### 5.3 Limitations
-Written tools were excluded from the review matrix to avoid self-selection bias. Twelve included studies lack full text and contribute abstract-only claims (17 of 510); one included study contributed none (empty abstract). The consensus clusterer uses a single embedding model and a hand-set threshold (0.40). Verbatim verification guarantees that a quote appears in the source text, not that the source is representative of its own corpus. Author names are placeholders awaiting human curation in this draft. Screening agreement (κ = 0.408) is fair/moderate; screening decisions were consensus-aggregated and adjudicated.
+Written tools were excluded from the review matrix to avoid self-selection bias. Twelve included studies lack full text and contribute abstract-only claims (17 of 510); one included study contributed none (empty abstract). The consensus clusterer uses a single embedding model and a hand-set threshold (0.40). Verbatim verification guarantees that a quote appears in the source text, not that the source is representative of its own corpus. The corpus is preprint-track-heavy by design (55% preprint, 52% from 2026): this front-loads the newest evidence but makes aggregates provisional and version-bound — the living protocol (§3.8) absorbs published-version supersession and subsequent runs rather than restating finality. Screening agreement (κ = 0.408) is fair/moderate; screening decisions were consensus-aggregated and adjudicated.
 
 ## 6. Conclusion
 
@@ -125,75 +135,76 @@ The 2023–2026 literature documents a rapid, convergent movement toward auditab
 ## 7. Declarations and Data Availability
 
 - **Data availability**: full workspace `workspaces/ai-research-harnesses-trust/` (protocol, screening, extractions, claims ledger, consensus, audit journal, phase-4 outputs) is preserved and git-tracked (text/metadata) as audit-grade artifacts.
-- **Code availability**: pipeline orchestration via Nexus Scholar kits; deterministic reruns reproduce identical claim sets and consensus.
+- **Code availability**: pipeline orchestration via Nexus Scholar kits; deterministic reruns reproduce identical claim sets and consensus. Re-run instructions for the living-review protocol (§3.8): federated discovery and screening from `literature/`, extraction from `extracted/`, claim verification via `synthesis/claims.json` regeneration, in the project venv (`uv run ...`). Author-metadata resolution scripts for reference updates are committed under `scripts/`.
+- **Protocol availability**: registered protocol `protocol.json` (fingerprint `sha256:e1bbcb791d9108b2277fa468982f59cbdc611a66288556c5f4812fde34f1b077`), `SCREENING_CRITERIA.md`, and `intent.json`.
 - **Conflicts of interest**: none declared by the authors; the Nexus Scholar toolkit was excluded from the review matrix.
-- **Traceability declaration**: every claim statistic in this manuscript is machine-verifiable against `synthesis/claims.json` (verbatim quotes) and `synthesis/consensus.json`; every pipeline step is recorded in `audit/journal.jsonl` (47 events).
+- **Traceability declaration**: every claim statistic in this manuscript is machine-verifiable against `synthesis/claims.json` (verbatim quotes) and `synthesis/consensus.json`; every pipeline step is recorded in `audit/journal.jsonl` (55 events). Version stamp: Review 1.0, corpus finalized 2026-09-09.
 
 ---
 
 ## References
 
-[1] Corpus preprint (author metadata pending curation). *Designing a Human-AI Collaborative Modular Approach to Automating Systematic Literature Reviews: From Objectives to Reporting* *Tampere University Institutional Repository (Tampere University).* (2025). Workspace: SCI-000182
+[1] Md Aidul Islam. *Designing a Human-AI Collaborative Modular Approach to Automating Systematic Literature Reviews: From Objectives to Reporting* *Tampere University Institutional Repository (Tampere University).* (2025). Workspace: SCI-000182
 
 [2] PAULRAJ, N. J. *Building an LLM Agent for Life Sciences Literature QA and Summarization* *World Journal of Advanced Research and Reviews.* (2025). DOI: 10.30574/wjarr.2025.26.2.1665. Workspace: SCI-000181
 
 [3] Xie, C., Kong, W., Pi, L. et al. *Performance of Large Language Models in Automated Medical Literature Screening: A Systematic Review and Meta‐Analysis* *Journal of Evidence-Based Medicine.* (2026). DOI: 10.1111/jebm.70166. Workspace: SCI-000088
 
-[4] Corpus preprint (author metadata pending curation). *Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes* *arXiv Preprint.* (2026). Workspace: SCI-000144
+[4] Chen Zhao, Yuan Tang, Yitian Qian. *Do Deployment Constraints Make LLMs Hallucinate Citations? An Empirical Study across Four Models and Five Prompting Regimes* *arXiv Preprint.* (2026). arXiv:2603.07287. Workspace: SCI-000144
 
 [5] Asai, A., He, J., Shao, R. et al. *Synthesizing scientific literature with retrieval-augmented language models* *Nature.* (2026). DOI: 10.1038/s41586-025-10072-4. Workspace: SCI-000154
 
-[6] Corpus preprint (author metadata pending curation). *OpenScholar: Synthesizing Scientific Literature with Retrieval-augmented LMs* *arXiv (Cornell University).* (2024). DOI: 10.48550/arxiv.2411.14199. Workspace: SCI-000159
+[6] Akari Asai, Jacqueline He, Rulin Shao, Weijia Shi, Amanpreet Singh, Joseph Chee Chang, Kyle Lo, Luca Soldaini, Sergey Feldman, Mike D’Arcy, David Wadden, Matt Latzke, Minyang Tian, Peng Ji, Shengyan Liu, Hao Tong, Borong Wu, Yanyu Xiong, Luke Zettlemoyer, Graham Neubig, Dan Weld, Doug Downey, Wen-tau Yih, Pang Wei Koh, Hannaneh Hajishirzi. *OpenScholar: Synthesizing Scientific Literature with Retrieval-augmented LMs* *arXiv (Cornell University).* (2024). DOI: 10.48550/arxiv.2411.14199. Workspace: SCI-000159
 
-[7] Corpus preprint (author metadata pending curation). *BioResearcher: Scenario-Guided Multi-Agent for Translational Medicine* *arXiv Preprint.* (2026). Workspace: SCI-000126
+[7] Remigiusz Kinas, Joanna Krawczyk, Rafał Powalski, Przemysław Pietrzak, Agnieszka Kowalewska, Krzysztof Kolmus, Maciej Sypetkowski, Łukasz Smoliński, Tomasz Jetka. *BioResearcher: Scenario-Guided Multi-Agent for Translational Medicine* *arXiv Preprint.* (2026). arXiv:2605.05985. Workspace: SCI-000126
 
-[8] Corpus preprint (author metadata pending curation). *Evaluating human and LLM screening workflows in a conceptually complex scoping review: Recall--workload trade-offs and run-to-run consistency* *arXiv Preprint.* (2026). Workspace: SCI-000137
+[8] Nikol Figalová, Lynn Huestegge, Anne Böckler-Raettig. *Evaluating human and LLM screening workflows in a conceptually complex scoping review: Recall--workload trade-offs and run-to-run consistency* *arXiv Preprint.* (2026). arXiv:2608.26885. Workspace: SCI-000137
 
-[9] Corpus preprint (author metadata pending curation). *Compiling Prompts, Not Crafting Them: A Reproducible Workflow for AI-Assisted Evidence Synthesis* *arXiv Preprint.* (2025). Workspace: SCI-000106
+[9] Teo Susnjak. *Compiling Prompts, Not Crafting Them: A Reproducible Workflow for AI-Assisted Evidence Synthesis* *arXiv Preprint.* (2025). arXiv:2509.00038. Workspace: SCI-000106
 
-[10] Corpus preprint (author metadata pending curation). *Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2510.05335. Workspace: SCI-000099
+[10] Oskar Wysocki, Magdalena Wysocka, Mauricio Jacobo, Harriet Unsworth, André Freitas. *Biomedical reasoning in action: Multi-agent System for Auditable Biomedical Evidence Synthesis* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2510.05335. Workspace: SCI-000099
 
-[11] Corpus preprint (author metadata pending curation). *DeepER-Med: Advancing Deep Evidence-Based Research in Medicine Through Agentic AI* *arXiv Preprint.* (2026). Workspace: SCI-000102
+[11] Zhizheng Wang, Chih-Hsuan Wei, Joey Chan, Robert Leaman, Chi-Ping Day, Chuan Wu, Mark A Knepper, Antolin Serrano Farias, Jordina Rincon-Torroella, Hasan Slika, Betty Tyler, Ryan Huu-Tuan Nguyen, Asmita Indurkar, Mélanie Hébert, Shubo Tian, Lauren He, Noor Naffakh, Aseem Aseem, Nicholas Wan, Emily Y Chew, Tiarnan D L Keenan, Zhiyong Lu. *DeepER-Med: Advancing Deep Evidence-Based Research in Medicine Through Agentic AI* *arXiv Preprint.* (2026). arXiv:2604.15456. Workspace: SCI-000102
 
-[12] Corpus preprint (author metadata pending curation). *LUMEN: Cost-Transparent Multi-Agent Pipeline for Automated Systematic Review and Meta-Analysis* *arXiv (Cornell University).* (2026). Workspace: SCI-000118
+[12] Yen-Hsun Huang, Yu‐Shiou Lin. *LUMEN: Cost-Transparent Multi-Agent Pipeline for Automated Systematic Review and Meta-Analysis* *arXiv (Cornell University).* (2026). Workspace: SCI-000118
 
-[13] Corpus preprint (author metadata pending curation). *AutoSynthesis: An agentic system for automated meta-analysis* *arXiv Preprint.* (2026). Workspace: SCI-000135
+[13] Moein Taherinezhad, Sebastian Maier, Gerardo Vitagliano, Francesco Pierri, Stefan Feuerriegel. *AutoSynthesis: An agentic system for automated meta-analysis* *arXiv Preprint.* (2026). arXiv:2607.15247. Workspace: SCI-000135
 
 [14] Wang, Z., Cao, L., Danek, B. et al. *Accelerating clinical evidence synthesis with large language models* *npj Digital Medicine.* (2025). DOI: 10.1038/s41746-025-01840-7. Workspace: SCI-000109
 
-[15] Corpus preprint (author metadata pending curation). *meta-pipe: An LLM-agent pipeline for end-to-end automated systematic review and meta-analysis* *arXiv Preprint.* (2026). Workspace: SCI-000142
+[15] Hsieh-Ting Lin, Jiunn-Tyng Yeh. *meta-pipe: An LLM-agent pipeline for end-to-end automated systematic review and meta-analysis* *arXiv Preprint.* (2026). arXiv:2606.28363. Workspace: SCI-000142
 
-[16] Corpus preprint (author metadata pending curation). *LatteReview: A Multi-Agent Framework for Systematic Review Automation Using Large Language Models* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2501.05468. Workspace: SCI-000096
+[16] Pouria Rouzrokh, Bardia Khosravi, Parsa Rouzrokh, Moein Shariatnia. *LatteReview: A Multi-Agent Framework for Systematic Review Automation Using Large Language Models* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2501.05468. Workspace: SCI-000096
 
-[17] Corpus preprint (author metadata pending curation). *MedMeta: A Benchmark for LLMs in Synthesizing Meta-Analysis Conclusion from Medical Studies* *arXiv (Cornell University).* (2026). Workspace: SCI-000127
+[17] Huy Hoang Ha, Benoit Favre, François Portet. *MedMeta: A Benchmark for LLMs in Synthesizing Meta-Analysis Conclusion from Medical Studies* *arXiv (Cornell University).* (2026). Workspace: SCI-000127
 
-[18] Corpus preprint (author metadata pending curation). *HySemRAG: A Hybrid Semantic Retrieval-Augmented Generation Framework for Automated Literature Synthesis and Methodological Gap Analysis* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2508.05666. Workspace: SCI-000100
+[18] Alejandro Godinez. *HySemRAG: A Hybrid Semantic Retrieval-Augmented Generation Framework for Automated Literature Synthesis and Methodological Gap Analysis* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2508.05666. Workspace: SCI-000100
 
-[19] Corpus preprint (author metadata pending curation). *AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept* *arXiv Preprint.* (2026). Workspace: SCI-000138
+[19] Arya Rahgozar, Pouria Mortezaagha. *AI Co-Scientist for Knowledge Synthesis in Medical Contexts: A Proof of Concept* *arXiv Preprint.* (2026). arXiv:2601.11825. Workspace: SCI-000138
 
-[20] Corpus preprint (author metadata pending curation). *An AI-Driven Live Systematic Reviews in the Brain-Heart Interconnectome: Minimizing Research Waste and Advancing Evidence Synthesis* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2501.17181. Workspace: SCI-000110
+[20] Arya Rahgozar, Pouria Mortezaagha, Jodi D. Edwards, Douglas G. Manuel, Jessie McGowen, Merrick Zwarenstein, Dean Fergusson, Andrea C. Tricco, Kelly D. Cobey, Margaret Sampson, Malcolm King, Dawn P. Richards, Alexandra M. Bodnaruc, David Moher. *An AI-Driven Live Systematic Reviews in the Brain-Heart Interconnectome: Minimizing Research Waste and Advancing Evidence Synthesis* *arXiv (Cornell University).* (2025). DOI: 10.48550/arxiv.2501.17181. Workspace: SCI-000110
 
 [21] Tongnamtiang, S., Wongsim, M., Satchawatee, N. *An AI-Assisted Research Automation System for Scholarly Paper Retrieval and Review With Workflow Orchestration* *Journal of Computer Science.* (2026). DOI: 10.3844/jcssp.2026.2082.2091. Workspace: SCI-000179
 
-[22] Corpus preprint (author metadata pending curation). *Bringing analytic rigor to agentic AI for science: The Brain Researcher platform for neuroimaging data analysis* *arXiv Preprint.* (2026). Workspace: SCI-000140
+[22] Zijiao Chen, Nicholas Lu, Xinhui Li, Jocelyn A. Ricard, Ce Ju, Huan H. Wang, Christian Kindermann, Jeanette A. Mumford, Steven Dillmann, James Kent, Alejandro de la Vega, Sanmi Koyejo, Vince D. Calhoun, Joshua W. Buckholtz, Juan Helen Zhou, Steffen Bollmann, Russell A. Poldrack. *Bringing analytic rigor to agentic AI for science: The Brain Researcher platform for neuroimaging data analysis* *arXiv Preprint.* (2026). arXiv:2608.19902. Workspace: SCI-000140
 
-[23] Corpus preprint (author metadata pending curation). *Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study* *arXiv Preprint.* (2024). Workspace: SCI-000108
+[23] Lena Schmidt, Kaitlyn Hair, Sergio Graziosi, Fiona Campbell, Claudia Kapp, Alireza Khanteymoori, Dawn Craig, Mark Engelbert, James Thomas. *Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study* *arXiv Preprint.* (2024). arXiv:2405.14445. Workspace: SCI-000108
 
 [24] Jaumann, C., Wiedholz, A., Friedrich, A. *LGAR: Zero-Shot LLM-Guided Neural Ranking for Abstract Screening in Systematic Literature Reviews* *Findings of the Association for Computational Linguistics: ACL 2025.* (2025). DOI: 10.18653/v1/2025.findings-acl.412. Workspace: SCI-000164
 
 [25] Serretti, A. *Benchmarking a Local Schema-Constrained Large Language Model Pipeline for Abstract Screening and Evidence Mapping* *Cureus.* (2026). DOI: 10.7759/cureus.111193. Workspace: SCI-000090
 
-[26] Corpus preprint (author metadata pending curation). *LLAssist: Simple Tools for Automating Literature Review Using Large Language Models* *arXiv (Cornell University).* (2024). DOI: 10.48550/arxiv.2407.13993. Workspace: SCI-000151
+[26] Christoforus Yoga Haryanto. *LLAssist: Simple Tools for Automating Literature Review Using Large Language Models* *arXiv (Cornell University).* (2024). DOI: 10.48550/arxiv.2407.13993. Workspace: SCI-000151
 
-[27] Corpus preprint (author metadata pending curation). *Bio-SIEVE: Exploring Instruction Tuning Large Language Models for Systematic Review Automation* *arXiv (Cornell University).* (2023). DOI: 10.48550/arxiv.2308.06610. Workspace: SCI-000111
+[27] Ambrose Robinson, William Thorne, Ben P. Wu, Abdullah Pandor, Munira Essat, Mark Stevenson, Xingyi Song. *Bio-SIEVE: Exploring Instruction Tuning Large Language Models for Systematic Review Automation* *arXiv (Cornell University).* (2023). DOI: 10.48550/arxiv.2308.06610. Workspace: SCI-000111
 
-[28] Corpus preprint (author metadata pending curation). *Towards AI-Supported Research: a Vision of the TIB AIssistant* *arXiv Preprint.* (2025). Workspace: SCI-000141
+[28] Sören Auer, Allard Oelen, Mohamad Yaser Jaradeh, Mutahira Khalid, Farhana Keya, Sasi Kiran Gaddipati, Jennifer D'Souza, Lorenz Schlüter, Amirreza Alasti, Gollam Rabby, Azanzi Jiomekong, Oliver Karras. *Towards AI-Supported Research: a Vision of the TIB AIssistant* *arXiv Preprint.* (2025). arXiv:2512.16447. Workspace: SCI-000141
 
 [29] Matsumoto, N., Choi, H., Freda, P. J. et al. *EcoXAI: Autonomous Agentic Ecosystem for Explainable Artificial Intelligence and Biomedical Discovery* *bioRxiv (Cold Spring Harbor Laboratory).* (2026). DOI: 10.64898/2026.07.08.737358. Workspace: SCI-000082
 
 [30] Zhang, W., Nguyen, T., Stuart, E. A. et al. *Large language models for full-text methods assessment: a case study on mediation analysis* *Journal of the American Medical Informatics Association.* (2026). DOI: 10.1093/jamia/ocag108. Workspace: SCI-000124
 
-[31] Corpus preprint (author metadata pending curation). *Knowledge Synthesis Review Framework: Task-Level Benchmarking of LLM-Based Systems for Multi-Source Evidence Synthesis* *arXiv Preprint.* (2026). Workspace: SCI-000115
+[31] Wafa Shafqat, Mark Patterson, Steven N. Liss. *Knowledge Synthesis Review Framework: Task-Level Benchmarking of LLM-Based Systems for Multi-Source Evidence Synthesis* *arXiv Preprint.* (2026). arXiv:2608.12741. Workspace: SCI-000115
 
 [32] Zrubka, M., Alexy, M., György, K. T. et al. *Large Language Models for Title/Abstract Screening in Systematic Literature Reviews: A Case Study in Precision Livestock Farming* *2025 IEEE 25th International Symposium on Computational Intelligence and Informatics (CINTI).* (2025). DOI: 10.1109/cinti67731.2025.11311831. Workspace: SCI-000152
 
@@ -203,4 +214,4 @@ The 2023–2026 literature documents a rapid, convergent movement toward auditab
 
 [35] Tang, X., Duan, X., Cai, Z. *Large Language Models for Automated Literature Review: An Evaluation of Reference Generation, Abstract Writing, and Review Composition* *Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing.* (2025). DOI: 10.18653/v1/2025.emnlp-main.83. Workspace: SCI-000125
 
-[36] Corpus preprint (author metadata pending curation). *DeepWeaver: Bridging the Evidence Synthesis Gap in Open-Ended Question Answering* *arXiv (Cornell University).* (2026). DOI: 10.48550/arxiv.2608.18988. Workspace: SCI-000117
+[36] Xujia Wang, Yizhe Zhang, Bin Xu, Lei Hou, Juanzi Li. *DeepWeaver: Bridging the Evidence Synthesis Gap in Open-Ended Question Answering* *arXiv (Cornell University).* (2026). DOI: 10.48550/arxiv.2608.18988. Workspace: SCI-000117

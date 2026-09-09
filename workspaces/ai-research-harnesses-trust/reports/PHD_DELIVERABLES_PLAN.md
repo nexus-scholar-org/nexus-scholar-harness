@@ -49,7 +49,8 @@ Your most publishable artifact, ~80% material already in the repo:
 ### D3 — Meta-review: "AI research harnesses and trust" (co-track A; ch.4 + instrument validation)
 
 - Already drafted: `synthesis/literature_review.md` (4,198 words) + `reports/manuscript_draft.md` (4,048 words, 36 refs), 58 included / 181 excluded, 510 verified claims, 95 clusters
-- **Validity issue to fix before it bites:** 30/58 included are 2026 preprints; 23 of 36 refs lack resolved author metadata (synthetic-ID preprints). Decision required: re-frame as an explicit **early-evidence / living scoping review** (recommended) or tighten inclusion to verifiable PIDs. Title and methods must name it either way.
+- **Framing prep DONE (2026-09-09, EVT-20260909223235)**: quantified corpus composition (32/58 = 55% preprint-track; 2026 alone = 30/58); wrote `reports/D3_FRAMING_DECISION.md` recommending **Option A: early-evidence / living scoping review** (title/methods must name it); resolved all 23 pending-author preprint refs via arXiv/OpenAlex (`scripts/resolve_d3_authors.py`, `scripts/regenerate_d3_references.py`) — reference list now fully author-attributed.
+- **Option A ADOPTED (2026-09-09)**: `manuscript_draft.md` → v2 (early-evidence living scoping review, Review 1.0): living-review title/front-matter, early-evidence framing in abstract + §1, §3.8 living-review protocol (quarterly cadence, versioning, preprint policy incl. Crossref update-to supersession, diff discipline), §5.3 limitations rewritten, §7 declarations + protocol availability; all 36 refs author-attributed with arXiv/DOI IDs.
 - Role in thesis: meta-evidence that the class of tools this thesis builds is under-audited — motivates ch.2.
 - Venue: *Systematic Reviews* (BMC) / *Research Synthesis Methods* / discipline journal.
 
@@ -68,7 +69,7 @@ Your most publishable artifact, ~80% material already in the repo:
    - Weeks 5–10: results + discussion drafts; RoB/unclear sensitivity section; COI context.
    - Weeks 11–13: internal review, submission.
 2. **In parallel weeks 1–8: D2 write-up** (material already exists).
-3. **After D1 submitted:** resolve D3 framing + 23 pending refs (author resolution via Crossref/OpenAlex already partial: `synthesis/_manuscript_authors_cache.json`), submit D3.
+3. **After D1 submitted:** D3 framing decision adopted (Option A, living review); `manuscript_draft.md` v2 drafted, 36/36 refs resolved. Next: author review + BMC *Systematic Reviews* submission.
 4. **D4 only after D1+D2 are in flight.**
 
 ## 4. Open questions for your supervisor
