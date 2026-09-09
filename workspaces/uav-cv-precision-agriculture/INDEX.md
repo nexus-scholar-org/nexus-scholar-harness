@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-09 13:47:55 UTC`
+- **Last Updated**: `2026-09-09 14:01:14 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -29,9 +29,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 13:47 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-09 12:53 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 13:47 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 14:01 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-09 13:47 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 14:01 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-03 22:14 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-03 22:16 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-04 01:48 | Verified |

@@ -72,17 +72,47 @@ Identification yielded 1,837 records; 349 duplicates were removed, leaving 1,488
 
 **Corpus lock:** 138 full texts; 94 with clean, merged, trust-audited extraction (the quantitative corpus for RQ1–RQ3).
 
+**Figure 1.** PRISMA 2020 flow of information. The 44 records excluded at full-text verification = 138 assessed − 94 audited corpus (non-verifiable metric/retrieval/curation).
+
+![Figure 1](figures/fig1_prisma_2020_flow.png)
+
 ### 3.2 Study characteristics
 Studies span 2018–2026 with strong recent concentration: 19 of 94 (20%) published in 2026, 40 (43%) in 2025–2026; 14 records use preprint venues (9 arXiv) and 15 are Open-Access-led venues (Remote Sensing 8, Sensors 4, AgriEngineering 4, etc.); top journals include Computers and Electronics in Agriculture (4) and Agriculture (3); full distribution in `literature/extraction/merged/`. Domains centre on crop–weed discrimination across cereals, vegetables, and orchard/perennial crops; input modalities include RGB, multispectral (NIR, red-edge), and hyperspectral UAV imagery at input resolutions of 224 to 1000 px. Dataset acquisition context is partially reported: flight altitude in 59/94 (median 10 m) and ground-sampling distance in 50/94 of dataset records (`synthesis/rq1_metric_reporting.md`).
 
+**Figure 2.** Publication-year distribution of the 94-study corpus; the 2025–2026 wave (40 studies, 43%) is dominated by preprints and accounts for most Transformer uptake.
+
+![Figure 2](figures/fig2_year_distribution.png)
+
 ### 3.3 RQ1 — Segmentation accuracy by architecture family
-**Reporting.** Of 94 studies, 64 report mIoU (68%), 32 F1, 19 Dice, 37 pixel accuracy, 10 mean-pixel accuracy, 5 weed-class F1, and 8 crop-class F1; 59 (63%) report at least two numeric metrics, and 75 (80%) evaluate more than one architecture. Extraction flagged at least one numeric ambiguity in 73 of 94 rows (contested source readings requiring human reconciliation before citation — see `synthesis/rq1_metric_reporting.md`). **Families** (by best-reported/backbone model): 69 CNN, 10 Transformer, 3 Hybrid; 2 vision-language approaches and 1 dataset-only contribution are excluded from the architecture comparison, and 9 rows are recorded as UNCLASSIFIED (reporting too weak to attribute; reviewed in Table C of the scaffold).
+**Reporting.** Of 94 studies, 64 report mIoU (68%), 32 F1, 19 Dice, 36 pixel accuracy, 10 mean-pixel accuracy, 5 weed-class F1, and 8 crop-class F1; 59 (63%) report at least two numeric metrics, and 75 (80%) evaluate more than one architecture. Extraction flagged at least one numeric ambiguity in 73 of 94 rows (contested source readings requiring human reconciliation before citation — see `synthesis/rq1_metric_reporting.md`). **Families** (by best-reported/backbone model): 69 CNN, 10 Transformer, 3 Hybrid; 2 vision-language approaches and 1 dataset-only contribution are excluded from the architecture comparison, and 9 rows are recorded as UNCLASSIFIED (reporting too weak to attribute; reviewed in Table C of the scaffold).
+
+**Figure 3.** Architecture-family distribution and Table 1 metric-reporting rates. Convolutional families supply 79/94 (84%) of best-reported models; reporting diversity is high for mIoU/F1 but collapses for position-aware and efficiency metrics.
+
+![Figure 3](figures/fig3_family_distribution.png)
+
+#### Table 1. Metric reporting rates across the 94-study corpus (RQ1)
+| Metric | Studies reporting | Share of 94 | Note |
+|---|---|---|---|
+| mIoU | 64 | 68% | dominant single metric |
+| F1 | 32 | 34% | incl. class-level crop/weed F1 |
+| Dice | 19 | 20% | |
+| Pixel accuracy (PA) | 36 | 38% | after quote-backed relabel of one OA mis-record |
+| Mean pixel accuracy (mPA) | 10 | 11% | |
+| Weed-class F1 | 5 | 5% | crop-level F1: 8 |
+| ≥2 numeric metrics | 59 | 63% | reporting-rich minority |
+| ≥1 numeric ambiguity flag | 73 | 78% | human reconciliation required before citation |
+| Flight altitude | 59 | 63% | median 10 m |
+| Ground sampling distance | 50 | 53% | of dataset records |
 
 **Intra-study paired evidence.** Where multiple architectures are evaluated under an identical protocol (the only statistically valid comparison), differences are material: e.g., in a weed-mapping study the proposed network reaches 0.7185 mIoU versus 0.6705 (U-Net++), 0.6689 (FPN), and 0.6587 (DeepLabV3+) (SCI-000816); in rice-field segmentation 0.8473 versus a CNN baseline 0.6280 (SCI-000582/565); on CoFly-WeedDB two pipelines report 0.5192 and 0.5621–0.8824 (SCI-000440/488). Within one study, breadth sweeps span 4.25–9.09 FPS (-width ×) and accuracy–efficiency honey-spots vary more with dataset than with family (full paired matrix: `synthesis/rq1_benchmark_tables.md`, Tables A–B).
 
 **Cross-study headline values.** Per-dataset top-20 mIoU values run 0.875–0.983 (e.g., 0.9827 UAV rice paddy, SCI-000637; 0.9735 soybean drone data, SCI-000180; 0.9656 multispectral fusion, SCI-000129; 0.9505 intercropped zucchini, SCI-001153; 0.9479 UAV visible-light crop classification, SCI-001371; 0.934 field weed density, SCI-000548). Two independent studies report 0.8290 on the same WeedsGalore-like target (SCI-000017/SCI-001084) — including one flagged as a likely duplicate evaluation.
 
 **Heterogeneity warning.** Only 5 datasets are shared by ≥2 studies (WeedsGalore ×3; WeedMap, CoFly-WeedDB, and two self-collected UAV sets ×2); most mIoU spreads are dataset artefacts, making cross-study ranking of families impossible. Transformer deployments concentrate in the newest cohort and rarely include on-device metrics.
+
+**Figure 4.** Benchmark-dataset reuse. 83 of 88 datasets are used by a single study; the corpus therefore approximates 88 separate evaluation islands, and only the 5 shared sets admit any cross-study comparison.
+
+![Figure 4](figures/fig4_dataset_reuse.png)
 
 ### 3.4 RQ2 — Edge inference feasibility
 **Reporting.** 46 studies name a deployment device; a 30-study true-edge cohort reports measured runtime on that device (synthesis/rq2_edge_tables.md Diagnostics), with corpus-wide reporting rates of 28 (FPS), 32 (latency), 34 (model size), 21 (FLOPs), 13 (precision, of which 6 explicit FP16/INT8). **Embedded true-edge cohort (n = 15):** on-device measurements span:
@@ -92,12 +122,48 @@ Studies span 2018–2026 with strong recent concentration: 19 of 94 (20%) publis
 - *Tinker Board S* — 1.43 FPS / 700 ms (SCI-001173).
 - *Laptop-class CPU* — 1.89 FPS / 530 ms (Intel i7-1065G7, 256 px; SCI-000968).
 
+**Figure 5.** Measured throughput on the 15-study embedded true-edge cohort (13 with FPS, 2 with latency only). Modern Orin/RK3588 boards exceed 40 FPS at reduced precision; Nano/TX2 and CPU-class platforms remain at single-digit FPS.
+
+![Figure 5](figures/fig5_edge_throughput.png)
+
+#### Table 2. Embedded true-edge cohort (RQ2, n = 15): measured runtime on embedded-class hardware
+| Study | Device | FPS | Latency (ms) | Precision | Input (px) |
+|---|---|---|---|---|---|
+| SCI-000149 | NVIDIA Jetson AGX Xavier | — | 2.1 | TorchScript & ONNX (FP32) | 640 |
+| SCI-001085 | Orange Pi 5+ (Rockchip RK3588, 6 TOPS NPU) | 62.5 | 16.0 | INT8 (post-training quantized RKNN) | 512 |
+| SCI-000810 | NVIDIA Jetson AGX Orin 64GB and Jetson Orin Nano Super | 47.18 | 21.514 | INT8 (matched-budget 15 W) / FP16 (native) TensorRT | 640 |
+| SCI-000669 | NVIDIA Jetson Orin Nano | 44.0 | — | FP32 | 256 |
+| SCI-001333 | NVIDIA Jetson AGX Xavier | 40.16 | — | FP16 (TensorRT) | 352x480 |
+| SCI-000683 | NVIDIA Jetson Nano | 30.6 | 32.7 | FP32 | 512 |
+| SCI-000346 | NVIDIA Jetson TX2 (desktop comparison: Intel/GPU 10.53 ms) | 17.05 | 58.65 | not stated | 320 |
+| SCI-001292 | NVIDIA Jetson TX2 (also RTX 3090 / CPU compared) | 7.0 | 142.9 | FP32 (reparameterized single-path inference) | 768 |
+| SCI-000565 | NVIDIA Jetson TX2 | 4.5 | — | FP16 | 1000x1000 |
+| SCI-000852 | NVIDIA Jetson Nano | 4.25 | 235 | FP32 | 512 |
+| SCI-000286 | NVIDIA Jetson Nano | 3.69 | 271.29 | ONNX (PyTorch, CUDA) | 224 |
+| SCI-000968 | Intel Core i7-1065G7 CPU (laptop) | 1.89 | 530 | not stated | 256x256 |
+| SCI-000440 | NVIDIA Jetson Nano | 1.864 | 536.6 | FP16 (quantized) | None |
+| SCI-000084 | NVIDIA Jetson TX2 | — | 600 | not stated | None |
+| SCI-001173 | ASUS Tinker Board S (onboard) + backend server (4G LTE offload) | 1.43 | 700 | not stated | None |
+
 Precision (FP16/INT8/FP32) and input resolution (224–1000 px) jointly move throughput by an order of magnitude; only 3 studies report energy or power at all (SCI-000440 4.8 W, SCI-000683 10.0 W, SCI-000810 13.2 W and 0.28 J/inference). **Target-edge caveat:** SCI-000067 and SCI-000754 argue embedded feasibility (Jetson TX2/Nano; Jetson-class SKUs) while measuring on a desktop RTX 4090 and a cloud T4 — and a full-text re-read confirms **neither reports any on-board measurement**; both explicitly defer on-device evaluation to future work (SCI-000067: "Future work will focus on testing the model on edge devices"; SCI-000754: "In future research, we aim to … optimize … for edge deployment"). These are *not* on-device evidence and are reported separately (`synthesis/rq2_edge_tables.md`, Tables B–D1). **Accelerator context:** desktop/cloud GPU measurements (RTX 4090/3080/2080, V100, Colab T4; Tables B–D) span 2.5–1611 FPS at 256–1024 px inputs and are excluded from on-device guidance, which draws only on the 15-study embedded cohort.
 
 **Bottom line for deployment.** Real-time (>20 FPS) agricultural segmentation at 512 px is demonstrated on Jetson Orin-class and RK3588-class boards at reduced precision; Jetson Nano/TX2 and CPU-class hardware remain marginal for full-frame real-time use, and only a minority of studies measure power — the key constraint on multi-hour field missions.
 
 ### 3.5 RQ3 — Trust and risk of bias
 **Retraction/correction.** 0 of 94 flagged or retracted (91 resolved by DOI, 2 by title match, 1 by OpenAlex ID). **Open-science artifacts.** Data availability: public link 21/94, request-only 22, statement-only 11, explicitly unavailable 2, not stated 38. Code availability: public link 18/94, request-only 3, statement-only 2, not stated 71. Both data and code publically linked in 11/94; any repository link present in 29/94. **Conflicts of interest.** 11/94 disclose any industry tie (4 funding, 7 affiliation/equipment); 52 declare no conflict, 18 declare academic/public funding, 13 give no statement. **Risk of bias** (QUADAS-2-adapted): overall low 2, unclear 77, high 15; domain-level: patient/selection 71 low / 20 unclear / 3 high; index-condition (data and reference labels) 10 low / 72 unclear / 12 high; flow/timing 37 low / 56 unclear / 1 high; reporting/nature of target 18 low / 32 unclear / 44 n/a. **Trust consensus:** 12 clusters → 8 ADEQUATE, 2 WEAK, 2 UNVERIFIED (`phase4/trust_consensus.json`). 39 provisional caveats persist from screening (resolution in §3.1); these do not enter the trust-scored corpus.
+
+**Figure 6.** and Table 3 summarise the risk-of-bias profile: low risk is concentrated in the selection domain, while the index-condition and overall ratings are dominated by *unclear* — a direct consequence of the reporting gaps documented in Table 1.
+
+![Figure 6](figures/fig6_ro_bias_heatmap.png)
+
+#### Table 3. Risk of bias (QUADAS-2-adapted), n = 94 (RQ3)
+| Domain | Low | Unclear | High / n/a |
+|---|---|---|---|
+| Patient / selection | 71 | 20 | 3 |
+| Index condition (data + labels) | 10 | 72 | 12 |
+| Flow / timing | 37 | 56 | 1 |
+| Reporting / nature of target | 18 | 32 | 44 (n/a) |
+| **Overall** | **2** | **77** | **15** |
 
 ## 4. Discussion
 
