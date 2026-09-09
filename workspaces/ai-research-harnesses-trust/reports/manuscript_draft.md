@@ -53,13 +53,40 @@ Prior evaluations have been narrow and siloed. Screening-performance meta-analys
 
 ## 3. Methods
 
-The review follows a hash-pinned protocol compiled with a protocol compiler (`protocol.json`, `SCREENING_CRITERIA.md`, `intent.json`) under the Design Science paradigm, and is reported in line with PRISMA-ScR and living-(systematic-)review guidance adapted to a scoping design. All stages were executed through a shared virtual Python environment; every step is recorded in an append-only audit journal (`audit/journal.jsonl`, 58 events). The corpus window (January 2023 – September 2026) is frozen for Version 1.0 at corpus finalization; §3.8 defines how the trailing publication-date boundary and subsequent evidence are absorbed in later versions.
+The review follows a hash-pinned protocol compiled with a protocol compiler (`protocol.json`, `SCREENING_CRITERIA.md`, `intent.json`) under the Design Science paradigm, and is reported in line with PRISMA-ScR and living-(systematic-)review guidance adapted to a scoping design. All stages were executed through a shared virtual Python environment; every step is recorded in an append-only audit journal (`audit/journal.jsonl`, 59 events). The corpus window (January 2023 – September 2026) is frozen for Version 1.0 at corpus finalization; §3.8 defines how the trailing publication-date boundary and subsequent evidence are absorbed in later versions.
 
 ### 3.1 Search and record verification
 Five sources were federated in a single pass (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv; bioRxiv-track preprints are captured via PubMed indexing) with concept-and-synonym search strings (Boolean OR within and across the concepts "literature-review automation" and "large language model"; see `search_strategy` in `protocol.json` and supplementary search-log) targeting LLM/agentic review automation, 2023–2026. 250 raw hits were deduplicated and hydrated (DOI and normalized-title resolution, abstract and DOI completion), yielding **239 unique verified records**.
 
 ### 3.2 Screening
-Two hundred thirty-nine records were screened against explicit PICO-style inclusion/exclusion criteria by four independent AI screeners in twelve agent-in-the-loop batches (Fleiss' κ = **0.408**, fair agreement by Landis–Koch bands). Two hundred thirteen records were resolved by majority rule (≥3 of 4); the **26 two-vs-two deadlocks** were adjudicated by a senior adjudicator. Final: **58 included / 181 excluded**.
+Two hundred thirty-nine records were screened against explicit PICO-style inclusion/exclusion criteria by four independent AI screeners in twelve agent-in-the-loop batches (Fleiss' κ = **0.408**, fair agreement by Landis–Koch bands). Two hundred thirteen records were resolved by majority rule (≥3 of 4); the **26 two-vs-two deadlocks** were adjudicated by a senior adjudicator. Final: **58 included / 181 excluded**. Table 1 summarizes the full flow of information; screening reliability is decomposed in Table 2; the flow is rendered in Figure 1.
+
+**Table 1. Identification, screening, and inclusion flow (PRISMA-ScR item 17).**
+
+| Stage | Count | Source artifact |
+| :--- | ---: | :--- |
+| Records identified from 5 sources | 250 | `raw_search.json` (50 per source, query Q001) |
+| Duplicates removed (DOI + normalized-title) | 11 | `deduped.json` |
+| Records screened (title + abstract, 4 AI screeners) | 239 | 12 agent-in-the-loop batches |
+| Excluded at title/abstract (systematic rule) | 181 | `excluded.json` |
+| Included studies (review corpus) | 58 | `included.json` |
+| OA full-text PDFs harvested and validated | 64 | `pdfs/` (OA harvest) |
+| Included studies contributing claims | 57 | `claims.json` (493 full-text + 17 abstract-only) |
+| Fully Phase-4 certified studies | 47 | `phase4/*.json` |
+
+**Table 2. Title/abstract screening reliability.**
+
+| Metric | Value |
+| :--- | :--- |
+| Screeners | 4 independent AI screeners |
+| Batches | 12 (agent-in-the-loop) |
+| Fleiss' κ | 0.408 (fair, Landis–Koch) |
+| Majority-rule resolutions | 213 (≥ 3 of 4) |
+| Two-vs-two deadlocks escalated | 26 (senior adjudicator) |
+| Final split | 58 included / 181 excluded |
+
+![Figure 1 — PRISMA-ScR flow of information (Version 1.0, corpus finalized 2026-09-09): identification 250 → 11 duplicates removed → 239 screened → 181 excluded / 58 included → 64 PDFs, 57 claim-contributing studies, 47 fully Phase-4 certified.](../synthesis/figures/fig_prisma_scr_flow.png)
+*Figure 1. PRISMA-ScR flow of information for the living scoping review (Version 1.0).*
 
 ### 3.3 Full-text acquisition, extraction, and scoping
 Open-Access PDFs were retrieved and extracted to YAML-frontmatter Markdown (64 documents; 3,814 structural AST chunks; `all-MiniLM-L6-v2` embeddings). Because extraction preceded final scoping, 18 extractions belong to screened-out studies; **all synthesis in this manuscript is scoped strictly to the 58 included studies**, and the screened-out extractions are removed from the evidence index for authoritative synthesis.
@@ -70,7 +97,22 @@ Each included study was certified with four `scholar-verify` streams: retraction
 ### 3.5 Claim extraction with verbatim verification
 **Approach B (authoritative).** Eight parallel agents read the complete text of the 46 full-text included papers (7 size-balanced batches ≤ ~456 KB) plus one agent over the 12 abstract-only papers, producing claims in a canonical 10-field schema (principal fields: `rq_id`, `claim_text`, `citation_tokens`, `evidence_quote`, `section`, `stance`, `evidence_level`, `location_hint`, plus content-hash and provenance fields). Every quote was then **machine-verified against the source file** to a defined threshold: glyph-normalized (bullet remapping, zero-width-space and Unicode-dash handling, NFKC, hyphen-wrap rejoin) matching via character windows (8 chars, step 4) and token 6-grams (6 tokens, step 3); a claim passes at ≥ 0.90 coverage on either metric — i.e., the verified quote matches the source at ≥90% on char-window or token 6-gram alignment, not byte-for-byte. Initial verification failed 156/510 quotes; after four repair iterations including re-casting 11 light-paraphrase/math-glyph artifacts to exact substrings, **510/510 (100%) claims pass the ≥0.90 threshold**, comprising 166 (RQ1), 132 (RQ2), 212 (RQ3) — 493 full-text and 17 abstract-only, spanning 57 studies (one included study has an empty abstract and contributes none).
 
-**Approach A (baseline).** Deterministic RAG synthesis retrieved the top-30 chunks per research question from the full 64-document index and applied heuristic entailment verification of claims against their own snippets (90 claims, 30 per RQ).
+**Approach A (baseline).** Deterministic RAG synthesis retrieved the top-30 chunks per research question from the full 64-document index and applied heuristic entailment verification of claims against their own snippets (90 claims, 30 per RQ). Table 3 summarizes the verbatim ledger; the verification repair loop is rendered in Figure 2.
+
+**Table 3. Multi-agent verbatim claim-extraction ledger (Approach B).**
+
+| Dimension | Value |
+| :--- | :--- |
+| Architecture | 8 full-text agents (46 full-text papers, 7 size-balanced batches) + 1 abstract agent (12 abstract-only papers) |
+| Total claims | 510 (100% pass at the ≥ 0.90 glyph-normalized coverage threshold) |
+| Per research question | RQ1 166 / RQ2 132 / RQ3 212 |
+| Full-text vs. abstract-only | 493 / 17 |
+| Studies contributing claims | 57 of 58 (SCI-000147 empty abstract, claim-void) |
+| Initial verification failures | 156 / 510 |
+| Repair iterations / re-cast | 4 iterations; 11 light-paraphrase/math-glyph quotes re-cast to exact substrings |
+
+![Figure 2 — Verbatim verification repair loop: 156/510 initial failures reduced to 0 across four fix iterations (11 re-cast verbatim), final 510/510 pass.](../synthesis/figures_d2/fig3_verification_repair_loop.png)
+*Figure 2. Verbatim verification repair loop (auditable at every stage).*
 
 ### 3.6 Semantic consensus
 The 510-claim ledger was clustered with cached-embedding cosine similarity (`all-MiniLM-L6-v2`, threshold 0.40) into a consensus map (16 high-consensus, 7 active debates, 37 unresolved, 35 provisional clusters).
@@ -88,7 +130,17 @@ This Version 1.0 report is the initial snapshot of a living scoping review. The 
 ## 4. Results
 
 ### 4.1 Corpus characteristics
-The 58 included studies (2023: 2; 2024: 8; 2025: 18; 2026: 30) reflect rapid growth in agentic research tooling, with 2026 accounting for over half the corpus (30/58, 52%). Of the 46 full-text-characterized systems, keyword-classified architecture patterns are: single-agent/single-system 19 (41.3%); multi-agent/agentic orchestration 16 (34.8%); RAG/retrieval-grounded 5 (10.9%); end-to-end pipeline/meta-analysis 4 (8.7%); knowledge-graph/ontology 2 (4.3%). Phase-4 audit: **0 retractions**, 16 live repository links (34.0%), 7 dual data+code releases, 5 industry COI ties (10.6%), 4 declared no-conflict, 1 academic-or-public affiliation, 37 with no formal COI statement.
+The 58 included studies (2023: 2; 2024: 8; 2025: 18; 2026: 30) reflect rapid growth in agentic research tooling, with 2026 accounting for over half the corpus (30/58, 52%). Of the 46 full-text-characterized systems, keyword-classified architecture patterns are: single-agent/single-system 19 (41.3%); multi-agent/agentic orchestration 16 (34.8%); RAG/retrieval-grounded 5 (10.9%); end-to-end pipeline/meta-analysis 4 (8.7%); knowledge-graph/ontology 2 (4.3%). Phase-4 audit: **0 retractions**, 16 live repository links (34.0%), 7 dual data+code releases, 5 industry COI ties (10.6%), 4 declared no-conflict, 1 academic-or-public affiliation, 37 with no formal COI statement. Table 4 summarizes corpus composition.
+
+**Table 4. Corpus composition (Version 1.0).**
+
+| Dimension | Value |
+| :--- | :--- |
+| Included studies | 58 (239 screened; 181 excluded) |
+| Publication years | 2023: 2 · 2024: 8 · 2025: 18 · 2026: 30 |
+| Preprint-track | 32/58 (55%) — 30 arXiv, 1 bioRxiv, 1 institutional repository |
+| Architecture patterns (n = 46 full-text-characterized) | single-agent 19 (41.3%) · multi-agent 16 (34.8%) · RAG 5 (10.9%) · end-to-end 4 (8.7%) · graph/ontology 2 (4.3%) |
+| Freshness | 2026 alone = 30/58 (52%); living-review rationale |
 
 ### 4.2 RQ1 — State of the art and design mechanisms
 **Architectural convergence.** Systems press general-purpose LLMs into review pipelines without task-specific fine-tuning, treating **prompt engineering as the primary optimization strategy** [3][9]. Motivating framing recurs: conventional SLR practice is "time-consuming, labor-intensive, and susceptible to human bias" [1], and general-purpose agents "fall short on the auditable, scenario-specific workflows" biomedical evidence demands [7]. Five patterns recur: (i) **prompt-compilation systems** that package compiled prompts as "verifiable digital artefacts" to neutralize prompt fragility [9]; (ii) **multi-agent teams with role specialization** — Orchestrator/BioExpert/Evaluator decomposition [10], three-layer worker–manager–director networks [11], and 11-agent coordination with deliberate model routing (cheap models for throughput phases, strong models for judgment and verification) [12]; (iii) **end-to-end orchestrated pipelines** automating complete meta-analysis workflows [13][14][15]; (iv) **RAG/retrieval-grounded designs** coupling dynamic retrieval with answer generation [16][17][6]; and (v) **graph/knowledge-grounded designs** that productionize both a knowledge graph and vector collections as "structural infrastructure for verifiable information synthesis" [18][19].
@@ -116,13 +168,55 @@ The 58 included studies (2023: 2; 2024: 8; 2025: 18; 2026: 30) reflect rapid gro
 **The evaluation gap.** No included study provides an end-to-end, externally validated, multi-domain benchmark jointly evaluating screening, extraction, synthesis quality, citation verifiability, and cost. Validations are proof-of-concept against published reviews without blinded dual review [25], formally labeled "essential" to reproduce [15], single-model without cross-model replication [24], and rely on LLM-as-judge protocols correlating only moderately with experts (r = 0.65–0.81) [23][36].
 
 ### 4.5 Consensus cartography
-The 95-cluster consensus map surfaces structure the RAG baseline cannot see. High-consensus themes (≥ 3 independent sources): citation-verifiability failure at scale (0.475 existence ceiling), open-weights selection for reproducibility (17 studies), human-machine collaboration with retained researcher control, structured-field extraction superiority, and local-vs-API cost anatomy. **Seven active debates** include deterministic versus adaptive configuration, best-performing benchmark model, and LLM-versus-human screening reliability. Full cluster contents: see supplementary consensus file.
+The 95-cluster consensus map (Table 5) surfaces structure the RAG baseline cannot see. High-consensus themes (≥ 3 independent sources): citation-verifiability failure at scale (0.475 existence ceiling), open-weights selection for reproducibility (17 studies), human-machine collaboration with retained researcher control, structured-field extraction superiority, and local-vs-API cost anatomy. **Seven active debates** include deterministic versus adaptive configuration, best-performing benchmark model, and LLM-versus-human screening reliability. Full cluster contents: see supplementary consensus file.
+
+**Table 5. Consensus cartography (`synthesis/consensus.json`, threshold 0.40).**
+
+| Bucket | Clusters | Meaning |
+| :--- | ---: | :--- |
+| High-consensus | 16 | ≥ 3 independent sources converge |
+| Active debates | 7 | Contradictory claim sets |
+| Unresolved | 37 | Mostly neutral-direction findings |
+| Provisional | 35 | Single-source findings |
+| **Total** | **95** | 510 claims clustered (all-MiniLM-L6-v2 cosine) |
 
 ### 4.6 Approach comparison (RAG baseline vs. multi-agent ledger)
-The deterministic RAG baseline produced 90 claims across 25 studies (14 in-scope of 58), of which **only 43.3% were entailment-verified** (RQ1 36.7%, RQ2/RQ3 46.7%); it cited **11 studies absent from the included set** (its index contained the 18 screened-out extractions; a single non-included paper, SCI-000184, supplied 22/90 claims), covered 44 included studies not at all, and yielded 20 clusters with zero debates. The multi-agent ledger achieved **100% pass at the ≥0.90 verification threshold** across 57 included studies and 95 clusters including 7 active debates. Head-to-head details: see supplementary method-comparison table.
+The deterministic RAG baseline produced 90 claims across 25 studies (14 in-scope of 58), of which **only 43.3% were entailment-verified** (RQ1 36.7%, RQ2/RQ3 46.7%; Figure 5); it cited **11 studies absent from the included set** (its index contained the 18 screened-out extractions; a single non-included paper, SCI-000184, supplied 22/90 claims), covered 44 included studies not at all (Figure 4), and yielded 20 clusters with zero debates. The multi-agent ledger achieved **100% pass at the ≥0.90 verification threshold** across 57 included studies and 95 clusters including 7 active debates. Table 6 gives the head-to-head summary; Figures 3–4 visualize verification coverage and corpus-scope discipline.
+
+**Table 6. Approach A (deterministic RAG baseline) vs. Approach B (multi-agent verbatim ledger).**
+
+| Metric | Approach A (RAG) | Approach B (verbatim) |
+| :--- | ---: | ---: |
+| Claims generated | 90 (30 per RQ) | 510 |
+| Verification gate | Entailment vs. own snippets | ≥ 0.90 glyph-normalized coverage (char-window / token 6-gram) |
+| Pass rate | 43.3% (39/90) | 100% (510/510) |
+| Studies represented | 25 | 57 |
+| In-scope studies covered | 14/58 | 57/58 |
+| Studies cited outside included set | 11 | 0 |
+| Included studies invisible | 44 | 0 |
+| Consensus clusters | 20 | 95 |
+| Active debates surfaced | 0 | 7 |
+
+![Figure 3 — Head-to-head verification coverage: 43.3% pass (39/90) and 25 studies represented for the RAG baseline versus 100% (510/510) across 57/58 studies for the verbatim multi-agent ledger; 44/58 included studies invisible to RAG.](../synthesis/figures_d2/fig1_verification_versus_coverage.png)
+*Figure 3. Claim verification pass rate and corpus coverage, Approach A vs. B.*
+
+![Figure 4 — Corpus-scope discipline: RAG baseline cited 11 screened-out studies and left 44 included studies with zero claims; the verbatim ledger surfaced 7 active debates.](../synthesis/figures_d2/fig2_scope_and_debates.png)
+*Figure 4. Corpus-scope and debate structure (lower is better for the first two panels; higher for debates).*
+
+![Figure 5 — Per-research-question verification rates: RAG baseline 36.7%/46.7%/46.7% (Wilson 95% CIs) versus 100% across RQ1–RQ3 for the verbatim ledger; pooled RAG floor 43.3%.](../synthesis/figures_d2/fig4_per_rq_rates.png)
+*Figure 5. Per-research-question verification rates with 95% CIs.*
 
 ### 4.7 Phase-4 trust audit
-Retraction: 0/48 flagged. Open science: 16 repository links, 7 dual data+code, 32 explicit DA/S/CA statements, 5 proprietary. COI: 5 industry ties (two Meta-affiliated, Google, Anthropic, OpenAI), 4 declared no-conflict, 1 academic-or-public, 37 with no formal COI statement (of 47 scanned) — a structural feature of computer-science preprints and evocative of governance gaps the corpus itself describes.
+Retraction: 0/48 flagged. Open science: 16 repository links, 7 dual data+code, 32 explicit DA/S/CA statements, 5 proprietary. COI: 5 industry ties (two Meta-affiliated, Google, Anthropic, OpenAI), 4 declared no-conflict, 1 academic-or-public, 37 with no formal COI statement (of 47 scanned) — a structural feature of computer-science preprints and evocative of governance gaps the corpus itself describes. Table 7 summarizes the four-stream audit.
+
+**Table 7. Phase-4 trust-verification streams (Version 1.0).**
+
+| Stream | Coverage | Finding |
+| :--- | :--- | :--- |
+| Retraction status (OpenAlex/Crossref) | 48 studies checked | 0 flagged; `crossref_update_events` empty (no supersession yet) |
+| Open-science artifact scan (DA/S/CA) | 47 studies scanned | 16 repo links · 7 dual data+code · 32 explicit statements · 5 proprietary |
+| Conflict-of-interest audit | 47 studies scanned | 5 industry-equipment ties · 4 declared no-conflict · 1 academic-or-public · 37 no formal statement |
+| Risk-of-bias attestation | 47 studies assessed | PROBAST/QUADAS-2-adapted deterministic scoring |
 
 ## 5. Discussion
 
@@ -145,14 +239,14 @@ The 2023–2026 literature documents a rapid, convergent movement toward auditab
 
 ## 7. Declarations and Data Availability
 
-- **Data availability**: full workspace `workspaces/ai-research-harnesses-trust/` (protocol, screening, extractions, claims ledger, consensus, audit journal, phase-4 outputs) is preserved and git-tracked (text/metadata) as versioned, hash-pinned artifacts. Supplementary: search-log per version (`literature/search_log_v1.0.json`), standalone flow of information (`synthesis/prisma_scr_flow.md` + vector figure `synthesis/figures/fig_prisma_scr_flow.svg`), and reference-provenance map with preprint→published supersession tracking (`reports/supplementary_references.md`).
+- **Data availability**: full workspace `workspaces/ai-research-harnesses-trust/` (protocol, screening, extractions, claims ledger, consensus, audit journal, phase-4 outputs) is preserved and git-tracked (text/metadata) as versioned, hash-pinned artifacts. Supplementary: search-log per version (`literature/search_log_v1.0.json`), standalone flow of information (`synthesis/prisma_scr_flow.md` + vector figure `synthesis/figures/fig_prisma_scr_flow.svg` and raster `fig_prisma_scr_flow.png`), and reference-provenance map with preprint→published supersession tracking (`reports/supplementary_references.md`).
 - **Code availability**: pipeline orchestration via Nexus Scholar kits; stage CLIs (`scholar-verify` retraction/open-science/coi/risk-of-bias + `verbatim-claims`, `scholar-rag` index/consensus, discovery/screening entry points) are invocable in the project venv. Re-run instructions for the living-review protocol (§3.8): federated discovery and screening from `literature/`, extraction from `extracted/`, claim verification via the `scholar-verify verbatim-claims` gate (regeneration of the higher-level claim ledger uses the committed agent/prompt inputs recorded per run). Author-metadata resolution scripts for reference updates are committed under `scripts/`.
 - **Protocol availability**: hash-pinned protocol `protocol.json` (compiled-protocol fingerprint `sha256:9646d5ec6902c8f7687dfcb6568e473e1e01b78f666b20b74ec901f9703bf55c`, recorded at last protocol recompile in the audit journal), `SCREENING_CRITERIA.md`, and `intent.json`. Not externally registered at Version 1.0; registration is planned for a recognized registry (OSF) before journal submission.
 - **#Preprints and updates**: this review explicitly includes preprint-track records (32/58). Preprint→published supersession is tracked where Crossref `update-to`/OpenAlex status is available; at Version 1.0 finalization these fields were empty for the corpus (see §5.3), so the living protocol (§3.8) is the mechanism by which supersession will be absorbed.
 - **Conflicts of interest**: none declared by the authors; the Nexus Scholar toolkit was excluded from the review matrix.
 - **Authors' contributions**: MB and SZ conceived and designed the review protocol, co-authored the manuscript, and jointly verified the evidence pipeline outputs; SZ provided supervision and methodological oversight; MB implemented the analyses.
 - **Funding**: this research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
-- **Traceability declaration**: every claim statistic in this manuscript is machine-verifiable against `synthesis/claims.json` (510 claims, each with verified evidence quotes) and `synthesis/consensus.json`; every pipeline step is recorded in `audit/journal.jsonl` (58 events). Version stamp: Review 1.0, corpus finalized 2026-09-09.
+- **Traceability declaration**: every claim statistic in this manuscript is machine-verifiable against `synthesis/claims.json` (510 claims, each with verified evidence quotes) and `synthesis/consensus.json`; every pipeline step is recorded in `audit/journal.jsonl` (59 events). Version stamp: Review 1.0, corpus finalized 2026-09-09.
 
 ---
 

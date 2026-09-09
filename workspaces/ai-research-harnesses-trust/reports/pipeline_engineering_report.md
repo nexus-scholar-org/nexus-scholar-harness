@@ -122,7 +122,7 @@ Consensus Cartographer over cached embeddings (`all-MiniLM-L6-v2`, cosine, **θ 
 ### 5.4 Narrative and deliverables
 - 3 RQ chapters drafted from the briefing packs by parallel agents; **machine-checked that every cited `SCI-###` exists in the ledger** (0 ungrounded citations).
 - `synthesis/literature_review.md` (final; stale draft archived to `literature_review_draft_v1.md`), `synthesis/method_comparison.md` (head-to-head A vs B), `reports/methodology_report.md`, `reports/manuscript_draft.md` (36 references author-complete via Crossref/arXiv cache; all 36 author lists resolved).
-- Full pipeline recorded in `audit/journal.jsonl` (58 events at D3 close), reflected in `project.json` stats and `INDEX.md`.
+- Full pipeline recorded in `audit/journal.jsonl` (59 events at D3 close), reflected in `project.json` stats and `INDEX.md`.
 
 ---
 
