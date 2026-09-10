@@ -86,7 +86,7 @@ For defensibility, each headline statistic in §3 was **recomputed directly from
 
 ### 2.6 Consensus and Phase-4 trust streams
 
-The 510-claim ledger was clustered with cached-embedding cosine similarity (`all-MiniLM-L6-v2`, θ = 0.40) into a consensus map whose clusters were typed high-consensus / active-debate / unresolved / provisional. Each study additionally received a trust grade (BLOCKED → UNVERIFIED → WEAK → ADEQUATE → STRONG) from four Phase-4 verification streams — retraction status (OpenAlex `is_retracted`, Crossref `update-to`), open-science DAS/CAS artifact scanning, conflict-of-interest audit, and QUADAS-2/PROBAST-style risk-of-bias attestation [8][9]. Every pipeline step was recorded in an append-only audit journal (69 events).
+The 510-claim ledger was clustered with cached-embedding cosine similarity (`all-MiniLM-L6-v2`, θ = 0.40) into a consensus map whose clusters were typed high-consensus / active-debate / unresolved / provisional. Each study additionally received a trust grade (BLOCKED → UNVERIFIED → WEAK → ADEQUATE → STRONG) from four Phase-4 verification streams — retraction status (OpenAlex `is_retracted`, Crossref `update-to`), open-science DAS/CAS artifact scanning, conflict-of-interest audit, and QUADAS-2/PROBAST-style risk-of-bias attestation [8][9]. Every pipeline step was recorded in an append-only audit journal (70 events).
 
 ## 3. Results
 
@@ -183,7 +183,7 @@ Evidence synthesis is only credible for publication when each claim is bound to 
 ## 7. Declarations
 
 - **Competing interests**: none declared. The generating harness was itself the object of study; the surface area of its own tooling was not part of the evaluated corpus.
-- **Data availability**: all artifacts are committed in the `nexus-scholar-harness` repository under `workspaces/ai-research-harnesses-trust/`: verbatim ledger `synthesis/claims.json` (510 claims, each with a machine-verified quote), `synthesis/rag_baseline/` (RAG arm), `synthesis/consensus.json|md` (95 clusters), `phase4/*` (trust streams), and the append-only `audit/journal.jsonl` (69 events).
+- **Data availability**: all artifacts are committed in the `nexus-scholar-harness` repository under `workspaces/ai-research-harnesses-trust/`: verbatim ledger `synthesis/claims.json` (510 claims, each with a machine-verified quote), `synthesis/rag_baseline/` (RAG arm), `synthesis/consensus.json|md` (95 clusters), `phase4/*` (trust streams), and the append-only `audit/journal.jsonl` (70 events).
 - **Code availability**: the verifier is open source (`scholar-verify-kit`, module `scholar_verify.verbatim`); figures regenerate from `scripts/build_d2_figures.py`; every headline number is recomputed and asserted against the committed ledgers by `scripts/reproduce_d2_stats.py` (`uv run python scripts/reproduce_d2_stats.py`), which exits non-zero on any mismatch and writes an audit report to `synthesis/figures_d2/stats_audit.md`.
 - **Author contributions**: both authors contributed equally to conceptualization, methodology, and writing; S.Z. is the corresponding author.
 - **Ethics statements**: not applicable (no human subjects; review of published literature).
