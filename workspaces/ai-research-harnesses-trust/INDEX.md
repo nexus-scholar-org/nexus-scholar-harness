@@ -1,7 +1,7 @@
 # Project Index: AI-Assisted Academic Research Harnesses: Traceability, Trust, Audit and Reproducibility
 
 - **Project Slug**: `ai-research-harnesses-trust`
-- **Last Updated**: `2026-09-10 01:18:56 UTC`
+- **Last Updated**: `2026-09-10 04:16:26 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -28,9 +28,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-10 01:18 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-10 01:18 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-10 01:18 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-10 04:16 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-10 04:16 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-10 04:16 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-08 08:11 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-08 08:12 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-08 08:17 | Verified |
@@ -45,14 +45,14 @@
 | `synthesis/literature_review.md` | Synthesis document & literature review | 2026-09-09 07:16 | In Progress |
 | `reports/D3_ADVERSARIAL_AUDIT.md` | Formal methodology or audit report | 2026-09-09 23:29 | Audited |
 | `reports/D3_FRAMING_DECISION.md` | Formal methodology or audit report | 2026-09-09 22:20 | Audited |
-| `reports/D3_OSF_REGISTRATION_DRAFT.md` | Formal methodology or audit report | 2026-09-09 23:43 | Audited |
+| `reports/D3_OSF_REGISTRATION_DRAFT.md` | Formal methodology or audit report | 2026-09-10 04:15 | Audited |
 | `reports/D3_OSF_REGISTRATION_SNIPPET.md` | Formal methodology or audit report | 2026-09-10 01:18 | Audited |
 | `reports/literature_lessons_and_reading_list.md` | Formal methodology or audit report | 2026-09-09 09:29 | Audited |
 | `reports/manuscript_d2.md` | Formal methodology or audit report | 2026-09-09 15:15 | Audited |
-| `reports/manuscript_draft.md` | Formal methodology or audit report | 2026-09-10 00:45 | Audited |
-| `reports/methodology_report.md` | Formal methodology or audit report | 2026-09-10 00:46 | Audited |
+| `reports/manuscript_draft.md` | Formal methodology or audit report | 2026-09-10 04:15 | Audited |
+| `reports/methodology_report.md` | Formal methodology or audit report | 2026-09-10 01:19 | Audited |
 | `reports/PHD_DELIVERABLES_PLAN.md` | Formal methodology or audit report | 2026-09-09 23:46 | Audited |
-| `reports/pipeline_engineering_report.md` | Formal methodology or audit report | 2026-09-10 00:46 | Audited |
+| `reports/pipeline_engineering_report.md` | Formal methodology or audit report | 2026-09-10 01:19 | Audited |
 | `reports/screening_consensus_report.md` | Formal methodology or audit report | 2026-09-08 22:25 | Audited |
 | `reports/supplementary_references.md` | Formal methodology or audit report | 2026-09-09 23:20 | Audited |
 | `pdfs/` | Downloaded Open Access full-text PDF documents (64 files) | Active | Downloaded |

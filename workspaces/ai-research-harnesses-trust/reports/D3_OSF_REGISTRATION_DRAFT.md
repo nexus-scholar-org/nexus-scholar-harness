@@ -8,7 +8,7 @@ quarterly update).
 ## 1. General information
 
 - Title: A Grounded, Verbatim-Verified Early-Evidence Living Scoping Review of AI Research Harnesses for Trustworthy Scholarly Synthesis: Traceability, Audit, and Reproducibility (Version 1.0)
-- Registration date: [to be planned, before first journal submission]
+- Registration date (planned): 2026-09-10, before first journal submission (register Version 1.0, then version at each quarterly update)
 - Principal investigator: Mouadh Bekhouche, University of Oum El Bouaghi, ORCID 0009-0009-7912-7656
 - Authors: Mouadh Bekhouche; Soumia Zertal (supervisor, corresponding author)
 - Corresponding author: Soumia Zertal (zertal.soumia@univ-oeb.dz)
