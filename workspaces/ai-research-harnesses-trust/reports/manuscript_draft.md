@@ -53,7 +53,7 @@ Prior evaluations have been narrow and siloed. Screening-performance meta-analys
 
 ## 3. Methods
 
-The review follows a hash-pinned protocol compiled with a protocol compiler (`protocol.json`, `SCREENING_CRITERIA.md`, `intent.json`) under the Design Science paradigm, and is reported in line with PRISMA-ScR and living-(systematic-)review guidance adapted to a scoping design. All stages were executed through a shared virtual Python environment; every step is recorded in an append-only audit journal (`audit/journal.jsonl`, 67 events). The corpus window (January 2023 – September 2026) is frozen for Version 1.0 at corpus finalization; §3.8 defines how the trailing publication-date boundary and subsequent evidence are absorbed in later versions.
+The review follows a hash-pinned protocol compiled with a protocol compiler (`protocol.json`, `SCREENING_CRITERIA.md`, `intent.json`) under the Design Science paradigm, and is reported in line with PRISMA-ScR and living-(systematic-)review guidance adapted to a scoping design. All stages were executed through a shared virtual Python environment; every step is recorded in an append-only audit journal (`audit/journal.jsonl`, 68 events). The corpus window (January 2023 – September 2026) is frozen for Version 1.0 at corpus finalization; §3.8 defines how the trailing publication-date boundary and subsequent evidence are absorbed in later versions.
 
 ### 3.1 Search and record verification
 Five sources were federated in a single pass (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv; bioRxiv-track preprints are captured via PubMed indexing) with concept-and-synonym search strings (Boolean OR within and across the concepts "literature-review automation" and "large language model"; see `search_strategy` in `protocol.json` and supplementary search-log) targeting LLM/agentic review automation, 2023–2026. 250 raw hits were deduplicated and hydrated (DOI and normalized-title resolution, abstract and DOI completion), yielding **239 unique verified records**.
@@ -246,7 +246,7 @@ The 2023–2026 literature documents a rapid, convergent movement toward auditab
 - **Conflicts of interest**: none declared by the authors; the Nexus Scholar toolkit was excluded from the review matrix.
 - **Authors' contributions**: MB and SZ conceived and designed the review protocol, co-authored the manuscript, and jointly verified the evidence pipeline outputs; SZ provided supervision and methodological oversight; MB implemented the analyses.
 - **Funding**: this research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
-- **Traceability declaration**: every claim statistic in this manuscript is machine-verifiable against `synthesis/claims.json` (510 claims, each with verified evidence quotes) and `synthesis/consensus.json`; every pipeline step is recorded in `audit/journal.jsonl` (67 events). Version stamp: Review 1.0, corpus finalized 2026-09-09.
+- **Traceability declaration**: every claim statistic in this manuscript is machine-verifiable against `synthesis/claims.json` (510 claims, each with verified evidence quotes) and `synthesis/consensus.json`; every pipeline step is recorded in `audit/journal.jsonl` (68 events). Version stamp: Review 1.0, corpus finalized 2026-09-09.
 
 ---
 
