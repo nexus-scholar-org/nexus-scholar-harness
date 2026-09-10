@@ -5,7 +5,7 @@
 ---
 
 **Manuscript type**: Methods paper
-**Manuscript status**: Final draft for author review and submission
+**Manuscript status**: Final v1.3 for author review and submission (post-D2 submission review)
 **Workspace**: `workspaces/ai-research-harnesses-trust` · domain: AI-assisted research harnesses, 2023–2026
 **All headline statistics recomputed from committed ledgers** (`synthesis/claims.json`, `synthesis/rag_baseline/claims.json`, `literature/screening/final_reconciled_decisions.json`)
 
@@ -26,11 +26,11 @@ Mouadh Bekhouche*¹ and Soumia Zertal*²
 
 **Background.** Large language models (LLMs) are increasingly embedded in the systematic-review lifecycle, yet their outputs are not trustworthy by default. Under realistic deployment constraints, no model exceeded a citation-existence rate of 0.475 across 17,443 generated citations [1], and without retrieval grounding 78–98% of cited papers are fabricated [2]. Worse, the metrics commonly used to score synthesized output can be actively misleading: BERTScore [3,11] and ROUGE [12] have been shown to rate factually false conclusions as semantically equivalent to verified truths [3], and BLEU/ROUGE scores proved "not meaningful" against human assessment in a PICO feasibility study [4]. The field lacks a *deterministic* claim-evidence gate — a pass/fail test that does not itself appeal to an LLM judge.
 
-**Methods.** We formalize **verbatim claim verification**: each synthesis claim is reduced to an atomic evidence quote, and that quote is machine-checked byte-for-byte against the approved source full text. Matching uses glyph-normalized text (NFKC; bullet, dash and quote canonicalization; hyphen-wrap rejoin) through dual-pass sliding character windows (8 characters, step 4) and token 6-grams (6 tokens, step 3), with a pass threshold of ≥ 0.90 coverage on either metric. We compared this method against a deterministic retrieval-augmented generation (RAG) baseline over the same corpus — 239 de-duplicated records screened by four independent AI screeners (Fleiss' κ = 0.408) with majority rule and adjudicated deadlock resolution, yielding 58 included studies.
+**Methods.** We formalize **verbatim claim verification**: each synthesis claim is reduced to an atomic evidence quote, and that quote is machine-checked against the approved source full text at a defined glyph-normalized coverage threshold. Matching uses glyph-normalized text (NFKC; bullet, dash and quote canonicalization; hyphen-wrap rejoin) through dual-pass sliding character windows (8 characters, step 4) and token 6-grams (6 tokens, step 3), with a pass threshold of ≥ 0.90 coverage on either metric — i.e., the verified quote matches the source at ≥90% alignment, not byte-for-byte. We compared this method against a deterministic retrieval-augmented generation (RAG) baseline over the same corpus — 239 de-duplicated records screened by four independent AI screeners (Fleiss' κ = 0.408) with majority rule and adjudicated deadlock resolution, yielding 58 included studies.
 
-**Results.** The RAG baseline generated 90 claims (30 per research question), of which only **39/90 (43.3%)** passed its own snippet-entailment gate (RQ1 11/30 = 36.7%, 95% CI 21.9–54.5%; RQ2 14/30 = 46.7%, CI 30.2–63.9%; RQ3 14/30 = 46.7%, CI 30.2–63.9%). Because the gate scores each claim against the retrieval snippet that produced it, this is a *self-referential, lenient* bar: it certifies consistency with retrieved context, not presence in an approved source. It represented only 25 studies (14 in-scope), produced at least one verified claim for just 8 of the 14 in-scope studies it covered, cited **11 studies absent from the included set** — a single excluded source supplied 22 of the 90 claims — and had zero claims for 44 of the 58 included studies. The verbatim pipeline generated 510 claims (RQ1 166 / RQ2 132 / RQ3 212; 493 full-text, 17 abstract-only; 57 studies), all of which reached **byte-verbatim grounding after a tracked repair loop** (v1: 156 failures → v4: 11 → final: 0), with fully verified claims for 57 of the 58 included studies. The verification-rate contrast is decisive (one-sided Fisher exact test on the pooled claim counts, p ≈ 1.3 × 10⁻⁴⁹; descriptive of effect size, since claims within a pipeline share generator context). Semantic consensus over the verbatim ledger (cached-embedding cosine, θ = 0.40) surfaced 95 clusters (16 high-consensus, 7 active debates, 37 unresolved, 35 provisional) versus 20 clusters and zero debates for RAG.
+**Results.** The RAG baseline generated 90 claims (30 per research question), of which only **39/90 (43.3%)** passed its own snippet-entailment gate (RQ1 11/30 = 36.7%, 95% CI 21.9–54.5%; RQ2 14/30 = 46.7%, CI 30.2–63.9%; RQ3 14/30 = 46.7%, CI 30.2–63.9%). Because the gate scores each claim against the retrieval snippet that produced it, this is a *self-referential, lenient* bar: it certifies consistency with retrieved context, not presence in an approved source. It represented only 25 studies (14 in-scope), produced at least one verified claim for just 8 of the 14 in-scope studies it covered, cited **11 studies absent from the included set** — a single excluded source supplied 22 of the 90 claims — and had zero claims for 44 of the 58 included studies. The verbatim pipeline generated 510 claims (RQ1 166 / RQ2 132 / RQ3 212; 493 full-text, 17 abstract-only; 57 studies), all of which reached **≥90% glyph-normalized coverage after a tracked repair loop** (v1: 156 failures → v4: 11 → final: 0), with fully verified claims for 57 of the 58 included studies. The verification-rate contrast is decisive (one-sided Fisher exact test on the pooled claim counts, p ≈ 1.3 × 10⁻⁴⁹; descriptive of effect size, since claims within a pipeline share generator context). Semantic consensus over the verbatim ledger (cached-embedding cosine, θ = 0.40) surfaced 95 clusters (16 high-consensus, 7 active debates, 37 unresolved, 35 provisional) versus 20 clusters and zero debates for RAG.
 
-**Conclusions.** A byte-verbatim trust gate is tractable and strictly stronger than retrieval-associative entailment. Retrieval restriction causes both under-coverage and corpus contamination; full-text reading with quote-level verification removes both and additionally exposes genuine debate structure. We recommend verbatim verification as the default provenance gate for LLM-assisted review destined for peer-reviewed evidence synthesis, with corpus-scope enforcement as a mandatory precondition.
+**Conclusions.** A deterministic, threshold-verified trust gate is tractable and strictly stronger than retrieval-associative entailment: the ≥0.90 glyph-normalized coverage criterion on char-window or token 6-gram alignment is re-runnable by any party on every claim. Retrieval restriction causes both under-coverage and corpus contamination; full-text reading with quote-level verification removes both and additionally exposes genuine debate structure. We recommend verbatim verification as the default provenance gate for LLM-assisted review destined for peer-reviewed evidence synthesis, with corpus-scope enforcement as a mandatory precondition.
 
 **Keywords**: evidence synthesis; retrieval-augmented generation; verbatim verification; claim provenance; hallucination detection; systematic review automation
 
@@ -56,7 +56,7 @@ Our contributions are threefold:
 
 ### 2.1 Corpus and screening
 
-Six federated sources (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, bioRxiv) returned 250 raw hits, de-duplicated and hydrated (DOI and normalized-title resolution, abstract and metadata completion) to **239 unique verified records** targeting LLM/agentic review automation, 2023–2026. Four independent AI screeners (three Gemini instances and one OpenCode-based agent; identical written screening instructions committed in `literature/screening/`, run independently and blind to one another) scored all records in an agent-in-the-loop protocol against explicit inclusion criteria. Inter-rater agreement was **Fleiss' κ = 0.408** [6]; on the Landis & Koch conventions this is "fair to moderate" [10]. Majority rule (≥ 3 of 4 votes) resolved 213 records; the remaining **26 two-vs-two deadlocks** were adjudicated by a senior adjudicator. Final: **58 included / 181 excluded**. All downstream synthesis was scoped strictly to the 58 included studies.
+Five scholarly sources were federated in a single pass (OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv; bioRxiv-track preprints are captured via PubMed indexing), returning 250 raw hits that were de-duplicated and hydrated (DOI and normalized-title resolution, abstract and metadata completion) to **239 unique verified records** targeting LLM/agentic review automation, 2023–2026. Four independent AI screeners (three Gemini instances and one OpenCode-based agent; identical written screening instructions committed in `literature/screening/`, run independently and blind to one another) scored all records in an agent-in-the-loop protocol against explicit inclusion criteria. Inter-rater agreement was **Fleiss' κ = 0.408** [6]; on the Landis & Koch conventions this is "fair" agreement [10]. Majority rule (≥ 3 of 4 votes) resolved 213 records; the remaining **26 two-vs-two deadlocks** were adjudicated by a senior adjudicator. Final: **58 included / 181 excluded**. All downstream synthesis was scoped strictly to the 58 included studies.
 
 The corpus is organized around three research questions that structure the evaluation throughout. **RQ1** asks about the state of the art in academic research and literature-review harnesses integrating LLMs and agentic AI (2023–2026) and the concrete design mechanisms those harnesses implement for execution provenance, audit trails, and process reproducibility. **RQ2** asks what evidence-trust and academic-integrity mechanisms (citation fact-checking, hallucination mitigation, retraction checks, risk-of-bias, open-science artifact verification) are incorporated into modern harnesses. **RQ3** asks how such harnesses are empirically evaluated (benchmarks, ablations, inter-rater reliability, user studies) and what architectural gaps remain for trustworthy research infrastructure. Screening and reporting follow the PRISMA 2020 flow structure [13]; the corpus is descriptive in nature, so PRISMA-ScR [14] conventions are applied where they diverge.
 
@@ -86,7 +86,7 @@ For defensibility, each headline statistic in §3 was **recomputed directly from
 
 ### 2.6 Consensus and Phase-4 trust streams
 
-The 510-claim ledger was clustered with cached-embedding cosine similarity (`all-MiniLM-L6-v2`, θ = 0.40) into a consensus map whose clusters were typed high-consensus / active-debate / unresolved / provisional. Each study additionally received a trust grade (BLOCKED → UNVERIFIED → WEAK → ADEQUATE → STRONG) from four Phase-4 verification streams — retraction status (OpenAlex `is_retracted`, Crossref `update-to`), open-science DAS/CAS artifact scanning, conflict-of-interest audit, and QUADAS-2/PROBAST-style risk-of-bias attestation [8][9]. Every pipeline step was recorded in an append-only audit journal (50 events).
+The 510-claim ledger was clustered with cached-embedding cosine similarity (`all-MiniLM-L6-v2`, θ = 0.40) into a consensus map whose clusters were typed high-consensus / active-debate / unresolved / provisional. Each study additionally received a trust grade (BLOCKED → UNVERIFIED → WEAK → ADEQUATE → STRONG) from four Phase-4 verification streams — retraction status (OpenAlex `is_retracted`, Crossref `update-to`), open-science DAS/CAS artifact scanning, conflict-of-interest audit, and QUADAS-2/PROBAST-style risk-of-bias attestation [8][9]. Every pipeline step was recorded in an append-only audit journal (67 events).
 
 ## 3. Results
 
@@ -106,16 +106,26 @@ The two pipelines display a stark and structurally-grounded contrast (Table 1, F
 | Corpus-scope compliance | 64 indexed docs, 18 screened-out | 58 included only |
 | Consensus clusters (θ = 0.40) | 20 (2 HC / 0 debates / 3 unresolved / 15 provisional) | 95 (16 HC / **7 debates** / 37 unresolved / 35 provisional) |
 
-The baseline verified fewer than half of its claims — under its *own* self-referential entailment criterion, measured against the very snippets that produced them, and it did so for only 8 of the 14 in-scope studies it covered. It under-covered the corpus in the same breath: 44 of the 58 included studies never generated a single claim, while one excluded study (SCI-000184) contributed 24% of all RAG claims. The verbatim pipeline, by contrast, covered all 57 claim-bearing included studies with byte-exact provenance (57 of 58 included studies with at least one verified claim).
+**Figure 1.** Head-to-head verification coverage: the RAG baseline passes 39/90 claims (43.3%) under its own snippet-entailment gate and represents 25 studies (14 in-scope); the verbatim pipeline passes 510/510 at ≥0.90 glyph-normalized coverage across 57/58 included studies, leaving 44/58 included studies invisible to the baseline.
+
+![Figure 1 — Head-to-head verification coverage.](../synthesis/figures_d2/fig1_verification_versus_coverage.png)
+
+The baseline verified fewer than half of its claims — under its *own* self-referential entailment criterion, measured against the very snippets that produced them, and it did so for only 8 of the 14 in-scope studies it covered. It under-covered the corpus in the same breath: 44 of the 58 included studies never generated a single claim, while one excluded study (SCI-000184) contributed 24% of all RAG claims. The verbatim pipeline, by contrast, covered all 57 claim-bearing included studies with threshold-verified provenance (57 of 58 included studies with at least one verified claim).
 
 ### 3.2 Per-question rates and statistical significance
 
+**Table 2.** Per-question and pooled verification rates with Wilson 95% confidence intervals.
+
 | Arm | RQ1 | RQ2 | RQ3 | Pooled |
-|---|---:|---:|---:|---:|
+|---|---|---:|---:|---:|---:|
 | RAG verified | 11/30 = 36.7% | 14/30 = 46.7% | 14/30 = 46.7% | 39/90 = 43.3% |
 | RAG Wilson 95% CI | 21.9–54.5% | 30.2–63.9% | 30.2–63.9% | 33.6–53.6% |
 | Verbatim verified | 166/166 (100%) | 132/132 (100%) | 212/212 (100%) | 510/510 (100%) |
 | Verbatim Wilson 95% CI | 97.7–100% | 97.2–100% | 98.2–100% | 99.3–100% |
+
+**Figure 2.** Per-research-question verification rates with Wilson 95% CIs: the RAG baseline verifies 36.7%/46.7%/46.7% (pooled floor 43.3%); the verbatim pipeline verifies 100% across RQ1–RQ3.
+
+![Figure 2 — Per-research-question verification rates.](../synthesis/figures_d2/fig4_per_rq_rates.png)
 
 The pooled contrast (39 vs 51; 510 vs 0) is decisive: one-sided Fisher exact test, p ≈ 1.3 × 10⁻⁴⁹ (log₁₀ p ≈ −48.9). We report this as a descriptive measure of the separation between arms rather than a population inference: claims within a pipeline share generator context and are not independent units, so the p-value cannot be read as a test against a random-sampling null model (see §5).
 
@@ -127,9 +137,17 @@ Two points about what the repair loop did and did not change. First, iteration t
 
 This is the point of a *deterministic* gate: because the outcome of each iteration is a database record rather than a model impression, the repair loop is auditable version-by-version, and the final assertion — 510/510 — is externally checkable by anyone with the committed files, including the possibility of re-simulating the pre-repair state from the preserved failure ledgers.
 
+**Figure 3.** The verification repair loop: 156/510 initial failures (30.6%) reduced to 11 after four repair iterations, then to 0 after re-casting light-paraphrase and math-glyph artifacts to exact file substrings; each version's failure ledger is committed alongside the data.
+
+![Figure 3 — The verification repair loop.](../synthesis/figures_d2/fig3_verification_repair_loop.png)
+
 ### 3.4 Consensus structure and scope
 
 Consensus clustering sharpened rather than flattened the evidence. The verbatim ledger produced **95 clusters with 7 active debates** — clusters containing directly conflicting claims from different studies — whereas the RAG baseline, with a tenth of the claims restricted to top-30 retrieval, produced **20 clusters and zero debates**. Debate structure is precisely what retrieval-association cannot see: recognizing genuine disagreement between two passages requires reading both, not retrieving the closer of two.
+
+**Figure 4.** Corpus-scope discipline and debate structure: the RAG baseline drew on 18 screened-out extractions in its index (citing 11 non-included studies, dominated by SCI-000184 with 22/90 claims) and left 44 included studies with zero claims; the verbatim ledger, restricted to the 58 included studies, surfaced 95 clusters including 7 active debates.
+
+![Figure 4 — Corpus-scope discipline and debate structure.](../synthesis/figures_d2/fig2_scope_and_debates.png)
 
 ## 4. Discussion
 
@@ -156,16 +174,16 @@ The surrounding literature supports both the diagnosis and the remedy. Citation-
 - **Verbatim is a necessary, not sufficient, condition.** A quote-bearing claim is grounded, but the quote may not be representative of its source, and claim-to-quote semantic completeness is only partially covered by RQ tagging and stance fields.
 - **Clustering choices.** Consensus used a single embedding model and a hand-set threshold (θ = 0.40).
 - **Baseline parameters.** Top-30 retrieval and the entailment heuristic are reasonable defaults chosen in advance; they are not an adversarial worst case for RAG.
-- **Screeners are AI.** Screening decisions are aggregate judgments of four agents with fair/moderate agreement, adjudicated at deadlock; they are not human-gold-standard in origin.
+- **Screeners are AI.** Screening decisions are aggregate judgments of four agents with fair agreement, adjudicated at deadlock; they are not human-gold-standard in origin.
 
 ## 6. Conclusion
 
-Evidence synthesis is only credible for publication when each claim is bound to a machine-verified, byte-exact quote from an approved source. On one identical corpus, a retrieval-associative baseline verified 43.3% of its own claims and drew on content outside the included set; a verbatim pipeline reached 100% with zero contamination, a versioned repair trail, and a richer consensus structure that exposed real scientific disagreement. We recommend verbatim claim verification as the default trust gate for LLM-assisted systematic review, corpus-scope enforcement as its precondition, and consensus-aware trust weighting and append-only audit as the complementary layers around it.
+Evidence synthesis is only credible for publication when each claim is bound to a machine-verified quote from an approved source at a stated, reproducible coverage threshold (≥0.90 glyph-normalized coverage on char-window or token 6-gram alignment). On one identical corpus, a retrieval-associative baseline verified 43.3% of its own claims and drew on content outside the included set; a verbatim pipeline reached 100% with zero contamination, a versioned repair trail, and a richer consensus structure that exposed real scientific disagreement. We recommend verbatim claim verification as the default trust gate for LLM-assisted systematic review, corpus-scope enforcement as its precondition, and consensus-aware trust weighting and append-only audit as the complementary layers around it.
 
 ## 7. Declarations
 
 - **Competing interests**: none declared. The generating harness was itself the object of study; the surface area of its own tooling was not part of the evaluated corpus.
-- **Data availability**: all artifacts are committed in the `nexus-scholar-harness` repository under `workspaces/ai-research-harnesses-trust/`: verbatim ledger `synthesis/claims.json` (510 claims, each with a machine-verified quote), `synthesis/rag_baseline/` (RAG arm), `synthesis/consensus.json|md` (95 clusters), `phase4/*` (trust streams), and the append-only `audit/journal.jsonl` (50 events).
+- **Data availability**: all artifacts are committed in the `nexus-scholar-harness` repository under `workspaces/ai-research-harnesses-trust/`: verbatim ledger `synthesis/claims.json` (510 claims, each with a machine-verified quote), `synthesis/rag_baseline/` (RAG arm), `synthesis/consensus.json|md` (95 clusters), `phase4/*` (trust streams), and the append-only `audit/journal.jsonl` (67 events).
 - **Code availability**: the verifier is open source (`scholar-verify-kit`, module `scholar_verify.verbatim`); figures regenerate from `scripts/build_d2_figures.py`; every headline number is recomputed and asserted against the committed ledgers by `scripts/reproduce_d2_stats.py` (`uv run python scripts/reproduce_d2_stats.py`), which exits non-zero on any mismatch and writes an audit report to `synthesis/figures_d2/stats_audit.md`.
 - **Author contributions**: both authors contributed equally to conceptualization, methodology, and writing; S.Z. is the corresponding author.
 - **Ethics statements**: not applicable (no human subjects; review of published literature).
