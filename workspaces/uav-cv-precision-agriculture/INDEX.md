@@ -1,7 +1,7 @@
 # Project Index: UAV Computer Vision for Precision Agriculture: Deep Learning Segmentation & Edge Inference Benchmark Review
 
 - **Project Slug**: `uav-cv-precision-agriculture`
-- **Last Updated**: `2026-09-09 14:31:01 UTC`
+- **Last Updated**: `2026-09-10 04:32:54 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -29,9 +29,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-09-09 14:31 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-09-09 14:26 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-09 14:31 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-09-10 04:32 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-09-09 14:31 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-09-10 04:32 | Active |
 | `literature/raw_search.json` | Raw federated literature search hits | 2026-09-03 22:14 | Discovered |
 | `literature/deduped.json` | Deduplicated unique candidate papers | 2026-09-03 22:16 | Deduplicated |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-09-04 01:48 | Verified |
@@ -63,7 +63,7 @@
 | `reports/fulltext_acquisition_and_corpus_finalization_report.md` | Formal methodology or audit report | 2026-09-04 10:52 | Audited |
 | `reports/harness_and_kits_architectural_retrospective_and_improvement_plan.md` | Formal methodology or audit report | 2026-09-04 10:56 | Audited |
 | `reports/phase1_phase2_detailed_report.md` | Formal methodology or audit report | 2026-09-04 23:01 | Audited |
-| `reports/PHD_EXECUTION_CHECKLIST.md` | Formal methodology or audit report | 2026-09-09 10:45 | Audited |
+| `reports/PHD_EXECUTION_CHECKLIST.md` | Formal methodology or audit report | 2026-09-09 23:06 | Audited |
 | `reports/screening_audit_report_20260903_233500.md` | Formal methodology or audit report | 2026-09-03 22:33 | Audited |
 | `pdfs/` | Downloaded Open Access full-text PDF documents (138 files) | Active | Downloaded |
 | `extracted/` | Docling full-text structured Markdown extractions (138 files) | Active | Extracted |

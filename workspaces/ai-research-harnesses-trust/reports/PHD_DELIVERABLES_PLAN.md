@@ -21,19 +21,23 @@ The instrument is finished. **The measurement on the domain corpus is what is ac
 
 ## 2. Deliverable cards
 
-### D1 — UAV/CV systematic review & benchmark (thesis empirical core) · *highest priority*
+### D1 — UAV/CV systematic review & benchmark (thesis empirical core) · *DONE (write-up complete) — submission pending*
 
-Already exists (verified state from `workspaces/uav-cv-precision-agriculture/project.json`):
+Verified state from `workspaces/uav-cv-precision-agriculture/project.json`:
 - 1,837 identified → 1,488 deduped → 150 included → 138 fulltexts → **94-study audited-clean corpus** (44 audit-removed), 92% retrieval
 - RQ1 segmentation performance (mIoU/F1) comparison; RQ2 edge-inference throughput under hardware constraints — metric datasets live: `synthesis_matrix.json` (94 studies), `synthesis_stats.json`, `synthesis/literature_review.md` (synthesis_verified: true)
 - Phase-4 trust streams all DONE on all 94: retraction 0 flagged; RoB 2 low / 77 unclear / 15 high; COI 11 industry ties; open-science DAS 21 / CAS 18 public links; trust consensus 12 clusters → 8 ADEQUATE / 2 WEAK / 2 UNVERIFIED
 - 6,707 vector chunks + 145-node citation graph for the methodology appendix
 
-Missing (the real work):
-- The **manuscript**: results tables from the matrix (paired intra-study benchmark tables spanning ch.3), edge-device comparison (the 15 true-edge studies), sensitivity framing for the 77 unclear-RoB studies
-- Completed PRISMA 2020 flowchart + protocol registration (the `protocol.json` fingerprint proves reproduction)
-- Discussion/implications with the 11 industry-tie COI context made explicit
-- **The 39 provisional-caveat inclusions** need a resolution note (confirmed 111 vs provisional 39)
+**Write-up COMPLETE (2026-09-09)** — the bundle is fully assembled and committed:
+- `synthesis/d1_manuscript_draft.md` — complete manuscript (abstract, §1–§6, data availability, references; 354 claim-level checks, 3 quote-backed corrections disclosed)
+- `synthesis/d1_tables.md` (Tables 1–3), `rq1_benchmark_tables.md`, `rq2_edge_tables.md` (15 true-edge cohort), `rq1_metric_reporting.md`, `rq1_anchor_audit.md`
+- `synthesis/prisma_2020_flow.md` + `figures/fig1-6.*` (PRISMA flow, year/family/dataset-reuse/edge/RoB) — PNG+PDF
+- `synthesis/provisional_resolution.md` — 39-caveat resolution ledger (4 CONFIRMED / 9 pending / 8−5−13 excluded)
+- `synthesis/cover_letter.md` (date + OSF ID to fill), `synthesis/osf_registration_draft.md`, `submission_bundle_manifest.md`
+- Regeneration scripts in `scripts/` → all artifacts deterministic/reproducible
+
+Remaining (human): OSF reg submit + record ID; fill cover-letter date; render to Elsevier template (≥300 dpi figs).
 
 Venue: domain flagship (e.g., *Computers and Electronics in Agriculture*, *Precision Agriculture*, or *Remote Sensing*). Target acceptance = thesis ch.3.
 
@@ -43,7 +47,7 @@ Your most publishable artifact, ~80% material already in the repo:
 - Result: auto-extraction (RAG baseline) certified only **43.3% of claims** as entailment-VERIFIED (25 studies, 11 non-corpus studies cited, verified in-scope claims for only 8/14 studies, zero claims for 44/58 included) vs the verbatim pipeline **510/510 at ≥90% threshold** — a measurable hallucination/verification result
 - Method stack: `VerbatimClaimVerifier` (NFKC, 8-char window / 6-token n-gram dual-pass), multi-screener Fleiss' κ reconciliation (n≥3, deadlock isolation), Consensus Cartographer (Jaccard 0.30 / embedding θ 0.40), Phase-4 trust streams + trust-weighted grading (BLOCKED→STRONG)
 - Evidence: `synthesis/method_comparison.md`, `docs/phase_6/README.md`, Phase-6 tests (98 pass / 3 skip), 50-event audit ledger
-- **Status: write-up COMPLETE.** `reports/manuscript_d2.md` v1.2 finalized (authors/affiliations/declarations, 14 references with resolved DOIs, RQ definitions, repair-loop transparency incl. first-pass 354/510, self-referential-criterion caveat, descriptive p-value framing). Every headline number recomputed and asserted by `scripts/reproduce_d2_stats.py` (37 assertions, all pass; Fisher p = 1.34e-49) against committed ledgers; figures 1–4 regenerate from `scripts/build_d2_figures.py`.
+- **Status: write-up COMPLETE + final submission review DONE (2026-09-10).** `reports/manuscript_d2.md` v1.2 finalized (authors/affiliations/declarations, 14 references with resolved DOIs, RQ definitions, repair-loop transparency incl. first-pass 354/510, self-referential-criterion caveat, descriptive p-value framing). Every headline number recomputed and asserted by `scripts/reproduce_d2_stats.py` (37 assertions, all pass; Fisher p = 1.34e-49) against committed ledgers; figures 1–4 regenerate from `scripts/build_d2_figures.py`. **Remaining: author read-through + submission** (the D3-style final review pass is not yet done on this manuscript).
 - Venue: *Research Synthesis Methods*, *JAMIA*, or CS methods + arXiv. **Does not wait on D1.** Ready for author review → submission.
 
 ### D3 — Meta-review: "AI research harnesses and trust" (co-track A; ch.4 + instrument validation)
@@ -53,7 +57,7 @@ Your most publishable artifact, ~80% material already in the repo:
 - **Option A ADOPTED (2026-09-09)**: `manuscript_draft.md` → v2 (early-evidence living scoping review, Review 1.0): living-review title/front-matter, early-evidence framing in abstract + §1, §3.8 living-review protocol (quarterly cadence, versioning, preprint policy incl. Crossref update-to supersession, diff discipline), §5.3 limitations rewritten, §7 declarations + protocol availability; all 36 refs author-attributed with arXiv/DOI IDs.
 - **Adversarial audit v3 (2026-09-09, EVT-20260910-D3ADV)**: fixed wrong protocol fingerprint in §7 (was the other project's hash; now the recorded compile fingerprint `9646d5ec…`); COI partition 5+4+1+37=47 (added missing academic-or-public class); RAG coverage 43→44/58; κ relabeled fair (not fair/moderate); 47/58 Phase-4 coverage gap now explicit in §3.4+§5.3; ≥0.90 threshold wording (not byte-exact) in abstract/§1/§3.5/§5.2/§6; [5]/[6] OpenScholar preprint-of-published resolved; search strategy + supplement pointers added (§3.1/§3.8); protocol registration disclosed as "not external at v1.0"; authors/funding/CRediT block added; Appendix/search-log + preprint-version-table marked as supplementary deliverables still to be generated at journal-prep. Full findings: `reports/D3_ADVERSARIAL_AUDIT.md`.
 - **Journal-prep packs built (2026-09-09)**: Vancouver-restyled 36 refs (first 6 authors + "et al.", venue-normalized, Workspace tokens moved to `reports/supplementary_references.md` with preprint→published supersession table); PRISMA-ScR flow report (`synthesis/prisma_scr_flow.md`) + vector figure (`synthesis/figures/fig_prisma_scr_flow.svg`); machine-readable search-log per version (`literature/search_log_v1.0.json`); OSF registration draft (`reports/D3_OSF_REGISTRATION_DRAFT.md`) — human step: submit to OSF. Corrected source-count wording to the verifiable five federated sources (bioRxiv-track via PubMed/Crossref indexing); re-synced `pipeline_engineering_report.md` and `methodology_report.md` event counts to 58; added `scripts/verify_journal_prep.py` (auto-reconciles refs↔supplement map↔ledger) and ran an independent preprint-identifier + OSF-criteria-verbatim QA pass (EVT-20260909234533-ed818a).
-- **Remaining for submission (human)**: OSF registration submission; LUMEN/other arXiv-version metadata spot-check; per-version search-log updates each living cycle.
+- **Remaining for submission (human)**: OSF registration submission (snippet + long-form draft ready, `reports/D3_OSF_REGISTRATION_SNIPPET.md`); final human read of the DOCX/HTML; per-version search-log updates each living cycle. Final v3 submission review DONE 2026-09-10 (commit `a34a415`).
 - Role in thesis: meta-evidence that the class of tools this thesis builds is under-audited — motivates ch.2.
 - Venue: *Systematic Reviews* (BMC) / *Research Synthesis Methods* / discipline journal.
 
@@ -66,14 +70,10 @@ Your most publishable artifact, ~80% material already in the repo:
 
 ## 3. Sequencing (what to do now)
 
-1. **Now→D1 submitted (90 days).** Write the domain manuscript from the matrix data. No new build work except what unblocks papers.
-   - Weeks 1–2: build the paired intra-study benchmark tables (RQ1) + edge-device tables (RQ2) from `synthesis_matrix.json`; resolve wild 39 provisional inclusions.
-   - Weeks 3–4: PRISMA 2020 flowchart + OSF registry entry (from `protocol.json` + screening ledger).
-   - Weeks 5–10: results + discussion drafts; RoB/unclear sensitivity section; COI context.
-   - Weeks 11–13: internal review, submission.
-2. **In parallel weeks 1–8: D2 write-up** (material already exists).
-3. **After D1 submitted:** D3 framing decision adopted (Option A, living review); `manuscript_draft.md` v2 drafted, 36/36 refs resolved. Next: author review + BMC *Systematic Reviews* submission.
-4. **D4 only after D1+D2 are in flight.**
+1. **D1, D2, D3 write-ups ALL COMPLETE (2026-09-09/10).** D1 manuscript + bundle assembled; D2 v1.2 finalized; D3 v3 final submission review done. Nothing left but submissions (human) and assembly.
+2. **Now→first submission in flight.** Remaining paper work (agent-side): D2 author review (the D3-style final pass not yet run on manuscript_d2.md). Human: OSF registration steps for D1 + D3, cover-letter fill, journal-template renders.
+3. **After D1/D2 submitted:** D4 (software/artifact paper) + Phase-7 distribution work (P7.1–P7.9) — build only what unblocks that publication.
+4. **Thesis assembly in parallel:** ch.1 background, ch.2 methods (from D2), ch.3 (D1), ch.4 (D3), ch.5 synthesis — open supervisor questions below gate final assembly.
 
 ## 4. Open questions for your supervisor
 
