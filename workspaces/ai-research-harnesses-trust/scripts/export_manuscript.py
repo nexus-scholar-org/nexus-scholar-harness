@@ -180,8 +180,8 @@ def build_html(blocks):
             if payload == "---":
                 out.append("<hr>")
                 continue
-            if payload.startswith("**") and "**" in payload[2:]:
-                out.append(f"<p><strong>{esc(payload[2:-2])}</strong></p>")
+            if line.startswith("**") and line.endswith("**") and len(line) > 4:
+                out.append(f"<p><strong>{esc(line[2:-2])}</strong></p>")
             else:
                 out.append(f"<p>{esc(line)}</p>")
         elif kind == "list":
