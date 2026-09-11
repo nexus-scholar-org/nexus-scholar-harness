@@ -30,3 +30,4 @@ Each domain has an SKILL.md under `.agents/skills/<kit>/SKILL.md` (scholar-searc
 ## Style / workflow notes
 - Do not re-derive kit internals in harness code; call the kit CLIs / import their APIs (e.g. `scholar_search.dedup.Deduplicator`, `scholar_rag.indexer.ScholarIndexer`) as `orchestrator.py` does.
 - CI (`.github/workflows/ci.yml`) runs on main/develop across ubuntu/windows/macos × Python 3.11/3.12: lint `scripts/`, plugin-installer help, manifest schema validation, and (best-effort) plugin install.
+- **Contribution gate (hard rule):** improvements ship through the fork + a PR, never by pushing feature branches to `origin`. Load and follow `.agents/skills/pull-request-gate/SKILL.md` before any `git push`/PR/merge; a pre-push hook (`scripts/hooks/pre-push`, enabled via `git config core.hooksPath scripts/hooks`) blocks direct `origin` pushes.

@@ -152,6 +152,31 @@ nexus-scholar-harness/
 └── AGENTS.md                    # agent operational guidance (read me first)
 ```
 
+## Contributing
+
+Improvements ship **through the personal fork + a pull request** — never by
+pushing feature branches to `origin` (`nexus-scholar-org/nexus-scholar-harness`
+is the canonical baseline). The fork is `nexus-scholar/nexus-scholar-harness`
+(remote `fork`).
+
+```bash
+git switch -c my-improvement
+# ... changes ...
+uv run pytest
+uv run ruff check scripts/
+git push fork my-improvement
+gh pr create -R nexus-scholar-org/nexus-scholar-harness --base main
+```
+
+A pre-push hook enforces this gate. It is tracked at `scripts/hooks/pre-push`
+and enabled with:
+
+```bash
+git config core.hooksPath scripts/hooks
+```
+
+Full rules: `.agents/skills/pull-request-gate/SKILL.md`.
+
 ## License
 
 MIT. Free for academic and open-source use.

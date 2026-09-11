@@ -1,0 +1,37 @@
+#!/bin/sh
+# Pre-push gate for the Nexus Scholar Harness contribution workflow.
+#
+# Decision (2026-09-11): the canonical repo (origin) is protected; all
+# improvement branches must go through the personal fork + a pull request.
+#
+# Enforced here: pushes to `origin` are allowed ONLY for refs/heads/main.
+# Everything else is blocked with instructions. See
+# .agents/skills/pull-request-gate/SKILL.md
+#
+# Install: git config core.hooksPath scripts/hooks
+
+remote="$1"
+url="$2"
+
+# Only the canonical repo (origin) is gated. Pushes to the fork and any
+# other remote are unrestricted.
+[ "$remote" = "origin" ] || exit 0
+
+while read local_ref local_sha remote_ref remote_sha; do
+    [ -z "$local_ref" ] && continue
+    case "$local_ref" in
+        refs/heads/main)
+            # Explicit housekeeping to the canonical baseline is allowed.
+            ;;
+        *)
+            echo "BLOCKED: pushing '$local_ref' directly to origin (canonical repo)." >&2
+            echo "  Improve on the fork and submit a pull request instead:" >&2
+            echo "    git push fork $local_ref" >&2
+            echo "    gh pr create -R nexus-scholar-org/nexus-scholar-harness --base main" >&2
+            echo "  See .agents/skills/pull-request-gate/SKILL.md" >&2
+            exit 1
+            ;;
+    esac
+done
+
+exit 0
