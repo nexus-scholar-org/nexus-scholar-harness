@@ -21,7 +21,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 ## Where research output goes
 - All project work lives under `workspaces/<project-slug>/` — never scaffold or dump results into the repo root or `tools/` (enforced by the `workspace-manager` skill). Canonical layout: `protocol.json`, `intent.json`, `SCREENING_CRITERIA.md`, `INDEX.md`, `project.json`, `audit/journal.jsonl`, `literature/`, `pdfs/`, `extracted/`, `synthesis/`.
 - **Audit ledger**: every significant step must be logged to the append-only `audit/journal.jsonl` (use `uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> ...` or `batch_log.py`) and reflect in `project.json`/`INDEX.md`. This is a hard convention, not optional.
-- Current active project: `workspaces/uav-cv-precision-agriculture`.
+- Workspaces were emptied on 2026-09-11; the directory is scaffolded by `scholar-harness inception`. Prior workspace content lives in git history — restore from snapshot `72090e5` (see `docs/COMMIT_SNAPSHOTS.md`).
 - Heavy/generated artifacts are gitignored: `workspaces/**/pdfs/`, `rag/chroma_db/`, `lib/` (vendored JS: vis/tom-select — do not edit). `workspaces/` text/metadata files **are** tracked. `tools/` **is** tracked (contrary to the stale `scripts/pre_commit_check.py`, which is outdated).
 
 ## Kit domain skills

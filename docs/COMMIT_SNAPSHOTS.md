@@ -44,5 +44,6 @@ git switch -c baseline-72090e5 72090e5c0e561e4517ed50da507d29fc361abf12
 ```
 
 > Research workspaces under `workspaces/` (e.g. `uav-cv-precision-agriculture`,
-> `ai-research-harnesses-trust`) are present at this snapshot and were **not**
-> part of the cleanup.
+> `ai-research-harnesses-trust`) are fully present at this snapshot. They were
+> subsequently emptied from the working tree on the same day (see the
+> follow-up commit `80f7810`); all workspace content is still recoverable here.

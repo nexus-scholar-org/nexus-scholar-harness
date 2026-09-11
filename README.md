@@ -62,8 +62,8 @@ uv sync --extra dev
 # Git-branch fallback declared in .agents/plugins/nexus-scholar/plugins.json)
 uv run python scripts/install_plugins.py
 
-# Sanity check
-uv run scholar-harness status --workspace workspaces/uav-cv-precision-agriculture
+# Scaffold a workspace (or restore one from git history), then check status:
+uv run scholar-harness status --workspace workspaces/<your-project>
 ```
 
 > **Gotcha:** `uv sync` installs only the harness. Kit CLIs become available only after `install_plugins.py` runs — the installer is the source of truth for kit versions.
