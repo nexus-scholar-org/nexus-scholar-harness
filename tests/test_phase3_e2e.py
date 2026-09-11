@@ -5,11 +5,9 @@ Validates the complete research harness lifecycle across:
 2. Master Orchestrator Execution across all pipeline stages
 3. Full FastMCP Server Tool Invocations (scholar-agent-kit)
 4. Multi-Format Academic Authoring Exports (LaTeX, Typst, Obsidian, Zotero)
-5. Reproducible Jupyter Notebook Structural Validation
 """
 
 import json
-from pathlib import Path
 import pytest
 
 from scholar_harness.orchestrator import ResearchOrchestrator
@@ -226,20 +224,3 @@ def test_phase3_e2e_full_lifecycle(phase3_test_workspace):
     assert final_status["graph_nodes"] >= 1
     assert final_status["synthesis_generated"] is True
     assert final_status["phase"] == "PHASE_3_COMPLETE"
-
-
-def test_notebooks_valid_json():
-    """Verify all 4 Jupyter notebooks are structurally sound and parse as valid JSON."""
-    notebook_paths = [
-        Path("notebooks/00_research_inception.ipynb"),
-        Path("notebooks/01_federated_discovery_and_screening.ipynb"),
-        Path("notebooks/02_grounded_synthesis_and_matrices.ipynb"),
-        Path("notebooks/03_knowledge_graph_and_cartography.ipynb"),
-    ]
-
-    for nb_path in notebook_paths:
-        assert nb_path.exists(), f"Missing notebook: {nb_path}"
-        data = json.loads(nb_path.read_text(encoding="utf-8"))
-        assert "cells" in data
-        assert len(data["cells"]) >= 3
-        assert data["nbformat"] == 4

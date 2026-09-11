@@ -17,10 +17,12 @@ This folder holds the Phase 5 design set. Read them in order:
 
 ## 1. What Phase 5 Is (and is not)
 
-Phase 5 was envisioned (`ROADMAP_ASSESSMENT_AND_TASK_LIST.md`, `brainstorming/OPEN_SCIENCE_ROADMAP_v1.md`) as: **5a shared research workspaces**, **5b no-code workflow builder**, **5c domain-specific 1-click templates**. The repo contains two competing visions for "UI":
+Phase 5 was envisioned (`ROADMAP_ASSESSMENT_AND_TASK_LIST.md` and the now-archived `OPEN_SCIENCE_ROADMAP_v1.md` deep-dive) as: **5a shared research workspaces**, **5b no-code workflow builder**, **5c domain-specific 1-click templates**. The repo contains two competing visions for "UI":
 
-1. `brainstorming/methodology-tooling/08_production_web_app.md` — a Next.js/React + FastAPI + Celery app ("Nexus Science") with a Claude-like chat copilot.
-2. `brainstorming/methodology-tooling/09_agent_native_ecosystem.md` — the "headless advantage": package everything as MCP + skills, build zero UI code.
+1. A now-archived web-app vision (`08_production_web_app.md` in `brainstorming/methodology-tooling/`) — a Next.js/React + FastAPI + Celery app ("Nexus Science") with a Claude-like chat copilot.
+2. A now-archived agent-native vision (`09_agent_native_ecosystem.md` in `brainstorming/methodology-tooling/`) — the "headless advantage": package everything as MCP + skills, build zero UI code.
+
+> Archival note: the `brainstorming/` deep-dives were removed from the tree on 2026-09-11. Restore from snapshot `72090e5` (see [`docs/COMMIT_SNAPSHOTS.md`](../COMMIT_SNAPSHOTS.md)) if the full text is needed.
 
 **This design set resolves the tension: build a thin "harness console", not a thick web app, and keep the agent-native ecosystem as the backbone.** The console is a *second-class citizen by design*: it renders the same files agents read and triggers the same `uv run` CLI commands agents run. It never owns state.
 
@@ -79,7 +81,7 @@ Reviewers/PIs who must make and sign **binding decisions** (PRISMA inclusion, CO
 
 Into **git + the append-only audit journal**, not a realtime server. Two people reviewing the same workspace review the same files; the journal records who decided what when; conflict prevention is atomic-rename write discipline (already the repo's pattern) plus the built-in determinism that makes re-runs safe.
 
-### Q5. Is the web app from `08_production_web_app.md` abandoned?
+### Q5. Is the archived web app vision (`08_production_web_app.md`) abandoned?
 
 **Yes. Abandoned entirely.** The console is the maximal UI that stays honest to the harness. We are committing exclusively to the thin, local-first, agent-agnostic architecture.
 
@@ -92,4 +94,4 @@ Into **git + the append-only audit journal**, not a realtime server. Two people 
 - MCP: `tools/scholar-agent-kit` (13 `nexus_*` tools: `nexus_protocol_compile|validate|render_criteria`, `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_extract_pdf`, `nexus_rag_index|query|synthesize`, `nexus_matrix_extract`, `nexus_graph_build`, `nexus_bib_clean`), `.agents/plugins/nexus-scholar/mcp_config.json`.
 - Workspace contract: `workspaces/<slug>/` (`AGENTS.md` section "Where research output goes").
 - Existing generated UIs to embed rather than rebuild: `scholar-graph-kit` `map.html` (PyVis), `scholar-rag-kit` renderings, `prisma_screening_report.md`, `phase4/trust_consensus*.md`.
-- Prior design threads this supersedes/reconciles: `brainstorming/PHASE_3_INTERACTIVE_INTERFACES_DEEP_DIVE.md`, `methodology-tooling/08_production_web_app.md`, `methodology-tooling/09_agent_native_ecosystem.md`, `brainstorming/OPEN_SCIENCE_ROADMAP_v1.md` §PHASE 5.
+- Prior design threads this supersedes/reconciles (archived in `brainstorming/`; restore from snapshot `72090e5` if needed): `PHASE_3_INTERACTIVE_INTERFACES_DEEP_DIVE.md`, `methodology-tooling/08_production_web_app.md`, `methodology-tooling/09_agent_native_ecosystem.md`, `OPEN_SCIENCE_ROADMAP_v1.md` §PHASE 5.

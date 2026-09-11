@@ -133,7 +133,6 @@ uv run ruff check scripts/ # CI-scoped lint (this is the lint gate)
 ## Documentation
 
 - **Design set:** [`docs/phase_0/`](docs/phase_0) (protocol schema, Socratic inception, playbooks) · [`docs/phase_5/`](docs/phase_5) (agent-first **Harness Console** — plan, blueprint, specs; not yet implemented)
-- **Deep dives:** [`brainstorming/`](brainstorming) (per-phase architectural retrospectives for Phases 0–4)
 - **Agent workflows:** `.agents/skills/<kit>/SKILL.md` per kit · MCP entrypoint at `.agents/plugins/nexus-scholar/mcp_config.json`
 - **Roadmap state:** [`ROADMAP_ASSESSMENT_AND_TASK_LIST.md`](ROADMAP_ASSESSMENT_AND_TASK_LIST.md) · [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)
 
@@ -147,8 +146,7 @@ nexus-scholar-harness/
 ├── src/scholar_harness/         # the thin orchestrator (cli, orchestrator, inception, agent_screen)
 ├── scripts/                     # install_plugins.py (kit installer), lint/validate helpers
 ├── tools/<kit>/                 # eight tracked kit packages (editable-installed into .venv)
-├── docs/                        # phase_0 protocol specs + phase_5 console design
-├── brainstorming/               # architecture deep dives & roadmap
+├── docs/                        # phase_0 protocol specs, phase_5 console design, commit snapshots
 ├── workspaces/                  # research project workspaces (text/metadata tracked)
 ├── pyproject.toml
 └── AGENTS.md                    # agent operational guidance (read me first)

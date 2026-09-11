@@ -1,9 +1,9 @@
 # Nexus Scholar Suite: Roadmap State Assessment & Detailed Task List
 
 > **Document Status:** Active Progress Assessment  
-> **Last Updated:** 2026-09-01  
+> **Last Updated:** 2026-09-11  
 > **Repository Context:** `test-harness-claude-free` (Nexus Scholar Harness)  
-> **Reference Specs:** [`OPEN_SCIENCE_ROADMAP_v1.md`](./brainstorming/OPEN_SCIENCE_ROADMAP_v1.md), [`PHASE_0_INTENT_ROUTER_DEEP_DIVE.md`](./brainstorming/PHASE_0_INTENT_ROUTER_DEEP_DIVE.md), [`PHASE_1_DISCOVERY_HARVESTING_DEEP_DIVE.md`](./brainstorming/PHASE_1_DISCOVERY_HARVESTING_DEEP_DIVE.md), [`PHASE_2_SYNTHESIS_KNOWLEDGE_GRAPHS_DEEP_DIVE.md`](./brainstorming/PHASE_2_SYNTHESIS_KNOWLEDGE_GRAPHS_DEEP_DIVE.md), [`PHASE_3_INTERACTIVE_INTERFACES_DEEP_DIVE.md`](./brainstorming/PHASE_3_INTERACTIVE_INTERFACES_DEEP_DIVE.md), [`PHASE_4_VERIFICATION_TRUST_DEEP_DIVE.md`](./brainstorming/PHASE_4_VERIFICATION_TRUST_DEEP_DIVE.md)
+> **Reference Specs:** Archival deep-dives (Phases 0–4) were removed from the tree — see [`docs/COMMIT_SNAPSHOTS.md`](./docs/COMMIT_SNAPSHOTS.md) snapshot `72090e5` to restore them.
 
 ---
 
@@ -26,7 +26,6 @@ gantt
     scholar-rag-kit (AST Chunker & RAG)      :done, 2026-08-28, 2026-08-31
     section Phase 3: Interactive Interfaces
     MCP Server (scholar-agent-kit)           :done, 2026-08-28, 2026-08-31
-    Jupyter Notebook Suite (notebooks/)      :active, 2026-09-05, 2026-09-20
     Zotero 2-Way Sync & Overleaf Export      :2026-09-20, 2026-10-05
     section Phase 4: Trust & Verification
     Retraction Watch & Rigor Scoring Engine  :2026-09-25, 2026-10-15
@@ -92,14 +91,10 @@ gantt
 ---
 
 ### 💻 Phase 3: Interactive Research Interfaces & Ecosystem Integrations
-> **Vision:** Conversational agent integration, reproducible Jupyter notebooks, production CLI harness, and reference manager sync.
+> **Vision:** Conversational agent integration, production CLI harness, and reference manager sync.
 
 - [x] **MCP Server (`scholar-agent-kit`)**: Exposes `nexus_discover`, `nexus_bib_clean`, `nexus_extract_pdf`, `nexus_rag_index`, `nexus_rag_query`, `nexus_rag_synthesize`, `nexus_graph_build`.
-- [ ] **Task 3.1: Reproducible Jupyter Notebook Suite (`notebooks/`)**:
-  - `00_research_inception.ipynb`: Interactive Socratic interview & protocol builder with IPyWidgets.
-  - `01_federated_discovery_and_screening.ipynb`: Live multi-DB search, visual dedup grid, and interactive PRISMA screening.
-  - `02_grounded_synthesis_and_matrices.ipynb`: ChromaDB RAG explorer, pandas comparison matrix, and claim entailment reviewer.
-  - `03_knowledge_graph_and_cartography.ipynb`: PyVis interactive citation graph with Louvain community clusters.
+- [ ] **Task 3.1: Reproducible Jupyter Notebook Suite** *(removed 2026-09-11 — tutorial notebooks in `notebooks/` were not harness code; restore from snapshot `72090e5` if needed)*:
 - [ ] **Task 3.2: Reference Manager Sync (Zotero)**:
   - Two-way sync with Zotero Web API: exports included papers with PDF attachments and standardized citation keys; imports user libraries as seeds.
 - [ ] **Task 3.3: Overleaf / Typst Export Bridge**:
@@ -110,7 +105,7 @@ gantt
 ### 🛡️ Phase 4: Verification & Trust Layers
 > **Vision:** Automated retraction checking, methodology rigor scoring, conflict of interest detection, and replication tracking.
 
-- [x] **Phase 4 Specification**: Complete architectural design in `PHASE_4_VERIFICATION_TRUST_DEEP_DIVE.md`.
+- [x] **Phase 4 Specification**: Complete architectural design (archived deep-dive `PHASE_4_VERIFICATION_TRUST_DEEP_DIVE.md` — restore from snapshot `72090e5` if needed).
 - [ ] **Task 4.1: Retraction Watch & Provenance Checker**:
   - Crossref Event Data and OpenAlex retraction API auditor flagging retracted papers and corrigenda.
 - [ ] **Task 4.2: Automated Methodology Rigor Scorer**:
