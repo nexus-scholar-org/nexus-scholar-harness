@@ -420,3 +420,164 @@ def test_every_result_has_cache_key_lineage(tmp_path, monkeypatch):
     delta = json.loads(server.recon_delta(session_id=probe["session_id"]))
     assert "merged_cache_keys" in delta
     assert delta["merged_cache_keys"] and delta["merged_cache_keys"][0] == probe["cache_key"]
+
+
+# ---------------------------------------------------------------------------
+# M0.7 (T7.4 GAP A): recon_distill lexicon_json overrides distill tables
+# ---------------------------------------------------------------------------
+
+
+def test_recon_distill_default_path_byte_identical(tmp_path, monkeypatch):
+    probe = _probe(monkeypatch, tmp_path)
+    a = json.loads(server.recon_distill(session_id=probe["session_id"]))
+    b = json.loads(server.recon_distill(session_id=probe["session_id"]))
+    assert a == b
+    name = Path(a["terms_path"]).name
+    assert name.startswith("distilled_")
+    assert "distilled_lx" not in name
+
+
+def test_recon_distill_lexicon_json_adds_metric(tmp_path, monkeypatch):
+    probe = _probe(monkeypatch, tmp_path)
+    default = json.loads(server.recon_distill(session_id=probe["session_id"]))
+    assert not any(m["label"] == "CNN-Compact" for m in default["metrics"])
+
+    extra = json.dumps({"metrics": {r"small cnn": "CNN-Compact"}})
+    result = json.loads(
+        server.recon_distill(session_id=probe["session_id"], lexicon_json=extra)
+    )
+    assert result["cache_key"] == probe["cache_key"]
+    assert any(
+        m["label"] == "CNN-Compact" and m["count"] == 1 for m in result["metrics"]
+    )
+    # The lexicon hash is baked into the artifact name for provenance.
+    assert "distilled_lx" in Path(result["terms_path"]).name
+
+
+def test_recon_distill_lexicon_json_rejects_invalid(tmp_path, monkeypatch):
+    probe = _probe(monkeypatch, tmp_path)
+
+    bad_json = json.loads(
+        server.recon_distill(session_id=probe["session_id"], lexicon_json="not-json")
+    )
+    assert bad_json["status"] == "error"
+    assert bad_json["cache_key"] is None
+    assert bad_json["message"]
+
+    bad_type = json.loads(
+        server.recon_distill(session_id=probe["session_id"], lexicon_json="[]")
+    )
+    assert bad_type["status"] == "error"
+
+    bad_regex = json.loads(
+        server.recon_distill(
+            session_id=probe["session_id"],
+            lexicon_json=json.dumps({"metrics": {"(": "Bad"}}),
+        )
+    )
+    assert bad_regex["status"] == "error"
+    assert "regex" in bad_regex["message"].casefold()
+
+    bad_value = json.loads(
+        server.recon_distill(
+            session_id=probe["session_id"],
+            lexicon_json=json.dumps({"metrics": {"a": 5}}),
+        )
+    )
+    assert bad_value["status"] == "error"
+
+
+# ---------------------------------------------------------------------------
+# M0.7 (T7.3 GAP B): recon_delta follow-ups carry corpus saturation fields
+# ---------------------------------------------------------------------------
+
+
+def test_recon_delta_followups_carry_saturation(tmp_path, monkeypatch):
+    mapping = {TOPIC.casefold(): _topic_docs(), THIN_TERM: _followup_docs()}
+
+    def search_fn(query: Query, providers: list[str]):
+        return mapping.get(query.text.strip().casefold(), [])
+
+    probe = _probe(monkeypatch, tmp_path, search_fn=search_fn)
+    result = json.loads(server.recon_delta(session_id=probe["session_id"]))
+
+    assert result["followups"]
+    for followup in result["followups"]:
+        assert followup["term"] == THIN_TERM
+        # The injected search_fn seam never touches the network -> -1/unknown.
+        assert followup["corpus_total"] == -1
+        assert followup["saturation_label"] == "unknown"
+        # Documentation contract: reason verbatim under confidence.detail.
+        assert followup["confidence"]["label"] == "gap"
+        assert followup["reason"] == followup["confidence"]["detail"]
+
+
+# ---------------------------------------------------------------------------
+# M0.7 follow-up review fixes: qei observability, corpus 0-count fidelity,
+# MCP-side canonical root override
+# ---------------------------------------------------------------------------
+
+
+def test_recon_distill_surfaces_qei_from_session_topic(tmp_path, monkeypatch):
+    def search_fn(query: Query, providers: list[str]):
+        return [
+            _fake_doc(
+                "10.1000/qe",
+                "Edge Inference",
+                "Edge inference edge inference edge inference.",
+            )
+        ]
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+    probe = json.loads(server.recon_probe(topic="edge inference"))
+
+    dist = json.loads(server.recon_distill(session_id=probe["session_id"]))
+    # The T7.2 gate is observable at the tool level: the session topic seeds
+    # the QEI, and this prompt-echo pool scores a perfect failure (1.0).
+    assert dist["qei"] == 1.0
+
+    terms = json.loads(Path(dist["terms_path"]).read_text(encoding="utf-8"))
+    assert terms["qei"] == 1.0
+
+
+def test_recon_delta_maps_true_zero_corpus_total(tmp_path, monkeypatch):
+    from scholar_harness.recon import ReconEngine
+
+    async def fake_count(self, term, providers=None, year_min=2000, year_max=None):
+        return 0  # a real, observed zero-work corpus for the term
+
+    mapping = {TOPIC.casefold(): _topic_docs(), THIN_TERM: _followup_docs()}
+
+    def search_fn(query: Query, providers: list[str]):
+        return mapping.get(query.text.strip().casefold(), [])
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+    monkeypatch.setattr(ReconEngine, "corpus_count", fake_count)
+    probe = json.loads(server.recon_probe(topic=TOPIC))
+
+    result = json.loads(server.recon_delta(session_id=probe["session_id"]))
+    assert result["followups"]
+    for followup in result["followups"]:
+        # 0 is a meaningful observation, not "unknown": it must survive the
+        # response mapping and label as real scarcity (scant).
+        assert followup["corpus_total"] == 0
+        assert followup["saturation_label"] == "scant"
+
+
+def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
+    import importlib
+
+    canonical = tmp_path / "canonical"
+    monkeypatch.setenv("NEXUS_RECON_ROOT", str(canonical))
+    try:
+        module = importlib.reload(server)
+        assert module.RECON_CACHE_ROOT == canonical
+    finally:
+        monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+        importlib.reload(server)
+        assert (
+            server.RECON_CACHE_ROOT
+            == Path(".cache/inception_recon")
+        )

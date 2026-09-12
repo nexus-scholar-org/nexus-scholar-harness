@@ -603,6 +603,8 @@ def _run_grounded_recon(
     responder: Responder,
     topic: str,
     recon_engine: ReconEngine | None = None,
+    auto_select: bool = False,
+    direction_id: int | None = None,
 ) -> dict | None:
     """Steps 2-4 of the grounding lifecycle for one session (--grounded).
 
@@ -617,6 +619,12 @@ def _run_grounded_recon(
     Hard contract: when the pool yields no >= 2-anchor direction, the wizard
     aborts with ``typer.Exit`` -- there is no warn-and-continue path, because
     emitting unanchored concepts would violate M0.3 DoD 3.
+
+    Headless mode (M0.7 T7.8): ``auto_select=True`` picks the first (most
+    anchored) direction; ``direction_id`` picks a specific 1-based direction.
+    Either flag bypasses the interactive prompt, so a script/CI/agent run in a
+    subshell never blocks on terminal input.  The interactive gate remains the
+    default.
     """
     from .recon.distiller import distill_pool
 
@@ -631,7 +639,7 @@ def _run_grounded_recon(
         pool = json.loads(pool_path.read_text(encoding="utf-8"))
         cache_keys.append(str(pool.get("cache_key") or ""))
         pool_sizes.append(len(pool.get("docs", [])))
-        return {"pool": pool, "terms": distill_pool(pool)}
+        return {"pool": pool, "terms": distill_pool(pool, query_text=query)}
 
     data = probe_and_read(topic)
     directions = _grounded_directions_for_terms(data["terms"])
@@ -657,11 +665,20 @@ def _run_grounded_recon(
         ]
         if delta_allowed:
             choices.append((_DELTA_PROBE_CHOICE, "Run one refined delta probe"))
-        pick = responder.choice(
-            "Select the grounded research direction to pursue",
-            choices,
-            default=directions[0]["label"],
-        )
+        if auto_select or direction_id is not None:
+            idx = (direction_id - 1) if direction_id is not None else 0
+            if idx < 0 or idx >= len(directions):
+                raise typer.Exit(
+                    f"Direction {direction_id} out of range (1-{len(directions)}); "
+                    "nothing was emitted."
+                )
+            pick = directions[idx]["label"]
+        else:
+            pick = responder.choice(
+                "Select the grounded research direction to pursue",
+                choices,
+                default=directions[0]["label"],
+            )
         if pick == _DELTA_PROBE_CHOICE:
             target = responder.choice(
                 "Which direction should the delta probe refine?",
@@ -828,6 +845,8 @@ def run_wizard(
     no_scaffold: bool = False,
     grounded: bool = False,
     recon_engine: ReconEngine | None = None,
+    auto_select: bool = False,
+    direction_id: int | None = None,
 ) -> dict:
     """Run the 4-stage Socratic inception interview and emit the protocol.
 
@@ -835,6 +854,8 @@ def run_wizard(
     protocol_fingerprint, workspace_dir} where ``workspace_dir`` is set only
     when scaffolding ran (or already existed).  With ``grounded=True`` the
     summary also carries ``recon_context`` (the Step-2-4 session record).
+    ``auto_select`` / ``direction_id`` (M0.7 T7.8) drive the grounded
+    direction pick without an interactive prompt.
     """
     root = root.resolve()
     ts = genesis_timestamp or _now_iso()
@@ -855,7 +876,10 @@ def run_wizard(
     recon_context: dict | None = None
     if grounded:
         recon_engine = recon_engine if recon_engine is not None else ReconEngine()
-        recon_context = _run_grounded_recon(responder, topic, recon_engine)
+        recon_context = _run_grounded_recon(
+            responder, topic, recon_engine,
+            auto_select=auto_select, direction_id=direction_id,
+        )
 
     # ---- Stage 2: refraction grid + paradigm/playbook ----------------------
     ranked = detect_leanings(topic)
@@ -1080,6 +1104,12 @@ def inception_command(
     root: Path = typer.Option(Path("."), "--root", "-r", help="Repository root containing workspaces/ (default: current dir)"),
     no_scaffold: bool = typer.Option(False, "--no-scaffold", help="Run interview only; do not write anything"),
     grounded: bool = False,
+    auto_select: bool = False,
+    direction_id: int | None = None,
 ) -> None:
     """Launch the interactive Phase-0 Socratic inception wizard."""
-    run_wizard(ConsoleResponder(), root, no_scaffold=no_scaffold, grounded=grounded)
+    run_wizard(
+        ConsoleResponder(), root,
+        no_scaffold=no_scaffold, grounded=grounded,
+        auto_select=auto_select, direction_id=direction_id,
+    )

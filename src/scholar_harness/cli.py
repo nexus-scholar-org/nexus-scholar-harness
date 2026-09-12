@@ -94,9 +94,25 @@ def inception(
         "--grounded",
         help="Ground the inquiry in a real literature surface scan (probe + distill) before the refraction grid",
     ),
+    auto_select: bool = typer.Option(
+        False,
+        "--auto-select",
+        help="Headless: pick the best (first) grounded direction without an interactive prompt",
+    ),
+    direction_id: int | None = typer.Option(
+        None,
+        "--direction-id",
+        help="Headless: pick the N-th grounded direction (1-based) without an interactive prompt",
+    ),
 ):
     """Run the Phase-0 Socratic methodology interview and emit a compiled protocol."""
-    inception_command(root, no_scaffold=no_scaffold, grounded=grounded)
+    inception_command(
+        root,
+        no_scaffold=no_scaffold,
+        grounded=grounded,
+        auto_select=auto_select,
+        direction_id=direction_id,
+    )
 
 
 @app.command("sync")

@@ -117,6 +117,39 @@ def _micro_taxonomy(evidence: list[tuple[str, str]]) -> list[dict[str, Any]]:
     return entries
 
 
+def _tokenize(text: str) -> set[str]:
+    """Lowercased tokens of ``text`` with stopwords dropped and length >= 2."""
+    return {
+        t
+        for t in _WORD_RE.findall(text.casefold())
+        if t not in _STOPWORDS and len(t) >= 2
+    }
+
+
+def _echo_index(
+    query_text: str, top_terms: list[dict[str, Any]], k: int = 10
+) -> float:
+    """Query Echo Index (13_evaluation.md section 3.1).
+
+    The fraction of the top-``k`` taxonomy terms (by emitted order, i.e.
+    ``-freq, term``) whose tokens overlap the seeded query's tokens.  ``0.0``
+    when there are no terms or ``k == 0``; otherwise
+    ``round(overlap / min(len(terms), k), 4)``.  A high value means the
+    distiller is echoing the user's prompt instead of revealing field
+    vocabulary -- evaluation Dimension 2 gates ``<= 0.3``.
+    """
+    top = [e for e in (top_terms or []) if isinstance(e, dict) and e.get("term")][:k]
+    query_tokens = _tokenize(query_text)
+    if not top or not query_tokens:
+        return 0.0
+    echo = sum(
+        1
+        for entry in top
+        if query_tokens & _tokenize(str(entry.get("term") or ""))
+    )
+    return round(echo / len(top), 4)
+
+
 def _keyword_counts(
     evidence: list[tuple[str, str]],
     table: list[tuple[str, re.Pattern[str]]],
@@ -216,6 +249,7 @@ def _topic_layer(pool: dict[str, Any]) -> list[dict[str, Any]]:
 def distill_pool(
     pool: dict[str, Any],
     lexicon: DomainLexicon | None = None,
+    query_text: str | None = None,
 ) -> dict[str, Any]:
     """Return the terms-file payload for a pool (spec section 6).
 
@@ -225,18 +259,27 @@ def distill_pool(
     to pre-M0.4.  Any research domain registers its own metric/dataset/school
     patterns and passes its lexicon in.  ``micro_taxonomy`` is extracted with
     pure term frequency and is field-agnostic: it never consults the lexicon.
+
+    ``query_text`` (M0.7) seeds the Query Echo Index (``qei`` at
+    ``13_evaluation.md`` section 3.1): the fraction of the top-10 taxonomy
+    terms echoing the probe query.  When omitted (``None``) the ``qei`` key is
+    absent and output stays byte-identical to pre-M0.7.
     """
     if lexicon is None:
         lexicon = DEFAULT_LEXICON
     evidence = _evidence_docs(pool)
-    return {
+    micro_taxonomy = _micro_taxonomy(evidence)
+    payload = {
         "cache_key": str(pool.get("cache_key") or ""),
-        "micro_taxonomy": _micro_taxonomy(evidence),
+        "micro_taxonomy": micro_taxonomy,
         "metrics": _keyword_counts(evidence, _table(lexicon.metrics)),
         "datasets": _keyword_counts(evidence, _table(lexicon.datasets)),
         "schools": _schools(evidence, _table(lexicon.schools)),
         "topics": _topic_layer(pool),
     }
+    if query_text is not None:
+        payload["qei"] = _echo_index(query_text, micro_taxonomy)
+    return payload
 
 
 def _assert_safe_output(path: Path) -> None:

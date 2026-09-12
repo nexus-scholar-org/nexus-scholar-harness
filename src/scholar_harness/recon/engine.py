@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from scholar_search.config import settings
 from scholar_search.engine import SearchEngine
 from scholar_search.models import Document, Query
 from scholar_search.providers import (
@@ -30,6 +31,10 @@ from .cache_key import cache_key
 
 DEFAULT_PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv"]
 POOL_MAX = 25
+
+# Saturation thresholds (13_evaluation.md section 3.4, GAP B).
+SATURATION_SCANT = 50
+SATURATION_SPARSE = 500
 
 _PROVIDER_CLASSES: dict[str, type] = {
     "openalex": OpenAlexProvider,
@@ -85,7 +90,14 @@ class ReconEngine:
         cache_root: Path | str = Path(".cache/inception_recon"),
         search_fn: SearchFn | None = None,
     ) -> None:
-        self.cache_root = Path(cache_root).resolve()
+        # Canonical recon root (M0.7 T7.7): NEXUS_RECON_ROOT overrides the
+        # CWD-relative default so the CLI and the MCP server share one cache
+        # even when launched from different directories.  Byte-identical when
+        # the env var is unset.
+        env_root = os.environ.get("NEXUS_RECON_ROOT")
+        self.cache_root = (
+            Path(env_root).resolve() if env_root else Path(cache_root).resolve()
+        )
         self.pools_dir = self.cache_root / "pools"
         self.search_fn = search_fn
 
@@ -121,6 +133,65 @@ class ReconEngine:
             return await engine.search_all(q, dedup=True)
         finally:
             await engine.close()
+
+    @staticmethod
+    def saturation_label(corpus_total: int) -> str:
+        """Map a corpus works-count to a saturation label (13_evaluation section 3.4).
+
+        ``scant < 50 | sparse 50-500 | dense > 500 | unknown -1``.  Thresholds
+        are module-level constants (``SATURATION_SCANT``/``SATURATION_SPARSE``).
+        """
+        if corpus_total < 0:
+            return "unknown"
+        if corpus_total < SATURATION_SCANT:
+            return "scant"
+        if corpus_total <= SATURATION_SPARSE:
+            return "sparse"
+        return "dense"
+
+    async def corpus_count(
+        self,
+        term: str,
+        providers: list[str] | None = None,
+        year_min: int = 2000,
+        year_max: int | None = None,
+    ) -> int:
+        """Uncapped corpus works-count for a term (GAP B, M0.7 T7.3).
+
+        A cheap OpenAlex ``meta.count`` request (per-page=1, no result bodies)
+        that answers "is a thin pool the sign of a real gap or a query-phrasing
+        artifact?".  Returns ``-1`` when OpenAlex is not in scope or the count
+        cannot be obtained (unknown), or when an injected ``search_fn`` is set
+        (hermetic/test seams must never touch the network).
+        """
+        provider_list = (
+            list(DEFAULT_PROVIDERS) if providers is None else list(providers)
+        )
+        if "openalex" not in provider_list or self.search_fn is not None:
+            return -1
+        provider = OpenAlexProvider()
+        params: dict[str, Any] = {
+            "search": term,
+            "per-page": 1,
+            "mailto": settings.mailto,
+        }
+        if settings.openalex_key:
+            params["api_key"] = settings.openalex_key
+        filters: list[str] = []
+        if year_min:
+            filters.append(f"from_publication_date:{year_min}-01-01")
+        if year_max:
+            filters.append(f"to_publication_date:{year_max}-12-31")
+        if filters:
+            params["filter"] = ",".join(filters)
+        try:
+            resp = await provider.client.get(provider.base_url, params=params)
+            body = resp.json()
+            return int(body.get("meta", {}).get("count", -1))
+        except Exception:  # noqa: BLE001 - unknown count degrades to -1 by contract
+            return -1
+        finally:
+            await provider.client.close()
 
     async def _fetch(
         self,

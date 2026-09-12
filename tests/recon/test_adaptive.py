@@ -412,7 +412,13 @@ def test_execute_followups_probes_bounded_and_merges(tmp_path):
     # Bounded: exactly one follow-up probe (one thin school, <= 3 budget),
     # issued in addition to the original topic probe.
     assert calls == [topic, THIN_TERM]
-    assert result["followups"] == [followups[0]]
+    assert len(result["followups"]) == 1
+    followup = result["followups"][0]
+    assert followup["term"] == followups[0]["term"]
+    assert followup["reason"] == followups[0]["reason"]
+    # M0.7 GAP B: executed candidates add the corpus saturation seam.
+    assert followup["corpus_total"] == -1
+    assert followup["saturation_label"] == "unknown"
     assert len(result["cache_keys_merged"]) == 1
     assert result["cache_keys_merged"][0].startswith("v1/")
     assert result["cache_keys_merged"][0] != pool["cache_key"]
@@ -532,3 +538,28 @@ def test_execute_followups_no_candidates_returns_original(tmp_path):
     assert result["distilled"] == distilled
     # No follow-up pools were ever persisted.
     assert len(list((tmp_path / "cache" / "pools").glob("*_pool.json"))) == 1
+
+
+# ---------------------------------------------------------------------------
+# M0.7 (T7.3 GAP B): executed follow-ups surface corpus saturation fields
+# ---------------------------------------------------------------------------
+
+
+def test_execute_followups_surface_corpus_saturation(tmp_path):
+    def search_fn(query: Query, providers: list[str]):
+        if query.text == THIN_TERM:
+            return _followup_docs()
+        return _topic_docs()
+
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    pool_path, _n = asyncio.run(engine.probe("drone crop disease detection"))
+    pool = json.loads(pool_path.read_text(encoding="utf-8"))
+    distilled = distill_pool(pool)
+
+    result = asyncio.run(execute_followups(pool, distilled, engine))
+    assert result["followups"]
+    for candidate in result["followups"]:
+        # An injected search_fn is a hermetic seam: corpus_count yields -1,
+        # which maps to the documented "unknown" saturation label.
+        assert candidate["corpus_total"] == -1
+        assert candidate["saturation_label"] == "unknown"

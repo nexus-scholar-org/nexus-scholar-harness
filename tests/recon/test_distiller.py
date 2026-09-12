@@ -443,3 +443,70 @@ def test_topics_layer_deterministic_and_sorted_rerun():
         "score": round((0.9 + 0.7) / 2, 4),
         "anchor_dois": ["10.1000/a", "10.1000/b"],
     }
+
+
+# ---------------------------------------------------------------------------
+# M0.7 (T7.2): the Query Echo Index (QEI) gate, evaluation Dimension 2
+# ---------------------------------------------------------------------------
+
+
+def test_qei_absent_without_query_text():
+    pool = _pool([_doc("10.1000/qe-0", "Edge Inference", "edge inference edge.")])
+    assert "qei" not in distill_pool(pool)
+    assert "qei" not in distill_pool(pool, query_text=None)
+
+
+def test_qei_prompt_echo_fails_the_gate():
+    # A distiller that restates the prompt vocabulary adds no analytic value:
+    # 13_evaluation.md section 3.1 gates qei <= 0.3.
+    pool = _pool([_doc("10.1000/qe-1", "Edge Inference Study", "edge inference edge.")])
+    result = distill_pool(pool, query_text="edge inference")
+    assert result["qei"] == 1.0
+    assert result["qei"] > 0.3
+
+
+def test_qei_field_vocabulary_passes_the_gate():
+    # No prompt-token overlap with distinct field vocabulary -> qei 0.0.
+    pool = _pool(
+        [
+            _doc(
+                "10.1000/qe-2",
+                "Orchard Canopy Survey",
+                "We count trees with fixed-wing drones and visible-light cameras.",
+            )
+        ]
+    )
+    result = distill_pool(pool, query_text="edge inference")
+    assert result["qei"] == 0.0
+    assert result["qei"] <= 0.3
+
+
+def test_qei_partial_overlap_is_a_fraction():
+    pool = _pool(
+        [
+            _doc("10.1000/qe-3", "Edge Inference", "edge inference."),
+            _doc("10.1000/qe-4", "Yield Monitoring", "we measure canopy temperature."),
+        ]
+    )
+    result = distill_pool(pool, query_text="edge inference")
+    assert 0.0 < result["qei"] < 1.0
+
+
+def test_qei_stopword_only_or_empty_query_is_zero():
+    pool = _pool([_doc("10.1000/qe-5", "Edge", "edge inference edge.")])
+    assert distill_pool(pool, query_text="")["qei"] == 0.0
+    assert distill_pool(pool, query_text="  ")["qei"] == 0.0
+    assert distill_pool(pool, query_text="a study of the")["qei"] == 0.0
+
+
+def test_qei_never_counts_terms_past_the_top_ten():
+    # 12 distinct terms each of freq 1 sorted lexicographically: the token
+    # "word8" lands in slot 11, past the k=10 window, so it must not echo.
+    # A non-truncated index would yield 0.1; the contract pins it to 0.0.
+    pool = _pool(
+        [
+            _doc(f"10.1000/qe-{i:02d}", f"Doc {i}", f"word{i} only.")
+            for i in range(12)
+        ]
+    )
+    assert distill_pool(pool, query_text="word8")["qei"] == 0.0

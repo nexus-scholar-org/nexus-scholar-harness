@@ -8,6 +8,7 @@ import pytest
 from scholar_search.models import Document, ExternalIds, Query
 
 from scholar_harness.recon import DEFAULT_PROVIDERS, ReconEngine, cache_key
+from scholar_harness.recon.engine import SATURATION_SCANT, SATURATION_SPARSE
 
 
 def _fake_docs(n: int, provider: str = "openalex") -> list[Document]:
@@ -170,3 +171,105 @@ def test_pool_entry_carries_topics_only_when_present(tmp_path):
         {"source": "openalex_topics", "id": "T1", "display_name": "Computer vision", "score": 0.8}
     ]
     assert "topics" not in by_doi["10.0000/fake-0001"]
+
+
+# ---------------------------------------------------------------------------
+# M0.7 (T7.3/T7.7): corpus saturation seam + canonical recon root
+# ---------------------------------------------------------------------------
+
+
+def test_saturation_label_boundaries():
+    assert SATURATION_SCANT == 50
+    assert SATURATION_SPARSE == 500
+    assert ReconEngine.saturation_label(-1) == "unknown"
+    assert ReconEngine.saturation_label(0) == "scant"
+    assert ReconEngine.saturation_label(49) == "scant"
+    assert ReconEngine.saturation_label(50) == "sparse"
+    assert ReconEngine.saturation_label(500) == "sparse"
+    assert ReconEngine.saturation_label(501) == "dense"
+    assert ReconEngine.saturation_label(12345) == "dense"
+
+
+def test_corpus_count_returns_minus_one_with_injected_search_fn(tmp_path):
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=lambda q, p: [])
+    assert asyncio.run(engine.corpus_count("edge inference")) == -1
+
+
+def test_corpus_count_requires_openalex_in_scope(tmp_path):
+    engine = ReconEngine(cache_root=tmp_path / "cache")
+    assert asyncio.run(
+        engine.corpus_count("edge inference", providers=["arxiv"])
+    ) == -1
+
+
+def test_corpus_count_openalex_meta_count(tmp_path, monkeypatch):
+    import scholar_harness.recon.engine as eng
+
+    captured = {}
+
+    class FakeOpenAlex:
+        base_url = "https://api.openalex.org/works"
+
+        def __init__(self):
+            self.client = self
+
+        async def get(self, url, params=None):
+            captured["url"] = url
+            captured["params"] = params
+
+            class _Resp:
+                def json(self):
+                    return {"meta": {"count": 1200}}
+
+            return _Resp()
+
+        async def close(self):
+            captured["closed"] = True
+
+    monkeypatch.setattr(eng, "OpenAlexProvider", FakeOpenAlex)
+    engine = eng.ReconEngine(cache_root=tmp_path / "cache")
+    assert asyncio.run(
+        engine.corpus_count("grape disease detection", year_min=2019, year_max=2021)
+    ) == 1200
+    assert captured["url"] == FakeOpenAlex.base_url
+    params = captured["params"]
+    assert params["search"] == "grape disease detection"
+    assert params["per-page"] == 1
+    assert "from_publication_date:2019-01-01" in params["filter"]
+    assert "to_publication_date:2021-12-31" in params["filter"]
+    # The per-call provider async client is always released (no leak in the
+    # long-lived MCP server even on the happy path).
+    assert captured["closed"] is True
+
+
+def test_corpus_count_failure_returns_minus_one(tmp_path, monkeypatch):
+    import scholar_harness.recon.engine as eng
+
+    class BrokenOpenAlex:
+        base_url = "https://api.openalex.org/works"
+
+        def __init__(self):
+            self.client = self
+
+        async def get(self, url, params=None):
+            raise RuntimeError("boom")
+
+        async def close(self):
+            pass
+
+    monkeypatch.setattr(eng, "OpenAlexProvider", BrokenOpenAlex)
+    engine = eng.ReconEngine(cache_root=tmp_path / "cache")
+    assert asyncio.run(engine.corpus_count("edge inference")) == -1
+
+
+def test_nexus_recon_root_env_overrides_cache_root(tmp_path, monkeypatch):
+    monkeypatch.setenv("NEXUS_RECON_ROOT", str(tmp_path / "canonical"))
+    engine = ReconEngine(cache_root=tmp_path / "ignored" / "cache")
+    assert engine.cache_root == (tmp_path / "canonical").resolve()
+    assert engine.pools_dir == (tmp_path / "canonical" / "pools").resolve()
+
+
+def test_nexus_recon_root_unset_keeps_explicit_root(tmp_path, monkeypatch):
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    engine = ReconEngine(cache_root=tmp_path / "cache")
+    assert engine.cache_root == (tmp_path / "cache").resolve()

@@ -307,6 +307,21 @@ async def execute_followups(
             year_max=year_max,
             max_results=max_results,
         )
+        try:
+            corpus_total = await engine.corpus_count(
+                candidate["term"],
+                providers=providers,
+                year_min=year_min,
+                year_max=year_max,
+            )
+        except Exception:  # noqa: BLE001 - corpus_count degrades to -1 by contract
+            corpus_total = -1
+        candidate["corpus_total"] = (
+            int(corpus_total) if corpus_total not in (None, "") else -1
+        )
+        candidate["saturation_label"] = ReconEngine.saturation_label(
+            candidate["corpus_total"]
+        )
         followup_pools.append(json.loads(pool_path.read_text(encoding="utf-8")))
 
     merged = merge_pools([pool, *followup_pools])

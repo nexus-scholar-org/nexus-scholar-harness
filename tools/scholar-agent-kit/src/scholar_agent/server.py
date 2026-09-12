@@ -93,8 +93,11 @@ if _HARNESS_SRC not in sys.path:
 
 # Recon cache root: CWD-relative, same sandbox convention as nexus_discover's
 # ``.cache/mcp``; ``.cache/`` is gitignored in every checkout, so no repo
-# pollution regardless of which venv/CWD the server runs from.
-RECON_CACHE_ROOT = Path(".cache/inception_recon")
+# pollution regardless of which venv/CWD the server runs from.  M0.7 T7.7:
+# ``NEXUS_RECON_ROOT`` overrides the default so CLI and MCP share one root.
+RECON_CACHE_ROOT = Path(
+    os.environ.get("NEXUS_RECON_ROOT", ".cache/inception_recon")
+)
 # Test/injection seam: when set, recon tools probe through this callable
 # instead of the kit SearchEngine (mirrors ReconEngine(search_fn=...)).
 RECON_SEARCH_FN = None
@@ -105,6 +108,7 @@ from scholar_harness.recon import (
     ReconEngine,
     distill_pool,
     execute_followups,
+    merge_lexicons,
 )
 
 mcp = MCPServer("ScholarAgentKit")
@@ -568,11 +572,6 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
 # are machine-readable JSON (paths/keys, never prose).
 # ==============================================================================
 
-LEXICON_FIELDS: dict[str, DomainLexicon] = {
-    "default": DEFAULT_LEXICON,
-}
-
-
 def _now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
@@ -732,25 +731,64 @@ def recon_probe(
         )
 
 
+def _validated_lexicon_fields(value: Any, name: str) -> dict[str, str]:
+    """Validate one ``lexicon_json`` field (``metrics``/``datasets``/``schools``).
+
+    Accepts ``None`` (treated as empty) or a JSON object mapping a non-empty,
+    compilable regex source string to a label string.  Raises ``ValueError``
+    on any malformed input.
+    """
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError(f"lexicon_json.{name} must be a JSON object")  # noqa: TRY004
+    out: dict[str, str] = {}
+    for pattern, label in value.items():
+        if not isinstance(pattern, str) or not isinstance(label, str):
+            raise ValueError(  # noqa: TRY004
+                f"lexicon_json.{name} entries must map regex string -> label string"
+            )
+        if not pattern.strip():
+            raise ValueError(f"lexicon_json.{name} contains an empty pattern")
+        try:
+            re.compile(pattern)
+        except re.error as exc:
+            raise ValueError(
+                f"lexicon_json.{name} contains an invalid regex: {pattern!r} ({exc})"
+            ) from exc
+        out[pattern] = label
+    return out
+
+
 @mcp.tool()
-def recon_distill(session_id: str, lexicon_field: str | None = "default") -> str:
+def recon_distill(session_id: str, lexicon_json: str | None = None) -> str:
     """Distill the latest session pool into an anchored micro-taxonomy.
 
     Loads the session's most recent pool from the persisted ``session.json``
-    and runs the harness ``distill_pool`` with the selected ``lexicon_field``.
-    Only ``"default"`` is shipped (no named-field registry is bundled); the
-    pool's upstream ``cache_key`` is returned for lineage (T5.5).  Terms are
-    persisted content-addressed at ``distilled_<sha>.json`` under the session
-    dir and returned as ``terms_path`` plus structured summaries.
+    and runs the harness ``distill_pool``.  ``lexicon_json`` (M0.7 GAP A,
+    ``14_agent_loops.md`` Loop B) is an optional JSON object with optional
+    ``metrics``/``datasets``/``schools`` maps of ``regex source -> label``;
+    the tables are merged onto the shipped default via ``merge_lexicons``
+    (field-wise, extra wins per key).  When omitted the default lexicon is
+    used and output is byte-identical.  A lexicon hash is baked into the
+    artifact name (``distilled_lx<sha>_<...>.json``) for provenance.  The
+    pool's upstream ``cache_key`` is returned for lineage (T5.5).
     """
     try:
-        field = lexicon_field or "default"
-        if field not in LEXICON_FIELDS:
-            raise ValueError(
-                "unknown lexicon_field "
-                + repr(field)
-                + "; supported: "
-                + ", ".join(sorted(LEXICON_FIELDS))
+        lexicon = None
+        artifact_prefix = "distilled"
+        if lexicon_json is not None:
+            parsed = json.loads(lexicon_json)
+            if not isinstance(parsed, dict):
+                raise ValueError("lexicon_json must be a JSON object")
+            extra = DomainLexicon(
+                metrics=_validated_lexicon_fields(parsed.get("metrics"), "metrics"),
+                datasets=_validated_lexicon_fields(parsed.get("datasets"), "datasets"),
+                schools=_validated_lexicon_fields(parsed.get("schools"), "schools"),
+            )
+            lexicon = merge_lexicons(DEFAULT_LEXICON, extra)
+            artifact_prefix = (
+                "distilled_lx" + _content_sha({"lexicon": parsed})[:12]
             )
         session = load_session(str(session_id))
         if not session["pools"]:
@@ -758,15 +796,18 @@ def recon_distill(session_id: str, lexicon_field: str | None = "default") -> str
                 f"session {session_id} has no pool; run recon_probe first"
             )
         pool = json.loads(Path(session["pools"][-1]).read_text(encoding="utf-8"))
-        distilled = distill_pool(pool, lexicon=LEXICON_FIELDS[field])
+        distilled = distill_pool(
+            pool, lexicon=lexicon, query_text=session.get("topic")
+        )
         root = _session_root(str(session_id))
-        terms_file = _persist_artifact(root, "distilled", distilled).resolve()
+        terms_file = _persist_artifact(root, artifact_prefix, distilled).resolve()
         save_session(session)
         return json.dumps(
             {
                 "session_id": str(session_id),
                 "cache_key": str(pool.get("cache_key") or ""),
                 "terms_path": str(terms_file),
+                "qei": distilled.get("qei"),
                 "metrics": [
                     {"label": label, "count": count}
                     for label, count in sorted((distilled.get("metrics") or {}).items())
@@ -802,7 +843,10 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
     carries the M0.4 gap-confidence reason VERBATIM under ``reason`` (e.g.
     ``"2 direct hits, 1 adjacent"``) and the SAME text under
     ``confidence.detail`` with ``confidence.label`` = ``"gap"``, so consumers
-    may use either convention.
+    may use either convention.  M0.7 (GAP B) adds ``corpus_total`` (uncapped
+    OpenAlex works-count for the term) and ``saturation_label``
+    (``scant|sparse|dense|unknown``) so pool-thinness can be read as real
+    scarcity (``13_evaluation.md`` section 3.4).
     """
     try:
         session = load_session(str(session_id))
@@ -843,6 +887,8 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
                             "detail": str(item.get("reason") or ""),
                         },
                         "school_n": int(item.get("school_n") or 0),
+                        "corpus_total": int(item.get("corpus_total", -1)),
+                        "saturation_label": str(item.get("saturation_label") or "unknown"),
                     }
                     for item in result.get("followups") or []
                 ],

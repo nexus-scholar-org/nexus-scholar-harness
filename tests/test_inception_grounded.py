@@ -540,3 +540,101 @@ def test_grounded_delta_probe_runs_once_and_merges(tmp_path):
     assert len(rc["anchor_dois"]) >= 2
     # The delta reuses the engine cache (pools under the injected root).
     assert len(list((tmp_path / "cache" / "pools").glob("*_pool.json"))) == 2
+
+
+# ---------------------------------------------------------------------------
+# M0.7 (T7.8): headless grounded selection -- no prompt, no block
+# ---------------------------------------------------------------------------
+
+
+def test_inception_help_lists_headless_flags():
+    result = CliRunner().invoke(app, ["inception", "--help"])
+    assert result.exit_code == 0
+    assert "--auto-select" in result.stdout
+    assert "--direction-id" in result.stdout
+
+
+def _grounded_engine(tmp_path) -> ReconEngine:
+    return ReconEngine(
+        cache_root=tmp_path / "cache", search_fn=lambda q, p: _fake_docs(3)
+    )
+
+
+def _predicted_directions(tmp_path) -> list[dict]:
+    from scholar_harness.inception import _grounded_directions_for_terms
+    from scholar_harness.recon import distill_pool as distiller_distill
+
+    engine = _grounded_engine(tmp_path)
+    pool_path, _n = asyncio.run(engine.probe(TOPIC))
+    pool = json.loads(pool_path.read_text(encoding="utf-8"))
+    return _grounded_directions_for_terms(distiller_distill(pool))
+
+
+def test_auto_select_picks_first_direction_without_prompt(tmp_path):
+    engine = _grounded_engine(tmp_path)
+    n_concepts = len(_pool_anchored_defaults(engine))
+    result = run_wizard(
+        GroundedScriptedResponder([TOPIC] + _wizard_answers(n_concepts)),
+        tmp_path,
+        genesis_timestamp=GENESIS_TS,
+        grounded=True,
+        recon_engine=engine,
+        auto_select=True,
+    )
+    rc = result["recon_context"]
+    assert rc["concept"] == GROUNDED_CONCEPT
+    assert rc["direction"] == GROUNDED_CONCEPT
+    assert len(rc["anchor_dois"]) >= 2
+
+
+def test_direction_id_selects_nth_direction_without_prompt(tmp_path):
+    engine = _grounded_engine(tmp_path)
+    directions = _predicted_directions(tmp_path)
+    assert len(directions) >= 2
+    second = directions[1]["label"]
+
+    n_concepts = len(_pool_anchored_defaults(engine))
+    result = run_wizard(
+        GroundedScriptedResponder([TOPIC] + _wizard_answers(n_concepts)),
+        tmp_path,
+        genesis_timestamp=GENESIS_TS,
+        grounded=True,
+        recon_engine=engine,
+        direction_id=2,
+    )
+    rc = result["recon_context"]
+    assert rc["concept"] == second
+    assert rc["direction"] == second
+
+
+def test_direction_id_out_of_range_exits_without_emitting(tmp_path):
+    engine = _grounded_engine(tmp_path)
+    directions = _predicted_directions(tmp_path)
+    with pytest.raises(typer.Exit) as exc:
+        run_wizard(
+            GroundedScriptedResponder([TOPIC]),
+            tmp_path,
+            genesis_timestamp=GENESIS_TS,
+            grounded=True,
+            recon_engine=engine,
+            direction_id=len(directions) + 1,
+        )
+    assert "out of range" in str(exc.value)
+    assert "nothing was emitted" in str(exc.value)
+    assert not (tmp_path / "workspaces").exists()
+
+
+def test_direction_id_zero_exits_without_emitting(tmp_path):
+    engine = _grounded_engine(tmp_path)
+    with pytest.raises(typer.Exit) as exc:
+        run_wizard(
+            GroundedScriptedResponder([TOPIC]),
+            tmp_path,
+            genesis_timestamp=GENESIS_TS,
+            grounded=True,
+            recon_engine=engine,
+            direction_id=0,
+        )
+    assert "out of range" in str(exc.value)
+    assert "nothing was emitted" in str(exc.value)
+    assert not (tmp_path / "workspaces").exists()
