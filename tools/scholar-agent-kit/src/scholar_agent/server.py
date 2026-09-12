@@ -1,9 +1,24 @@
-"""FastMCP Server for the Nexus Scholar Suite."""
+"""FastMCP Server for the Nexus Scholar Suite.
+
+Since M0.5 (specs/exploratory-grounding-agent/09_mcp_integration.md) the
+suite also exposes three ``recon_*`` tools -- ``recon_probe`` /
+``recon_distill`` / ``recon_delta`` -- that drive the harness exploratory-recon
+layers (``scholar_harness.recon``) with FAIR session memory.  See the "Import
+strategy (Option B)" note next to ``_harness_src`` for how this kit resolves
+the harness package at runtime without vendoring any recon code.
+"""
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import json
+import os
+import re
 import sys
+import time
+import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,10 +35,17 @@ from scholar_protocol.canonical import canonical_json, canonical_fingerprint
 # Phase 1 Imports
 from scholar_search.cli import search as search_discover
 from scholar_search.dedup import Deduplicator
+from scholar_search.engine import SearchEngine
 from scholar_search.export import Exporter
 from scholar_search.importers import JSONImporter
-from scholar_search.models import Document
-from scholar_search.screening import evaluate_heuristic_screening, partition_screening_results, reconcile_multi_screener_decisions, calculate_fleiss_kappa
+from scholar_search.models import Document, Query
+from scholar_search.providers import (
+    ArxivProvider,
+    CrossrefProvider,
+    OpenAlexProvider,
+    SemanticScholarProvider,
+)
+from scholar_search.screening import evaluate_heuristic_screening, partition_screening_results, reconcile_multi_screener_decisions
 from scholar_pdf.extract import PyMuPDFEngine
 from scholar_verify.verbatim import VerbatimClaimVerifier
 
@@ -37,6 +59,53 @@ from scholar_graph.visualizer import GraphVisualizer
 
 # Bib Imports
 from scholar_bib.cli import lint as bib_clean
+
+# Recon (M0.5) imports -- adapter seam -- do not move above the seam.
+# ---------------------------------------------------------------------------- #
+# Import strategy (Option B, chosen after verifying mcp_config.json): the
+# server is launched as ``uv run --directory tools/scholar-agent-kit
+# scholar-agent``; that runs the kit-LOCAL venv (tools/scholar-agent-kit/.venv)
+# with CWD tools/scholar-agent-kit, and ``scholar_harness`` is NOT installed
+# there (empirically verified: ModuleNotFoundError under that venv).  Rather
+# than changing the launch config or copying the recon package into this kit,
+# we resolve the harness ``src/`` directory from this file's location and
+# inject it onto ``sys.path`` as a thin, documented adapter seam.  An
+# optional ``NEXUS_HARNESS_SRC`` env var overrides discovery for odd layouts.
+def _harness_src() -> str:
+    env_override = os.environ.get("NEXUS_HARNESS_SRC")
+    if env_override:
+        return env_override
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        candidate = parent / "src" / "scholar_harness" / "recon" / "__init__.py"
+        if candidate.is_file():
+            return str(parent / "src")
+    raise ImportError(
+        "scholar_harness.recon not found under any ancestor of "
+        + str(here)
+        + "; set NEXUS_HARNESS_SRC to the harness src/ directory"
+    )
+
+
+_HARNESS_SRC = _harness_src()
+if _HARNESS_SRC not in sys.path:
+    sys.path.insert(0, _HARNESS_SRC)
+
+# Recon cache root: CWD-relative, same sandbox convention as nexus_discover's
+# ``.cache/mcp``; ``.cache/`` is gitignored in every checkout, so no repo
+# pollution regardless of which venv/CWD the server runs from.
+RECON_CACHE_ROOT = Path(".cache/inception_recon")
+# Test/injection seam: when set, recon tools probe through this callable
+# instead of the kit SearchEngine (mirrors ReconEngine(search_fn=...)).
+RECON_SEARCH_FN = None
+
+from scholar_harness.recon import (
+    DEFAULT_LEXICON,
+    DomainLexicon,
+    ReconEngine,
+    distill_pool,
+    execute_followups,
+)
 
 mcp = MCPServer("ScholarAgentKit")
 
@@ -129,13 +198,34 @@ def nexus_protocol_render_criteria(protocol_path: str) -> str:
 # ==============================================================================
 
 @mcp.tool()
-def nexus_discover(query: str, limit: int = 10, start_year: int = 2020) -> str:
+async def nexus_discover(query: str, limit: int = 10, start_year: int = 2020) -> str:
     """
     Query academic literature repositories (OpenAlex, Semantic Scholar, Crossref, arXiv).
-    Returns the path to the resulting JSON file.
+    Returns the path to the resulting JSON file with real deduplicated results.
     """
-    output_path = Path(f"./search_results_{query.replace(' ', '_')[:20]}.json")
-    return f"Search completed. Found {limit} papers. Saved to {output_path}"
+    providers = [
+        OpenAlexProvider(),
+        SemanticScholarProvider(),
+        CrossrefProvider(),
+        ArxivProvider(),
+    ]
+    engine = SearchEngine(providers=providers)
+    q = Query(text=query, max_results=limit, year_min=start_year)
+    try:
+        docs = await engine.search_all(q, dedup=True)
+    finally:
+        await engine.close()
+
+    cache_dir = Path(".cache/mcp")
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    safe_slug = "".join(c for c in query if c.isalnum() or c in (" ", "_", "-"))[:20].replace(" ", "_")
+    output_path = cache_dir / f"discover_{safe_slug or 'query'}_{int(time.time())}.json"
+    Exporter().json(docs, output_path)
+    preview = "\n".join(
+        f"  - ({d.year or 'N/A'}) {d.title[:90]} | {d.provider} | {d.external_ids.doi or d.provider_id}"
+        for d in docs[:limit]
+    )
+    return f"Search completed: {len(docs)} unique papers (deduped). Saved to {output_path}.\n{preview}"
 
 
 @mcp.tool()
@@ -468,6 +558,304 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
 
 
 # ==============================================================================
+# Phase 0.5: Recon MCP surface -- FAIR Memory + Agent Interop (M0.5)
+#
+# T5.1-T5.3 expose recon_probe / recon_distill / recon_delta.  Session state
+# persists across copilot turns under
+# ``.cache/inception_recon/sessions/<session_id>/session.json`` (T5.4), with
+# content-addressed ``pool_<sha>.json`` / ``distilled_<sha>.json`` artifacts
+# beside it.  Every result carries its lineage cache_key (T5.5).  All outputs
+# are machine-readable JSON (paths/keys, never prose).
+# ==============================================================================
+
+LEXICON_FIELDS: dict[str, DomainLexicon] = {
+    "default": DEFAULT_LEXICON,
+}
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def _new_session_id() -> str:
+    return "rec_" + uuid.uuid4().hex
+
+
+_SESSION_ID_RE = re.compile(r"^rec_[0-9a-f]{6,64}$")
+
+
+def _validate_session_id(session_id: str) -> None:
+    if not isinstance(session_id, str) or _SESSION_ID_RE.fullmatch(session_id) is None:
+        raise ValueError(
+            "malformed session_id (expected 'rec_' followed by hex digits)"
+        )
+
+
+def _assert_safe_session_root(root: Path) -> None:
+    """Refuse session roots under any path segment named ``workspaces``.
+
+    Same guard semantics as ``ReconEngine._assert_safe_output`` (case-
+    insensitive part match, which on Windows also covers ``Workspaces``).
+    """
+    resolved = Path(root).resolve()
+    if any(part.lower() == "workspaces" for part in resolved.parts):
+        raise RuntimeError(f"refusing to write under workspaces/: {resolved}")
+
+
+def _session_root(session_id: str) -> Path:
+    _validate_session_id(session_id)
+    root = RECON_CACHE_ROOT / "sessions" / session_id
+    _assert_safe_session_root(root)
+    return root
+
+
+def _blank_session(session_id: str, topic: str) -> dict:
+    stamp = _now_iso()
+    return {
+        "session_id": session_id,
+        "topic": topic,
+        "cache_keys": [],
+        "pools": [],
+        "created_at": stamp,
+        "updated_at": stamp,
+    }
+
+
+def load_session(session_id: str) -> dict:
+    """Read a session's on-disk state (T5.4: survives across copilot turns)."""
+    path = _session_root(session_id) / "session.json"
+    if not path.is_file():
+        raise RuntimeError(f"session not found: {session_id}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def save_session(session: dict) -> Path:
+    session["updated_at"] = _now_iso()
+    root = _session_root(str(session["session_id"]))
+    root.mkdir(parents=True, exist_ok=True)
+    path = root / "session.json"
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(
+        json.dumps(session, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    os.replace(tmp, path)
+    return path
+
+
+def _append_unique(entries: list, value: Any) -> None:
+    if value and value not in entries:
+        entries.append(value)
+
+
+def _content_sha(payload: dict) -> str:
+    return hashlib.sha1(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    os.replace(tmp, path)
+
+
+def _persist_artifact(root: Path, prefix: str, payload: dict) -> Path:
+    """Content-addressed artifact write: same payload -> same file, no rewrite."""
+    _assert_safe_session_root(root)
+    root.mkdir(parents=True, exist_ok=True)
+    path = root / f"{prefix}_{_content_sha(payload)}.json"
+    if not path.is_file():
+        _atomic_write_json(path, payload)
+    return path
+
+
+@mcp.tool()
+def recon_probe(
+    topic: str,
+    session_id: str | None = None,
+    start_year: int = 2020,
+    limit: int = 10,
+) -> str:
+    """Probe the literature surface for a topic and record a FAIR recon session.
+
+    Runs the harness ``ReconEngine.probe`` (multi-provider dedup, pool capped
+    at 25) and persists the pool content-addressed under
+    ``.cache/inception_recon/sessions/<session_id>/pool_<sha>.json``.  The
+    session is upserted: an existing ``session_id`` (``rec_<hex>``) is loaded
+    from disk and extended, otherwise a new one is created.  Returns
+    machine-readable JSON only -- ``cache_key`` (T5.5 lineage), ``pool_path``,
+    ``n_docs`` -- never prose.
+    """
+    try:
+        sid = session_id if session_id is not None else _new_session_id()
+        root = _session_root(sid)
+        engine = ReconEngine(cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)
+        pool_file, n_docs = asyncio.run(
+            engine.probe(
+                query=topic,
+                year_min=start_year,
+                year_max=None,
+                max_results=limit,
+            )
+        )
+        pool = json.loads(pool_file.read_text(encoding="utf-8"))
+        cache_key = str(pool.get("cache_key") or "")
+        artifact = _persist_artifact(root, "pool", pool).resolve()
+        session = (
+            load_session(sid)
+            if (root / "session.json").is_file()
+            else _blank_session(sid, topic)
+        )
+        session["topic"] = topic
+        _append_unique(session["cache_keys"], cache_key)
+        _append_unique(session["pools"], str(artifact))
+        save_session(session)
+        return json.dumps(
+            {
+                "session_id": sid,
+                "cache_key": cache_key,
+                "status": "probe_ok",
+                "n_docs": n_docs,
+                "pool_path": str(artifact),
+            },
+            indent=2,
+        )
+    except (RuntimeError, ValueError, OSError) as exc:
+        return json.dumps(
+            {"status": "error", "message": str(exc), "cache_key": None}
+        )
+
+
+@mcp.tool()
+def recon_distill(session_id: str, lexicon_field: str | None = "default") -> str:
+    """Distill the latest session pool into an anchored micro-taxonomy.
+
+    Loads the session's most recent pool from the persisted ``session.json``
+    and runs the harness ``distill_pool`` with the selected ``lexicon_field``.
+    Only ``"default"`` is shipped (no named-field registry is bundled); the
+    pool's upstream ``cache_key`` is returned for lineage (T5.5).  Terms are
+    persisted content-addressed at ``distilled_<sha>.json`` under the session
+    dir and returned as ``terms_path`` plus structured summaries.
+    """
+    try:
+        field = lexicon_field or "default"
+        if field not in LEXICON_FIELDS:
+            raise ValueError(
+                "unknown lexicon_field "
+                + repr(field)
+                + "; supported: "
+                + ", ".join(sorted(LEXICON_FIELDS))
+            )
+        session = load_session(str(session_id))
+        if not session["pools"]:
+            raise RuntimeError(
+                f"session {session_id} has no pool; run recon_probe first"
+            )
+        pool = json.loads(Path(session["pools"][-1]).read_text(encoding="utf-8"))
+        distilled = distill_pool(pool, lexicon=LEXICON_FIELDS[field])
+        root = _session_root(str(session_id))
+        terms_file = _persist_artifact(root, "distilled", distilled).resolve()
+        save_session(session)
+        return json.dumps(
+            {
+                "session_id": str(session_id),
+                "cache_key": str(pool.get("cache_key") or ""),
+                "terms_path": str(terms_file),
+                "metrics": [
+                    {"label": label, "count": count}
+                    for label, count in sorted((distilled.get("metrics") or {}).items())
+                ],
+                "datasets": [
+                    {"label": label, "count": count}
+                    for label, count in sorted((distilled.get("datasets") or {}).items())
+                ],
+                "schools": distilled.get("schools") or [],
+                "micro_taxonomy_top": (distilled.get("micro_taxonomy") or [])[:5],
+            },
+            indent=2,
+        )
+    except (RuntimeError, ValueError, OSError) as exc:
+        return json.dumps(
+            {"status": "error", "message": str(exc), "cache_key": None}
+        )
+
+
+@mcp.tool()
+def recon_delta(session_id: str, followups: int = 3) -> str:
+    """Run the bounded adaptive probe horizon for a session (gap follow-ups).
+
+    Loads the latest pool from ``session.json``, re-distills it
+    (deterministic), plans follow-up probes for thin sub-schools (``n <= 2``),
+    and executes at most ``followups`` cache-reusing probes (hard cap 3,
+    per M0.4).  The merged pool and re-distilled terms persist content-
+    addressed under the session dir; ``dropped_n`` counts new docs discarded
+    by the 25-doc cap.
+
+    Confidence mapping (documented contract): each item in ``followups``
+    carries the M0.4 gap-confidence reason VERBATIM under ``reason`` (e.g.
+    ``"2 direct hits, 1 adjacent"``) and the SAME text under
+    ``confidence.detail`` with ``confidence.label`` = ``"gap"``, so consumers
+    may use either convention.
+    """
+    try:
+        session = load_session(str(session_id))
+        if not session["pools"]:
+            raise RuntimeError(
+                f"session {session_id} has no pool; run recon_probe first"
+            )
+        pool = json.loads(Path(session["pools"][-1]).read_text(encoding="utf-8"))
+        distilled = distill_pool(pool)
+        budget = max(0, min(int(followups), 3))
+        engine = ReconEngine(cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)
+        result = asyncio.run(
+            execute_followups(pool, distilled, engine, max_followups=budget)
+        )
+        root = _session_root(str(session_id))
+        merged_pool = result["pool"]
+        merged_terms = result["distilled"]
+        pool_file = _persist_artifact(root, "pool", merged_pool).resolve()
+        terms_file = _persist_artifact(root, "distilled", merged_terms).resolve()
+        merged_keys: list[str] = []
+        _append_unique(merged_keys, str(pool.get("cache_key") or ""))
+        for key in result.get("cache_keys_merged") or []:
+            _append_unique(merged_keys, str(key))
+        for key in merged_keys:
+            _append_unique(session["cache_keys"], key)
+        _append_unique(session["pools"], str(pool_file))
+        save_session(session)
+        return json.dumps(
+            {
+                "session_id": str(session_id),
+                "merged_cache_keys": merged_keys,
+                "followups": [
+                    {
+                        "term": str(item.get("term") or ""),
+                        "reason": str(item.get("reason") or ""),
+                        "confidence": {
+                            "label": "gap",
+                            "detail": str(item.get("reason") or ""),
+                        },
+                        "school_n": int(item.get("school_n") or 0),
+                    }
+                    for item in result.get("followups") or []
+                ],
+                "pool_path": str(pool_file),
+                "terms_path": str(terms_file),
+                "dropped_n": int(result.get("dropped_n") or 0),
+                "pool_size_before": len(pool.get("docs") or []),
+                "pool_size_after": len(merged_pool.get("docs") or []),
+            },
+            indent=2,
+        )
+    except (RuntimeError, ValueError, OSError) as exc:
+        return json.dumps(
+            {"status": "error", "message": str(exc), "cache_key": None}
+        )
+
+
+# ==============================================================================
 # CLI Entrypoint
 # ==============================================================================
 
@@ -490,6 +878,9 @@ def main():
         print("  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies")
         print("  - nexus_graph_build: Build citation graph from included studies or DOIs")
         print("  - nexus_bib_clean: Clean and deduplicate BibTeX databases")
+        print("  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)")
+        print("  - recon_distill: Distill the latest session pool into anchored terms")
+        print("  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse")
         return
     mcp.run()
 
