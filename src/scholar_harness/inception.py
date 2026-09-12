@@ -17,9 +17,11 @@ The wizard is *responder-driven*: every interaction goes through the
 
 from __future__ import annotations
 
+import asyncio
 import json
 import subprocess
 import sys
+import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -30,6 +32,8 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+
+from .recon.engine import ReconEngine
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKSPACE_MANAGER_SCRIPTS = REPO_ROOT / ".agents" / "skills" / "workspace-manager" / "scripts"
@@ -491,8 +495,13 @@ def scaffold_project(ws_root: Path, title: str, slug: str, paradigm: str, rqs: l
     return ws_root / "workspaces" / slug
 
 
-def log_genesis(ws_dir: Path, description: str) -> None:
+def log_genesis(ws_dir: Path, description: str, *, recon_context: dict | None = None) -> None:
     """Record the GENESIS audit event via workspace-manager's log_event.py."""
+    if recon_context:
+        description = (
+            f"{description} recon_context="
+            + json.dumps(recon_context, ensure_ascii=False, separators=(",", ":"))
+        )
     cmd = [sys.executable, str(LOG_EVENT_SCRIPT), str(ws_dir)]
     cmd += ["--action", "GENESIS", "--agent", "scholar-harness/inception", "--status", "SUCCESS"]
     cmd += ["--inputs"] + [str(f) for f in (ws_dir / "intent.json",)]
@@ -527,6 +536,286 @@ def _now_iso() -> str:
 
 
 # ---------------------------------------------------------------------------
+# Grounded recon loop (--grounded): Step 2 probe -> Step 3 distill -> Step 4
+# direction proposal + validation, inserted between Stage 1 and Stage 2.
+# ---------------------------------------------------------------------------
+
+_DELTA_PROBE_CHOICE = "__delta_probe__"
+
+
+def _grounded_directions_for_terms(terms: dict) -> list[dict]:
+    """Build up to 3 DOI-anchored directions from the distilled micro-taxonomy.
+
+    Every direction carries >= 2 distinct anchor DOIs observed in the pool
+    (hard filter: an unanchored term can never be proposed).
+    """
+    candidates = [
+        t for t in terms.get("micro_taxonomy", []) if len(t["anchor_dois"]) >= 2
+    ]
+    candidates.sort(key=lambda t: (-len(t["term"].split()), -t["freq"], t["term"]))
+    directions = [
+        {
+            "label": t["term"],
+            "concept": t["term"],
+            "anchor_dois": list(t["anchor_dois"]),
+            "detail": f"pool term observed in {len(t['anchor_dois'])} papers",
+        }
+        for t in candidates[:3]
+    ]
+    if directions:
+        return directions
+    dois: list[str] = []
+    labels: list[str] = []
+    for entry in terms.get("micro_taxonomy", []):
+        labels.append(entry["term"])
+        for doi in entry["anchor_dois"]:
+            if doi not in dois:
+                dois.append(doi)
+        if len(dois) >= 2:
+            break
+    if len(dois) >= 2:
+        return [
+            {
+                "label": " ".join(labels)[:80] or "pool vocabulary",
+                "concept": labels[0] if labels else "pool vocabulary",
+                "anchor_dois": sorted(dois),
+                "detail": f"pool vocabulary observed in {len(dois)} papers",
+            }
+        ]
+    return []
+
+
+def _present_grounded_directions(terms: dict, directions: list[dict]) -> None:
+    schools = terms.get("schools", [])
+    if schools:
+        console.print(
+            "[bold]Observed sub-schools in the pool:[/bold] "
+            + ", ".join(f"{s['label']} ({s['n']})" for s in schools)
+        )
+    for i, d in enumerate(directions, start=1):
+        body = f"[bold]{d['label']}[/bold]\n{d['detail']}\n\n[bold]Citation anchors:[/bold]"
+        for doi in d["anchor_dois"]:
+            body += f"\n  \u2022 {doi}"
+        console.print(Panel.fit(body, title=f"Grounded Direction {i}", border_style="green"))
+
+
+def _run_grounded_recon(
+    responder: Responder,
+    topic: str,
+    recon_engine: ReconEngine | None = None,
+) -> dict | None:
+    """Steps 2-4 of the grounding lifecycle for one session (--grounded).
+
+    Probes the topic, distills the pool, presents <= 3 DOI-anchored directions,
+    lets the researcher validate one (optionally after a single delta probe)
+    and returns the session ``recon_context``.
+
+    ``recon_context`` additionally carries ``default_concepts`` (the pool-anchored
+    Stage-4b prompt default, M0.3 DoD 3) and ``anchored_terms`` (the session's
+    anchored-term map: every term with literature evidence, term -> anchor DOIs).
+
+    Hard contract: when the pool yields no >= 2-anchor direction, the wizard
+    aborts with ``typer.Exit`` -- there is no warn-and-continue path, because
+    emitting unanchored concepts would violate M0.3 DoD 3.
+    """
+    from .recon.distiller import distill_pool
+
+    engine = recon_engine if recon_engine is not None else ReconEngine()
+    session_id = uuid.uuid4().hex[:12]
+    cache_keys: list[str] = []
+    pool_sizes: list[int] = []
+    anchor_dois: list[str] = []
+
+    def probe_and_read(query: str) -> dict:
+        pool_path, _n = asyncio.run(engine.probe(query))
+        pool = json.loads(pool_path.read_text(encoding="utf-8"))
+        cache_keys.append(str(pool.get("cache_key") or ""))
+        pool_sizes.append(len(pool.get("docs", [])))
+        return {"pool": pool, "terms": distill_pool(pool)}
+
+    data = probe_and_read(topic)
+    directions = _grounded_directions_for_terms(data["terms"])
+    if not directions:
+        raise typer.Exit(
+            "No literature evidence was found under this topic (no direction with "
+            ">= 2 citation anchors could be formed from the probe pool). Refine "
+            "the topic or run inception without --grounded."
+        )
+
+    topic_dois: list[str] = []
+    for doc in data["pool"].get("docs", []):
+        doi = doc.get("doi")
+        if doi and doi not in topic_dois:
+            topic_dois.append(doi)
+    topic_dois.sort()
+
+    delta_allowed = True
+    while True:
+        _present_grounded_directions(data["terms"], directions)
+        choices = [
+            (d["label"], f"{len(d['anchor_dois'])} anchor papers") for d in directions
+        ]
+        if delta_allowed:
+            choices.append((_DELTA_PROBE_CHOICE, "Run one refined delta probe"))
+        pick = responder.choice(
+            "Select the grounded research direction to pursue",
+            choices,
+            default=directions[0]["label"],
+        )
+        if pick == _DELTA_PROBE_CHOICE:
+            target = responder.choice(
+                "Which direction should the delta probe refine?",
+                [(d["label"], f"{len(d['anchor_dois'])} anchor papers") for d in directions],
+                default=directions[0]["label"],
+            )
+            delta = probe_and_read(target)
+            delta_directions = _grounded_directions_for_terms(delta["terms"])
+            if delta_directions:
+                directions = delta_directions
+                data = delta
+            delta_allowed = False
+            continue
+        selected = next((d for d in directions if d["label"] == pick), None)
+        if selected is None:
+            continue
+        anchor_dois = list(selected["anchor_dois"])
+        validated_concept = selected["concept"]
+        # Session anchored-term map: topic + validated direction are already
+        # anchored (never re-probed later); pool taxonomy terms with >= 1
+        # anchor DOI are evidenced in the pool and count as anchored too.
+        anchored_terms = {
+            topic: topic_dois,
+            validated_concept: list(selected["anchor_dois"]),
+        }
+        for t in data["terms"].get("micro_taxonomy", []):
+            if len(t["anchor_dois"]) >= 1:
+                anchored_terms.setdefault(t["term"], []).extend(t["anchor_dois"])
+        return {
+            "session_id": session_id,
+            "cache_keys": cache_keys,
+            "pool_sizes": pool_sizes,
+            "anchor_dois": anchor_dois,
+            "direction": selected["label"],
+            "concept": validated_concept,
+            "default_concepts": _grounded_default_concepts(
+                data["terms"], validated_concept
+            ),
+            "anchored_terms": anchored_terms,
+        }
+
+
+def _grounded_default_concepts(terms: dict, validated_concept: str) -> list[str]:
+    """Stage-4b "Core search concepts" default in grounded mode (M0.3 DoD 3).
+
+    Built exclusively from pool-anchored taxonomy terms -- :func:`draft_default_concepts`
+    is never called in the grounded branch.  The validated direction's concept
+    always leads; every remaining taxonomy term carrying >= 2 anchor DOIs
+    follows, multi-word terms first (then frequency, then lexicographic).
+    """
+    defaults: list[str] = []
+    seen: set[str] = set()
+    if validated_concept:
+        defaults.append(validated_concept)
+        seen.add(validated_concept)
+    others = [
+        t
+        for t in terms.get("micro_taxonomy", [])
+        if t["term"] not in seen and len(t["anchor_dois"]) >= 2
+    ]
+    others.sort(key=lambda t: (-len(t["term"].split()), -t["freq"], t["term"]))
+    defaults.extend(t["term"] for t in others)
+    return defaults
+
+
+_GROUNDED_PROBE_BUDGET = 3
+
+
+def _pool_anchor_dois(pool: dict) -> list[str]:
+    """Distinct DOIs carried by a probe pool (sorted; empty == unanchored)."""
+    dois: list[str] = []
+    for doc in pool.get("docs", []):
+        doi = doc.get("doi")
+        if doi and doi not in dois:
+            dois.append(doi)
+    return sorted(dois)
+
+
+def _enforce_grounded_anchors(
+    concepts: list[ConceptDraft],
+    recon_context: dict,
+    recon_engine: ReconEngine,
+) -> dict:
+    """Step-5 delta-probe enforcement (03_lifecycle.md Step 5; M0.3 DoD 3).
+
+    Every concept/synonym that would enter ``core_concepts`` in grounded mode
+    must already sit in the session's anchored-term map or earn its anchors
+    through a bounded supplementary probe.  A synonym that still yields zero
+    anchors is dropped with a yellow warning; a concept that still yields zero
+    anchors (or cannot be probed within the budget) aborts the wizard with
+    ``typer.Exit`` -- nothing unanchored is ever emitted.
+    """
+    anchored_terms = dict(recon_context.get("anchored_terms") or {})
+    cache_keys: list[str] = recon_context.get("cache_keys", [])
+    pool_sizes: list[int] = recon_context.get("pool_sizes", [])
+    probes_used = 0
+
+    def probe(term: str) -> list[str]:
+        nonlocal probes_used
+        probes_used += 1
+        pool_path, _n = asyncio.run(recon_engine.probe(term))
+        pool = json.loads(pool_path.read_text(encoding="utf-8"))
+        cache_keys.append(str(pool.get("cache_key") or ""))
+        pool_sizes.append(len(pool.get("docs", [])))
+        return _pool_anchor_dois(pool)
+
+    def budget_left() -> bool:
+        return probes_used < _GROUNDED_PROBE_BUDGET
+
+    def no_evidence_exit(term: str) -> typer.Exit:
+        return typer.Exit(
+            f"Concept '{term}' has no literature evidence; refine it or run "
+            "inception without --grounded. Nothing was emitted."
+        )
+
+    for draft in concepts:
+        if draft.concept not in anchored_terms:
+            if not budget_left():
+                raise no_evidence_exit(draft.concept)
+            dois = probe(draft.concept)
+            if not dois:
+                raise no_evidence_exit(draft.concept)
+            anchored_terms[draft.concept] = dois
+        kept: list[str] = []
+        for synonym in draft.synonyms:
+            if synonym in anchored_terms:
+                kept.append(synonym)
+                continue
+            if not budget_left():
+                console.print(
+                    f"[yellow]\u26a0 probe budget exceeded; '{synonym}' has no confirmed "
+                    f"literature evidence, removed as a search synonym.[/yellow]"
+                )
+                continue
+            dois = probe(synonym)
+            if dois:
+                anchored_terms[synonym] = dois
+                kept.append(synonym)
+            else:
+                console.print(
+                    f"[yellow]\u26a0 '{synonym}' has no literature evidence under probe; "
+                    f"removed as a search synonym.[/yellow]"
+                )
+        draft.synonyms = kept
+
+    # Belt-and-suspenders: never ship a concept that is still unanchored.
+    for draft in concepts:
+        if draft.concept not in anchored_terms:
+            raise no_evidence_exit(draft.concept)
+    recon_context["anchored_terms"] = anchored_terms
+    return recon_context
+
+
+# ---------------------------------------------------------------------------
 # The wizard
 # ---------------------------------------------------------------------------
 
@@ -537,12 +826,15 @@ def run_wizard(
     *,
     genesis_timestamp: str | None = None,
     no_scaffold: bool = False,
+    grounded: bool = False,
+    recon_engine: ReconEngine | None = None,
 ) -> dict:
     """Run the 4-stage Socratic inception interview and emit the protocol.
 
     Returns a summary dict: {intent, slug, title, playbook, paradigm,
     protocol_fingerprint, workspace_dir} where ``workspace_dir`` is set only
-    when scaffolding ran (or already existed).
+    when scaffolding ran (or already existed).  With ``grounded=True`` the
+    summary also carries ``recon_context`` (the Step-2-4 session record).
     """
     root = root.resolve()
     ts = genesis_timestamp or _now_iso()
@@ -558,6 +850,12 @@ def run_wizard(
     )
     if not topic:
         raise typer.Exit("No research topic provided; aborting.")
+
+    # ---- Grounded recon: probe -> distill -> validated direction -----------
+    recon_context: dict | None = None
+    if grounded:
+        recon_engine = recon_engine if recon_engine is not None else ReconEngine()
+        recon_context = _run_grounded_recon(responder, topic, recon_engine)
 
     # ---- Stage 2: refraction grid + paradigm/playbook ----------------------
     ranked = detect_leanings(topic)
@@ -619,14 +917,25 @@ def run_wizard(
         rqs.append(RQDraft(text=rq2_text, facet=profile["facet"], evidence=profile["evidence"]))
 
     # ---- Stage 4b: concept clusters -----------------------------------------
+    if grounded and recon_context:
+        # M0.3 DoD 3: grounded defaults come ONLY from pool-anchored taxonomy
+        # terms (validated direction first), never from draft_default_concepts.
+        default_concepts = list(recon_context.get("default_concepts") or [])
+    else:
+        default_concepts = draft_default_concepts(topic)
     concepts_raw = responder.text(
         "Core search concepts (comma-separated)",
-        default=", ".join(draft_default_concepts(topic)),
+        default=", ".join(default_concepts),
     )
     concepts: list[ConceptDraft] = []
     for c in [s.strip() for s in concepts_raw.split(",") if s.strip()]:
         syn_raw = responder.text(f"Synonyms / alternate terms for '{c}' (comma-separated; blank = none)")
         concepts.append(ConceptDraft(concept=c, synonyms=[s.strip() for s in syn_raw.split(",") if s.strip()]))
+
+    if grounded and recon_context:
+        # Step-5 delta-probe enforcement: every concept/synonym entering
+        # core_concepts must be anchored (concepts abort, synonyms drop).
+        recon_context = _enforce_grounded_anchors(concepts, recon_context, recon_engine)
 
     # ---- Stage 4c: screening criteria ---------------------------------------
     extra_inclusions: list[str] = []
@@ -708,6 +1017,7 @@ def run_wizard(
         ws_dir,
         f"Phase-0 Inception: '{title}' [{paradigm}, {playbook}] compiled protocol fingerprint "
         f"{compiled['protocol_fingerprint']}",
+        recon_context=recon_context,
     )
     console.print(f"[bold green]✅ Workspace scaffolded: {ws_dir}[/bold green]")
     console.print(f"   intent.json → protocol.json ({compiled['protocol_fingerprint']})")
@@ -721,6 +1031,7 @@ def run_wizard(
         "paradigm": paradigm,
         "protocol_fingerprint": compiled["protocol_fingerprint"],
         "workspace_dir": str(ws_dir),
+        "recon_context": recon_context,
     }
 
 
@@ -768,6 +1079,7 @@ def _default_matrix_dimensions(playbook: str, unit: str) -> list[dict]:
 def inception_command(
     root: Path = typer.Option(Path("."), "--root", "-r", help="Repository root containing workspaces/ (default: current dir)"),
     no_scaffold: bool = typer.Option(False, "--no-scaffold", help="Run interview only; do not write anything"),
+    grounded: bool = False,
 ) -> None:
     """Launch the interactive Phase-0 Socratic inception wizard."""
-    run_wizard(ConsoleResponder(), root, no_scaffold=no_scaffold)
+    run_wizard(ConsoleResponder(), root, no_scaffold=no_scaffold, grounded=grounded)

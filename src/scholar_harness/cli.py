@@ -89,9 +89,14 @@ def inception(
     no_scaffold: bool = typer.Option(
         False, "--no-scaffold", help="Run the interview only; emit nothing to disk"
     ),
+    grounded: bool = typer.Option(
+        False,
+        "--grounded",
+        help="Ground the inquiry in a real literature surface scan (probe + distill) before the refraction grid",
+    ),
 ):
     """Run the Phase-0 Socratic methodology interview and emit a compiled protocol."""
-    inception_command(root, no_scaffold=no_scaffold)
+    inception_command(root, no_scaffold=no_scaffold, grounded=grounded)
 
 
 @app.command("sync")
