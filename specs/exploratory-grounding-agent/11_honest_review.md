@@ -44,6 +44,8 @@ The entire top of the taxonomy is a restatement of the query. Pure term frequenc
 
 **Fixing this is the highest-value next step.** A relative-frequency or tf-idf-vs-pool term in `micro_taxonomy` would make direction-ranking actually informative. It stays stdlib (a `Counter` + a baseline corpus) and would not violate the determinism/purity constraints.
 
+> **Addressed by M0.6 (`12_semantic_grounding.md`):** a classifier-grounded **Topics** layer from OpenAlex (anchored by construction, scored `label/n/score/anchor_dois`) plus an opt-in **semantic search mode** — so the taxonomy no longer has to be a restatement of the query.
+
 ### 3.2 "Cross-field" (T4.5) is configuration, not generalization
 
 The `DomainLexicon` move was correct and honest — tables are now pluggable, `merge_lexicons` is well-behaved, and the bidirectional isolation tests pass. But the honest framing is: *we relocated the hard-coding, we did not remove it.* A new field (oncology, education, robotics) must still hand-author metric/dataset/school regex patterns. The pipeline will never *discover* that "TCGA" is a dataset on its own.
@@ -91,6 +93,8 @@ M0.3's contract is admirable (nothing unanchored ships) but the UX is a cliff: a
 | P1 | Relative-frequency/coverage normalization in `micro_taxonomy` (kill query-term dominance) | `recon/distiller.py` | M |
 | P1 | Adjacency scoring that excludes pool-ubiquitous terms | `recon/adaptive.py` | S |
 | P1 | Canonical recon root (env in `mcp_config.json`) | `server.py` + `mcp_config.json` | S |
+
+> **Roadmap note (2026-09-13):** the first two P1 items (query-term dominance, adjacency saturation) are concretized as **M0.6 — Semantic Grounding** in `12_semantic_grounding.md` (topics layer + semantic search + thin-topic adaptive triggers); the canonical-recon-root P1 stays open as a small standalone fix. **M0.7 (proposed):** the remaining P1/P2 items and the evaluation gates are specified in `13_evaluation.md` (measurable metrics + ReconBench) and `14_agent_loops.md` (autonomous loops + the two required MCP seams).
 | P2 | Soften wizard hard-exit into "refine / continue ungrounded (documented)" | `inception.py` | S |
 | P2 | Ship 1-2 example domain lexicons (education, oncology) | `recon/lexicon.py` | S |
 | P2 | Reframe docs: "domain-agnostic by default, domain-confident by registration" | `09_mcp_integration.md` | XS |

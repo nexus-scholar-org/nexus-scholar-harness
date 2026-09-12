@@ -1,7 +1,7 @@
 # Exploratory Grounding Agent — Implementation Task List
 
 > **Status:** Live checklist for implementing `specs/exploratory-grounding-agent/`
-> **Milestone spec:** [`08_milestones.md`](./08_milestones.md) (this list mirrors M0.1–M0.5; each task carries its DoD clauses)
+> **Milestone spec:** [`08_milestones.md`](./08_milestones.md) (this list mirrors M0.1–M0.6; each task carries its DoD clauses)
 > **Dev process:** Orchestrator roles — `coder` (writes code+tests), `tester` (runs verification), `reviewer` (reviews diff against the spec DoD). The orchestrator (opencode **build** agent) dispatches via the Task tool and checks boxes here when the DoD holds.
 > **Git rule:** per the pull-request-gate skill — never push to `origin`; improvements ship via fork + PR. Do NOT commit during a work session unless asked.
 
@@ -100,13 +100,47 @@ Spec: `08_milestones.md` M0.5 · MCP `09_mcp_integration.md` §2,§5
 
 ---
 
+## M0.6 — Semantic Grounding (topics + semantic search modes)
+
+Spec: `08_milestones.md` M0.6 · full design `12_semantic_grounding.md`
+
+- [x] **T6.1** Kit: `Query.semantic` + OpenAlex `search.semantic` param; harness: `ReconEngine`/`probe(..., semantic=False)` + cache-key mode segment `/m/semantic/` (keyword default byte-identical). Tests: outgoing-param payload capture; mode key; keyword default unchanged. ✅ `test_providers.py` (23 tests incl. 2 live-caught API fixes: page-pagination, filter-omission); keyword key byte-identical to pre-M0.6 literal; parse handles 5-part (keyword) + 7-part (semantic) and rejects malformed modes.
+- [x] **T6.2** Kit: `Document.topics` capture from `raw["topics"]` with deprecated-`concepts` fallback (`source/id/display_name/score`); pool §5 writer carries topics. Tests: topics, concepts fallback, absent. ✅ Normalizer/entry-shape tests + live pool carries real OpenAlex topics (5/5 openalex docs).
+- [x] **T6.3** `distill_pool` emits a deterministic `topics` layer (`label/n/score/anchor_dois`, anchored by construction). Tests: aggregation math, sort, byte-determinism, empty-when-none. ✅ `_topic_layer` per-doc+label max score, mean→4dp/None, DOI-anchor-only; byte-identical re-run.
+- [x] **T6.4** `plan_followups` thin-topic triggers (`n ≤ 2`, anchored). Tests: thin topic → follow-up + merge intact; healthy topic no-op. ✅ Shared `_thin_candidates`, dedup keeps school before topic; M0.4 merge/cap invariants untouched.
+- [x] **T6.5** MCP: `recon_probe(semantic=False)` threaded through; `recon_distill`/`recon_delta` surface `topics`; `tests/test_mcp_recon.py` additions (param passthrough, topics surfaced, lineage intact). ✅ hermetic passthrough + topics surfaced; lineage (T5.5) intact.
+- [x] **T6.6** QA: full suite + ruff + M0.6 hermetic suites; **live smoke** — one keyword vs one semantic `recon_probe` on the same topic (pools differ, topics layer present, zero workspace writes). ✅ full suite 193 passed/3 skipped/0 failed; ruff clean (scripts/ + M0.6 scope); live smoke below (QA.6).
+
+**DoD M0.6:** all of `T6.1-T6.6` + default behavior byte-identical + no new deps.
+**Stretch (not M0.6 DoD):** T6.7 — S2 Recommendations/SPECTER2 semantic snowball (thin-topic → embedding-similar papers), gated behind a follow-up milestone.
+
+---
+
+## M0.7 — Evaluation Gates + Autonomous Seams (PROPOSED — not gate-approved)
+
+> Specs: `13_evaluation.md` (metrics/ReconBench) · `14_agent_loops.md` (loops + GAP A/B) · `08_milestones.md` M0.7 stub. Tasks **unticked** — gating not yet approved; effort/targets refined before dispatch.
+
+- [ ] **T7.1** APR CI gate — assert every protocol `core_concept`/`synonym` has ≥1 anchor DOI (promote `test_inception_grounded` invariant to CI).
+- [ ] **T7.2** QEI in `recon/distiller.py` + test gate on top-10 terms (≥50% non-echo; target QEI ≤ 0.3 per `13_evaluation.md` §3.1).
+- [ ] **T7.3** GAP B: uncapped corpus-count seam (OpenAlex `meta.count` / S2 totals) → `corpus_total` + `saturation_label` (`scant|sparse|dense`) on `recon_delta` followups.
+- [ ] **T7.4** GAP A: `recon_distill(lexicon_json=...)` MCP param — validate shape, `merge_lexicons(DEFAULT, extra)`, provenance hash in artifact name.
+- [ ] **T7.5** School-purity sampled audit script + LLM-judge rubric (50 papers/school sample).
+- [ ] **T7.6** ReconBench runner (`scripts/reconbench/`) — corpus is manual curation (30–50 published SLRs).
+- [ ] **T7.7** Canonical recon root: `NEXUS_RECON_ROOT` env override enforced by both MCP server and CLI (fix 11 §3.5 CWD trap; no bare `Path.cwd()` resolution).
+- [ ] **T7.8** Headless emission: `inception --auto-select` / `--direction-id <N>` + softened exit (11 §3.6); interactive-gate stays default.
+
+**Proposed DoD M0.7:** stdlib/no-LLM in the harness path; default behavior byte-identical; full suite green; each seam hermetic-tested + live-smoked.
+
+---
+
 ## QA Gate (run by `tester` before any task is ticked)
 
-- [x] **QA.1** `uv run pytest` — full suite green (existing 25 + new `recon/` + inception tests). ✅ 173 passed / 3 skipped (post-M0.5, measured after code tidy).
+- [x] **QA.1** `uv run pytest` — full suite green (existing 25 + new `recon/` + inception tests). ✅ 173 passed / 3 skipped (post-M0.5, measured after code tidy); **rerun post-M0.6 (2026-09-13): 193 passed / 3 skipped / 0 failed** (+20 M0.6 tests over baseline, incl. 2 live-caught API-fix tests).
 - [x] **QA.2** `uv run ruff check scripts/` — no NEW errors introduced (pre-existing ~15 tolerated; verify diff attribution not ours). ✅ "All checks passed!" (measured 2026-09-12).
 - [x] **QA.3** `python scripts/install_plugins.py` still resolves kits (no kit re-vendoring regressions) — smoke. ✅ methodology unchanged; note: this host fails `install_plugins.py` at the file-copy step because the LIVE MCP server (`scholar-agent.exe`) locks its own exe — environmental (pre-existing), not a code regression. Kit resolution verified indirectly: MCP tool registry imports resolve (`SearchEngine`, `Deduplicator`, `Exporter`…) and the full suite is green.
 - [x] **QA.4** `uv run scholar-harness inception --help` shows `--grounded` once M0.3 lands. ✅ `--grounded` listed (measured 2026-09-13).
 - [x] **QA.5** Manual smoke on a real topic (e.g. `nexus_discover` probe) produces a real deduped pool + terms with anchor DOIs. ✅ **LIVE run completed post-restart (2026-09-13):** `recon_probe` "grape disease detection deep learning edge deployment" → 25-doc pool (session `rec_c04ba5…`, cache key `v1/openalex,semanticscholar,crossref,arxiv/y2019-2026/q/a1fb97e3…`); `recon_distill` → micro-taxonomy + metrics(F1/accuracy/mAP/precision/recall), datasets(PlantVillage/ImageNet), 5 anchored schools; `recon_delta` → 2 thin schools auto-probed (LLM n=1, multispectral n=1, reason "1 direct hits, 20 adjacent"), merged pool capped 25 (`dropped_n` 50), lineage cache keys merged (3). Nexus Scholar MCP dispatch (2026-09-13, 24.03 UTC) — same session, no re-probe.
+- [x] **QA.6** M0.6 smoke: same topic probed **keyword vs `semantic=True`** → distinct cache keys (`/m/semantic/` present) and distinct pools; `recon_distill` shows a `topics` layer with anchors; zero `workspaces/` writes. ✅ **LIVE (engine-level, 2026-09-13, fresh cache root):** keyword pool `v1/…/q/a1fb97e3…` = 15 docs (openalex 5/5 with real topics); semantic pool `v1/…/m/semantic/q/a1fb97e3…` (same hash, distinct key) = 15 docs (openalex 5/5 with topics) — semantic hits visibly better-matched (grape/vine-specific); zero workspace writes. ⚠️ Live smoke **caught 2 real API constraints** fixed + hermetically pinned: cursor pagination rejected (→ page/per_page ≤ 50) and `filter` rejected (→ manual year filtering) for `search.semantic`. **MCP-level variant ✅ (2026-09-13, post-restart):** `recon_probe` topic "grape disease detection deep learning edge deployment" — keyword → `v1/…/q/a1fb97e3…` (5-seg, session `rec_f017f1…`); `semantic=True` → `v1/…/m/semantic/q/a1fb97e3…` (7-seg, session `rec_0d7c15…`); same query hash, distinct keys + pools (25 docs each), zero `workspaces/` writes. `recon_distill` on the semantic session returns a 6-topic anchored `topics` layer (top: "Smart Agriculture and AI" n=7 score=0.9359; thin frontiers UAV/drone n=1, multispectral n=1) + schools/metrics/datasets. Confirms the **CWD cache-root split live** (`tools\scholar-agent-kit\.cache\inception_recon\…`) → T7.7. Param passthrough, lineage (T5.5), isolation all verified at the MCP boundary.
 
 ---
 

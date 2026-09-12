@@ -67,6 +67,41 @@
 3. No state lost between copilot turns for the same `session_id` (state on disk).
 4. All tool results include the cache key (traceable lineage).
 
+## M0.6 — Semantic Grounding (topics + semantic search modes)
+
+> Full spec: `12_semantic_grounding.md`.
+
+**Scope:**
+- OpenAlex **semantic search mode** (`search.semantic=`, embeddings) as an opt-in mode; cache-key mode segment so keyword and semantic probes never collide.
+- Capture OpenAlex **Topics** (with deprecated-Concepts fallback) into `Document`/pool schema.
+- Distiller emits a classifier-grounded **`topics` layer** (`label/n/score/anchor_dois`) anchored by construction.
+- Adaptive horizon extended: **thin topics** (`n ≤ 2`) trigger follow-up probes like thin schools.
+
+**DoD — all must hold:**
+1. `recon_probe(topic, semantic=True)` issues the OpenAlex `search.semantic` param (hermetic payload capture); its cache key contains `/m/semantic/`; keyword default key byte-identical to M0.5.
+2. OpenAlex pool docs carry `topics` (concepts fallback); §5 schema honored; docs without topics stay clean.
+3. `distill_pool` emits a deterministic, anchored `topics` layer; re-run byte-identical.
+4. `plan_followups` triggers for thin topics; M0.4 merge/cap invariants hold.
+5. Default behavior byte-identical + backward compatible; existing full suite stays green; no new deps.
+
+**Non-goals (M0.6):** S2 Recommendations/SPECTER2 snowball (stretch T6.7), wizard/topics direction proposals, replacing `micro_taxonomy`/`schools`, LLM labeling.
+
+## M0.7 — Evaluation Gates + Autonomous Loops (PROPOSED — not gate-approved)
+
+> Specs: `13_evaluation.md` (metrics/ReconBench), `14_agent_loops.md` (loops + seams). This block is a **roadmap stub**, not an approved DoD; it is unticked in `10_task_list.md` and intentionally out of M0.6's release scope. Effort/targets refined before dispatch.
+
+**Candidate scope:**
+- **T7.1** APR CI gate (all protocol concepts anchored — assert in CI).
+- **T7.2** QEI in `distiller.py` + test gate (≥50% non-echo in top-10).
+- **T7.3** GAP B: uncapped corpus count seam (OpenAlex `meta.count` / S2 totals) + `corpus_total` / `saturation_label` in `recon_delta` responses.
+- **T7.4** GAP A: `recon_distill(lexicon_json=...)` via `merge_lexicons` with provenance hashing.
+- **T7.5** School-purity sampled audit (script + LLM-judge rubric).
+- **T7.6** ReconBench runner (corpus: 30–50 published SLRs, manual curation).
+- **T7.7** Canonical recon cache root: `NEXUS_RECON_ROOT` env override enforced kit-consistent (fixes 11 §3.5 CWD trap; MCP/CLI share one root).
+- **T7.8** Headless emission flag (`inception --auto-select` / `--direction-id`) + softened wizard exit for non-interactive agents.
+
+**Suggested DoD (when dispatched):** all contributions remain stdlib/no-LLM in the harness path; default behavior byte-identical; existing full suite green; each new seam hermetic-tested + live-smoked.
+
 ## Release posture
 
 - **M0.1–M0.3**: usable via CLI wizard (Option A), default behavior preserved.

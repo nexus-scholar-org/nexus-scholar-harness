@@ -37,7 +37,7 @@ sequenceDiagram
             Recon->>APIGW: SearchEngine.search_all (OpenAlex, S2, Crossref, arXiv)
             APIGW-->>Recon: Top 20-25 candidates (title, abstract, citations, OA URL)
             Recon->>Recon: Dedup + cap (10-25 abstracts)
-            Recon->>APIGW: Download 2-3 OA full texts (scholar-pdf-kit download_batch)
+            Note over Recon: Full-text download deferred (Phase 2) - abstract-only distillation
             Recon->>Recon: Distill metrics, datasets, models (harness distiller)
             Recon->>Cache: Persist probe graph + raw abstracts + terms
         else Cache Hit
@@ -56,6 +56,12 @@ sequenceDiagram
     Copilot->>ProtoKit: compile_protocol(intent) -> protocol.json + SCREENING_CRITERIA.md
     Copilot->>WM: Log GENESIS event (with recon provenance hash)
 ```
+
+> **Full-text status (honest):** early sequences sketched downloading 2-3 OA PDFs via
+> `scholar-pdf-kit download_batch` to feed the distiller. The implemented recon fills
+> `payload["fulltexts"]` with `{}` (a reserved seam) and the distiller runs **exclusively on
+> title + abstract** — deliberate demotion, not drift. PDF/Markdown extraction belongs to
+> **Phase 2** (post-GENESIS, inside the workspace where `pdfs/` and `extracted/` already exist).
 
 ## 3. Interaction contract between agents
 

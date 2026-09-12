@@ -32,17 +32,25 @@ Structured as a URL-style path so it can be logged, grepped, and content-address
 v1/<providers>/y<year_min>-<year_max>/q/<sha256(text)>
 ```
 
+Semantic mode variant (M0.6, `12_semantic_grounding.md` §3 Seam A):
+
+```
+v1/<providers>/y<year_min>-<year_max>/m/semantic/q/<sha256(text)>
+```
+
 | Segment | Meaning |
 | :--- | :--- |
 | `v1` | schema/format version bump gate (invalidate-all on bump) |
 | `<providers>` | e.g. `openalex,semanticscholar,crossref,arxiv` (join-provenance) |
 | `y<year_min>-<year_max>` | year window: `y2000-2026`, or `y2015` for a single year |
+| `m/<mode>` | **optional** search mode: `semantic` = OpenAlex embeddings search (`search.semantic`). Omitted ⇒ keyword (`search`), backward compatible with M0.5 keys. Semantic and keyword probes of the same text never share a content-address. |
 | `q/<sha256(text)>` | normalized query text (case-fold, collapse whitespace, strip trailing punct). Normalization is required so `"Drones & AI."` and `"drones & ai"` share a key. |
 
 Example:
 
 ```
 v1/openalex,semanticscholar,crossref,arxiv/y2000-2026/q/9f1c66e14a0f4c6b879d25e7c1bb6c8491e03c55d0c53b1c1d4a0e2d9b8a7f
+v1/openalex,semanticscholar,crossref,arxiv/y2000-2026/m/semantic/q/9f1c66e14a0f4c6b879d25e7c1bb6c8491e03c55d0c53b1c1d4a0e2d9b8a7f
 ```
 
 ## 4. Session schema (`sessions/<session_id>.json`)
@@ -58,6 +66,7 @@ v1/openalex,semanticscholar,crossref,arxiv/y2000-2026/q/9f1c66e14a0f4c6b879d25e7
     {
       "probe_id": "uuid-string",
       "query_text": "drone crop disease detection edge inference",
+      "semantic": false,
       "cache_key": "v1/openalex,semanticscholar,crossref,arxiv/y2015-2026/q/<sha256>",
       "pool_file": "pools/<sha>_pool.json",
       "terms_file": "terms/<sha>_terms.json",
@@ -98,6 +107,9 @@ v1/openalex,semanticscholar,crossref,arxiv/y2000-2026/q/9f1c66e14a0f4c6b879d25e7
       "abstract": "…",
       "year": 2022,
       "citations": 43,
+      "topics": [ // optional (M0.6): OpenAlex classifier-grounded taxonomy
+        {"source": "openalex_topics", "id": "T12345", "display_name": "Computer vision & pattern recognition", "score": 0.87}
+      ],
       "oa_url": "https://…"
     }
   ],
@@ -121,6 +133,9 @@ v1/openalex,semanticscholar,crossref,arxiv/y2000-2026/q/9f1c66e14a0f4c6b879d25e7
   ],
   "metrics": {"mAP": 12, "F1": 9, "FPS": 5},
   "datasets": {"PlantVillage": 6, "RoCoLe": 2},
+  "topics": [ // M0.6: classifier-grounded layer, anchored by construction
+    {"label": "Computer vision & pattern recognition", "n": 7, "score": 0.87, "anchor_dois": ["…"]}
+  ],
   "schools": [
     {"label": "visible-light CNN", "n": 11, "anchor_dois": ["…"]}
   ]
@@ -133,6 +148,7 @@ v1/openalex,semanticscholar,crossref,arxiv/y2000-2026/q/9f1c66e14a0f4c6b879d25e7
 | :--- | :--- |
 | Content version bump | Bump `v1` → repo-wide invalidation |
 | Provider list change | Key changes → new content-address (old files stay, orphaned, prunable) |
+| Search-mode change (keyword → semantic, M0.6) | Key changes (mode segment) → new content-address |
 | Year-window change | Key changes → new content-address |
 | Re-run same query | Cache hit — no network calls, no re-distill |
 | Corrupt cache file | Treated as a miss; re-fetch & overwrite |

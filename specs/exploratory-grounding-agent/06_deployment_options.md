@@ -19,6 +19,8 @@
 
 **Absorbs M0.1–M0.3.** Adaptive-horizon extras (M0.4-M0.5) plug into the same seam later without changing the user contract.
 
+**Headless / non-interactive mode (M0.7, T7.8):** for agent-driven or CI runs, the CLI gains a `--auto-select` flag (and/or `--direction-id <N>`) so the best Pareto direction is picked without blocking on a terminal prompt (currently `inception.py` hard-aborts when the researcher declines). The interactive human-gate flow stays the **default**; the flag is an explicit override — resolving the autonomy-vs-gate tension in `14_agent_loops.md` §9 **without** weakening "researcher approves final intent" for normal runs (see also `11_honest_review.md` §3.6).
+
 ## Option B — Autonomous agent via MCP (recommended long-term)
 
 **Entrypoint:** the Methodology Copilot skill driving `nexus_*` MCP tools (15 tools, all verified — see `09_mcp_integration.md`).

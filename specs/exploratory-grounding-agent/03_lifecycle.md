@@ -18,7 +18,7 @@
 
 - Fire the probe queries via `SearchEngine.search_all(Query(text=..., max_results=..., year_min=...))` against an OpenAlex-first provider order.
 - Dedup via `scholar_search.dedup.Deduplicator` (PID clustering + title similarity).
-- **Cap** the working pool: **10-25 candidate abstracts** kept; optionally fetch **2-3 Open Access full texts** for the top-ranked items.
+- **Cap** the working pool: **10-25 candidate abstracts** kept. **No full-text extraction here** — this was sketched in early designs and deliberately demoted to Phase 2; distillation is abstract-only (see note in Step 3).
 - Each document retains full provenance: provider, ID/DOI, title, abstract, year, citations, OA URL.
 - Token budget discipline: do not exceed ~15k tokens of pool content per probe so downstream distillation stays cheap and fast.
 
@@ -33,6 +33,8 @@
 - Output is a JSON structure (`recon_terms_<session>.json`) where every term carries `anchor_docs: [doi, ...]`.
 
 **Exit gate:** the distiller produced at least one terms file **with anchor-doc evidence** per probe. No evidence → term dropped.
+
+> **Input contract (honest):** `payload["fulltexts"]` stays `{}` (reserved seam, tracked in `src/scholar_harness/recon/engine.py`); the distiller consumes **title + abstract only**. Deterministic, token-bound, cache-stable — PDF ingestion (`scholar-pdf-kit`) is a Phase-2 workspace capability, not recon.
 
 ## Step 4 — Grounded Direction Proposal (LLM + human validation)
 

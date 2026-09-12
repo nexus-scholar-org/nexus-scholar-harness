@@ -1,6 +1,6 @@
 # 09 — Nexus MCP Integration
 
-> Reference for how the Nexus MCP surface (15 `nexus_*` tools) underpins the Grounded Exploratory Inception Agent. All tool implementations were **audited against real kit source** on 2026-09-12; results below.
+> Reference for how the Nexus MCP surface (18 `nexus_*` tools) underpins the Grounded Exploratory Inception Agent. All tool implementations were **audited against real kit source** on 2026-09-12; results below.
 
 ## 1. Server wiring
 
@@ -54,9 +54,19 @@
 
 | Lifecycle step | MCP tool(s) used by the copilot |
 | :--- | :--- |
-| Step 2 probe | `nexus_discover` (fresh probe) — realistic fallback: + `nexus_dedup` |
+| Step 2 probe | `recon_probe` (M0.5; `semantic=` opt-in M0.6) — fallback `nexus_discover` + `nexus_dedup` |
 | Step 2 full-text | `nexus_extract_pdf` on the OA path (2-3 first) |
-| Step 3 distill | `nexus_protocol_validate`/`nexus_bib_clean` indirect; terms produced by harness `distiller.py` (M0.2) or copilot over pool JSON |
-| Step 4 direction | copilot proposal (agent-held) + researcher validation |
+| Step 3 distill | `recon_distill` (M0.5; emits `micro_taxonomy`/`metrics`/`datasets` + M0.6 `topics`, `schools`) |
+| Step 4 direction | `recon_delta` (M0.5; thin schools → M0.6 thin topics) + copilot proposal + researcher validation |
 | Step 5 emit | `nexus_protocol_compile` + `nexus_protocol_render_criteria` |
 | Later (Phase-1+) | `nexus_screen`, `nexus_screen_reconcile`, `nexus_rag_*`, `nexus_graph_build`, `nexus_verify_claims` |
+
+## 6. Recon MCP tool contracts (M0.5 baseline + M0.6 deltas)
+
+All three tools are FAIR: every result carries `cache_key` lineage, state lives on disk under `.cache/inception_recon/sessions/<session_id>/`, and replies are machine-readable JSON (paths/keys/counts), never prose.
+
+| Tool | Inputs | Outputs | M0.6 delta |
+| :--- | :--- | :--- | :--- |
+| `recon_probe` | `topic`, `start_year` (2020), `limit` (10), `session_id` (optional) | `session_id`, `cache_key`, `pool_path`, `n_docs` | + `semantic` (bool, default `false`) → OpenAlex `search.semantic`; `cache_key` gains `/m/semantic/` when set. |
+| `recon_distill` | `session_id`, `lexicon_field` (`"default"`) | `cache_key`, `terms_path`, terms summary (micro-taxonomy/metrics/datasets/schools) | + `topics` in the terms summary (`label/n/score/anchor_dois`). |
+| `recon_delta` | `session_id`, `followups` (default 3, hard cap 3) | `cache_key`, `pool_path`, `merged_n`, `dropped_n`, `followups` (each with verbatim `reason` + `confidence.detail`) | + thin-**topic** candidates (same `term/reason/confidence/school_n` contract). |

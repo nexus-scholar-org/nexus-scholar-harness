@@ -26,7 +26,12 @@ The single-file proposal `docs/phase_0/06_exploratory_grounding_agent.md` has be
 | [`07_walkthrough.md`](./07_walkthrough.md) | Concrete end-to-end walkthrough (LLM unit-test generation for legacy COBOL/Fortran). |
 | [`08_milestones.md`](./08_milestones.md) | The M0.x implementation milestones, each with a **Definition-of-Done (DoD)** gate. |
 | [`09_mcp_integration.md`](./09_mcp_integration.md) | The Nexus MCP surface (`nexus_*` tools) that an agent uses to drive grounded inception. |
-| [`10_task_list.md`](./10_task_list.md) | **Implementation checklist** (T0.x … T5.x + QA + PR gates) mirroring M0.1–M0.5 — the single source of truth the dev-loop agents tick off. |
+| [`10_task_list.md`](./10_task_list.md) | **Implementation checklist** (T0.x … T6.x + QA + PR gates) mirroring M0.1–M0.6 — the single source of truth the dev-loop agents tick off. |
+| [`11_honest_review.md`](./11_honest_review.md) | Post-M0.1…M0.5 honest retrospective (& priorities P1–P3). |
+| [`12_semantic_grounding.md`](./12_semantic_grounding.md) | **M0.6** — semantic search modes (OpenAlex `search.semantic`) + classifier-grounded Topics taxonomy (anchored `topics` layer, thin-topic adaptive triggers). |
+| [`13_evaluation.md`](./13_evaluation.md) | Evaluation framework — 4 measurable dimensions (epistemic integrity, recon signal, downstream yield, autonomous navigation), ReconBench corpus/runner, prioritized gates (M0.7). |
+| [`14_agent_loops.md`](./14_agent_loops.md) | Autonomous agent operating contract — 5 loops (dual-mode discovery, lexicon bootstrap, Pareto scoring, anchor-guarded compile, downstream transition) + the 2 required MCP seams (GAP A lexicon, GAP B saturation). |
+| [`15_scientific_publication_plan.md`](./15_scientific_publication_plan.md) | **Scientific Publication Plan & Research Blueprint** — publication strategy, theoretical framing, ReconBench empirical evaluation, mathematical formulas (APR, QEI), target venues, and 6-week roadmap. |
 
 ## Executive summary — the cold inception problem
 
