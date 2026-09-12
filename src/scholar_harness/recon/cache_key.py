@@ -51,12 +51,24 @@ def cache_key(
     year_min: int,
     year_max: int | None = None,
     version: str = VERSION,
+    semantic: bool = False,
 ) -> str:
-    """Build the hierarchical cache key for a probe."""
+    """Build the hierarchical cache key for a probe.
+
+    A semantic probe (``semantic=True``, M0.6) inserts a mode segment so it
+    never collides with the keyword pool for the same text+providers+window::
+
+        v1/<providers>/y<year_min>-<year_max>/m/semantic/q/<sha256>
+
+    Keyword keys stay byte-identical to the pre-M0.6 5-segment form.
+    """
     normalized = normalize_query(query)
     provider_seg = ",".join(providers)
     digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-    return f"{version}/{provider_seg}/{_year_segment(year_min, year_max)}/q/{digest}"
+    year_seg = _year_segment(year_min, year_max)
+    if semantic:
+        return f"{version}/{provider_seg}/{year_seg}/m/semantic/q/{digest}"
+    return f"{version}/{provider_seg}/{year_seg}/q/{digest}"
 
 
 def _parse_year_segment(segment: str) -> tuple[int, int]:
@@ -71,11 +83,25 @@ def _parse_year_segment(segment: str) -> tuple[int, int]:
 
 
 def parse_cache_key(key: str) -> dict[str, Any]:
-    """Parse a cache key back into {version, providers, year_min, year_max, query_hash}."""
+    """Parse a cache key back into {version, providers, year_min, year_max, query_hash}.
+
+    Accepts both the pre-M0.6 keyword form (``.../q/<hash>``) and the
+    semantic form (``.../m/semantic/q/<hash>``); ``mode`` is ``"keyword"``
+    or ``"semantic"`` respectively.
+    """
     parts = key.split("/")
-    if len(parts) != 5 or parts[3] != "q":
+    mode = "keyword"
+    if len(parts) == 5:
+        if parts[3] != "q":
+            raise ValueError(f"malformed cache key: {key!r}")
+        version, providers_seg, year_seg, _, query_hash = parts
+    elif len(parts) == 7:
+        if parts[3:5] != ["m", "semantic"] or parts[5] != "q":
+            raise ValueError(f"malformed cache key: {key!r}")
+        version, providers_seg, year_seg, _, _, _, query_hash = parts
+        mode = "semantic"
+    else:
         raise ValueError(f"malformed cache key: {key!r}")
-    version, providers_seg, year_seg, _, query_hash = parts
     year_min, year_max = _parse_year_segment(year_seg)
     return {
         "version": version,
@@ -83,4 +109,5 @@ def parse_cache_key(key: str) -> dict[str, Any]:
         "year_min": year_min,
         "year_max": year_max,
         "query_hash": query_hash,
+        "mode": mode,
     }

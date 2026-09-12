@@ -122,33 +122,29 @@ def _reason(direct: int, adjacent: int) -> str:
     return f"{direct} direct hits, {adjacent} adjacent"
 
 
-def plan_followups(distilled: dict[str, Any], pool: dict[str, Any]) -> list[dict[str, Any]]:
-    """Plan follow-up probes for thin (``n <= 2``) DOI-anchored sub-schools.
+def _thin_candidates(
+    entries: list[dict[str, Any]],
+    distilled: dict[str, Any],
+    pool_dois: set[str],
+) -> list[dict[str, Any]]:
+    """Emit follow-up candidates for entries with ``n <= 2`` and a pool anchor.
 
-    A candidate is emitted only when the school's label carries at least one
-    anchor DOI that actually exists in ``pool``'s docs.  The ``reason`` field
-    follows the exact format ``"<n> direct hits, <m> adjacent"`` (see the
-    module docstring); ``m`` is the school's evidence neighborhood minus the
-    direct hits, i.e. total docs in school minus ``n``, clamped at 0.
-
-    Ordering is a fixed deterministic rule: ascending ``school_n`` (scarcest
-    first), then lexicographic by case-folded term.
+    Applies the same thin rule to school clusters and (since M0.6) topic
+    labels, which both carry ``label``/``n``/``anchor_dois`` keys.  ``direct``
+    counts the entry's anchor DOIs that actually exist in the pool.
     """
-    pool_dois = _pool_dois(pool)
     candidates: list[dict[str, Any]] = []
-    for school in distilled.get("schools") or []:
-        if not isinstance(school, dict):
+    for entry in entries:
+        if not isinstance(entry, dict):
             continue
-        label = school.get("label")
+        label = entry.get("label")
         if not label:
             continue
         try:
-            n = int(school.get("n", 0))
+            n = int(entry.get("n", 0))
         except (TypeError, ValueError):
             n = 0
-        anchors = [
-            _canon_doi(d) for d in (school.get("anchor_dois") or [])
-        ]
+        anchors = [_canon_doi(d) for d in (entry.get("anchor_dois") or [])]
         anchored = [d for d in anchors if d is not None and d in pool_dois]
         if n > 2 or not anchored:
             continue
@@ -156,13 +152,44 @@ def plan_followups(distilled: dict[str, Any], pool: dict[str, Any]) -> list[dict
         candidates.append(
             {
                 "term": str(label),
-                "reason": _reason(direct, _adjacent_count(school, distilled)),
+                "reason": _reason(direct, _adjacent_count(entry, distilled)),
                 "school_n": n,
                 "triggered": True,
             }
         )
-    candidates.sort(key=lambda c: (c["school_n"], c["term"].casefold()))
     return candidates
+
+
+def plan_followups(distilled: dict[str, Any], pool: dict[str, Any]) -> list[dict[str, Any]]:
+    """Plan follow-up probes for thin (``n <= 2``) DOI-anchored sub-schools
+    and (since M0.6) thin classifier-grounded topics.
+
+    A candidate is emitted only when its label carries at least one anchor
+    DOI that actually exists in ``pool``'s docs.  The ``reason`` field
+    follows the exact format ``"<n> direct hits, <m> adjacent"`` (see the
+    module docstring); ``m`` is the entry's evidence neighborhood minus the
+    direct hits, i.e. total docs in entry minus ``n``, clamped at 0.
+
+    Ordering is a fixed deterministic rule: ascending ``school_n`` (scarcest
+    first), then lexicographic by case-folded term.  School candidates are
+    emitted before topic candidates; a duplicate case-folded term (school =
+    topic label) keeps its FIRST occurrence.
+    """
+    pool_dois = _pool_dois(pool)
+    candidates = _thin_candidates(
+        distilled.get("schools") or [], distilled, pool_dois
+    )
+    candidates += _thin_candidates(distilled.get("topics") or [], distilled, pool_dois)
+    seen: set[str] = set()
+    unique: list[dict[str, Any]] = []
+    for candidate in candidates:
+        key = candidate["term"].casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    unique.sort(key=lambda c: (c["school_n"], c["term"].casefold()))
+    return unique
 
 
 def merge_pools(

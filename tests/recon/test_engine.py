@@ -110,3 +110,63 @@ def test_no_workspaces_guard_is_case_insensitive(tmp_path):
 def test_fake_docs_have_unique_dois():
     dois = [d.external_ids.doi for d in _fake_docs(6)]
     assert len(set(dois)) == 6
+
+
+# ---------------------------------------------------------------------------
+# M0.6 (T6.1/T6.2): semantic mode threading + topics into the pool
+# ---------------------------------------------------------------------------
+
+
+def test_probe_threads_semantic_to_query_and_cache_key(tmp_path):
+    captured = {}
+
+    def search_fn(query: Query, providers: list[str]) -> list[Document]:
+        captured["semantic"] = query.semantic
+        return _fake_docs(5)
+
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    asyncio.run(engine.probe("drones & ai", semantic=True))
+    assert captured["semantic"] is True
+
+    pool_sem, _ = asyncio.run(engine.probe("drones & ai", semantic=True))
+    key_sem = json.loads(pool_sem.read_text(encoding="utf-8"))["cache_key"]
+    assert "/m/semantic/" in key_sem
+
+    # A different text is a cache miss -> search_fn runs again with default False.
+    asyncio.run(engine.probe("drones", providers=["openalex"], year_min=2000))
+    assert captured["semantic"] is False
+
+
+def test_semantic_and_keyword_probes_use_distinct_cache_addresses(tmp_path):
+    def search_fn(query: Query, providers: list[str]) -> list[Document]:
+        return _fake_docs(5)
+
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    pool_kw, _ = asyncio.run(engine.probe("drones & ai", semantic=False))
+    pool_sem, _ = asyncio.run(engine.probe("drones & ai", semantic=True))
+
+    kw_key = json.loads(pool_kw.read_text(encoding="utf-8"))["cache_key"]
+    sem_key = json.loads(pool_sem.read_text(encoding="utf-8"))["cache_key"]
+    assert kw_key != sem_key
+    assert "/m/semantic/" not in kw_key
+    assert pool_kw != pool_sem
+    kw = cache_key("drones & ai", DEFAULT_PROVIDERS, 2000)
+    assert kw_key == kw
+
+
+def test_pool_entry_carries_topics_only_when_present(tmp_path):
+    def search_fn(query: Query, providers: list[str]) -> list[Document]:
+        docs = _fake_docs(2)
+        docs[0].topics = [
+            {"source": "openalex_topics", "id": "T1", "display_name": "Computer vision", "score": 0.8}
+        ]
+        return docs
+
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    pool_file, _n = asyncio.run(engine.probe("drones"))
+    payload = json.loads(pool_file.read_text(encoding="utf-8"))
+    by_doi = {d["doi"]: d for d in payload["docs"]}
+    assert by_doi["10.0000/fake-0000"]["topics"] == [
+        {"source": "openalex_topics", "id": "T1", "display_name": "Computer vision", "score": 0.8}
+    ]
+    assert "topics" not in by_doi["10.0000/fake-0001"]

@@ -61,7 +61,7 @@ def _doc_to_pool_entry(doc: Document) -> dict[str, Any]:
     if not oa_url:
         oa_url = doc.url
     provider = doc.provider or "unknown"
-    return {
+    entry = {
         "id": f"{provider}|{doc.provider_id}" if doc.provider_id else provider,
         "provider": provider,
         "doi": doc.external_ids.doi,
@@ -71,6 +71,10 @@ def _doc_to_pool_entry(doc: Document) -> dict[str, Any]:
         "citations": doc.citations_count,
         "oa_url": oa_url,
     }
+    if doc.topics:
+        # Optional §5 field: carried only when the normalizer populated it.
+        entry["topics"] = doc.topics
+    return entry
 
 
 class ReconEngine:
@@ -103,6 +107,7 @@ class ReconEngine:
         year_min: int,
         year_max: int | None,
         max_results: int | None,
+        semantic: bool = False,
     ) -> list[Document]:
         engine = self._build_engine(providers)
         try:
@@ -111,6 +116,7 @@ class ReconEngine:
                 max_results=max_results,
                 year_min=year_min,
                 year_max=year_max,
+                semantic=semantic,
             )
             return await engine.search_all(q, dedup=True)
         finally:
@@ -123,6 +129,7 @@ class ReconEngine:
         year_min: int,
         year_max: int | None,
         max_results: int | None,
+        semantic: bool = False,
     ) -> list[Document]:
         if self.search_fn is not None:
             result = self.search_fn(
@@ -131,13 +138,16 @@ class ReconEngine:
                     max_results=max_results,
                     year_min=year_min,
                     year_max=year_max,
+                    semantic=semantic,
                 ),
                 providers,
             )
             if inspect.isawaitable(result):
                 result = await result
             return list(result)
-        return await self._fetch_real(query_text, providers, year_min, year_max, max_results)
+        return await self._fetch_real(
+            query_text, providers, year_min, year_max, max_results, semantic
+        )
 
     async def probe(
         self,
@@ -146,11 +156,17 @@ class ReconEngine:
         year_min: int = 2000,
         year_max: int | None = None,
         max_results: int = 25,
+        semantic: bool = False,
     ) -> tuple[Path, int]:
         """Run one probe and return ``(pool_file, n)``.
 
         A cache hit for the same key returns the existing pool with zero
         network calls; otherwise a fresh pool is persisted under ``pools/``.
+
+        ``semantic=True`` (M0.6) selects OpenAlex ``search.semantic`` and
+        mints a mode-segmented cache key (``/m/semantic/``) so keyword and
+        semantic pools never collide.  The default is byte-identical to the
+        pre-M0.6 keyword path.
 
         Returned pool size is ``min(25, len(deduped_docs))``; on sparse
         provider returns ``n`` may be < 10 (by design -- no zero-padding is
@@ -159,7 +175,7 @@ class ReconEngine:
         for normal-denseness providers, not for sparse ones.
         """
         provider_list = list(DEFAULT_PROVIDERS) if providers is None else list(providers)
-        key = cache_key(query, provider_list, year_min, year_max)
+        key = cache_key(query, provider_list, year_min, year_max, semantic=semantic)
         pool_path = self.pools_dir / f"{_sha1(key)}_pool.json"
         self._assert_safe_output(pool_path)
 
@@ -170,7 +186,9 @@ class ReconEngine:
             except (OSError, ValueError):
                 pass
 
-        docs = await self._fetch(query, provider_list, year_min, year_max, max_results)
+        docs = await self._fetch(
+            query, provider_list, year_min, year_max, max_results, semantic
+        )
         self.pools_dir.mkdir(parents=True, exist_ok=True)
         self._assert_safe_output(pool_path)
 

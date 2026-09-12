@@ -197,13 +197,14 @@ def test_distill_pool_no_lexicon_byte_identical_to_today():
     assert json.dumps(no_lexicon, sort_keys=True) == json.dumps(
         explicit, sort_keys=True
     )
-    # Metadata shape unchanged: cache_key, taxonomy, metrics, datasets, schools.
+    # Metadata shape unchanged since M0.4/5 plus the M0.6 topics layer.
     assert set(no_lexicon) == {
         "cache_key",
         "micro_taxonomy",
         "metrics",
         "datasets",
         "schools",
+        "topics",
     }
 
 

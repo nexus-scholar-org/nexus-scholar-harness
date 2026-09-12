@@ -175,6 +175,87 @@ def test_school_anchors_missing_from_pool_not_triggered():
 
 
 # ---------------------------------------------------------------------------
+# M0.6 (T6.4): thin classifier-grounded topics trigger follow-ups
+# ---------------------------------------------------------------------------
+
+
+def _topic_doc(doi: str, label: str, score: float | None = 0.9) -> dict:
+    return {
+        "id": f"openalex|{doi}",
+        "provider": "openalex",
+        "doi": doi,
+        "title": f"Study {doi}",
+        "abstract": "Edge inference for crop disease detection.",
+        "year": 2023,
+        "citations": 2,
+        "oa_url": None,
+        "topics": [
+            {"source": "openalex_topics", "id": f"T-{doi}", "display_name": label, "score": score}
+        ],
+    }
+
+
+def test_thin_topic_triggers_followup_with_non_empty_reason():
+    pool = _pool(
+        [
+            _topic_doc("10.1000/t1", "Thin topic", 0.8),
+            _topic_doc("10.1000/t2", "Thin topic", 0.7),
+        ]
+    )
+    distilled = distill_pool(pool)
+    assert {t["label"] for t in distilled["topics"]} == {"Thin topic"}
+    candidate = next(c for c in plan_followups(distilled, pool) if c["term"] == "Thin topic")
+    assert candidate["triggered"] is True
+    assert candidate["school_n"] == 2
+    assert candidate["reason"]
+    assert _REASON_RE.fullmatch(candidate["reason"])
+
+
+def test_healthy_topic_not_triggered():
+    pool = _pool(
+        [
+            _topic_doc(f"10.1000/h{i:02d}", "Healthy topic", 0.9) for i in range(4)
+        ]
+    )
+    distilled = distill_pool(pool)
+    assert all(t["n"] > 2 for t in distilled["topics"])
+    assert all(c["term"] != "Healthy topic" for c in plan_followups(distilled, pool))
+
+
+def test_school_and_topic_same_label_dedup_keeps_first():
+    pool = _pool(
+        [
+            _topic_doc("10.1000/a", THIN_TERM, 0.8),
+        ]
+    )
+    distilled = distill_pool(pool)
+    # Force a school with the same label as the topic: the school candidate
+    # (emitted first) must win; the topic candidate is dropped.
+    distilled["schools"] = [
+        {"label": THIN_TERM, "n": 1, "anchor_dois": ["10.1000/a"]}
+    ]
+    followups = plan_followups(distilled, pool)
+    assert [c["term"] for c in followups] == [THIN_TERM]
+    assert len(followups) == 1
+    assert followups[0]["school_n"] == 1
+    assert _REASON_RE.fullmatch(followups[0]["reason"])
+
+
+def test_topic_candidates_share_the_documented_ordering_rule():
+    pool = _pool(
+        [
+            _topic_doc("10.1000/a", "Zebra topic", 0.5),
+            _topic_doc("10.1000/b", "Alpha topic", 0.5),
+        ]
+    )
+    distilled = distill_pool(pool)
+    candidates = [
+        c for c in plan_followups(distilled, pool) if c["term"].endswith("topic")
+    ]
+    assert [c["term"] for c in candidates] == ["Alpha topic", "Zebra topic"]
+
+
+# ---------------------------------------------------------------------------
 # T4.3 merge semantics: DOI-union, 25-cap, full entries, cache keys
 # ---------------------------------------------------------------------------
 

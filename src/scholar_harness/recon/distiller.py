@@ -156,6 +156,63 @@ def _schools(
     return groups
 
 
+def _topic_layer(pool: dict[str, Any]) -> list[dict[str, Any]]:
+    """Aggregate optional per-doc OpenAlex ``topics`` into an anchored layer (M0.6).
+
+    Anchor discipline matches the rest of the distiller: only docs carrying a
+    DOI contribute.  For each doc + label (a topic's ``display_name``) the
+    highest entry score wins (missing/``None`` scores are ignored); the
+    pool-level ``score`` is the mean of those per-doc max scores rounded to 4
+    decimals, or ``None`` when no scored doc contributes.  ``n`` counts
+    distinct anchored DOIs.  Entries sort by ``(-n, label)``; a label whose
+    ``display_name`` is empty/``None`` is skipped entirely.
+    """
+    docs = pool.get("docs", [])
+    if not isinstance(docs, list):
+        return []
+    label_dois: dict[str, set[str]] = defaultdict(set)
+    label_maxes: dict[str, list[float]] = defaultdict(list)
+    for doc in docs:
+        if not isinstance(doc, dict):
+            continue
+        doi = doc.get("doi")
+        if not doi:
+            continue
+        topics = doc.get("topics")
+        if not isinstance(topics, list) or not topics:
+            continue
+        doc_max: dict[str, float] = {}
+        labels: set[str] = set()
+        for entry in topics:
+            if not isinstance(entry, dict):
+                continue
+            label = entry.get("display_name")
+            if not label:
+                continue
+            label = str(label)
+            labels.add(label)
+            score = entry.get("score")
+            if isinstance(score, (int, float)) and not isinstance(score, bool):
+                doc_max[label] = max(doc_max.get(label, 0.0), float(score))
+        for label in labels:
+            label_dois[label].add(str(doi))
+            if label in doc_max:
+                label_maxes[label].append(doc_max[label])
+    entries = []
+    for label, dois in label_dois.items():
+        scores = label_maxes.get(label) or []
+        entries.append(
+            {
+                "label": label,
+                "n": len(dois),
+                "score": round(sum(scores) / len(scores), 4) if scores else None,
+                "anchor_dois": sorted(dois),
+            }
+        )
+    entries.sort(key=lambda entry: (-entry["n"], entry["label"]))
+    return entries
+
+
 def distill_pool(
     pool: dict[str, Any],
     lexicon: DomainLexicon | None = None,
@@ -178,6 +235,7 @@ def distill_pool(
         "metrics": _keyword_counts(evidence, _table(lexicon.metrics)),
         "datasets": _keyword_counts(evidence, _table(lexicon.datasets)),
         "schools": _schools(evidence, _table(lexicon.schools)),
+        "topics": _topic_layer(pool),
     }
 
 

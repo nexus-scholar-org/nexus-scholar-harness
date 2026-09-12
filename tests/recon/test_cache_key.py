@@ -58,3 +58,49 @@ def test_year_max_default_resolves():
 
 def test_re_exported_cache_key_is_same_callable():
     assert exported_cache_key is cache_key
+
+
+# ---------------------------------------------------------------------------
+# M0.6: semantic mode segment (T6.1)
+# ---------------------------------------------------------------------------
+
+
+def test_semantic_mode_key_has_mode_segment():
+    key = cache_key("Drones & AI.", ["openalex", "arxiv"], 2015, 2026, semantic=True)
+    digest = hashlib.sha256(b"drones & ai").hexdigest()
+    assert key == f"v1/openalex,arxiv/y2015-2026/m/semantic/q/{digest}"
+    assert key.count("/m/semantic/") == 1
+
+
+def test_keyword_key_byte_identical_to_pre_m06_format():
+    key = cache_key("drones & ai", ["openalex"], 2020, 2026)
+    digest = hashlib.sha256(b"drones & ai").hexdigest()
+    assert key == f"v1/openalex/y2020-2026/q/{digest}"
+
+
+def test_semantic_key_differs_from_keyword_for_same_text():
+    text = "drones & ai"
+    kw = cache_key(text, ["openalex"], 2020, 2026)
+    sem = cache_key(text, ["openalex"], 2020, 2026, semantic=True)
+    assert kw != sem
+    assert parse_cache_key(kw)["mode"] == "keyword"
+    assert parse_cache_key(sem)["mode"] == "semantic"
+
+
+def test_parse_semantic_key_reports_mode_and_fields():
+    key = cache_key("drones", ["openalex"], 2020, 2026, semantic=True)
+    parsed = parse_cache_key(key)
+    assert parsed["mode"] == "semantic"
+    assert parsed["version"] == "v1"
+    assert parsed["providers"] == ["openalex"]
+    assert parsed["year_min"] == 2020
+    assert parsed["year_max"] == 2026
+    assert parsed["query_hash"] == hashlib.sha256(b"drones").hexdigest()
+
+
+def test_parse_existing_five_part_key_reports_keyword_mode():
+    key = cache_key("drones", ["openalex", "arxiv"], 2015, 2026)
+    parsed = parse_cache_key(key)
+    assert parsed["mode"] == "keyword"
+    assert len(key.split("/")) == 5
+    assert len(parsed["providers"]) == 2

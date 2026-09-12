@@ -345,6 +345,67 @@ def test_invalid_session_id_returns_structured_error(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# M0.6 (T6.5): semantic passthrough + topics surfaced in distill/delta
+# ---------------------------------------------------------------------------
+
+
+def test_recon_probe_semantic_threads_through_to_query(tmp_path, monkeypatch):
+    captured = {}
+
+    def search_fn(query: Query, providers: list[str]):
+        captured["semantic"] = query.semantic
+        captured["text"] = query.text
+        return _topic_docs()
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+
+    result = json.loads(server.recon_probe(topic=TOPIC, semantic=True))
+    assert result["status"] == "probe_ok"
+    assert captured["semantic"] is True
+    assert captured["text"] == TOPIC
+    assert "/m/semantic/" in result["cache_key"]
+
+    # Default path stays keyword-mode with a distinct cache address.
+    result_kw = json.loads(server.recon_probe(topic="anything else"))
+    assert captured["semantic"] is False
+    assert "/m/semantic/" not in result_kw["cache_key"]
+
+
+def test_recon_distill_and_delta_surface_topics(tmp_path, monkeypatch):
+    def search_fn(query: Query, providers: list[str]):
+        if query.text.strip().casefold() == TOPIC.casefold():
+            docs = _topic_docs()
+            docs[0].topics = [
+                {"source": "openalex_topics", "id": "T1", "display_name": "Edge computing", "score": 0.8}
+            ]
+            docs[1].topics = [
+                {"source": "openalex_topics", "id": "T2", "display_name": "Edge computing", "score": 0.6}
+            ]
+            docs[2].topics = [
+                {"source": "openalex_topics", "id": "T3", "display_name": "Robotics", "score": 0.9}
+            ]
+            return docs
+        return _followup_docs()
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+    probe = json.loads(server.recon_probe(topic=TOPIC))
+
+    dist = json.loads(server.recon_distill(session_id=probe["session_id"]))
+    assert "topics" in dist
+    labels = {t["label"]: t for t in dist["topics"]}
+    assert labels["Edge computing"]["n"] == 2
+    assert labels["Edge computing"]["anchor_dois"] == ["10.1000/edge-a", "10.1000/edge-b"]
+    assert labels["Edge computing"]["score"] == 0.7
+    assert labels["Robotics"]["n"] == 1
+
+    delta = json.loads(server.recon_delta(session_id=probe["session_id"]))
+    assert "topics" in delta
+    assert delta["topics"]
+
+
+# ---------------------------------------------------------------------------
 # T5.5: every successful result carries its lineage cache_key
 # ---------------------------------------------------------------------------
 

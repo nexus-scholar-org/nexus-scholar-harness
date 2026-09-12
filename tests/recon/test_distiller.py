@@ -286,3 +286,160 @@ def test_distill_refuses_workspaces_output(tmp_path):
     with pytest.raises(RuntimeError, match="workspaces"):
         distill(pool_path, tmp_path / "workspaces" / "terms.json")
     assert not (tmp_path / "workspaces").exists()
+
+
+# ---------------------------------------------------------------------------
+# M0.6: classifier-grounded topics layer (T6.3)
+# ---------------------------------------------------------------------------
+
+
+def _topic_doc(doi: str, topics: list[dict]) -> dict:
+    return {
+        "id": f"openalex|{doi}",
+        "provider": "openalex",
+        "doi": doi,
+        "title": f"Study {doi}",
+        "abstract": "Edge inference for crop disease detection.",
+        "year": 2022,
+        "citations": 1,
+        "oa_url": None,
+        "topics": topics,
+    }
+
+
+def test_topics_layer_empty_when_pool_has_no_topics():
+    pool = _pool([_doc("10.1000/a", "A Study", "disease detection.")])
+    result = distill_pool(pool)
+    assert result["topics"] == []
+    assert distill_pool({"cache_key": "x", "docs": []})["topics"] == []
+    assert distill_pool({})["topics"] == []
+
+
+def test_topics_layer_aggregation_math_and_per_doc_max():
+    doc_a = _topic_doc(
+        "10.1000/b",
+        [
+            {"source": "openalex_topics", "id": "T1", "display_name": "Computer vision", "score": 0.8},
+            {"source": "openalex_topics", "id": "T2", "display_name": "Computer vision", "score": 0.6},
+            {"source": "openalex_topics", "id": "T3", "display_name": "Edge AI", "score": 0.9},
+        ],
+    )
+    doc_b = _topic_doc(
+        "10.1000/a",
+        [
+            {"source": "openalex_topics", "id": "T1", "display_name": "Computer vision", "score": 0.5},
+            {"source": "openalex_topics", "id": "T4", "display_name": "Edge AI", "score": None},
+        ],
+    )
+    result = distill_pool(_pool([doc_a, doc_b]))
+    by_label = {t["label"]: t for t in result["topics"]}
+
+    # Computer vision: doc a max 0.8 (two entries -> max wins), doc b 0.5;
+    # pool score = mean(0.8, 0.5) = 0.65, n = 2, DOIs sorted.
+    cv = by_label["Computer vision"]
+    assert cv["n"] == 2
+    assert cv["anchor_dois"] == ["10.1000/a", "10.1000/b"]
+    assert cv["score"] == 0.65
+
+    # Edge AI: doc a 0.9, doc b has no score -> mean over scored docs only.
+    assert by_label["Edge AI"]["n"] == 2
+    assert by_label["Edge AI"]["score"] == 0.9
+
+
+def test_topics_require_doi_anchor():
+    no_doi = {
+        "id": "openalex|no-doi",
+        "provider": "openalex",
+        "doi": None,
+        "title": "No DOI",
+        "abstract": "abstract.",
+        "year": 2022,
+        "citations": 0,
+        "oa_url": None,
+        "topics": [
+            {"source": "openalex_topics", "id": "T1", "display_name": "Ghost topic", "score": 1.0}
+        ],
+    }
+    doi_doc = _topic_doc(
+        "10.1000/a",
+        [{"source": "openalex_topics", "id": "T2", "display_name": "Ghost topic", "score": 1.0}],
+    )
+    result = distill_pool(_pool([no_doi, doi_doc]))
+    by_label = {t["label"]: t for t in result["topics"]}
+    assert by_label["Ghost topic"]["n"] == 1
+    assert by_label["Ghost topic"]["anchor_dois"] == ["10.1000/a"]
+
+
+def test_topics_score_none_when_never_scored():
+    pool = _pool(
+        [
+            _topic_doc(
+                "10.1000/a",
+                [{"source": "openalex_topics", "id": "T1", "display_name": "Untitled topic", "score": None}],
+            ),
+            _topic_doc(
+                "10.1000/b",
+                [{"source": "openalex_topics", "id": "T1", "display_name": "Untitled topic"}],
+            ),
+        ]
+    )
+    result = distill_pool(pool)
+    assert result["topics"] == [
+        {
+            "label": "Untitled topic",
+            "n": 2,
+            "score": None,
+            "anchor_dois": ["10.1000/a", "10.1000/b"],
+        }
+    ]
+
+
+def test_topics_skip_empty_display_name():
+    doc = _topic_doc(
+        "10.1000/a",
+        [
+            {"source": "openalex_topics", "id": "T1", "display_name": "", "score": 1.0},
+            {"source": "openalex_topics", "id": "T2", "display_name": None, "score": 1.0},
+            {"source": "openalex_topics", "id": "T3", "display_name": "Real topic", "score": 0.7},
+        ],
+    )
+    result = distill_pool(_pool([doc]))
+    assert [t["label"] for t in result["topics"]] == ["Real topic"]
+
+
+def test_topics_layer_deterministic_and_sorted_rerun():
+    pool = _pool(
+        [
+            _topic_doc(
+                "10.1000/a",
+                [
+                    {"source": "openalex_topics", "id": "T1", "display_name": "Alpha topic", "score": 0.9},
+                    {"source": "openalex_topics", "id": "T2", "display_name": "Beta topic", "score": 0.4},
+                ],
+            ),
+            _topic_doc(
+                "10.1000/b",
+                [{"source": "openalex_topics", "id": "T1", "display_name": "Alpha topic", "score": 0.7}],
+            ),
+            _topic_doc(
+                "10.1000/c",
+                [{"source": "openalex_topics", "id": "T3", "display_name": "Gamma topic", "score": 0.6}],
+            ),
+        ]
+    )
+    first = distill_pool(pool)
+    second = distill_pool(pool)
+    assert first["topics"] == second["topics"]
+    assert json.dumps(first["topics"], sort_keys=True) == json.dumps(
+        second["topics"], sort_keys=True
+    )
+    topics = first["topics"]
+    assert [(t["label"], t["n"]) for t in topics] == sorted(
+        [(t["label"], t["n"]) for t in topics], key=lambda kv: (-kv[1], kv[0])
+    )
+    assert topics[0] == {
+        "label": "Alpha topic",
+        "n": 2,
+        "score": round((0.9 + 0.7) / 2, 4),
+        "anchor_dois": ["10.1000/a", "10.1000/b"],
+    }

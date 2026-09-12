@@ -677,6 +677,7 @@ def recon_probe(
     session_id: str | None = None,
     start_year: int = 2020,
     limit: int = 10,
+    semantic: bool = False,
 ) -> str:
     """Probe the literature surface for a topic and record a FAIR recon session.
 
@@ -684,9 +685,11 @@ def recon_probe(
     at 25) and persists the pool content-addressed under
     ``.cache/inception_recon/sessions/<session_id>/pool_<sha>.json``.  The
     session is upserted: an existing ``session_id`` (``rec_<hex>``) is loaded
-    from disk and extended, otherwise a new one is created.  Returns
-    machine-readable JSON only -- ``cache_key`` (T5.5 lineage), ``pool_path``,
-    ``n_docs`` -- never prose.
+    from disk and extended, otherwise a new one is created.  ``semantic=True``
+    (M0.6) selects OpenAlex ``search.semantic``; the resulting cache key
+    carries the ``/m/semantic/`` mode segment.  Returns machine-readable JSON
+    only -- ``cache_key`` (T5.5 lineage), ``pool_path``, ``n_docs`` -- never
+    prose.
     """
     try:
         sid = session_id if session_id is not None else _new_session_id()
@@ -698,6 +701,7 @@ def recon_probe(
                 year_min=start_year,
                 year_max=None,
                 max_results=limit,
+                semantic=semantic,
             )
         )
         pool = json.loads(pool_file.read_text(encoding="utf-8"))
@@ -772,6 +776,7 @@ def recon_distill(session_id: str, lexicon_field: str | None = "default") -> str
                     for label, count in sorted((distilled.get("datasets") or {}).items())
                 ],
                 "schools": distilled.get("schools") or [],
+                "topics": distilled.get("topics") or [],
                 "micro_taxonomy_top": (distilled.get("micro_taxonomy") or [])[:5],
             },
             indent=2,
@@ -843,6 +848,7 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
                 ],
                 "pool_path": str(pool_file),
                 "terms_path": str(terms_file),
+                "topics": merged_terms.get("topics") or [],
                 "dropped_n": int(result.get("dropped_n") or 0),
                 "pool_size_before": len(pool.get("docs") or []),
                 "pool_size_after": len(merged_pool.get("docs") or []),
