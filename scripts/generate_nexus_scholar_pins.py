@@ -49,10 +49,20 @@ def write_pins(rendered: bytes) -> None:
     PINS_JSON.write_bytes(rendered)
 
 
+def normalize_line_endings(data: bytes) -> bytes:
+    """Normalize CRLF to LF so the snapshot check is platform-independent.
+
+    A Windows checkout materializes the committed LF bytes as CRLF (no
+    ``eol=lf`` attribute in older trees), so strict byte equality would fail
+    `--check` there even though the snapshot delta is zero.
+    """
+    return data.replace(b"\r\n", b"\n")
+
+
 def check_pins(rendered: bytes) -> bool:
     if not PINS_JSON.exists():
         return False
-    return PINS_JSON.read_bytes() == rendered
+    return normalize_line_endings(PINS_JSON.read_bytes()) == rendered
 
 
 def print_diff(existing: bytes, generated: bytes) -> None:
@@ -83,7 +93,11 @@ def main(argv: list[str] | None = None) -> int:
         if check_pins(rendered):
             print(f"[OK] {PINS_JSON.relative_to(REPO_ROOT)} is in sync with plugins.json")
             return 0
-        existing = PINS_JSON.read_bytes() if PINS_JSON.exists() else b""
+        existing = (
+            normalize_line_endings(PINS_JSON.read_bytes())
+            if PINS_JSON.exists()
+            else b""
+        )
         print(
             f"[FAIL] {PINS_JSON.relative_to(REPO_ROOT)} is out of sync with plugins.json:"
         )

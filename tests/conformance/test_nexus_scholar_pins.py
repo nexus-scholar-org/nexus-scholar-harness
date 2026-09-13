@@ -77,7 +77,9 @@ def test_pins_default_revs_are_pinned_commits():
 def test_regenerating_pins_is_byte_identical():
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     codegen = _load_codegen()
-    assert codegen.render_pins(manifest) == PINS_JSON.read_bytes()
+    assert codegen.render_pins(manifest) == codegen.normalize_line_endings(
+        PINS_JSON.read_bytes()
+    )
 
 
 def test_check_subcommand_exits_zero_when_in_sync():
@@ -148,7 +150,7 @@ def test_check_subcommand_rejects_corrupted_pins_snapshot(tmp_path):
     assert "out of sync" in combined, combined
 
     # The real checkout snapshot is byte-identical: no mutate, no restore.
-    assert PINS_JSON.read_bytes() == correct_bytes
+    assert codegen.normalize_line_endings(PINS_JSON.read_bytes()) == correct_bytes
 
 
 def test_pins_and_wheel_force_include_name_the_same_kits():
