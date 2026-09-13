@@ -42,6 +42,14 @@ latent bug**, with the working path in parentheses.
    `output_dir="./literature"` and `.cache/mcp/…` all resolve **inside the kit
    checkout**, not your workspace. (Always pass absolute workspace paths, e.g.
    `<ws>/chroma_db`, `<ws>/pdfs/`.)
+   **RESOLVED:** relative path args now anchor to `NEXUS_MCP_WORKSPACE` when set,
+   else to the harness repo root (nearest ancestor with `.git`) via `_resolve_path`,
+   applied to every file/dir parameter across all `nexus_*` tools; `.cache/mcp`
+   discover output and `db_path`/`output_dir`/`output_path`/`graph.json|html`/
+   `literature` defaults no longer land in the kit checkout. Inline JSON payloads
+   (protocol/intent/screener) and absolute paths pass through untouched. The recon
+   cache was already CWD-independent via `canonical_recon_root()`/`NEXUS_RECON_ROOT`
+   (regression tests in `tests/test_mcp_tools_graph.py`).
 2. **`nexus_graph_build` always produces 0-edge graphs.** It constructs
    `CitationGraphBuilder(http_client=None)`; every OpenAlex fetch fails and is
    swallowed to `None` → only fallback isolation nodes, uniform PageRank 1.0 —

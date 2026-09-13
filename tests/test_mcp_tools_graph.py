@@ -349,3 +349,53 @@ def test_nexus_verify_claims_missing_input_returns_error(tmp_path):
         nexus_verify_claims(str(tmp_path / "nope.json"), str(tmp_path))
     )
     assert payload["status"] == "ERROR"
+
+
+# ---------------------------------------------------------------------------
+# nexus_* path args: anchor relative paths to the workspace anchor
+# (matrix finding #1 -- CWD-relative defaults must NOT land in the kit dir)
+# ---------------------------------------------------------------------------
+
+def test_nexus_relative_paths_resolve_to_anchor(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    anchor = tmp_path / "anchor"
+    anchor_inputs = anchor / "inputs"
+    anchor_inputs.mkdir(parents=True)
+    _write_screening_fixtures(anchor_inputs, candidates=[])
+    monkeypatch.setattr(server, "_mcp_anchor", lambda: anchor)
+
+    result = nexus_screen("inputs/candidates.json", "inputs/protocol.json", "literature")
+
+    assert (anchor / "literature" / "included.json").exists()
+    assert (anchor / "literature" / "prisma_report.json").exists()
+    assert "conflicts flagged" in result
+    assert not (Path.cwd() / "literature").exists()
+
+
+def test_nexus_mcp_workspace_env_anchors_relative_args(tmp_path, monkeypatch):
+    monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(tmp_path))
+    bib_in = tmp_path / "in"
+    bib_in.mkdir(parents=True)
+    (bib_in / "input.bib").write_text(
+        "@article{key2020,\n"
+        "  title = {A Study of Anchoring},\n"
+        "  author = {Doe, Jane},\n"
+        "  year = {2020}\n"
+        "}\n",
+        encoding="utf-8",
+    )
+
+    result = nexus_bib_clean("in/input.bib", "cleaned.bib")
+
+    assert (tmp_path / "cleaned.bib").exists()
+    assert (tmp_path / "in" / "input.bib").exists()
+    assert "unique" in result
+
+
+def test_nexus_resolve_path_leaves_absolute_and_inline_json_untouched(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    assert server._resolve_path(str(tmp_path)) == str(tmp_path)
+    assert server._resolve_path('{"a": 1}') == '{"a": 1}'
+    assert server._resolve_path(None) is None
