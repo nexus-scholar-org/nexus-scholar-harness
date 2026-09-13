@@ -18,6 +18,7 @@ from scholar_agent.server import (
     nexus_extract_pdf,
     nexus_graph_build,
     nexus_screen,
+    nexus_verify_claims,
 )
 from scholar_graph.builder import CitationGraphBuilder
 
@@ -229,7 +230,7 @@ def _write_screening_fixtures(tmp_path, *, candidates, protocol=None):
     return candidates_path, protocol_path
 
 
-def test_nexus_screen_writes_conflicts_and_prisma_json(tmp_path, monkeypatch):
+def test_nexus_screen_writes_conflicts_and_prisma_json(tmp_path):
     """Conflicting-signal doc (inclusion AND exclusion hit) must be written to
     conflicts.json, and prisma_report.json must reflect the flag count."""
     candidates_path, protocol_path = _write_screening_fixtures(
@@ -263,3 +264,88 @@ def test_nexus_screen_empty_candidates_still_writes_prisma(tmp_path):
     prisma = json.loads((out_dir / "prisma_report.json").read_text(encoding="utf-8"))
     assert prisma["records_screened"] == 0
     assert "0 conflicts flagged" in result
+
+
+# ---------------------------------------------------------------------------
+# nexus_verify_claims: digest scholar-rag claims.json + per-claim verdicts
+# (matrix finding #6)
+# ---------------------------------------------------------------------------
+
+_VERIFIED_QUOTE = "The group that received the intervention improved on the primary outcome."
+
+
+def _write_extracted_source(tmp_path):
+    src_dir = tmp_path / "extracted"
+    src_dir.mkdir(exist_ok=True)
+    (src_dir / "SCI-0001.md").write_text(
+        "---\n"
+        'title: "Intervention trial"\n'
+        'workspace_id: "SCI-0001"\n'
+        "---\n\n"
+        f"{_VERIFIED_QUOTE}\n",
+        encoding="utf-8",
+    )
+    return src_dir
+
+
+def test_nexus_verify_claims_digests_rag_claims_json(tmp_path):
+    """SynthesisClaim-shaped claims (claim_text/study_id, no evidence_quote) must
+    be verified and each claim must get a per-claim verdict."""
+    src_dir = _write_extracted_source(tmp_path)
+    claims = {
+        "rq_id": "RQ1",
+        "claims": [
+            {
+                "claim_text": _VERIFIED_QUOTE,
+                "citation_tokens": ["[@doi:10.1000/example]"],
+                "entailment_status": "VERIFIED",
+                "study_id": "SCI-0001",
+            },
+            {
+                "claim_text": "A wholly unrelated sentence that never appears in the document.",
+                "study_id": "SCI-0001",
+            },
+            {
+                "claim_text": _VERIFIED_QUOTE,
+                "study_id": "SCI-9999",
+            },
+        ],
+    }
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(json.dumps(claims, indent=2), encoding="utf-8")
+
+    payload = json.loads(nexus_verify_claims(str(claims_path), str(src_dir)))
+
+    assert payload["status"] == "SUCCESS"
+    assert payload["metrics"]["total_claims"] == 3
+    assert payload["metrics"]["verified_claims"] == 1
+    assert len(payload["claims"]) == 3
+    assert payload["claims"][0]["is_verified"] is True
+    assert payload["claims"][0]["rag_entailment_status"] == "VERIFIED"
+    assert payload["claims"][1]["failure_reason"] == "INSUFFICIENT_COVERAGE"
+    assert payload["claims"][2]["failure_reason"] == "SOURCE_TEXT_NOT_FOUND"
+    assert payload["failures_by_reason"].get("SOURCE_TEXT_NOT_FOUND") == 1
+    assert payload["failures_by_reason"].get("INSUFFICIENT_COVERAGE") == 1
+
+
+def test_nexus_verify_claims_accepts_bare_list_and_missing_study_id(tmp_path):
+    src_dir = _write_extracted_source(tmp_path)
+    claims_path = tmp_path / "claims.json"
+    claims_path.write_text(
+        json.dumps([{"claim_text": _VERIFIED_QUOTE}], indent=2), encoding="utf-8"
+    )
+
+    payload = json.loads(nexus_verify_claims(str(claims_path), str(src_dir)))
+
+    assert payload["metrics"]["total_claims"] == 1
+    verdict = payload["claims"][0]
+    assert verdict["claim_id"] == "CLAIM-0001"
+    assert verdict["study_id"] == ""
+    assert verdict["is_verified"] is False
+
+
+def test_nexus_verify_claims_missing_input_returns_error(tmp_path):
+    payload = json.loads(
+        nexus_verify_claims(str(tmp_path / "nope.json"), str(tmp_path))
+    )
+    assert payload["status"] == "ERROR"
