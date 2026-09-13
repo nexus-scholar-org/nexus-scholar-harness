@@ -6,7 +6,9 @@ import pytest
 from typer.testing import CliRunner
 
 from scholar_harness.cli import app
-from scholar_harness.orchestrator import ResearchOrchestrator
+from scholar_harness.orchestrator import ResearchOrchestrator, _resolve_providers
+from scholar_harness.console.runtimes.actions import ACTIONS
+from scholar_search.providers import BaseAPIProvider, OpenAlexProvider
 from scholar_protocol.compiler import compile_protocol
 from scholar_protocol.intent import IntentPacket
 from scholar_protocol.canonical import canonical_json
@@ -165,3 +167,34 @@ def test_sync_command_dry_run_writes_nothing(tmp_path):
     assert "DRY RUN" in result.stdout
     assert not (workspace / "project.json").exists()
     assert not (workspace / "INDEX.md").exists()
+
+
+def test_resolve_providers():
+    # String resolution
+    resolved = _resolve_providers(["openalex", "crossref", "arxiv"])
+    assert resolved is not None
+    assert len(resolved) == 3
+    assert all(isinstance(p, BaseAPIProvider) for p in resolved)
+
+    # Mixed with instances
+    existing_instance = OpenAlexProvider()
+    resolved_mixed = _resolve_providers([existing_instance, "crossref"])
+    assert resolved_mixed is not None
+    assert len(resolved_mixed) == 2
+    assert resolved_mixed[0] is existing_instance
+
+    # Unknown provider ignored with warning
+    resolved_unknown = _resolve_providers(["nonexistent_provider"])
+    assert resolved_unknown is None
+
+    # None or empty
+    assert _resolve_providers(None) is None
+    assert _resolve_providers([]) is None
+
+
+def test_actions_table_extract_syntax():
+    extract_actions = [a for a in ACTIONS if a.action_id == "extract"]
+    assert len(extract_actions) == 1
+    extract_action = extract_actions[0]
+    assert "--input" not in extract_action.command_template
+    assert "extract {ws}/pdfs/ --output {ws}/extracted/" in extract_action.command_template

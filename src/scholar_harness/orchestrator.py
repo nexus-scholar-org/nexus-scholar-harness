@@ -7,6 +7,7 @@ import importlib.util
 import json
 import logging
 import os
+from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,16 @@ from typing import Any
 from scholar_protocol.models import ResearchProtocol
 from scholar_search.protocol_adapter import compile_protocol_search
 from scholar_search.engine import SearchEngine
+from scholar_search.providers import (
+    ArxivProvider,
+    BaseAPIProvider,
+    BiorxivProvider,
+    CrossrefProvider,
+    OpenAlexProvider,
+    PubMedProvider,
+    SearchProvider,
+    SemanticScholarProvider,
+)
 from scholar_search.dedup import Deduplicator
 from scholar_search.verifier import DocumentVerifier
 from scholar_search.screening import (
@@ -27,6 +38,36 @@ from scholar_rag.matrix import MatrixExtractor
 from scholar_rag.synthesis import GroundedSynthesisEngine
 from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
+
+_PROVIDER_MAP: dict[str, type[SearchProvider]] = {
+    "openalex": OpenAlexProvider,
+    "semanticscholar": SemanticScholarProvider,
+    "semantic_scholar": SemanticScholarProvider,
+    "crossref": CrossrefProvider,
+    "arxiv": ArxivProvider,
+    "pubmed": PubMedProvider,
+    "biorxiv": BiorxivProvider,
+}
+
+
+def _resolve_providers(providers: list[Any] | None) -> list[SearchProvider] | None:
+    """Resolve provider instances from names (strings) or existing instances."""
+    if not providers:
+        return None
+    instances: list[SearchProvider] = []
+    for p in providers:
+        if isinstance(p, str):
+            key = p.lower().strip().replace("-", "_").replace(" ", "_")
+            cls = _PROVIDER_MAP.get(key)
+            if cls:
+                instances.append(cls())
+            else:
+                logger.warning("Unknown search provider: %s", p)
+        elif isinstance(p, BaseAPIProvider) or hasattr(p, "search"):
+            instances.append(p)
+        else:
+            logger.warning("Unexpected provider item: %r", p)
+    return instances if instances else None
 
 logger = logging.getLogger(__name__)
 
@@ -392,7 +433,7 @@ class ResearchOrchestrator:
         if max_search_results:
             query.max_results = max_search_results
 
-        engine = SearchEngine(providers=providers)
+        engine = SearchEngine(providers=_resolve_providers(providers))
         discovered_docs = await engine.search_all(query, dedup=False)
         await engine.close()
 

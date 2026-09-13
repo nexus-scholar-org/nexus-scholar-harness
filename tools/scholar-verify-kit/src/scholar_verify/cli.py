@@ -1,13 +1,13 @@
 """scholar-verify CLI: post-screening trust verification for a workspace.
 
 Commands mirror the Phase 4 analytical workstreams:
-  ingress       merge included.json/excluded.json -> audit-clean corpus (unified)
-  retraction    OpenAlex + Crossref retraction/status check
-  open-science  DAS/CAS regex baseline over extracted fulltext
-  coi           conflict-of-interest audit aggregator
-  risk-of-bias  deterministic QUADAS-2/PROBAST scoring over records.json
-  trust-context annotate consensus clusters with Phase-4 trust context
-  all           run every verification stream sequentially
+  retraction       OpenAlex + Crossref retraction/status check
+  open-science     DAS/CAS regex baseline over extracted fulltext
+  coi              conflict-of-interest audit aggregator
+  risk-of-bias     deterministic QUADAS-2/PROBAST scoring over records.json
+  trust-context    annotate consensus clusters with Phase-4 trust context
+  all              run every verification stream sequentially
+  verbatim-claims  verify synthesis claims against extracted fulltext via verbatim matching
 """
 
 from __future__ import annotations

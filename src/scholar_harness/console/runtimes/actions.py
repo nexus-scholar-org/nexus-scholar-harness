@@ -75,7 +75,7 @@ ACTIONS: list[Action] = [
     Action(
         "extract",
         "Extract fulltext",
-        "uv run scholar-pdf extract --input {ws}/pdfs/ --output {ws}/extracted/",
+        "uv run scholar-pdf extract {ws}/pdfs/ --output {ws}/extracted/",
         "nexus_extract_pdf",
         True,
     ),
