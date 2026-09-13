@@ -5,11 +5,9 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from scholar_agent import server
 from scholar_agent.server import main
 
