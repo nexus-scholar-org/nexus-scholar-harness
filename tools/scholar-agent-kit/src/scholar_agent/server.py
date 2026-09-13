@@ -953,6 +953,8 @@ def main():
         print("  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies")
         print("  - nexus_graph_build: Build citation graph from included studies or DOIs")
         print("  - nexus_bib_clean: Clean and deduplicate BibTeX databases")
+        print("  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa")
+        print("  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext")
         print("  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)")
         print("  - recon_distill: Distill the latest session pool into anchored terms")
         print("  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse")
