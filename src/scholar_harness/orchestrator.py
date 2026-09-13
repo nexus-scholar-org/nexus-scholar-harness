@@ -8,13 +8,22 @@ import json
 import logging
 import os
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import networkx as nx
+from scholar_graph.builder import CitationGraphBuilder
+from scholar_graph.visualizer import GraphVisualizer
+from scholar_pdf.extract import PyMuPDFEngine
 from scholar_protocol.models import ResearchProtocol
-from scholar_search.protocol_adapter import compile_protocol_search
+from scholar_rag.indexer import ScholarIndexer
+from scholar_rag.matrix import MatrixExtractor
+from scholar_rag.retriever import ScholarRetriever
+from scholar_rag.synthesis import GroundedSynthesisEngine
+from scholar_search.dedup import Deduplicator
 from scholar_search.engine import SearchEngine
+from scholar_search.protocol_adapter import compile_protocol_search
 from scholar_search.providers import (
     ArxivProvider,
     BaseAPIProvider,
@@ -25,19 +34,7 @@ from scholar_search.providers import (
     SearchProvider,
     SemanticScholarProvider,
 )
-from scholar_search.dedup import Deduplicator
 from scholar_search.verifier import DocumentVerifier
-from scholar_search.screening import (
-    evaluate_heuristic_screening,
-    partition_screening_results,
-)
-from scholar_pdf.downloader import AsyncPDFDownloader
-from scholar_pdf.extract import PyMuPDFEngine
-from scholar_rag.indexer import ScholarIndexer
-from scholar_rag.matrix import MatrixExtractor
-from scholar_rag.synthesis import GroundedSynthesisEngine
-from scholar_graph.builder import CitationGraphBuilder
-from scholar_graph.visualizer import GraphVisualizer
 
 _PROVIDER_MAP: dict[str, type[SearchProvider]] = {
     "openalex": OpenAlexProvider,
@@ -70,6 +67,35 @@ def _resolve_providers(providers: list[Any] | None) -> list[SearchProvider] | No
     return instances if instances else None
 
 logger = logging.getLogger(__name__)
+
+
+def _study_doi(doc_item: dict[str, Any]) -> str:
+    return (doc_item.get("external_ids") or {}).get("doi") or doc_item.get("doi") or ""
+
+
+def _study_slug(doc_item: dict[str, Any]) -> str:
+    idv = doc_item.get("workspace_id") or doc_item.get("study_id") or ""
+    doi = _study_doi(doc_item)
+    return (idv or doi or "doc").replace("/", "_").replace(":", "_")
+
+
+def _study_pdf(pdf_dir: Path, doc_item: dict[str, Any]) -> Path | None:
+    """Locate a harvested PDF for a study, preferring deterministic slugs."""
+    doi = _study_doi(doc_item)
+    slug = _study_slug(doc_item)
+    candidates = [
+        pdf_dir / f"{slug}.pdf",
+        pdf_dir / f"{doi.replace('/', '_').replace(':', '_')}.pdf",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    if doi:
+        doi_slug = doi.replace("/", "_").replace(":", "_")
+        for p in pdf_dir.glob("*.pdf"):
+            if p.stem.startswith(doi_slug):
+                return p
+    return None
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -315,12 +341,12 @@ class ResearchOrchestrator:
             manifest = {
                 "project_id": ws.name,
                 "title": ws.name,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "status": "active",
                 "research_questions": [],
                 "keywords": [],
             }
-        manifest["updated_at"] = datetime.now(timezone.utc).isoformat()
+        manifest["updated_at"] = datetime.now(UTC).isoformat()
         merged_stats = dict(manifest.get("stats", {}))
         merged_stats.update(stats)
         # Recompute a defensible status flag if screen flow exists
@@ -520,50 +546,82 @@ class ResearchOrchestrator:
             "batch_files_prepared": total_batches,
             "papers_to_screen": len(verified_docs),
         }
-        # inc_docs is empty until the agent screens and collect is run
-        inc_docs: list[dict] = []
-        exc_docs: list[dict] = []
-        conflicts: list[dict] = []
-
-
-        # -------------------------------------------------------------
-        # Stage 5: Open Access PDF Harvesting & Markdown Extraction
-        # -------------------------------------------------------------
-        # Extract markdown for included documents
-        extracted_files = []
-        for doc_item in inc_docs:
-            title = doc_item.get("title", "Untitled")
-            abstract = doc_item.get("abstract") or "No abstract provided."
-            doi = doc_item.get("doi") or doc_item.get("external_ids", {}).get("doi", "")
-            workspace_id = doc_item.get("workspace_id", "SCI-000001")
-            authors = doc_item.get("authors", [])
-            year = doc_item.get("year", 2024)
-
-            sample_content = (
-                f"# {title}\n\n"
-                f"## Abstract\n{abstract}\n\n"
-                f"## Methodology\nEvaluated using standard benchmarks and controlled baseline comparisons.\n\n"
-                f"## Results\nDemonstrated empirical performance improvements across evaluated test suites.\n\n"
-                f"## Limitations\nFurther validation on larger real-world datasets is warranted.\n"
+        # Stages 5-9 require the PRISMA collect handoff to have run. Without
+        # literature/included.json the pipeline must stop, never fabricate output.
+        inc_file = lit_dir / "included.json"
+        if not inc_file.exists():
+            for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+                results["stages"][stage] = {
+                    "status": "SKIPPED",
+                    "reason": "PRISMA collect not run yet",
+                }
+            results["status"] = "PENDING_AGENT_REVIEW"
+            self._log_audit_event(
+                action="PIPELINE_RUN_PAUSED_FOR_SCREENING",
+                agent="scholar-harness",
+                description="Pipeline paused at PRISMA agent-in-the-loop handoff; "
+                "screen literature/screening/batch_*.json then run agent_screen.py collect",
+                inputs=[str(p_path)],
+                outputs=[str(lit_dir / "screening")],
+                metrics=results["stages"],
             )
-            slug = (workspace_id or doi or "doc").replace("/", "_").replace(":", "_")
+            return results
+
+        inc_docs = json.loads(inc_file.read_text(encoding="utf-8"))
+
+        # -------------------------------------------------------------
+        # Stage 5: Fulltext Extraction over included studies (no invented prose)
+        # -------------------------------------------------------------
+        extracted_files: list[Path] = []
+        metadata_frontmatter_only: list[str] = []
+        pymupdf = PyMuPDFEngine()
+        for doc_item in inc_docs:
+            slug = _study_slug(doc_item)
             md_path = ext_dir / f"{slug}.md"
-            
-            # Format frontmatter
+            if md_path.exists():
+                extracted_files.append(md_path)
+                continue
+
+            doi = _study_doi(doc_item)
+            metadata = {
+                "workspace_id": doc_item.get("workspace_id", ""),
+                "doi": doi,
+                "title": doc_item.get("title") or "Untitled",
+                "authors": doc_item.get("authors", []),
+                "year": doc_item.get("year"),
+            }
+
+            pdf = _study_pdf(pdf_dir, doc_item)
+            if pdf is not None:
+                try:
+                    extracted_files.append(pymupdf.extract_markdown(pdf, ext_dir, metadata=metadata))
+                    continue
+                except Exception as exc:  # pragma: no cover - depends on PyMuPDF
+                    logger.warning("PyMuPDF extraction failed for %s: %s", slug, exc)
+
+            # Metadata-frontmatter-only document derived from real records; the
+            # abstract is quoted verbatim and no Methodology/Results/Limitations
+            # text is invented.
+            abstract = doc_item.get("abstract") or "No abstract provided."
             frontmatter = (
                 f"---\n"
-                f"workspace_id: \"{workspace_id}\"\n"
-                f"doi: \"{doi}\"\n"
-                f"title: \"{title}\"\n"
-                f"authors: {json.dumps(authors)}\n"
-                f"year: {year}\n"
-                f"extraction_engine: \"pymupdf\"\n"
+                f"workspace_id: \"{metadata['workspace_id']}\"\n"
+                f"doi: \"{metadata['doi']}\"\n"
+                f"title: {json.dumps(metadata['title'], ensure_ascii=False)}\n"
+                f"authors: {json.dumps(metadata['authors'], ensure_ascii=False)}\n"
+                f"year: {metadata['year']}\n"
+                f"extraction_engine: \"metadata\"\n"
                 f"---\n\n"
             )
-            md_path.write_text(frontmatter + sample_content, encoding="utf-8")
+            md_path.write_text(frontmatter + f"## Abstract\n\n{abstract}\n", encoding="utf-8")
+            metadata_frontmatter_only.append(str(md_path))
             extracted_files.append(md_path)
 
-        results["stages"]["extraction"] = len(extracted_files)
+        results["stages"]["extraction"] = {
+            "status": "DONE",
+            "documents": len(extracted_files),
+            "metadata_frontmatter_only": metadata_frontmatter_only,
+        }
 
         # -------------------------------------------------------------
         # Stage 6: Vector & Semantic Indexing (ChromaDB)
@@ -575,27 +633,38 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 7: Dynamic Protocol Matrix Extraction
         # -------------------------------------------------------------
-        matrix_extractor = MatrixExtractor(protocol=protocol, retriever=indexer.retriever)
+        retriever = ScholarRetriever(
+            db_path=str(chroma_dir),
+            collection_name=indexer.collection_name,
+            embedder_kwargs=indexer.embedder_kwargs,
+        )
+        matrix_extractor = MatrixExtractor(protocol=protocol, retriever=retriever)
         matrix_rows, csv_path, json_path = matrix_extractor.extract_all(output_dir=lit_dir)
-        results["stages"]["matrix_rows"] = len(matrix_rows)
+        results["stages"]["matrix_rows"] = {"status": "DONE", "rows": len(matrix_rows)}
 
         # -------------------------------------------------------------
         # Stage 8: Citation Knowledge Graph & PageRank
         # -------------------------------------------------------------
-        graph_builder = CitationGraphBuilder(http_client=None)
-        dois = [d.doi for d in inc_docs if d.doi]
-        G = await graph_builder.build_graph(dois)
-        pr_scores = CitationGraphBuilder.compute_pagerank(G)
+        from scholar_search.http_client import AcademicHttpClient
+
+        graph_builder = CitationGraphBuilder(AcademicHttpClient(name="openalex-graph", rate_limit=10))
+        dois = [d for d in (_study_doi(doc_item) for doc_item in inc_docs) if d]
+        if dois:
+            G = await graph_builder.build_graph(dois)
+        else:
+            # No DOIs to resolve: seed an empty graph so downstream reads stay valid.
+            G = nx.DiGraph()
+        CitationGraphBuilder.compute_pagerank(G)
         graph_builder.export_json(G, lit_dir / "knowledge_graph.json")
-        
+
         vis = GraphVisualizer(str(lit_dir / "knowledge_graph.html"))
         vis.generate_html(G)
-        results["stages"]["graph_nodes"] = G.number_of_nodes()
+        results["stages"]["graph_nodes"] = {"status": "DONE", "nodes": G.number_of_nodes(), "edges": G.number_of_edges()}
 
         # -------------------------------------------------------------
         # Stage 9: Grounded Evidence Synthesis & Entailment
         # -------------------------------------------------------------
-        engine = GroundedSynthesisEngine(retriever=indexer.retriever)
+        engine = GroundedSynthesisEngine(retriever=retriever)
         first_rq = protocol.research_questions[0] if protocol.research_questions else None
         rq_text = first_rq.text if first_rq else "What are the primary empirical findings?"
         rq_id = first_rq.id if first_rq else "RQ1"
@@ -603,9 +672,9 @@ class ResearchOrchestrator:
         synthesis_result = engine.synthesize(
             query=rq_text,
             rq_id=rq_id,
-            section_category="results_empirical"
+            section_category="results_empirical",
         )
-        
+
         synth_file = synth_dir / "literature_review.md"
         synth_file.write_text(synthesis_result.synthesis_markdown, encoding="utf-8")
         results["stages"]["synthesis"] = {
@@ -646,8 +715,8 @@ class ResearchOrchestrator:
         audit_file.parent.mkdir(parents=True, exist_ok=True)
 
         event = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "event_id": f"EVT-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{hex(hash(action + description))[-6:]}",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "event_id": f"EVT-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{hex(hash(action + description))[-6:]}",
             "action": action,
             "agent_or_tool": agent,
             "description": description,

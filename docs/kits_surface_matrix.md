@@ -123,6 +123,18 @@ latent bug**, with the working path in parentheses.
    placeholder extraction text; Stage 8 mirrors the 0-edge graph bug; the console
    "Extract fulltext" action uses a non-existent `--input` flag on `scholar-pdf extract`.
    The reliable path is the kit CLIs/MCP tools directly, not `scholar-harness run` stages.
+   **RESOLVED:** Stage 1 provider resolution (`_PROVIDER_MAP`/`_resolve_providers`)
+   and the console `extract --input` flag were already fixed in the PR-#4 sweep
+   (`c67705f`); the remaining stages are now honest in `run_pipeline_async` — Stages
+   5–9 gate on `literature/included.json` (missing → each `SKIPPED`, status
+   `PENDING_AGENT_REVIEW`, audit `PIPELINE_RUN_PAUSED_FOR_SCREENING`, early return);
+   Stage 5 does real PyMuPDF extraction of located PDFs (or a metadata-frontmatter-only
+   `.md` with verbatim abstract, `extraction_engine: "metadata"`, never invented
+   Methodology/Results/Limitations); Stages 7/9 bind a real `ScholarRetriever`
+   (`db_path=chroma_dir, collection_name, embedder_kwargs` from the indexer);
+   Stage 8 builds the graph with `AcademicHttpClient(name="openalex-graph")` and an
+   empty `nx.DiGraph()` when no DOIs exist. Hermetic regression tests in
+   `tests/test_orchestrator_fidelity.py`.
 10. **Verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)
     are CLI-only.** No MCP tool wraps them; only `verbatim` is on MCP. The console
     exposes just `trust-context` as an action (`mcp_tool: None`). Agents must shell
