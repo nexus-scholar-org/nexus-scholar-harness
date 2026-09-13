@@ -432,23 +432,27 @@ def nexus_graph_build(input_path: str, output_html: str = "./graph.html", json_o
     if not inp.exists():
         return f"Error: File {input_path} not found."
     try:
-        import asyncio
-        builder = CitationGraphBuilder(http_client=None)
-        
+        from scholar_search.http_client import AcademicHttpClient
+
+        builder = CitationGraphBuilder(AcademicHttpClient(name="openalex-graph", rate_limit=10))
+
         dois = []
         if inp.suffix == ".json":
             data = json.loads(inp.read_text(encoding="utf-8"))
-            if isinstance(data, list):
-                dois = []
-                for d in data:
-                    doi = d.get("doi") or (d.get("external_ids") or {}).get("doi")
-                    if doi:
-                        dois.append(doi)
-        
+            if isinstance(data, dict):
+                data = data.get("results") or data.get("items") or []
+            for d in data if isinstance(data, list) else []:
+                doi = (d.get("external_ids") or {}).get("doi") or d.get("doi")
+                if doi:
+                    dois.append(doi)
+
+        if not dois:
+            return f"Error: No DOIs found in {input_path}."
+
         G = asyncio.run(builder.build_graph(dois))
         CitationGraphBuilder.compute_pagerank(G)
         builder.export_json(G, Path(json_output))
-        
+
         vis = GraphVisualizer(Path(output_html))
         vis.generate_html(G)
         return f"Citation graph built ({G.number_of_nodes()} nodes, {G.number_of_edges()} edges). Exported to {output_html} and {json_output}."
