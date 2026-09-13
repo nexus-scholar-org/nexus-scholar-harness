@@ -50,6 +50,8 @@ from scholar_search.providers import (
 from scholar_search.screening import evaluate_heuristic_screening, partition_screening_results, reconcile_multi_screener_decisions
 from scholar_pdf.extract import DoclingEngine, GrobidEngine, PyMuPDFEngine
 from scholar_verify.verbatim import VerbatimClaimVerifier
+from scholar_verify import cli as verify_cli
+from scholar_verify import coi, open_science, retraction, risk_of_bias, trust_context
 
 # Phase 2 Imports
 from scholar_rag.indexer import ScholarIndexer
@@ -726,6 +728,91 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
         return json.dumps({"status": "ERROR", "error": str(e)})
 
 
+@mcp.tool()
+def nexus_verify_phase4(
+    workspace_dir: str,
+    stream: str = "all",
+    sleep_s: float = 0.2,
+    skip_retraction: bool = True,
+    rq_id: str = None,
+) -> str:
+    """
+    Run a scholar-verify Phase-4 stream against a workspace and persist outputs.
+
+    stream: 'retraction' | 'open-science' | 'coi' | 'risk-of-bias' |
+        'trust-context' | 'all'. Outputs land under <ws>/phase4/<name>.{json,md}
+        (e.g. risk_of_bias.json) mirroring `uv run scholar-verify <stream>`.
+        'retraction' hits OpenAlex/Crossref (sleep_s seconds between calls);
+        set skip_retraction=False to run it (the default mirrors --skip-retraction).
+    """
+    ws = Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
+    if not ws.is_dir():
+        return json.dumps({"status": "ERROR", "error": f"Workspace not found: {workspace_dir}"})
+    streams = {"retraction", "open-science", "coi", "risk-of-bias", "trust-context", "all"}
+    if stream not in streams:
+        return json.dumps({
+            "status": "ERROR",
+            "error": f"Unknown stream '{stream}'; expected one of {sorted(streams)}",
+        })
+    try:
+        written: dict[str, str] = {}
+
+        if stream in ("retraction", "all") and not skip_retraction:
+            recs = verify_cli._merged_records(ws)
+            inc = verify_cli._load(ws / "literature" / "included.json", "included")
+            out = retraction.RetractionChecker(sleep_s=sleep_s).check(recs, inc)
+            verify_cli._write(ws, "retraction_status_check", out, retraction.render_retraction_report(out))
+            written["retraction"] = str(ws / "phase4" / "retraction_status_check.json")
+
+        if stream in ("open-science", "all"):
+            recs = verify_cli._merged_records(ws)
+            out = open_science.run(recs, ws / "extracted")
+            verify_cli._write(ws, "open_science_regex_baseline", out, open_science.render_report(out))
+            written["open_science"] = str(ws / "phase4" / "open_science_regex_baseline.json")
+
+        if stream in ("coi", "all"):
+            manifest = verify_cli._manifest(ws)
+            chunks = coi.load_chunks(ws / "phase4" / "_agent_results")
+            out = coi.run(manifest, chunks)
+            verify_cli._write(ws, "coi_audit", out, coi.render_report(out))
+            written["coi"] = str(ws / "phase4" / "coi_audit.json")
+
+        if stream in ("risk-of-bias", "all"):
+            recs = verify_cli._merged_records(ws)
+            manifest = verify_cli._manifest(ws)
+            out = risk_of_bias.run(recs, manifest)
+            verify_cli._write(ws, "risk_of_bias", out, risk_of_bias.render_report(out))
+            written["risk_of_bias"] = str(ws / "phase4" / "risk_of_bias.json")
+
+        if stream in ("trust-context", "all"):
+            cons_path = ws / trust_context.CONSENSUS_DEFAULT
+            if not cons_path.is_file():
+                written["trust_context"] = "SKIPPED (no synthesis consensus.json)"
+            else:
+                cons = verify_cli._load(cons_path, "consensus report")
+                phase4 = {}
+                for key, default_fname in trust_context.PHASE4_INPUTS.items():
+                    p = ws / "phase4" / default_fname
+                    if p.exists():
+                        phase4[key] = trust_context._rows(verify_cli._load(p, f"phase4/{default_fname}"))
+                cdir = ws / "synthesis"
+                claims_by_rq = trust_context.load_rq_claims(cdir) if cdir.exists() else {}
+                annotated = trust_context.annotate(cons, phase4, rq_id=rq_id, claims_by_rq=claims_by_rq)
+                md = trust_context.render_report(annotated)
+                phase4_dir = ws / "phase4"
+                phase4_dir.mkdir(parents=True, exist_ok=True)
+                stem = f"trust_consensus_{verify_cli._slug(rq_id)}" if rq_id else "trust_consensus"
+                (phase4_dir / f"{stem}.json").write_text(
+                    json.dumps(annotated, indent=2, ensure_ascii=False), encoding="utf-8"
+                )
+                (phase4_dir / f"{stem}.md").write_text(md, encoding="utf-8")
+                written["trust_context"] = str(phase4_dir / f"{stem}.json")
+
+        return json.dumps({"status": "SUCCESS", "stream": stream, "written": written}, indent=2)
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "error": str(e)})
+
+
 
 # ==============================================================================
 # Phase 0.5: Recon MCP surface -- FAIR Memory + Agent Interop (M0.5)
@@ -1117,6 +1204,7 @@ def main():
         print("  - nexus_bib_clean: Clean and deduplicate BibTeX databases")
         print("  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa")
         print("  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext")
+        print("  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)")
         print("  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)")
         print("  - recon_distill: Distill the latest session pool into anchored terms")
         print("  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse")
