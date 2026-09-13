@@ -47,6 +47,10 @@ latent bug**, with the working path in parentheses.
    swallowed to `None` → only fallback isolation nodes, uniform PageRank 1.0 —
    yet reports "N nodes, 0 edges" as success. (Use `uv run scholar-graph build
    --input <ws>/literature/included.json` — the CLI builds a real client.)
+   **RESOLVED:** the MCP tool now builds `AcademicHttpClient(name="openalex-graph",
+   rate_limit=10)` exactly like the CLI; DOI extraction also accepts `results`/`items`
+   dict payloads and errors out on empty input. Regression test:
+   `tests/test_mcp_tools_graph.py::test_nexus_graph_build_uses_real_http_client`.
 3. **`nexus_extract_pdf` drops all metadata.** Frontmatter contains only
    stem-derived `title` + `extraction_engine` + `extracted_at`; the kit's
    `metadata=` kwarg (workspace_id/doi/year/authors) is never passed. MCP-extracted
