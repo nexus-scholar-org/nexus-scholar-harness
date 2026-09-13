@@ -18,6 +18,7 @@ import re
 import sys
 import time
 import uuid
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -265,7 +266,8 @@ def nexus_dedup(input_path: str, output_path: str = "./deduped.json") -> str:
 def nexus_screen(input_path: str, protocol_path: str, output_dir: str = "./literature") -> str:
     """
     Screen candidate literature against protocol inclusion/exclusion criteria.
-    Outputs included.json, excluded.json, and prisma_screening_report.md.
+    Outputs included.json, excluded.json, conflicts.json, prisma_report.json,
+    and prisma_screening_report.md.
     """
     inp = Path(input_path)
     proto = Path(protocol_path)
@@ -283,9 +285,16 @@ def nexus_screen(input_path: str, protocol_path: str, output_dir: str = "./liter
         out_d.mkdir(parents=True, exist_ok=True)
         (out_d / "included.json").write_text(json.dumps(included, indent=2, default=str), encoding="utf-8")
         (out_d / "excluded.json").write_text(json.dumps(excluded, indent=2, default=str), encoding="utf-8")
+        (out_d / "conflicts.json").write_text(json.dumps(conflicts, indent=2, default=str), encoding="utf-8")
+        (out_d / "prisma_report.json").write_text(json.dumps(asdict(report), indent=2, default=str), encoding="utf-8")
         (out_d / "prisma_screening_report.md").write_text(report.to_markdown() if hasattr(report, "to_markdown") else str(report), encoding="utf-8")
         
-        return f"Screening complete: {len(included)} included, {len(excluded)} excluded. Report saved to {out_d / 'prisma_screening_report.md'}."
+        return (
+            f"Screening complete: {len(included)} included, {len(excluded)} excluded, "
+            f"{len(conflicts)} conflicts flagged. "
+            f"Artifacts in {out_d} (included.json, excluded.json, conflicts.json, "
+            f"prisma_report.json, prisma_screening_report.md)."
+        )
     except Exception as e:
         return f"Error during screening: {e}"
 

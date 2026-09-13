@@ -86,10 +86,14 @@ latent bug**, with the working path in parentheses.
    (seed term, default β=0.15) is reachable. Full hybrid retrieval needs the CLI
    `scholar-rag query --graph <graph.json> --alpha --beta`.
 8. **`nexus_screen` bypasses the agent-in-the-loop PRISMA contract.** It runs
-   heuristic screening in-process; `conflicts.json` and `prisma_report.json` are
-   computed but **never written** (only included/excluded/md). Pairing it with
-   `nexus_screen_reconcile` (which expects `batch_NNN_decisions*.json` files) is not
-   natural. The harness's real screening pipeline is the `agent_screen.py` batch handoff.
+    heuristic screening in-process; `conflicts.json` and `prisma_report.json` are
+    computed but **never written** (only included/excluded/md). Pairing it with
+    `nexus_screen_reconcile` (which expects `batch_NNN_decisions*.json` files) is not
+    natural. The harness's real screening pipeline is the `agent_screen.py` batch handoff.
+    **RESOLVED:** the tool now also writes `conflicts.json` and `prisma_report.json`
+    (dataclass dump of `PrismaFlowReport`) alongside included/excluded, so flagged
+    borderline docs and the flow counts are persisted for downstream audit
+    (regression tests in `tests/test_mcp_tools_graph.py`).
 9. **Harness orchestrator bugs (do not trust pipeline Stage 5/7/8/9 outputs):**
    provider *name strings* are passed to `SearchEngine` (expects provider instances)
    → search exceptions swallowed → empty `raw_search.json`; Stage 7/9 call
