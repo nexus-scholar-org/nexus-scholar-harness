@@ -235,7 +235,7 @@ latent bug**, with the working path in parentheses.
 
 ### scholar-agent-kit (MCP front-door)
 - **18 tools** (15 `nexus_*` + 3 `recon_*`) — NOT the 7 the skill documents; `--help`
-  lists only 16 (omits `nexus_screen_reconcile`, `nexus_verify_claims`). Full inventory
+  lists all 18 (parity enforced by `tests/conformance/test_mcp_tool_parity.py`). Full inventory
   and signatures in `server.py` (tool list at lines 125-930); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in
   `mcp_config.json`).

@@ -4,8 +4,9 @@ This table drives three consumers; keep it in sync across all of them:
   1. the UI "Agent Exchange" panel rendering the `uv run` / MCP tool for
      every action,
   2. the job runner's command construction (runtimes/job_runner.py),
-  3. the CI drift test (tests/... assert the CLI parses `--help` and the
-     mcp_tool, if any, is exported by the scholar-agent-kit MCP server).
+  3. the conformance suite (`tests/conformance/`): asserts every template's
+     CLI parses `--help` with the used subcommand/options, and the mcp_tool,
+     if any, is exported by the scholar-agent-kit MCP server.
 
 Convention: every command runs through `uv run <cli>` against the shared
 `.venv` (see AGENTS.md). Placeholder tokens use `{ws}` for the workspace path,
@@ -39,14 +40,14 @@ ACTIONS: list[Action] = [
     Action(
         "discovery",
         "Federated discovery",
-        'uv run scholar-search search --query "{q}"',
+        'uv run scholar-search search "{q}"',
         "nexus_discover",
         True,
     ),
     Action(
         "dedup",
         "Deduplicate candidates",
-        "uv run scholar-search dedup --input {ws}/literature/candidates.json "
+        "uv run scholar-search dedup {ws}/literature/candidates.json "
         "--output {ws}/literature/corpus.json",
         "nexus_dedup",
         True,
