@@ -17,6 +17,7 @@ from scholar_agent.server import (
     nexus_bib_clean,
     nexus_extract_pdf,
     nexus_graph_build,
+    nexus_screen,
 )
 from scholar_graph.builder import CitationGraphBuilder
 
@@ -205,3 +206,60 @@ def test_nexus_bib_clean_inplace_when_no_output(tmp_path):
 
     library = BibParser.load(bib)
     assert len(library.entries) == 1
+
+
+# ---------------------------------------------------------------------------
+# nexus_screen: write conflicts.json + prisma_report.json (matrix finding #8)
+# ---------------------------------------------------------------------------
+
+_CONFLICTING_PROTOCOL = {
+    "screening_criteria": {
+        "inclusion": [{"id": "INC-01", "criterion": "study uses machine learning"}],
+        "exclusion": [{"id": "EXC-01", "reason_category": "OTHER", "negative_signals": ["systematic review"]}],
+    },
+    "research_questions": [{"id": "RQ1"}],
+}
+
+
+def _write_screening_fixtures(tmp_path, *, candidates, protocol=None):
+    candidates_path = tmp_path / "candidates.json"
+    candidates_path.write_text(json.dumps(candidates, indent=2), encoding="utf-8")
+    protocol_path = tmp_path / "protocol.json"
+    protocol_path.write_text(json.dumps(protocol or _CONFLICTING_PROTOCOL, indent=2), encoding="utf-8")
+    return candidates_path, protocol_path
+
+
+def test_nexus_screen_writes_conflicts_and_prisma_json(tmp_path, monkeypatch):
+    """Conflicting-signal doc (inclusion AND exclusion hit) must be written to
+    conflicts.json, and prisma_report.json must reflect the flag count."""
+    candidates_path, protocol_path = _write_screening_fixtures(
+        tmp_path,
+        candidates=[{
+            "title": "A machine learning approach",
+            "abstract": "This systematic review applies machine learning methods.",
+            "workspace_id": "SCI-0001",
+        }],
+    )
+    out_dir = tmp_path / "output"
+    result = nexus_screen(str(candidates_path), str(protocol_path), str(out_dir))
+
+    conflicts = json.loads((out_dir / "conflicts.json").read_text(encoding="utf-8"))
+    prisma = json.loads((out_dir / "prisma_report.json").read_text(encoding="utf-8"))
+    included = json.loads((out_dir / "included.json").read_text(encoding="utf-8"))
+    excluded = json.loads((out_dir / "excluded.json").read_text(encoding="utf-8"))
+
+    assert (out_dir / "prisma_screening_report.md").exists()
+    assert len(conflicts) >= 1
+    assert len(conflicts) == prisma["conflicts_flagged"]
+    assert prisma["records_screened"] == len(included) + len(excluded)
+    assert prisma["records_screened"] == 1
+    assert "conflicts flagged" in result
+
+
+def test_nexus_screen_empty_candidates_still_writes_prisma(tmp_path):
+    candidates_path, protocol_path = _write_screening_fixtures(tmp_path, candidates=[])
+    out_dir = tmp_path / "output"
+    result = nexus_screen(str(candidates_path), str(protocol_path), str(out_dir))
+    prisma = json.loads((out_dir / "prisma_report.json").read_text(encoding="utf-8"))
+    assert prisma["records_screened"] == 0
+    assert "0 conflicts flagged" in result
