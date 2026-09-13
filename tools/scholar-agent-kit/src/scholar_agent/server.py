@@ -121,6 +121,35 @@ from scholar_harness.recon.gates import (
 mcp = MCPServer("ScholarAgentKit")
 
 
+def _mcp_anchor() -> Path:
+    """Anchor for relative MCP path arguments.
+
+    The server is launched with ``--directory tools/scholar-agent-kit``, so a bare
+    ``Path("./x")`` would resolve inside the vendored kit checkout. We therefore
+    anchor relative paths to ``NEXUS_MCP_WORKSPACE`` when set, else to the harness
+    repo root (the nearest ancestor with ``.git``).
+    """
+    env = os.environ.get("NEXUS_MCP_WORKSPACE")
+    if env:
+        return Path(env).resolve()
+    for parent in Path(__file__).resolve().parents:
+        if (parent / ".git").is_dir():
+            return parent
+    return Path.cwd()
+
+
+def _resolve_path(p: str | None) -> str | None:
+    """Resolve a possibly-relative path arg against the MCP anchor; leave
+    absolute paths and inline JSON (raw protocol/intent/screener payloads)
+    untouched."""
+    if not p or p.lstrip().startswith(("{", "[")):
+        return p
+    path = Path(p)
+    if path.is_absolute():
+        return str(path)
+    return str(_mcp_anchor() / path)
+
+
 # ==============================================================================
 # Phase 0: Socratic Protocol & Compiler Tools
 # ==============================================================================
@@ -132,6 +161,7 @@ def nexus_protocol_compile(intent_json: str) -> str:
     Returns the canonical protocol JSON string.
     """
     try:
+        intent_json = _resolve_path(intent_json) or intent_json
         if Path(intent_json).exists() and Path(intent_json).is_file():
             intent_data = json.loads(Path(intent_json).read_text(encoding="utf-8"))
         else:
@@ -157,6 +187,7 @@ def nexus_protocol_validate(protocol_json: str) -> str:
     Validate a protocol JSON string or path against the ResearchProtocol specification.
     """
     try:
+        protocol_json = _resolve_path(protocol_json) or protocol_json
         p = Path(protocol_json)
         if p.exists() and p.is_file():
             report = validate_protocol(p)
@@ -194,6 +225,7 @@ def nexus_protocol_render_criteria(protocol_path: str) -> str:
     """
     Render human-readable SCREENING_CRITERIA.md from a protocol.json file.
     """
+    protocol_path = _resolve_path(protocol_path) or protocol_path
     p = Path(protocol_path)
     if not p.exists():
         return f"Error: Protocol file not found at {protocol_path}"
@@ -227,7 +259,7 @@ async def nexus_discover(query: str, limit: int = 10, start_year: int = 2020) ->
     finally:
         await engine.close()
 
-    cache_dir = Path(".cache/mcp")
+    cache_dir = Path(_resolve_path(".cache/mcp"))
     cache_dir.mkdir(parents=True, exist_ok=True)
     safe_slug = "".join(c for c in query if c.isalnum() or c in (" ", "_", "-"))[:20].replace(" ", "_")
     output_path = cache_dir / f"discover_{safe_slug or 'query'}_{int(time.time())}.json"
@@ -244,6 +276,8 @@ def nexus_dedup(input_path: str, output_path: str = "./deduped.json") -> str:
     """
     Deduplicate a collection of raw search papers by PID clustering and title similarity.
     """
+    input_path = _resolve_path(input_path) or input_path
+    output_path = _resolve_path(output_path) or output_path
     inp = Path(input_path)
     if not inp.exists():
         return f"Error: Input file {input_path} not found."
@@ -269,6 +303,9 @@ def nexus_screen(input_path: str, protocol_path: str, output_dir: str = "./liter
     Outputs included.json, excluded.json, conflicts.json, prisma_report.json,
     and prisma_screening_report.md.
     """
+    input_path = _resolve_path(input_path) or input_path
+    protocol_path = _resolve_path(protocol_path) or protocol_path
+    output_dir = _resolve_path(output_dir) or output_dir
     inp = Path(input_path)
     proto = Path(protocol_path)
     if not inp.exists() or not proto.exists():
@@ -321,6 +358,8 @@ def nexus_extract_pdf(pdf_path: str, output_dir: str = "./extracted", engine: st
     """
     Extract a PDF into Markdown with YAML frontmatter using the requested engine.
     """
+    pdf_path = _resolve_path(pdf_path) or pdf_path
+    output_dir = _resolve_path(output_dir) or output_dir
     pdf = Path(pdf_path)
     out_dir = Path(output_dir)
     if not pdf.exists():
@@ -348,6 +387,9 @@ def nexus_rag_index(docs_dir: str, db_path: str = "./chroma_db", bib_file: str =
     Index a directory of Markdown files into the Chroma Vector DB using Structural AST Chunking,
     enriching with companion BibTeX metadata if available.
     """
+    docs_dir = _resolve_path(docs_dir) or docs_dir
+    db_path = _resolve_path(db_path) or db_path
+    bib_file = _resolve_path(bib_file) or bib_file
     d_dir = Path(docs_dir)
     if not d_dir.exists():
         return f"Error: Directory {docs_dir} not found."
@@ -375,6 +417,7 @@ def nexus_rag_query(
     Categories: 'abstract_intro', 'methodology', 'results_empirical', 'discussion_limitations'.
     """
     try:
+        db_path = _resolve_path(db_path) or db_path
         retriever = ScholarRetriever(db_path=db_path)
         boost_list = [boost_doi] if boost_doi else None
         results = retriever.query(
@@ -419,6 +462,7 @@ def nexus_rag_synthesize(
     Generate grounded synthesis with atomic citation tokens and automated claim entailment verification.
     """
     try:
+        db_path = _resolve_path(db_path) or db_path
         retriever = ScholarRetriever(db_path=db_path)
         engine = GroundedSynthesisEngine(retriever=retriever)
         result = engine.synthesize(
@@ -441,6 +485,9 @@ def nexus_matrix_extract(workspace_dir: str = ".", protocol_path: str = None, ou
     """
     Extract dynamic Protocol Matrix Dimensions across all indexed studies in the workspace.
     """
+    workspace_dir = _resolve_path(workspace_dir) or workspace_dir
+    protocol_path = _resolve_path(protocol_path) or protocol_path
+    output_dir = _resolve_path(output_dir) or output_dir
     w_dir = Path(workspace_dir).resolve()
     p_path = Path(protocol_path or (w_dir / "protocol.json"))
     out_dir = Path(output_dir)
@@ -461,6 +508,9 @@ def nexus_graph_build(input_path: str, output_html: str = "./graph.html", json_o
     """
     Build a citation graph network from screening included.json and compute PageRank centrality.
     """
+    input_path = _resolve_path(input_path) or input_path
+    output_html = _resolve_path(output_html) or output_html
+    json_output = _resolve_path(json_output) or json_output
     inp = Path(input_path)
     if not inp.exists():
         return f"Error: File {input_path} not found."
@@ -498,6 +548,8 @@ def nexus_bib_clean(input_bib_path: str, output_bib_path: str = None) -> str:
     """
     Clean, standardize keys, and deduplicate a BibTeX file.
     """
+    input_bib_path = _resolve_path(input_bib_path) or input_bib_path
+    output_bib_path = _resolve_path(output_bib_path) or output_bib_path
     input_path = Path(input_bib_path)
     if not input_path.exists():
         return f"Error: {input_bib_path} not found."
@@ -531,6 +583,8 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
         adjudication_json: Optional path to JSON file with adjudicated tie-breaking decisions.
     """
     try:
+        screeners_json = _resolve_path(screeners_json) or screeners_json
+        adjudication_json = _resolve_path(adjudication_json) or adjudication_json
         p = Path(screeners_json)
         screeners_map: dict[str, dict[str, str]] = {}
         if p.is_dir():
@@ -583,6 +637,8 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
         threshold: Coverage threshold (default 0.90).
     """
     try:
+        claims_json_path = _resolve_path(claims_json_path) or claims_json_path
+        extracted_dir_path = _resolve_path(extracted_dir_path) or extracted_dir_path
         cp = Path(claims_json_path)
         ed = Path(extracted_dir_path)
         if not cp.is_file():
