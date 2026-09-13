@@ -1,6 +1,6 @@
 # Outstanding Tasks & Roadmap Analysis
 
-This document aggregates all the outstanding, "undone" work across the Nexus Scholar repository. I have synthesized this from the `OPEN_SCIENCE_ROADMAP.md`, `ROADMAP_ASSESSMENT_AND_TASK_LIST.md`, and the architectural retrospective.
+This document aggregates all the outstanding, "undone" work across the Nexus Scholar repository. It supersedes the former `ROADMAP_ASSESSMENT_AND_TASK_LIST.md` (stale phase-status dashboard; deleted 2026-09-13) and the archived `OPEN_SCIENCE_ROADMAP.md`.
 
 ## 1. Immediate Architectural Debt (The "Fixes")
 *Derived from the Phase 1-3 Retrospective. These are critical stability improvements.*
@@ -12,7 +12,7 @@ This document aggregates all the outstanding, "undone" work across the Nexus Sch
 - **[P1] Discovery Integrity:** Enforce strict bidirectional title similarity when hydrating DOIs to prevent PubMed cross-contamination.
 
 ## 2. Unfinished Roadmap Tasks (The "Features")
-*Derived from the `ROADMAP_ASSESSMENT_AND_TASK_LIST.md` and `OPEN_SCIENCE_ROADMAP.md`.*
+*Phase-by-phase roll-up of the roadmap items.*
 
 ### Phase 0: Intent Router
 - [x] **Interactive Inception CLI**: A terminal wizard to conduct the Socratic interview — `uv run scholar-harness inception --root <repo>`. Implements the 4-stage Socratic protocol (`docs/phase_0/04_socratic_inception_protocol.md`): latent paradigm mining, 4-way refraction grid, Socratic boundary grill (unit of analysis, gold-standard proof, exclusions, lexicon enforcement), then emits `intent.json`, compiles the fingerprinted `protocol.json` and `SCREENING_CRITERIA.md`, scaffolds `workspaces/<slug>/`, and logs the `GENESIS` audit event. Responder-driven so tests are hermetic and scriptable.

@@ -12,7 +12,7 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 2. **Concurrent & Resilient Downloading**: Asynchronous retrieval with exponential backoff and paywall HTML redirect rejection.
 3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; removes corrupted HTML/paywall block pages. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
 4. **Smart Canonical Naming**: Formats filenames as `{year}_{author}_{title}.pdf` and exports structured metadata logs.
-5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `year`, `extraction_engine`).
+5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `authors`, `year`, `extraction_engine`, `extracted_at`; empty keys are dropped).
 
 ---
 
@@ -31,11 +31,13 @@ uv run scholar-pdf download \
   --smart-names \
   --export json
 
-# 3. Extract Section-Aware Markdown with YAML Frontmatter (PyMuPDF)
+# 3. Extract Section-Aware Markdown (CLI engines: docling | grobid only)
 uv run scholar-pdf extract \
-  --input workspaces/<project-slug>/pdfs/ \
+  workspaces/<project-slug>/pdfs/ \
   --output workspaces/<project-slug>/extracted/ \
-  --engine pymupdf
+  --engine docling
+# NOTE: positional PDF file/dir path — there is NO --input flag and NO --engine pymupdf
+#       (PyMuPDF is the API/MCP default; the CLI only offers docling/grobid).
 
 # 4. Ingest an Existing PDF Manually
 uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/35057062 --smart-names
@@ -91,6 +93,26 @@ if __name__ == "__main__":
 ```
 
 ---
+
+## Verified surface, MCP mapping & knowledge
+
+- **Cascade**: OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF
+  (IEEE/Springer/arXiv patterns) → optional institutional proxy rewrite.
+- **Validation**: ≥ 10 KB size floor + `%PDF-` within first 1024 bytes + `%%EOF`
+  within final 8 KB; optional pypdf structural gate (`--strict-validate`,
+  encryption-tolerant). Invalid files are auto-deleted.
+- **Frontmatter is only complete via the Python API.** `PyMuPDFEngine.extract_markdown(
+  pdf, output_dir, metadata=…)` injects `workspace_id`/`doi`/`year`/`authors` from the
+  `metadata` dict. The **MCP `nexus_extract_pdf` drop filter never passes metadata** —
+  extracted files contain only stem-derived `title` + `extraction_engine` +
+  `extracted_at`; their `doi` is silently lost, degrading downstream RAG DOI/enrichment.
+  Re-annotate frontmatter after any MCP extraction.
+- **Env**: `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
+  `PROXY_URL`/`PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
+  `ENABLE_PUBLISHER_DIRECT_PATTERNS`.
+- **PyMuPDF is imported as `fitz`**; `pyyaml` is an undeclared transitive dep.
+- **"Success" ≠ content**: extraction writes a stub marker line on parse failure; always
+  spot-check extracted markdown non-empty.
 
 ## Agent Guidelines & Best Practices
 

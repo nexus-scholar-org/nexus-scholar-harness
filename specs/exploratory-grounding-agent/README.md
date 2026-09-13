@@ -3,7 +3,7 @@
 > **Status:** Proposal / Architecture Brainstorm
 > **Date:** 2026-09-11 (folder created 2026-09-12)
 > **Authors:** Nexus Scholar Architecture Team
-> **Supersedes:** `docs/phase_0/06_exploratory_grounding_agent.md` (split into this folder)
+> **Supersedes:** the former single-file `docs/phase_0/06_exploratory_grounding_agent.md` (removed at the 2026-09-11 cleanup; see `docs/COMMIT_SNAPSHOTS.md`)
 > **Extends:** `docs/phase_0/04_socratic_inception_protocol.md`
 > **Related decision:** Contribution gate enforced by `.agents/skills/pull-request-gate/SKILL.md` (fork + PR workflow).
 
@@ -32,6 +32,8 @@ The single-file proposal `docs/phase_0/06_exploratory_grounding_agent.md` has be
 | [`13_evaluation.md`](./13_evaluation.md) | Evaluation framework — 4 measurable dimensions (epistemic integrity, recon signal, downstream yield, autonomous navigation), ReconBench corpus/runner, prioritized gates (M0.7). |
 | [`14_agent_loops.md`](./14_agent_loops.md) | Autonomous agent operating contract — 5 loops (dual-mode discovery, lexicon bootstrap, Pareto scoring, anchor-guarded compile, downstream transition) + the 2 required MCP seams (GAP A lexicon, GAP B saturation). |
 | [`15_scientific_publication_plan.md`](./15_scientific_publication_plan.md) | **Scientific Publication Plan & Research Blueprint** — publication strategy, theoretical framing, ReconBench empirical evaluation, mathematical formulas (APR, QEI), target venues, and 6-week roadmap. |
+| [`16_inception_improvements.md`](./16_inception_improvements.md) | **Post-evaluation improvement backlog & status** — prioritized fixes (P1–P6), trial evidence, and per-fix implementation notes (E/F series). |
+| [`evaluation/`](./evaluation/) | Multi-domain trial evidence (`multi_domain_trial*_2026-09-13.json`) used to calibrate the evaluation gates. |
 
 ## Executive summary — the cold inception problem
 

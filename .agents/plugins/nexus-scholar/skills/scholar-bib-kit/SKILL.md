@@ -13,7 +13,7 @@ You are the bibliographic management and BibTeX curation specialist of the Nexus
    - High-performance, robust parsing of BibTeX databases using `bibtexparser`.
 2. **Title Protection & Key Standardization (`BibLinter`)**:
    - Wraps titles in double braces (`{{...}}`) to prevent LaTeX casing degradation.
-   - Standardizes citation keys into canonical `AuthorYear` or sequential alphanumeric formats.
+   - Standardizes citation keys with `--generate-keys` into the canonical **`AuthorYear`** format (the only key mode — there is no sequential/other mode).
 3. **Multi-Source Bibliography Merging (`BibDeduplicator`)**:
    - Merges multiple bibliography databases while pruning duplicate DOI and title records.
 4. **Crossref Metadata Resolution (`BibResolver`)**:
@@ -86,6 +86,23 @@ if __name__ == "__main__":
 ```
 
 ---
+
+## Verified surface, MCP mapping & knowledge
+
+- **In-place overwrite caveat**: `lint`, `dedup` and `resolve` all **overwrite the input
+  file in place when `--output` is omitted** (mirrors `mitm`-style safety elsewhere — pass
+  `--output` explicitly to keep the original). `merge` defaults output to CWD `merged.bib`.
+- **`nexus_bib_clean` (MCP) is lint-only**: despite the name it calls
+  `BibLinter.lint(…, generate_keys=False)` — no key standardization, no dedup, and it
+  writes in place. Run the CLI pipeline for the documented
+  "clean + keys + dedup" behavior: `uv run scholar-bib lint --generate-keys` then
+  `uv run scholar-bib dedup`.
+- **Dedup identity**: cleaned-DOI match first, then cleaned-title; the survivor is the
+  first occurrence with missing fields grafted onto it.
+- **Resolver** (`BibResolver.resolve_*`): async Crossref, returns `application/x-bibtex`
+  and replaces the whole entry; Crossref failures are silently swallowed.
+- **Under the hood**: bibtexparser is pinned to the **2.0.0b9** beta; title brace-wrapping
+  is idempotent; DOI normalization only strips `https?://doi.org/`.
 
 ## Agent Guidelines & Best Practices
 

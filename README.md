@@ -132,21 +132,25 @@ uv run ruff check scripts/ # CI-scoped lint (this is the lint gate)
 
 ## Documentation
 
+- **Docs index:** [`docs/README.md`](docs/README.md) — roadmap/backlog, Phase-0 design specs, future-phase design sets, operational notes, spec-series pointer.
 - **Design set:** [`docs/phase_0/`](docs/phase_0) (protocol schema, Socratic inception, playbooks) · [`docs/phase_5/`](docs/phase_5) (agent-first **Harness Console** — plan, blueprint, specs; not yet implemented)
+- **Spec series:** [`specs/exploratory-grounding-agent/`](specs/exploratory-grounding-agent/) (Grounded Exploratory Inception Agent) · [`specs/inception-ecosystem/`](specs/inception-ecosystem/) (inception skill stack — boundaries, handoffs, skill-tree/plugin policy)
+- **Kit surfaces:** [`docs/kits_surface_matrix.md`](docs/kits_surface_matrix.md) — agent-facing API·CLI·MCP map of all eight kits, with known-broken tooling and cross-kit contracts.
+- **Roadmap & backlog:** [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)
 - **Agent workflows:** `.agents/skills/<kit>/SKILL.md` per kit · MCP entrypoint at `.agents/plugins/nexus-scholar/mcp_config.json`
-- **Roadmap state:** [`ROADMAP_ASSESSMENT_AND_TASK_LIST.md`](ROADMAP_ASSESSMENT_AND_TASK_LIST.md) · [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)
 
 ## Repository layout
 
 ```text
 nexus-scholar-harness/
 ├── .agents/
-│   ├── plugins/nexus-scholar/   # plugin registry (kit versions) + MCP config
-│   └── skills/<kit>/            # per-kit agent skill: SKILL.md + references
+│   ├── plugins/nexus-scholar/   # plugin registry (kit versions) + MCP config + skills bundle mirror
+│   └── skills/<kit>/            # per-kit agent skill: SKILL.md + references (canonical source)
 ├── src/scholar_harness/         # the thin orchestrator (cli, orchestrator, inception, agent_screen)
-├── scripts/                     # install_plugins.py (kit installer), lint/validate helpers
+├── scripts/                     # install_plugins.py, sync_skills_bundle.py, lint/validate helpers
 ├── tools/<kit>/                 # eight tracked kit packages (editable-installed into .venv)
-├── docs/                        # phase_0 protocol specs, phase_5 console design, commit snapshots
+├── docs/                        # README.md index, roadmap/backlog, phase_0 specs, future-phase design sets, commit snapshots
+├── specs/                       # living specification series (exploratory-grounding-agent/, inception-ecosystem/, evaluation/)
 ├── workspaces/                  # research project workspaces (text/metadata tracked)
 ├── pyproject.toml
 └── AGENTS.md                    # agent operational guidance (read me first)

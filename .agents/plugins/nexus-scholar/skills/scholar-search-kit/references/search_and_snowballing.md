@@ -47,6 +47,14 @@ uv run scholar-search snowball W2741809807 --provider openalex --direction backw
 
 # Snowballing using Semantic Scholar
 uv run scholar-search snowball 204e3073870fae3d05bcbc2f6a8e263c9b72e776 --provider semanticscholar --direction forward --output s2_citing.json
+
+# ---- Multi-hop BFS chaining (scholar-search chain) ----
+# Recursively snowball from one or more seeds, deduplicating across the frontier.
+# --depth controls the number of hops; --direction accepts forward, backward, or both (repeat flag).
+uv run scholar-search chain W2741809807 --depth 1 --direction backward --output chain_refs.json
+uv run scholar-search chain W2741809807 W290382718 --depth 2 --direction backward --direction forward --max-total 1000 --output chain.json --edges-output chain_edges.json
+# Optionally bound publication years and per-node / total caps.
+uv run scholar-search chain W2741809807 --depth 2 --year-min 2015 --year-max 2024 --max-per-node 200 --max-total 500
 ```
 
 ---
