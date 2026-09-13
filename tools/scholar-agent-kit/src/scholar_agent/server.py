@@ -30,8 +30,9 @@ from scholar_protocol.compiler import compile_protocol
 from scholar_protocol.intent import IntentPacket
 from scholar_protocol.models import ResearchProtocol
 from scholar_protocol.render import render_screening_criteria
-from scholar_protocol.validate import validate_protocol
+from scholar_protocol.validate import ValidationReport, _check_cross_field, validate_protocol
 from scholar_protocol.canonical import canonical_json, canonical_fingerprint
+from pydantic import ValidationError
 
 # Phase 1 Imports
 from scholar_search.cli import search as search_discover
@@ -185,30 +186,26 @@ def nexus_protocol_compile(intent_json: str) -> str:
 def nexus_protocol_validate(protocol_json: str) -> str:
     """
     Validate a protocol JSON string or path against the ResearchProtocol specification.
+    Both inline-JSON and file-path modes run the full rule set (structural Pydantic
+    checks plus cross-field rules: duplicate IDs, RQ/criteria/dimension coherence).
     """
-    try:
-        protocol_json = _resolve_path(protocol_json) or protocol_json
-        p = Path(protocol_json)
-        if p.exists() and p.is_file():
-            report = validate_protocol(p)
-            if report.is_valid:
-                proto = ResearchProtocol.model_validate(json.loads(p.read_text(encoding="utf-8")))
-                title = proto.metadata.get("title", "") if isinstance(proto.metadata, dict) else getattr(proto.metadata, "title", "")
-                return json.dumps({
-                    "status": "VALID",
-                    "protocol_id": proto.protocol_id,
-                    "title": title,
-                    "fingerprint": canonical_fingerprint(proto)
-                }, indent=2)
-            else:
-                return json.dumps({
-                    "status": "INVALID",
-                    "errors": [f.message for f in report.errors],
-                    "warnings": [f.message for f in report.warnings]
-                }, indent=2)
-        else:
-            raw_data = json.loads(protocol_json)
-            proto = ResearchProtocol.model_validate(raw_data)
+    def _validate_raw(raw) -> ValidationReport:
+        report = ValidationReport(path="<inline>")
+        try:
+            proto = ResearchProtocol.model_validate(raw)
+        except ValidationError as exc:
+            for err in exc.errors():
+                loc = ".".join(str(part) for part in err["loc"])
+                report.add_error("STRUCTURAL", f"{err['msg']} (type={err['type']})", loc)
+            return report
+        _check_cross_field(proto, report)
+        return report
+
+    def _response(report: ValidationReport) -> str:
+        if report.is_valid:
+            proto = ResearchProtocol.model_validate(
+                json.loads(protocol_json) if not (p.exists() and p.is_file()) else p.read_text(encoding="utf-8")
+            )
             title = proto.metadata.get("title", "") if isinstance(proto.metadata, dict) else getattr(proto.metadata, "title", "")
             return json.dumps({
                 "status": "VALID",
@@ -216,6 +213,18 @@ def nexus_protocol_validate(protocol_json: str) -> str:
                 "title": title,
                 "fingerprint": canonical_fingerprint(proto)
             }, indent=2)
+        return json.dumps({
+            "status": "INVALID",
+            "errors": [f.message for f in report.errors],
+            "warnings": [f.message for f in report.warnings]
+        }, indent=2)
+
+    try:
+        protocol_json = _resolve_path(protocol_json) or protocol_json
+        p = Path(protocol_json)
+        if p.exists() and p.is_file():
+            return _response(validate_protocol(p))
+        return _response(_validate_raw(json.loads(protocol_json)))
     except Exception as e:
         return json.dumps({"status": "INVALID", "error": str(e)})
 
@@ -410,14 +419,20 @@ def nexus_rag_query(
     section_category: str = None,
     paradigm: str = None,
     boost_doi: str = None,
-    n_results: int = 5
+    n_results: int = 5,
+    graph_source: str = None,
+    alpha: float = 0.25,
+    beta: float = 0.15,
 ) -> str:
     """
     Search indexed academic literature with sectional slicing and graph PageRank boosting.
     Categories: 'abstract_intro', 'methodology', 'results_empirical', 'discussion_limitations'.
+    graph_source: citation graph JSON/gpickle (as exported by nexus_graph_build) whose
+        PageRank scores are blended as `CosineSim + alpha*PageRank + beta*seed`.
     """
     try:
         db_path = _resolve_path(db_path) or db_path
+        graph_source = _resolve_path(graph_source) or graph_source
         retriever = ScholarRetriever(db_path=db_path)
         boost_list = [boost_doi] if boost_doi else None
         results = retriever.query(
@@ -426,7 +441,10 @@ def nexus_rag_query(
             section=section,
             section_category=section_category,
             paradigm=paradigm,
-            boost_dois=boost_list
+            boost_dois=boost_list,
+            graph_source=graph_source,
+            alpha=alpha,
+            beta=beta,
         )
         
         if not results:
