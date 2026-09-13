@@ -81,6 +81,11 @@ latent bug**, with the working path in parentheses.
    every claim fails `MISSING_QUOTE`. The two "verification" concepts are unrelated
    (RAG entailment = embedding cosine; verify = verbatim quote matching). Only
    aggregate `metrics` are returned, per-claim verdicts are discarded.
+   **RESOLVED:** the tool now accepts either a bare array or `{"claims": [...]}`
+   (SynthesisClaim shape), falls back to `claim_text` as the quote to verify,
+   returns per-claim verdicts, a `failures_by_reason` breakdown, and surfaces the
+   RAG `entailment_status` alongside each verbatim verdict (regression tests in
+   `tests/test_mcp_tools_graph.py`).
 7. **`nexus_rag_query` cannot do graph boosting.** Docstring advertises PageRank
    boosting but no `graph_source`/`alpha`/`beta` parameter exists; only `boost_doi`
    (seed term, default β=0.15) is reachable. Full hybrid retrieval needs the CLI

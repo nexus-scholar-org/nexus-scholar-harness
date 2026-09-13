@@ -574,6 +574,8 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
 def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshold: float = 0.90) -> str:
     """
     Verify claim quotes against extracted Markdown files using token n-gram and char-window matching.
+    Accepts scholar-rag SynthesisClaim JSON ({claims: [...]} or bare list). Returns
+    aggregate metrics, per-claim verdicts, and a failures-by-reason breakdown.
     
     Args:
         claims_json_path: Path to synthesis claims JSON (e.g. synthesis/claims.json).
@@ -589,6 +591,26 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
             return json.dumps({"status": "ERROR", "error": f"Extracted directory not found: {extracted_dir_path}"})
 
         claims = json.loads(cp.read_text(encoding="utf-8"))
+        if isinstance(claims, dict):
+            claims = claims.get("claims", [])
+        if not isinstance(claims, list):
+            return json.dumps({"status": "ERROR", "error": "Claims file must be a JSON array or {claims: [...]}"})
+
+        # scholar-rag SynthesisClaim emits claim_text + study_id, not
+        # evidence_quote/claim_id. Normalize so VerbatimClaimVerifier can digest it.
+        normalized: list[dict[str, Any]] = []
+        for i, claim in enumerate(claims):
+            if not isinstance(claim, dict):
+                continue
+            normalized.append(
+                {
+                    "claim_id": claim.get("claim_id") or claim.get("workspace_id") or f"CLAIM-{i + 1:04d}",
+                    "study_id": claim.get("study_id") or "",
+                    "evidence_quote": claim.get("evidence_quote") or claim.get("claim_text") or "",
+                    "_rag_status": claim.get("entailment_status"),
+                }
+            )
+
         source_texts = {}
         for f in ed.glob("*.md"):
             content = f.read_text(encoding="utf-8", errors="replace")
@@ -603,8 +625,29 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
                 source_texts[m2.group(1)] = content
 
         verifier = VerbatimClaimVerifier(threshold=threshold)
-        results, metrics = verifier.verify_claims_ledger(claims, source_texts)
-        return json.dumps({"status": "SUCCESS", "metrics": metrics}, indent=2)
+        results, metrics = verifier.verify_claims_ledger(normalized, source_texts)
+
+        failures_by_reason: dict[str, int] = {}
+        verdicts: list[dict[str, Any]] = []
+        for result, claim in zip(results, normalized):
+            verdict = asdict(result)
+            rag_status = claim.get("_rag_status")
+            if rag_status:
+                verdict["rag_entailment_status"] = rag_status
+            if not verdict.get("is_verified") and verdict.get("failure_reason"):
+                reason = verdict["failure_reason"]
+                failures_by_reason[reason] = failures_by_reason.get(reason, 0) + 1
+            verdicts.append(verdict)
+
+        return json.dumps(
+            {
+                "status": "SUCCESS",
+                "metrics": metrics,
+                "failures_by_reason": failures_by_reason,
+                "claims": verdicts,
+            },
+            indent=2,
+        )
     except Exception as e:
         return json.dumps({"status": "ERROR", "error": str(e)})
 
