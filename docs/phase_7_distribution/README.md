@@ -157,7 +157,7 @@ Review of the blueprint against the actual repo (`src/scholar_harness/`, `tools/
 
 ## 4. Implementation Checklist (deferred — see `docs/UPCOMING_WORK.md`)
 
-- [ ] **P7.1** `--workspace` rootdir resolution in `scholar_agent.server.main()`; refactor tool defaults onto a resolved root (the portability enabler).
+- [x] **P7.1** `--workspace` rootdir resolution in `scholar_agent.server.main()`; refactor tool defaults onto a resolved root (the portability enabler).
 - [ ] **P7.2** Repo-root `nexus-scholar` tool-metapackage; `pyproject.toml` `[project]` + script entrypoints; dependency pins **generated from `.agents/plugins/nexus-scholar/plugins.json`** by CI.
 - [ ] **P7.3** `nexus-scholar init <title>` — reuse `inception` wizard; scaffold canonical contract layout, `audit/journal.jsonl`, `.env.example`, `.mcp.json`, skill **symlinks**.
 - [ ] **P7.4** `nexus-scholar setup-mcp` — emits `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and prints the Claude Desktop snippet with **absolute workspace path** baked in (+ `env:` block).
