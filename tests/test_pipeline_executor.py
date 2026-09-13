@@ -1,4 +1,4 @@
-﻿"""Hermetic tests for the M5.4 PipelineSpec DAG executor + CLI `--pipeline`.
+"""Hermetic tests for the M5.4 PipelineSpec DAG executor + CLI `--pipeline`.
 
 Covers: topological scheduling, `{{...}}` template resolution against settings
 and node outputs (incl. output-reference form `{{node_id.path}}`), subprocess
@@ -9,6 +9,8 @@ idempotent re-runs, validation rejections, and the CLI wiring.
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -306,3 +308,10 @@ def test_cli_run_pipeline_halted_exit(tmp_path):
     assert result.exit_code == 1
     assert "Pipeline halted" in result.output
     assert "review" in result.output
+
+
+def test_cold_import_no_circular_import():
+    """Verify scholar_harness.pipeline_executor imports in a fresh process without circular import."""
+    code = "import scholar_harness.pipeline_executor; import scholar_harness.console"
+    res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
+    assert res.returncode == 0, f"Cold import failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
