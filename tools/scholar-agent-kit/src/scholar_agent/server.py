@@ -58,7 +58,9 @@ from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
 
 # Bib Imports
-from scholar_bib.cli import lint as bib_clean
+from scholar_bib.deduplicator import BibDeduplicator
+from scholar_bib.linter import BibLinter
+from scholar_bib.parser import BibParser
 
 # Recon (M0.5) imports -- adapter seam -- do not move above the seam.
 # ---------------------------------------------------------------------------- #
@@ -492,8 +494,16 @@ def nexus_bib_clean(input_bib_path: str, output_bib_path: str = None) -> str:
         return f"Error: {input_bib_path} not found."
     try:
         output_path = Path(output_bib_path or input_bib_path)
-        bib_clean(input_path, output_path, generate_keys=False)
-        return f"Cleaned BibTeX saved to {output_path}"
+        library = BibParser.load(input_path)
+        initial_count = len(library.entries)
+        library = BibLinter.lint(library, generate_keys=True)
+        library = BibDeduplicator.dedup(library)
+        final_count = len(library.entries)
+        BibParser.save(library, output_path)
+        return (
+            f"Cleaned BibTeX saved to {output_path} "
+            f"({initial_count} entries -> {final_count} unique, keys standardized)."
+        )
     except Exception as e:
         return f"Error cleaning BibTeX: {e}"
 

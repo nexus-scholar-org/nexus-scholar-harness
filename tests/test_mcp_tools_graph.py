@@ -14,6 +14,7 @@ from pathlib import Path
 
 import networkx as nx
 from scholar_agent.server import (
+    nexus_bib_clean,
     nexus_extract_pdf,
     nexus_graph_build,
 )
@@ -150,3 +151,57 @@ def test_nexus_extract_pdf_doi_regex_from_plain_name(tmp_path, monkeypatch):
 
     assert captured["metadata"]["doi"] == ""
     assert captured["metadata"]["title"] == "scott2020"
+
+
+# ---------------------------------------------------------------------------
+# nexus_bib_clean: full pipeline (lint + generate-keys + dedup)
+# ---------------------------------------------------------------------------
+
+BIB_WITH_DUPLICATES = """\
+@article{dummy_key_1,
+  author = {Smith, John and Doe, Jane},
+  title = {A study of citation networks},
+  year = {2020},
+  doi = {10.1000/abc123},
+  journal = {Test Journal}
+}
+
+@article{DummyKey-2,
+  author = {Smith, John and Doe, Jane},
+  title = {A study of citation networks},
+  year = {2020},
+  doi = {10.1000/abc123},
+  journal = {Test Journal}
+}
+"""
+
+
+def test_nexus_bib_clean_standardizes_keys_and_deduplicates(tmp_path):
+    bib = tmp_path / "library.bib"
+    bib.write_text(BIB_WITH_DUPLICATES, encoding="utf-8")
+    out = tmp_path / "cleaned.bib"
+
+    result = nexus_bib_clean(str(bib), str(out))
+
+    assert out.exists()
+    assert "2 entries -> 1 unique" in result
+
+    from scholar_bib.parser import BibParser
+
+    cleaned = BibParser.load(out)
+    keys = [e.key for e in cleaned.entries]
+    assert len(cleaned.entries) == 1, keys
+    assert keys == ["Smith2020"]
+
+
+def test_nexus_bib_clean_inplace_when_no_output(tmp_path):
+    bib = tmp_path / "library.bib"
+    bib.write_text(BIB_WITH_DUPLICATES, encoding="utf-8")
+
+    result = nexus_bib_clean(str(bib))
+
+    assert "1 unique" in result
+    from scholar_bib.parser import BibParser
+
+    library = BibParser.load(bib)
+    assert len(library.entries) == 1
