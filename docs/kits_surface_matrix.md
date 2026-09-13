@@ -26,8 +26,8 @@ that no single skill covers.
 | rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
-| agent (`scholar_agent`) | MCP server (18 tools) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
-| verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim only) — Phase-4 streams are **CLI-only** | Phase-4 trust |
+| agent (`scholar_agent`) | MCP server (19 tools) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
+| verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (Phase-4 streams) | Phase-4 trust |
 
 ---
 
@@ -127,6 +127,13 @@ latent bug**, with the working path in parentheses.
     are CLI-only.** No MCP tool wraps them; only `verbatim` is on MCP. The console
     exposes just `trust-context` as an action (`mcp_tool: None`). Agents must shell
     `uv run scholar-verify <stream> --workspace <ws>`.
+    **RESOLVED:** `nexus_verify_phase4(workspace_dir, stream="all", sleep_s=0.2,
+    skip_retraction=True, rq_id=None)` wraps the same thin CLI helpers
+    (`_merged_records/_load/_write/_manifest`) and module functions, writes
+    `<ws>/phase4/<name>.{json,md}` mirrors of each stream, and returns the written
+    paths. `retraction` is network-bound (OpenAlex/Crossref) so `skip_retraction`
+    defaults True; `trust-context`/`all` skip gracefully when no `synthesis/consensus.json`
+    exists. Regression tests in `tests/test_mcp_tools_graph.py`.
 11. *(fixed this sweep)* **`scholar-verify` CLI crashed on Python 3.14** —
     `cli.py:229` used `Optional[Path]` in a `typer` callback annotation while only
     importing `typing.Any`; with `from __future__ import annotations`, typer evaluates
@@ -262,8 +269,8 @@ latent bug**, with the working path in parentheses.
   canon/extraction-schema/extraction-prompt. **Never writes files.**
 - **MCP:** `nexus_protocol_compile` (path-or-JSON-string; returns `{status, protocol_id,
   fingerprint, protocol}` wrapper; **does not persist** — agent writes protocol.json),
-  `nexus_protocol_validate` (file path = full validation; inline JSON = structural
-  only; warnings dropped on valid), `nexus_protocol_render_criteria` (path-only, raw md).
+  `nexus_protocol_validate` (file path or inline JSON — both run the full structural +
+  cross-field rule set; warnings dropped on valid), `nexus_protocol_render_criteria` (path-only, raw md).
   `extraction-schema`/`extraction-prompt`/`canon`/strict have no MCP surface.
 - **Knowledge:** `created_at` pinned from `genesis_timestamp` (the one nondeterminism
   trap when hand-constructing); fingerprint = canonical content (formatting won't change
@@ -273,9 +280,9 @@ latent bug**, with the working path in parentheses.
   JSON strings, not MCP failures; matrix-extract validates only structurally.
 
 ### scholar-agent-kit (MCP front-door)
-- **18 tools** (15 `nexus_*` + 3 `recon_*`) — NOT the 7 the skill documents; `--help`
-  lists all 18 (parity enforced by `tests/conformance/test_mcp_tool_parity.py`). Full inventory
-  and signatures in `server.py` (tool list at lines 125-930); launch via `uv run
+- **19 tools** (16 `nexus_*` + 3 `recon_*`); `--help` lists all 19 (parity enforced
+  by `tests/conformance/test_mcp_tool_parity.py`). Full inventory and signatures in
+  `server.py` (tool list at lines 125-930); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in
   `mcp_config.json`).
 - **Harness adapter:** `_harness_src()` walks up for `src/scholar_harness/recon/__init__.py`,
@@ -285,7 +292,11 @@ latent bug**, with the working path in parentheses.
 - **Return conventions:** machine JSON = protocol + reconcile + verify + recon tools;
   prose strings (success "Error:" prefixes) = the rest.
 - **`nexus_verify_claims`** wraps `VerbatimClaimVerifier(threshold=0.90)` (verify kit),
-  returns only `{status, metrics}` — schema mismatch documented in finding 6.
+  returns `{status, metrics, failures_by_reason, claims}` — RAG `claims.json` schema
+  bridge documented in finding 6.
+- **`nexus_verify_phase4`** runs scholar-verify Phase-4 streams (see verify-kit
+  section) via the same thin CLI helpers; `workspace_dir` resolved with the standard
+  `_resolve_path` anchor.
 - **Bare `uv sync` of the kit would break** — `scholar_verify.verbatim` is imported but
   `scholar-verify-kit` is not a declared dep (shared-venv install hides it).
 
@@ -305,7 +316,8 @@ latent bug**, with the working path in parentheses.
   trust-context/verbatim, no overwrite prompt); outputs `phase4/{retraction_status_check,
   open_science_regex_baseline, coi_audit, risk_of_bias, trust_consensus[_<rq>]}.{json,md}`
   with envelope `{run_metadata, summary, results}`.
-- **MCP:** `nexus_verify_claims` (verbatim only). Phase-4 streams **CLI-only** (finding 10).
+- **MCP:** `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (any/all Phase-4
+  streams; same envelope + phase4/ outputs as the CLI; `skip_retraction` default True).
 - **Knowledge:** only retraction hits the network (mailto `verification@nexus-scholar.example`);
   hermetic everything else; `10.48550` arXiv DOIs short-circuit Crossref (`_datacite`);
   RQ attribution = exact `(study_id, claim_text)` match; `_FLAG_REASON_SENSITIVE` dead

@@ -124,8 +124,8 @@ def _probe(monkeypatch, tmp_path, search_fn=_topic_search_fn) -> dict:
 def test_three_recon_tools_registered_on_mcp():
     names = {tool.name for tool in asyncio.run(server.mcp.list_tools())}
     assert {"recon_probe", "recon_distill", "recon_delta"} <= names
-    # The 15 existing nexus_* tools are untouched.
-    assert len(names) == 18
+    # The 16 existing nexus_* tools are untouched.
+    assert len(names) == 19
     assert "nexus_discover" in names
 
 

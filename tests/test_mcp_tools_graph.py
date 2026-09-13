@@ -534,3 +534,86 @@ def test_nexus_protocol_validate_inline_and_file_modes_agree(tmp_path):
 
     assert inline["status"] == filed["status"] == "INVALID"
     assert sorted(inline["errors"]) == sorted(filed["errors"])
+
+
+# ---------------------------------------------------------------------------
+# nexus_verify_phase4: run Phase-4 streams, write phase4/ mirrors (no network)
+# ---------------------------------------------------------------------------
+
+
+def _stub_phase4_modules(monkeypatch):
+    from scholar_agent import server
+
+    monkeypatch.setattr(
+        server.verify_cli, "_merged_records", lambda ws: {"studies": [{"study_id": "s1"}]}
+    )
+    monkeypatch.setattr(server.verify_cli, "_manifest", lambda ws: {"studies": {"s1": {}}})
+    monkeypatch.setattr(
+        server.open_science,
+        "run",
+        lambda recs, extracted: {"summary": {"scanned": 1}, "results": {}},
+    )
+    monkeypatch.setattr(server.open_science, "render_report", lambda out: "# Open-Science\n")
+    monkeypatch.setattr(server.coi, "load_chunks", lambda d: [])
+    monkeypatch.setattr(server.coi, "run", lambda manifest, chunks: {"summary": {}, "results": {}})
+    monkeypatch.setattr(server.coi, "render_report", lambda out: "# COI\n")
+    monkeypatch.setattr(
+        server.risk_of_bias,
+        "run",
+        lambda recs, manifest: {"summary": {"overall": "LOW"}, "results": {}},
+    )
+    monkeypatch.setattr(
+        server.risk_of_bias, "render_report", lambda out: "# Risk of Bias\n"
+    )
+    return server
+
+
+def test_nexus_verify_phase4_writes_phase4_artifacts(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    _stub_phase4_modules(monkeypatch)
+    payload = json.loads(server.nexus_verify_phase4(str(tmp_path), stream="risk-of-bias"))
+    assert payload["status"] == "SUCCESS"
+    out = tmp_path / "phase4" / "risk_of_bias.json"
+    assert out.is_file()
+    assert json.loads(out.read_text(encoding="utf-8"))["summary"]["overall"] == "LOW"
+    assert (tmp_path / "phase4" / "risk_of_bias.md").is_file()
+    assert payload["written"]["risk_of_bias"] == str(out)
+
+
+def test_nexus_verify_phase4_trust_context_writes_annotated_mirror(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    _stub_phase4_modules(monkeypatch)
+    (tmp_path / "synthesis").mkdir()
+    (tmp_path / "synthesis" / "consensus.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        server.verify_cli,
+        "_load",
+        lambda p, kind: {"studies": {}} if "consensus" not in str(p) else {"reports": []},
+    )
+    monkeypatch.setattr(server.trust_context, "_rows", lambda data: [])
+    monkeypatch.setattr(
+        server.trust_context,
+        "annotate",
+        lambda cons, phase4, rq_id=None, claims_by_rq=None: {"annotated": True},
+    )
+    monkeypatch.setattr(server.trust_context, "render_report", lambda annotated: "# Trust\n")
+
+    payload = json.loads(server.nexus_verify_phase4(str(tmp_path), stream="trust-context"))
+    assert payload["status"] == "SUCCESS"
+    out = tmp_path / "phase4" / "trust_consensus.json"
+    assert payload["written"]["trust_context"] == str(out)
+    assert out.is_file()
+    assert (tmp_path / "phase4" / "trust_consensus.md").is_file()
+
+
+def test_nexus_verify_phase4_gates_bad_stream_and_missing_workspace(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    payload = json.loads(server.nexus_verify_phase4(str(tmp_path / "nope"), stream="open-science"))
+    assert payload["status"] == "ERROR"
+
+    payload = json.loads(server.nexus_verify_phase4(str(tmp_path), stream="bogus"))
+    assert payload["status"] == "ERROR"
+    assert "bogus" in payload["error"]
