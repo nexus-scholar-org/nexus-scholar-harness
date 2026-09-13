@@ -399,3 +399,138 @@ def test_nexus_resolve_path_leaves_absolute_and_inline_json_untouched(tmp_path, 
     assert server._resolve_path(str(tmp_path)) == str(tmp_path)
     assert server._resolve_path('{"a": 1}') == '{"a": 1}'
     assert server._resolve_path(None) is None
+
+
+# ---------------------------------------------------------------------------
+# nexus_rag_query: graph PageRank boosting params (matrix finding #7)
+# ---------------------------------------------------------------------------
+
+class _RecordingRetriever:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.calls = []
+
+    def query(self, **kwargs):
+        self.calls.append(kwargs)
+        return []
+
+
+def test_nexus_rag_query_passes_graph_boost_params(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    anchor = tmp_path / "anchor"
+    anchor.mkdir()
+    monkeypatch.setattr(server, "_mcp_anchor", lambda: anchor)
+    holder = {}
+
+    def _factory(db_path):
+        r = _RecordingRetriever(db_path=db_path)
+        holder["r"] = r
+        return r
+
+    monkeypatch.setattr(server, "ScholarRetriever", _factory)
+
+    server.nexus_rag_query(
+        "deep learning",
+        db_path="./chroma_db",
+        graph_source="graph.json",
+        alpha=0.5,
+        beta=0.25,
+        boost_doi="10.1000/example",
+    )
+    call = holder["r"].calls[0]
+    assert call["graph_source"] == str(anchor / "graph.json")
+    assert call["alpha"] == 0.5
+    assert call["beta"] == 0.25
+    assert call["boost_dois"] == ["10.1000/example"]
+    assert call["query_text"] == "deep learning"
+
+
+def test_nexus_rag_query_uses_default_weighting(tmp_path, monkeypatch):
+    from scholar_agent import server
+
+    holder = {}
+
+    def _factory(db_path):
+        r = _RecordingRetriever(db_path=db_path)
+        holder["r"] = r
+        return r
+
+    monkeypatch.setattr(server, "ScholarRetriever", _factory)
+
+    server.nexus_rag_query("semantic search", db_path=str(tmp_path / "db"))
+    call = holder["r"].calls[0]
+    assert call["graph_source"] is None
+    assert call["alpha"] == 0.25
+    assert call["beta"] == 0.15
+
+
+# ---------------------------------------------------------------------------
+# nexus_protocol_validate: inline mode runs the full cross-field rule set
+# (matrix finding #5)
+# ---------------------------------------------------------------------------
+
+def _compiled_protocol_dict(intent_extra):
+    from scholar_protocol.canonical import canonical_json
+    from scholar_protocol.compiler import compile_protocol
+    from scholar_protocol.intent import IntentPacket
+
+    data = {
+        "protocol_id": "proto-validate-test",
+        "genesis_timestamp": "2026-09-01T00:00:00+00:00",
+        "project_slug": "validate-test-workspace",
+        "playbook_type": "DESIGN_SCIENCE",
+        "title": "Inline Cross-Field Validation",
+        "lead_researcher": "Test Lead",
+        "unit_of_analysis": "Harness Pipelines",
+        "epistemological_rationale": "Empirical Benchmark",
+        "research_questions": [
+            {
+                "text": "What is the pipeline throughput?",
+                "target_facet": "evaluation_metrics",
+                "required_evidence_type": "Quantitative Benchmark",
+            }
+        ],
+        "core_concepts": [{"concept": "Pipeline", "synonyms": ["orchestrator"]}],
+        "inclusion_criteria": [
+            {"criterion": "Reports benchmark pass rates", "maps_to_rqs": ["RQ1"]}
+        ],
+        "exclusion_criteria": [
+            {"criterion": "Non-English", "reason_category": "LANGUAGE", "maps_to_rqs": ["RQ1"]}
+        ],
+        "matrix_dimensions": [
+            {"id": "throughput", "name": "Throughput", "description": "Operations per second"}
+        ],
+    }
+    if intent_extra:
+        data.update(intent_extra)
+    intent = IntentPacket.model_validate(data)
+    return json.loads(canonical_json(compile_protocol(intent)).decode("utf-8"))
+
+
+def test_nexus_protocol_validate_inline_runs_cross_field_rules():
+    from scholar_agent.server import nexus_protocol_validate
+
+    pristine = _compiled_protocol_dict(None)
+    assert json.loads(nexus_protocol_validate(json.dumps(pristine)))["status"] == "VALID"
+
+    dup = _compiled_protocol_dict(None)
+    dup["research_questions"].append(dup["research_questions"][0])
+    payload = json.loads(nexus_protocol_validate(json.dumps(dup)))
+    assert payload["status"] == "INVALID"
+    assert any("appears more than once" in err for err in payload["errors"])
+
+
+def test_nexus_protocol_validate_inline_and_file_modes_agree(tmp_path):
+    from scholar_agent.server import nexus_protocol_validate
+
+    dup = _compiled_protocol_dict(None)
+    dup["research_questions"].append(dup["research_questions"][0])
+    inline = json.loads(nexus_protocol_validate(json.dumps(dup)))
+
+    proto_file = tmp_path / "protocol.json"
+    proto_file.write_text(json.dumps(dup), encoding="utf-8")
+    filed = json.loads(nexus_protocol_validate(str(proto_file)))
+
+    assert inline["status"] == filed["status"] == "INVALID"
+    assert sorted(inline["errors"]) == sorted(filed["errors"])

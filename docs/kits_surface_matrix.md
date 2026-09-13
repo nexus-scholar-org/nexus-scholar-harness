@@ -83,6 +83,10 @@ latent bug**, with the working path in parentheses.
    runs the full rule set (`_check_cross_field`: duplicate IDs, date/pool
    coherence, RQ refs, warnings). No `--strict` surface. Errors return as
    `{"status": "INVALID", …}` JSON, not MCP failures.
+   **RESOLVED:** inline-JSON mode now runs the same structural + cross-field rule
+   set as file mode (`ResearchProtocol.model_validate` + `_check_cross_field`),
+   and both modes share identical response formatting (verified by a parity test
+   in `tests/test_mcp_tools_graph.py`).
 6. **`nexus_verify_claims` cannot digest `scholar-rag` claims.json.** The tool
    reads `claim_id/workspace_id/study_id/evidence_quote`; `SynthesisClaim` emits
    `claim_text/citation_tokens/entailment_status/…` with **no `evidence_quote`** →
@@ -98,6 +102,11 @@ latent bug**, with the working path in parentheses.
    boosting but no `graph_source`/`alpha`/`beta` parameter exists; only `boost_doi`
    (seed term, default β=0.15) is reachable. Full hybrid retrieval needs the CLI
    `scholar-rag query --graph <graph.json> --alpha --beta`.
+   **RESOLVED:** `nexus_rag_query` now accepts `graph_source` (as exported by
+   `nexus_graph_build`) plus `alpha` (default 0.25) and `beta` (default 0.15) and
+   passes them to `ScholarRetriever.query`, matching the CLI
+   (`CosineSim + alpha*PageRank + beta*seed`). Regression tests in
+   `tests/test_mcp_tools_graph.py`.
 8. **`nexus_screen` bypasses the agent-in-the-loop PRISMA contract.** It runs
     heuristic screening in-process; `conflicts.json` and `prisma_report.json` are
     computed but **never written** (only included/excluded/md). Pairing it with
