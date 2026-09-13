@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexus-scholar"
+version = "1.0.0"
+description = "Single umbrella package: the Nexus Scholar harness CLI and the eight scholar-* kit packages behind one uvx command."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# Light, pragmatic runtime set for the smoke paths (``nexus-scholar --help`` /
+# ``scholar-agent --help``).  Heavy deps (chromadb, torch, sentence-transformers)
+# are deliberately deferred to P7.7 (lazy imports) to keep the wheel install fast.
+dependencies = [
+    "aiohttp>=3.9.0",
+    "bibtexparser>=2.0.0",
+    "fastapi>=0.115.0",
+    "hishel==0.0.32",
+    "httpx>=0.28.1",
+    "mcp>=1.0.0",
+    "networkx>=3.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "pyvis>=0.3.0",
+    "requests>=2.31.0",
+    "rich>=13.0.0",
+    "tenacity>=8.0.0",
+    "typer>=0.9.0",
+    "uvicorn>=0.30.0",
+]
+
+[project.scripts]
+nexus-scholar = "scholar_harness.cli:app"
+scholar-agent = "scholar_agent.server:main"
+
+# Sources are bundled into the wheel at top level from the monorepo layout:
+# the harness package (../../src) and the eight kit packages (../../tools/*/src).
+# Nothing is copied into this directory at author time.
+[tool.hatch.build.targets.wheel]
+packages = []
+
+[tool.hatch.build.targets.wheel.force-include]
+"../../src/scholar_harness" = "scholar_harness"
+"../../tools/scholar-protocol-kit/src/scholar_protocol" = "scholar_protocol"
+"../../tools/scholar-search-kit/src/scholar_search" = "scholar_search"
+"../../tools/scholar-pdf-kit/src/scholar_pdf" = "scholar_pdf"
+"../../tools/scholar-bib-kit/src/scholar_bib" = "scholar_bib"
+"../../tools/scholar-rag-kit/src/scholar_rag" = "scholar_rag"
+"../../tools/scholar-graph-kit/src/scholar_graph" = "scholar_graph"
+"../../tools/scholar-agent-kit/src/scholar_agent" = "scholar_agent"
+"../../tools/scholar-verify-kit/src/scholar_verify" = "scholar_verify"
+"nexus_scholar_pins.json" = "nexus_scholar_pins.json"

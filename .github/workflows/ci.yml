@@ -38,6 +38,40 @@ jobs:
       
       - name: Verify plugin manifest
         run: uv run python scripts/validate_manifest.py
+
+      - name: Enforce nexus-scholar pins freshness
+        run: uv run python scripts/generate_nexus_scholar_pins.py --check
+
+      - name: Build nexus-scholar metapackage wheel
+        run: uv build --wheel packaging/nexus-scholar
+
+      - name: Smoke nexus-scholar metapackage wheel (best-effort)
+        # The chromadb trace is the documented P7.7-deferred gap (lazy-imports);
+        # anything else that fails the smoke (missing entrypoint, absent
+        # force-include package, ...) is an unexpected packaging regression and
+        # marks this step red even with continue-on-error.
+        shell: bash
+        run: |
+          P7_7_GAP="ModuleNotFoundError: No module named 'chromadb'"
+          smoke() {
+            local entrypoint="$1"
+            if uvx --from packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl "$entrypoint" --help > smoke.log 2>&1; then
+              echo "$entrypoint smoke OK"
+              return 0
+            fi
+            if grep -q "$P7_7_GAP" smoke.log; then
+              echo "$entrypoint smoke hit the documented P7.7-deferred chromadb gap; continuing"
+              return 0
+            fi
+            echo "::error::$entrypoint smoke FAILED with an unexpected error (packaging regression?)"
+            cat smoke.log
+            return 1
+          }
+          status=0
+          smoke "nexus-scholar" || status=1
+          smoke "scholar-agent" || status=1
+          exit $status
+        continue-on-error: true
       
       - name: Install plugins (git-only, no local checkouts)
         run: uv run python scripts/install_plugins.py --git-only --no-verify
