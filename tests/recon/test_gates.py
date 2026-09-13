@@ -12,7 +12,14 @@ from scholar_search.models import Document, ExternalIds
 
 from scholar_harness.inception import _run_grounded_recon
 from scholar_harness.recon import ReconEngine
-from scholar_harness.recon.gates import assert_apr, compute_apr
+from scholar_harness.recon.gates import (
+    POOL_THIN_FLOOR,
+    TOPIC_COHERENCE_TOP3_SHARE,
+    assert_apr,
+    compute_apr,
+    compute_pool_sufficiency,
+    compute_topic_purity,
+)
 
 TOPIC = "grape disease detection for vineyard robots"
 
@@ -140,3 +147,73 @@ def test_tampered_anchor_map_fails_the_gate(tmp_path):
         assert "APR" in str(exc)
     else:
         raise AssertionError("assert_apr must reject the tampered map")
+
+
+# ---------------------------------------------------------------------------
+# P5 (pool-size floor) + P2 (topical coherence), 16_inception_improvements.md
+# ---------------------------------------------------------------------------
+
+
+def test_pool_sufficiency_threshold_and_labels():
+    assert POOL_THIN_FLOOR == 12
+    # Thin pools: fintech n=8 and materials n=6 produced fragmentary
+    # directions and no topics layer in the 2026-09-13 multi-domain trial.
+    for n_docs in (0, 1, 8, 11):
+        gate = compute_pool_sufficiency(n_docs)
+        assert gate["label"] == "thin"
+        assert gate["sufficient"] is False
+        assert gate["n_docs"] == n_docs
+    for n_docs in (12, 13, 25):
+        gate = compute_pool_sufficiency(n_docs)
+        assert gate["label"] == "sufficient"
+        assert gate["sufficient"] is True
+    assert compute_pool_sufficiency(12)["threshold"] == POOL_THIN_FLOOR
+
+
+def _topic(n_docs: int, label: str = "T") -> dict:
+    return {"label": label, "n": n_docs, "score": 0.9, "anchor_dois": []}
+
+
+def test_topic_purity_empty_is_indeterminate_not_zero():
+    gate = compute_topic_purity([])
+    assert gate["label"] == "indeterminate"
+    assert gate["purity"] is None
+    assert gate["top1_share"] is None
+    assert gate["top3_share"] is None
+    assert gate["n_topics"] == 0
+    # Absence of the signal is a fact, not a "0 coherence" verdict.
+    assert gate["threshold"] == TOPIC_COHERENCE_TOP3_SHARE
+
+
+def test_topic_purity_all_zero_counts_is_indeterminate():
+    gate = compute_topic_purity([_topic(0, "A"), _topic(0, "B")])
+    assert gate["label"] == "indeterminate"
+    assert gate["purity"] is None
+
+
+def test_topic_purity_coherent_when_top3_dominate():
+    # Trial-calibrated: oncology/climate/education pools had top-3 topic
+    # shares of 0.53-0.80; e.g. oncology n=(5,4,3,1,1,1) -> 12/15 = 0.8.
+    topics = [_topic(1, "F"), _topic(5, "A"), _topic(1, "E"),
+              _topic(4, "B"), _topic(3, "C"), _topic(1, "D")]
+    gate = compute_topic_purity(topics)  # input order must not matter (sorted)
+    assert gate["label"] == "coherent"
+    assert gate["purity"] == pytest.approx(0.8)
+    assert gate["top3_share"] == pytest.approx(0.8)
+    assert gate["top1_share"] == pytest.approx(5 / 15, abs=1e-4)
+    assert gate["n_topics"] == 6
+
+
+def test_topic_purity_coherent_at_boundary():
+    topics = [_topic(1, f"T{i}") for i in range(6)]  # top3 share = 3/6 = 0.5 >= 0.5
+    gate = compute_topic_purity(topics)
+    assert gate["label"] == "coherent"
+    assert gate["purity"] == pytest.approx(0.5)
+
+
+def test_topic_purity_fragmented_when_spread_thin():
+    topics = [_topic(1, f"T{i}") for i in range(10)]  # top3 share = 0.3 < 0.5
+    gate = compute_topic_purity(topics)
+    assert gate["label"] == "fragmented"
+    assert gate["purity"] == pytest.approx(0.3)
+    assert gate["n_topics"] == 10

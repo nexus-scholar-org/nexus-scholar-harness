@@ -24,6 +24,27 @@ TOPIC = "drone crop disease detection"
 THIN_TERM = "edge inference"
 
 
+def _repo_root() -> Path:
+    current = Path(__file__).resolve().parent
+    while True:
+        if (current / "pyproject.toml").is_file():
+            return current
+        current = current.parent
+
+
+@pytest.fixture(autouse=True)
+def _isolate_recon_cache_root(tmp_path, monkeypatch):
+    """Pin the MCP server's recon cache to the test's tmp dir.
+
+    P4 made the module default a repo-anchored absolute path; every hermetic
+    probe must land under ``tmp_path/.cache/inception_recon`` instead of the
+    real checkout.
+    """
+    monkeypatch.setattr(
+        server, "RECON_CACHE_ROOT", tmp_path / ".cache" / "inception_recon"
+    )
+
+
 def _fake_doc(doi: str, title: str, abstract: str) -> Document:
     return Document(
         title=title,
@@ -188,6 +209,14 @@ def test_recon_distill_returns_terms_file_and_anchored_schools(tmp_path, monkeyp
     assert schools[THIN_TERM]["n"] == 2
     assert set(schools[THIN_TERM]["anchor_dois"]) == {"10.1000/edge-a", "10.1000/edge-b"}
 
+    # P5 + P2 admission gates ride along the distill reply (16_spec, E/F):
+    # 3 fake docs < the 12-doc floor -> thin; no OpenAlex topics -> indeterminate.
+    assert result["pool"]["n_docs"] == 3
+    assert result["pool"]["label"] == "thin"
+    assert result["pool"]["sufficient"] is False
+    assert result["purity"]["label"] == "indeterminate"
+    assert result["purity"]["purity"] is None
+
 
 # ---------------------------------------------------------------------------
 # T5.4: session survives across copilot turns on disk -- no re-probe
@@ -319,6 +348,7 @@ def test_recon_probe_refuses_sessions_under_workspaces(tmp_path, monkeypatch, di
     ws_root = tmp_path / dir_name
     ws_root.mkdir()
     monkeypatch.chdir(ws_root)
+    monkeypatch.setattr(server, "RECON_CACHE_ROOT", ws_root / ".cache" / "inception_recon")
     monkeypatch.setattr(server, "RECON_SEARCH_FN", _explode_search)
 
     result = json.loads(server.recon_probe(topic="anything"))
@@ -405,6 +435,29 @@ def test_recon_distill_and_delta_surface_topics(tmp_path, monkeypatch):
     assert delta["topics"]
 
 
+def test_recon_distill_purity_gate_scores_coherent_topics(tmp_path, monkeypatch):
+    def search_fn(query: Query, providers: list[str]):
+        docs = _topic_docs()
+        for i, doc in enumerate(docs):
+            doc.topics = [
+                {"source": "openalex_topics", "id": f"T{i}",
+                 "display_name": "Edge computing", "score": 0.9 - i * 0.1}
+            ]
+        return docs
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+    probe = json.loads(server.recon_probe(topic=TOPIC))
+
+    dist = json.loads(server.recon_distill(session_id=probe["session_id"]))
+    # One dominant topic label across all 3 docs -> top-3 share 1.0 => coherent.
+    assert dist["purity"]["label"] == "coherent"
+    assert dist["purity"]["purity"] == 1.0
+    assert dist["purity"]["n_topics"] == 1
+    # The pool gate is orthogonal: still thin at 3 docs.
+    assert dist["pool"]["label"] == "thin"
+
+
 # ---------------------------------------------------------------------------
 # T5.5: every successful result carries its lineage cache_key
 # ---------------------------------------------------------------------------
@@ -452,6 +505,35 @@ def test_recon_distill_lexicon_json_adds_metric(tmp_path, monkeypatch):
     )
     # The lexicon hash is baked into the artifact name for provenance.
     assert "distilled_lx" in Path(result["terms_path"]).name
+
+
+def test_recon_distill_lexicon_json_accepts_already_parsed_dict(tmp_path, monkeypatch):
+    # P3 (16_inception_improvements.md F8): agent frameworks that auto-parse
+    # JSON-looking arguments hand the tool a dict, which used to fail the
+    # str-typed boundary. The lenient str | dict signature must accept both.
+    probe = _probe(monkeypatch, tmp_path)
+    lexicon = {"metrics": {r"small cnn": "CNN-Compact"}}
+
+    as_dict = json.loads(
+        server.recon_distill(
+            session_id=probe["session_id"], lexicon_json=lexicon
+        )
+    )
+    assert "terms_path" in as_dict  # success reply (errors carry only status)
+    assert any(
+        m["label"] == "CNN-Compact" and m["count"] == 1 for m in as_dict["metrics"]
+    )
+    assert "distilled_lx" in Path(as_dict["terms_path"]).name
+
+    as_str = json.loads(
+        server.recon_distill(
+            session_id=probe["session_id"], lexicon_json=json.dumps(lexicon)
+        )
+    )
+    assert any(m["label"] == "CNN-Compact" for m in as_str["metrics"])
+    # Same lexicon content -> same provenance hash, same artifact name,
+    # whether it arrived as a dict or a JSON string.
+    assert Path(as_dict["terms_path"]).name == Path(as_str["terms_path"]).name
 
 
 def test_recon_distill_lexicon_json_rejects_invalid(tmp_path, monkeypatch):
@@ -577,7 +659,8 @@ def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
     finally:
         monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
         importlib.reload(server)
-        assert (
-            server.RECON_CACHE_ROOT
-            == Path(".cache/inception_recon")
+        # Env unset: P4 default, repo-anchored and CWD-independent (absolute,
+        # under the checkout), NOT the old CWD-relative fallback.
+        assert server.RECON_CACHE_ROOT == (
+            _repo_root() / ".cache" / "inception_recon"
         )

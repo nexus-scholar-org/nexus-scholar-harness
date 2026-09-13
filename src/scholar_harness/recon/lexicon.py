@@ -1,4 +1,4 @@
-"""Pluggable domain lexicons for the distiller (M0.4, T4.5).
+"""Pluggable domain lexicons for the distiller (M0.4, T4.5; broadened by P6).
 
 The distiller's metric/dataset/school pattern tables were hard-coded for the
 computer-vision/LLM domain.  :class:`DomainLexicon` externalizes them so any
@@ -7,10 +7,13 @@ its own patterns.  Each field maps a regex pattern (source string) to the
 canonical label it emits, matching the shape ``distill_pool`` consumes and
 the terms-file schema carries (spec 04_memory_and_cache.md section 6).
 
-``DEFAULT_LEXICON`` reproduces today's tables verbatim, so ``distill_pool``
-with no lexicon argument is byte-identical to the pre-M0.4 behavior.
+``DEFAULT_LEXICON`` ships today's CV/LLM tables **plus** a curated cross-domain
+core (climate/geoscience, health, finance/economics, education/social science,
+materials/chemistry) so a non-tech pool gets ``schools``/``metrics``/``datasets``
+signal on day one (P6, 16_inception_improvements.md F.6).  It stays a keyword
+heuristic: specialized registries still come from the domain lexicon merge.
 ``merge_lexicons`` overlays a field's patterns onto a base lexicon without
-mutating it, which is how a non-CV domain is plugged in.
+mutating it, which is how a niche domain is plugged in.
 
 No named-field registry is shipped: M0.4 keeps exactly one shipped lexicon
 (the default) and proves genericity through the merge hook and the tests.
@@ -32,6 +35,14 @@ _DEFAULT_METRICS: dict[str, str] = {
     r"\baccuracy\b": "accuracy",
     r"exact\s+match": "exact match",
     r"\bcodebleu\b": "codebleu",
+    r"\brmse\b": "RMSE",
+    r"\bmae\b": "MAE",
+    r"\bauc\b": "AUC",
+    r"\br2\b": "R2",
+    r"\bmcc\b": "MCC",
+    r"\bp[- ]?value\b": "p-value",
+    r"\b(?:95% )?confidence interval\b": "confidence interval",
+    r"\bodds ratio\b": "odds ratio",
 }
 
 _DEFAULT_DATASETS: dict[str, str] = {
@@ -51,6 +62,10 @@ _DEFAULT_DATASETS: dict[str, str] = {
     r"\bmedmnist\b": "MedMNIST",
     r"\bcityscapes\b": "Cityscapes",
     r"\bpascal[ -]?voc\b": "Pascal VOC",
+    r"\bera5\b": "ERA5",
+    r"\bcmip\d?\b": "CMIP",
+    r"\btcga\b": "TCGA",
+    r"\bmimic(?:-iii|-iv)?\b": "MIMIC",
 }
 
 _DEFAULT_SCHOOLS: dict[str, str] = {
@@ -61,6 +76,24 @@ _DEFAULT_SCHOOLS: dict[str, str] = {
     r"\b(?:multi|hyper)[- ]?spectral\b": "multispectral/hyperspectral",
     r"\bsegmentations?\b": "segmentation",
     r"\btransformers?\b": "transformer",
+    r"\bclimate[- ]?change\b": "climate science",
+    r"\bglobal[- ]?warming\b": "global warming",
+    r"\b(?:precipitation|rainfall)\b": "precipitation",
+    r"\bdroughts?\b": "drought",
+    r"\bhydrolog(?:y|ical)\b": "hydrology",
+    r"\b(?:oncology|oncologic|cancers?|tumou?rs?)\b": "oncology",
+    r"\bimmunotherapy\b": "immunotherapy",
+    r"\b(?:clinical|randomi[sz]ed controlled) trials?\b": "clinical trial",
+    r"\b(?:magnetic resonance imaging|mri)\b": "MRI",
+    r"\bcredit (?:risk|scoring)\b": "credit risk",
+    r"\bcausal inference\b": "causal inference",
+    r"\beconometrics?\b": "econometrics",
+    r"\blearning analytics\b": "learning analytics",
+    r"\bself[- ]?regulated learning\b": "self-regulated learning",
+    r"\bqualitative (?:research|content analysis|analysis)\b": "qualitative research",
+    r"\b(?:density functional|first[- ]principles?|dft)\b": "DFT",
+    r"\bmolecular dynamics\b": "molecular dynamics",
+    r"\binteratomic potentials?\b": "interatomic potentials",
 }
 
 

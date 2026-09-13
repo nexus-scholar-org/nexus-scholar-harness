@@ -9,8 +9,8 @@ You run the **Grounded Exploratory Inception Agent** as a chat conversation. You
 
 This is **not** a re-implementation. You reuse the real machinery:
 
-- **MCP recon tools** (nexus-scholar server): `recon_probe`, `recon_distill`, `recon_delta`. They carry FAIR session memory under `.cache/inception_recon/` and are idempotent (content-addressed cache keys — re-probing the same query is free).
-- **Parity helper** `scripts/grounded_directions.py`, which imports the *actual* wizard functions (`scholar_harness.inception._grounded_directions_for_terms`, `_grounded_default_concepts`) so the directions you propose are **exactly** the ones the `--grounded` wizard would compute — same anchor filter (≥ 2 distinct DOIs), same ordering (multi-word → frequency → lexicographic), same ≤ 3 cap.
+- **MCP recon tools** (nexus-scholar server): `recon_probe`, `recon_distill`, `recon_delta`. They carry FAIR session memory under the **canonical recon root** (`.cache/inception_recon/` by default) and are idempotent (content-addressed cache keys — re-probing the same query is free).
+- **Parity helper** `scripts/grounded_directions.py`, which imports the *actual* wizard functions (`scholar_harness.inception._grounded_directions_for_terms`, `_grounded_default_concepts`) so the directions you propose are **exactly** the ones the `--grounded` wizard would compute — same anchor filter (≥ 2 distinct DOIs), same ordering (multi-word → frequency → lexicographic), same ≤ 3 cap, and the same P1 behaviour: junk fragments (numeric/verb/venue-scrape) are filtered and at most one direction per lexical family is proposed (plural-normalized, so LLM spelling variants collapse but `vision-language-action vla models` and `self-regulated learning srl` stay distinct).
 - **workspace-manager** skill scripts for emission (`init_project.py`, `log_event.py`); **methodology-copilot** for the classic interview/intent-packet conventions when you reach the non-grounded stages.
 
 ---
@@ -29,6 +29,7 @@ Ask, in chat (only what's not already obvious):
 recon_probe(topic="<STAGE1.topic>", semantic=True, start_year=<year>, limit=10)
 ```
 Report to the user: `session_id`, `cache_key` (lineage; note the `/m/semantic/` segment if semantic), `pool_path`, `n_docs`. If a provider rate-limits, the engine degrades gracefully — say so, don't treat it as failure. If `status:"error"` is returned, echo the message and ask the user to refine the topic.
+- **Cache root check (S3 + P4):** the recon root is **canonical and CWD-independent** — `NEXUS_RECON_ROOT` if set, otherwise `<project-root>/.cache/inception_recon` (walked up from the source tree, so the MCP server launched from `tools/scholar-agent-kit/` and a CLI run from the repo root agree by construction). Record the root actually used in the `recon_context` lineage so a later audit can find the session.
 
 ### Stage 3 — Distill + grounded directions (parity helper)
 ```text
@@ -38,7 +39,11 @@ uv run python .agents/skills/inception-agent/scripts/grounded_directions.py \
 ```
 Present in chat:
 - **Observed sub-schools / topics** (with `n` and score, e.g. "Advanced Text Analysis Techniques (n=3, 0.77)"), metrics/datasets if present.
-- **QEI interpretation** (`qei`): `≤ 0.3` → pool is novel relative to the prompt (good). `> 0.3` → the top-10 taxonomy mostly echoes the prompt — the inquiry is too generic; **steer the user toward a narrower sub-field before validating**. (`qei == 1.0` means pure prompt echo — force refinement.)
+- **Pool admission gates** (M0.7 §3.5, P5+P2 — read the `pool` and `purity` fields from the `recon_distill` reply):
+  - `pool.label == "thin"` (`n_docs < 12`) → directions may be fragmentary (materials trial produced `11 kcal mol`); recommend a higher `limit` or a `recon_delta` before validating.
+  - `purity.label == "indeterminate"` (no OpenAlex topics) → coherence is unknown, not zero — say so.
+  - `purity.label == "fragmented"` (top-3 topic share < 0.50) → the pool spans subfields; prefer the most context-relevant school.
+- **QEI interpretation** (`qei`): `≤ 0.3` with a *coherent* pool → pool is novel relative to the prompt (good). `> 0.3` on a *coherent* pool → **inversion caveat**: high echo on a well-scoped seed reflects tight topicality, not poor inquiry — do **not** reject on QEI alone; steer toward a narrower sub-field only when the pool is also fragmented/thin. `qei == 1.0` on a fragmented pool = prompt echo; force refinement.
 - **Grounded directions** from the helper: `label`, `detail`, `anchor_dois` (≥ 2 each). Show the anchor DOIs inline so the user sees they're real.
 - If the helper returns **no directions** (no ≥ 2-anchor term), do **not** invent concepts. Mirror the wizard's hard rule and tell the user the pool had no direction with ≥ 2 citation anchors, then iterate the topic or delta-probe.
 
@@ -51,6 +56,14 @@ The follow-ups carry `corpus_total` + `saturation_label` (`scant|sparse|dense|un
 - `dense` (large corpus) → heavily researched field; **not a novel gap** — the pool was merely tangential to it.
 - `scant`/`sparse` (incl. a real `corpus_total == 0`) → genuinely thin; a defensible gap claim.
 A `corpus_total == 0` is a real observation, not an error (map to `scant`).
+
+### Lexicon bootstrap (Loop B, M0.7 GAP A)
+The **shipped default lexicon already carries a curated cross-domain core** (P6: CV/LLM plus climate/health/finance/education/materials school patterns, RMSE/MAE/AUC/… metrics, ERA5/CMIP/TCGA/MIMIC datasets), so non-tech pools get `schools`/`metrics`/`datasets` signal on day one. Bootstrap a custom lexicon only to add **specialized** registers (e.g. OS/DFS oncology metrics, checkpoint-inhibitor sub-schools). When a school/keyword you need is missing from the distilled tables, or a thin frontier deserves targeted probing, pass a lexicon to `recon_distill` — the parameter is lenient `str | dict` (P3), so either a JSON **string** or an already-parsed dict works:
+```text
+recon_distill(session_id="<STAGE2.session_id>",
+              lexicon_json={"schools": {"pattern regex": "label"}, "metrics": {...}, "datasets": {...}})
+```
+Merge semantics: your tables merge **onto the shipped default**, field-wise, and extras win per key; the artifact gets a `distilled_lx<sha>_...` name (lexicon-hash provenance — same lexicon ⇒ same name). **Verify each submitted pattern matches ≥ 1 pool DOI before submitting** (Loop-B pattern-anchor verification is load-bearing: an unverified regex can silently match 0 docs and the seam reports nothing — e.g. the `Citation Integrity` demo school) — drop, or relax, otherwise.
 
 ### Stage 5 — Selection & refinement (chat, human decision)
 The user picks a direction (or steers). You may propose a refined single-sentence topic based on the anchor DOIs, but **the user chooses** the `direction` label. Record `concept` (the direction's concept) as the seed at the top of the core-concept list.
@@ -93,7 +106,7 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> \
 1. **Anchoring** — every proposal, `core_concept`, and `synonym` carries real evidence (≥ 2 anchor DOIs for a direction; ≥ 1 DOI for a concept/synonym before compiling). No evidence → no concept. If nothing anchors, tell the user plainly (the wizard hard-aborts; you explain instead).
 2. **Human gate** — emission (workspace scaffold, intent, protocol, GENESIS) happens only after the user confirms in chat. Interactive default stays intact.
 3. **Byte-identical discipline** — you only run this flow when the user asks for grounded inception; you never change default-facing behavior of the CLIs/MCP tools.
-4. **Placement** — all project output under `workspaces/<slug>/`; recon state under `.cache/inception_recon/` (gitignored). Never dump into the repo root or `tools/`.
+4. **Placement** — all project output under `workspaces/<slug>/`; recon state under the canonical `.cache/inception_recon/` root (gitignored; `NEXUS_RECON_ROOT` override, repo-anchored default — never launch-dependent). Never dump into the repo root or `tools/`.
 5. **Audit trail** — GENESIS (with `recon_context`: full provenance sidecar `audit/recon_context.json` + bounded inline summary) is mandatory; log intermediate probes/distills when the user wants the full ledger.
 6. **Tools first** — prefer the MCP recon tools and the parity helper over computing taxonomy scoring by hand or re-deriving wizard logic.
 

@@ -255,9 +255,10 @@ def distill_pool(
 
     ``lexicon`` is the per-field pattern configuration (see
     :class:`~scholar_harness.recon.lexicon.DomainLexicon`); when omitted (or
-    ``None``) the default CV/LLM lexicon is used and output is byte-identical
-    to pre-M0.4.  Any research domain registers its own metric/dataset/school
-    patterns and passes its lexicon in.  ``micro_taxonomy`` is extracted with
+    ``None``) the default cross-domain lexicon is used (CV/LLM core plus
+    curated climate/health/finance/education/materials patterns, P6).  Any
+    research domain registers its own metric/dataset/school patterns and
+    passes its lexicon in.  ``micro_taxonomy`` is extracted with
     pure term frequency and is field-agnostic: it never consults the lexicon.
 
     ``query_text`` (M0.7) seeds the Query Echo Index (``qei`` at

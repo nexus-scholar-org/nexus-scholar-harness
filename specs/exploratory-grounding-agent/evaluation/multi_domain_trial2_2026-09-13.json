@@ -1,0 +1,95 @@
+{
+  "trial": "inception trial 2 (post P5+P2+P1+P3) vs trial 1 (baseline)",
+  "date": "2026-09-13",
+  "method": "same topics/params as trial 1 (recon_probe semantic=True, start_year=2022, limit=10); content-addressed cache guarantees byte-identical pools, so all deltas are downstream harness changes. 6 parallel agents, one per domain.",
+  "harness_changes_under_test": ["P5 pool floor", "P2 topical coherence", "P1 junk filter + family diversity", "P3 lenient lexicon boundary"],
+  "domains": {
+    "clinical/oncology": {
+      "topic": "machine learning for early detection of pancreatic cancer",
+      "n_docs": 25,
+      "pool": "sufficient",
+      "purity": "coherent",
+      "top3_share": 0.8,
+      "qei": 0.9,
+      "old_directions": ["pancreatic cancer pc", "pancreatic ductal adenocarcinoma", "ductal adenocarcinoma pdac"],
+      "new_directions": ["pancreatic cancer pc(6)", "pancreatic ductal adenocarcinoma(5)", "machine learning ml(4)"],
+      "junk_purged": [],
+      "surfaced": ["machine learning ml"],
+      "dropped": ["ductal adenocarcinoma pdac"]
+    },
+    "robotics": {
+      "topic": "vision-language models for household robot manipulation",
+      "n_docs": 25,
+      "pool": "sufficient",
+      "purity": "coherent",
+      "top3_share": 0.5333,
+      "qei": 0.4,
+      "old_directions": ["large language model", "large language models", "vision-language-action vla models"],
+      "new_directions": ["large language model(4)", "vision-language-action vla models(4)", "task success rate(2)"],
+      "junk_purged": [],
+      "surfaced": ["task success rate"],
+      "dropped": ["large language models"]
+    },
+    "climate": {
+      "topic": "attribution of extreme precipitation events to climate change",
+      "n_docs": 25,
+      "pool": "sufficient",
+      "purity": "coherent",
+      "top3_share": 0.7778,
+      "qei": 0.7,
+      "old_directions": ["anthropogenic climate change", "extreme precipitation events", "extreme weather events"],
+      "new_directions": ["anthropogenic climate change(10)", "extreme precipitation events(5)", "contiguous united states(2)"],
+      "junk_purged": [],
+      "surfaced": ["contiguous united states"],
+      "dropped": ["extreme weather events"]
+    },
+    "fintech": {
+      "topic": "causal inference for credit risk assessment in digital lending",
+      "n_docs": 8,
+      "pool": "thin",
+      "purity": "indeterminate",
+      "top3_share": null,
+      "qei": 0.7,
+      "old_directions": ["credit risk assessment", "credit scoring models", "reduces default probability"],
+      "new_directions": ["credit risk assessment(4)", "credit scoring models(2)", "causal inference(3)"],
+      "junk_purged": ["reduces default probability"],
+      "surfaced": ["causal inference"],
+      "dropped": ["reduces default probability"]
+    },
+    "education": {
+      "topic": "learning analytics dashboards for self-regulated learning",
+      "n_docs": 25,
+      "pool": "sufficient",
+      "purity": "coherent",
+      "top3_share": 0.75,
+      "qei": 0.8,
+      "old_directions": ["learning analytics dashboards", "self-regulated learning srl", "learning analytics dashboard"],
+      "new_directions": ["learning analytics dashboards(10)", "self-regulated learning srl(8)", "qualitative content analysis(2)"],
+      "junk_purged": [],
+      "surfaced": ["qualitative content analysis"],
+      "dropped": ["learning analytics dashboard"]
+    },
+    "materials": {
+      "topic": "machine-learned interatomic potentials for lithium-ion battery materials",
+      "n_docs": 6,
+      "pool": "thin",
+      "purity": "indeterminate",
+      "top3_share": null,
+      "qei": 0.7,
+      "old_directions": ["interatomic potentials mlips", "machine-learned interatomic potentials", "11 kcal mol"],
+      "new_directions": ["interatomic potentials mlips(4)", "absolute solvation free(2)", "alchemical relative free(2)"],
+      "junk_purged": ["11 kcal mol"],
+      "surfaced": ["absolute solvation free", "alchemical relative free"],
+      "dropped": ["machine-learned interatomic potentials", "11 kcal mol"]
+    }
+  },
+  "outcomes": {
+    "P5_pool_floor": "fired on exactly the two sub-floor pools (fintech n=8, materials n=6) -> 'thin'; 4/4 normal pools -> 'sufficient'. Zero false positives.",
+    "P2_purity": "4/4 topic-bearing pools -> 'coherent' (0.53-0.80); 2/2 topic-less pools -> 'indeterminate' (never a false 'fragmented/0').",
+    "P1_junk_filter": "purged both known fragments: 'reduces default probability' (fintech) and '11 kcal mol' (materials).",
+    "P1_family_diversity": "family duplicates removed in 4/4 domains where they existed (oncology pdac, robotics plural LLM, climate extreme-weather-events, education singular dashboard); each replaced by a distinct, more informative term.",
+    "P3": "not exercised in this trial (lexicon path); covered by unit + E2E regression tests instead.",
+    "residual": "materials still yields fragmentary off-topic terms ('absolute solvation free', 'alchemical relative free') because the POOL is thin/off-topic (6 docs, 0 topics) -- now correctly flagged 'thin' so they cannot masquerade as trustworthy directions. This is a retrieval-quality limit, not a ranker defect."
+  },
+  "verdict": "All four changes behaved as specified on real cached pools. The two improvements are orthogonal and compose: P5/P2 decide whether a pool is trustworthy; P1 makes the top-3 diverse and clean when it is. The remaining failure mode (thin/off-topic retrieval) is now loudly surfaced rather than silently emitting junk."
+}

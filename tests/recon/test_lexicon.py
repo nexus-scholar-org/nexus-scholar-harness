@@ -1,9 +1,10 @@
 """Hermetic tests for the pluggable DomainLexicon (M0.4: T4.5).
 
 All pools are fabricated in-process; no provider network is touched.  The
-default lexicon must reproduce today's CV/LLM tables byte-identically, and a
-fabricated oncology lexicon must pick up its own patterns while ignoring the
-CV-era defaults (and vice versa).
+default lexicon must reproduce today's CV/LLM tables plus the curated
+cross-domain core (P6) byte-identically, and a fabricated oncology lexicon
+must pick up its own patterns while ignoring the CV-era defaults (and vice
+versa).
 """
 
 import json
@@ -100,6 +101,14 @@ def test_default_lexicon_covers_every_shipped_pattern():
         ("10.2000/m-09", "accuracy study", "accuracy improves"),
         ("10.2000/m-10", "exact match study", "exact match rates"),
         ("10.2000/m-11", "codebleu study", "codebleu metric"),
+        ("10.2000/m-12", "RMSE report", "we report rmse"),
+        ("10.2000/m-13", "MAE study", "lower mae"),
+        ("10.2000/m-14", "AUC study", "auc rises"),
+        ("10.2000/m-15", "R2 study", "r2 improves"),
+        ("10.2000/m-16", "MCC study", "the mcc value"),
+        ("10.2000/m-17", "p-value study", "a small p-value"),
+        ("10.2000/m-18", "CI study", "the 95% confidence interval"),
+        ("10.2000/m-19", "Odds study", "the odds ratio"),
     ]
     datasets_docs = [
         ("10.2000/d-01", "PlantVillage study", "plant village dataset"),
@@ -118,6 +127,10 @@ def test_default_lexicon_covers_every_shipped_pattern():
         ("10.2000/d-14", "MedMNIST study", "medmnist classification"),
         ("10.2000/d-15", "Cityscapes study", "cityscapes segmentation"),
         ("10.2000/d-16", "Pascal VOC study", "pascal voc dataset"),
+        ("10.2000/d-17", "ERA5 study", "era5 reanalysis fields"),
+        ("10.2000/d-18", "CMIP study", "cmip6 simulations"),
+        ("10.2000/d-19", "TCGA study", "tcga expression data"),
+        ("10.2000/d-20", "MIMIC study", "the mimic-iv cohort"),
     ]
     schools_docs = [
         ("10.2000/s-01", "deep learning study", "deep learning models"),
@@ -127,6 +140,24 @@ def test_default_lexicon_covers_every_shipped_pattern():
         ("10.2000/s-05", "multispectral study", "multispectral imaging and hyperspectral data"),
         ("10.2000/s-06", "segmentation study", "semantic segmentation task"),
         ("10.2000/s-07", "transformer study", "vision transformers"),
+        ("10.2000/s-08", "climate change study", "climate change impacts"),
+        ("10.2000/s-09", "global warming study", "global warming trend"),
+        ("10.2000/s-10", "precipitation study", "extreme precipitation"),
+        ("10.2000/s-11", "drought study", "severe drought"),
+        ("10.2000/s-12", "hydrology study", "hydrological modeling"),
+        ("10.2000/s-13", "oncology study", "oncology imaging"),
+        ("10.2000/s-14", "immunotherapy study", "immunotherapy response"),
+        ("10.2000/s-15", "clinical trial study", "randomized controlled trial"),
+        ("10.2000/s-16", "MRI study", "magnetic resonance imaging"),
+        ("10.2000/s-17", "credit risk study", "credit risk models"),
+        ("10.2000/s-18", "causal inference study", "causal inference methods"),
+        ("10.2000/s-19", "econometrics study", "econometric analysis"),
+        ("10.2000/s-20", "learning analytics study", "learning analytics dashboards"),
+        ("10.2000/s-21", "self-regulated learning study", "self-regulated learning"),
+        ("10.2000/s-22", "qualitative study", "qualitative content analysis"),
+        ("10.2000/s-23", "DFT study", "density functional theory"),
+        ("10.2000/s-24", "molecular dynamics study", "molecular dynamics simulations"),
+        ("10.2000/s-25", "interatomic potentials study", "machine-learned interatomic potentials"),
     ]
     docs = [
         _doc(doi, title, abstract)
@@ -145,6 +176,14 @@ def test_default_lexicon_covers_every_shipped_pattern():
         "accuracy",
         "exact match",
         "codebleu",
+        "RMSE",
+        "MAE",
+        "AUC",
+        "R2",
+        "MCC",
+        "p-value",
+        "confidence interval",
+        "odds ratio",
     }
     assert set(result["datasets"]) == {
         "PlantVillage",
@@ -163,6 +202,10 @@ def test_default_lexicon_covers_every_shipped_pattern():
         "MedMNIST",
         "Cityscapes",
         "Pascal VOC",
+        "ERA5",
+        "CMIP",
+        "TCGA",
+        "MIMIC",
     }
     assert {s["label"] for s in result["schools"]} == {
         "deep learning",
@@ -172,6 +215,24 @@ def test_default_lexicon_covers_every_shipped_pattern():
         "multispectral/hyperspectral",
         "segmentation",
         "transformer",
+        "climate science",
+        "global warming",
+        "precipitation",
+        "drought",
+        "hydrology",
+        "oncology",
+        "immunotherapy",
+        "clinical trial",
+        "MRI",
+        "credit risk",
+        "causal inference",
+        "econometrics",
+        "learning analytics",
+        "self-regulated learning",
+        "qualitative research",
+        "DFT",
+        "molecular dynamics",
+        "interatomic potentials",
     }
 
 
@@ -276,15 +337,61 @@ def test_oncology_lexicon_detects_own_terms_and_not_cv():
     assert "COCO" not in result["datasets"]
 
 
-def test_default_lexicon_on_oncology_pool_ignores_oncology_terms():
+def test_default_lexicon_on_oncology_pool_catches_broad_but_not_specialized():
     result = distill_pool(_oncology_pool())
-    # The default CV/LLM lexicon emits only the CV terms the pool mentions...
+    # The default now carries a curated cross-domain core (P6), so it picks up
+    # the broad oncology-immunotherapy signals the pool mentions...
     assert result["metrics"] == {"mAP": 1}
-    assert result["datasets"] == {"COCO": 1}
-    # ...and never the oncology ones.
+    assert result["datasets"] == {"COCO": 1, "TCGA": 1}
+    by_label = {s["label"]: s for s in result["schools"]}
+    assert set(by_label) == {"oncology", "immunotherapy"}
+    assert by_label["immunotherapy"]["n"] == 2
+    # ...but a niche registry (the ONCOLOGY_LEXICON) is still required for the
+    # specialized terms and sub-schools.
     assert "OS" not in result["metrics"]
     assert "DFS" not in result["metrics"]
-    assert "TCGA" not in result["datasets"]
+    assert "checkpoint inhibitor" not in by_label
+
+
+# ---------------------------------------------------------------------------
+# P6: default lexicon gives non-CV pools schools/metrics signal on day one
+# ---------------------------------------------------------------------------
+
+
+def test_default_lexicon_surfaces_cross_domain_signal_without_any_lexicon_json():
+    pool = _pool(
+        [
+            _doc(
+                "10.4000/cli-1",
+                "Attributing heat extremes",
+                "Climate change intensifies drought and extreme precipitation; "
+                "detection and attribution relies on climate models and "
+                "reanalysis like ERA5.",
+            ),
+            _doc(
+                "10.4000/fin-1",
+                "Credit scoring with tree ensembles",
+                "We train models for credit risk on default outcomes and "
+                "benchmark each model's AUC and MCC.",
+            ),
+            _doc(
+                "10.4000/edu-1",
+                "Self-regulated learning dashboards",
+                "Learning analytics dashboards support self-regulated "
+                "learning; we report accuracy and RMSE on log traces.",
+            ),
+        ]
+    )
+    result = distill_pool(pool)
+    schools = {s["label"]: s for s in result["schools"]}
+    for expected in ("climate science", "drought", "precipitation", "credit risk"):
+        assert schools[expected]["n"] == 1
+    assert "learning analytics" in schools
+    assert "self-regulated learning" in schools
+    for expected in ("ERA5",):
+        assert result["datasets"][expected] == 1
+    for expected in ("AUC", "MCC"):
+        assert result["metrics"][expected] == 1
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,458 @@
+{
+  "clinical/oncology": {
+    "session_id": "rec_a0d5ffda421a4904a1a12fa9b251b5ad",
+    "qei": 0.9,
+    "n_docs_probe": null,
+    "n_schools": 3,
+    "schools": [
+      "deep learning(3)",
+      "multispectral/hyperspectral(1)",
+      "segmentation(1)"
+    ],
+    "n_metrics": 3,
+    "n_datasets": 0,
+    "n_topics": 6,
+    "topics_entropy": 1.582,
+    "top_topic": {
+      "label": "Pancreatic and Hepatic Oncology Research",
+      "n": 5,
+      "score": 0.9849
+    },
+    "directions": [
+      {
+        "label": "pancreatic cancer pc",
+        "anchors": 6
+      },
+      {
+        "label": "pancreatic ductal adenocarcinoma",
+        "anchors": 5
+      },
+      {
+        "label": "ductal adenocarcinoma pdac",
+        "anchors": 4
+      }
+    ],
+    "multiword_ge2_anchors": [
+      [
+        "machine learning",
+        20
+      ],
+      [
+        "pancreatic cancer",
+        20
+      ],
+      [
+        "early detection",
+        15
+      ],
+      [
+        "cancer pc",
+        6
+      ],
+      [
+        "pancreatic cancer pc",
+        6
+      ],
+      [
+        "ductal adenocarcinoma",
+        5
+      ],
+      [
+        "learning models",
+        5
+      ],
+      [
+        "pancreatic ductal",
+        5
+      ],
+      [
+        "pancreatic ductal adenocarcinoma",
+        5
+      ],
+      [
+        "adenocarcinoma pdac",
+        4
+      ]
+    ],
+    "term_families": 1,
+    "family_sizes": [
+      78
+    ]
+  },
+  "robotics": {
+    "session_id": "rec_e72d63932a0a4d2d8749a32c58ecc62e",
+    "qei": 0.4,
+    "n_docs_probe": null,
+    "n_schools": 3,
+    "schools": [
+      "language model/LLM(13)",
+      "UAV/drone(1)",
+      "transformer(1)"
+    ],
+    "n_metrics": 2,
+    "n_datasets": 0,
+    "n_topics": 10,
+    "topics_entropy": 2.119,
+    "top_topic": {
+      "label": "Multimodal Machine Learning Applications",
+      "n": 4,
+      "score": 0.9627
+    },
+    "directions": [
+      {
+        "label": "large language model",
+        "anchors": 4
+      },
+      {
+        "label": "large language models",
+        "anchors": 4
+      },
+      {
+        "label": "vision-language-action vla models",
+        "anchors": 4
+      }
+    ],
+    "multiword_ge2_anchors": [
+      [
+        "robot manipulation",
+        8
+      ],
+      [
+        "language models",
+        7
+      ],
+      [
+        "large language",
+        7
+      ],
+      [
+        "vision-language-action vla",
+        7
+      ],
+      [
+        "robotic manipulation",
+        5
+      ],
+      [
+        "vision language",
+        5
+      ],
+      [
+        "language instructions",
+        4
+      ],
+      [
+        "language model",
+        4
+      ],
+      [
+        "large language model",
+        4
+      ],
+      [
+        "large language models",
+        4
+      ]
+    ],
+    "term_families": 1,
+    "family_sizes": [
+      65
+    ]
+  },
+  "climate": {
+    "session_id": "rec_b2b1a7e12b9d42b593e554b9eae0e786",
+    "qei": 0.7,
+    "n_docs_probe": null,
+    "n_schools": 0,
+    "schools": [],
+    "n_metrics": 1,
+    "n_datasets": 0,
+    "n_topics": 7,
+    "topics_entropy": 1.619,
+    "top_topic": {
+      "label": "Climate variability and models",
+      "n": 6,
+      "score": 0.9436
+    },
+    "directions": [
+      {
+        "label": "anthropogenic climate change",
+        "anchors": 10
+      },
+      {
+        "label": "extreme precipitation events",
+        "anchors": 5
+      },
+      {
+        "label": "extreme weather events",
+        "anchors": 4
+      }
+    ],
+    "multiword_ge2_anchors": [
+      [
+        "climate change",
+        19
+      ],
+      [
+        "anthropogenic climate",
+        10
+      ],
+      [
+        "anthropogenic climate change",
+        10
+      ],
+      [
+        "extreme precipitation",
+        9
+      ],
+      [
+        "extreme events",
+        7
+      ],
+      [
+        "extreme weather",
+        7
+      ],
+      [
+        "precipitation events",
+        7
+      ],
+      [
+        "event attribution",
+        5
+      ],
+      [
+        "extreme event",
+        5
+      ],
+      [
+        "extreme precipitation events",
+        5
+      ]
+    ],
+    "term_families": 1,
+    "family_sizes": [
+      89
+    ]
+  },
+  "fintech": {
+    "session_id": "rec_f224bba66f4a4628b4525d3d7a71f03c",
+    "qei": 0.7,
+    "n_docs_probe": null,
+    "n_schools": 0,
+    "schools": [],
+    "n_metrics": 1,
+    "n_datasets": 0,
+    "n_topics": 0,
+    "topics_entropy": null,
+    "top_topic": null,
+    "directions": [
+      {
+        "label": "credit risk assessment",
+        "anchors": 4
+      },
+      {
+        "label": "credit scoring models",
+        "anchors": 2
+      },
+      {
+        "label": "reduces default probability",
+        "anchors": 2
+      }
+    ],
+    "multiword_ge2_anchors": [
+      [
+        "credit risk",
+        6
+      ],
+      [
+        "risk assessment",
+        5
+      ],
+      [
+        "credit risk assessment",
+        4
+      ],
+      [
+        "causal inference",
+        3
+      ],
+      [
+        "artificial intelligence",
+        2
+      ],
+      [
+        "credit scoring",
+        2
+      ],
+      [
+        "credit scoring models",
+        2
+      ],
+      [
+        "default probability",
+        2
+      ],
+      [
+        "findings suggest",
+        2
+      ],
+      [
+        "logistic regression",
+        2
+      ]
+    ],
+    "term_families": 1,
+    "family_sizes": [
+      14
+    ]
+  },
+  "education": {
+    "session_id": "rec_f8f76f4fa48843759af1540c25646062",
+    "qei": 0.8,
+    "n_docs_probe": null,
+    "n_schools": 0,
+    "schools": [],
+    "n_metrics": 1,
+    "n_datasets": 0,
+    "n_topics": 6,
+    "topics_entropy": 1.63,
+    "top_topic": {
+      "label": "Online Learning and Analytics",
+      "n": 5,
+      "score": 0.9529
+    },
+    "directions": [
+      {
+        "label": "learning analytics dashboards",
+        "anchors": 10
+      },
+      {
+        "label": "self-regulated learning srl",
+        "anchors": 8
+      },
+      {
+        "label": "learning analytics dashboard",
+        "anchors": 5
+      }
+    ],
+    "multiword_ge2_anchors": [
+      [
+        "learning analytics",
+        22
+      ],
+      [
+        "self-regulated learning",
+        19
+      ],
+      [
+        "analytics dashboards",
+        10
+      ],
+      [
+        "learning analytics dashboards",
+        10
+      ],
+      [
+        "learning srl",
+        8
+      ],
+      [
+        "self-regulated learning srl",
+        8
+      ],
+      [
+        "analytics dashboard",
+        5
+      ],
+      [
+        "higher education",
+        5
+      ],
+      [
+        "learning analytics dashboard",
+        5
+      ],
+      [
+        "students self-regulated",
+        5
+      ]
+    ],
+    "term_families": 1,
+    "family_sizes": [
+      63
+    ]
+  },
+  "materials": {
+    "session_id": "rec_c8e80e02fd8c45f0bcdcc552c8095823",
+    "qei": 0.7,
+    "n_docs_probe": null,
+    "n_schools": 0,
+    "schools": [],
+    "n_metrics": 1,
+    "n_datasets": 0,
+    "n_topics": 0,
+    "topics_entropy": null,
+    "top_topic": null,
+    "directions": [
+      {
+        "label": "interatomic potentials mlips",
+        "anchors": 4
+      },
+      {
+        "label": "machine-learned interatomic potentials",
+        "anchors": 4
+      },
+      {
+        "label": "11 kcal mol",
+        "anchors": 2
+      }
+    ],
+    "multiword_ge2_anchors": [
+      [
+        "interatomic potentials",
+        6
+      ],
+      [
+        "interatomic potentials mlips",
+        4
+      ],
+      [
+        "machine-learned interatomic",
+        4
+      ],
+      [
+        "machine-learned interatomic potentials",
+        4
+      ],
+      [
+        "potentials mlips",
+        4
+      ],
+      [
+        "interatomic distances",
+        3
+      ],
+      [
+        "machine learned",
+        3
+      ],
+      [
+        "11 kcal",
+        2
+      ],
+      [
+        "11 kcal mol",
+        2
+      ],
+      [
+        "absolute solvation",
+        2
+      ]
+    ],
+    "term_families": 1,
+    "family_sizes": [
+      145
+    ]
+  }
+}

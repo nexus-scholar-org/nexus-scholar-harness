@@ -4,7 +4,10 @@ Reuses the REAL wizard implementations (``scholar_harness.inception``
 ``_grounded_directions_for_terms`` / ``_grounded_default_concepts``) so the
 chat-driven flow proposes exactly the directions the ``--grounded`` wizard
 would -- same >= 2-anchor filter, same ordering (multi-word -> freq ->
-lexicographic), same <= 3 cap. No sorting logic is re-derived here.
+lexicographic), same <= 3 cap, and the same P1 behaviour: junk fragments
+(numeric/verb/venue-scrape) are filtered and at most one direction per
+lexical family is proposed (plural-normalized). No sorting logic is
+re-derived here.
 
 Also emits the ``recon_context`` document the wizard writes into the GENESIS
 event (anchored_terms derivation mirrors ``_run_grounded_recon``); the calling
