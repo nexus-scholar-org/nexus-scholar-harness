@@ -29,11 +29,8 @@ All commands are executed via `uv run`:
 
 ### 1. Compile Intent Packet to Protocol
 ```bash
-# Compile intent.json into canonical protocol.json with SHA-256 fingerprinting
-uv run scholar-protocol compile \
-  -i workspaces/<project-slug>/intent.json \
-  -o workspaces/<project-slug>/protocol.json \
-  --fingerprint
+# Compile intent.json into canonical protocol.json (always fingerprints; prints bytes to STDOUT)
+uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
 ```
 
 ### 2. Validate Protocol Schema & Fingerprint
@@ -47,10 +44,9 @@ uv run scholar-protocol fingerprint workspaces/<project-slug>/protocol.json
 
 ### 3. Render Human-Readable Screening Criteria
 ```bash
-# Render markdown criteria
+# Render markdown criteria (prints to STDOUT; there is no -o flag)
 uv run scholar-protocol render-criteria \
-  workspaces/<project-slug>/protocol.json \
-  -o workspaces/<project-slug>/SCREENING_CRITERIA.md
+  workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
 ```
 
 ### 4. Export Dynamic Extraction Schemas
@@ -71,7 +67,7 @@ from pathlib import Path
 from scholar_protocol.intent import IntentPacket, RQIntent, ConceptClusterIntent, CriterionIntent, MatrixDimensionIntent
 from scholar_protocol.models import PlaybookType
 from scholar_protocol.compiler import compile_protocol
-from scholar_protocol.serializer import canonical_serialize, canonical_fingerprint
+from scholar_protocol.canonical import canonical_json, canonical_fingerprint
 from scholar_protocol.render import render_screening_criteria
 from scholar_protocol.extraction import build_extraction_model
 
@@ -110,7 +106,7 @@ intent = IntentPacket(
 protocol = compile_protocol(intent)
 
 # 3. Canonical Fingerprinting
-raw_json = canonical_serialize(protocol)
+raw_json = canonical_json(protocol)
 sha256_hash = canonical_fingerprint(protocol)
 print(f"Protocol Fingerprint: {sha256_hash}")
 
@@ -120,3 +116,29 @@ markdown_criteria = render_screening_criteria(protocol)
 # 5. Build Dynamic Extraction Model for RAG
 ExtractionModel = build_extraction_model(protocol)
 ```
+
+---
+
+## Verified surface, MCP mapping & knowledge
+
+- **CLI never writes files** — `compile`, `validate`, `fingerprint`, `canon`,
+  `render-criteria`, `extraction-schema`, `extraction-prompt` all print to STDOUT; redirect
+  to persist. No `-i/-o` flags anywhere.
+- **`validate_protocol` is two-tier**: Pydantic structural validation (always) **plus**
+  cross-field rules (`_check_cross_field`: duplicate IDs, date/pool coherence, RQ refs)
+  that run only when given a **file path**. `validate <protocol.json>` = full check.
+- **Fingerprinting**: `canonical_json` emits declaration-order keys (nested dicts sorted,
+  arrays NOT sorted — reordering an array changes the fingerprint); fingerprint =
+  `sha256:<64hex>`, content-based (formatting won't change it). Match across
+  compile/validate.
+- **MCP tools**: `nexus_protocol_compile` (path or JSON-string; returns
+  `{status, protocol_id, fingerprint, protocol}` wrapper and does **not persist** — write
+  `protocol.json` yourself), `nexus_protocol_validate` (inline JSON = structural only,
+  file path = full rules; warnings dropped on valid), `nexus_protocol_render_criteria`
+  (path-only, raw markdown). `extraction-schema`/`extraction-prompt`/`canon`/strict have
+  **no MCP surface** — use the CLI.
+- **Determinism trap**: `created_at` is pinned from `genesis_timestamp` in
+  `compile_protocol`; hand-edited protocols must carry a valid `genesis_timestamp` or the
+  fingerprint changes across runs. Compilation is pure — zero LLM/network.
+- **Integration**: `build_extraction_model` (dynamic Pydantic) feeds matrix extraction in
+  `scholar-rag-kit`; `nexus_matrix_extract` imports it.

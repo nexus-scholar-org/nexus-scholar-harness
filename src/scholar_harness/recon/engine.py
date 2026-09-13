@@ -36,6 +36,39 @@ POOL_MAX = 25
 SATURATION_SCANT = 50
 SATURATION_SPARSE = 500
 
+
+def _source_root() -> Path:
+    """Walk up from this module to the enclosing project root (pyproject.toml).
+
+    Anchoring on the source tree (not ``Path.cwd()``) makes the default cache
+    root deterministic: launching from ``tools/scholar-agent-kit/``, a repo
+    subdirectory, or any other CWD resolves to the same path (P4).
+    """
+    current = Path(__file__).resolve().parent
+    while True:
+        if (current / "pyproject.toml").is_file():
+            return current
+        parent = current.parent
+        if parent == current:
+            raise RuntimeError("could not locate project root (no pyproject.toml)")
+        current = parent
+
+
+def canonical_recon_root() -> Path:
+    """The canonical recon cache root shared by CLI and MCP (M0.7 T7.7, P4).
+
+    ``NEXUS_RECON_ROOT`` overrides the default so an operator can point the
+    whole pipeline at one root explicitly.  Without it, the root is the
+    CWD-independent ``<project-root>/.cache/inception_recon``; because the MCP
+    server imports the same helper from this harness, the CLI wizard and the
+    server agree by construction instead of scattering under their separate
+    current directories.
+    """
+    env_root = os.environ.get("NEXUS_RECON_ROOT")
+    if env_root:
+        return Path(env_root).resolve()
+    return _source_root() / ".cache" / "inception_recon"
+
 _PROVIDER_CLASSES: dict[str, type] = {
     "openalex": OpenAlexProvider,
     "semanticscholar": SemanticScholarProvider,
@@ -87,17 +120,20 @@ class ReconEngine:
 
     def __init__(
         self,
-        cache_root: Path | str = Path(".cache/inception_recon"),
+        cache_root: Path | str | None = None,
         search_fn: SearchFn | None = None,
     ) -> None:
-        # Canonical recon root (M0.7 T7.7): NEXUS_RECON_ROOT overrides the
-        # CWD-relative default so the CLI and the MCP server share one cache
-        # even when launched from different directories.  Byte-identical when
-        # the env var is unset.
+        # Canonical recon root (M0.7 T7.7, P4): NEXUS_RECON_ROOT wins; else an
+        # explicit cache_root; else the CWD-independent repo-anchored default
+        # from canonical_recon_root().  The CLI and the MCP server share one
+        # cache even when launched from different directories.
         env_root = os.environ.get("NEXUS_RECON_ROOT")
-        self.cache_root = (
-            Path(env_root).resolve() if env_root else Path(cache_root).resolve()
-        )
+        if env_root:
+            self.cache_root = Path(env_root).resolve()
+        elif cache_root is not None:
+            self.cache_root = Path(cache_root).resolve()
+        else:
+            self.cache_root = canonical_recon_root().resolve()
         self.pools_dir = self.cache_root / "pools"
         self.search_fn = search_fn
 

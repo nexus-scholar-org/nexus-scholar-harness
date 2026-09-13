@@ -54,7 +54,7 @@ This directory contains the complete architectural specifications, schemas, temp
 | **[`03_dynamic_matrix_dimensions.md`](./03_dynamic_matrix_dimensions.md)** | Comprehensive guide on customizable, domain-adaptive data extraction dimensions and RAG extraction prompts. |
 | **[`04_socratic_inception_protocol.md`](./04_socratic_inception_protocol.md)** | The 4-stage conversational interview framework, semantic intent mining, and lexicon enforcement rules. |
 | **[`05_cycle_a_contract_first.md`](./05_cycle_a_contract_first.md)** | Delivery spec for the first build cycle: schema-freezing package, canonical serialization, and golden-contract conformance gate (zero LLM). |
-| **[`exploratory-grounding-agent/`](./exploratory-grounding-agent/README.md)** | Spec folder for the Exploratory Literature Reconnaissance Agent (supersedes the former `06_exploratory_grounding_agent.md`): problem definition, architecture, lifecycle, memory/cache schema, verified tool contracts, deployment options, walkthrough, milestones with DoD, and Nexus MCP integration. |
+| **[`specs/exploratory-grounding-agent/`](../../specs/exploratory-grounding-agent/README.md)** | Canonical spec folder for the Grounded Exploratory Inception Agent (supersedes the former single-file `06_exploratory_grounding_agent.md`, removed at the 2026-09-11 cleanup): problem definition, architecture, lifecycle, memory/cache schema, verified tool contracts, evaluation, and Nexus MCP integration. |
 
 ---
 

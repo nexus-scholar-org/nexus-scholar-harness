@@ -24,6 +24,7 @@ from scholar_harness.cli import app
 from scholar_harness.inception import (
     _grounded_default_concepts,
     draft_default_concepts,
+    log_genesis,
     run_wizard,
 )
 from scholar_harness.recon import ReconEngine, distill_pool
@@ -274,16 +275,52 @@ def test_grounded_wizard_presents_direction_and_records_recon_context(tmp_path):
         for syn in concept["synonyms"]:
             assert syn in rc["anchored_terms"]
 
-    # GENESIS carries the full recon_context embedded in the description.
+    # GENESIS embeds a bounded recon_context summary; the full provenance is
+    # persisted verbatim to audit/recon_context.json (argv-safe on Windows).
     genesis = _read_genesis(ws)
     assert genesis["description"].startswith(BASE_DESCRIPTION)
     assert "recon_context=" in genesis["description"]
     rc_json = json.loads(genesis["description"].split("recon_context=", 1)[1])
-    for key in ("session_id", "cache_keys", "pool_sizes", "anchor_dois", "anchored_terms"):
+    for key in (
+        "session_id", "cache_keys", "pool_sizes", "anchor_dois",
+        "default_concepts", "anchored_term_count", "provenance_file",
+    ):
         assert key in rc_json
     assert rc_json["pool_sizes"] == [3]
     assert rc_json["cache_keys"] == rc["cache_keys"]
     assert rc_json["anchor_dois"] == rc["anchor_dois"]
+    assert rc_json["anchored_term_count"] == len(rc["anchored_terms"])
+    assert rc_json["provenance_file"] == "audit/recon_context.json"
+    sidecar = json.loads((ws / "audit" / "recon_context.json").read_text(encoding="utf-8"))
+    assert sidecar == rc
+
+
+def test_log_genesis_inline_summary_survives_large_recon_context(tmp_path):
+    # A rich pool yields hundreds of anchored terms; the old code embedded the
+    # whole dict in the log_event.py argv and crashed on Windows (WinError 206).
+    big = {
+        "session_id": "b" * 12,
+        "cache_keys": ["v1/fake/q/abc"],
+        "pool_sizes": [20],
+        "anchor_dois": [f"10.0000/{i:03d}" for i in range(120)],
+        "direction": "some direction",
+        "concept": "some concept",
+        "default_concepts": [f"concept number {i}" for i in range(700)],
+        "anchored_terms": {f"term {i}": [f"10.0000/{i:03d}"] for i in range(600)},
+    }
+    ws = tmp_path / "workspaces" / "big-session"
+    ws.mkdir(parents=True)
+    log_genesis(ws, BASE_DESCRIPTION, recon_context=big)
+
+    genesis = _read_genesis(ws)
+    rc_json = json.loads(genesis["description"].split("recon_context=", 1)[1])
+    assert len(genesis["description"]) < 4000
+    assert rc_json["anchored_term_count"] == 600
+    assert rc_json["anchor_dois_truncated"] == 120 - 50
+    assert rc_json["default_concepts_truncated"] == 700 - 50
+    assert rc_json["provenance_file"] == "audit/recon_context.json"
+    sidecar = json.loads((ws / "audit" / "recon_context.json").read_text(encoding="utf-8"))
+    assert sidecar == big
 
 
 # ---------------------------------------------------------------------------
@@ -320,14 +357,138 @@ def test_grounded_sparse_pool_merges_terms_to_keep_two_anchors():
     # top terms until a direction carries >= 2 real anchor DOIs.
     lonely = {
         "micro_taxonomy": [
-            {"term": "a", "freq": 1, "anchor_dois": ["10.1000/x"]},
-            {"term": "b", "freq": 1, "anchor_dois": ["10.1000/y"]},
+            {"term": "crop row detection", "freq": 1, "anchor_dois": ["10.1000/x"]},
+            {"term": "canopy closure", "freq": 1, "anchor_dois": ["10.1000/y"]},
         ]
     }
     directions = _grounded_directions_for_terms(lonely)
     assert len(directions) == 1
     assert directions[0]["anchor_dois"] == ["10.1000/x", "10.1000/y"]
     assert len(directions[0]["anchor_dois"]) >= 2
+
+
+# ---------------------------------------------------------------------------
+# P1 (16_inception_improvements.md F1/F3): junk filter + direction diversity
+# ---------------------------------------------------------------------------
+
+
+def test_junk_term_label_filter_table():
+    from scholar_harness.inception import _is_junk_term_label
+
+    for junk in (
+        "11 kcal mol",                        # numeric fragment artifact
+        "2024",                               # year scrape
+        "reduces default probability",        # verb-led sentence fragment
+        "62nd annual meeting",                # venue scrape / ordinal edition
+        "computational linguistics volume",   # venue-noise token
+        " proceedings of the workshop",
+        "",
+    ):
+        assert _is_junk_term_label(junk), junk
+    for clean in (
+        "grape disease detection",
+        "pancreatic ductal adenocarcinoma",
+        "vision-language-action vla models",
+        "credit risk assessment",
+        "3D segmentation",
+        "covid-19",
+    ):
+        assert not _is_junk_term_label(clean), clean
+
+
+def _term(label: str, freq: int, *dois: str) -> dict:
+    return {"term": label, "freq": freq, "anchor_dois": list(dois)}
+
+
+def test_directions_filter_numeric_and_verb_fragments(tmp_path):
+    from scholar_harness.inception import _grounded_directions_for_terms
+
+    terms = {
+        "micro_taxonomy": [
+            _term("11 kcal mol", 2, "10.1000/a", "10.1000/b"),
+            _term("reduces default probability", 2, "10.1000/c", "10.1000/d"),
+            _term("interatomic potentials mlips", 4, *GROUNDED_DOIS[:2]),
+        ]
+    }
+    directions = _grounded_directions_for_terms(terms)
+    assert [d["label"] for d in directions] == ["interatomic potentials mlips"]
+
+
+def test_directions_surface_distinct_families_over_synonym_duplicates():
+    from scholar_harness.inception import _grounded_directions_for_terms
+
+    dois_a = ["10.1000/fa1", "10.1000/fa2", "10.1000/fa3", "10.1000/fa4"]
+    dois_v = ["10.1000/fv1", "10.1000/fv2", "10.1000/fv3", "10.1000/fv4"]
+    dois_c = ["10.1000/fc1", "10.1000/fc2"]
+    terms = {
+        "micro_taxonomy": [
+            _term("large language models", 2, *dois_a),
+            _term("vision-language-action vla models", 4, *dois_v),
+            _term("large language model", 4, *dois_a),
+            _term("citation accuracy", 4, *dois_c),
+        ]
+    }
+    labels = [d["label"] for d in _grounded_directions_for_terms(terms)]
+    # Rank order: LLM (3-word, lexicographic lead) -> VLA -> citation accuracy;
+    # the "large language models" plural twin is family-capped out of the top-3.
+    assert labels == [
+        "large language model",
+        "vision-language-action vla models",
+        "citation accuracy",
+    ]
+
+
+def test_directions_identity_when_no_family_overlap():
+    from scholar_harness.inception import _grounded_directions_for_terms
+
+    terms = {
+        "micro_taxonomy": [
+            _term("middle term", 3, *GROUNDED_DOIS),
+            _term("top tier term", 5, "10.1000/t1", "10.1000/t2"),
+            _term("lower term", 1, "10.1000/f1", "10.1000/f2"),
+            _term("higher ranked", 4, "10.1000/h1", "10.1000/h2"),
+        ]
+    }
+    # No two terms share a lexical family -> the legacy ranker output is the
+    # default (multi-word desc, freq desc, lexicographic), unchanged by P1.
+    labels = [d["label"] for d in _grounded_directions_for_terms(terms)]
+    assert labels == ["top tier term", "higher ranked", "middle term"]
+
+
+def test_directions_plural_normalization_merges_model_variants():
+    from scholar_harness.inception import _grounded_directions_for_terms
+
+    # Mixture of LLM variants across singular/plural spellings plus a
+    # genuinely distinct sub-field (VLA) plus a domain-specific term:
+    # the singular/plural twins are one family, VLA is another.
+    terms = {
+        "micro_taxonomy": [
+            _term("large language model", 4, *GROUNDED_DOIS[:2]),
+            _term("vision language models", 4, *GROUNDED_DOIS[-2:]),
+            _term("vision-language-action vla models", 4, "10.1000/v1", "10.1000/v2"),
+            _term("grounded citation accuracy", 2, "10.1000/g1", "10.1000/g2"),
+        ]
+    }
+    labels = [d["label"] for d in _grounded_directions_for_terms(terms)]
+    assert labels == [
+        "large language model",
+        "vision-language-action vla models",
+        "grounded citation accuracy",
+    ]
+
+
+def test_grounded_default_concepts_p1_drop_venue_and_noise_terms(tmp_path):
+    terms = {
+        "qei": 0.2,
+        "micro_taxonomy": [
+            _term("grape disease detection", 6, *GROUNDED_DOIS),
+            _term("62nd annual meeting", 4, "10.1000/v1", "10.1000/v2"),
+            _term("on-device inference", 3, "10.1000/o1", "10.1000/o2"),
+        ],
+    }
+    defaults = _grounded_default_concepts(terms, "grape disease detection")
+    assert "62nd annual meeting" not in defaults
+    assert "on-device inference" in defaults
 
 
 # ---------------------------------------------------------------------------

@@ -3,12 +3,21 @@
 import asyncio
 import hashlib
 import json
+from pathlib import Path
 
 import pytest
 from scholar_search.models import Document, ExternalIds, Query
 
 from scholar_harness.recon import DEFAULT_PROVIDERS, ReconEngine, cache_key
 from scholar_harness.recon.engine import SATURATION_SCANT, SATURATION_SPARSE
+
+
+def _repo_root() -> Path:
+    current = Path(__file__).resolve().parent
+    while True:
+        if (current / "pyproject.toml").is_file():
+            return current
+        current = current.parent
 
 
 def _fake_docs(n: int, provider: str = "openalex") -> list[Document]:
@@ -273,3 +282,14 @@ def test_nexus_recon_root_unset_keeps_explicit_root(tmp_path, monkeypatch):
     monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
     engine = ReconEngine(cache_root=tmp_path / "cache")
     assert engine.cache_root == (tmp_path / "cache").resolve()
+
+
+def test_default_recon_root_is_repo_anchored_not_cwd(tmp_path, monkeypatch):
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    # Launch from an unrelated directory: the default must NOT scatter there.
+    monkeypatch.chdir(tmp_path)
+    engine = ReconEngine()
+    expected = (_repo_root() / ".cache" / "inception_recon").resolve()
+    assert engine.cache_root == expected
+    assert engine.cache_root.is_absolute()
+    assert not str(engine.cache_root).startswith(str(tmp_path.resolve()))

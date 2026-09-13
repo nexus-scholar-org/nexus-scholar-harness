@@ -118,3 +118,38 @@ results = retriever.query(
 engine = GroundedSynthesisEngine(retriever=retriever)
 synthesis = engine.synthesize("What are the empirical findings?", rq_id="RQ1")
 ```
+
+---
+
+## Verified surface, MCP mapping & knowledge
+
+- **MCP tool defaults are CWD-relative**: `nexus_rag_index(docs_dir, db_path="./chroma_db")`
+  and `nexus_rag_query(db_path="./chroma_db")` resolve against `tools/scholar-agent-kit/`
+  when launched through MCP — always pass absolute workspace paths
+  (e.g. `<ws>/chroma_db`). `nexus_matrix_extract` pins its db to
+  `<workspace_dir>/chroma_db`, so align by indexing with an explicit
+  `db_path=<ws>/chroma_db`.
+- **MCP `nexus_rag_query` cannot graph-boost**: the tool exposes only `boost_doi`
+  (seed boost, β=0.15); there is no `graph_source`/`alpha`/`beta` parameter. Full hybrid
+  retrieval (`Score = cos + α·PR + β·seed`) requires the CLI (`--graph <graph.json>
+  --alpha 0.25 --beta 0.15`) or the Python `ScholarRetriever.query(…, graph_source=…)`.
+- **`nexus_rag_synthesize`**: `rq_id` defaults to `"RQ1"` (pass explicitly); no seed-boost
+  or LLM override. Deterministic bullet synthesis when no `llm_callable`.
+- **`nexus_verify_claims` does not pair with `claims.json`**: RAG claims
+  (`SynthesisClaim.__dict__`) carry `claim_text`/`citation_tokens`/`entailment_status`
+  but **no `evidence_quote`/`claim_id`** — the verify tool expects those fields, so every
+  claim returns `MISSING_QUOTE` and only aggregate metrics are returned. The two
+  "verification" notions are unrelated (embedding entailment vs verbatim quote match).
+- **Chunk ids**: `chk-<doc-slug>-<sec-slug>-<NN>`; sections are `#`/`##`/`###` AST-split.
+  Citation tokens in synthesis render as `[<workspace_id|doi|filename>#<sec10>#<chunk_id>]`.
+- **Embeddings**: default `all-MiniLM-L6-v2` (first use downloads from HuggingFace);
+  hermetic `mock` provider for CI; OpenAI provider requires `OPENAI_API_KEY`. Provider is
+  locked per store — re-index with a different provider into a fresh db.
+- **Metadata tagging (paradigm/study_design) comes from the companion BibTeX only** —
+  without `--bib`/`bib_file`, chunks lack it even if `project.json` exists.
+- **Consensus verdicts are study-count based** (`ConsensusCartographer(threshold=0.30)`);
+  for paraphrase-heavy corpora prefer `--similarity sentence-transformers --threshold 0.40`.
+- **Audit events**: `RAG_INDEX_BUILT`, `RAG_QUERY_RETRIEVED`, `SYNTHESIS_GENERATED`,
+  `MATRIX_EXTRACTED`.
+- **`scholar-protocol-kit` is imported but an undeclared dependency** — it resolves only
+  because the shared venv installs all kits.

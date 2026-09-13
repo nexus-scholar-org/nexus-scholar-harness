@@ -27,7 +27,7 @@ uv run scholar-search search --protocol workspaces/<project-slug>/protocol.json 
 uv run scholar-search search "transformer attention mechanism" --limit 30 --output results.json
 
 # 2. 2-Tier Deduplication & Canonical Workspace ID Assignment
-uv run scholar-search dedup raw_search.json --output deduped.json --export csv --csv-output dedup_summary.csv
+uv run scholar-search dedup raw_search.json --output deduped.json --format csv
 
 # 3. Verify Authenticity & Hydrate Rich Abstracts
 uv run scholar-search verify deduped.json --output verified.json --enrich
@@ -41,6 +41,8 @@ uv run scholar-search screen \
 # 5. Citation Snowballing (Forward = Citing Papers, Backward = References)
 uv run scholar-search snowball W2741809807 --provider openalex --direction forward --output citing.json
 uv run scholar-search snowball W2741809807 --provider openalex --direction backward --output references.json
+# Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
+uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward forward --output chain.json --edges-output chain_edges.json
 ```
 
 ---
@@ -50,7 +52,8 @@ uv run scholar-search snowball W2741809807 --provider openalex --direction backw
 ```python
 import asyncio
 from pathlib import Path
-from scholar_search import SearchEngine, Query, Deduplicator, DocumentVerifier, Exporter
+from scholar_search import SearchEngine, Deduplicator, DocumentVerifier, Exporter
+from scholar_search.models import Query   # Query/Document are NOT re-exported at package root
 from scholar_search.protocol_adapter import compile_protocol_search
 from scholar_search.screening import evaluate_heuristic_screening, partition_screening_results
 
@@ -81,6 +84,33 @@ if __name__ == "__main__":
 ```
 
 ---
+
+## Verified surface, MCP mapping & knowledge
+
+- **Provider defaults**: `SearchEngine(providers=None)` builds **all 6** providers; the
+  CLI search default is **5** (no bioRxiv); `compile_protocol_search` default DBs =
+  openalex, semanticscholar, crossref, arxiv. `search` CLI has no single-top-K — it
+  queries all providers and dedups.
+- **Dedup**: PID tier → exact-normalized-title → fuzzy title ≥ 0.97 + year ±1 +
+  first-author containment; assigns `SCI-%06d` canonical ids via
+  `Deduplicator.deduplicate(docs) -> list[DocumentCluster]`.
+- **Rate limits / env**: OpenAlex 10/s, Crossref 5/s, Semantic Scholar 1/s, PubMed 3/s,
+  arXiv/bioRxiv 1/s; Scopus/WebOfScience unsupported. Set `SCHOLAR_MAILTO` (polite pool),
+  `SCHOLAR_OPENALEX_KEY`, `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`. Client = httpx + hishel,
+  4 transport retries, 429 → 5 exponential retries, 30 s timeout, UA
+  `scholar-search-kit/0.1.0 (mailto:…)`.
+- **Per-provider exceptions are swallowed** — empty results (`{"total": 0, "documents": []}`)
+  are a *valid* outcome, not an error. Check provider-level errors, never assume the empty
+  list means "no network".
+- **Snowball sandbox**: caps depth 5 / max 500 / 2000 docs; CLI `chain` defaults
+  depth 1 / 200 / 500 backward.
+- **MCP tools**: `nexus_discover` (hardcodes OpenAlex/Semantic Scholar/Crossref/arXiv —
+  no PubMed/bioRxiv — `dedup=True` forced, writes `.cache/mcp/discover_<slug>_<ts>.json`
+  CWD-relative → pass/expect absolute workspace paths), `nexus_dedup` (JSON only),
+  `nexus_screen` (in-process heuristic screening; `conflicts.json`/`prisma_report.json`
+  are computed but **never written**), `nexus_screen_reconcile` (expects
+  `batch_NNN_decisions*.json` files keyed by screener id from the file stem).
+- **LLM screening** (`LLMBatchScreener`) needs `GEMINI_API_KEY`.
 
 ## Agent Guidelines & Best Practices
 

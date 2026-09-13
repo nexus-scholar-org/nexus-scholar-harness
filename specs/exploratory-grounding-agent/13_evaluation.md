@@ -46,6 +46,21 @@ Heuristic schools ("transformer" → power grids) measured by sampled audit (LLM
 ### 3.4 Gap reliability (true gaps vs pool artifacts)
 `n ≤ 2` in the 25-doc pool may be query-phrasing artifact, not scarcity. Validation = **unconstrained corpus count** for the gap term (`OpenAlex meta.count`, S2 total) — a new seam (GAP B in `14_agent_loops.md`, M0.7). Reporting target: saturation label `scant | sparse | dense` per followup.
 
+### 3.5 Pool admission gates (P5 pool floor + P2 topical coherence) — implemented 2026-09-13
+QEI (3.1) is a **lexical dispersion index that inverts on well-scoped semantic seeds** (multi-domain trial, `16_inception_improvements.md` §E). Admission therefore uses two further gates from `recon/gates.py`, both surfaced on the MCP `recon_distill` reply as `pool` and `purity`:
+
+- **Pool sufficiency (`compute_pool_sufficiency`):** `n_docs ≥ POOL_THIN_FLOOR (12)` ⇒ `sufficient`, else `thin`. Thin pools degrade into fragmentary n-grams and typically lose the `topics` layer (trial: fintech n=8, materials n=6 produced directions like `11 kcal mol` and *no* topics). Thin ⇒ raise `limit` or run a delta before validating directions.
+- **Topical coherence (`compute_topic_purity`):** over the distilled `topics` layer, `top3_share = Σ top-3 topic n / Σ all topic n`. `coherent` if `top3_share ≥ TOPIC_COHERENCE_TOP3_SHARE (0.50)`; `fragmented` if topics exist but spread; `indeterminate` when no topics are present (absence of signal, not zero — small/non-OpenAlex pools). Trial calibration: coherent oncology/climate/education pools scored 0.53–0.80.
+
+Both thresholds are module constants (configurable, documented); the wizard prints an advisory `Pool assessment:` line (never aborts — the human stays the gate), and `qei` alone may no longer reject a pool whose purity is `coherent`.
+
+### 3.6 Canonical recon root (P4) — implemented 2026-09-13
+Recon state (sessions, content-addressed pools, distilled artifacts) lives under one **CWD-independent root** so the CLI wizard and the MCP server share a cache no matter where each is launched (`16_inception_improvements.md` §F.4):
+
+- `NEXUS_RECON_ROOT` (absolute, resolved) wins when set — the operator escape hatch for pointing the whole pipeline at one root.
+- Otherwise the root is `<project-root>/.cache/inception_recon`, where project-root is **walked up from the source tree** (`canonical_recon_root()` in `recon/engine.py`), not `Path.cwd()`. The MCP server imports the same helper from the harness, so launching it from `tools/scholar-agent-kit/` (its MCP `--directory`) no longer scatters sessions under a kit-local `.cache/`.
+- `.cache/` is gitignored in every checkout, so no repo pollution regardless of the chosen root.
+
 ## 4. Dimension 3 — Downstream protocol viability (A/B)
 
 | Metric | Definition | Hypothesis (grounded vs cold) |
@@ -83,11 +98,14 @@ Full A/B needs real workspace runs → ReconBench (L effort) or targeted 3-topic
 | P1 | APR CI gate (assert all protocol concepts anchored) | CI + `test_inception_grounded` | S | T7.1 |
 | P1 | QEI in distiller + test gate (≥50% non-echo top-10) | `recon/distiller.py` | S | T7.2 |
 | P1 | Gap-reliability saturation seam (uncapped count + label) | `recon/adaptive.py` + providers | S/M | T7.3 |
-| P2 | Lexicon-bootstrap seam for Loop B | MCP `recon_distill` | M | T7.4 |
+| P2 | Lexicon-bootstrap seam for Loop B | MCP `recon_distill` | M | implemented P3 (lenient `str\|dict`, E2E regression) |
 | P2 | School-purity sampled audit (script + judge rubric) | `scripts/` | M | T7.5 |
+| P2 | Topical-coherence gate (purity) + pool floor | `recon/gates.py` + MCP | S | implemented P5/P2 (`13_evaluation.md` 3.5) |
+| P1 | Direction diversity (≥1/lexical family) + junk filter | `inception.py` | S | implemented P1 (`16_inception_improvements.md` F.2) |
+| P6 | Default-lexicon cross-domain breadth (schools/metrics/datasets) | `recon/lexicon.py` | S | implemented P6 (`16_inception_improvements.md` F.6) |
 | P3 | ReconBench corpus + runner | `scripts/reconbench/` | L | T7.6 |
 | P3 | Full A/B downstream comparison | pipeline integration | L | — |
-| P1 | Canonical recon root (`NEXUS_RECON_ROOT`, kit-consistent) | MCP/CLI share one cache | S | T7.7 |
+| P1 | Canonical recon root (`NEXUS_RECON_ROOT`, kit-consistent) | MCP/CLI share one cache | S | implemented P4 (`13_evaluation.md` 3.6) |
 | P2 | Headless emission (`--auto-select`/`--direction-id`) + softened wizard exit | `inception.py` | S | T7.8 |
 
 **Non-goal:** measuring "groundedness quality" of human reviewers — the agent's outputs are the object, not the researcher.

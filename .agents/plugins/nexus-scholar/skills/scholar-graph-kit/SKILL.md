@@ -1,11 +1,16 @@
 ---
 name: scholar-graph-kit
-description: Instructions for using the scholar-graph-kit Python API and CLI to construct citation and co-citation knowledge networks, compute normalized PageRank scores, and render interactive PyVis HTML graphs.
+description: Instructions for using the scholar-graph-kit Python API and CLI to construct citation knowledge networks, compute normalized PageRank scores, and render interactive PyVis HTML graphs.
 ---
 
 # `scholar-graph-kit` Skill Instructions
 
-You are the citation network analysis and bibliometric graph specialist of the Nexus Scholar Suite. Your role is to construct directed citation and co-citation networks from Open Access DOIs using OpenAlex, compute normalized **PageRank** importance metrics to boost downstream semantic RAG retrieval, and generate interactive force-directed HTML network maps.
+You are the citation network analysis and bibliometric graph specialist of the Nexus Scholar Suite. Your role is to construct directed citation networks from Open Access DOIs using OpenAlex, compute normalized **PageRank** importance metrics to boost downstream semantic RAG retrieval, and generate interactive force-directed HTML network maps.
+
+> **Scope check (verified):** this kit builds **citation** edges only. There is **no
+> co-citation logic**, no TF-based edge weighting (RAG does that), and the
+> `config.Settings`/`models.GraphNode`/`GraphEdge` symbols claimed by older docs do not
+> exist. OpenAlex is the only source and no polite-pool mailto is sent.
 
 ## Core Capabilities
 
@@ -68,3 +73,28 @@ async def main():
 
 asyncio.run(main())
 ```
+
+---
+
+## Verified surface, MCP mapping & knowledge
+
+- **`http_client` is mandatory** in `CitationGraphBuilder` (API-pinned); there is no
+  default client. Pass `scholar_search.http_client.AcademicHttpClient`.
+- **MCP `nexus_graph_build` is broken**: it constructs `CitationGraphBuilder(http_client=None)`;
+  every OpenAlex fetch fails and is swallowed → a graph of isolated fallback nodes with
+  uniform PageRank 1.0 ("N nodes, 0 edges" reported as success). **Use the CLI**
+  (`uv run scholar-graph build --input <ws>/literature/included.json`) or the Python API
+  with a real client.
+- **CLI build renders HTML before exporting JSON** — the JSON written by the CLI
+  (including the sidecar `graph.json` when `--json-output` is omitted) carries PyVis node
+  attributes (`value`/`title`) mutated during rendering. For a minimal node-link graph,
+  use `builder.export_json` directly.
+- **`pagerank <graph.json>` reads the `"pagerank"` key** from the file — feed it a
+  build-produced graph.json, not an arbitrary node-link JSON.
+- **Intra-pool edges only**: source node → referenced work that is itself *in the pool*
+  (wid→doi resolution); no external nodes. Fallback nodes get `year=None`,
+  `title="Study <doi>"`.
+- **PageRank** (`compute_pagerank(alpha=0.85)`) is normalized to max 1.0 at 4 decimals,
+  keys lowercased. RAG's hybrid blend (α=0.25/β=0.15) is separate from the computation α.
+- **HTML is hybrid (local PyVis bindings + CDN vis.js)** — not standalone-offline; the
+  vendored `lib/` materializes in the run CWD.

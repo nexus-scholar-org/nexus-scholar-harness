@@ -67,7 +67,7 @@ No chat copilot in the browser, no DB, no Celery/RabbitMQ, no realtime sync, no 
   | Long-running jobs block the loopback server | asyncio subprocess with streaming + SSE; never inline `run_sync`. |
   | Screenshot-grade Markdown rendering drift | styled Markdown viewer + iframes for generated HTML; no custom renderers of research data. |
 
-## 6. Success criteria (Phase 5, from `ROADMAP_ASSESSMENT_AND_TASK_LIST.md` + this plan)
+## 6. Success criteria (Phase 5, from `docs/UPCOMING_WORK.md` §5 + this plan)
 
 - [ ] A non-programmer builds and runs a search→screen→harvest→synthesize pipeline from the console (M5.4).
 - [ ] Every console action displays its exact `uv run` command; the mapping table is CI-tested (M5.1/2).

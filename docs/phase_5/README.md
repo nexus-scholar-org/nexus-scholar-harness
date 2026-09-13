@@ -17,7 +17,7 @@ This folder holds the Phase 5 design set. Read them in order:
 
 ## 1. What Phase 5 Is (and is not)
 
-Phase 5 was envisioned (`ROADMAP_ASSESSMENT_AND_TASK_LIST.md` and the now-archived `OPEN_SCIENCE_ROADMAP_v1.md` deep-dive) as: **5a shared research workspaces**, **5b no-code workflow builder**, **5c domain-specific 1-click templates**. The repo contains two competing visions for "UI":
+Phase 5 was envisioned (`docs/UPCOMING_WORK.md` §Phase 5 and the now-archived `OPEN_SCIENCE_ROADMAP_v1.md` deep-dive) as: **5a shared research workspaces**, **5b no-code workflow builder**, **5c domain-specific 1-click templates**. The repo contains two competing visions for "UI":
 
 1. A now-archived web-app vision (`08_production_web_app.md` in `brainstorming/methodology-tooling/`) — a Next.js/React + FastAPI + Celery app ("Nexus Science") with a Claude-like chat copilot.
 2. A now-archived agent-native vision (`09_agent_native_ecosystem.md` in `brainstorming/methodology-tooling/`) — the "headless advantage": package everything as MCP + skills, build zero UI code.

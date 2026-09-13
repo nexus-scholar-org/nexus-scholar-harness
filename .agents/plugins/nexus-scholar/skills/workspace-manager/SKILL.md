@@ -11,7 +11,7 @@ You are the central project orchestration agent for the Nexus Scholar Suite. You
 1. **Scaffold Projects**: Initialize standardized research project workspaces inside `workspaces/<project-slug>/`.
 2. **Resolve Active Project**: Detect the active research project or prompt the user to choose or create one.
 3. **Enforce Canonical Tool Paths**: Direct all toolkit commands (`scholar-protocol`, `scholar-search`, `scholar-pdf`, `scholar-graph`, `scholar-rag`, etc.) to read from and write to the active project folder.
-4. **Maintain State & Manifests**: Efficiently update `project.json` stats, `protocol.json`, and `audit/journal.jsonl` as research progresses.
+4. **Maintain State & Manifests**: Efficiently update `project.json` stats, `protocol.json`, and `audit/journal.jsonl` as research progresses; record `GENESIS` (+ `recon_context` provenance sidecar for grounded inception) at protocol compile.
 5. **Query Project State**: Retrieve project history, event logs, and current statistics programmatically.
 
 ---
@@ -62,19 +62,29 @@ Every project in `workspaces/<project-slug>/` adheres to this layout:
 
 ```text
 workspaces/<project-slug>/
-├── INDEX.md                # Master human-readable index and status catalog
-├── intent.json             # Socratic LLM intent packet
-├── protocol.json           # Canonical deterministic research protocol contract
-├── SCREENING_CRITERIA.md   # Rendered inclusion/exclusion criteria document
-├── project.json            # Project manifest (title, RQs, keywords, stats)
-├── audit/                  # Append-only journal.jsonl & verification audit logs
-│   └── journal.jsonl       # Immutable event ledger of all executed actions
-├── literature/             # Search results (raw_search.json, deduped.json, verified.json, included.json)
-│   ├── graph.html          # PyVis interactive citation network visualization
-│   └── graph.json          # Node-link graph topology & PageRank weights
-├── pdfs/                   # Downloaded PDFs & download_summary.json
-├── extracted/              # Markdown with YAML frontmatter
-└── synthesis/              # Literature review, dynamic synthesis matrices (CSV/JSON/MD)
+├── INDEX.md                   # Master human-readable index and status catalog
+├── intent.json                # Socratic LLM intent packet
+├── protocol.json              # Canonical deterministic research protocol contract
+├── SCREENING_CRITERIA.md      # Rendered inclusion/exclusion criteria document
+├── project.json               # Project manifest (title, RQs, keywords, stats)
+├── audit/
+│   ├── journal.jsonl          # Immutable event ledger of all executed actions
+│   └── recon_context.json     # GENESIS provenance sidecar (grounded inception)
+├── literature/                # Search results & screening artifacts
+│   ├── raw_search.json        # Federated raw results
+│   ├── deduped.json           # PID-clustered + title-similarity dedup
+│   ├── verified.json          # Verified & hydrated records
+│   ├── included.json          # Final screened include set
+│   ├── excluded.json          # Screened-out records + reasons
+│   ├── screening/             # batch_NNN.json + batch_NNN_decisions.json
+│   ├── prisma_screening_report.md   # PRISMA 2020 flow
+│   ├── graph.html             # PyVis interactive citation network visualization
+│   └── graph.json             # Node-link graph topology & PageRank weights
+├── pdfs/                      # Downloaded PDFs & download_summary.json
+├── extracted/                 # Markdown with YAML frontmatter
+├── synthesis/                 # Literature review, claims, dynamic synthesis matrices
+├── exports/                   # CSV/JSON exports (search, verified, decisions)
+└── phase4/                    # Verify-kit outputs (trust consensus, RoB/COI, retraction)
 ```
 
 ---
@@ -93,45 +103,34 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py <project-slu
   --metrics discovered_papers=127
 ```
 
-### Programmatic Event Logging (Async-Compatible)
-```python
-import asyncio
-from workspace_manager import ProjectManager, EventBatch
+### Batch & Programmatic Logging (CLI-first)
 
-async def main():
-    pm = ProjectManager("multispectral-weeds")
-    
-    # Method 1: Single event
-    await pm.log_event(
-        action="DISCOVERY_SEARCH",
-        agent_or_tool="scholar-search-kit",
-        description="Multi-provider federated search",
-        outputs=["literature/raw_search.json"],
-        metrics={"discovered_papers": 127}
-    )
-    
-    # Method 2: Batch events (efficient)
-    batch = EventBatch()
-    batch.add_event("DISCOVERY_SEARCH", "scholar-search-kit", "Search execution", ["literature/raw_search.json"], {"discovered_papers": 127})
-    batch.add_event("DEDUPLICATION", "scholar-search-kit", "Dedup pass", ["literature/deduped.json"], {"unique_papers": 89})
-    batch.add_event("VERIFICATION", "scholar-search-kit", "Verify & hydrate", ["literature/verified.json"], {"verified_papers": 87})
-    
-    # Write all events + refresh INDEX.md once
-    await pm.batch_log_events(batch)
+Logging is **CLI-first**: all writes go through the canonical scripts
+(`log_event.py` for one event, `batch_log.py` for a batch). There is **no**
+importable `workspace_manager` module — never hand-append to `journal.jsonl`.
 
-if __name__ == "__main__":
-    asyncio.run(main())
+```bash
+# Batch events from a JSONL file (one process, one append, one INDEX.md refresh)
+uv run python .agents/skills/workspace-manager/scripts/batch_log.py <project-slug> \
+  --events-file events.jsonl
+# events.jsonl = one event object per line (schema below); run <N> appends N rows
 ```
+
+### The `GENESIS` event (hard convention)
+
+Every project with a compiled protocol must record, besides `PROJECT_INITIALIZED`
+(from `init_project.py`), a **`GENESIS`** audit event. For literature-grounded
+inception it carries full provenance in the `audit/recon_context.json` sidecar
+plus a bounded inline summary (direction, anchors, cache key, confidence). See
+`specs/inception-ecosystem/02_handoffs.md` §2.2.
 
 ---
 
 ## Agent Integration Guidelines & Best Practices
 
-- **Project Resolution**: At the start of a multi-step workflow, detect or prompt for the active project:
-  ```python
-  pm = ProjectManager.resolve_active_project()
-  ```
-- **Batch Logging for Performance**: When running multi-step pipelines (search → dedup → verify → screen), use batch logging to write the journal once and refresh INDEX.md once (not N times).
+- **Project Resolution**: At the start of a multi-step workflow, detect or prompt for the active project; inspect state before writing with `query_project.py --stats`.
+- **Batch Logging for Performance**: When running multi-step pipelines (search → dedup → verify → screen), use `batch_log.py` with an `--events-file` to write the journal once and refresh INDEX.md once (not N times).
+- **Genesis Provenance**: on protocol compile, log `GENESIS`; for grounded inception, write the full provenance sidecar `audit/recon_context.json` and a bounded inline summary (schema: `specs/inception-ecosystem/02_handoffs.md` §2.2; implementation: `src/scholar_harness/inception.py::log_genesis`).
 - **Metric Aggregation**: Always update `stats` with quantitative outcomes (papers discovered, verified, downloaded, extracted, etc.). The INDEX.md uses these for the summary table.
 - **Event Schema**: Follow the standard event schema:
   ```json

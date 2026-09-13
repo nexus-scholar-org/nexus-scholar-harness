@@ -91,13 +91,10 @@ _HARNESS_SRC = _harness_src()
 if _HARNESS_SRC not in sys.path:
     sys.path.insert(0, _HARNESS_SRC)
 
-# Recon cache root: CWD-relative, same sandbox convention as nexus_discover's
-# ``.cache/mcp``; ``.cache/`` is gitignored in every checkout, so no repo
-# pollution regardless of which venv/CWD the server runs from.  M0.7 T7.7:
-# ``NEXUS_RECON_ROOT`` overrides the default so CLI and MCP share one root.
-RECON_CACHE_ROOT = Path(
-    os.environ.get("NEXUS_RECON_ROOT", ".cache/inception_recon")
-)
+# Recon cache root (P4): computed AFTER the scholar_harness import below via
+# ``canonical_recon_root()`` so CLI and MCP share the same CWD-independent
+# root (``NEXUS_RECON_ROOT`` override, else ``<project>/.cache/inception_recon``).
+# ``.cache/`` is gitignored in every checkout, so no repo pollution.
 # Test/injection seam: when set, recon tools probe through this callable
 # instead of the kit SearchEngine (mirrors ReconEngine(search_fn=...)).
 RECON_SEARCH_FN = None
@@ -106,9 +103,16 @@ from scholar_harness.recon import (
     DEFAULT_LEXICON,
     DomainLexicon,
     ReconEngine,
+    canonical_recon_root,
     distill_pool,
     execute_followups,
     merge_lexicons,
+)
+
+RECON_CACHE_ROOT = canonical_recon_root()
+from scholar_harness.recon.gates import (
+    compute_pool_sufficiency,
+    compute_topic_purity,
 )
 
 mcp = MCPServer("ScholarAgentKit")
@@ -761,7 +765,9 @@ def _validated_lexicon_fields(value: Any, name: str) -> dict[str, str]:
 
 
 @mcp.tool()
-def recon_distill(session_id: str, lexicon_json: str | None = None) -> str:
+def recon_distill(
+    session_id: str, lexicon_json: str | dict | None = None
+) -> str:
     """Distill the latest session pool into an anchored micro-taxonomy.
 
     Loads the session's most recent pool from the persisted ``session.json``
@@ -773,12 +779,25 @@ def recon_distill(session_id: str, lexicon_json: str | None = None) -> str:
     used and output is byte-identical.  A lexicon hash is baked into the
     artifact name (``distilled_lx<sha>_<...>.json``) for provenance.  The
     pool's upstream ``cache_key`` is returned for lineage (T5.5).
+
+    The parameter is deliberately lenient (P3, ``16_inception_improvements.md``
+    F8): both a JSON *string* and an already-decoded *dict* are accepted, so
+    agent frameworks that auto-parse JSON-looking arguments (which previously
+    failed at the MCP boundary with a Pydantic string-type error) work
+    unchanged.
+
+    The reply also carries two admission gates (``13_evaluation.md`` 3.5 /
+    ``16_inception_improvements.md`` P5+P2): ``pool`` (``n_docs`` +
+    sufficiency ``label``, floor ``POOL_THIN_FLOOR``) and ``purity`` (topic
+    coherence ``label`` ``coherent|fragmented|indeterminate`` + top-1/top-3
+    shares).  ``qei`` is deliberately never used alone -- it is a dispersion
+    index that inverts on well-scoped semantic seeds.
     """
     try:
         lexicon = None
         artifact_prefix = "distilled"
         if lexicon_json is not None:
-            parsed = json.loads(lexicon_json)
+            parsed = lexicon_json if isinstance(lexicon_json, dict) else json.loads(lexicon_json)
             if not isinstance(parsed, dict):
                 raise ValueError("lexicon_json must be a JSON object")
             extra = DomainLexicon(
@@ -802,12 +821,16 @@ def recon_distill(session_id: str, lexicon_json: str | None = None) -> str:
         root = _session_root(str(session_id))
         terms_file = _persist_artifact(root, artifact_prefix, distilled).resolve()
         save_session(session)
+        pool_gate = compute_pool_sufficiency(len(pool.get("docs", []) or []))
+        purity = compute_topic_purity(distilled.get("topics") or [])
         return json.dumps(
             {
                 "session_id": str(session_id),
                 "cache_key": str(pool.get("cache_key") or ""),
                 "terms_path": str(terms_file),
                 "qei": distilled.get("qei"),
+                "pool": pool_gate,
+                "purity": purity,
                 "metrics": [
                     {"label": label, "count": count}
                     for label, count in sorted((distilled.get("metrics") or {}).items())
