@@ -1,4 +1,4 @@
-﻿"""Asyncio subprocess job runner with lifecycle tracking and journal writes.
+"""Asyncio subprocess job runner with lifecycle tracking and journal writes.
 
 A job maps a console action to a `uv run` subprocess (job_runner executes
 argv directly; the actions table in runtimes/actions.py is the source of the
@@ -21,7 +21,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ...pipeline_executor import PipelineCancelled, PipelineError, PipelineExecutor
 from ..api.pipelines import BUILTIN_TEMPLATES, PipelineSpec, store_path, validate_spec
 from .actions import Action, get_action, render_command
 
@@ -246,6 +245,8 @@ class JobRunner:
             lines.put_nowait(line)
 
         def runner_fn() -> tuple[str, list[dict[str, Any]] | None, str | None]:
+            from ...pipeline_executor import PipelineCancelled, PipelineError, PipelineExecutor
+
             try:
                 runner = PipelineExecutor(self.workspace)
                 results = runner.run(
