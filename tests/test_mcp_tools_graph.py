@@ -10,17 +10,14 @@ engines / in-memory fixtures, never the network.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import networkx as nx
-import pytest
-
-from scholar_graph.builder import CitationGraphBuilder
-
 from scholar_agent.server import (
     nexus_extract_pdf,
     nexus_graph_build,
-    nexus_verify_claims,
 )
+from scholar_graph.builder import CitationGraphBuilder
 
 
 def _di_graph(dois: list[str], *edges: tuple[str, str]) -> nx.DiGraph:
@@ -101,3 +98,55 @@ def test_nexus_graph_build_no_dois_is_an_error(tmp_path):
     result = nexus_graph_build(str(inp), str(tmp_path / "g.html"), str(tmp_path / "g.json"))
 
     assert result.startswith("Error:")
+
+
+# ---------------------------------------------------------------------------
+# nexus_extract_pdf: metadata enrichment + engine routing
+# ---------------------------------------------------------------------------
+
+
+def test_nexus_extract_pdf_passes_path_metadata(tmp_path, monkeypatch):
+    from scholar_pdf.extract import PyMuPDFEngine
+
+    pdf = tmp_path / "10.2307_4152972.pdf"
+    pdf.write_bytes(b"%PDF-1.4 fake")
+
+    captured = {}
+
+    def fake_extract(pdf_path, output_dir, metadata=None):
+        captured["metadata"] = metadata
+        out_file = Path(output_dir) / f"{Path(pdf_path).stem}.md"
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text("# extracted", encoding="utf-8")
+        return out_file
+
+    monkeypatch.setattr(PyMuPDFEngine, "extract_markdown", staticmethod(fake_extract))
+
+    result = nexus_extract_pdf(str(pdf), str(tmp_path / "extracted"))
+
+    assert captured["metadata"]["doi"] == "10.2307_4152972"
+    assert captured["metadata"]["title"] == "10.2307 4152972"
+    assert "Extracted 10.2307_4152972.pdf" in result
+
+
+def test_nexus_extract_pdf_doi_regex_from_plain_name(tmp_path, monkeypatch):
+    from scholar_pdf.extract import DoclingEngine
+
+    pdf = tmp_path / "scott2020.pdf"
+    pdf.write_bytes(b"%PDF-1.4 fake")
+
+    captured = {}
+
+    def fake_extract(pdf_path, output_dir, metadata=None):
+        captured["metadata"] = metadata
+        out_file = Path(output_dir) / f"{Path(pdf_path).stem}.md"
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text("# extracted", encoding="utf-8")
+        return out_file
+
+    monkeypatch.setattr(DoclingEngine, "extract_markdown", staticmethod(fake_extract))
+
+    nexus_extract_pdf(str(pdf), str(tmp_path / "extracted"), engine="docling")
+
+    assert captured["metadata"]["doi"] == ""
+    assert captured["metadata"]["title"] == "scott2020"
