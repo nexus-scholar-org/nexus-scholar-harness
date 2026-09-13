@@ -66,6 +66,10 @@ latent bug**, with the working path in parentheses.
    standardization, no dedup. (Run `uv run scholar-bib lint --generate-keys` +
    `dedup`/`merge --dedup` for the documented pipeline. Output defaults to
    **in-place overwrite**.)
+   **RESOLVED:** the tool now runs the full documented pipeline —
+   `BibLinter.lint(..., generate_keys=True)` then `BibDeduplicator.dedup(...)`, saved
+   to the output path (still in-place by default). Regression tests:
+   `tests/test_mcp_tools_graph.py::test_nexus_bib_clean_*`.
 5. **`nexus_protocol_validate` string mode skips cross-field rules.** Passing
    inline JSON only runs Pydantic structural validation; passing a **file path**
    runs the full rule set (`_check_cross_field`: duplicate IDs, date/pool
