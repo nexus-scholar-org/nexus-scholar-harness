@@ -46,7 +46,7 @@ from scholar_search.providers import (
     SemanticScholarProvider,
 )
 from scholar_search.screening import evaluate_heuristic_screening, partition_screening_results, reconcile_multi_screener_decisions
-from scholar_pdf.extract import PyMuPDFEngine
+from scholar_pdf.extract import DoclingEngine, GrobidEngine, PyMuPDFEngine
 from scholar_verify.verbatim import VerbatimClaimVerifier
 
 # Phase 2 Imports
@@ -288,10 +288,27 @@ def nexus_screen(input_path: str, protocol_path: str, output_dir: str = "./liter
         return f"Error during screening: {e}"
 
 
+def _pdf_metadata(pdf: Path) -> dict:
+    """Best-effort metadata enrichment derivable from a PDF path alone.
+
+    Supplies ``title``, ``doi`` and ``workspace_id`` to the extraction
+    engines' ``metadata=`` kwarg so emitted YAML frontmatter carries the
+    fields consumed downstream by RAG DOI lookup / bib enrichment.
+    """
+    meta: dict = {"title": pdf.stem.replace("_", " "), "doi": "", "authors": [], "year": None}
+    doi_match = re.search(r"10\.\d{4,9}[-._;()/:A-Z0-9]+", pdf.stem, re.IGNORECASE)
+    if doi_match:
+        meta["doi"] = doi_match.group(0).rstrip(".")
+    ws_match = re.search(r"SCI-\d+", str(pdf))
+    if ws_match:
+        meta["workspace_id"] = ws_match.group(0)
+    return meta
+
+
 @mcp.tool()
 def nexus_extract_pdf(pdf_path: str, output_dir: str = "./extracted", engine: str = "pymupdf") -> str:
     """
-    Extract a PDF into Markdown with YAML frontmatter using PyMuPDF.
+    Extract a PDF into Markdown with YAML frontmatter using the requested engine.
     """
     pdf = Path(pdf_path)
     out_dir = Path(output_dir)
@@ -299,7 +316,12 @@ def nexus_extract_pdf(pdf_path: str, output_dir: str = "./extracted", engine: st
         return f"Error: PDF {pdf_path} not found."
     try:
         out_dir.mkdir(parents=True, exist_ok=True)
-        res_file = PyMuPDFEngine.extract_markdown(pdf, out_dir)
+        metadata = _pdf_metadata(pdf)
+        if engine.lower() == "grobid":
+            res_file = GrobidEngine.extract_markdown(pdf, out_dir)
+        else:
+            engine_cls = DoclingEngine if engine.lower() == "docling" else PyMuPDFEngine
+            res_file = engine_cls.extract_markdown(pdf, out_dir, metadata=metadata)
         return f"Extracted {pdf.name} to {res_file}"
     except Exception as e:
         return f"Error during PDF extraction: {e}"

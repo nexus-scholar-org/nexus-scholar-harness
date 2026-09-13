@@ -56,6 +56,11 @@ latent bug**, with the working path in parentheses.
    `metadata=` kwarg (workspace_id/doi/year/authors) is never passed. MCP-extracted
    files silently lose `doi` → downstream RAG DOI lookup and bib-enrichment degrade.
    (`engine=…` param is dead — always PyMuPDF.) Only the Python API can inject metadata.
+   **RESOLVED:** the tool now derives `title`/`doi`/`workspace_id` from the PDF path
+   (`doi` via a DOI pattern on the stem, `workspace_id` via `SCI-x` segments) and
+   passes them through `metadata=`; `engine=` now routes to `docling`/`grobid`
+   (both fall back to PyMuPDF, which still receives the metadata). Regression tests:
+   `tests/test_mcp_tools_graph.py::test_nexus_extract_pdf_*`.
 4. **`nexus_bib_clean` is lint-only.** Name/docstring say "clean, standardize keys,
    and deduplicate" but it calls `lint(generate_keys=False)` — no key
    standardization, no dedup. (Run `uv run scholar-bib lint --generate-keys` +
