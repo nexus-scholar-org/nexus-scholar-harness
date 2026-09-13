@@ -730,7 +730,7 @@ def nexus_verify_claims(claims_json_path: str, extracted_dir_path: str, threshol
 
 @mcp.tool()
 def nexus_verify_phase4(
-    workspace_dir: str,
+    workspace_dir: str = ".",
     stream: str = "all",
     sleep_s: float = 0.2,
     skip_retraction: bool = True,
@@ -1183,33 +1183,66 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
 # CLI Entrypoint
 # ==============================================================================
 
-def main():
+def main(argv: list[str] | None = None) -> None:
     """Start the FastMCP server or display help."""
-    if len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
-        print("Usage: scholar-agent [OPTIONS]")
-        print("\nScholar Agent Kit: FastMCP Server exposing Nexus Scholar tools to AI Agents.")
-        print("\nExposed MCP Tools:")
-        print("  - nexus_protocol_compile: Compile intent.json into canonical protocol.json")
-        print("  - nexus_protocol_validate: Validate protocol schema and checksum")
-        print("  - nexus_protocol_render_criteria: Render human-readable screening criteria markdown")
-        print("  - nexus_discover: Search OpenAlex for scholarly papers")
-        print("  - nexus_dedup: Deduplicate candidate documents by PID clustering")
-        print("  - nexus_screen: Systematic PRISMA screening against protocol criteria")
-        print("  - nexus_extract_pdf: Extract structured Markdown from PDFs")
-        print("  - nexus_rag_index: Index Markdown into ChromaDB with structural AST chunking")
-        print("  - nexus_rag_query: Hybrid search with sectional slicing and graph PageRank boosting")
-        print("  - nexus_rag_synthesize: Grounded synthesis with claim entailment verification")
-        print("  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies")
-        print("  - nexus_graph_build: Build citation graph from included studies or DOIs")
-        print("  - nexus_bib_clean: Clean and deduplicate BibTeX databases")
-        print("  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa")
-        print("  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext")
-        print("  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)")
-        print("  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)")
-        print("  - recon_distill: Distill the latest session pool into anchored terms")
-        print("  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse")
-        return
-    mcp.run()
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="scholar-agent",
+        description="Scholar Agent Kit: FastMCP Server exposing Nexus Scholar tools to AI Agents.",
+        epilog=(
+            "Exposed MCP Tools:\n"
+            "  - nexus_protocol_compile: Compile intent.json into canonical protocol.json\n"
+            "  - nexus_protocol_validate: Validate protocol schema and checksum\n"
+            "  - nexus_protocol_render_criteria: Render human-readable screening criteria markdown\n"
+            "  - nexus_discover: Search OpenAlex for scholarly papers\n"
+            "  - nexus_dedup: Deduplicate candidate documents by PID clustering\n"
+            "  - nexus_screen: Systematic PRISMA screening against protocol criteria\n"
+            "  - nexus_extract_pdf: Extract structured Markdown from PDFs\n"
+            "  - nexus_rag_index: Index Markdown into ChromaDB with structural AST chunking\n"
+            "  - nexus_rag_query: Hybrid search with sectional slicing and graph PageRank boosting\n"
+            "  - nexus_rag_synthesize: Grounded synthesis with claim entailment verification\n"
+            "  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies\n"
+            "  - nexus_graph_build: Build citation graph from included studies or DOIs\n"
+            "  - nexus_bib_clean: Clean and deduplicate BibTeX databases\n"
+            "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
+            "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
+            "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"
+            "  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)\n"
+            "  - recon_distill: Distill the latest session pool into anchored terms\n"
+            "  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-w",
+        "--workspace",
+        type=str,
+        default=None,
+        help="Workspace root directory for anchoring relative paths and storing cache/artifacts (default: NEXUS_MCP_WORKSPACE or repo root).",
+    )
+    parser.add_argument(
+        "--transport",
+        type=str,
+        default="stdio",
+        choices=["stdio", "sse", "streamable-http"],
+        help="Transport protocol to use (default: stdio).",
+    )
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        if exc.code == 0:
+            return
+        raise
+
+    if args.workspace:
+        ws_path = Path(args.workspace).resolve()
+        ws_path.mkdir(parents=True, exist_ok=True)
+        os.environ["NEXUS_MCP_WORKSPACE"] = str(ws_path)
+        if "NEXUS_RECON_ROOT" not in os.environ:
+            os.environ["NEXUS_RECON_ROOT"] = str(ws_path / ".cache" / "inception_recon")
+
+    mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":
