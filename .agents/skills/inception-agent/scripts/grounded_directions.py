@@ -15,7 +15,8 @@ Usage::
 
   uv run python .agents/skills/inception-agent/scripts/grounded_directions.py \\
       --terms <distilled terms json> --topic "<session topic>" \\
-      [--pool <pool json>] [--direction "<validated direction label>"]
+      [--pool <pool json>] [--direction "<validated direction label>"] \\
+      [--max-default-concepts N]
 
 Exit codes: 0 ok, 2 bad invocation or unvalidatable selection.
 """
@@ -77,6 +78,14 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Validated direction label; emits the recon_context for that direction.",
     )
+    parser.add_argument(
+        "--max-default-concepts",
+        type=int,
+        default=None,
+        help="Cap default_concepts in recon_context (chat seeding convenience). "
+        "None (default) keeps full wizard parity; a rich pool's wizard default "
+        "can be hundreds of anchored terms.",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -105,11 +114,14 @@ def main(argv: list[str] | None = None) -> int:
         for term in terms.get("micro_taxonomy", []):
             if len(term["anchor_dois"]) >= 1:
                 anchored_terms.setdefault(term["term"], []).extend(term["anchor_dois"])
+        default_concepts = _grounded_default_concepts(terms, validated_concept)
+        if args.max_default_concepts is not None:
+            default_concepts = default_concepts[: max(0, args.max_default_concepts)]
         out["recon_context"] = {
             "anchor_dois": anchor_dois,
             "direction": selected["label"],
             "concept": validated_concept,
-            "default_concepts": _grounded_default_concepts(terms, validated_concept),
+            "default_concepts": default_concepts,
             "anchored_terms": anchored_terms,
         }
 

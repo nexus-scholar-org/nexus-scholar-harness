@@ -57,7 +57,7 @@ The user picks a direction (or steers). You may propose a refined single-sentenc
 
 ### Stage 6 — Remaining interview + emission
 Follow **methodology-copilot** for the interviews that follow a direction choice (paradigm refractions, unit of analysis, RQs, inclusion/exclusion criteria, matrix dimensions), but seed against the grounded evidence:
-- `core_concepts` = validated `concept` first, then the helper's `default_concepts`.
+- `core_concepts` = validated `concept` first, then a **curated, bounded set (≤ ~8 distinct) drawn from the helper's `default_concepts`** — the raw wizard default can be *hundreds* of pool-anchored terms on a rich pool; curate it the way a researcher edits the wizard's Stage-4b default (pass `--max-default-concepts N` to the helper if you want a pre-truncated seed).
 - Every concept/synonym must end up **anchored** (APR). If the user adds a concept/synonym not in the anchored evidence, run a bounded supplementary `recon_probe` for it; if it yields no `anchor_dois`, drop the synonym (warn) or refuse the concept — **never emit an unanchored concept into `core_concepts`**. Enforce this before compiling, like the wizard's `_enforce_grounded_anchors`.
 
 Then emit **only after the user's explicit confirmation** (ask, mirroring the wizard's final confirm):
@@ -69,7 +69,7 @@ uv run python .agents/skills/workspace-manager/scripts/init_project.py \
   --paradigm "<Paradigm>" --rq "RQ1: <Q1>" --rq "RQ2: <Q2>"
 
 # 2. intent.json (methodology-copilot IntentPacket schema)
-#    put the full recon_context (see below) into the GENESIS description
+#    GENESIS logs recon_context as a provenance sidecar + bounded inline summary (step 4)
 # 3. Compile + render canonical artifacts (MCP nexus_protocol_compile / nexus_protocol_render_criteria
 #    or the equivalent scholar-protocol CLIs)
 uv run scholar-protocol compile -i workspaces/<slug>/intent.json -o workspaces/<slug>/protocol.json --fingerprint
@@ -78,10 +78,13 @@ uv run scholar-protocol render-criteria workspaces/<slug>/protocol.json -o works
 # 4. Audit ledger (hard convention): GENESIS with recon_context
 uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> \
   --action GENESIS --agent scholar-harness/inception --status SUCCESS \
-  --description "<description> recon_context=<recon_context.json>"
+  --description "<description> recon_context={bounded summary json}" \
+  --outputs audit/recon_context.json protocol.json SCREENING_CRITERIA.md
 ```
 
-**`recon_context` (M0.3 DoD 4 — must be in the GENESIS event):** take the helper's `recon_context` (`anchor_dois`, `direction`, `concept`, `default_concepts`, `anchored_terms`) and add the session lineage from the MCP replies: `session_id`, `cache_keys` (all probe/distill keys), `pool_sizes` (all pool sizes). Only emit when the workspace is scaffolded; if the user declines or wants a dry run, write nothing and say so.
+**`recon_context` (M0.3 DoD 4 — must be in the GENESIS event):** take the helper's `recon_context` (`anchor_dois`, `direction`, `concept`, `default_concepts`, `anchored_terms`) and add the session lineage from the MCP replies: `session_id`, `cache_keys` (all probe/distill keys), `pool_sizes` (all pool sizes).
+
+**Write path (Windows argv safety):** write the **full** `recon_context` verbatim to `workspaces/<slug>/audit/recon_context.json` — that sidecar is the provenance of record and goes in `--outputs`. Embed only a **bounded inline summary** in the `--description` (`session_id`, `cache_keys`, `pool_sizes`, `direction`, `concept`, `anchor_dois`, `default_concepts`, `anchored_term_count`, `provenance_file`). Never embed the raw dict in the argv — a rich pool's anchored-term map is hundreds of entries and overflows the Windows command line (`WinError 206`); `log_genesis` in `src/scholar_harness/inception.py` implements exactly this contract (50/cap lists inline, full dict on disk). Only emit when the workspace is scaffolded; if the user declines or wants a dry run, write nothing and say so.
 
 ---
 
@@ -91,7 +94,7 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> \
 2. **Human gate** — emission (workspace scaffold, intent, protocol, GENESIS) happens only after the user confirms in chat. Interactive default stays intact.
 3. **Byte-identical discipline** — you only run this flow when the user asks for grounded inception; you never change default-facing behavior of the CLIs/MCP tools.
 4. **Placement** — all project output under `workspaces/<slug>/`; recon state under `.cache/inception_recon/` (gitignored). Never dump into the repo root or `tools/`.
-5. **Audit trail** — GENESIS (with `recon_context`) is mandatory; log intermediate probes/distills when the user wants the full ledger.
+5. **Audit trail** — GENESIS (with `recon_context`: full provenance sidecar `audit/recon_context.json` + bounded inline summary) is mandatory; log intermediate probes/distills when the user wants the full ledger.
 6. **Tools first** — prefer the MCP recon tools and the parity helper over computing taxonomy scoring by hand or re-deriving wizard logic.
 
 ## Tooling fallback

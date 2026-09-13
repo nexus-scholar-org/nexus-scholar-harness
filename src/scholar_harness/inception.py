@@ -495,22 +495,60 @@ def scaffold_project(ws_root: Path, title: str, slug: str, paradigm: str, rqs: l
     return ws_root / "workspaces" / slug
 
 
+_INLINE_LIST_CAP = 50
+
+
+def _bounded(items: list, cap: int = _INLINE_LIST_CAP) -> dict:
+    """Bound a list for an audit-description payload (subprocess argv safety)."""
+    if len(items) <= cap:
+        return {"values": list(items), "truncated_count": 0}
+    return {"values": list(items[:cap]), "truncated_count": len(items) - cap}
+
+
 def log_genesis(ws_dir: Path, description: str, *, recon_context: dict | None = None) -> None:
-    """Record the GENESIS audit event via workspace-manager's log_event.py."""
+    """Record the GENESIS audit event via workspace-manager's log_event.py.
+
+    The full ``recon_context`` (which can hold hundreds of anchored terms on a
+    rich pool) is persisted verbatim to ``audit/recon_context.json``; the
+    description embeds only a bounded inline summary of the provenance fields
+    plus a ``provenance_file`` pointer.  Embedding the raw dict inline used to
+    overflow the OS command line when driving ``log_event.py`` as a subprocess
+    (observed on Windows: ``WinError 206``).
+    """
+    outputs: list[Path] = [ws_dir / "protocol.json", ws_dir / "SCREENING_CRITERIA.md"]
     if recon_context:
+        rc_file = ws_dir / "audit" / "recon_context.json"
+        rc_file.parent.mkdir(parents=True, exist_ok=True)
+        rc_file.write_text(json.dumps(recon_context, ensure_ascii=False, indent=2), encoding="utf-8")
+        anchors = _bounded(recon_context.get("anchor_dois") or [])
+        concepts = _bounded(recon_context.get("default_concepts") or [])
+        summary = {
+            "session_id": recon_context.get("session_id"),
+            "cache_keys": recon_context.get("cache_keys") or [],
+            "pool_sizes": recon_context.get("pool_sizes") or [],
+            "direction": recon_context.get("direction"),
+            "concept": recon_context.get("concept"),
+            "anchor_dois": anchors["values"],
+            "anchor_dois_truncated": anchors["truncated_count"],
+            "default_concepts": concepts["values"],
+            "default_concepts_truncated": concepts["truncated_count"],
+            "anchored_term_count": len(recon_context.get("anchored_terms") or {}),
+            "provenance_file": str(rc_file.relative_to(ws_dir)).replace("\\", "/"),
+        }
         description = (
             f"{description} recon_context="
-            + json.dumps(recon_context, ensure_ascii=False, separators=(",", ":"))
+            + json.dumps(summary, ensure_ascii=False, separators=(",", ":"))
         )
+        outputs.append(rc_file)
     cmd = [sys.executable, str(LOG_EVENT_SCRIPT), str(ws_dir)]
     cmd += ["--action", "GENESIS", "--agent", "scholar-harness/inception", "--status", "SUCCESS"]
     cmd += ["--inputs"] + [str(f) for f in (ws_dir / "intent.json",)]
-    cmd += ["--outputs"] + [str(f) for f in (ws_dir / "protocol.json", ws_dir / "SCREENING_CRITERIA.md")]
+    cmd += ["--outputs"] + [str(f) for f in outputs]
     cmd += ["--description", description]
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True, encoding="utf-8")
-    except subprocess.CalledProcessError as exc:  # pragma: no cover - best effort
-        console.print(f"[yellow]⚠ warning: GENESIS event not logged ({exc.stderr or exc})[/yellow]")
+    except (subprocess.CalledProcessError, OSError) as exc:  # pragma: no cover - best effort
+        console.print(f"[yellow]⚠ warning: GENESIS event not logged ({getattr(exc, 'stderr', None) or exc})[/yellow]")
 
 
 def draft_default_concepts(topic: str) -> list[str]:

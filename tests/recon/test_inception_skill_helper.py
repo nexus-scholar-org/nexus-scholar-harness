@@ -98,6 +98,26 @@ def test_helper_emits_recon_context_for_validated_direction(tmp_path):
     assert recon["anchored_terms"]["edge inference"][:2] == ["10.1/a", "10.1/b"]
 
 
+def test_helper_caps_default_concepts_for_chat_seeding(tmp_path):
+    terms = _write(tmp_path, "terms.json", TERMS_FIXTURE)
+    result = _run(
+        tmp_path,
+        "--terms",
+        str(terms),
+        "--topic",
+        "edge inference",
+        "--direction",
+        "edge inference",
+        "--max-default-concepts",
+        "1",
+    )
+    assert result.returncode == 0, result.stderr
+    recon = json.loads(result.stdout)["recon_context"]
+    # Chat seeding is bounded; the validated concept leads and stays.
+    assert recon["default_concepts"] == ["edge inference"]
+    assert recon["anchor_dois"] == ["10.1/a", "10.1/b"]
+
+
 def test_helper_rejects_unknown_direction(tmp_path):
     terms = _write(tmp_path, "terms.json", TERMS_FIXTURE)
     result = _run(

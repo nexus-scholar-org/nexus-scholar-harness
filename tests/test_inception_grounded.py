@@ -24,6 +24,7 @@ from scholar_harness.cli import app
 from scholar_harness.inception import (
     _grounded_default_concepts,
     draft_default_concepts,
+    log_genesis,
     run_wizard,
 )
 from scholar_harness.recon import ReconEngine, distill_pool
@@ -274,16 +275,52 @@ def test_grounded_wizard_presents_direction_and_records_recon_context(tmp_path):
         for syn in concept["synonyms"]:
             assert syn in rc["anchored_terms"]
 
-    # GENESIS carries the full recon_context embedded in the description.
+    # GENESIS embeds a bounded recon_context summary; the full provenance is
+    # persisted verbatim to audit/recon_context.json (argv-safe on Windows).
     genesis = _read_genesis(ws)
     assert genesis["description"].startswith(BASE_DESCRIPTION)
     assert "recon_context=" in genesis["description"]
     rc_json = json.loads(genesis["description"].split("recon_context=", 1)[1])
-    for key in ("session_id", "cache_keys", "pool_sizes", "anchor_dois", "anchored_terms"):
+    for key in (
+        "session_id", "cache_keys", "pool_sizes", "anchor_dois",
+        "default_concepts", "anchored_term_count", "provenance_file",
+    ):
         assert key in rc_json
     assert rc_json["pool_sizes"] == [3]
     assert rc_json["cache_keys"] == rc["cache_keys"]
     assert rc_json["anchor_dois"] == rc["anchor_dois"]
+    assert rc_json["anchored_term_count"] == len(rc["anchored_terms"])
+    assert rc_json["provenance_file"] == "audit/recon_context.json"
+    sidecar = json.loads((ws / "audit" / "recon_context.json").read_text(encoding="utf-8"))
+    assert sidecar == rc
+
+
+def test_log_genesis_inline_summary_survives_large_recon_context(tmp_path):
+    # A rich pool yields hundreds of anchored terms; the old code embedded the
+    # whole dict in the log_event.py argv and crashed on Windows (WinError 206).
+    big = {
+        "session_id": "b" * 12,
+        "cache_keys": ["v1/fake/q/abc"],
+        "pool_sizes": [20],
+        "anchor_dois": [f"10.0000/{i:03d}" for i in range(120)],
+        "direction": "some direction",
+        "concept": "some concept",
+        "default_concepts": [f"concept number {i}" for i in range(700)],
+        "anchored_terms": {f"term {i}": [f"10.0000/{i:03d}"] for i in range(600)},
+    }
+    ws = tmp_path / "workspaces" / "big-session"
+    ws.mkdir(parents=True)
+    log_genesis(ws, BASE_DESCRIPTION, recon_context=big)
+
+    genesis = _read_genesis(ws)
+    rc_json = json.loads(genesis["description"].split("recon_context=", 1)[1])
+    assert len(genesis["description"]) < 4000
+    assert rc_json["anchored_term_count"] == 600
+    assert rc_json["anchor_dois_truncated"] == 120 - 50
+    assert rc_json["default_concepts_truncated"] == 700 - 50
+    assert rc_json["provenance_file"] == "audit/recon_context.json"
+    sidecar = json.loads((ws / "audit" / "recon_context.json").read_text(encoding="utf-8"))
+    assert sidecar == big
 
 
 # ---------------------------------------------------------------------------
