@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from .inception import inception_command
+from .inception import inception_command, init_command
 from .integrations.latex_typst import AcademicTypesettingExporter
 from .integrations.obsidian import ObsidianVaultExporter
 from .integrations.zotero import ZoteroBridge
@@ -79,6 +79,22 @@ def status(
                 evt.get("description", "")[:60] + "..." if len(evt.get("description", "")) > 60 else evt.get("description", "")
             )
         console.print(event_table)
+
+
+@app.command("init")
+def init(
+    project_title: str = typer.Argument(
+        ..., help="Research project title (used to derive the workspace slug)"
+    ),
+    target_dir: Path = typer.Option(  # noqa: B008
+        Path("."), "--dir", "-d", help="Target directory to scaffold into (default: current dir)"
+    ),
+    scaffold_only: bool = typer.Option(
+        False, "--scaffold-only", help="Skip the Socratic wizard; scaffold the layout with a placeholder protocol"
+    ),
+):
+    """Bootstrap a portable Nexus Scholar research workspace in any folder (P7.3)."""
+    init_command(project_title, target_dir, scaffold_only=scaffold_only)
 
 
 @app.command("inception")

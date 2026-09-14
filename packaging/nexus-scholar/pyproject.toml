@@ -50,4 +50,8 @@ packages = []
 "../../tools/scholar-graph-kit/src/scholar_graph" = "scholar_graph"
 "../../tools/scholar-agent-kit/src/scholar_agent" = "scholar_agent"
 "../../tools/scholar-verify-kit/src/scholar_verify" = "scholar_verify"
+# Whole-tree skills bundle (12 skills incl. pull-request-gate). The mirror
+# reporter excludes pull-request-gate by design (repo-policy-only); the wheel
+# ships it anyway so every init'd workspace carries the full skill catalog.
+"../../.agents/skills" = "scholar_harness_data/skills"
 "nexus_scholar_pins.json" = "nexus_scholar_pins.json"
