@@ -45,11 +45,10 @@ jobs:
       - name: Build nexus-scholar metapackage wheel
         run: uv build --wheel packaging/nexus-scholar
 
-      - name: Smoke nexus-scholar metapackage wheel (best-effort)
-        # The chromadb trace is the documented P7.7-deferred gap (lazy-imports);
-        # anything else that fails the smoke (missing entrypoint, absent
-        # force-include package, ...) is an unexpected packaging regression and
-        # marks this step red even with continue-on-error.
+      - name: Smoke nexus-scholar metapackage wheel
+        # Hard gate since P7.7 lazy-imports: both entrypoints must load and
+        # answer --help on a minimal-dependency wheel env.  A chromadb import
+        # would now be a packaging regression, not a deferred gap.
         shell: bash
         run: |
           P7_7_GAP="ModuleNotFoundError: No module named 'chromadb'"
@@ -60,8 +59,9 @@ jobs:
               return 0
             fi
             if grep -q "$P7_7_GAP" smoke.log; then
-              echo "$entrypoint smoke hit the documented P7.7-deferred chromadb gap; continuing"
-              return 0
+              echo "::error::$entrypoint smoke hit a chromadb import; lazy-import regressed (P7.7)"
+              cat smoke.log
+              return 1
             fi
             echo "::error::$entrypoint smoke FAILED with an unexpected error (packaging regression?)"
             cat smoke.log
@@ -71,7 +71,6 @@ jobs:
           smoke "nexus-scholar" || status=1
           smoke "scholar-agent" || status=1
           exit $status
-        continue-on-error: true
       
       - name: Install plugins (git-only, no local checkouts)
         run: uv run python scripts/install_plugins.py --git-only --no-verify
