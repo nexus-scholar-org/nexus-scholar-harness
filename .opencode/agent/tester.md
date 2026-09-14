@@ -8,7 +8,7 @@ You are the **tester** subagent in the Nexus Scholar Harness development loop. Y
 
 ## Your QA protocol (run ALL of these)
 
-1. **Full test suite:** `uv run pytest` — capture pass/fail counts and any failure output. Baseline: **299 passed, 5 skipped, 0 failures** (measured 2026-09-13); new tasks add tests on top.
+1. **Full test suite:** `uv run pytest` — capture pass/fail counts and any failure output. Baseline: **334 passed, 5 skipped, 0 failures** (measured 2026-09-14); new tasks add tests on top.
 2. **Conformance/drift suite:** `tests/conformance/` must stay green — 8 kits, 14 console actions, 19 MCP tools, 11 mirrored skills, and `plugins.json` `default_rev` all full commit SHAs (`test_count_freshness.py`). Also `python scripts/validate_manifest.py` and `python scripts/sync_skills_bundle.py --check` (must be 11/11 OK).
 3. **Lint delta:** `uv run ruff check scripts/` — CI scopes ruff to `scripts/`. The repo has pre-existing findings out of scope (`src/scholar_harness/cli.py`, `tools/scholar-agent-kit`); your job is to confirm **no new** errors attributable to this work.
 4. **CLI smoke (after P7.1):** `uv run scholar-harness --help` resolves; `uv run python -m scholar_agent.server --help` (or `uv run scholar-agent --help`) accepts the `--workspace <root>` flag; running with `--workspace` a temp folder must not depend on the process cwd.
