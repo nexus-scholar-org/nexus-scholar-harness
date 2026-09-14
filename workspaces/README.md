@@ -11,7 +11,7 @@ All prior workspace content was removed from the working tree on
 recoverable from git history:
 
 - Full snapshot with all workspaces populated: `72090e5` (see
-  [`docs/COMMIT_SNAPSHOTS.md`](../docs/COMMIT_SNAPSHOTS.md)).
+  [`docs/internal/COMMIT_SNAPSHOTS.md`](../docs/internal/COMMIT_SNAPSHOTS.md)).
 - Restore a single workspace from HEAD before emptying, e.g.
   `git checkout 72090e5 -- workspaces/uav-cv-precision-agriculture`.
 

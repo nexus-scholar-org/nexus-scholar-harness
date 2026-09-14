@@ -22,7 +22,7 @@ Phase 5 was envisioned (`docs/UPCOMING_WORK.md` §Phase 5 and the now-archived `
 1. A now-archived web-app vision (`08_production_web_app.md` in `brainstorming/methodology-tooling/`) — a Next.js/React + FastAPI + Celery app ("Nexus Science") with a Claude-like chat copilot.
 2. A now-archived agent-native vision (`09_agent_native_ecosystem.md` in `brainstorming/methodology-tooling/`) — the "headless advantage": package everything as MCP + skills, build zero UI code.
 
-> Archival note: the `brainstorming/` deep-dives were removed from the tree on 2026-09-11. Restore from snapshot `72090e5` (see [`docs/COMMIT_SNAPSHOTS.md`](../COMMIT_SNAPSHOTS.md)) if the full text is needed.
+> Archival note: the `brainstorming/` deep-dives were removed from the tree on 2026-09-11. Restore from snapshot `72090e5` (see [`docs/internal/COMMIT_SNAPSHOTS.md`](../../internal/COMMIT_SNAPSHOTS.md)) if the full text is needed.
 
 **This design set resolves the tension: build a thin "harness console", not a thick web app, and keep the agent-native ecosystem as the backbone.** The console is a *second-class citizen by design*: it renders the same files agents read and triggers the same `uv run` CLI commands agents run. It never owns state.
 

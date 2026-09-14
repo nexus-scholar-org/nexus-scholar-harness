@@ -152,7 +152,7 @@ Spec: `08_milestones.md` M0.6 · full design `12_semantic_grounding.md`
 
 - [ ] **PR.0** Confirm gate: fork `nexus-scholar/nexus-scholar-harness`, target `nexus-scholar-org/nexus-scholar-harness`.
 - [ ] **PR.1** Split commits logically (scaffold → M0.1 → M0.2 → M0.3 → M0.4 → M0.5 → docs).
-- [ ] **PR.2** Update `docs/phase_0/README.md` + `specs/.../README.md` indexes if file names change.
+- [ ] **PR.2** Update `docs/architecture/phase_0/README.md` + `specs/.../README.md` indexes if file names change.
 - [ ] **PR.3** Open PR with the checklist above as the body; attach DoD evidence (test output).
 
 ---
