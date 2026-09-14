@@ -28,6 +28,7 @@ that no single skill covers.
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
 | agent (`scholar_agent`) | MCP server (19 tools) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
 | verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (Phase-4 streams) | Phase-4 trust |
+| harness (`scholar_harness`) | thin wrapper over the 8 kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
 ---
 
@@ -373,7 +374,10 @@ Known pins: protocol `1.0.0`; all other kits `0.1.0` (Phase-7 doc's `>=0.2.0`
 requirement unsatisfiable today); bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
 sentence-transformers `6.0.0`; networkx `3.6.1`; mcp `2.1.1` (agent kit);
 pymupdf `1.28.2` (`import fitz`); docling `2.123.0` (only with `[extract]` extra);
-`plugins.json` pins all kits to `default_rev: main` (no hashes).
+`plugins.json` pins all 8 kits to `default_rev` full commit SHAs (freshness enforced by
+`tests/conformance/test_count_freshness.py`); `nexus-scholar doctor` (P7.5) reports
+importability + that pinned rev from the repo `plugins.json` (wheel fallback: the bundled
+`nexus_scholar_pins.json`).
 
 ## Keeping this fresh
 
