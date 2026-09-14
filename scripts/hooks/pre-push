@@ -3,10 +3,10 @@
 #
 # Decision (2026-09-11): the canonical repo (origin) is protected; all
 # improvement branches must go through the personal fork + a pull request.
-#
-# Enforced here: pushes to `origin` are allowed ONLY for refs/heads/main.
-# Everything else is blocked with instructions. See
-# .agents/skills/pull-request-gate/SKILL.md
+# Enforced here: pushes to `origin` are allowed ONLY for refs/heads/main
+# (housekeeping baseline) and release tags (refs/tags/*, the release handle
+# the P7.8 wheel workflow fires on). Everything else is blocked with
+# instructions. See .agents/skills/pull-request-gate/SKILL.md
 #
 # Install: git config core.hooksPath scripts/hooks
 
@@ -20,8 +20,9 @@ url="$2"
 while read local_ref local_sha remote_ref remote_sha; do
     [ -z "$local_ref" ] && continue
     case "$local_ref" in
-        refs/heads/main)
-            # Explicit housekeeping to the canonical baseline is allowed.
+        refs/heads/main|refs/tags/*)
+            # Housekeeping: canonical baseline (main) + release tags (a tag
+            # cannot go through the fork+PR flow; it is the release handle).
             ;;
         *)
             echo "BLOCKED: pushing '$local_ref' directly to origin (canonical repo)." >&2
