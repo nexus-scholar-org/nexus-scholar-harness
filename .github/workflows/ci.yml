@@ -108,3 +108,85 @@ jobs:
               assert required_fields.issubset(plugin.keys()), f'Missing fields in {plugin.get(\"name\")}'
               print(f'✅ {plugin[\"name\"]}: valid')
           "
+
+  wheel-e2e:
+    # Hard gate since P7.8: the full blueprinted uvx flow must run end-to-end
+    # from the metapackage wheel in a fresh temp folder with NO repo tree
+    # reachable.  ubuntu + windows both run GitHub bash (shell: bash) so a
+    # single portable script covers the portability claim; windows additionally
+    # guards the CRLF/byte-divergence path class (P7.4).  No continue-on-error.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Build nexus-scholar metapackage wheel
+        run: uv build --wheel packaging/nexus-scholar
+
+      - name: P7.8 uvx flow end-to-end in a fresh temp folder
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # ----- path normalization: windows runners use Git Bash (MSYS) -----
+          if command -v cygpath >/dev/null 2>&1; then
+            ws="$RUNNER_TEMP/nexus-e2e-ws"
+            ws_norm="$(cygpath -u "$ws")"
+            runner_temp_norm="$(cygpath -u "$RUNNER_TEMP")"
+            workspace_norm="$(cygpath -u "$GITHUB_WORKSPACE")"
+          else
+            ws="$RUNNER_TEMP/nexus-e2e-ws"
+            ws_norm="$ws"
+            runner_temp_norm="$RUNNER_TEMP"
+            workspace_norm="$GITHUB_WORKSPACE"
+          fi
+
+          wheel="$GITHUB_WORKSPACE/packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl"
+
+          echo "Runner: $(uname -s)"
+          echo "Workspace: $ws_norm (temp: $runner_temp_norm, checkout: $workspace_norm)"
+
+          rm -rf "$ws"
+          mkdir -p "$ws"
+
+          echo "--- [1/5] init --scaffold-only ---"
+          uvx --from "$wheel" nexus-scholar init "CI E2E Project" --dir "$ws" --scaffold-only
+
+          echo "--- [2/5] setup-mcp --dry-run (no user-config writes in CI) ---"
+          uvx --from "$wheel" nexus-scholar setup-mcp --workspace "$ws" --harness mcp --dry-run
+
+          echo "--- [3/5] doctor --exit-code (overall must be non-FAIL) ---"
+          uvx --from "$wheel" nexus-scholar doctor --workspace "$ws" --exit-code
+
+          echo "--- [4/5] log event CI_PROBE ---"
+          uvx --from "$wheel" nexus-scholar log event "$ws" --action CI_PROBE --agent ci --description "P7.8 gate"
+
+          echo "--- assertions after log event (fail fast) ---"
+          test -f "$ws/audit/journal.jsonl" || { echo "::error::audit/journal.jsonl missing"; exit 1; }
+          grep -q '"action": *"CI_PROBE"' "$ws/audit/journal.jsonl" || { echo "::error::journal.jsonl lacks CI_PROBE"; exit 1; }
+          test -f "$ws/project.json" || { echo "::error::project.json missing"; exit 1; }
+          test -f "$ws/INDEX.md" || { echo "::error::INDEX.md missing"; exit 1; }
+
+          echo "--- [5/5] log sync-index ---"
+          uvx --from "$wheel" nexus-scholar log sync-index "$ws"
+          test -f "$ws/INDEX.md" || { echo "::error::INDEX.md missing after sync-index"; exit 1; }
+
+          echo "--- outside-the-checkout assertion (portability) ---"
+          case "$ws_norm" in
+            "$runner_temp_norm"/*) : ;;
+            *) echo "::error::workspace not under RUNNER_TEMP: $ws_norm"; exit 1 ;;
+          esac
+          case "$ws_norm" in
+            "$workspace_norm"/*) echo "::error::workspace created inside the git checkout: $ws_norm"; exit 1 ;;
+            *) : ;;
+          esac
+
+          echo "P7.8 uvx flow e2e OK: init/setup-mcp/doctor/log/sync-index"

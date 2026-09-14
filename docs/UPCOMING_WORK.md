@@ -56,5 +56,5 @@ Phase 7 makes Nexus Scholar installable anywhere: one `uvx` command, any empty f
 - [x] **P7.5 `nexus-scholar doctor`**: validate kit importability + pinned `default_rev` (repo `plugins.json`, wheel `nexus_scholar_pins.json` fallback), API-key presence (values always masked `***`; model keys WARN not FAIL), skill resolvability, workspace layout (canonical files + stats staleness). Advisory exit 0 by default; `--exit-code` trips only on FAIL; `--json` machine-readable output.
 - [x] **P7.6 Ship `log_event`/`batch_log`/INDEX-sync as an importable CLI (`nexus-scholar log`)**: standalone workspaces can't reach repo-relative `scripts/` today.
 - [x] **P7.7 Lazy-import rag/graph** so `init`, `setup-mcp`, `search`, `doctor` never load torch/chromadb (keeps the 1-minute claim honest). Both wheel entrypoints now answer `--help` on a minimal-dep env; CI wheel smoke is a hard gate.
-- [ ] **P7.8 CI verification** that the blueprinted `uvx` commands run end-to-end in a fresh temp folder.
+- [x] **P7.8 CI verification** that the blueprinted `uvx` commands run end-to-end in a fresh temp folder.
 - [ ] **P7.9 (deferred) PyPI publication** of the 8 kits + metapackage, only if external consumers appear; verify PyPI name availability first.

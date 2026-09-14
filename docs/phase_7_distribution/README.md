@@ -160,7 +160,7 @@ Review of the blueprint against the actual repo (`src/scholar_harness/`, `tools/
 - [x] **P7.5** `nexus-scholar doctor` — validate kits/versions, keys, skills, workspace layout; light/advisory (`--exit-code` opt-in), machine-readable `--json` (key values always masked `***`), wheel-portable kit manifest (repo `plugins.json` → wheel-bundled `nexus_scholar_pins.json` fallback).
 - [x] **P7.6** `nexus-scholar log` — importable `log event`/`log batch`/`log sync-index` wrapping the workspace-manager audit contract (journal append + INDEX refresh; slug fallback, wheel-portable log-module loader); harness CLI replaces repo-relative `scripts/` for standalone workspaces.
 - [x] **P7.7** Lazy-import rag/graph so light commands never load torch/chromadb.
-- [ ] **P7.8** GitHub-Release wheel + CI verification that the blueprinted `uvx` commands run end-to-end in a temp folder.
+- [x] **P7.8** GitHub-Release wheel + CI verification that the blueprinted `uvx` commands run end-to-end in a temp folder.
 - [ ] **P7.9** (Deferred) PyPI publication of individual kits + metapackage, only if external consumers appear.
 
 *Deferred by: no external distribution consumer yet; Phase 6/trust layer still hardening; single-source-of-truth packaging needs a CI build step first.*

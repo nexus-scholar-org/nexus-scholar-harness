@@ -1,0 +1,82 @@
+name: nexus-scholar GitHub Release
+
+# P7.8: publish the source-bundling metapackage wheel as a GitHub Release on a
+# v* tag.  Uses only gh (preinstalled on runners) + built-in actions; the tag is
+# the release handle (the wheel stays fixed at 1.0.0 per hatchling).
+#
+# Triggers:
+#   - push of a v* tag -> real release
+#   - manual workflow_dispatch -> smoke the release path on demand (defaults to
+#     the checked-out ref so no tag is required)
+#
+# The gh release-view guard makes re-runs idempotent: if a release already
+# exists for the computed tag, the job exits 0 without touching anything.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Build nexus-scholar metapackage wheel
+        run: uv build --wheel packaging/nexus-scholar
+
+      - name: Create GitHub Release for the wheel
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          DIST_DIR="$GITHUB_WORKSPACE/packaging/nexus-scholar/dist"
+          WHEEL="$DIST_DIR/nexus_scholar-1.0.0-py3-none-any.whl"
+          test -f "$WHEEL" || { echo "::error::wheel not found: $WHEEL"; exit 1; }
+
+          # Tag handling: on a tag push use the pushed tag (ref_name); on a
+          # manual run default to the checked-out commit so no tag is required.
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            TAG="$(git -C "$GITHUB_WORKSPACE" rev-parse --short HEAD)"
+          fi
+          TARGET_SHA="$GITHUB_SHA"
+
+          echo "Tag: $TAG"
+          echo "Target SHA: $TARGET_SHA"
+          echo "Wheel: $WHEEL"
+
+          # Idempotent guard: skip when the release already exists for this tag.
+          if gh release view "$TAG" --json id >/dev/null 2>&1; then
+            echo "release already exists: $TAG"
+            exit 0
+          fi
+
+          # A tag push and a manual dispatch can race through the guard above;
+          # fall back to re-checking so the loser stays green.
+          if gh release create "$TAG" "$WHEEL" \
+            --target "$TARGET_SHA" \
+            --title "nexus-scholar $TAG" \
+            --generate-notes; then
+            echo "release created: $TAG"
+          elif gh release view "$TAG" --json id >/dev/null 2>&1; then
+            echo "release created by a concurrent run: $TAG"
+          else
+            echo "::error::gh release create failed and no release exists for $TAG"
+            exit 1
+          fi
+
+          echo "P7.8 github release OK: nexus-scholar $TAG -> $WHEEL"
