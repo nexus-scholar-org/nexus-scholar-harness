@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from .doctor import render, run_doctor
 from .inception import inception_command, init_command
 from .integrations.latex_typst import AcademicTypesettingExporter
 from .integrations.obsidian import ObsidianVaultExporter
@@ -115,6 +116,33 @@ def setup_mcp(
 ):
     """Wire the nexus-scholar MCP server into harness config files (P7.4)."""
     run_setup_mcp(workspace, harness, dry_run=dry_run, env_file=env_file)
+
+
+@app.command("doctor")
+def doctor(
+    workspace: Path = typer.Option(  # noqa: B008
+        Path("."), "--workspace", "-w", help="Path to a workspace to layout-validate (optional)"
+    ),
+    env_file: Path | None = typer.Option(  # noqa: B008
+        None, "--env-file", help=".env file with SCHOLAR_*/NEXUS_*/provider keys (default: <workspace>/.env if present)"
+    ),
+    as_json: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON report (values always masked)"
+    ),
+    exit_code: bool = typer.Option(
+        False, "--exit-code", help="Exit non-zero if any check FAILs (doctor is advisory by default)"
+    ),
+):
+    """Validate kits/versions, API keys, skills, and workspace layout (P7.5)."""
+    ws = workspace.resolve()
+    if env_file is None:
+        candidate = ws / ".env"
+        if candidate.is_file():
+            env_file = candidate
+    report = run_doctor(workspace=ws, env_file=env_file)
+    render(report, as_json=as_json)
+    if exit_code and report["overall"] == "FAIL":
+        raise typer.Exit(1)
 
 
 @app.command("inception")
