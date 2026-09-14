@@ -1,6 +1,6 @@
 # Nexus Scholar Harness
 
-> **Agent-native, audited orchestration for systematic literature reviews.**
+> **Agent-native, audited orchestration for systematic literature reviews** — from a single `uvx` command, no source checkout.
 > A thin orchestrator that drives eight external research kits through a unified CLI, workspaces-as-file-contract state, and an append-only audit ledger.
 
 [![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
@@ -8,22 +8,74 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](pyproject.toml)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-7841db?logo=astral)](https://docs.astral.sh/uv/)
 [![Kits](https://img.shields.io/badge/8%20research%20kits-galaxy)](tools/)
+[![Release](https://img.shields.io/github/v/release/nexus-scholar-org/nexus-scholar-harness?sort=semver&label=release)](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases)
+
+---
+
+## Try it — the released app
+
+The `nexus-scholar` wheel bundles the harness CLI, all eight research kits,
+and the MCP server. No source checkout needed — just **`uv`**.
+
+### Run without installing
+
+```sh
+uvx --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar --help
+```
+
+### Persistent install (two executables on PATH: `nexus-scholar` + `scholar-agent`)
+
+```sh
+uv tool install --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar
+```
+
+### Four-command quickstart
+
+```sh
+# 1. Scaffold a workspace (no interactive wizard)
+nexus-scholar init "My Systematic Review" --dir ~/projects/my-review --scaffold-only
+
+# 2. Health-check (exit 0 = all PASS)
+nexus-scholar doctor --workspace ~/projects/my-review --exit-code
+
+# 3. Record first audit event
+nexus-scholar log event ~/projects/my-review --action PROJECT_INITIALIZED --agent me --description "started review"
+
+# 4. Wire MCP server into your AI client
+nexus-scholar setup-mcp --workspace ~/projects/my-review --harness all
+```
+
+The same wheel also installs **`scholar-agent`** — the MCP server exposing all
+eight kits as tools to Claude Desktop, Cursor, VS Code, and other agent
+harnesses.
+
+PyPI `pip install` coming when P7.9 publication is enabled.
+
+> **Full user guide:** [`docs/nexus_scholar_user_guide.md`](docs/nexus_scholar_user_guide.md) — init, setup-mcp, doctor, log, scholar-agent, env vars, troubleshooting.
 
 ---
 
 ## Why this repo exists
 
-The harness is deliberately **thin**: it does not re-implement research logic. Instead it orchestrates a family of purpose-built kits — discovery, screening, PDF harvesting, extraction, RAG synthesis, citation graphs, protocol compilation, and verification — that live under `tools/` and are installed **editable** into one shared environment. Everything a researcher or an AI agent does on the pipeline is:
+The harness is deliberately **thin**: it does not re-implement research logic.
+Instead it orchestrates a family of purpose-built kits — discovery, screening,
+PDF harvesting, extraction, RAG synthesis, citation graphs, protocol
+compilation, and verification — that live under `tools/` and are installed
+**editable** into one shared environment. Everything a researcher or an AI agent
+does on the pipeline is:
 
-1. **Deterministic and idempotent** — re-runs produce identical artifacts (`protocol.json` carries a SHA-256 fingerprint).
-2. **Audited** — every significant step appends an immutable event to `audit/journal.jsonl`.
-3. **Agent-agnostic** — the same CLI, MCP tools (`scholar-agent-kit`), and workspace files drive opencode, Claude, Copilot, and any other coding agent.
+1. **Deterministic and idempotent** — re-runs produce identical artifacts
+   (`protocol.json` carries a SHA-256 fingerprint).
+2. **Audited** — every significant step appends an immutable event to
+   `audit/journal.jsonl`.
+3. **Agent-agnostic** — the same CLI, MCP tools (`scholar-agent-kit`), and
+   workspace files drive opencode, Claude, Copilot, and any other coding agent.
 
 The pipeline in one flow:
 
 ```text
-Socratic Inception ─▶ Federated Discovery ─▶ Dedup & Verify ─▶ PRISMA Screening ─▶ OA Harvest ─▶ Extraction ─▶ RAG Synthesis ─▶ Trust Verification
-(methodology-copilot)   (scholar-search)   (scholar-search)  (agent-in-the-loop)  (scholar-pdf)  (scholar-pdf)  (scholar-rag)   (scholar-verify)
+Socratic Inception ──▶ Federated Discovery ──▶ Dedup & Verify ──▶ PRISMA Screening ──▶ OA Harvest ──▶ Extraction ──▶ RAG Synthesis ──▶ Trust Verification
+(methodology-copilot)     (scholar-search)       (scholar-search)    (agent-in-the-loop)    (scholar-pdf)    (scholar-pdf)    (scholar-rag)      (scholar-verify)
 ```
 
 ---
@@ -43,7 +95,7 @@ Socratic Inception ─▶ Federated Discovery ─▶ Dedup & Verify ─▶ PRISM
 
 ---
 
-## Quick start
+## Developer quick start
 
 ### Requirements
 
@@ -123,19 +175,19 @@ uv run scholar-verify trust-context --workspace workspaces/<slug> --claims-dir s
 ## Quality & testing
 
 ```bash
-uv run pytest              # harness suite (imports src/ + kits from tools/*/src via pythonpath)
+uv run pytest              # harness suite (391 passed, 5 skipped — imports src/ + kits from tools/*/src via pythonpath)
 uv run ruff check scripts/ # CI-scoped lint (this is the lint gate)
 ```
 
 - Hermetic suites live beside each kit (`tools/<kit>/tests/`).
-- CI (`.github/workflows/ci.yml`) runs on `main`/`develop` across `ubuntu/windows/macos` × Python `3.11/3.12`: ruff lint on `scripts/`, plugin-installer syntax, plugin manifest schema validation, and best-effort plugin install.
+- CI (`.github/workflows/ci.yml`) runs on `main`/`develop` across `ubuntu/windows/macos` x Python `3.11/3.12`: ruff lint on `scripts/`, plugin-installer syntax, plugin manifest schema validation, and best-effort plugin install.
 
 ## Documentation
 
 - **Docs index:** [`docs/README.md`](docs/README.md) — roadmap/backlog, Phase-0 design specs, future-phase design sets, operational notes, spec-series pointer.
 - **Design set:** [`docs/phase_0/`](docs/phase_0) (protocol schema, Socratic inception, playbooks) · [`docs/phase_5/`](docs/phase_5) (agent-first **Harness Console** — plan, blueprint, specs; not yet implemented)
 - **Spec series:** [`specs/exploratory-grounding-agent/`](specs/exploratory-grounding-agent/) (Grounded Exploratory Inception Agent) · [`specs/inception-ecosystem/`](specs/inception-ecosystem/) (inception skill stack — boundaries, handoffs, skill-tree/plugin policy)
-- **Kit surfaces:** [`docs/kits_surface_matrix.md`](docs/kits_surface_matrix.md) — agent-facing API·CLI·MCP map of all eight kits, with known-broken tooling and cross-kit contracts.
+- **Kit surfaces:** [`docs/kits_surface_matrix.md`](docs/kits_surface_matrix.md) — agent-facing API/CLI/MCP map of all eight kits, with known-broken tooling and cross-kit contracts.
 - **Roadmap & backlog:** [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)
 - **Agent workflows:** `.agents/skills/<kit>/SKILL.md` per kit · MCP entrypoint at `.agents/plugins/nexus-scholar/mcp_config.json`
 
