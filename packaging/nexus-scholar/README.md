@@ -18,18 +18,22 @@ initialized anywhere is self-contained and portable.
 
 ## Install
 
-**Prerequisite:** [uv](https://docs.astral.sh/uv/) 0.12+.
+**Prerequisite:** Python 3.11+ (and optionally [uv](https://docs.astral.sh/uv/) 0.12+).
 
-### Zero-friction (uvx)
+### Zero-friction (`uvx`)
 
 ```sh
-uvx --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar --help
+uvx nexus-scholar --help
 ```
 
-### Persistent install
+### Persistent install (`pip` or `uv tool`)
 
 ```sh
-uv tool install --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar
+# Via pip:
+pip install nexus-scholar
+
+# Or as an isolated CLI tool with uv:
+uv tool install nexus-scholar
 ```
 
 ## Quick start
