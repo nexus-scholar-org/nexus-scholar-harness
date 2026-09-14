@@ -28,7 +28,7 @@
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
 │                        TIER 2: Workspace Portable CLI                  │
-│       `nexus-scholar init .` scaffolds local contracts & audit         │
+│       `nexus-scholar init <title>` scaffolds local contracts & audit   │
 │         Skills copied / symlinked to `.agents/skills/` locally         │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
@@ -73,8 +73,8 @@ uvx nexus-scholar init "UAV Precision Agriculture"
 uvx --from nexus-scholar scholar-agent
 ```
 
-### Tier 2: Self-contained workspace portability (`nexus-scholar init .`)
-Standing in any folder, `nexus-scholar init .` turns it into an autonomous Nexus research cell:
+### Tier 2: Self-contained workspace portability (`nexus-scholar init "<title>"`)
+Standing in any folder, `uvx nexus-scholar init "My Topic" --dir .` turns it into an autonomous Nexus research cell:
 
 1. **Scaffolds the file contracts**:
    ```text
@@ -121,7 +121,7 @@ DSH Settings → MCP Servers → Add: command `uvx`, args `["--from", "nexus-sch
 ### The 1-minute user experience
 ```bash
 mkdir ~/research/quantum-computing-review && cd ~/research/quantum-computing-review
-uvx nexus-scholar init                 # Socratic wizard -> protocol.json + audit ledger
+uvx nexus-scholar init "Quantum Computing Review"   # Socratic wizard -> protocol.json + audit ledger
 # open DSH / Cursor / Claude Desktop in this folder -> MCP already wired
 # "Run nexus_search across OpenAlex and Crossref to identify candidate studies."
 # All screening passes, multi-screener κ adjudications, and 100% verbatim-verified
@@ -159,7 +159,7 @@ Review of the blueprint against the actual repo (`src/scholar_harness/`, `tools/
 
 - [x] **P7.1** `--workspace` rootdir resolution in `scholar_agent.server.main()`; refactor tool defaults onto a resolved root (the portability enabler).
 - [x] **P7.2** Repo-root `nexus-scholar` tool-metapackage at `packaging/nexus-scholar/`; `uv build --wheel` produces a **source-bundling** wheel (harness CLI + all 8 kit packages under `nexus-scholar`/`scholar-agent` entrypoints, runtime-complete only once P7.7's lazy-imports defer the heavy deps), with pins snapshots generated from `.agents/plugins/nexus-scholar/plugins.json` and CI-enforced via `--check` codegen.
-- [ ] **P7.3** `nexus-scholar init <title>` — reuse `inception` wizard; scaffold canonical contract layout, `audit/journal.jsonl`, `.env.example`, `.mcp.json`, skill **symlinks**.
+- [x] **P7.3** `nexus-scholar init <title>` — reuse `inception` wizard; scaffold canonical contract layout, `audit/journal.jsonl`, `.env.example`, `.mcp.json`, skill **symlinks**.
 - [ ] **P7.4** `nexus-scholar setup-mcp` — emits `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and prints the Claude Desktop snippet with **absolute workspace path** baked in (+ `env:` block).
 - [ ] **P7.5** `nexus-scholar doctor` — validate kits/versions, keys, skills, workspace layout.
 - [ ] **P7.6** Ship `log_event`/`batch_log`/INDEX-sync as an importable CLI (`nexus-scholar log`) so standalone workspaces keep the audit contract.
