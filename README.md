@@ -4,6 +4,7 @@
 > A thin orchestrator that drives eight external research kits through a unified CLI, workspaces-as-file-contract state, and an append-only audit ledger.
 
 [![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/nexus-scholar.svg)](https://pypi.org/project/nexus-scholar/)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](pyproject.toml)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-7841db?logo=astral)](https://docs.astral.sh/uv/)
@@ -14,20 +15,29 @@
 
 ## Try it — the released app
 
-The `nexus-scholar` wheel bundles the harness CLI, all eight research kits,
-and the MCP server. No source checkout needed — just **`uv`**.
+The `nexus-scholar` package bundles the harness CLI, all eight research kits,
+and the MCP server. No source checkout needed — install from PyPI with **`pip`**
+or run with **`uv`**.
 
-### Run without installing
-
-```sh
-uvx --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar --help
-```
-
-### Persistent install (two executables on PATH: `nexus-scholar` + `scholar-agent`)
+### Run without installing (zero-friction via `uvx`)
 
 ```sh
-uv tool install --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar
+uvx nexus-scholar --help
 ```
+
+### Persistent install (`pip` or `uv tool`)
+
+```sh
+# Via pip:
+pip install nexus-scholar
+
+# Or as an isolated CLI tool with uv:
+uv tool install nexus-scholar
+```
+
+This installs two executables on your `PATH`:
+- **`nexus-scholar`** — workspace scaffold (`init`), health-check (`doctor`), audit ledger (`log`), MCP config generator (`setup-mcp`).
+- **`scholar-agent`** — universal Model Context Protocol (MCP) server exposing all eight kits as tools to Claude Desktop, Cursor, VS Code, and other agent harnesses.
 
 ### Four-command quickstart
 
@@ -44,12 +54,6 @@ nexus-scholar log event ~/projects/my-review --action PROJECT_INITIALIZED --agen
 # 4. Wire MCP server into your AI client
 nexus-scholar setup-mcp --workspace ~/projects/my-review --harness all
 ```
-
-The same wheel also installs **`scholar-agent`** — the MCP server exposing all
-eight kits as tools to Claude Desktop, Cursor, VS Code, and other agent
-harnesses.
-
-PyPI `pip install` coming when P7.9 publication is enabled.
 
 > **Full user guide:** [`docs/nexus_scholar_user_guide.md`](docs/nexus_scholar_user_guide.md) — init, setup-mcp, doctor, log, scholar-agent, env vars, troubleshooting.
 

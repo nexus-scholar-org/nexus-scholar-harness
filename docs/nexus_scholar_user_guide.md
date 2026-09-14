@@ -3,41 +3,43 @@
 `nexus-scholar` is the distributed entry point for the **Nexus Scholar
 Harness**: a portable toolkit that scaffolds a systematic literature review
 workspace, wires it into AI agents (MCP), audits every step, and checks its own
-health. Everything runs from a single pure-Python wheel published as a GitHub
-Release — no source checkout, no per-kit installs.
+health. Everything runs from a single pure-Python wheel published on PyPI and
+GitHub Releases — no source checkout, no per-kit installs.
 
-- Works on **Windows, macOS, Linux** (Python 3.11+ via `uv`).
+- Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
 - The wheel bundles the harness CLI **plus all eight scholar kits** and the
   twelve skill bundles, so a workspace initialized here is self-contained and
   portable.
-- Releases: <https://github.com/nexus-scholar-org/nexus-scholar-harness/releases>
-  (direct asset for v1.0.0:
-  `nexus_scholar-1.0.0-py3-none-any.whl`).
+- PyPI: <https://pypi.org/project/nexus-scholar/>
+- GitHub Releases: <https://github.com/nexus-scholar-org/nexus-scholar-harness/releases>
 
 ---
 
 ## 1. Install (choose one)
 
-**Prerequisite: [uv](https://docs.astral.sh/uv/) 0.12+.**
+**Prerequisite:** Python 3.11+ (and optionally [uv](https://docs.astral.sh/uv/) 0.12+).
 
 ### A. Zero-friction, no install — `uvx`
 
-Run any command in an ephemeral isolated environment:
+Run any command in an ephemeral isolated environment directly from PyPI:
 
 ```sh
-uvx --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar --help
+uvx nexus-scholar --help
 ```
 
-`uvx` caches the wheel, so repeat runs are fast. You can also pin the exact
-artifact URL used here; upgrades are a URL bump.
+`uvx` caches the environment, so repeat runs are fast.
 
 > Tip: set a shell alias to shorten it, e.g.
-> `alias ns='uvx --from <wheel-url> nexus-scholar'`.
+> `alias ns='uvx nexus-scholar'`.
 
-### B. Persistent install — `uv tool install`
+### B. Persistent install — `pip` or `uv tool`
 
 ```sh
-uv tool install --from https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/download/v1.0.0/nexus_scholar-1.0.0-py3-none-any.whl nexus-scholar
+# Via standard pip:
+pip install nexus-scholar
+
+# Or as an isolated CLI tool via uv:
+uv tool install nexus-scholar
 ```
 
 Installs **two** executables on your PATH:
@@ -176,7 +178,7 @@ What it verifies:
 Example gate in CI:
 
 ```sh
-uvx --from <wheel-url> nexus-scholar doctor --workspace <ws> --json --exit-code
+uvx nexus-scholar doctor --workspace <ws> --json --exit-code
 ```
 
 A freshly scaffolded workspace reports **PASS** (or WARN for the optional
@@ -327,8 +329,6 @@ Run any with `--help` for full options.
 ## 11. Versioning
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to
-  the GitHub Release with auto-generated notes.
-- The wheel version is pinned by the tag (the CLI itself is version-agnostic);
-  pin your automation to the exact asset URL for reproducible runs.
-- Upgrade by pointing `uv tool install --from <new-url> nexus-scholar
-  --force` (or bump the `uvx --from` URL).
+  PyPI and GitHub Releases with auto-generated notes.
+- Upgrade with `pip install -U nexus-scholar` or `uv tool upgrade nexus-scholar`
+  (or force reinstall via `uv tool install --force nexus-scholar`).
