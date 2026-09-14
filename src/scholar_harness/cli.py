@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from .audit_log import run_log_batch, run_log_event, run_sync_index
 from .doctor import render, run_doctor
 from .inception import inception_command, init_command
 from .integrations.latex_typst import AcademicTypesettingExporter
@@ -143,6 +144,90 @@ def doctor(
     render(report, as_json=as_json)
     if exit_code and report["overall"] == "FAIL":
         raise typer.Exit(1)
+
+
+log_app = typer.Typer(
+    name="log",
+    help="Append audit events to a workspace journal and refresh INDEX.md (P7.6).",
+    add_completion=False,
+    no_args_is_help=True,
+)
+
+
+@log_app.command("event")
+def log_event_command(
+    workspace: str = typer.Argument(
+        ..., help="Workspace directory path, or a project slug under a workspaces/ parent"
+    ),
+    action: str = typer.Option(
+        ..., "--action", help="Action name (e.g. DISCOVERY_SEARCH); stored uppercased"
+    ),
+    agent: str = typer.Option(
+        "agent", "--agent", help="Agent or tool responsible (e.g. scholar-search-kit)"
+    ),
+    description: str = typer.Option(
+        "", "--description", help="Human-readable event description"
+    ),
+    inputs: list[str] = typer.Option(  # noqa: B008
+        None, "--inputs", help="Input file(s) or identifier(s); repeatable and space-separated"
+    ),
+    outputs: list[str] = typer.Option(  # noqa: B008
+        None, "--outputs", help="Output file(s); repeatable and space-separated"
+    ),
+    status: str = typer.Option(
+        "SUCCESS", "--status", help="Event status (default SUCCESS); stored uppercased"
+    ),
+    param: list[str] = typer.Option(  # noqa: B008
+        None, "--param", help="Parameter KEY=VALUE; repeatable"
+    ),
+    metric: list[str] = typer.Option(  # noqa: B008
+        None, "--metric", help="Metric KEY=VALUE; repeatable"
+    ),
+):
+    """Append one canonical audit event (audit/journal.jsonl) and refresh INDEX.md."""
+    run_log_event(
+        workspace,
+        action=action,
+        agent=agent,
+        description=description,
+        inputs=inputs,
+        outputs=outputs,
+        status=status,
+        parameters=param,
+        metrics=metric,
+    )
+
+
+@log_app.command("batch")
+def log_batch_command(
+    workspace: str = typer.Argument(
+        ..., help="Workspace directory path, or a project slug under a workspaces/ parent"
+    ),
+    events_file: Path = typer.Argument(  # noqa: B008
+        ..., help="JSONL file of event objects (one event per line)"
+    ),
+):
+    """Append a JSONL batch of events and refresh INDEX.md.
+
+    Lenient-skip policy: records that are malformed JSON or lack 'action' /
+    'description' are skipped with an error line; validated records still
+    append.  Exits 1 when any record was skipped or failed to write, but the
+    journal always stays JSON-parse-clean.
+    """
+    run_log_batch(workspace, events_file)
+
+
+@log_app.command("sync-index")
+def log_sync_index_command(
+    workspace: str = typer.Argument(
+        ..., help="Workspace directory path, or a project slug under a workspaces/ parent"
+    ),
+):
+    """Regenerate INDEX.md from workspace state (no journal append)."""
+    run_sync_index(workspace)
+
+
+app.add_typer(log_app, name="log")
 
 
 @app.command("inception")
