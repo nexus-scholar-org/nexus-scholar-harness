@@ -62,12 +62,17 @@ def canonical_recon_root() -> Path:
     CWD-independent ``<project-root>/.cache/inception_recon``; because the MCP
     server imports the same helper from this harness, the CLI wizard and the
     server agree by construction instead of scattering under their separate
-    current directories.
+    current directories.  In an installed-package layout (distribution wheel,
+    no ``pyproject.toml`` ancestor) the root falls back to a deterministic
+    user-scoped cache so light commands work from any CWD.
     """
     env_root = os.environ.get("NEXUS_RECON_ROOT")
     if env_root:
         return Path(env_root).resolve()
-    return _source_root() / ".cache" / "inception_recon"
+    try:
+        return _source_root() / ".cache" / "inception_recon"
+    except RuntimeError:
+        return Path.home() / ".cache" / "nexus-scholar" / "inception_recon"
 
 _PROVIDER_CLASSES: dict[str, type] = {
     "openalex": OpenAlexProvider,

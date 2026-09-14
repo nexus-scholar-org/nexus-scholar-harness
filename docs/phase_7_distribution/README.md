@@ -163,7 +163,7 @@ Review of the blueprint against the actual repo (`src/scholar_harness/`, `tools/
 - [ ] **P7.4** `nexus-scholar setup-mcp` — emits `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and prints the Claude Desktop snippet with **absolute workspace path** baked in (+ `env:` block).
 - [ ] **P7.5** `nexus-scholar doctor` — validate kits/versions, keys, skills, workspace layout.
 - [ ] **P7.6** Ship `log_event`/`batch_log`/INDEX-sync as an importable CLI (`nexus-scholar log`) so standalone workspaces keep the audit contract.
-- [ ] **P7.7** Lazy-import rag/graph so light commands never load torch/chromadb.
+- [x] **P7.7** Lazy-import rag/graph so light commands never load torch/chromadb.
 - [ ] **P7.8** GitHub-Release wheel + CI verification that the blueprinted `uvx` commands run end-to-end in a temp folder.
 - [ ] **P7.9** (Deferred) PyPI publication of individual kits + metapackage, only if external consumers appear.
 
