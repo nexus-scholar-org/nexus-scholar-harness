@@ -2,7 +2,7 @@
 
 ## 1. The cold-inception gap
 
-The Socratic inception wizard (`scholar_harness.inception`, `docs/phase_0/04_socratic_inception_protocol.md`) is deterministic and rigorous **once the researcher can answer its questions well**. Its inputs are:
+The Socratic inception wizard (`scholar_harness.inception`, `docs/architecture/phase_0/04_socratic_inception_protocol.md`) is deterministic and rigorous **once the researcher can answer its questions well**. Its inputs are:
 
 - *What is your unit of analysis?*
 - *What is your gold-standard proof?*

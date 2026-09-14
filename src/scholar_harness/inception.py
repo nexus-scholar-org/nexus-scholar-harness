@@ -1,7 +1,7 @@
 """Interactive Inception CLI: the Socratic methodology interview (Phase 0).
 
 Implements the 4-stage inception architecture from
-``docs/phase_0/04_socratic_inception_protocol.md`` as a terminal wizard:
+``docs/architecture/phase_0/04_socratic_inception_protocol.md`` as a terminal wizard:
 
   Stage 1  Latent intent mining   — keyword-scored paradigm orientation
   Stage 2  4-way refraction grid  — paradigm + playbook selection (rich panel)

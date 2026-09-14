@@ -1,8 +1,8 @@
 # Phase 7: Zero-Friction Distribution — Bench-Portable Nexus Scholar
 
-**Status**: DECIDED (blueprint reviewed 2026-09-09, implementation pending — see `docs/UPCOMING_WORK.md`)
+**Status**: SHIPPED v1.0.0 (metapackage live on PyPI; see `docs/UPCOMING_WORK.md`)
 **North star**: a researcher can type one command, open a folder in *any* harness (DeepSeek Harness, Claude Desktop, Cursor, OpenCode, VS Code, or terminal), and immediately run systematic reviews with verifiable provenance.
-**Repository for this phase**: `docs/phase_7_distribution/` (this README = blueprint + review). Related: `docs/phase_6/` (trust primitives this builds on), `docs/phase_5/` (agent-agnostic direction).
+**Location for this phase**: `docs/architecture/phase_7_distribution/` (this README = blueprint + review). Related: `../phase_6/` (trust primitives this builds on), `../phase_5/` (agent-agnostic direction).
 
 ---
 

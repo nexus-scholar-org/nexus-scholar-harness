@@ -1,39 +1,44 @@
 # Documentation Index
 
-Authoritative index of this repository's documentation. The live operational
-guide for agents is `AGENTS.md` at the repo root — read it first.
+Authoritative index of the Nexus Scholar Harness documentation, architectural design sets, and technical specifications.
 
-## Roadmap & backlog
+## 1. User & Getting Started Guides
 
-| Doc | State | What |
-| :-- | :-- | :-- |
-| [`UPCOMING_WORK.md`](./UPCOMING_WORK.md) | **Live** | Consolidated outstanding-work & roadmap analysis; supersedes the phase-0…4 roadmap assessment (deleted 2026-09-13). |
-
-## Design specs — Phase 0 (implemented)
-
-Canonical design set for the Socratic inception engine and the `protocol.json`
-contract (implemented in `src/scholar_harness/inception.py` + `scholar-protocol-kit`).
-Index: [`phase_0/README.md`](./phase_0/README.md).
-
-## Design specs — future phases
-
-| Doc | Phase | State |
-| :-- | :-- | :-- |
-| [`phase_5/README.md`](./phase_5/README.md) | 5 · Harness Console (thin UI) | Design complete — not yet implemented |
-| [`phase_6/README.md`](./phase_6/README.md) | 6 · Scientific trust & external-harness bridge | Partly implemented (`scholar-verify-kit`, `nexus_verify_claims`/`nexus_screen_reconcile`) |
-| [`phase_7_distribution/README.md`](./phase_7_distribution/README.md) | 7 · Zero-friction, bench-portable distribution | Deferred 2026-09-09 |
-
-## Operations
-
-| Doc | What |
+| Guide | Description |
 | :-- | :-- |
-| [`COMMIT_SNAPSHOTS.md`](./COMMIT_SNAPSHOTS.md) | Known-good commits (`72090e5` snapshot, follow-up `80f7810`) for restoring removed material from git history. |
-| [`kits_surface_matrix.md`](./kits_surface_matrix.md) | **Kit Surface Matrix** (API · CLI · MCP) — the agent-facing knowledge base of all eight kits: public API anchors, CLI surfaces, MCP wrappers with their behavior forks, cross-cutting failure modes (MCP CWD-poisoning, 0-edge `nexus_graph_build`, `nexus_verify_claims` schema mismatch, `nexus_extract_pdf` metadata loss, …), cross-kit dependency graph, env vars. |
+| [**User Guide** (`nexus_scholar_user_guide.md`)](./nexus_scholar_user_guide.md) | Comprehensive usage guide: installation (`uvx` / `pip`), workspace initialization, MCP server setup, doctor health-checks, audit logging, and troubleshooting. |
+| [**Project Landing Page** (`README.md`)](../README.md) | Ecosystem overview, four-command quickstart, architecture flow, and package release links. |
 
-## Specification series (living)
+## 2. Technical References & Roadmap
 
-| Path | What |
+| Document | State | Description |
+| :-- | :-- | :-- |
+| [**Roadmap & Backlog** (`UPCOMING_WORK.md`)](./UPCOMING_WORK.md) | **Live** | Consolidated outstanding work, milestone tracking, and prioritized feature backlog. |
+| [**Kit Surface Matrix** (`kits_surface_matrix.md`)](./kits_surface_matrix.md) | **Active** | Technical API · CLI · MCP reference across all eight scholar kits: tool signatures, flags, behaviors, cross-kit contracts, and environment variables. |
+
+## 3. Architecture & Phase Design Sets
+
+See [**`architecture/README.md`**](./architecture/README.md) for the master lifecycle architecture map (Phases 0 through 7).
+
+| Phase Design Set | Scope | Status |
+| :-- | :-- | :-- |
+| [**Phase 0: Socratic Inception** (`phase_0/`)](./architecture/phase_0/README.md) | Protocol schema specification, Socratic inception interview, and `protocol.json` contract. | **Implemented** |
+| [**Phase 5: Harness Console** (`phase_5/`)](./architecture/phase_5/README.md) | Architecture for the thin, agent-agnostic local-first UI and `PipelineSpec` DAG executor. | **Design Complete** |
+| [**Phase 6: Scientific Trust Bridge** (`phase_6/`)](./architecture/phase_6/README.md) | Verifiable provenance, claim verification, conflict adjudication, and external harness integrations. | **Active / Hardening** |
+| [**Phase 7: Bench-Portable Distribution** (`phase_7_distribution/`)](./architecture/phase_7_distribution/README.md) | Zero-friction portable distribution via `nexus-scholar` umbrella package, universal MCP server, and CLI tools. | **Shipped v1.0.0** (PyPI & GitHub) |
+
+## 4. Formal Specifications Series
+
+| Specification | Scope |
 | :-- | :-- |
-| [`specs/exploratory-grounding-agent/`](../specs/exploratory-grounding-agent/README.md) | Grounded Exploratory Inception Agent — canonical spec folder (01…16 + `evaluation/`), with its own document map. |
-| [`specs/inception-ecosystem/`](../specs/inception-ecosystem/README.md) | Inception skill stack (methodology-copilot / workspace-manager / inception-agent) — boundaries, handoffs, and the skill-tree + plugin-bundle distribution policy. |
-| `.agents/skills/<kit>/SKILL.md` | Per-kit agent skills (`scholar-search`, `scholar-pdf`, `scholar-rag`, … , `inception-agent`, `methodology-copilot`, `workspace-manager`); mirror synced by `scripts/sync_skills_bundle.py`. |
+| [**Grounded Exploratory Inception Agent** (`specs/exploratory-grounding-agent/`)](../specs/exploratory-grounding-agent/README.md) | Pre-protocol exploratory literature reconnaissance, empirical taxonomy distillation, and saturation scoring. |
+| [**Inception Skill Ecosystem** (`specs/inception-ecosystem/`)](../specs/inception-ecosystem/README.md) | Inception skill stack boundaries, handoffs, and skill-tree/plugin-bundle distribution policy. |
+| **Domain Agent Skills** (`.agents/skills/<kit>/SKILL.md`) | Verified agent skills (`scholar-search`, `scholar-pdf`, `scholar-rag`, `inception-agent`, `methodology-copilot`, `workspace-manager`, etc.). |
+
+## 5. Internal Development & Archival Records
+
+Historical adversarial audits, AI reviewer prompt templates, and ecosystem analyses are organized under [**`internal/`**](./internal/README.md):
+- **[`internal/audits/`](./internal/audits/)**: Internal adversarial review reports and scorecards.
+- **[`internal/review_prompts/`](./internal/review_prompts/)**: Internal reviewer agent prompt templates.
+- **[`internal/ecosystem/`](./internal/ecosystem/)**: Deep-dive architectural analyses across related repositories.
+- **[`internal/COMMIT_SNAPSHOTS.md`](./internal/COMMIT_SNAPSHOTS.md)**: Historical workspace snapshot markers for restoring previous workspace test data.
