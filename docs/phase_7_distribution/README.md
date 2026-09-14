@@ -161,6 +161,6 @@ Review of the blueprint against the actual repo (`src/scholar_harness/`, `tools/
 - [x] **P7.6** `nexus-scholar log` — importable `log event`/`log batch`/`log sync-index` wrapping the workspace-manager audit contract (journal append + INDEX refresh; slug fallback, wheel-portable log-module loader); harness CLI replaces repo-relative `scripts/` for standalone workspaces.
 - [x] **P7.7** Lazy-import rag/graph so light commands never load torch/chromadb.
 - [x] **P7.8** GitHub-Release wheel + CI verification that the blueprinted `uvx` commands run end-to-end in a temp folder.
-- [ ] **P7.9** (Deferred) PyPI publication of individual kits + metapackage, only if external consumers appear.
+- [ ] **P7.9** (Deferred) PyPI publication of individual kits + metapackage, only if external consumers appear. **Groundwork shipped:** PyPI name `nexus-scholar` confirmed free; `publish.yml` (uv-only, Trusted-Publishing/OIDC) + PyPI-grade metadata (classifiers, authors, URLs, README) prepared in the metapackage; still deferred until Trusted Publisher is configured.
 
 *Deferred by: no external distribution consumer yet; Phase 6/trust layer still hardening; single-source-of-truth packaging needs a CI build step first.*

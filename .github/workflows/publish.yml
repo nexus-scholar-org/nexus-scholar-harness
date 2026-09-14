@@ -1,0 +1,41 @@
+name: Publish to PyPI
+
+# P7.9 groundwork: publish the nexus-scholar metapackage wheel to PyPI using
+# Trusted Publishing (OIDC).  The GitHub release workflow (release.yml) owns
+# gh release create; this workflow ONLY pushes the wheel to PyPI.
+#
+# IMPORTANT: PyPI Trusted Publishing must be configured for the `pypi`
+# deployment environment before the first tag push:
+#   - Publisher repository: nexus-scholar-org/nexus-scholar-harness
+#   - Workflow name: publish.yml
+#   - Environment: pypi
+# Until that is set up, the `uv publish` step will fail loudly (intended).
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  publish:
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Build nexus-scholar metapackage wheel
+        run: uv build --wheel packaging/nexus-scholar
+
+      - name: Publish to PyPI (Trusted Publishing / OIDC)
+        run: uv publish packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl
