@@ -15,7 +15,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 - **Active milestone: Phase 7 (distribution/portability).** Work the P7.x checklist in `docs/phase_7_distribution/README.md` §4 in order (P7.1 rootdir resolution first). The inception dev-loop spec (`specs/exploratory-grounding-agent/`) is complete/historical; its agent tasks are all `[x]`.
 - Run everything through the project venv with `uv run ...`. Never rely on a system Python.
 
-- All tests: `uv run pytest` (measured 2026-09-14: **334 passed, 5 skipped — 0 failures**, including the `tests/conformance/` drift suite). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
+- All tests: `uv run pytest` (measured 2026-09-14: **355 passed, 5 skipped — 0 failures**, including the `tests/conformance/` drift suite). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
 - Lint: `uv run ruff check scripts/` (CI scopes ruff to `scripts/` only). Note: `scripts/` currently passes clean; if you run ruff with a broader scope (`src/`, `tools/`) you'll see pre-existing findings in `src/scholar_harness/cli.py` (B008/BLE001/S110) and `tools/scholar-agent-kit` (BLB001/RUF013/…) that are out of CI scope and not ours to fix.
 - This repo's own CLI: `uv run scholar-harness` with `status|sync|run|export|inception` subcommands (defined in `src/scholar_harness/cli.py`, Phase-0 wizard in `src/scholar_harness/inception.py`).
 - Multi-step research is agent-driven and file-based, so commands often hand off:
