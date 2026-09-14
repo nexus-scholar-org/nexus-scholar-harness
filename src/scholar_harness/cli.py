@@ -14,6 +14,7 @@ from .inception import inception_command, init_command
 from .integrations.latex_typst import AcademicTypesettingExporter
 from .integrations.obsidian import ObsidianVaultExporter
 from .integrations.zotero import ZoteroBridge
+from .mcp_setup import run_setup_mcp
 from .orchestrator import ResearchOrchestrator
 
 if sys.platform == "win32":
@@ -95,6 +96,25 @@ def init(
 ):
     """Bootstrap a portable Nexus Scholar research workspace in any folder (P7.3)."""
     init_command(project_title, target_dir, scaffold_only=scaffold_only)
+
+
+@app.command("setup-mcp")
+def setup_mcp(
+    workspace: Path = typer.Option(  # noqa: B008
+        Path("."), "--workspace", "-w", help="Path to research workspace the MCP server operates on"
+    ),
+    harness: list[str] = typer.Option(  # noqa: B008
+        None, "--harness", "-h", help="Harness target(s): claude, cursor, vscode, dsh, mcp, or all (comma/space separated)"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Print the exact write plan without touching the filesystem"
+    ),
+    env_file: Path | None = typer.Option(  # noqa: B008
+        None, "--env-file", help=".env file with SCHOLAR_*/NEXUS_*/provider keys to pass through (default: <workspace>/.env if present)"
+    ),
+):
+    """Wire the nexus-scholar MCP server into harness config files (P7.4)."""
+    run_setup_mcp(workspace, harness, dry_run=dry_run, env_file=env_file)
 
 
 @app.command("inception")

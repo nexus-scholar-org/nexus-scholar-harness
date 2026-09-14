@@ -366,7 +366,7 @@ scholar-agent-kit ──sys.path──► scholar_harness.recon (harness adapter
 | Cache | `SCHOLAR_CACHE_DIR` (`.cache`, hishel TTL 30d unused) | search |
 | PDF | `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` | pdf |
 | Embedder | `OPENAI_API_KEY` | rag |
-| MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_HARNESS_SRC`, `NEXUS_SKILLS_SRC` | agent/harness |
+| MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_HARNESS_SRC`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
 
 Known pins: protocol `1.0.0`; all other kits `0.1.0` (Phase-7 doc's `>=0.2.0`

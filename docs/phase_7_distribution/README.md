@@ -85,38 +85,34 @@ Standing in any folder, `uvx nexus-scholar init "My Topic" --dir .` turns it int
    pdfs/                    <- Harvested fulltexts
    extracted/               <- Section-aware markdown
    synthesis/               <- Claims and consensus cartography
-   .agents/
-       skills/              <- Auto-populated SKILL.md files
-       mcp.json             <- Ready-to-copy harness config
+.agents/
+        skills/              <- Auto-populated SKILL.md files
+    .mcp.json                <- Tier-3 MCP wiring (setup-mcp / init)
    ```
 2. **Auto-vendors agent skills**: the standard `SKILL.md` files land in `.agents/skills/` so any AI agent (Claude Code, Cursor, OpenCode, Antigravity) reads them instantly.
 
-### Tier 3: Universal MCP configuration (copy-paste into any harness)
-Because `scholar-agent` runs over standard `stdio`, configuration is just a few JSON lines pointing at the current working directory.
+### Tier 3: Universal MCP configuration (`nexus-scholar setup-mcp`)
+Because `scholar-agent` runs over standard `stdio`, configuration is just a few JSON lines pointing at the current working directory. `setup-mcp` writes them for you — idempotent and merge-only (foreign `mcpServers` entries are never clobbered), with the **absolute** workspace path baked into `--workspace` (`${workspaceFolder}` doesn't expand in Claude Desktop or a terminal-launched server):
+
+```bash
+cd ~/research/quantum-computing-review
+uvx nexus-scholar setup-mcp                 # claude + cursor + vscode + mcp (+ dsh instructions)
+uvx nexus-scholar setup-mcp --env-file .env # + env: passthrough of SCHOLAR_*/NEXUS_*/provider keys
+uvx nexus-scholar setup-mcp --dry-run       # preview the exact write plan (no files touched)
+```
+
+Config roots are CWD-independent: the Claude Desktop location honors the `NEXUS_MCP_CONFIG_HOME` override first (the `NEXUS_RECON_ROOT` pattern), else the platform config dir (Windows `%APPDATA%`, macOS `~/Library/Application Support`, Linux `~/.config`); the editor targets resolve in the workspace.
+
+- **Claude Desktop** — `claude_desktop_config.json` under `<config>/Claude/`; supports the `env:` passthrough block.
+- **Cursor / Windsurf** — `setup-mcp` writes `.cursor/mcp.json` in the workspace; supports `env:`. (Windsurf additionally reads the generic `.mcp.json`.)
+- **VS Code** — `.vscode/mcp.json` in the workspace (no `env:` block supported — `setup-mcp` prints a note instructing you to export the keys in your environment).
+- **Generic MCP** — `.mcp.json` in the workspace; supports `env:`.
+- **DeepSeek Harness (DSH)** — manual only (there is no config file to write); `setup-mcp` prints the snippet below.
+
+The `env:` passthrough reads `SCHOLAR_*`, `NEXUS_*`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` from the workspace `.env` (or `--env-file`); values are embedded into the config but **never echoed** in command output (masked as `***`).
 
 #### DeepSeek Harness (DSH)
 DSH Settings → MCP Servers → Add: command `uvx`, args `["--from", "nexus-scholar", "scholar-agent", "--workspace", "."]`.
-
-#### Claude Desktop (`claude_desktop_config.json`)
-```json
-{
-  "mcpServers": {
-    "nexus-scholar": { "command": "uvx", "args": ["--from", "nexus-scholar", "scholar-agent"] }
-  }
-}
-```
-
-#### Cursor / Windsurf / VS Code (`.cursor/mcp.json` or `.vscode/mcp.json`)
-```json
-{
-  "mcpServers": {
-    "nexus-scholar": {
-      "command": "uvx",
-      "args": ["--from", "nexus-scholar", "scholar-agent", "--workspace", "${workspaceFolder}"]
-    }
-  }
-}
-```
 
 ### The 1-minute user experience
 ```bash
@@ -160,7 +156,7 @@ Review of the blueprint against the actual repo (`src/scholar_harness/`, `tools/
 - [x] **P7.1** `--workspace` rootdir resolution in `scholar_agent.server.main()`; refactor tool defaults onto a resolved root (the portability enabler).
 - [x] **P7.2** Repo-root `nexus-scholar` tool-metapackage at `packaging/nexus-scholar/`; `uv build --wheel` produces a **source-bundling** wheel (harness CLI + all 8 kit packages under `nexus-scholar`/`scholar-agent` entrypoints, runtime-complete only once P7.7's lazy-imports defer the heavy deps), with pins snapshots generated from `.agents/plugins/nexus-scholar/plugins.json` and CI-enforced via `--check` codegen.
 - [x] **P7.3** `nexus-scholar init <title>` — reuse `inception` wizard; scaffold canonical contract layout, `audit/journal.jsonl`, `.env.example`, `.mcp.json`, skill **symlinks**.
-- [ ] **P7.4** `nexus-scholar setup-mcp` — emits `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and prints the Claude Desktop snippet with **absolute workspace path** baked in (+ `env:` block).
+- [x] **P7.4** `nexus-scholar setup-mcp` — emits `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and writes the Claude Desktop config with the **absolute workspace path** baked in (`${workspaceFolder}` doesn't expand there) + `env:` passthrough block for keys; config root CWD-independent via the `NEXUS_MCP_CONFIG_HOME` override; idempotent merge-only re-runs (foreign `mcpServers` preserved, corrupt/missing files rebuilt), `--dry-run` write-plan preview, DSH manual snippet printed.
 - [ ] **P7.5** `nexus-scholar doctor` — validate kits/versions, keys, skills, workspace layout.
 - [ ] **P7.6** Ship `log_event`/`batch_log`/INDEX-sync as an importable CLI (`nexus-scholar log`) so standalone workspaces keep the audit contract.
 - [x] **P7.7** Lazy-import rag/graph so light commands never load torch/chromadb.
