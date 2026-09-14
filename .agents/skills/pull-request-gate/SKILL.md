@@ -9,14 +9,15 @@ description: Enforce the fork + pull-request contribution gate for the Nexus Sch
 
 Direct pushes of feature/improvement branches to `origin` are **forbidden**.
 Every improvement must go through the **personal fork** and land via a **pull
-request** to the canonical repo. Only `main` on `origin` may be pushed directly
-(housekeeping baseline). Never bypass this gate.
+request** to the canonical repo. Only `main` on `origin` and release **tags**
+(`refs/tags/*`, the release handle the wheel workflow fires on — a tag cannot
+go through the fork+PR flow) may be pushed directly. Never bypass this gate.
 
 ## Remotes
 
 | Name | URL | Purpose |
 | :-- | :-- | :-- |
-| `origin` | `https://github.com/nexus-scholar-org/nexus-scholar-harness` | Canonical repo. Direct pushes of `main` only. |
+| `origin` | `https://github.com/nexus-scholar-org/nexus-scholar-harness` | Canonical repo. Direct pushes of `main` + release tags only. |
 | `fork` | `https://github.com/nexus-scholar/nexus-scholar-harness` | Your personal fork. All improvement branches live here. |
 
 ## Non-negotiable rules
@@ -26,8 +27,8 @@ request** to the canonical repo. Only `main` on `origin` may be pushed directly
    `fork` and open a PR to `origin`.
 2. **Never force-push** to `origin`. If a history rewrite is essential, do it
    on the fork, never on the canonical repo.
-3. Only `main` may be pushed directly to `origin`, and only for explicit
-   housekeeping the human authorizes.
+3. Only `main` and release tags (`refs/tags/*`) may be pushed directly to
+   `origin`, and only for explicit housekeeping/release the human authorizes.
 4. Pushing to the fork (`git push fork <branch>`) is always allowed.
 
 ## Standard flow
