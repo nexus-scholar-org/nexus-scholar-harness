@@ -6,8 +6,41 @@ build-backend = "hatchling.build"
 name = "nexus-scholar"
 version = "1.0.0"
 description = "Single umbrella package: the Nexus Scholar harness CLI and the eight scholar-* kit packages behind one uvx command."
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+
+authors = [
+    { name = "Nexus Scholar Org", email = "nexus-scholar@users.noreply.github.com" },
+]
+
+keywords = [
+    "systematic review",
+    "PRISMA",
+    "literature review",
+    "MCP",
+    "evidence synthesis",
+    "scientific literature",
+    "RAG",
+    "meta-analysis",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+]
 
 # Light, pragmatic runtime set for the smoke paths (``nexus-scholar --help`` /
 # ``scholar-agent --help``).  Heavy deps (chromadb, torch, sentence-transformers)
@@ -29,6 +62,12 @@ dependencies = [
     "typer>=0.9.0",
     "uvicorn>=0.30.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/nexus-scholar-org/nexus-scholar-harness"
+Releases = "https://github.com/nexus-scholar-org/nexus-scholar-harness/releases"
+Documentation = "https://github.com/nexus-scholar-org/nexus-scholar-harness/blob/main/docs/nexus_scholar_user_guide.md"
+Homepage = "https://github.com/nexus-scholar-org/nexus-scholar-harness"
 
 [project.scripts]
 nexus-scholar = "scholar_harness.cli:app"
