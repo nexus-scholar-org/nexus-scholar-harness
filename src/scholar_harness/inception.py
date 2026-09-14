@@ -37,6 +37,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from .mcp_setup import _serialize, build_mcp_entry
 from .recon.engine import ReconEngine
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -1677,27 +1678,16 @@ def write_env_example(ws_dir: Path) -> Path:
 def write_mcp_json(ws_dir: Path) -> Path:
     """Write ``.mcp.json`` wiring ``scholar-agent --workspace <dir>`` (Tier 3).
 
-    The absolute, baked-in workspace path is a P7.1 hard requirement:
+    Shares the P7.4 :func:`~.mcp_setup.build_mcp_entry` builder with
+    ``nexus-scholar setup-mcp`` so the emitted entry is byte-identical
+    (the absolute, baked-in workspace path is a P7.1 hard requirement:
     ``${workspaceFolder}`` only expands in Cursor/Windsurf/VS Code, not in
-    Claude Desktop or a terminal-launched MCP server.
+    Claude Desktop or a terminal-launched MCP server).
     """
     ws_dir = ws_dir.resolve()
-    config = {
-        "mcpServers": {
-            "nexus-scholar": {
-                "command": "uvx",
-                "args": [
-                    "--from",
-                    "nexus-scholar",
-                    "scholar-agent",
-                    "--workspace",
-                    str(ws_dir),
-                ],
-            }
-        }
-    }
+    config = {"mcpServers": {"nexus-scholar": build_mcp_entry(ws_dir)}}
     path = ws_dir / ".mcp.json"
-    path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    path.write_bytes(_serialize(config))
     return path
 
 
