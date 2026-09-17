@@ -171,5 +171,56 @@ def pagerank(
     console.print(table)
 
 
+@app.command("analyze")
+def analyze(
+    graph_file: Path = typer.Argument(..., help="Path to graph JSON file"),
+    metric: str = typer.Option(
+        "hits", "--metric", "-m", help="Metric: hits, betweenness"
+    ),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Output file path"),
+):
+    """Analyze citation graph with scientometric metrics."""
+    import networkx as nx
+
+    from .scientometrics import ScientometricEngine
+
+    if not graph_file.exists():
+        console.print(f"[bold red]Error:[/bold red] Graph file {graph_file} not found.")
+        raise typer.Exit(1)
+
+    with open(graph_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    G = nx.node_link_graph(data)
+    engine = ScientometricEngine(G)
+
+    if metric == "hits":
+        hubs, authorities = engine.compute_hits()
+        classification = engine.classify_nodes_by_hits(hubs, authorities)
+        result = {
+            "hubs": hubs,
+            "authorities": authorities,
+            "classification": classification,
+        }
+    elif metric == "betweenness":
+        centrality = engine.compute_betweenness_centrality()
+        result = {"centrality": centrality}
+    else:
+        console.print(
+            f"[bold red]Error:[/bold red] Unknown metric: {metric}. Use 'hits' or 'betweenness'."
+        )
+        raise typer.BadParameter(
+            f"Unknown metric: {metric}. Use 'hits' or 'betweenness'."
+        )
+
+    output_str = json.dumps(result, indent=2)
+
+    if output:
+        output.write_text(output_str)
+        console.print(f"[bold green]Results written to {output}[/bold green]")
+    else:
+        typer.echo(output_str)
+
+
 if __name__ == "__main__":
     app()

@@ -740,6 +740,71 @@ def screen(
     )
 
 
+@app.command("screen-compare")
+def screen_compare(
+    run_a_file: Path = typer.Argument(..., help="Path to first screening run JSON"),
+    run_b_file: Path = typer.Argument(..., help="Path to second screening run JSON"),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output report file"
+    ),
+):
+    """Compare two screening runs for inter-rater reliability."""
+    import json
+    from .screen_comparator import compare_screening_runs
+
+    # Load decisions
+    with open(run_a_file, encoding="utf-8") as f:
+        run_a_data = json.load(f)
+    with open(run_b_file, encoding="utf-8") as f:
+        run_b_data = json.load(f)
+
+    # Handle wrapper format
+    run_a = (
+        run_a_data.get("decisions", run_a_data)
+        if isinstance(run_a_data, dict)
+        else run_a_data
+    )
+    run_b = (
+        run_b_data.get("decisions", run_b_data)
+        if isinstance(run_b_data, dict)
+        else run_b_data
+    )
+
+    # Compare
+    report = compare_screening_runs(run_a, run_b)
+
+    # Format as Markdown
+    md_lines = [
+        "# Screening Comparison Report",
+        "",
+        "## Summary",
+        f"- Total Compared: {report.total_compared}",
+        f"- Agreement Rate: {report.agreement_rate:.1%}",
+        f"- Discrepancies: {len(report.discrepancies)}",
+        f"- Regressions (INCLUDE→EXCLUDE): {report.regression_count}",
+        f"- Progressions (EXCLUDE→INCLUDE): {report.progression_count}",
+        "",
+        "## Transition Matrix",
+    ]
+
+    for from_dec, to_counts in report.transition_matrix.items():
+        for to_dec, count in to_counts.items():
+            md_lines.append(f"- {from_dec} → {to_dec}: {count}")
+
+    if report.discrepancies:
+        md_lines.extend(["", "## Discrepancies", ""])
+        for d in report.discrepancies[:10]:  # Limit to first 10
+            md_lines.append(f"- {d['key']}: {d['run_a']} vs {d['run_b']}")
+
+    report_str = "\n".join(md_lines)
+
+    if output:
+        output.write_text(report_str, encoding="utf-8")
+        console.print(f"[green]Report written to {output}[/green]")
+    else:
+        console.print(report_str)
+
+
 def main():
     app()
 
