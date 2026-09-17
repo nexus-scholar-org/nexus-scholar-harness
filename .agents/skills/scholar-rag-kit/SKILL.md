@@ -92,12 +92,53 @@ A threshold of ~`0.40` (vs `0.30` lexical-default) gives topically coherent clus
 
 ---
 
+## In-Memory Vector Backend (NumpyBackend)
+
+Lightweight vector storage without ChromaDB dependency.
+
+```python
+from scholar_rag.backends import NumpyBackend
+
+backend = NumpyBackend()
+backend.set_embedder(my_embedder)
+backend.add_documents(ids=["1"], documents=["text"])
+results = backend.query(query_embeddings=[[0.1, 0.2, ...]], n_results=5)
+```
+
+## Structured Extraction with LLM
+
+Extract metadata from academic papers using Gemini or heuristic fallback.
+
+```bash
+uv run scholar-rag extract paper.md --output extraction.json
+uv run scholar-rag extract paper.md --schema paper --api-key YOUR_KEY
+```
+
+**Features:**
+- LLM-based extraction via Gemini REST API
+- Heuristic fallback when LLM unavailable
+- Automatic PII redaction (emails, ORCIDs, phones, grants)
+- Confidence scoring
+
+## Gemini Embedding Integration
+
+Use Google's text-embedding-004 model for vector storage.
+
+```bash
+uv run scholar-rag index docs/ --embedder gemini
+```
+
+Requires `GEMINI_API_KEY` environment variable or `--api-key` flag.
+
+---
+
 ## Python API
 
 ```python
 from scholar_rag import (
     MarkdownChunker, ScholarIndexer, ScholarRetriever, GroundedSynthesisEngine,
     ConsensusCartographer, embedder_claim_scorer, get_embedder,
+    NumpyBackend, LLMExtractor, PIIRedactor,
 )
 
 # Initialize Indexer
