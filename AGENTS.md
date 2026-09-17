@@ -17,7 +17,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 
 - All tests: `uv run pytest` (measured 2026-09-14: **391 passed, 5 skipped — 0 failures**, including the `tests/conformance/` drift suite). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
 - Lint: `uv run ruff check scripts/` (CI scopes ruff to `scripts/` only). Note: `scripts/` currently passes clean; if you run ruff with a broader scope (`src/`, `tools/`) you'll see pre-existing findings in `src/scholar_harness/cli.py` (B008/BLE001/S110) and `tools/scholar-agent-kit` (BLB001/RUF013/…) that are out of CI scope and not ours to fix.
-- This repo's own CLI: `uv run scholar-harness` with `status|sync|run|export|inception` subcommands (defined in `src/scholar_harness/cli.py`, Phase-0 wizard in `src/scholar_harness/inception.py`).
+- This repo's own CLI: `uv run scholar-harness` with `status|sync|run|export|inception` subcommands (defined in `src/scholar_harness/cli.py`, Phase-0 wizard in `src/scholar_harness/inception/`).
 - Multi-step research is agent-driven and file-based, so commands often hand off:
   - `python src/scholar_harness/agent_screen.py prepare|<status>|collect <workspace>` — the PRISMA screening step is an **agent-in-the-loop file handoff**, not an external API. The pipeline (orchestrator) stops after writing `literature/screening/batch_NNN.json`; an agent reads each batch and writes `batch_NNN_decisions.json`, then `collect` assembles `included.json`/`excluded.json`/`prisma_screening_report.md`.
 
@@ -30,6 +30,25 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 
 ## Kit domain skills
 Each domain has an SKILL.md under `.agents/skills/<kit>/SKILL.md` (scholar-search-kit, scholar-pdf-kit, scholar-bib-kit, scholar-rag-kit, scholar-graph-kit, scholar-protocol-kit, scholar-agent-kit, scholar-verify-kit, methodology-copilot, workspace-manager, inception-agent). Load the relevant skill before working in that domain — they document the exact CLIs and data formats (e.g. YAML-frontmatter Markdown for extracted fulltext, the audit event schema). The verified API↔CLI↔MCP map, known-broken tooling, and cross-kit contracts live in `docs/kits_surface_matrix.md` (read it before driving kit CLIs/MCP tools). The MCP server entrypoint for the agent kit is `.agents/plugins/nexus-scholar/mcp_config.json`. `inception-agent` runs the Grounded Exploratory Inception Agent interactively in chat, reusing the MCP `recon_*` tools and `.agents/skills/inception-agent/scripts/grounded_directions.py` (imports the real wizard functions for direction parity).
+
+## Autonomous Agent Architecture
+
+The Nexus Scholar dev loop uses four specialized agents that operate fully autonomously:
+
+| Agent | Role | Permissions |
+|-------|------|-------------|
+| **orchestrator** | Phase manager: reads execution plans, dispatches tasks, manages git branches, runs critic loops | Full (git, tests, merge) |
+| **coder** | Implements tasks: follows execution plan checklists, runs targeted tests, self-reviews via critic loop | Full (edit, test, lint) |
+| **tester** | QA verification: runs targeted tests during dev, full suite at phase completion | Full (read, test, report) |
+| **reviewer** | Spec compliance: verifies DoD, kit-sync, conventions; provides APPROVE/CHANGES/BLOCKED | Full (read, report) |
+
+**Autonomous mode:** All agents have `permission: allow` — no human approval required. Execute the full workflow without pausing.
+
+**Testing strategy:** During task development, run only targeted tests (~5-10s). Run full suite only at phase completion (~90s).
+
+**Git workflow:** `main` (production) → `staging/phase-{X}` (phase integration) → `dev/phase-{X}/task-{N}` (active development).
+
+**Critic loop:** Before marking a task DONE, the coder runs an internal self-review checklist (spec compliance, code quality, kit discipline, test quality). If any check fails, the task loops back with fixes.
 
 ## Style / workflow notes
 - Do not re-derive kit internals in harness code; call the kit CLIs / import their APIs (e.g. `scholar_search.dedup.Deduplicator`, `scholar_rag.indexer.ScholarIndexer`) as `orchestrator.py` does.

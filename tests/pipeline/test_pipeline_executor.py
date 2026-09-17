@@ -253,7 +253,7 @@ def test_build_command_flags_and_repo_root(tmp_path):
     assert cmd[cmd.index("--out") + 1] == "literature/n1.json"
 
     # repo-relative "src/..." token resolves against the harness repo root
-    real_root = Path(__file__).resolve().parents[1]
+    real_root = Path(__file__).resolve().parents[2]
     assert real_root.joinpath("src/scholar_harness/agent_screen.py").exists()
     node_with_src = {
         "id": "s", "kit": "harness-agent-screen",

@@ -116,6 +116,47 @@ class AcademicHttpClient:
 
         return response
 
+    async def post(
+        self,
+        url: str,
+        json: dict | None = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
+    ) -> httpx.Response:
+        """Execute a POST request with rate limiting and error handling."""
+        await self.rate_limiter.wait()
+
+        req_timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
+        merged_headers = {"Accept": "application/json"}
+        if headers:
+            merged_headers.update(headers)
+
+        logger.debug(f"[{self.name}] POST {url}")
+        try:
+            response = await self.client.post(
+                url, json=json, params=params, timeout=req_timeout, headers=merged_headers
+            )
+        except httpx.TimeoutException as e:
+            raise ProviderError(
+                self.name, f"Request timed out after {req_timeout}s: {e}"
+            ) from e
+        except httpx.RequestError as e:
+            raise ProviderError(self.name, f"Network communication error: {e}") from e
+
+        if response.status_code == 429:
+            raise RateLimitExceededError(
+                self.name, "Rate limit exceeded on academic API"
+            )
+        elif response.status_code >= 400:
+            raise ProviderError(
+                self.name,
+                f"HTTP request failed: {response.text[:200]}",
+                status_code=response.status_code,
+            )
+
+        return response
+
     async def close(self) -> None:
         """Close the underlying session."""
         await self.client.aclose()

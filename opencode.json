@@ -6,5 +6,27 @@
       "command": ["uv", "run", "--directory", "tools/scholar-agent-kit", "scholar-agent"],
       "enabled": true
     }
+  },
+  "agents": {
+    "orchestrator": {
+      "file": ".opencode/agent/orchestrator.md",
+      "description": "Phase orchestrator - manages task dispatch, git branching, and autonomous phase completion",
+      "permission": "allow"
+    },
+    "coder": {
+      "file": ".opencode/agent/coder.md",
+      "description": "Implementation agent with critic loop - implements tasks with self-review",
+      "permission": "allow"
+    },
+    "tester": {
+      "file": ".opencode/agent/tester.md",
+      "description": "QA agent - runs targeted tests during dev, full suite at phase completion",
+      "permission": "allow"
+    },
+    "reviewer": {
+      "file": ".opencode/agent/reviewer.md",
+      "description": "Code review agent - verifies spec compliance with phase-aware gates",
+      "permission": "allow"
+    }
   }
 }
