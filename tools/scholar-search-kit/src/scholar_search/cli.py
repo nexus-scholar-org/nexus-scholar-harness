@@ -805,6 +805,54 @@ def screen_compare(
         console.print(report_str)
 
 
+@app.command("validate-query")
+def validate_query(
+    query_text: str = typer.Argument(..., help="Search query to validate"),
+    seed: list[str] = typer.Option(
+        ..., "--seed", "-s", help="Golden seed DOI (repeatable)"
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output JSON file path"
+    ),
+):
+    """Validate query recall against golden seed DOIs."""
+    import json
+
+    from .query_validator import QueryDiagnosticValidator
+
+    async def _run():
+        engine = SearchEngine()
+        validator = QueryDiagnosticValidator(engine)
+        return await validator.validate_and_heal(query_text, seed)
+
+    result = asyncio.run(_run())
+
+    # Print summary
+    console.print("\n[bold]Query Validation Summary[/bold]")
+    console.print(f"Original: {result['original_query']}")
+    console.print(f"Final: {result['final_query']}")
+    console.print(f"Golden Seeds: {len(result['golden_seeds'])}")
+    console.print(f"Iterations: {len(result['iterations'])}")
+    console.print(f"Recall: {result['recall']:.1%}")
+    if result["validated"]:
+        console.print("Validated: [green]Yes[/green]")
+    else:
+        console.print("Validated: [red]No[/red]")
+
+    # Print iteration details
+    for it in result["iterations"]:
+        console.print(
+            f"\n  Iteration {it['iteration']}: {it['results_count']} results, "
+            f"recall={it['recall']:.1%}"
+        )
+        if it["missed_seeds"]:
+            console.print(f"    Missed: {', '.join(it['missed_seeds'][:3])}")
+
+    if output:
+        output.write_text(json.dumps(result, indent=2), encoding="utf-8")
+        console.print(f"\n[green]Results written to {output}[/green]")
+
+
 def main():
     app()
 
