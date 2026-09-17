@@ -66,6 +66,7 @@ def _resolve_providers(providers: list[Any] | None) -> list[SearchProvider] | No
             logger.warning("Unexpected provider item: %r", p)
     return instances if instances else None
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -137,9 +138,15 @@ class ResearchOrchestrator:
         proto_file = self.workspace_dir / "protocol.json"
         if proto_file.exists():
             try:
-                protocol = ResearchProtocol.model_validate_json(proto_file.read_text(encoding="utf-8"))
+                protocol = ResearchProtocol.model_validate_json(
+                    proto_file.read_text(encoding="utf-8")
+                )
                 status["protocol_found"] = True
-                status["title"] = protocol.metadata.get("title", "Unknown") if isinstance(protocol.metadata, dict) else getattr(protocol.metadata, "title", "Unknown")
+                status["title"] = (
+                    protocol.metadata.get("title", "Unknown")
+                    if isinstance(protocol.metadata, dict)
+                    else getattr(protocol.metadata, "title", "Unknown")
+                )
                 status["playbook_type"] = protocol.playbook_type.value
                 status["phase"] = "PHASE_1_DISCOVERY"
             except Exception as e:
@@ -149,28 +156,36 @@ class ResearchOrchestrator:
         lit_dir = self.workspace_dir / "literature"
         if (lit_dir / "raw_search.json").exists():
             try:
-                raw_docs = json.loads((lit_dir / "raw_search.json").read_text(encoding="utf-8"))
+                raw_docs = json.loads(
+                    (lit_dir / "raw_search.json").read_text(encoding="utf-8")
+                )
                 status["discovered_count"] = len(raw_docs)
             except Exception:
                 pass
 
         if (lit_dir / "deduped.json").exists():
             try:
-                dedup_docs = json.loads((lit_dir / "deduped.json").read_text(encoding="utf-8"))
+                dedup_docs = json.loads(
+                    (lit_dir / "deduped.json").read_text(encoding="utf-8")
+                )
                 status["deduped_count"] = len(dedup_docs)
             except Exception:
                 pass
 
         if (lit_dir / "verified.json").exists():
             try:
-                ver_docs = json.loads((lit_dir / "verified.json").read_text(encoding="utf-8"))
+                ver_docs = json.loads(
+                    (lit_dir / "verified.json").read_text(encoding="utf-8")
+                )
                 status["verified_count"] = len(ver_docs)
             except Exception:
                 pass
 
         if (lit_dir / "included.json").exists():
             try:
-                inc_docs = json.loads((lit_dir / "included.json").read_text(encoding="utf-8"))
+                inc_docs = json.loads(
+                    (lit_dir / "included.json").read_text(encoding="utf-8")
+                )
                 status["included_count"] = len(inc_docs)
                 status["phase"] = "PHASE_1_HARVESTING"
             except Exception:
@@ -178,13 +193,21 @@ class ResearchOrchestrator:
 
         if (lit_dir / "excluded.json").exists():
             try:
-                exc_docs = json.loads((lit_dir / "excluded.json").read_text(encoding="utf-8"))
+                exc_docs = json.loads(
+                    (lit_dir / "excluded.json").read_text(encoding="utf-8")
+                )
                 status["excluded_count"] = len(exc_docs)
             except Exception:
                 pass
 
-        if (lit_dir / "knowledge_graph.json").exists() or (lit_dir / "graph.json").exists():
-            g_file = lit_dir / "knowledge_graph.json" if (lit_dir / "knowledge_graph.json").exists() else lit_dir / "graph.json"
+        if (lit_dir / "knowledge_graph.json").exists() or (
+            lit_dir / "graph.json"
+        ).exists():
+            g_file = (
+                lit_dir / "knowledge_graph.json"
+                if (lit_dir / "knowledge_graph.json").exists()
+                else lit_dir / "graph.json"
+            )
             try:
                 g_data = json.loads(g_file.read_text(encoding="utf-8"))
                 status["graph_nodes"] = len(g_data.get("nodes", []))
@@ -193,7 +216,9 @@ class ResearchOrchestrator:
 
         if (lit_dir / "synthesis_matrix.json").exists():
             try:
-                m_data = json.loads((lit_dir / "synthesis_matrix.json").read_text(encoding="utf-8"))
+                m_data = json.loads(
+                    (lit_dir / "synthesis_matrix.json").read_text(encoding="utf-8")
+                )
                 status["matrix_rows"] = len(m_data) if isinstance(m_data, list) else 0
             except Exception:
                 pass
@@ -217,6 +242,7 @@ class ResearchOrchestrator:
         if chroma_dir.exists():
             try:
                 import chromadb
+
                 client = chromadb.PersistentClient(path=str(chroma_dir))
                 collection = client.get_collection("scholar_docs")
                 status["vector_chunks"] = collection.count()
@@ -227,7 +253,10 @@ class ResearchOrchestrator:
         synth_file = self.workspace_dir / "synthesis" / "literature_review.md"
         if synth_file.exists():
             content = synth_file.read_text(encoding="utf-8").strip()
-            if len(content) > 50 and "To be generated from extracted papers" not in content:
+            if (
+                len(content) > 50
+                and "To be generated from extracted papers" not in content
+            ):
                 status["synthesis_generated"] = True
                 if status["matrix_rows"] > 0 and status["vector_chunks"] > 0:
                     status["phase"] = "PHASE_3_COMPLETE"
@@ -237,7 +266,9 @@ class ResearchOrchestrator:
         if journal_file.exists():
             try:
                 events = []
-                for line in journal_file.read_text(encoding="utf-8").strip().split("\n"):
+                for line in (
+                    journal_file.read_text(encoding="utf-8").strip().split("\n")
+                ):
                     if line.strip():
                         events.append(json.loads(line))
                 status["latest_events"] = events[-5:]
@@ -280,11 +311,20 @@ class ResearchOrchestrator:
         if prisma_path.exists():
             try:
                 prisma = json.loads(prisma_path.read_text(encoding="utf-8"))
-                for key in ("total_identified", "records_screened", "records_included",
-                            "records_included_confirmed", "records_included_provisional_caveats",
-                            "records_excluded", "conflicts_flagged", "reports_sought_for_retrieval",
-                            "reports_not_retrieved", "reports_retrieved", "retrieval_rate_pct",
-                            "final_fulltext_corpus_assessed"):
+                for key in (
+                    "total_identified",
+                    "records_screened",
+                    "records_included",
+                    "records_included_confirmed",
+                    "records_included_provisional_caveats",
+                    "records_excluded",
+                    "conflicts_flagged",
+                    "reports_sought_for_retrieval",
+                    "reports_not_retrieved",
+                    "reports_retrieved",
+                    "retrieval_rate_pct",
+                    "final_fulltext_corpus_assessed",
+                ):
                     if key in prisma:
                         stats[key] = prisma[key]
             except Exception:
@@ -299,7 +339,11 @@ class ResearchOrchestrator:
             stats["extracted_markdowns"] = len(list(ext_dir.glob("*.md")))
 
         # Graph / matrix / corpus artifacts
-        graph_file = lit / "knowledge_graph.json" if (lit / "knowledge_graph.json").exists() else lit / "graph.json"
+        graph_file = (
+            lit / "knowledge_graph.json"
+            if (lit / "knowledge_graph.json").exists()
+            else lit / "graph.json"
+        )
         if graph_file.exists():
             try:
                 graph = json.loads(graph_file.read_text(encoding="utf-8"))
@@ -311,7 +355,9 @@ class ResearchOrchestrator:
         clean_ids = lit / "screening" / "_clean_corpus_ids.json"
         if clean_ids.exists():
             try:
-                stats["audited_clean_corpus"] = len(json.loads(clean_ids.read_text(encoding="utf-8")))
+                stats["audited_clean_corpus"] = len(
+                    json.loads(clean_ids.read_text(encoding="utf-8"))
+                )
             except Exception:
                 stats["audited_clean_corpus"] = 0
         matrix_path = lit / "synthesis_matrix.json"
@@ -324,6 +370,7 @@ class ResearchOrchestrator:
         if chroma_dir.exists():
             try:
                 import chromadb
+
                 client = chromadb.PersistentClient(path=str(chroma_dir))
                 stats["vector_chunks"] = client.get_collection("scholar_docs").count()
             except Exception:
@@ -379,7 +426,11 @@ class ResearchOrchestrator:
             action="STATE_SYNC",
             agent="scholar-harness",
             description=f"Rebuilt {ws.name} project.json + INDEX.md from filesystem state ({len(stats)} stats refreshed)",
-            inputs=[str(p) for p in (lit / "raw_search.json", lit / "prisma_report.json") if p.exists()],
+            inputs=[
+                str(p)
+                for p in (lit / "raw_search.json", lit / "prisma_report.json")
+                if p.exists()
+            ],
             outputs=["project.json", "INDEX.md"],
             metrics=stats,
         )
@@ -401,7 +452,10 @@ class ResearchOrchestrator:
         """
         scripts_dir = (
             Path(__file__).resolve().parent.parent.parent
-            / ".agents" / "skills" / "workspace-manager" / "scripts"
+            / ".agents"
+            / "skills"
+            / "workspace-manager"
+            / "scripts"
         )
         module_path = scripts_dir / "log_event.py"
         if not module_path.exists():
@@ -438,7 +492,9 @@ class ResearchOrchestrator:
         if not p_path.exists():
             raise FileNotFoundError(f"Protocol file not found at {p_path}")
 
-        protocol = ResearchProtocol.model_validate_json(p_path.read_text(encoding="utf-8"))
+        protocol = ResearchProtocol.model_validate_json(
+            p_path.read_text(encoding="utf-8")
+        )
         results: dict[str, Any] = {"status": "SUCCESS", "stages": {}}
 
         # Setup workspace directories
@@ -465,12 +521,26 @@ class ResearchOrchestrator:
 
         # Save both combined raw and first-provider raw for reference
         (lit_dir / "all_raw_search.json").write_text(
-            json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in discovered_docs], indent=2, default=str),
-            encoding="utf-8"
+            json.dumps(
+                [
+                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
+                    for d in discovered_docs
+                ],
+                indent=2,
+                default=str,
+            ),
+            encoding="utf-8",
         )
         (lit_dir / "raw_search.json").write_text(
-            json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in discovered_docs], indent=2, default=str),
-            encoding="utf-8"
+            json.dumps(
+                [
+                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
+                    for d in discovered_docs
+                ],
+                indent=2,
+                default=str,
+            ),
+            encoding="utf-8",
         )
         results["stages"]["discovery"] = len(discovered_docs)
 
@@ -485,24 +555,60 @@ class ResearchOrchestrator:
         dupes_removed = len(discovered_docs) - len(unique_docs)
 
         (lit_dir / "deduped.json").write_text(
-            json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in unique_docs], indent=2, default=str),
-            encoding="utf-8"
+            json.dumps(
+                [
+                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
+                    for d in unique_docs
+                ],
+                indent=2,
+                default=str,
+            ),
+            encoding="utf-8",
         )
-        results["stages"]["deduplication"] = {"unique": len(unique_docs), "duplicates_removed": dupes_removed}
+        results["stages"]["deduplication"] = {
+            "unique": len(unique_docs),
+            "duplicates_removed": dupes_removed,
+        }
 
         # -------------------------------------------------------------
-        # Stage 3: Verification & Abstract Hydration
+        # Stage 2.5: Abstract Hydration (backfill missing abstracts)
+        # -------------------------------------------------------------
+        from scholar_search.enrichment import AbstractHydrator
+        from scholar_search.http_client import AcademicHttpClient
+
+        hydrator = AbstractHydrator(AcademicHttpClient(name="hydration", rate_limit=10))
+        hydrated_docs, hydration_stats = await hydrator.hydrate_missing_abstracts(
+            unique_docs
+        )
+        logger.info(f"Hydration complete: {hydration_stats}")
+
+        self._log_audit_event(
+            action="ABSTRACT_HYDRATION",
+            agent="scholar-harness",
+            description=f"Hydrated missing abstracts for {len(unique_docs)} documents",
+            inputs=[],
+            outputs=[],
+            metrics=hydration_stats,
+        )
+
+        # Use hydrated docs for verification
+        docs_for_verify = hydrated_docs
+
+        # -------------------------------------------------------------
+        # Stage 3: Verification
         # Bug fix: After verification, copy workspace_ids back from deduped docs
         # because verify_document() may return a freshly normalized Document that
         # loses the workspace_id set by the Deduplicator.
         # -------------------------------------------------------------
         verifier = DocumentVerifier()
-        verified_docs, audit = await verifier.process_batch(unique_docs, verify=True, enrich=True)
+        verified_docs, audit = await verifier.process_batch(
+            docs_for_verify, verify=True, enrich=True
+        )
 
         # Restore workspace_ids on verified docs using DOI as bridge
         wsid_by_doi: dict[str, str] = {
             d.external_ids.doi: d.workspace_id
-            for d in unique_docs
+            for d in docs_for_verify
             if d.external_ids.doi and d.workspace_id
         }
         for vd in verified_docs:
@@ -510,11 +616,18 @@ class ResearchOrchestrator:
                 vd.workspace_id = wsid_by_doi.get(vd.external_ids.doi)
             if not vd.workspace_id:
                 # Last resort: assign a temporary sequential ID
-                vd.workspace_id = f"SCI-{verified_docs.index(vd)+1:06d}"
+                vd.workspace_id = f"SCI-{verified_docs.index(vd) + 1:06d}"
 
         (lit_dir / "verified.json").write_text(
-            json.dumps([asdict(d) if hasattr(d, "__dataclass_fields__") else d for d in verified_docs], indent=2, default=str),
-            encoding="utf-8"
+            json.dumps(
+                [
+                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
+                    for d in verified_docs
+                ],
+                indent=2,
+                default=str,
+            ),
+            encoding="utf-8",
         )
         results["stages"]["verification"] = len(verified_docs)
 
@@ -532,7 +645,13 @@ class ResearchOrchestrator:
         _prepare_batches(self.workspace_dir, batch_size=20, force=True)
 
         screening_dir = lit_dir / "screening"
-        total_batches = len([f for f in screening_dir.glob("batch_*.json") if "_decisions" not in f.name])
+        total_batches = len(
+            [
+                f
+                for f in screening_dir.glob("batch_*.json")
+                if "_decisions" not in f.name
+            ]
+        )
 
         (lit_dir / "prisma_screening_report.md").write_text(
             f"# PRISMA Screening \u2014 IN PROGRESS\n\n"
@@ -594,7 +713,9 @@ class ResearchOrchestrator:
             pdf = _study_pdf(pdf_dir, doc_item)
             if pdf is not None:
                 try:
-                    extracted_files.append(pymupdf.extract_markdown(pdf, ext_dir, metadata=metadata))
+                    extracted_files.append(
+                        pymupdf.extract_markdown(pdf, ext_dir, metadata=metadata)
+                    )
                     continue
                 except Exception as exc:  # pragma: no cover - depends on PyMuPDF
                     logger.warning("PyMuPDF extraction failed for %s: %s", slug, exc)
@@ -605,15 +726,17 @@ class ResearchOrchestrator:
             abstract = doc_item.get("abstract") or "No abstract provided."
             frontmatter = (
                 f"---\n"
-                f"workspace_id: \"{metadata['workspace_id']}\"\n"
-                f"doi: \"{metadata['doi']}\"\n"
+                f'workspace_id: "{metadata["workspace_id"]}"\n'
+                f'doi: "{metadata["doi"]}"\n'
                 f"title: {json.dumps(metadata['title'], ensure_ascii=False)}\n"
                 f"authors: {json.dumps(metadata['authors'], ensure_ascii=False)}\n"
                 f"year: {metadata['year']}\n"
-                f"extraction_engine: \"metadata\"\n"
+                f'extraction_engine: "metadata"\n'
                 f"---\n\n"
             )
-            md_path.write_text(frontmatter + f"## Abstract\n\n{abstract}\n", encoding="utf-8")
+            md_path.write_text(
+                frontmatter + f"## Abstract\n\n{abstract}\n", encoding="utf-8"
+            )
             metadata_frontmatter_only.append(str(md_path))
             extracted_files.append(md_path)
 
@@ -627,7 +750,9 @@ class ResearchOrchestrator:
         # Stage 6: Vector & Semantic Indexing (ChromaDB)
         # -------------------------------------------------------------
         indexer = ScholarIndexer(db_path=str(chroma_dir))
-        index_res = indexer.index_directory(docs_dir=ext_dir, workspace_id=protocol.project_slug)
+        index_res = indexer.index_directory(
+            docs_dir=ext_dir, workspace_id=protocol.project_slug
+        )
         results["stages"]["indexing"] = index_res
 
         # -------------------------------------------------------------
@@ -639,7 +764,9 @@ class ResearchOrchestrator:
             embedder_kwargs=indexer.embedder_kwargs,
         )
         matrix_extractor = MatrixExtractor(protocol=protocol, retriever=retriever)
-        matrix_rows, csv_path, json_path = matrix_extractor.extract_all(output_dir=lit_dir)
+        matrix_rows, csv_path, json_path = matrix_extractor.extract_all(
+            output_dir=lit_dir
+        )
         results["stages"]["matrix_rows"] = {"status": "DONE", "rows": len(matrix_rows)}
 
         # -------------------------------------------------------------
@@ -647,7 +774,9 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         from scholar_search.http_client import AcademicHttpClient
 
-        graph_builder = CitationGraphBuilder(AcademicHttpClient(name="openalex-graph", rate_limit=10))
+        graph_builder = CitationGraphBuilder(
+            AcademicHttpClient(name="openalex-graph", rate_limit=10)
+        )
         dois = [d for d in (_study_doi(doc_item) for doc_item in inc_docs) if d]
         if dois:
             G = await graph_builder.build_graph(dois)
@@ -659,14 +788,22 @@ class ResearchOrchestrator:
 
         vis = GraphVisualizer(str(lit_dir / "knowledge_graph.html"))
         vis.generate_html(G)
-        results["stages"]["graph_nodes"] = {"status": "DONE", "nodes": G.number_of_nodes(), "edges": G.number_of_edges()}
+        results["stages"]["graph_nodes"] = {
+            "status": "DONE",
+            "nodes": G.number_of_nodes(),
+            "edges": G.number_of_edges(),
+        }
 
         # -------------------------------------------------------------
         # Stage 9: Grounded Evidence Synthesis & Entailment
         # -------------------------------------------------------------
         engine = GroundedSynthesisEngine(retriever=retriever)
-        first_rq = protocol.research_questions[0] if protocol.research_questions else None
-        rq_text = first_rq.text if first_rq else "What are the primary empirical findings?"
+        first_rq = (
+            protocol.research_questions[0] if protocol.research_questions else None
+        )
+        rq_text = (
+            first_rq.text if first_rq else "What are the primary empirical findings?"
+        )
         rq_id = first_rq.id if first_rq else "RQ1"
 
         synthesis_result = engine.synthesize(
@@ -691,15 +828,27 @@ class ResearchOrchestrator:
             agent="scholar-harness",
             description=f"Completed end-to-end research pipeline for '{protocol.metadata.get('title', 'Unknown')}'",
             inputs=[str(p_path)],
-            outputs=[str(synth_file), str(lit_dir / "synthesis_matrix.csv"), str(lit_dir / "knowledge_graph.html")],
-            metrics=results["stages"]
+            outputs=[
+                str(synth_file),
+                str(lit_dir / "synthesis_matrix.csv"),
+                str(lit_dir / "knowledge_graph.html"),
+            ],
+            metrics=results["stages"],
         )
 
         return results
 
-    def run_pipeline(self, protocol_path: Path | str | None = None, max_search_results: int | None = None) -> dict[str, Any]:
+    def run_pipeline(
+        self,
+        protocol_path: Path | str | None = None,
+        max_search_results: int | None = None,
+    ) -> dict[str, Any]:
         """Synchronous wrapper for run_pipeline_async."""
-        return asyncio.run(self.run_pipeline_async(protocol_path=protocol_path, max_search_results=max_search_results))
+        return asyncio.run(
+            self.run_pipeline_async(
+                protocol_path=protocol_path, max_search_results=max_search_results
+            )
+        )
 
     def _log_audit_event(
         self,
@@ -708,7 +857,7 @@ class ResearchOrchestrator:
         description: str,
         inputs: list[str],
         outputs: list[str],
-        metrics: dict[str, Any]
+        metrics: dict[str, Any],
     ) -> None:
         """Appends an event to audit/journal.jsonl."""
         audit_file = self.workspace_dir / "audit" / "journal.jsonl"
@@ -724,7 +873,7 @@ class ResearchOrchestrator:
             "inputs": inputs,
             "outputs": outputs,
             "metrics": metrics,
-            "status": "SUCCESS"
+            "status": "SUCCESS",
         }
 
         with open(audit_file, "a", encoding="utf-8") as f:

@@ -28,14 +28,40 @@ console = Console()
 
 @app.command("build")
 def build(
-    dois: list[str] | None = typer.Option(None, "--doi", "-d", help="Specific DOI to map (can be specified multiple times)"),
-    input_file: Path | None = typer.Option(None, "--input", "-i", help="JSON file containing results from scholar-search-kit"),
-    output_file: Path = typer.Option(Path("graph.html"), "--output", "-o", help="Path to save the output HTML visualization"),
-    json_output: Path | None = typer.Option(None, "--json-output", "-j", help="Path to save graph topology and PageRank JSON"),
+    dois: list[str] | None = typer.Option(
+        None,
+        "--doi",
+        "-d",
+        help="Specific DOI to map (can be specified multiple times)",
+    ),
+    input_file: Path | None = typer.Option(
+        None,
+        "--input",
+        "-i",
+        help="JSON file containing results from scholar-search-kit",
+    ),
+    output_file: Path = typer.Option(
+        Path("graph.html"),
+        "--output",
+        "-o",
+        help="Path to save the output HTML visualization",
+    ),
+    json_output: Path | None = typer.Option(
+        None,
+        "--json-output",
+        "-j",
+        help="Path to save graph topology and PageRank JSON",
+    ),
+    export_format: str = typer.Option(
+        "html+json",
+        "--format",
+        "-f",
+        help="Export formats: html, json, gexf, graphml, all",
+    ),
 ):
     """Build a citation graph from DOIs and generate an interactive HTML map."""
     doi_list = list(dois) if dois else []
-    
+
     # Parse input file if provided
     if input_file and input_file.exists():
         try:
@@ -47,53 +73,76 @@ def build(
                         doi = item["external_ids"]["doi"]
                     elif "doi" in item:
                         doi = item["doi"]
-                        
+
                     if doi and doi not in doi_list:
                         doi_list.append(doi)
         except Exception as e:
             console.print(f"[bold red]Error parsing input file:[/bold red] {e}")
             raise typer.Exit(1)
-            
+
     if not doi_list:
         console.print("[bold yellow]No DOIs provided to build graph.[/bold yellow]")
         raise typer.Exit(0)
-        
-    console.print(f"[bold blue]Starting graph build for {len(doi_list)} DOIs...[/bold blue]")
-    
+
+    console.print(
+        f"[bold blue]Starting graph build for {len(doi_list)} DOIs...[/bold blue]"
+    )
+
     async def run_build():
         from scholar_search.http_client import AcademicHttpClient
+
         http_client = AcademicHttpClient(name="openalex-graph", rate_limit=10)
         builder = CitationGraphBuilder(http_client)
-        
+
         with console.status("[cyan]Fetching citations from OpenAlex...") as status:
+
             def update_progress():
-                pass # Simple callback
+                pass  # Simple callback
+
             G = await builder.build_graph(doi_list, progress_callback=update_progress)
-            
+
         return G, builder
-        
+
     G, builder = asyncio.run(run_build())
-    
-    console.print(f"[bold green]Graph built successfully![/bold green] (Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()})")
-    
+
+    console.print(
+        f"[bold green]Graph built successfully![/bold green] (Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()})"
+    )
+
     console.print(f"[cyan]Rendering PyVis visualization to {output_file}...[/cyan]")
     vis = GraphVisualizer(output_file)
     vis.generate_html(G)
-    
+
     console.print(f"[bold green]Saved visualization to {output_file}[/bold green]")
 
     if json_output:
         builder.export_json(G, json_output)
-        console.print(f"[bold green]Saved graph JSON & PageRank to {json_output}[/bold green]")
+        console.print(
+            f"[bold green]Saved graph JSON & PageRank to {json_output}[/bold green]"
+        )
     else:
         # Default adjacent json if not specified
         default_json = output_file.with_suffix(".json")
         builder.export_json(G, default_json)
 
+    formats = [f.strip() for f in export_format.split("+")]
+
+    if "gexf" in formats or "all" in formats:
+        gexf_path = output_file.with_suffix(".gexf")
+        CitationGraphBuilder.export_gexf(G, gexf_path)
+        console.print(f"[bold green]GEXF exported to {gexf_path}[/bold green]")
+
+    if "graphml" in formats or "all" in formats:
+        graphml_path = output_file.with_suffix(".graphml")
+        CitationGraphBuilder.export_graphml(G, graphml_path)
+        console.print(f"[bold green]GraphML exported to {graphml_path}[/bold green]")
+
 
 @app.command("pagerank")
 def pagerank(
-    graph_file: Path = typer.Argument(..., help="Path to graph.json exported by build command"),
+    graph_file: Path = typer.Argument(
+        ..., help="Path to graph.json exported by build command"
+    ),
 ):
     """Display PageRank scores computed from a citation graph."""
     if not graph_file.exists():
@@ -109,6 +158,7 @@ def pagerank(
         return
 
     from rich.table import Table
+
     table = Table(title=f"PageRank Scores ({graph_file.name})")
     table.add_column("Rank", justify="right", style="cyan")
     table.add_column("DOI / Identifier", style="white")
