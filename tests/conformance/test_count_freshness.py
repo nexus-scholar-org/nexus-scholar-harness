@@ -21,16 +21,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 TOOLS_DIR = REPO_ROOT / "tools"
 SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
-SKILLS_MIRROR = (
-    REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
-)
-MANIFEST = (
-    REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
-)
+SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
+MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
 
 EXPECTED_KITS = 8
-EXPECTED_ACTIONS = 14
-EXPECTED_MCP_TOOLS = 19
+EXPECTED_ACTIONS = 16
+EXPECTED_MCP_TOOLS = 23
 EXPECTED_MIRRORED_SKILLS = 11
 
 # ``pull-request-gate`` is intentionally not distributed with the plugin bundle
@@ -41,7 +37,9 @@ FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 def test_kit_count_matches_documentation():
-    kits = sorted(p.name for p in TOOLS_DIR.iterdir() if p.is_dir() and p.name.endswith("-kit"))
+    kits = sorted(
+        p.name for p in TOOLS_DIR.iterdir() if p.is_dir() and p.name.endswith("-kit")
+    )
     assert len(kits) == EXPECTED_KITS, f"expected {EXPECTED_KITS} kits, found {kits}"
 
 
@@ -86,4 +84,6 @@ def test_manifest_default_revs_are_pinned_commits():
         for p in manifest["plugins"]
         if not FULL_SHA_RE.match(p.get("default_rev", ""))
     ]
-    assert not unpinned, f"plugins.json default_rev must be full commit SHAs: {unpinned}"
+    assert not unpinned, (
+        f"plugins.json default_rev must be full commit SHAs: {unpinned}"
+    )
