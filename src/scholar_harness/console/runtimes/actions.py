@@ -35,8 +35,20 @@ class Action:
 
 
 ACTIONS: list[Action] = [
-    Action("status", "Show workspace status", "uv run scholar-harness status -w {ws}", None, False),
-    Action("sync", "Resync project state", "uv run scholar-harness sync -w {ws}", None, True),
+    Action(
+        "status",
+        "Show workspace status",
+        "uv run scholar-harness status -w {ws}",
+        None,
+        False,
+    ),
+    Action(
+        "sync",
+        "Resync project state",
+        "uv run scholar-harness sync -w {ws}",
+        None,
+        True,
+    ),
     Action(
         "discovery",
         "Federated discovery",
@@ -109,7 +121,27 @@ ACTIONS: list[Action] = [
         "nexus_graph_build",
         True,
     ),
-    Action("export", "Export artifact set", "uv run scholar-harness export latex -w {ws}", None, True),
+    Action(
+        "export",
+        "Export artifact set",
+        "uv run scholar-harness export latex -w {ws}",
+        None,
+        True,
+    ),
+    Action(
+        "critique_methodology",
+        "Methodology critique",
+        "uv run scholar-verify risk-of-bias -w {ws}",
+        "nexus_critique_methodology",
+        True,
+    ),
+    Action(
+        "graph_narrative",
+        "Graph narrative synthesis",
+        "uv run scholar-graph pagerank {ws}/literature/knowledge_graph.json",
+        "nexus_graph_narrative",
+        False,
+    ),
     Action(
         "pipeline",
         "Run pipeline DAG",
@@ -128,11 +160,17 @@ def get_action(action_id: str) -> Action:
         return _ACTIONS_BY_ID[action_id]
     except KeyError:
         known = ", ".join(sorted(_ACTIONS_BY_ID))
-        raise KeyError(f"Unknown action '{action_id}'. Known actions: {known}") from None
+        raise KeyError(
+            f"Unknown action '{action_id}'. Known actions: {known}"
+        ) from None
 
 
-def render_command(action: Action, workspace: str = DEFAULT_WORKSPACE, query: str | None = None,
-                   pipeline: str | None = None) -> list[str]:
+def render_command(
+    action: Action,
+    workspace: str = DEFAULT_WORKSPACE,
+    query: str | None = None,
+    pipeline: str | None = None,
+) -> list[str]:
     """Expand an action's command template into an argv list.
 
     `{ws}` is substituted with workspace; `{q}` with query; `{pipeline}` with
@@ -140,7 +178,9 @@ def render_command(action: Action, workspace: str = DEFAULT_WORKSPACE, query: st
     yield a literal "..." placeholder that is still a `--help`-safe probe.
     """
     if not action.command_template.startswith("uv run "):
-        raise ValueError(f"Action '{action.action_id}' command must start with 'uv run '")
+        raise ValueError(
+            f"Action '{action.action_id}' command must start with 'uv run '"
+        )
 
     values: dict[str, Any] = {
         "ws": workspace,

@@ -7,7 +7,7 @@ description: Instructions for using the scholar-agent-kit Model Context Protocol
 
 You are the AI agent interoperability and MCP specialist of the Nexus Scholar Suite. `scholar-agent-kit` exposes the full suite of research tools to Claude Code, Antigravity, and MCP-compatible AI agent clients over standard Model Context Protocol (MCP).
 
-## Exposed MCP Tools (21 total)
+## Exposed MCP Tools (23 total)
 
 **Protocol (3):**
 1. **`nexus_protocol_compile`** — path or JSON-string intent → `{status, protocol_id, fingerprint, protocol}`; does **not** persist (write protocol.json yourself).
@@ -31,20 +31,24 @@ You are the AI agent interoperability and MCP specialist of the Nexus Scholar Su
 13. **`nexus_rag_synthesize`** — grounded synthesis with entailment verification (`rq_id` default `"RQ1"`).
 14. **`nexus_matrix_extract`** — dynamic protocol extraction matrix (db pinned to `<workspace_dir>/chroma_db`).
 
-**Graph (1):**
+**Graph (2):**
 15. **`nexus_graph_build`** — citation graph with a real `AcademicHttpClient(name="openalex-graph")` client; accepts `results`/`items` dict payloads; errors on no DOIs.
+16. **`nexus_graph_narrative`** — Visual Synthesis Agent: reads graph JSON (PageRank + Louvain communities) and generates `synthesis/visual_synthesis.md` with hub papers, thematic communities, and network overview.
 
 **Verification (2):**
-16. **`nexus_verify_claims`** — verbatim quote verification. Digests scholar-rag `claims.json` (`{claims:[…]}` or bare list; `claim_text` as the quote), returns aggregate metrics + per-claim verdicts + failures-by-reason.
-17. **`nexus_verify_phase4`** — run a scholar-verify Phase-4 stream against a workspace: `retraction` (OpenAlex/Crossref), `open-science` (DAS/CAS), `coi`, `risk-of-bias` (QUADAS-2/PROBAST), `trust-context`, or `all`; writes `<ws>/phase4/<name>.{json,md}`. `skip_retraction=True` by default.
+17. **`nexus_verify_claims`** — verbatim quote verification. Digests scholar-rag `claims.json` (`{claims:[…]}` or bare list; `claim_text` as the quote), returns aggregate metrics + per-claim verdicts + failures-by-reason.
+18. **`nexus_verify_phase4`** — run a scholar-verify Phase-4 stream against a workspace: `retraction` (OpenAlex/Crossref), `open-science` (DAS/CAS), `coi`, `risk-of-bias` (QUADAS-2/PROBAST), `trust-context`, or `all`; writes `<ws>/phase4/<name>.{json,md}`. `skip_retraction=True` by default.
+
+**Methodology Critique (1):**
+19. **`nexus_critique_methodology`** — Methodology Critique Agent: wraps `scholar-verify-kit` risk-of-bias (QUADAS-2/PROBAST) over extracted records + manifest; outputs `phase4/methodological_critique.md` with domain-level summary and per-study table.
 
 **Pipeline (1):**
-18. **`nexus_pipeline_run`** — run the full 10-stage `ResearchOrchestrator` pipeline (protocol → discovery → dedup → screening → verification → PDF → extraction → RAG → synthesis). Parameters: `workspace_dir`, `query`, `protocol_path`, `skip_stages` (comma-separated stage names to skip).
+20. **`nexus_pipeline_run`** — run the full 10-stage `ResearchOrchestrator` pipeline (protocol → discovery → dedup → screening → verification → PDF → extraction → RAG → synthesis). Parameters: `workspace_dir`, `query`, `protocol_path`, `skip_stages` (comma-separated stage names to skip).
 
 **Recon (3) — Grounded Exploratory Inception Agent:**
-19. **`recon_probe`** — probe a topic into a FAIR recon session (OpenAlex; `semantic=True` → `search.semantic`).
-20. **`recon_distill`** — distill latest session pool into anchored terms (deterministic, lexicon-mergeable).
-21. **`recon_delta`** — bounded adaptive gap follow-up probes (hard cap 3).
+21. **`recon_probe`** — probe a topic into a FAIR recon session (OpenAlex; `semantic=True` → `search.semantic`).
+22. **`recon_distill`** — distill latest session pool into anchored terms (deterministic, lexicon-mergeable).
+23. **`recon_delta`** — bounded adaptive gap follow-up probes (hard cap 3).
 
 ---
 
@@ -61,7 +65,7 @@ uv run --directory tools/scholar-agent-kit scholar-agent
 ### 2. Display Help & Tool Registry
 ```bash
 uv run --directory tools/scholar-agent-kit scholar-agent --help
-# lists 16 tools; nexus_screen_reconcile + nexus_verify_claims are registered but hidden from --help
+# lists all 23 registered tools
 ```
 
 ### 3. Launch a raw recon function (for testing/RECON_SEARCH_FN)

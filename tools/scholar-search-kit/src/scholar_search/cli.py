@@ -853,6 +853,58 @@ def validate_query(
         console.print(f"\n[green]Results written to {output}[/green]")
 
 
+@app.command("prisma-diagram")
+def prisma_diagram(
+    prisma_report: Path = typer.Argument(..., help="Path to prisma_report.json"),
+    format: str = typer.Option(
+        "mermaid",
+        "--format",
+        "-f",
+        help="Output format: mermaid or plantuml",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output file path (default: stdout)",
+    ),
+):
+    """Generate a PRISMA 2020 flow diagram from a screening report JSON."""
+    import json
+
+    from .screening import PrismaFlowReport
+
+    if not prisma_report.exists():
+        console.print(f"[bold red]Error:[/bold red] File {prisma_report} not found.")
+        raise typer.Exit(1)
+
+    data = json.loads(prisma_report.read_text(encoding="utf-8"))
+    report = PrismaFlowReport(
+        total_identified=data.get("total_identified", 0),
+        duplicates_removed=data.get("duplicates_removed", 0),
+        records_screened=data.get("records_screened", 0),
+        records_excluded=data.get("records_excluded", 0),
+        records_included=data.get("records_included", 0),
+        conflicts_flagged=data.get("conflicts_flagged", 0),
+        exclusion_reasons_breakdown=data.get("exclusion_reasons_breakdown", {}),
+    )
+
+    if format == "mermaid":
+        diagram = report.to_mermaid()
+    elif format == "plantuml":
+        diagram = report.to_plantuml()
+    else:
+        raise typer.BadParameter(
+            f"Unknown format '{format}'. Use 'mermaid' or 'plantuml'."
+        )
+
+    if output:
+        output.write_text(diagram, encoding="utf-8")
+        console.print(f"[bold green]Diagram written to {output}[/bold green]")
+    else:
+        typer.echo(diagram)
+
+
 def main():
     app()
 

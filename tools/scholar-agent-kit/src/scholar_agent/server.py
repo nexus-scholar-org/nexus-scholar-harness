@@ -1120,6 +1120,322 @@ def nexus_verify_phase4(
 
 
 # ==============================================================================
+# Phase F: Specialized Agents — Methodology Critique (F1) & Graph Narrative (F2)
+# ==============================================================================
+
+
+def _load_records(workspace_dir: Path) -> list[dict]:
+    """Load merged extraction records from ``literature/extraction/merged/records.json``."""
+    recs_path = workspace_dir / "literature" / "extraction" / "merged" / "records.json"
+    if not recs_path.is_file():
+        raise FileNotFoundError(f"records.json not found at {recs_path}")
+    return json.loads(recs_path.read_text(encoding="utf-8"))
+
+
+def _load_manifest(workspace_dir: Path) -> list[dict]:
+    """Load the Phase-4 manifest from ``phase4/_manifest.json``."""
+    manifest_path = workspace_dir / "phase4" / "_manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"_manifest.json not found at {manifest_path}")
+    return json.loads(manifest_path.read_text(encoding="utf-8"))
+
+
+def _load_graph_json(graph_path: Path) -> dict:
+    """Read and return parsed graph JSON (node-link format with pagerank/groups)."""
+    if not graph_path.is_file():
+        raise FileNotFoundError(f"Graph JSON not found at {graph_path}")
+    return json.loads(graph_path.read_text(encoding="utf-8"))
+
+
+def _identify_hubs(graph_data: dict, top_n: int = 10) -> list[dict]:
+    """Sort nodes by PageRank score and return the top-N with title, doi, score."""
+    nodes = graph_data.get("nodes", [])
+    pagerank = graph_data.get("pagerank", {})
+    scored: list[dict] = []
+    for node in nodes:
+        nid = node.get("id", "")
+        score = pagerank.get(nid, 0.0)
+        scored.append(
+            {
+                "title": node.get("title", nid),
+                "doi": node.get("doi", ""),
+                "id": nid,
+                "pagerank": score,
+            }
+        )
+    scored.sort(key=lambda x: x["pagerank"], reverse=True)
+    return scored[:top_n]
+
+
+def _summarize_communities(graph_data: dict) -> list[dict]:
+    """Group nodes by ``group`` field (Louvain community ID) and summarize."""
+    nodes = graph_data.get("nodes", [])
+    pagerank = graph_data.get("pagerank", {})
+    groups: dict[str, list[dict]] = {}
+    for node in nodes:
+        gid = str(node.get("group", "0"))
+        if gid not in groups:
+            groups[gid] = []
+        score = pagerank.get(node.get("id", ""), 0.0)
+        groups[gid].append(
+            {
+                "id": node.get("id", ""),
+                "title": node.get("title", node.get("id", "")),
+                "doi": node.get("doi", ""),
+                "pagerank": score,
+            }
+        )
+    summaries: list[dict] = []
+    for gid in sorted(groups, key=lambda g: len(groups[g]), reverse=True):
+        members = groups[gid]
+        members.sort(key=lambda x: x["pagerank"], reverse=True)
+        top3 = members[:3]
+        label_parts = [m["title"][:60] for m in top3 if m["title"]]
+        summaries.append(
+            {
+                "group_id": gid,
+                "node_count": len(members),
+                "top_nodes": [
+                    {"title": m["title"], "doi": m["doi"], "pagerank": m["pagerank"]}
+                    for m in top3
+                ],
+                "label": " / ".join(label_parts) if label_parts else f"Community {gid}",
+            }
+        )
+    return summaries
+
+
+@mcp.tool()
+def nexus_critique_methodology(
+    workspace_dir: str,
+    protocol_path: str | None = None,
+    rq_id: str | None = None,
+) -> str:
+    """Evaluate methodological rigor of extracted studies using risk-of-bias scoring.
+
+    Wraps ``scholar-verify-kit`` risk-of-bias (QUADAS-2/PROBAST adaptation) and
+    produces a ``methodological_critique.md`` with domain-level summary and
+    per-study table.
+
+    Parameters
+    ----------
+    workspace_dir:
+        Path to the research workspace.
+    protocol_path:
+        Optional path to ``protocol.json`` for research-question context.
+    rq_id:
+        Optional research question ID to scope the critique.
+    """
+    try:
+        ws = Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
+        if not ws.is_dir():
+            return json.dumps(
+                {"status": "ERROR", "error": f"Workspace not found: {workspace_dir}"}
+            )
+
+        # Load data
+        records = _load_records(ws)
+        manifest = _load_manifest(ws)
+
+        # Run risk-of-bias scoring
+        rob_result = risk_of_bias.run(records, manifest)
+
+        # Compute aggregate stats
+        summary = rob_result.get("summary", {})
+        overall_risk = summary.get("overall_risk", {})
+        by_domain = summary.get("by_domain", {})
+        studies_high = summary.get("studies_high_risk", [])
+        studies_unclear = summary.get("studies_unclear", [])
+        total_assessed = summary.get("studies_assessed", 0)
+
+        # Determine overall risk label
+        if overall_risk.get("H", 0) > 0:
+            overall_label = "HIGH"
+        elif overall_risk.get("?", 0) > overall_risk.get("L", 0):
+            overall_label = "UNCLEAR"
+        else:
+            overall_label = "LOW"
+
+        # Build domain ratings
+        domain_names = risk_of_bias.DOMAIN_NAMES
+        domain_ratings: dict[str, dict[str, int]] = {}
+        for dk, counts in by_domain.items():
+            domain_ratings[dk] = dict(counts)
+
+        # Render Markdown critique
+        md_lines = [
+            "# Methodological Critique",
+            "",
+            "## Overview",
+            "",
+            f"- **Studies assessed**: {total_assessed}",
+            f"- **Overall risk**: {overall_label}",
+            f"- **High-risk studies**: {', '.join(studies_high) if studies_high else 'None'}",
+            f"- **Unclear-risk studies**: {', '.join(studies_unclear) if studies_unclear else 'None'}",
+            "",
+            "## Domain-Level Summary",
+            "",
+            "| Domain | L (Low) | ? (Unclear) | H (High) |",
+            "| :--- | :---: | :---: | :---: |",
+        ]
+        for dk in sorted(domain_names):
+            label = domain_names.get(dk, dk)
+            counts = by_domain.get(dk, {})
+            l_count = counts.get("L", 0)
+            u_count = counts.get("?", 0)
+            h_count = counts.get("H", 0)
+            na_count = counts.get("n/a", 0)
+            if na_count == total_assessed:
+                md_lines.append(f"| {dk}: {label} | — | — | — (n/a) |")
+            else:
+                md_lines.append(
+                    f"| {dk}: {label} | {l_count} | {u_count} | {h_count} |"
+                )
+
+        md_lines += ["", "## Per-Study Breakdown", ""]
+        md_lines += [
+            "| Workspace ID | Title | Year | Overall Risk |",
+            "| :--- | :--- | :---: | :---: |",
+        ]
+        for row in rob_result.get("results", []):
+            title = (row.get("title") or "")[:80]
+            md_lines.append(
+                f"| {row['workspace_id']} | {title} | {row.get('year', '')} | {row['overall_risk']} |"
+            )
+
+        md_lines += [
+            "",
+            "---",
+            f"*Generated by `nexus_critique_methodology` (scholar-verify-kit risk-of-bias)*",
+        ]
+
+        summary_md = "\n".join(md_lines)
+
+        # Write output
+        out_dir = ws / "phase4"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "methodological_critique.md").write_text(
+            summary_md, encoding="utf-8"
+        )
+
+        return json.dumps(
+            {
+                "status": "SUCCESS",
+                "overall_risk": overall_label,
+                "domain_ratings": domain_ratings,
+                "per_study_count": total_assessed,
+                "output_path": str(out_dir / "methodological_critique.md"),
+            },
+            indent=2,
+        )
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "error": str(e)})
+
+
+@mcp.tool()
+def nexus_graph_narrative(
+    workspace_dir: str,
+    graph_json_path: str,
+    top_hubs: int = 10,
+) -> str:
+    """Generate a narrative summary from citation graph structure and community detection.
+
+    Reads graph stats (PageRank hubs, Louvain communities) and produces a
+    ``visual_synthesis.md`` explaining hub papers and thematic clusters.
+
+    Parameters
+    ----------
+    workspace_dir:
+        Path to the research workspace.
+    graph_json_path:
+        Path to the graph JSON file (node-link format with pagerank/groups).
+    top_hubs:
+        Number of top hub papers to include (default 10).
+    """
+    try:
+        ws = Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
+        gp = Path(_resolve_path(graph_json_path) or graph_json_path)
+        if not ws.is_dir():
+            return json.dumps(
+                {"status": "ERROR", "error": f"Workspace not found: {workspace_dir}"}
+            )
+
+        graph_data = _load_graph_json(gp)
+        hubs = _identify_hubs(graph_data, top_n=top_hubs)
+        communities = _summarize_communities(graph_data)
+
+        # Render narrative
+        nodes = graph_data.get("nodes", [])
+        edges = graph_data.get("links", graph_data.get("edges", []))
+        n_nodes = len(nodes)
+        n_edges = len(edges)
+
+        md_lines = [
+            "# Visual Synthesis: Citation Network Analysis",
+            "",
+            "## Network Overview",
+            "",
+            f"- **Total papers**: {n_nodes}",
+            f"- **Citation links**: {n_edges}",
+            f"- **Communities detected**: {len(communities)}",
+            f"- **Top hub papers analyzed**: {len(hubs)}",
+            "",
+            "## Hub Papers",
+            "",
+            "Hub papers are the most central nodes in the citation network, as measured by PageRank centrality. They represent the most influential or foundational works in this corpus.",
+            "",
+            "| Rank | Title | DOI | PageRank |",
+            "| :---: | :--- | :--- | :---: |",
+        ]
+        for i, hub in enumerate(hubs, 1):
+            title = (hub["title"] or "")[:80]
+            doi = hub.get("doi") or "—"
+            md_lines.append(f"| {i} | {title} | {doi} | {hub['pagerank']:.4f} |")
+
+        md_lines += ["", "## Thematic Communities", ""]
+        for comm in communities:
+            gid = comm["group_id"]
+            count = comm["node_count"]
+            label = comm["label"]
+            md_lines += [
+                f"### Community {gid} ({count} papers)",
+                "",
+                f"**Key themes**: {label}",
+                "",
+                "Top papers:",
+            ]
+            for tn in comm["top_nodes"]:
+                t = (tn["title"] or "")[:80]
+                d = tn.get("doi") or "—"
+                md_lines.append(f"- {t} (DOI: {d})")
+            md_lines.append("")
+
+        md_lines += [
+            "---",
+            f"*Generated by `nexus_graph_narrative` (scholar-graph-kit)*",
+        ]
+
+        narrative_md = "\n".join(md_lines)
+
+        # Write output
+        out_dir = ws / "synthesis"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "visual_synthesis.md").write_text(narrative_md, encoding="utf-8")
+
+        return json.dumps(
+            {
+                "status": "SUCCESS",
+                "n_hubs": len(hubs),
+                "n_communities": len(communities),
+                "output_path": str(out_dir / "visual_synthesis.md"),
+            },
+            indent=2,
+        )
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "error": str(e)})
+
+
+# ==============================================================================
 # Phase 0.5: Recon MCP surface -- FAIR Memory + Agent Interop (M0.5)
 #
 # T5.1-T5.3 expose recon_probe / recon_distill / recon_delta.  Session state
@@ -1508,6 +1824,8 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
             "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
             "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"
+            "  - nexus_critique_methodology: Evaluate methodological rigor via risk-of-bias scoring\n"
+            "  - nexus_graph_narrative: Generate narrative summary from citation graph structure\n"
             "  - nexus_pipeline_run: Run the full 10-stage ResearchOrchestrator pipeline\n"
             "  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)\n"
             "  - recon_distill: Distill the latest session pool into anchored terms\n"

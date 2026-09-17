@@ -316,5 +316,68 @@ def analyze(
         typer.echo(output_str)
 
 
+@app.command("visualize")
+def visualize_cmd(
+    graph_file: Path = typer.Argument(
+        ..., help="Path to graph JSON file (node-link format)"
+    ),
+    output: Path = typer.Option(
+        Path("graph.html"),
+        "--output",
+        "-o",
+        help="Path to save the output HTML visualization",
+    ),
+    title: str = typer.Option(
+        "Citation Network",
+        "--title",
+        "-t",
+        help="Title for the visualization",
+    ),
+    physics: bool = typer.Option(
+        True,
+        "--physics/--no-physics",
+        help="Enable or disable physics simulation",
+    ),
+    node_size: str = typer.Option(
+        "citations",
+        "--node-size",
+        help="Node attribute for sizing (default: citations)",
+    ),
+    node_color: str | None = typer.Option(
+        None,
+        "--node-color",
+        help="Node attribute for community coloring (e.g. community)",
+    ),
+):
+    """Load a graph JSON file and render an interactive HTML visualization."""
+    # Deferred (P7.7): heavy imports inside function body
+    import json
+
+    import networkx as nx
+
+    if not graph_file.exists():
+        console.print(f"[bold red]Error:[/bold red] Graph file {graph_file} not found.")
+        raise typer.Exit(1)
+
+    data = json.loads(graph_file.read_text(encoding="utf-8"))
+    G = nx.node_link_graph(data)
+
+    vis = GraphVisualizer(
+        output,
+        physics_enabled=physics,
+    )
+    vis.generate_html(
+        G,
+        node_size_attr=node_size,
+        node_color_attr=node_color,
+        title=title,
+    )
+
+    console.print(
+        f"[bold green]Saved visualization to {output}[/bold green] "
+        f"(Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()})"
+    )
+
+
 if __name__ == "__main__":
     app()
