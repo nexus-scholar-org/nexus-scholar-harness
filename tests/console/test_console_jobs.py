@@ -11,7 +11,7 @@ Covers:
 Subprocess-backed tests run the app with httpx/ASGITransport inside a single
 `asyncio.run` loop. TestClient is avoided for those: real subprocesses spawned
 through `loop.run_in_executor` never finalize under TestClient's portal loop on
-Windows (the same limitation documented in test_console_m52/m53).
+Windows (the same limitation documented in test_console_pipelines/screening).
 """
 
 from __future__ import annotations

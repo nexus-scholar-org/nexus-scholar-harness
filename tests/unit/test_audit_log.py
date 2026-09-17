@@ -21,7 +21,7 @@ from scholar_harness.inception import init_command
 
 runner = CliRunner()
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 EVT_RE = re.compile(r"^EVT-\d{14}-[0-9a-f]{6}$")
 
 

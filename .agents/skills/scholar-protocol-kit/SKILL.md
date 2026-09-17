@@ -58,6 +58,22 @@ uv run scholar-protocol extraction-schema workspaces/<project-slug>/protocol.jso
 uv run scholar-protocol extraction-prompt workspaces/<project-slug>/protocol.json
 ```
 
+### 5. Golden Seeds for Search Validation
+
+The `SearchStrategy` model supports `golden_seeds` — a list of 2-5 landmark paper DOIs that MUST appear in search results for recall validation.
+
+```json
+{
+  "search_strategy": {
+    "core_concepts": ["machine learning", "healthcare"],
+    "golden_seeds": ["10.1000/test1", "10.1000/test2"],
+    "target_candidate_pool_size": 100
+  }
+}
+```
+
+Golden seeds are used by the `validate-query` command in `scholar-search-kit` to verify search recall. Include them in your protocol to ensure your search strategy captures essential literature.
+
 ---
 
 ## Python API

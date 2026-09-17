@@ -124,8 +124,8 @@ def _probe(monkeypatch, tmp_path, search_fn=_topic_search_fn) -> dict:
 def test_three_recon_tools_registered_on_mcp():
     names = {tool.name for tool in asyncio.run(server.mcp.list_tools())}
     assert {"recon_probe", "recon_distill", "recon_delta"} <= names
-    # The 16 existing nexus_* tools are untouched.
-    assert len(names) == 19
+    # The 20 existing nexus_* tools (added F1/F2 tools).
+    assert len(names) == 23
     assert "nexus_discover" in names
 
 
@@ -134,7 +134,9 @@ def test_three_recon_tools_registered_on_mcp():
 # ---------------------------------------------------------------------------
 
 
-def test_recon_probe_returns_structured_json_and_persists_session(tmp_path, monkeypatch):
+def test_recon_probe_returns_structured_json_and_persists_session(
+    tmp_path, monkeypatch
+):
     result = _probe(monkeypatch, tmp_path)
 
     assert result["status"] == "probe_ok"
@@ -171,9 +173,7 @@ def test_recon_probe_reuses_cache_within_session(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
     first = json.loads(server.recon_probe(topic=TOPIC))
-    second = json.loads(
-        server.recon_probe(topic=TOPIC, session_id=first["session_id"])
-    )
+    second = json.loads(server.recon_probe(topic=TOPIC, session_id=first["session_id"]))
 
     assert len(calls) == 1  # second probe was an engine cache hit, zero calls
     assert second["session_id"] == first["session_id"]
@@ -207,7 +207,10 @@ def test_recon_distill_returns_terms_file_and_anchored_schools(tmp_path, monkeyp
     schools = {school["label"]: school for school in result["schools"]}
     assert THIN_TERM in schools
     assert schools[THIN_TERM]["n"] == 2
-    assert set(schools[THIN_TERM]["anchor_dois"]) == {"10.1000/edge-a", "10.1000/edge-b"}
+    assert set(schools[THIN_TERM]["anchor_dois"]) == {
+        "10.1000/edge-a",
+        "10.1000/edge-b",
+    }
 
     # P5 + P2 admission gates ride along the distill reply (16_spec, E/F):
     # 3 fake docs < the 12-doc floor -> thin; no OpenAlex topics -> indeterminate.
@@ -252,7 +255,9 @@ def test_recon_distill_after_probe_uses_persisted_session(tmp_path, monkeypatch)
 # ---------------------------------------------------------------------------
 
 
-def test_recon_delta_thin_school_trigger_with_reason_and_confidence(tmp_path, monkeypatch):
+def test_recon_delta_thin_school_trigger_with_reason_and_confidence(
+    tmp_path, monkeypatch
+):
     calls = []
     mapping = {
         TOPIC.casefold(): _topic_docs(),
@@ -348,7 +353,9 @@ def test_recon_probe_refuses_sessions_under_workspaces(tmp_path, monkeypatch, di
     ws_root = tmp_path / dir_name
     ws_root.mkdir()
     monkeypatch.chdir(ws_root)
-    monkeypatch.setattr(server, "RECON_CACHE_ROOT", ws_root / ".cache" / "inception_recon")
+    monkeypatch.setattr(
+        server, "RECON_CACHE_ROOT", ws_root / ".cache" / "inception_recon"
+    )
     monkeypatch.setattr(server, "RECON_SEARCH_FN", _explode_search)
 
     result = json.loads(server.recon_probe(topic="anything"))
@@ -407,13 +414,28 @@ def test_recon_distill_and_delta_surface_topics(tmp_path, monkeypatch):
         if query.text.strip().casefold() == TOPIC.casefold():
             docs = _topic_docs()
             docs[0].topics = [
-                {"source": "openalex_topics", "id": "T1", "display_name": "Edge computing", "score": 0.8}
+                {
+                    "source": "openalex_topics",
+                    "id": "T1",
+                    "display_name": "Edge computing",
+                    "score": 0.8,
+                }
             ]
             docs[1].topics = [
-                {"source": "openalex_topics", "id": "T2", "display_name": "Edge computing", "score": 0.6}
+                {
+                    "source": "openalex_topics",
+                    "id": "T2",
+                    "display_name": "Edge computing",
+                    "score": 0.6,
+                }
             ]
             docs[2].topics = [
-                {"source": "openalex_topics", "id": "T3", "display_name": "Robotics", "score": 0.9}
+                {
+                    "source": "openalex_topics",
+                    "id": "T3",
+                    "display_name": "Robotics",
+                    "score": 0.9,
+                }
             ]
             return docs
         return _followup_docs()
@@ -426,7 +448,10 @@ def test_recon_distill_and_delta_surface_topics(tmp_path, monkeypatch):
     assert "topics" in dist
     labels = {t["label"]: t for t in dist["topics"]}
     assert labels["Edge computing"]["n"] == 2
-    assert labels["Edge computing"]["anchor_dois"] == ["10.1000/edge-a", "10.1000/edge-b"]
+    assert labels["Edge computing"]["anchor_dois"] == [
+        "10.1000/edge-a",
+        "10.1000/edge-b",
+    ]
     assert labels["Edge computing"]["score"] == 0.7
     assert labels["Robotics"]["n"] == 1
 
@@ -440,8 +465,12 @@ def test_recon_distill_purity_gate_scores_coherent_topics(tmp_path, monkeypatch)
         docs = _topic_docs()
         for i, doc in enumerate(docs):
             doc.topics = [
-                {"source": "openalex_topics", "id": f"T{i}",
-                 "display_name": "Edge computing", "score": 0.9 - i * 0.1}
+                {
+                    "source": "openalex_topics",
+                    "id": f"T{i}",
+                    "display_name": "Edge computing",
+                    "score": 0.9 - i * 0.1,
+                }
             ]
         return docs
 
@@ -472,7 +501,10 @@ def test_every_result_has_cache_key_lineage(tmp_path, monkeypatch):
 
     delta = json.loads(server.recon_delta(session_id=probe["session_id"]))
     assert "merged_cache_keys" in delta
-    assert delta["merged_cache_keys"] and delta["merged_cache_keys"][0] == probe["cache_key"]
+    assert (
+        delta["merged_cache_keys"]
+        and delta["merged_cache_keys"][0] == probe["cache_key"]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -515,9 +547,7 @@ def test_recon_distill_lexicon_json_accepts_already_parsed_dict(tmp_path, monkey
     lexicon = {"metrics": {r"small cnn": "CNN-Compact"}}
 
     as_dict = json.loads(
-        server.recon_distill(
-            session_id=probe["session_id"], lexicon_json=lexicon
-        )
+        server.recon_distill(session_id=probe["session_id"], lexicon_json=lexicon)
     )
     assert "terms_path" in as_dict  # success reply (errors carry only status)
     assert any(
@@ -661,6 +691,4 @@ def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
         importlib.reload(server)
         # Env unset: P4 default, repo-anchored and CWD-independent (absolute,
         # under the checkout), NOT the old CWD-relative fallback.
-        assert server.RECON_CACHE_ROOT == (
-            _repo_root() / ".cache" / "inception_recon"
-        )
+        assert server.RECON_CACHE_ROOT == (_repo_root() / ".cache" / "inception_recon")

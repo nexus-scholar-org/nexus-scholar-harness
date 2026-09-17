@@ -46,6 +46,68 @@ uv run scholar-graph build \
 uv run scholar-graph pagerank workspaces/<project-slug>/literature/knowledge_graph.json
 ```
 
+### 4. GEXF/GraphML Export
+
+Export citation graphs to GEXF or GraphML format for Gephi/yEd:
+
+```bash
+# Export to GEXF
+scholar-graph build --doi 10.xxxx --format gexf
+
+# Export to GraphML
+scholar-graph build --doi 10.xxxx --format graphml
+
+# Export all formats
+scholar-graph build --doi 10.xxxx --format all
+```
+
+**Features:**
+- Automatic PageRank computation if missing
+- XML-safe attribute sanitization (None → defaults)
+- P7.7 compliant deferred imports
+
+### 5. Analyze Citation Graph
+
+Analyze citation graph with scientometric metrics.
+
+```bash
+uv run scholar-graph analyze graph.json --metric hits
+uv run scholar-graph analyze graph.json --metric betweenness -o results.json
+```
+
+**Metrics:**
+- `hits` (default): HITS algorithm identifying hubs (reviews) and authorities (seminal papers)
+- `betweenness`: Betweenness centrality identifying bridge papers
+
+### 6. Detect Communities
+
+Detect communities using Louvain algorithm.
+
+```bash
+uv run scholar-graph cluster graph.json
+uv run scholar-graph cluster graph.json --resolution 2.0 --seed 42 -o clusters.json
+```
+
+**Options:**
+- `--resolution/-r`: Louvain resolution parameter (default: 1.0, higher = more communities)
+- `--seed/-s`: Random seed for reproducibility (default: 42)
+
+### 7. Build with Network Transformation Modes
+
+The `build` command supports network transformation modes for different citation analysis perspectives:
+
+```bash
+uv run scholar-graph build --doi 10.1234/test --mode cocitation
+uv run scholar-graph build --doi 10.1234/test --mode coupling
+uv run scholar-graph build --doi 10.1234/test --mode hybrid
+```
+
+**Modes:**
+- `citation` (default): Standard citation network
+- `cocitation`: Papers cited together are connected
+- `coupling`: Papers sharing references are connected
+- `hybrid`: Weighted combination of co-citation and coupling
+
 ---
 
 ## Python API

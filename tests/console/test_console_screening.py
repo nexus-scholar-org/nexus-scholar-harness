@@ -21,7 +21,7 @@ from fastapi.testclient import TestClient
 
 from scholar_harness.console import create_app
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_SCREEN = REPO_ROOT / "src" / "scholar_harness" / "agent_screen.py"
 
 

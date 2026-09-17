@@ -44,31 +44,48 @@ def status(
     orchestrator = ResearchOrchestrator(workspace)
     stat = orchestrator.get_status()
 
-    table = Table(title=f"🔬 Nexus Scholar Workspace: {stat['title']}", show_header=True, header_style="bold cyan")
+    table = Table(
+        title=f"🔬 Nexus Scholar Workspace: {stat['title']}",
+        show_header=True,
+        header_style="bold cyan",
+    )
     table.add_column("Pipeline Dimension", style="bold white", width=26)
     table.add_column("Status / Metric Value", style="green", width=40)
 
     table.add_row("Workspace Directory", stat["workspace"])
-    table.add_row("Protocol Found", "✅ Yes" if stat["protocol_found"] else "❌ No (Run methodology-copilot)")
+    table.add_row(
+        "Protocol Found",
+        "✅ Yes" if stat["protocol_found"] else "❌ No (Run methodology-copilot)",
+    )
     table.add_row("Playbook Archetype", stat["playbook_type"])
     table.add_row("Current State", stat["phase"])
     table.add_section()
     table.add_row("Discovered Candidates", f"{stat['discovered_count']} papers")
     table.add_row("Deduplicated Corpus", f"{stat['deduped_count']} unique papers")
     table.add_row("Verified & Hydrated", f"{stat['verified_count']} verified")
-    table.add_row("Included Studies (PRISMA)", f"{stat['included_count']} included ({stat['excluded_count']} excluded)")
+    table.add_row(
+        "Included Studies (PRISMA)",
+        f"{stat['included_count']} included ({stat['excluded_count']} excluded)",
+    )
     table.add_section()
     table.add_row("Harvested OA PDFs", f"{stat['pdfs_count']} PDFs")
     table.add_row("Extracted Markdown", f"{stat['extracted_count']} documents")
     table.add_row("Vector DB Chunks", f"{stat['vector_chunks']} chunks")
     table.add_row("Extraction Matrix Rows", f"{stat['matrix_rows']} rows")
     table.add_row("Citation Graph Nodes", f"{stat['graph_nodes']} nodes")
-    table.add_row("Grounded Synthesis", "✅ Generated" if stat["synthesis_generated"] else "⏳ Pending")
+    table.add_row(
+        "Grounded Synthesis",
+        "✅ Generated" if stat["synthesis_generated"] else "⏳ Pending",
+    )
 
     console.print(table)
 
     if stat["latest_events"]:
-        event_table = Table(title="📜 Recent Audit Journal Events", show_header=True, header_style="bold yellow")
+        event_table = Table(
+            title="📜 Recent Audit Journal Events",
+            show_header=True,
+            header_style="bold yellow",
+        )
         event_table.add_column("Timestamp", style="dim", width=24)
         event_table.add_column("Action", style="bold cyan", width=22)
         event_table.add_column("Agent / Tool", style="magenta", width=18)
@@ -79,7 +96,9 @@ def status(
                 evt.get("timestamp", "")[:19].replace("T", " "),
                 evt.get("action", ""),
                 evt.get("agent_or_tool", ""),
-                evt.get("description", "")[:60] + "..." if len(evt.get("description", "")) > 60 else evt.get("description", "")
+                evt.get("description", "")[:60] + "..."
+                if len(evt.get("description", "")) > 60
+                else evt.get("description", ""),
             )
         console.print(event_table)
 
@@ -90,10 +109,15 @@ def init(
         ..., help="Research project title (used to derive the workspace slug)"
     ),
     target_dir: Path = typer.Option(  # noqa: B008
-        Path("."), "--dir", "-d", help="Target directory to scaffold into (default: current dir)"
+        Path("."),
+        "--dir",
+        "-d",
+        help="Target directory to scaffold into (default: current dir)",
     ),
     scaffold_only: bool = typer.Option(
-        False, "--scaffold-only", help="Skip the Socratic wizard; scaffold the layout with a placeholder protocol"
+        False,
+        "--scaffold-only",
+        help="Skip the Socratic wizard; scaffold the layout with a placeholder protocol",
     ),
 ):
     """Bootstrap a portable Nexus Scholar research workspace in any folder (P7.3)."""
@@ -103,16 +127,26 @@ def init(
 @app.command("setup-mcp")
 def setup_mcp(
     workspace: Path = typer.Option(  # noqa: B008
-        Path("."), "--workspace", "-w", help="Path to research workspace the MCP server operates on"
+        Path("."),
+        "--workspace",
+        "-w",
+        help="Path to research workspace the MCP server operates on",
     ),
     harness: list[str] = typer.Option(  # noqa: B008
-        None, "--harness", "-h", help="Harness target(s): claude, cursor, vscode, dsh, mcp, or all (comma/space separated)"
+        None,
+        "--harness",
+        "-h",
+        help="Harness target(s): claude, cursor, vscode, dsh, mcp, or all (comma/space separated)",
     ),
     dry_run: bool = typer.Option(
-        False, "--dry-run", help="Print the exact write plan without touching the filesystem"
+        False,
+        "--dry-run",
+        help="Print the exact write plan without touching the filesystem",
     ),
     env_file: Path | None = typer.Option(  # noqa: B008
-        None, "--env-file", help=".env file with SCHOLAR_*/NEXUS_*/provider keys to pass through (default: <workspace>/.env if present)"
+        None,
+        "--env-file",
+        help=".env file with SCHOLAR_*/NEXUS_*/provider keys to pass through (default: <workspace>/.env if present)",
     ),
 ):
     """Wire the nexus-scholar MCP server into harness config files (P7.4)."""
@@ -122,16 +156,25 @@ def setup_mcp(
 @app.command("doctor")
 def doctor(
     workspace: Path = typer.Option(  # noqa: B008
-        Path("."), "--workspace", "-w", help="Path to a workspace to layout-validate (optional)"
+        Path("."),
+        "--workspace",
+        "-w",
+        help="Path to a workspace to layout-validate (optional)",
     ),
     env_file: Path | None = typer.Option(  # noqa: B008
-        None, "--env-file", help=".env file with SCHOLAR_*/NEXUS_*/provider keys (default: <workspace>/.env if present)"
+        None,
+        "--env-file",
+        help=".env file with SCHOLAR_*/NEXUS_*/provider keys (default: <workspace>/.env if present)",
     ),
     as_json: bool = typer.Option(
-        False, "--json", help="Emit a machine-readable JSON report (values always masked)"
+        False,
+        "--json",
+        help="Emit a machine-readable JSON report (values always masked)",
     ),
     exit_code: bool = typer.Option(
-        False, "--exit-code", help="Exit non-zero if any check FAILs (doctor is advisory by default)"
+        False,
+        "--exit-code",
+        help="Exit non-zero if any check FAILs (doctor is advisory by default)",
     ),
 ):
     """Validate kits/versions, API keys, skills, and workspace layout (P7.5)."""
@@ -157,7 +200,8 @@ log_app = typer.Typer(
 @log_app.command("event")
 def log_event_command(
     workspace: str = typer.Argument(
-        ..., help="Workspace directory path, or a project slug under a workspaces/ parent"
+        ...,
+        help="Workspace directory path, or a project slug under a workspaces/ parent",
     ),
     action: str = typer.Option(
         ..., "--action", help="Action name (e.g. DISCOVERY_SEARCH); stored uppercased"
@@ -169,7 +213,9 @@ def log_event_command(
         "", "--description", help="Human-readable event description"
     ),
     inputs: list[str] = typer.Option(  # noqa: B008
-        None, "--inputs", help="Input file(s) or identifier(s); repeatable and space-separated"
+        None,
+        "--inputs",
+        help="Input file(s) or identifier(s); repeatable and space-separated",
     ),
     outputs: list[str] = typer.Option(  # noqa: B008
         None, "--outputs", help="Output file(s); repeatable and space-separated"
@@ -201,7 +247,8 @@ def log_event_command(
 @log_app.command("batch")
 def log_batch_command(
     workspace: str = typer.Argument(
-        ..., help="Workspace directory path, or a project slug under a workspaces/ parent"
+        ...,
+        help="Workspace directory path, or a project slug under a workspaces/ parent",
     ),
     events_file: Path = typer.Argument(  # noqa: B008
         ..., help="JSONL file of event objects (one event per line)"
@@ -220,7 +267,8 @@ def log_batch_command(
 @log_app.command("sync-index")
 def log_sync_index_command(
     workspace: str = typer.Argument(
-        ..., help="Workspace directory path, or a project slug under a workspaces/ parent"
+        ...,
+        help="Workspace directory path, or a project slug under a workspaces/ parent",
     ),
 ):
     """Regenerate INDEX.md from workspace state (no journal append)."""
@@ -230,10 +278,63 @@ def log_sync_index_command(
 app.add_typer(log_app, name="log")
 
 
+@app.command("supervise")
+def supervise(
+    workspace: Path = typer.Option(
+        Path("."), "--workspace", "-w", help="Path to research workspace directory"
+    ),
+    once: bool = typer.Option(
+        True,
+        "--once/--loop",
+        help="Run one detection pass (default) or loop continuously",
+    ),
+    interval: int = typer.Option(
+        60, "--interval", "-i", help="Seconds between detection passes in loop mode"
+    ),
+):
+    """Run the agent handoff supervisor to detect and advance phases."""
+    import time
+
+    from .handoff import run_supervisor_once
+
+    ws = workspace.resolve()
+
+    if once:
+        result = run_supervisor_once(ws)
+        if result.get("action") == "ADVANCED":
+            console.print(
+                f"[bold green]Phase advanced: {result['from_phase']} → {result['to_phase']}[/bold green]"
+            )
+        else:
+            console.print(
+                f"[bold yellow]{result.get('reason', 'No action taken')}[/bold yellow]"
+            )
+        return
+
+    console.print(
+        f"[bold cyan]Supervisor loop started for {ws} (interval: {interval}s)[/bold cyan]"
+    )
+    try:
+        while True:
+            result = run_supervisor_once(ws)
+            if result.get("action") == "ADVANCED":
+                console.print(
+                    f"[bold green]Phase advanced: {result['from_phase']} → {result['to_phase']}[/bold green]"
+                )
+            elif result.get("action") != "NOOP":
+                console.print(f"[yellow]{result.get('action', 'unknown')}[/yellow]")
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        console.print("[bold yellow]Supervisor loop stopped.[/bold yellow]")
+
+
 @app.command("inception")
 def inception(
     root: Path = typer.Option(
-        Path("."), "--root", "-r", help="Repository root containing workspaces/ (default: current dir)"
+        Path("."),
+        "--root",
+        "-r",
+        help="Repository root containing workspaces/ (default: current dir)",
     ),
     no_scaffold: bool = typer.Option(
         False, "--no-scaffold", help="Run the interview only; emit nothing to disk"
@@ -277,7 +378,11 @@ def sync(
     orchestrator = ResearchOrchestrator(workspace)
     result = orchestrator.sync_state(dry_run=dry_run)
 
-    table = Table(title=f"🔄 State Sync: {result['workspace']}", show_header=True, header_style="bold cyan")
+    table = Table(
+        title=f"🔄 State Sync: {result['workspace']}",
+        show_header=True,
+        header_style="bold cyan",
+    )
     table.add_column("Key", style="bold white", width=30)
     table.add_column("Value", style="green", width=42)
 
@@ -287,16 +392,37 @@ def sync(
     else:
         table.add_row("Mode", "Committed")
         stats = result.get("stats", {})
-        table.add_row("INDEX.md Regenerated", "✅ Yes" if result.get("index_regenerated") else "⚠️  Not (workspace-manager unavailable)")
+        table.add_row(
+            "INDEX.md Regenerated",
+            "✅ Yes"
+            if result.get("index_regenerated")
+            else "⚠️  Not (workspace-manager unavailable)",
+        )
 
     table.add_section()
-    for key in ("discovered_papers", "verified_papers", "included_papers",
-                "excluded_papers", "downloaded_pdfs", "extracted_markdowns"):
+    for key in (
+        "discovered_papers",
+        "verified_papers",
+        "included_papers",
+        "excluded_papers",
+        "downloaded_pdfs",
+        "extracted_markdowns",
+    ):
         if key in stats:
             table.add_row(key, str(stats[key]))
-    remaining = {k: v for k, v in stats.items() if k not in (
-        "discovered_papers", "verified_papers", "included_papers",
-        "excluded_papers", "downloaded_pdfs", "extracted_markdowns")}
+    remaining = {
+        k: v
+        for k, v in stats.items()
+        if k
+        not in (
+            "discovered_papers",
+            "verified_papers",
+            "included_papers",
+            "excluded_papers",
+            "downloaded_pdfs",
+            "extracted_markdowns",
+        )
+    }
     for key, value in remaining.items():
         table.add_row(key, str(value))
 
@@ -306,7 +432,10 @@ def sync(
 @app.command("run")
 def run_pipeline(
     protocol: Path = typer.Option(
-        None, "--protocol", "-p", help="Path to canonical protocol.json (classic orchestrator)"
+        None,
+        "--protocol",
+        "-p",
+        help="Path to canonical protocol.json (classic orchestrator)",
     ),
     pipeline: Path = typer.Option(
         None, "--pipeline", help="Path to a PipelineSpec JSON file (M5.4 DAG executor)"
@@ -329,51 +458,70 @@ def run_pipeline(
 
     protocol_path = protocol or Path("protocol.json")
     orchestrator = ResearchOrchestrator(workspace)
-    console.print(f"[bold cyan]🚀 Initializing Nexus Scholar Pipeline for {protocol_path}...[/bold cyan]")
+    console.print(
+        f"[bold cyan]🚀 Initializing Nexus Scholar Pipeline for {protocol_path}...[/bold cyan]"
+    )
 
     with console.status("[bold green]Executing multi-stage pipeline..."):
-        res = orchestrator.run_pipeline(protocol_path=protocol_path, max_search_results=limit)
+        res = orchestrator.run_pipeline(
+            protocol_path=protocol_path, max_search_results=limit
+        )
 
-    console.print(Panel.fit(
-        f"[bold green]✨ Research Pipeline Execution Completed Successfully![/bold green]\n\n"
-        f"• Discovered: {res['stages'].get('discovery', 0)} papers\n"
-        f"• Deduplicated: {res['stages'].get('deduplication', 0)} unique\n"
-        f"• Included (PRISMA): {res['stages'].get('screening', {}).get('included', 0)}\n"
-        f"• Markdown Extracts: {res['stages'].get('extraction', 0)}\n"
-        f"• Matrix Rows: {res['stages'].get('matrix_rows', 0)}\n"
-        f"• Graph Nodes: {res['stages'].get('graph_nodes', 0)}\n"
-        f"• Grounded Claims: {res['stages'].get('synthesis', {}).get('verified_claims', 0)} / {res['stages'].get('synthesis', {}).get('total_claims', 0)} verified",
-        title="Pipeline Execution Summary",
-        border_style="green"
-    ))
+    console.print(
+        Panel.fit(
+            f"[bold green]✨ Research Pipeline Execution Completed Successfully![/bold green]\n\n"
+            f"• Discovered: {res['stages'].get('discovery', 0)} papers\n"
+            f"• Deduplicated: {res['stages'].get('deduplication', 0)} unique\n"
+            f"• Included (PRISMA): {res['stages'].get('screening', {}).get('included', 0)}\n"
+            f"• Markdown Extracts: {res['stages'].get('extraction', 0)}\n"
+            f"• Matrix Rows: {res['stages'].get('matrix_rows', 0)}\n"
+            f"• Graph Nodes: {res['stages'].get('graph_nodes', 0)}\n"
+            f"• Grounded Claims: {res['stages'].get('synthesis', {}).get('verified_claims', 0)} / {res['stages'].get('synthesis', {}).get('total_claims', 0)} verified",
+            title="Pipeline Execution Summary",
+            border_style="green",
+        )
+    )
 
 
 def _run_pipeline_spec(pipeline: Path, workspace: Path, skip: str | None) -> None:
     """Execute a PipelineSpec DAG (M5.4)."""
     from .pipeline_executor import PipelineError, execute_file
 
-    console.print(f"[bold cyan]🚀 Executing PipelineSpec {pipeline} in {workspace}...[/bold cyan]")
+    console.print(
+        f"[bold cyan]🚀 Executing PipelineSpec {pipeline} in {workspace}...[/bold cyan]"
+    )
     skip_ids = [s.strip() for s in skip.split(",")] if skip else []
     try:
-        spec, results = execute_file(pipeline, workspace, output=console.print, skip=skip_ids)
+        spec, results = execute_file(
+            pipeline, workspace, output=console.print, skip=skip_ids
+        )
     except PipelineError as exc:
         console.print(f"[bold red]❌ Pipeline halted: {exc}[/bold red]")
         raise typer.Exit(1)
 
-    table = Table(title=f"➜ PipelineSpec {spec.id} · {spec.name or spec.archetype}",
-                  show_header=True, header_style="bold cyan")
+    table = Table(
+        title=f"➜ PipelineSpec {spec.id} · {spec.name or spec.archetype}",
+        show_header=True,
+        header_style="bold cyan",
+    )
     table.add_column("Node", style="bold white", width=22)
     table.add_column("State", style="green", width=10)
     table.add_column("Exit", style="dim", width=6)
     table.add_column("Detail", style="white")
     for r in results:
-        detail = r.message or r.skipped_reason or (" ".join(r.command) if r.command else "—")
-        table.add_row(r.node_id, r.state, "-" if r.exit_code is None else str(r.exit_code), detail)
+        detail = (
+            r.message or r.skipped_reason or (" ".join(r.command) if r.command else "—")
+        )
+        table.add_row(
+            r.node_id, r.state, "-" if r.exit_code is None else str(r.exit_code), detail
+        )
     console.print(table)
 
     states = {r.state for r in results}
     if "halted" in states:
-        console.print("[bold yellow]⏸ Pipeline paused: human review required before re-run.[/bold yellow]")
+        console.print(
+            "[bold yellow]⏸ Pipeline paused: human review required before re-run.[/bold yellow]"
+        )
         raise typer.Exit(1)
     console.print("[bold green]✨ PipelineSpec execution complete.[/bold green]")
 
@@ -381,7 +529,8 @@ def _run_pipeline_spec(pipeline: Path, workspace: Path, skip: str | None) -> Non
 @app.command("export")
 def export(
     format_type: str = typer.Argument(
-        ..., help="Export target format: 'latex', 'typst', 'obsidian', 'zotero', 'pipeline-sh'"
+        ...,
+        help="Export target format: 'latex', 'typst', 'obsidian', 'zotero', 'pipeline-sh'",
     ),
     workspace: Path = typer.Option(
         Path("."), "--workspace", "-w", help="Path to research workspace directory"
@@ -390,7 +539,9 @@ def export(
         None, "--output", "-o", help="Target output file or directory"
     ),
     pipeline: str | None = typer.Option(
-        None, "--pipeline", help="PipelineSpec id (in <ws>/.harness-console/pipelines) or path (format 'pipeline-sh')"
+        None,
+        "--pipeline",
+        help="PipelineSpec id (in <ws>/.harness-console/pipelines) or path (format 'pipeline-sh')",
     ),
 ):
     """Export synthesized research findings and bibliographies to external tools."""
@@ -403,24 +554,34 @@ def export(
     if format_type.lower() == "latex":
         out_target = output or (workspace_path / "synthesis" / "literature_review.tex")
         AcademicTypesettingExporter.export_latex(synth_file, bib_file, out_target)
-        console.print(f"[bold green]✅ Successfully exported LaTeX section to {out_target}[/bold green]")
+        console.print(
+            f"[bold green]✅ Successfully exported LaTeX section to {out_target}[/bold green]"
+        )
 
     elif format_type.lower() == "typst":
         out_target = output or (workspace_path / "synthesis" / "literature_review.typ")
         AcademicTypesettingExporter.export_typst(synth_file, bib_file, out_target)
-        console.print(f"[bold green]✅ Successfully exported Typst manuscript to {out_target}[/bold green]")
+        console.print(
+            f"[bold green]✅ Successfully exported Typst manuscript to {out_target}[/bold green]"
+        )
 
     elif format_type.lower() == "obsidian":
         out_target = output or (workspace_path / "literature" / "obsidian_vault")
         ObsidianVaultExporter.export_vault(workspace_path, out_target)
-        console.print(f"[bold green]✅ Successfully exported Obsidian PKM Vault to {out_target}[/bold green]")
+        console.print(
+            f"[bold green]✅ Successfully exported Obsidian PKM Vault to {out_target}[/bold green]"
+        )
 
     elif format_type.lower() == "zotero":
         bridge = ZoteroBridge()
         inc_file = workspace_path / "literature" / "included.json"
         pdf_dir = workspace_path / "pdfs"
-        manifest = bridge.sync_included_papers(inc_file, pdf_dir, project_slug=workspace_path.name)
-        console.print(f"[bold green]✅ Synced {manifest.get('items_synced', 0)} items to Zotero collection '{workspace_path.name}'[/bold green]")
+        manifest = bridge.sync_included_papers(
+            inc_file, pdf_dir, project_slug=workspace_path.name
+        )
+        console.print(
+            f"[bold green]✅ Synced {manifest.get('items_synced', 0)} items to Zotero collection '{workspace_path.name}'[/bold green]"
+        )
 
     elif format_type.lower() in ("pipeline-sh", "pipeline"):
         import os
@@ -430,13 +591,17 @@ def export(
         from .pipeline_executor import load_spec
 
         if not pipeline:
-            console.print("[bold red]❌ export pipeline-sh requires --pipeline <id|path>[/bold red]")
+            console.print(
+                "[bold red]❌ export pipeline-sh requires --pipeline <id|path>[/bold red]"
+            )
             raise typer.Exit(1)
         store_dir = workspace_path / ".harness-console" / "pipelines"
         cand = Path(pipeline)
         spec_path = cand if cand.is_file() else store_dir / f"{pipeline}.json"
         if not spec_path.is_file():
-            console.print(f"[bold red]❌ pipeline spec not found: {spec_path}[/bold red]")
+            console.print(
+                f"[bold red]❌ pipeline spec not found: {spec_path}[/bold red]"
+            )
             raise typer.Exit(1)
         try:
             spec = load_spec(spec_path)
@@ -449,10 +614,14 @@ def export(
         tmp = out_target.with_name(out_target.name + f".tmp-{uuid_mod.uuid4().hex[:8]}")
         tmp.write_text(script, encoding="utf-8")
         os.replace(tmp, out_target)
-        console.print(f"[bold green]✅ Exported pipeline {spec.id} → {out_target}[/bold green]")
+        console.print(
+            f"[bold green]✅ Exported pipeline {spec.id} → {out_target}[/bold green]"
+        )
 
     else:
-        console.print(f"[bold red]❌ Unsupported export format: {format_type}. Supported: latex, typst, obsidian, zotero, pipeline-sh[/bold red]")
+        console.print(
+            f"[bold red]❌ Unsupported export format: {format_type}. Supported: latex, typst, obsidian, zotero, pipeline-sh[/bold red]"
+        )
         raise typer.Exit(1)
 
 
@@ -461,7 +630,9 @@ def serve(
     workspace: Path = typer.Option(
         Path("."), "--workspace", "-w", help="Path to research workspace directory"
     ),
-    host: str = typer.Option("127.0.0.1", "--host", help="Bind host (loopback by default)"),
+    host: str = typer.Option(
+        "127.0.0.1", "--host", help="Bind host (loopback by default)"
+    ),
     port: int = typer.Option(8765, "--port", "-p", help="Bind port"),
     reload: bool = typer.Option(
         False, "--reload", help="Enable uvicorn auto-reload (development only)"

@@ -5,7 +5,7 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 METAPACKAGE_DIR = REPO_ROOT / "packaging" / "nexus-scholar"
 PYPROJECT = METAPACKAGE_DIR / "pyproject.toml"

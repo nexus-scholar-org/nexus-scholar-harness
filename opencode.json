@@ -6,5 +6,31 @@
       "command": ["uv", "run", "--directory", "tools/scholar-agent-kit", "scholar-agent"],
       "enabled": true
     }
+  },
+  "agents": {
+    "orchestrator": {
+      "file": ".opencode/agent/orchestrator.md",
+      "description": "Phase orchestrator - dispatches tasks to other agents, manages git, tracks progress",
+      "permission": "allow",
+      "role": "dispatcher"
+    },
+    "coder": {
+      "file": ".opencode/agent/coder.md",
+      "description": "Implementation agent - implements tasks with critic loop, runs targeted tests",
+      "permission": "allow",
+      "role": "implementer"
+    },
+    "tester": {
+      "file": ".opencode/agent/tester.md",
+      "description": "QA agent - runs targeted tests, verifies DoD, reports pass/fail",
+      "permission": "allow",
+      "role": "verifier"
+    },
+    "reviewer": {
+      "file": ".opencode/agent/reviewer.md",
+      "description": "Review agent - checks spec compliance, provides APPROVE/CHANGES/BLOCKED",
+      "permission": "allow",
+      "role": "reviewer"
+    }
   }
 }

@@ -9,7 +9,7 @@ import typer
 
 # Reuse the responder/answer harness from the wizard e2e tests (tests/ is on
 # the pytest path in prepend import mode).
-from test_inception import E2E_ANSWERS, GENESIS_TS, ScriptedResponder
+from conftest import E2E_ANSWERS, GENESIS_TS, ScriptedResponder
 from typer.testing import CliRunner
 
 from scholar_harness import inception
