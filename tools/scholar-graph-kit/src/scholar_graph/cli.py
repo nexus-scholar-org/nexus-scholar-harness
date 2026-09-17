@@ -58,6 +58,12 @@ def build(
         "-f",
         help="Export formats: html, json, gexf, graphml, all",
     ),
+    mode: str = typer.Option(
+        "citation",
+        "--mode",
+        "-m",
+        help="Graph mode: citation, cocitation, coupling, hybrid",
+    ),
 ):
     """Build a citation graph from DOIs and generate an interactive HTML map."""
     doi_list = list(dois) if dois else []
@@ -106,8 +112,40 @@ def build(
     G, builder = asyncio.run(run_build())
 
     console.print(
-        f"[bold green]Graph built successfully![/bold green] (Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()})"
+        f"[bold green]Citation graph built![/bold green] (Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()})"
     )
+
+    # Apply mode-specific scientometric transformation
+    if mode == "cocitation":
+        from .scientometrics import ScientometricEngine
+
+        engine = ScientometricEngine(G)
+        G = engine.build_cocitation_network(min_jaccard=0.15)
+        console.print(
+            f"[green]Co-citation network: {len(G.nodes)} nodes, {len(G.edges)} edges[/]"
+        )
+    elif mode == "coupling":
+        from .scientometrics import ScientometricEngine
+
+        engine = ScientometricEngine(G)
+        G = engine.build_bibliographic_coupling(min_jaccard=0.15)
+        console.print(
+            f"[green]Coupling network: {len(G.nodes)} nodes, {len(G.edges)} edges[/]"
+        )
+    elif mode == "hybrid":
+        from .scientometrics import ScientometricEngine
+
+        engine = ScientometricEngine(G)
+        G = engine.build_hybrid_network(alpha=0.5)
+        console.print(
+            f"[green]Hybrid network: {len(G.nodes)} nodes, {len(G.edges)} edges[/]"
+        )
+    elif mode == "citation":
+        pass  # Existing behavior, no transformation needed
+    else:
+        raise typer.BadParameter(
+            f"Unknown mode: {mode}. Use citation, cocitation, coupling, or hybrid."
+        )
 
     console.print(f"[cyan]Rendering PyVis visualization to {output_file}...[/cyan]")
     vis = GraphVisualizer(output_file)
@@ -169,6 +207,62 @@ def pagerank(
         table.add_row(str(idx), node_id, f"{score:.4f}")
 
     console.print(table)
+
+
+@app.command("cluster")
+def cluster(
+    graph_file: Path = typer.Argument(..., help="Path to graph JSON file"),
+    resolution: float = typer.Option(
+        1.0, "--resolution", "-r", help="Louvain resolution parameter"
+    ),
+    seed: int = typer.Option(
+        42, "--seed", "-s", help="Random seed for reproducibility"
+    ),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Output file path"),
+):
+    """Detect communities using Louvain algorithm."""
+    import networkx as nx
+
+    from .scientometrics import ScientometricEngine
+
+    if not graph_file.exists():
+        console.print(f"[bold red]Error:[/bold red] Graph file {graph_file} not found.")
+        raise typer.Exit(1)
+
+    with open(graph_file, encoding="utf-8") as f:
+        data = json.load(f)
+
+    G = nx.node_link_graph(data)
+
+    engine = ScientometricEngine(G)
+
+    # Detect communities
+    communities = engine.detect_communities_louvain(seed=seed, resolution=resolution)
+    modularity = engine.compute_modularity(communities)
+    engine.enrich_graph_with_communities(communities)
+
+    # Build result
+    community_sizes: dict[int, int] = {}
+    for node, comm_id in communities.items():
+        community_sizes[comm_id] = community_sizes.get(comm_id, 0) + 1
+
+    result = {
+        "num_communities": len(set(communities.values())),
+        "modularity": modularity,
+        "community_sizes": community_sizes,
+        "node_community_map": communities,
+    }
+
+    result_str = json.dumps(result, indent=2)
+
+    if output:
+        output.write_text(result_str, encoding="utf-8")
+        console.print(f"[green]Results written to {output}[/]")
+    else:
+        console.print(result_str)
+
+    console.print(f"\n[bold]Communities:[/] {result['num_communities']}")
+    console.print(f"[bold]Modularity:[/] {modularity:.4f}")
 
 
 @app.command("analyze")

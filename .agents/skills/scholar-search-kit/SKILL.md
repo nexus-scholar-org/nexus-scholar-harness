@@ -52,6 +52,14 @@ uv run scholar-search export --format csv --output results.csv
 
 # 8. Export to JSONL
 uv run scholar-search export --format jsonl --output results.jsonl
+
+# 9. Compare Screening Runs
+uv run scholar-search screen-compare run_a.json run_b.json
+uv run scholar-search screen-compare run_a.json run_b.json -o report.md
+
+# 10. Validate Search Query Recall
+uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
+uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
 ```
 
 ### RIS Export
@@ -74,6 +82,30 @@ scholar-search export --format ris --output results.ris
 - C1: arXiv ID (prefixed with "arXiv:")
 - DB: Source provider
 - ER: Record terminator
+
+### Screen-Compare Command
+
+Compare two screening runs for inter-rater reliability.
+
+```bash
+uv run scholar-search screen-compare run_a.json run_b.json
+uv run scholar-search screen-compare run_a.json run_b.json -o report.md
+```
+
+**Output:** Markdown report with agreement rate, transition matrix, and discrepancies.
+
+### Validate-Query Command
+
+Validate search query recall against golden seed DOIs.
+
+```bash
+uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
+uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
+```
+
+**Options:**
+- `--seed/-s`: Golden seed DOI (repeatable, required)
+- `--output/-o`: Output JSON file path
 
 ### Completeness Scoring
 
