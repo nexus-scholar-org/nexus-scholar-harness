@@ -41,6 +41,7 @@ The governing objective is:
 | [13_scientific_agent_loop_framework.md](13_scientific_agent_loop_framework.md) | Scientific orchestration | Reusable loop schema, states, safety and audit rules |
 | [14_scientific_agent_loop_catalog.md](14_scientific_agent_loop_catalog.md) | Scientific workflows | Proposed task-oriented compositions of kits and agent capabilities |
 | [15_deep_audit_report.md](15_deep_audit_report.md) | Audit evidence | Consolidated source review, validation evidence, and confirmed findings |
+| [16_publication_strategy.md](16_publication_strategy.md) | Advisory (non-normative) | Scientific-contribution framing, evaluation/benchmark plan, venue strategy, fact-check appendix |
 
 ## Authority and interpretation
 
