@@ -30,12 +30,14 @@ class ScientometricEngine:
             hubs, authorities = nx.hits(
                 self.graph, max_iter=max_iter * 3, normalized=False
             )
-            # Manual normalization
+            # Manual normalization using absolute values to handle negative scores
             if hubs:
-                max_h = max(hubs.values()) if hubs else 1.0
+                max_h = max(abs(v) for v in hubs.values()) if hubs else 1.0
                 hubs = {k: v / max_h for k, v in hubs.items()}
             if authorities:
-                max_a = max(authorities.values()) if authorities else 1.0
+                max_a = (
+                    max(abs(v) for v in authorities.values()) if authorities else 1.0
+                )
                 authorities = {k: v / max_a for k, v in authorities.items()}
 
         return hubs, authorities
@@ -160,12 +162,12 @@ class ScientometricEngine:
 
         # Build co-citation graph with Jaccard weights
         G = nx.Graph()
-        for (paper_a, paper_b), count in co_citation_counts.items():
-            if paper_a not in G:
-                G.add_node(paper_a)
-            if paper_b not in G:
-                G.add_node(paper_b)
 
+        # Add all nodes from original graph (including isolated ones)
+        for node in self.graph.nodes():
+            G.add_node(node)
+
+        for (paper_a, paper_b), count in co_citation_counts.items():
             # Compute Jaccard similarity of their citing sets
             set_a = cited_by.get(paper_a, set())
             set_b = cited_by.get(paper_b, set())
@@ -174,18 +176,24 @@ class ScientometricEngine:
             jaccard = intersection / union if union > 0 else 0
 
             if jaccard >= min_jaccard:
-                G.add_edge(paper_a, paper_b, weight=jaccard, co_citation_count=count)
+                G.add_edge(
+                    paper_a,
+                    paper_b,
+                    weight=jaccard,
+                    co_citation_count=count,
+                    type="cocitation",
+                )
 
         return G
 
-    def build_bibliographic_coupling(self, min_jaccard: float = 0.15) -> Any:
+    def build_bibliographic_coupling(self, min_overlap: int = 2) -> Any:
         """Build bibliographic coupling network.
 
-        Two papers A and B are bibliographically coupled if they both cite the same paper C.
-        Edge weight = Jaccard similarity of their reference sets.
+        Two papers A and B are bibliographically coupled if they share common references.
+        Edge weight = number of shared references (raw overlap).
 
         Args:
-            min_jaccard: Minimum Jaccard similarity to create an edge.
+            min_overlap: Minimum number of shared references to create an edge.
 
         Returns:
             Undirected networkx.Graph with coupling edges.
@@ -202,40 +210,50 @@ class ScientometricEngine:
                 references[source] = set()
             references[source].add(target)
 
+        # Build reverse adjacency: cited_by[target] = {source1, source2, ...}
+        # Then invert: for each target, find all sources that cite it
+        # This gives us pairs of sources that share references
+        ref_to_sources: dict[str, set[str]] = {}
+        for source, targets in references.items():
+            for target in targets:
+                if target not in ref_to_sources:
+                    ref_to_sources[target] = set()
+                ref_to_sources[target].add(source)
+
         # Find bibliographically coupled pairs
         coupling_counts: dict[tuple[str, str], int] = {}
-        for source, targets in references.items():
-            targets_list = sorted(targets)
-            for i in range(len(targets_list)):
-                for j in range(i + 1, len(targets_list)):
-                    pair = (targets_list[i], targets_list[j])
+        for _ref, sources in ref_to_sources.items():
+            sources_list = sorted(sources)
+            for i in range(len(sources_list)):
+                for j in range(i + 1, len(sources_list)):
+                    pair = (sources_list[i], sources_list[j])
                     coupling_counts[pair] = coupling_counts.get(pair, 0) + 1
 
-        # Build coupling graph with Jaccard weights
+        # Build coupling graph with raw overlap weights
         G = nx.Graph()
-        for (paper_a, paper_b), count in coupling_counts.items():
+        for (paper_a, paper_b), overlap in coupling_counts.items():
             if paper_a not in G:
                 G.add_node(paper_a)
             if paper_b not in G:
                 G.add_node(paper_b)
 
-            # Compute Jaccard similarity
-            set_a = references.get(paper_a, set())
-            set_b = references.get(paper_b, set())
-            union = len(set_a | set_b)
-            intersection = len(set_a & set_b)
-            jaccard = intersection / union if union > 0 else 0
-
-            if jaccard >= min_jaccard:
-                G.add_edge(paper_a, paper_b, weight=jaccard, coupling_count=count)
+            if overlap >= min_overlap:
+                G.add_edge(paper_a, paper_b, weight=overlap, type="coupling")
 
         return G
 
-    def build_hybrid_network(self, alpha: float = 0.5) -> Any:
+    def build_hybrid_network(
+        self,
+        weight_cocite: float = 0.5,
+        weight_couple: float = 0.5,
+        min_weight: float = 0.1,
+    ) -> Any:
         """Build hybrid co-citation + coupling network.
 
         Args:
-            alpha: Weight for co-citation (1-alpha for coupling). Default: 0.5.
+            weight_cocite: Weight for co-citation component. Default: 0.5.
+            weight_couple: Weight for coupling component. Default: 0.5.
+            min_weight: Minimum combined weight to include edge. Default: 0.1.
 
         Returns:
             Undirected networkx.Graph with combined edges.
@@ -247,9 +265,9 @@ class ScientometricEngine:
 
         # Get co-citation and coupling networks
         cocitation = self.build_cocitation_network(min_jaccard=0.0)
-        coupling = self.build_bibliographic_coupling(min_jaccard=0.0)
+        coupling = self.build_bibliographic_coupling(min_overlap=1)
 
-        # Combine with alpha weighting
+        # Combine with weighted sum
         hybrid = nx.Graph()
 
         # Add all nodes
@@ -263,16 +281,22 @@ class ScientometricEngine:
         for u, v, data in cocitation.edges(data=True):
             weight = data.get("weight", 0)
             key = tuple(sorted([u, v]))
-            edge_weights[key] = edge_weights.get(key, 0) + alpha * weight
+            edge_weights[key] = edge_weights.get(key, 0) + weight_cocite * weight
 
         for u, v, data in coupling.edges(data=True):
             weight = data.get("weight", 0)
             key = tuple(sorted([u, v]))
-            edge_weights[key] = edge_weights.get(key, 0) + (1 - alpha) * weight
+            # Normalize coupling weight by overlap coefficient
+            refs_u = len(self.graph.edges(u)) if u in self.graph else 1
+            refs_v = len(self.graph.edges(v)) if v in self.graph else 1
+            overlap_coeff = (
+                weight / min(refs_u, refs_v) if min(refs_u, refs_v) > 0 else 0
+            )
+            edge_weights[key] = edge_weights.get(key, 0) + weight_couple * overlap_coeff
 
         # Add edges with combined weights (minimum threshold)
         for (u, v), weight in edge_weights.items():
-            if weight > 0.01:  # Small threshold to avoid noise
+            if weight >= min_weight:
                 hybrid.add_edge(u, v, weight=weight)
 
         return hybrid
@@ -287,29 +311,31 @@ class ScientometricEngine:
             seed: Random seed for reproducibility.
 
         Returns:
-            Dict mapping node ID to community ID.
+            Dict mapping node ID to community ID (0-based).
         """
+        import networkx as nx
+
         if self.graph is None or len(self.graph.nodes) == 0:
             return {}
 
-        try:
-            from community import community_louvain
+        # Convert to undirected for community detection
+        G_undirected = (
+            self.graph.to_undirected() if self.graph.is_directed() else self.graph
+        )
 
-            communities = community_louvain.best_partition(
-                self.graph, resolution=resolution, random_state=seed
-            )
-        except ImportError:
-            # Fallback: use networkx greedy_modularity_communities
-            from networkx.algorithms.community import greedy_modularity_communities
+        # Use networkx's greedy_modularity_communities as Louvain approximation
+        # (networkx doesn't have exact Louvain but greedy modularity is similar)
+        from networkx.algorithms.community import greedy_modularity_communities
 
-            communities_list = greedy_modularity_communities(
-                self.graph, resolution=resolution
-            )
+        communities_list = greedy_modularity_communities(
+            G_undirected, resolution=resolution
+        )
 
-            communities = {}
-            for idx, community in enumerate(communities_list):
-                for node in community:
-                    communities[node] = idx
+        # Convert list of sets to dict mapping node -> community_id
+        communities: dict[str, int] = {}
+        for idx, community in enumerate(communities_list):
+            for node in community:
+                communities[node] = idx
 
         return communities
 
@@ -347,13 +373,14 @@ class ScientometricEngine:
         return modularity
 
     def enrich_graph_with_communities(self, communities: dict[str, int]) -> None:
-        """Add community attribute to graph nodes.
+        """Add community and group attributes to graph nodes.
 
         Args:
-            communities: Dict mapping node ID to community ID.
+            communities: Dict mapping node ID to community ID (0-based).
 
         Side Effect:
-            Modifies self.graph.nodes in-place, adding 'community' attribute.
+            Modifies self.graph.nodes in-place, adding 'community' (0-based)
+            and 'group' (1-based, for PyVis color coding) attributes.
         """
         if self.graph is None or not communities:
             return
@@ -361,3 +388,4 @@ class ScientometricEngine:
         for node, community_id in communities.items():
             if node in self.graph:
                 self.graph.nodes[node]["community"] = community_id
+                self.graph.nodes[node]["group"] = community_id + 1  # 1-based for PyVis

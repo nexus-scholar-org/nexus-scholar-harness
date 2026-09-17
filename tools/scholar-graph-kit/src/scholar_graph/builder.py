@@ -157,7 +157,7 @@ class CitationGraphBuilder:
         import networkx as nx  # Deferred (P7.7)
 
         p = Path(output_path)
-        if not p.suffix:
+        if p.suffix != ".gexf":
             p = p.with_suffix(".gexf")
         p.parent.mkdir(parents=True, exist_ok=True)
 
@@ -177,7 +177,7 @@ class CitationGraphBuilder:
         import networkx as nx  # Deferred (P7.7)
 
         p = Path(output_path)
-        if not p.suffix:
+        if p.suffix != ".graphml":
             p = p.with_suffix(".graphml")
         p.parent.mkdir(parents=True, exist_ok=True)
 

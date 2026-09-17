@@ -111,14 +111,21 @@ class AbstractHydrator:
 
         for doi in dois:
             try:
-                url = f"{self.OA_BASE}/works/https://doi.org/{doi}"
+                # Use filter parameter for reliable DOI matching
+                url = f"{self.OA_BASE}/works?filter=doi:{doi}"
                 response = await self.http_client.get(url)
 
                 if response.status_code != 200:
                     continue
 
                 data = response.json()
-                inverted_index = data.get("abstract_inverted_index")
+                # OpenAlex returns a list of works
+                works = data.get("results", [])
+                if not works:
+                    continue
+
+                work = works[0]
+                inverted_index = work.get("abstract_inverted_index")
 
                 if inverted_index:
                     abstract = self._reconstruct_abstract(inverted_index)

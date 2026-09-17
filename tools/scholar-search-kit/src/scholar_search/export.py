@@ -96,7 +96,7 @@ class Exporter:
     def ris(self, documents: list[Document], output_file: str | Path) -> Path:
         """Export documents as RIS (Tagged) format for Rayyan/Covidence/EndNote/Zotero."""
         path = Path(output_file)
-        if not path.suffix:
+        if path.suffix != ".ris":
             path = path.with_suffix(".ris")
         path.parent.mkdir(parents=True, exist_ok=True)
 

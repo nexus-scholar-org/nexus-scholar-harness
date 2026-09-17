@@ -576,23 +576,27 @@ class ResearchOrchestrator:
         from scholar_search.enrichment import AbstractHydrator
         from scholar_search.http_client import AcademicHttpClient
 
-        hydrator = AbstractHydrator(AcademicHttpClient(name="hydration", rate_limit=10))
-        hydrated_docs, hydration_stats = await hydrator.hydrate_missing_abstracts(
-            unique_docs
-        )
-        logger.info(f"Hydration complete: {hydration_stats}")
+        client = AcademicHttpClient(name="hydration", rate_limit=10)
+        try:
+            hydrator = AbstractHydrator(client)
+            hydrated_docs, hydration_stats = await hydrator.hydrate_missing_abstracts(
+                unique_docs
+            )
+            logger.info(f"Hydration complete: {hydration_stats}")
 
-        self._log_audit_event(
-            action="ABSTRACT_HYDRATION",
-            agent="scholar-harness",
-            description=f"Hydrated missing abstracts for {len(unique_docs)} documents",
-            inputs=[],
-            outputs=[],
-            metrics=hydration_stats,
-        )
+            self._log_audit_event(
+                action="ABSTRACT_HYDRATION",
+                agent="scholar-harness",
+                description=f"Hydrated missing abstracts for {len(unique_docs)} documents",
+                inputs=[],
+                outputs=[],
+                metrics=hydration_stats,
+            )
 
-        # Use hydrated docs for verification
-        docs_for_verify = hydrated_docs
+            # Use hydrated docs for verification
+            docs_for_verify = hydrated_docs
+        finally:
+            await client.close()
 
         # -------------------------------------------------------------
         # Stage 3: Verification
