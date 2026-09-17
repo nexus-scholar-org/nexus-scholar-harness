@@ -43,7 +43,54 @@ uv run scholar-search snowball W2741809807 --provider openalex --direction forwa
 uv run scholar-search snowball W2741809807 --provider openalex --direction backward --output references.json
 # Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
 uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward forward --output chain.json --edges-output chain_edges.json
+
+# 6. RIS Export for Reference Managers
+uv run scholar-search export --format ris --output results.ris
+
+# 7. Export to CSV
+uv run scholar-search export --format csv --output results.csv
+
+# 8. Export to JSONL
+uv run scholar-search export --format jsonl --output results.jsonl
 ```
+
+### RIS Export
+
+Export documents to RIS (Tagged) format for Rayyan/Covidence/EndNote/Zotero:
+
+```bash
+scholar-search export --format ris --output results.ris
+```
+
+**Field Mappings:**
+- TY: JOUR (journal), CONF (conference), GEN (generic)
+- TI: Title
+- AU: Family, Given format
+- PY: Publication year
+- JO/T2: Journal/Conference name
+- AB: Abstract
+- DO: DOI
+- UR: URL
+- C1: arXiv ID (prefixed with "arXiv:")
+- DB: Source provider
+- ER: Record terminator
+
+### Completeness Scoring
+
+Documents are scored 0-10 for representative election during deduplication:
+
+| Criterion | Points |
+|-----------|--------|
+| Has DOI | +2 |
+| Has Abstract (>20 chars) | +2 |
+| Has Venue | +1 |
+| Has Authors | +1 |
+| Has Year | +1 |
+| Has Citations | +1 |
+| Has ORCID | +1 |
+| Not Retracted | +1 |
+
+Provider weight (0-5) is added for total score (0-15).
 
 ---
 

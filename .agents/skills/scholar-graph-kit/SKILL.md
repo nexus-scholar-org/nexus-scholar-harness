@@ -46,6 +46,26 @@ uv run scholar-graph build \
 uv run scholar-graph pagerank workspaces/<project-slug>/literature/knowledge_graph.json
 ```
 
+### 4. GEXF/GraphML Export
+
+Export citation graphs to GEXF or GraphML format for Gephi/yEd:
+
+```bash
+# Export to GEXF
+scholar-graph build --doi 10.xxxx --format gexf
+
+# Export to GraphML
+scholar-graph build --doi 10.xxxx --format graphml
+
+# Export all formats
+scholar-graph build --doi 10.xxxx --format all
+```
+
+**Features:**
+- Automatic PageRank computation if missing
+- XML-safe attribute sanitization (None → defaults)
+- P7.7 compliant deferred imports
+
 ---
 
 ## Python API
