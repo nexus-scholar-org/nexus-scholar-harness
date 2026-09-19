@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "run_manifest",
+  "artifact_id": "ART-run-manifest-001",
+  "created_at": "2026-09-18T00:06:00Z",
+  "producer": {
+    "package": "nexus-scholar-harness",
+    "version": "1.0.0",
+    "commit": "3333333333333333333333333333333333333333"
+  },
+  "workspace_id": "WSP-contractbench",
+  "run_id": "RUN-screening-001",
+  "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "corpus_fingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "inputs": [],
+  "data": {
+    "operation": "screening.prepare",
+    "status": "SUCCESS",
+    "idempotency_key": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+    "started_at": "2026-09-18T00:00:00Z",
+    "ended_at": "2026-09-18T00:06:00Z",
+    "staged_artifacts": [],
+    "committed_artifacts": [
+      {
+        "artifact_id": "ART-screening-batch-001",
+        "path": "literature/screening/batch_000.json",
+        "sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ],
+    "audit_event_id": "EVT-20260918000600-abc123"
+  }
+}

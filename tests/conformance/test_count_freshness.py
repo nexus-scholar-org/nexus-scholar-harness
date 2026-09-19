@@ -1,7 +1,7 @@
 """Surface count freshness.
 
-The repo documents cardinal numbers (8 kits, 11 mirrored skills, 14 console
-actions, 19 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
+The repo documents cardinal numbers (8 kits, 13 mirrored skills, 16 console
+actions, 23 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
 must match runtime reality so prose never silently corrodes.  The skill check
 also guards mirror completeness: the plugin bundle must contain every
 canonical skill except ``pull-request-gate`` (the sync script's one exclusion).
@@ -27,7 +27,7 @@ MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
 EXPECTED_KITS = 8
 EXPECTED_ACTIONS = 16
 EXPECTED_MCP_TOOLS = 23
-EXPECTED_MIRRORED_SKILLS = 11
+EXPECTED_MIRRORED_SKILLS = 13
 
 # ``pull-request-gate`` is intentionally not distributed with the plugin bundle
 # (it is a contributor-facing convention, not a research-kit skill).

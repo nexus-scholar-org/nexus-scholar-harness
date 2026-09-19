@@ -1,0 +1,36 @@
+{
+  "contract_version": "1.0.0",
+  "operation": "search",
+  "run_id": "RUN-contract-v1",
+  "status": "PARTIAL",
+  "data": {
+    "record_count": 20,
+    "providers": {
+      "openalex": "SUCCESS",
+      "pubmed": "NETWORK_ERROR"
+    }
+  },
+  "artifacts": [
+    {
+      "artifact_id": "ART-search-results-001",
+      "path": "literature/search_results.json",
+      "sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "warnings": [
+    "PubMed timed out; successful OpenAlex records were preserved."
+  ],
+  "errors": [
+    {
+      "code": "NETWORK_ERROR",
+      "message": "PubMed request timed out",
+      "retryable": true,
+      "details": {
+        "provider": "pubmed"
+      }
+    }
+  ],
+  "provenance": {
+    "mode": "best_effort"
+  }
+}

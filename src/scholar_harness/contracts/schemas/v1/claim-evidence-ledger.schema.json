@@ -1,0 +1,375 @@
+{
+  "$defs": {
+    "ClaimEvidenceData": {
+      "additionalProperties": true,
+      "properties": {
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/ClaimItem"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceItem"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "title": "ClaimEvidenceData",
+      "type": "object"
+    },
+    "ClaimItem": {
+      "additionalProperties": true,
+      "properties": {
+        "citation_tokens": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Citation Tokens",
+          "type": "array"
+        },
+        "claim_id": {
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "claim_kind": {
+          "minLength": 1,
+          "title": "Claim Kind",
+          "type": "string"
+        },
+        "claim_text": {
+          "minLength": 1,
+          "title": "Claim Text",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "generation_method": {
+          "$ref": "#/$defs/MethodProvenance"
+        },
+        "rq_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rq Ids"
+        },
+        "study_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Study Ids",
+          "type": "array"
+        },
+        "verification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VerificationAxes"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "claim_id",
+        "claim_text",
+        "claim_kind",
+        "study_ids",
+        "generation_method"
+      ],
+      "title": "ClaimItem",
+      "type": "object"
+    },
+    "EntailmentState": {
+      "enum": [
+        "ENTAILED",
+        "CONTRADICTED",
+        "UNCERTAIN",
+        "NOT_ASSESSED"
+      ],
+      "title": "EntailmentState",
+      "type": "string"
+    },
+    "EvidenceItem": {
+      "additionalProperties": true,
+      "properties": {
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "extraction_method": {
+          "$ref": "#/$defs/MethodProvenance"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "quote": {
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        },
+        "source_hash": {
+          "title": "Source Hash",
+          "type": "string"
+        },
+        "study_id": {
+          "title": "Study Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "study_id",
+        "document_id",
+        "locator",
+        "quote",
+        "extraction_method",
+        "source_hash"
+      ],
+      "title": "EvidenceItem",
+      "type": "object"
+    },
+    "InputArtifact": {
+      "additionalProperties": true,
+      "properties": {
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "sha256"
+      ],
+      "title": "InputArtifact",
+      "type": "object"
+    },
+    "LexicalSupport": {
+      "enum": [
+        "SUPPORTED_VERBATIM",
+        "PARTIAL_MATCH",
+        "NOT_FOUND",
+        "NOT_CHECKED"
+      ],
+      "title": "LexicalSupport",
+      "type": "string"
+    },
+    "MethodProvenance": {
+      "enum": [
+        "HUMAN",
+        "DETERMINISTIC_RULE",
+        "HEURISTIC",
+        "LLM",
+        "EXTERNAL_PROVIDER",
+        "COMPOSED"
+      ],
+      "title": "MethodProvenance",
+      "type": "string"
+    },
+    "Producer": {
+      "additionalProperties": true,
+      "properties": {
+        "commit": {
+          "minLength": 1,
+          "title": "Commit",
+          "type": "string"
+        },
+        "package": {
+          "minLength": 1,
+          "title": "Package",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "package",
+        "version",
+        "commit"
+      ],
+      "title": "Producer",
+      "type": "object"
+    },
+    "RetrievalState": {
+      "enum": [
+        "SOURCE_AVAILABLE",
+        "SOURCE_UNAVAILABLE"
+      ],
+      "title": "RetrievalState",
+      "type": "string"
+    },
+    "TrustState": {
+      "enum": [
+        "CLEAR",
+        "FLAGGED",
+        "UNRESOLVED",
+        "NOT_APPLICABLE",
+        "NOT_CHECKED"
+      ],
+      "title": "TrustState",
+      "type": "string"
+    },
+    "VerificationAxes": {
+      "additionalProperties": true,
+      "properties": {
+        "algorithm_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Algorithm Version"
+        },
+        "entailment": {
+          "$ref": "#/$defs/EntailmentState",
+          "default": "NOT_ASSESSED"
+        },
+        "lexical_support": {
+          "$ref": "#/$defs/LexicalSupport",
+          "default": "NOT_CHECKED"
+        },
+        "retrieval": {
+          "$ref": "#/$defs/RetrievalState"
+        },
+        "semantic_similarity_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": -1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Semantic Similarity Score"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        },
+        "trust": {
+          "$ref": "#/$defs/TrustState",
+          "default": "NOT_CHECKED"
+        }
+      },
+      "required": [
+        "retrieval"
+      ],
+      "title": "VerificationAxes",
+      "type": "object"
+    }
+  },
+  "$id": "https://nexus-scholar.org/schemas/contracts/v1/claim-evidence-ledger.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "artifact_id": {
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "artifact_type": {
+      "const": "claims_ledger",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "corpus_fingerprint": {
+      "title": "Corpus Fingerprint",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/ClaimEvidenceData"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/InputArtifact"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "producer": {
+      "$ref": "#/$defs/Producer"
+    },
+    "protocol_fingerprint": {
+      "title": "Protocol Fingerprint",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "workspace_id": {
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "created_at",
+    "producer",
+    "workspace_id",
+    "run_id",
+    "protocol_fingerprint",
+    "corpus_fingerprint",
+    "data"
+  ],
+  "title": "ClaimEvidenceLedger",
+  "type": "object"
+}

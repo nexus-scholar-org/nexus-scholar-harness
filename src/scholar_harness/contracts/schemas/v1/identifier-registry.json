@@ -1,0 +1,104 @@
+{
+  "$id": "https://nexus-scholar.org/schemas/contracts/v1/identifier-registry.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_version": "1.0.0",
+  "identifiers": {
+    "artifact": {
+      "legacy_prefixes": [],
+      "mint_prefix": "ART-",
+      "prefixes": [
+        "ART-"
+      ]
+    },
+    "audit_event": {
+      "legacy_prefixes": [
+        "EVT-"
+      ],
+      "mint_prefix": "AUD-",
+      "prefixes": [
+        "AUD-",
+        "EVT-"
+      ]
+    },
+    "chunk": {
+      "legacy_prefixes": [],
+      "mint_prefix": "CHK-",
+      "prefixes": [
+        "CHK-"
+      ]
+    },
+    "claim": {
+      "legacy_prefixes": [],
+      "mint_prefix": "CLM-",
+      "prefixes": [
+        "CLM-"
+      ]
+    },
+    "corpus": {
+      "legacy_prefixes": [],
+      "mint_prefix": "COR-",
+      "prefixes": [
+        "COR-"
+      ]
+    },
+    "document": {
+      "legacy_prefixes": [],
+      "mint_prefix": "DOC-",
+      "prefixes": [
+        "DOC-"
+      ]
+    },
+    "evidence": {
+      "legacy_prefixes": [],
+      "mint_prefix": "EV-",
+      "prefixes": [
+        "EV-"
+      ]
+    },
+    "protocol": {
+      "legacy_prefixes": [],
+      "mint_prefix": "PRT-",
+      "prefixes": [
+        "PRT-"
+      ]
+    },
+    "run": {
+      "legacy_prefixes": [],
+      "mint_prefix": "RUN-",
+      "prefixes": [
+        "RUN-"
+      ]
+    },
+    "screening_decision": {
+      "legacy_prefixes": [],
+      "mint_prefix": "SCR-",
+      "prefixes": [
+        "SCR-"
+      ]
+    },
+    "source_record": {
+      "legacy_prefixes": [],
+      "mint_prefix": "REC-",
+      "prefixes": [
+        "REC-"
+      ]
+    },
+    "study": {
+      "legacy_prefixes": [
+        "SCI-"
+      ],
+      "mint_prefix": "STU-",
+      "prefixes": [
+        "STU-",
+        "SCI-"
+      ]
+    },
+    "workspace": {
+      "legacy_prefixes": [],
+      "mint_prefix": "WSP-",
+      "prefixes": [
+        "WSP-"
+      ]
+    }
+  }
+}

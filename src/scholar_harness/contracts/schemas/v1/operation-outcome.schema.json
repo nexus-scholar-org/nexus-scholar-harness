@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "ArtifactReference": {
+      "additionalProperties": true,
+      "properties": {
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "sha256",
+        "path"
+      ],
+      "title": "ArtifactReference",
+      "type": "object"
+    },
+    "ContractError": {
+      "additionalProperties": true,
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Code"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        },
+        "message": {
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "ContractError",
+      "type": "object"
+    },
+    "ErrorCode": {
+      "enum": [
+        "VALIDATION_ERROR",
+        "NOT_FOUND",
+        "PATH_OUTSIDE_WORKSPACE",
+        "SCHEMA_VERSION_UNSUPPORTED",
+        "PROTOCOL_FINGERPRINT_MISMATCH",
+        "CORPUS_FINGERPRINT_MISMATCH",
+        "DEPENDENCY_ERROR",
+        "NETWORK_ERROR",
+        "RATE_LIMITED",
+        "CONFLICT",
+        "IDEMPOTENCY_CONFLICT",
+        "ATOMIC_COMMIT_FAILED",
+        "INTERNAL_ERROR"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    },
+    "OperationStatus": {
+      "enum": [
+        "SUCCESS",
+        "PARTIAL",
+        "ERROR",
+        "FAILED",
+        "SKIPPED",
+        "WAITING_FOR_DECISION",
+        "CANCELLED"
+      ],
+      "title": "OperationStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://nexus-scholar.org/schemas/contracts/v1/operation-outcome.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactReference"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "contract_version": {
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "data": {
+      "additionalProperties": true,
+      "title": "Data",
+      "type": "object"
+    },
+    "errors": {
+      "items": {
+        "$ref": "#/$defs/ContractError"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "operation": {
+      "minLength": 1,
+      "title": "Operation",
+      "type": "string"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "title": "Provenance",
+      "type": "object"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/OperationStatus"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "contract_version",
+    "operation",
+    "run_id",
+    "status",
+    "data"
+  ],
+  "title": "OperationOutcome[dict[str, Any]]",
+  "type": "object"
+}
