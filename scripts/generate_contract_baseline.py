@@ -19,6 +19,7 @@ EXPLICIT_PATHS = (
     "specs/deep-audit-remediation-2026-09-17/12_execution_roadmap.md",
     "docs/architecture/cross_kit_contract_v1.md",
     "docs/architecture/wp01_contract_adoption_handoff.md",
+    "docs/architecture/wp01_packet_c_reference.md",
     ".agents/skills/doer-contract/SKILL.md",
     ".agents/skills/critic-contract/SKILL.md",
     ".agents/plugins/nexus-scholar/skills/doer-contract/SKILL.md",
@@ -38,8 +39,7 @@ GLOBS = (
     "src/scholar_harness/contracts/*.py",
     "src/scholar_harness/contracts/schemas/v1/*.json",
     "tests/fixtures/contracts/v1/*.json",
-    "tests/test_cross_kit_contracts.py",
-    "tests/test_contract_artifact_chain.py",
+    "tests/test_contract*.py",
     "tests/conformance/test_opencode_dev_agents.py",
     "tests/conformance/test_scientific_opencode_agents.py",
 )
@@ -65,7 +65,7 @@ def build_baseline() -> dict[str, object]:
     locked = _locked_paths()
     return {
         "baseline_id": "contract-v1-wp00",
-        "baseline_version": "1.0.0",
+        "baseline_version": "1.1.0",
         "anchor": {
             "pull_request": 37,
             "merge_commit": ANCHOR_COMMIT,
@@ -76,7 +76,7 @@ def build_baseline() -> dict[str, object]:
             "wp01": "OPEN_NOT_ADOPTED",
             "legacy_workspaces": "UNMIGRATED",
             "toolkit_producers": "UNMIGRATED",
-            "harness_consumers": "UNMIGRATED",
+            "harness_consumers": "CONSUMER_GATED_REFERENCE",
         },
         "wp01_packets": {
             "A_protocol_identity_producer": {
@@ -90,12 +90,12 @@ def build_baseline() -> dict[str, object]:
                 "depends_on": ["contract-v1-wp00"],
             },
             "C_harness_artifact_acceptance_gate": {
-                "status": "READY",
+                "status": "CONSUMER_GATED_REFERENCE",
                 "repository": "nexus-scholar-org/nexus-scholar-harness",
                 "depends_on": ["contract-v1-wp00"],
             },
             "D_screening_producer_migration": {
-                "status": "BLOCKED_BY_A_B_C",
+                "status": "BLOCKED_BY_A_B",
                 "repository": "nexus-scholar-org/nexus-scholar-harness",
                 "depends_on": [
                     "A_protocol_identity_producer",

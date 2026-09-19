@@ -76,6 +76,9 @@ the harness.
 
 ### Packet C — Harness artifact acceptance gate
 
+**Implementation status:** `CONSUMER_GATED_REFERENCE`; see
+`docs/architecture/wp01_packet_c_reference.md`.
+
 **Repository:** this harness
 **Purpose:** reject malformed, stale, or cross-workspace producer artifacts
 before workspace state changes.
@@ -94,6 +97,9 @@ artifact acceptance path may allow unavailable parents only when it verifies
 them against the workspace artifact registry.
 
 ### Packet D — Screening producer migration
+
+**Implementation status:** blocked on Packets A and B; Packet C is satisfied by
+the harness reference gate.
 
 **Repository:** harness, with search-kit screening compatibility as needed
 **Purpose:** replace unbound batches/decisions with generation-bound artifacts.

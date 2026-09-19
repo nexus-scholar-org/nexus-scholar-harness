@@ -19,7 +19,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 
 - PR #37 merged the frozen WP-00 **reference implementation**, not WP-01 runtime adoption. Protocol/search producers, harness consumers, legacy workspaces, and screening remain unmigrated until their packet gates pass.
 - Before WP-01 or downstream remediation, read `docs/architecture/contract_v1_baseline.md` and run `uv run python scripts/generate_contract_baseline.py --check`. Failure is `BLOCKED_BASELINE_DRIFT`; never regenerate merely to bless unexplained changes.
-- Packets A (protocol), B (search), and C (harness acceptance) may start from the baseline. Packet D (screening migration) is blocked on A+B+C. Packet E (PDF/RAG stubs) is blocked on A+B.
+- Packet C is the `CONSUMER_GATED_REFERENCE` in `docs/architecture/wp01_packet_c_reference.md`. Packets A (protocol) and B (search) are ready. Packet D (screening migration) and Packet E (PDF/RAG stubs) are blocked on A+B.
 - Contract changes require an architecture/version decision, regenerated schemas and golden fixtures, a negative regression test, and independent review. Adapter inconvenience never authorizes weakening the contract.
 
 - All tests: `uv run pytest` (measured 2026-09-14: **391 passed, 5 skipped — 0 failures**, including the `tests/conformance/` drift suite). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.

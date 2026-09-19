@@ -3,7 +3,8 @@
 **Baseline:** `contract-v1-wp00`
 **Anchor:** PR #37, merge commit `384b2ae2564ac63cfa78e5935a86f35c856cd36e`
 **WP-00 state:** frozen reference implementation
-**WP-01 state:** open; no producer or consumer is migrated yet
+**WP-01 state:** open; Packet C is a consumer-gate reference, while producers
+and runtime pipeline adoption remain unmigrated
 
 ## Why this file exists
 
@@ -28,11 +29,15 @@ Frozen in WP-00:
 - evidence identity and independent verification axes;
 - schemas, golden fixtures, and agent role contracts.
 
+Implemented as a reference in WP-01:
+
+- harness acceptance and atomic publication (Packet C), documented in
+  `wp01_packet_c_reference.md`.
+
 Still open in WP-01:
 
 - protocol-kit producer adoption (Packet A);
 - search-kit corpus-snapshot adoption (Packet B);
-- harness acceptance and atomic publication (Packet C);
 - bound screening production/collection (Packet D);
 - PDF and RAG boundary stubs (Packet E);
 - all legacy-workspace migration.
@@ -42,10 +47,11 @@ merely because `src/scholar_harness/contracts/` exists or its model tests pass.
 
 ## Dependency-safe work
 
-Packets A, B, and C may begin independently from this baseline. Packet D begins
-only after A, B, and C provide executable evidence because it needs a real
-protocol identity, accepted corpus snapshot, and acceptance gate. Packet E
-begins after A and B provide the real identity/fingerprint boundary.
+Packets A and B may begin independently from this baseline. Packet C now
+provides the consumer-gate reference. Packet D begins only after A and B provide
+executable evidence because it still needs real protocol identity and corpus
+snapshot producers. Packet E likewise begins after A and B provide the real
+identity/fingerprint boundary.
 
 Known defects such as invalid pipeline CLI templates, graph keyword mismatches,
 and MCP protocol parsing remain real, but belong to WP-04, WP-08, and WP-05.
