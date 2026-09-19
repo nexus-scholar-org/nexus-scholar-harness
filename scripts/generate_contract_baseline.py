@@ -56,7 +56,9 @@ def _locked_paths() -> list[str]:
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    text = path.read_text(encoding="utf-8")
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def build_baseline() -> dict[str, object]:

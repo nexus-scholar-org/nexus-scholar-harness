@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 import subprocess
 import sys
 from pathlib import Path
@@ -19,6 +20,17 @@ def test_contract_baseline_is_current() -> None:
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_baseline_hash_is_line_ending_independent(tmp_path: Path) -> None:
+    sha256 = runpy.run_path(str(ROOT / "scripts" / "generate_contract_baseline.py"))[
+        "_sha256"
+    ]
+    lf = tmp_path / "lf.txt"
+    crlf = tmp_path / "crlf.txt"
+    lf.write_bytes(b"one\ntwo\n")
+    crlf.write_bytes(b"one\r\ntwo\r\n")
+    assert sha256(lf) == sha256(crlf)
 
 
 def test_baseline_does_not_claim_runtime_adoption() -> None:
