@@ -43,7 +43,86 @@ uv run scholar-search snowball W2741809807 --provider openalex --direction forwa
 uv run scholar-search snowball W2741809807 --provider openalex --direction backward --output references.json
 # Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
 uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward forward --output chain.json --edges-output chain_edges.json
+
+# 6. RIS Export for Reference Managers
+uv run scholar-search export --format ris --output results.ris
+
+# 7. Export to CSV
+uv run scholar-search export --format csv --output results.csv
+
+# 8. Export to JSONL
+uv run scholar-search export --format jsonl --output results.jsonl
+
+# 9. Compare Screening Runs
+uv run scholar-search screen-compare run_a.json run_b.json
+uv run scholar-search screen-compare run_a.json run_b.json -o report.md
+
+# 10. Validate Search Query Recall
+uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
+uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
 ```
+
+### RIS Export
+
+Export documents to RIS (Tagged) format for Rayyan/Covidence/EndNote/Zotero:
+
+```bash
+scholar-search export --format ris --output results.ris
+```
+
+**Field Mappings:**
+- TY: JOUR (journal), CONF (conference), GEN (generic)
+- TI: Title
+- AU: Family, Given format
+- PY: Publication year
+- JO/T2: Journal/Conference name
+- AB: Abstract
+- DO: DOI
+- UR: URL
+- C1: arXiv ID (prefixed with "arXiv:")
+- DB: Source provider
+- ER: Record terminator
+
+### Screen-Compare Command
+
+Compare two screening runs for inter-rater reliability.
+
+```bash
+uv run scholar-search screen-compare run_a.json run_b.json
+uv run scholar-search screen-compare run_a.json run_b.json -o report.md
+```
+
+**Output:** Markdown report with agreement rate, transition matrix, and discrepancies.
+
+### Validate-Query Command
+
+Validate search query recall against golden seed DOIs.
+
+```bash
+uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
+uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
+```
+
+**Options:**
+- `--seed/-s`: Golden seed DOI (repeatable, required)
+- `--output/-o`: Output JSON file path
+
+### Completeness Scoring
+
+Documents are scored 0-10 for representative election during deduplication:
+
+| Criterion | Points |
+|-----------|--------|
+| Has DOI | +2 |
+| Has Abstract (>20 chars) | +2 |
+| Has Venue | +1 |
+| Has Authors | +1 |
+| Has Year | +1 |
+| Has Citations | +1 |
+| Has ORCID | +1 |
+| Not Retracted | +1 |
+
+Provider weight (0-5) is added for total score (0-15).
 
 ---
 

@@ -1,0 +1,222 @@
+{
+  "$defs": {
+    "ArtifactReference": {
+      "additionalProperties": true,
+      "properties": {
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "sha256",
+        "path"
+      ],
+      "title": "ArtifactReference",
+      "type": "object"
+    },
+    "InputArtifact": {
+      "additionalProperties": true,
+      "properties": {
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "sha256"
+      ],
+      "title": "InputArtifact",
+      "type": "object"
+    },
+    "OperationStatus": {
+      "enum": [
+        "SUCCESS",
+        "PARTIAL",
+        "ERROR",
+        "FAILED",
+        "SKIPPED",
+        "WAITING_FOR_DECISION",
+        "CANCELLED"
+      ],
+      "title": "OperationStatus",
+      "type": "string"
+    },
+    "Producer": {
+      "additionalProperties": true,
+      "properties": {
+        "commit": {
+          "minLength": 1,
+          "title": "Commit",
+          "type": "string"
+        },
+        "package": {
+          "minLength": 1,
+          "title": "Package",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "package",
+        "version",
+        "commit"
+      ],
+      "title": "Producer",
+      "type": "object"
+    },
+    "RunManifestData": {
+      "additionalProperties": true,
+      "properties": {
+        "audit_event_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Audit Event Id"
+        },
+        "committed_artifacts": {
+          "items": {
+            "$ref": "#/$defs/ArtifactReference"
+          },
+          "title": "Committed Artifacts",
+          "type": "array"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended At"
+        },
+        "idempotency_key": {
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "operation": {
+          "minLength": 1,
+          "title": "Operation",
+          "type": "string"
+        },
+        "staged_artifacts": {
+          "items": {
+            "$ref": "#/$defs/ArtifactReference"
+          },
+          "title": "Staged Artifacts",
+          "type": "array"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/OperationStatus"
+        }
+      },
+      "required": [
+        "operation",
+        "status",
+        "idempotency_key",
+        "started_at"
+      ],
+      "title": "RunManifestData",
+      "type": "object"
+    }
+  },
+  "$id": "https://nexus-scholar.org/schemas/contracts/v1/run-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "artifact_id": {
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "artifact_type": {
+      "const": "run_manifest",
+      "title": "Artifact Type",
+      "type": "string"
+    },
+    "corpus_fingerprint": {
+      "title": "Corpus Fingerprint",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/RunManifestData"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/InputArtifact"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "producer": {
+      "$ref": "#/$defs/Producer"
+    },
+    "protocol_fingerprint": {
+      "title": "Protocol Fingerprint",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "workspace_id": {
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "created_at",
+    "producer",
+    "workspace_id",
+    "run_id",
+    "protocol_fingerprint",
+    "corpus_fingerprint",
+    "data"
+  ],
+  "title": "RunManifest",
+  "type": "object"
+}

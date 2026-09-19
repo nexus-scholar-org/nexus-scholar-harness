@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "ErrorCode": {
+      "enum": [
+        "VALIDATION_ERROR",
+        "NOT_FOUND",
+        "PATH_OUTSIDE_WORKSPACE",
+        "SCHEMA_VERSION_UNSUPPORTED",
+        "PROTOCOL_FINGERPRINT_MISMATCH",
+        "CORPUS_FINGERPRINT_MISMATCH",
+        "DEPENDENCY_ERROR",
+        "NETWORK_ERROR",
+        "RATE_LIMITED",
+        "CONFLICT",
+        "IDEMPOTENCY_CONFLICT",
+        "ATOMIC_COMMIT_FAILED",
+        "INTERNAL_ERROR"
+      ],
+      "title": "ErrorCode",
+      "type": "string"
+    }
+  },
+  "$id": "https://nexus-scholar.org/schemas/contracts/v1/contract-error.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "code": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Code"
+    },
+    "details": {
+      "additionalProperties": true,
+      "title": "Details",
+      "type": "object"
+    },
+    "message": {
+      "minLength": 1,
+      "title": "Message",
+      "type": "string"
+    },
+    "retryable": {
+      "default": false,
+      "title": "Retryable",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "code",
+    "message"
+  ],
+  "title": "ContractError",
+  "type": "object"
+}

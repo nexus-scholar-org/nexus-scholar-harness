@@ -58,7 +58,7 @@ git diff bfea188..fe55447 -- <path>     # scoped diffs, e.g.:
 ```powershell
 uv run pytest --tb=short            # expect: 248 passed, 3 skipped, 0 failures
 uv run ruff check scripts/          # expect: all checks passed
-uv run python scripts/sync_skills_bundle.py --check   # expect: OK <skill> x11
+uv run python scripts/sync_skills_bundle.py --check   # expect: OK <skill> x13
 ```
 
 CLI/API spot-checks (each validates a matrix/skill claim; ~30 s each):
@@ -112,7 +112,7 @@ uv run scholar-bib lint --help                     # --output (defaults overwrit
 
 ### C. `specs/inception-ecosystem/` + `scripts/sync_skills_bundle.py`
 1. Spec claims match code: canonical-source rule, mirror scope table
-   (pull-request-gate excluded, 11 skills included), `--check` semantics.
+   (pull-request-gate excluded, 13 skills included), `--check` semantics.
 2. Script correctness: exclusion set, `os.listdir` default (does NOT include
    pull-request-gate), `__pycache__` cleanup, exit code 1 on drift.
 

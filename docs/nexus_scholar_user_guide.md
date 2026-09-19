@@ -98,7 +98,7 @@ What you get:
 ├── INDEX.md              # regenerable project index
 ├── project.json          # machine-readable manifest + stats
 ├── audit/journal.jsonl   # append-only audit ledger (see `log`)
-├── .agents/skills/       # 12 skill bundles (symlinked when possible, else copied)
+├── .agents/skills/       # 14 skill bundles (symlinked when possible, else copied)
 ├── .env.example          # API-key template (SCHOLAR_*, NEXUS_*, provider keys)
 ├── .mcp.json             # MCP wiring with the absolute workspace path
 ├── literature/           # raw + screened records land here

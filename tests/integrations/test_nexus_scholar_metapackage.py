@@ -85,5 +85,5 @@ def test_skills_bundle_covers_all_shipped_skills():
         for d in skills_dir.iterdir()
         if d.is_dir() and (d / "SKILL.md").is_file()
     }
-    assert len(shipped) == 12, f"expected all 12 skills in wheel, found {len(shipped)}: {sorted(shipped)}"
+    assert len(shipped) == 14, f"expected all 14 skills in wheel, found {len(shipped)}: {sorted(shipped)}"
     assert {"workspace-manager", "scholar-search-kit", "methodology-copilot"} <= shipped

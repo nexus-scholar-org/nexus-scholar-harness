@@ -40,7 +40,7 @@ to drop in later.
   cannot graph-boost. Phase-4 verify streams are CLI-only. MCP tools default to
   CWD-relative paths under `tools/scholar-agent-kit/`.
 - Scale: **18 MCP tools** across 8 kits (15 `nexus_*` + 3 `recon_*`); agent-in-the-loop
-  PRISMA screening is a file handoff (`agent_screen.py prepare|…|collect`); 11 skills
+  PRISMA screening is a file handoff (`agent_screen.py prepare|…|collect`); 13 skills
   mirrored canonical→bundle by `scripts/sync_skills_bundle.py`.
 
 ## Read these first (the strategic payload)

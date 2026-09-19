@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "claims_ledger",
+  "artifact_id": "ART-claims-ledger-001",
+  "created_at": "2026-09-18T00:00:00Z",
+  "producer": {
+    "package": "scholar-rag-kit",
+    "version": "0.1.0",
+    "commit": "2222222222222222222222222222222222222222"
+  },
+  "workspace_id": "WSP-contractbench",
+  "run_id": "RUN-contract-v1",
+  "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "corpus_fingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "inputs": [
+    {
+      "artifact_id": "ART-extraction-001",
+      "sha256": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  ],
+  "data": {
+    "claims": [
+      {
+        "claim_id": "CLM-mortality-001",
+        "claim_text": "The study reported no statistically significant mortality reduction.",
+        "claim_kind": "finding",
+        "study_ids": [
+          "STU-alpha"
+        ],
+        "evidence_ids": [
+          "EV-mortality-001"
+        ],
+        "citation_tokens": [
+          "[rag:v2:WSP-contractbench:STU-alpha:CHK-alpha-0001]"
+        ],
+        "generation_method": "LLM",
+        "rq_ids": [
+          "RQ-1"
+        ],
+        "verification": {
+          "retrieval": "SOURCE_AVAILABLE",
+          "lexical_support": "SUPPORTED_VERBATIM",
+          "entailment": "ENTAILED",
+          "trust": "NOT_CHECKED",
+          "semantic_similarity_score": 0.94,
+          "algorithm_version": "retriever-v1",
+          "threshold": 0.9
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "EV-mortality-001",
+        "study_id": "STU-alpha",
+        "document_id": "DOC-alpha-pdf",
+        "locator": "page 7, paragraph 2",
+        "quote": "No statistically significant reduction in mortality was observed.",
+        "extraction_method": "DETERMINISTIC_RULE",
+        "source_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    ]
+  }
+}

@@ -10,6 +10,8 @@ unless the canonical-source rule below is followed.
     methodology-copilot/
     workspace-manager/
     inception-agent/
+    doer-contract/
+    critic-contract/
     pull-request-gate/
     scholar-{search,pdf,bib,rag,graph,protocol,agent,verify}-kit/
                                                   ← opencode loads these directly
@@ -19,6 +21,8 @@ unless the canonical-source rule below is followed.
     methodology-copilot/
     workspace-manager/
     inception-agent/                             ← bundled (mirrors canonical)
+    doer-contract/                               ← bundled (mirrors canonical)
+    critic-contract/                             ← bundled (mirrors canonical)
     scholar-*-kit/
                                                   ← ships skills to external harnesses
         (Claude/Copilot/DSH agents that consume the nexus-scholar plugin)
@@ -46,6 +50,8 @@ Two consumers can therefore load the same skill name from different paths; the
 | `methodology-copilot` | yes | pure instructions; harness-agnostic |
 | `workspace-manager` | yes | pure instructions + standalone scripts |
 | `inception-agent` | yes | instructions + parity helper; requires the `scholar_harness` package at runtime |
+| `doer-contract` | yes | field-agnostic execution invariants for scientific workflow agents |
+| `critic-contract` | yes | field-agnostic adversarial review and gate invariants |
 | `pull-request-gate` | **no** | repo-policy enforcement for this harness only |
 | `scholar-*-kit` | yes | kit CLIs consumed by external harnesses |
 

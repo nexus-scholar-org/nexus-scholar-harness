@@ -19,6 +19,7 @@ dependencies = [
     "rich>=13.0.0",
     "fastapi>=0.115.0",
     "uvicorn>=0.30.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -42,7 +43,7 @@ pythonpath = [
     "tools/scholar-graph-kit/src",
     "tools/scholar-agent-kit/src",
 ]
-addopts = "-q --basetemp=tests_temp"
+addopts = "-q"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scholar_harness"]

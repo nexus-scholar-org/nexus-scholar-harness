@@ -1,0 +1,281 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "ART-corpus-two-study",
+      "artifact_type": "corpus_snapshot",
+      "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+      "created_at": "2026-09-18T10:00:00Z",
+      "data": {
+        "corpus_id": "COR-two-study",
+        "identity_algorithm_version": "identity-v1",
+        "record_to_study": {
+          "REC-alpha-arxiv": "STU-alpha",
+          "REC-alpha-doi": "STU-alpha",
+          "REC-beta-doi": "STU-beta"
+        },
+        "studies": [
+          {
+            "alias_ids": [
+              "SCI-000001"
+            ],
+            "external_ids": {
+              "arxiv": [
+                "2401.00001"
+              ],
+              "doi": [
+                "10.1000/alpha"
+              ]
+            },
+            "publication_year": 2020,
+            "source_record_ids": [
+              "REC-alpha-doi",
+              "REC-alpha-arxiv"
+            ],
+            "study_id": "STU-alpha",
+            "title": "Shared short title"
+          },
+          {
+            "alias_ids": [
+              "SCI-000002"
+            ],
+            "external_ids": {
+              "doi": [
+                "10.1000/beta"
+              ]
+            },
+            "publication_year": 2024,
+            "source_record_ids": [
+              "REC-beta-doi"
+            ],
+            "study_id": "STU-beta",
+            "title": "Shared short title"
+          }
+        ]
+      },
+      "inputs": [],
+      "producer": {
+        "commit": "4444444444444444444444444444444444444444",
+        "package": "scholar-search-kit",
+        "version": "1.0.0"
+      },
+      "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "run_id": "RUN-discovery-two-study",
+      "schema_version": "1.0.0",
+      "workspace_id": "WSP-two-study"
+    },
+    {
+      "artifact_id": "ART-screening-batch-two-study",
+      "artifact_type": "screening_batch",
+      "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+      "created_at": "2026-09-18T10:01:00Z",
+      "data": {
+        "batch_id": "batch-000",
+        "batch_index": 0,
+        "binding": {
+          "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+          "criteria_renderer_version": "1.0.0",
+          "dedup_configuration_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "preparation_run_id": "RUN-screening-prepare-two-study",
+          "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "screening_run_id": "RUN-screening-two-study"
+        },
+        "candidates": [
+          {
+            "study_id": "STU-alpha",
+            "title": "Shared short title"
+          },
+          {
+            "study_id": "STU-beta",
+            "title": "Shared short title"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "artifact_id": "ART-corpus-two-study",
+          "sha256": "sha256:072773f2a3714986bed1ae85aa5e3b537a2340d84aece631d19a3d30c8c7e0a4"
+        }
+      ],
+      "producer": {
+        "commit": "4444444444444444444444444444444444444444",
+        "package": "nexus-scholar-harness",
+        "version": "1.0.0"
+      },
+      "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "run_id": "RUN-screening-two-study",
+      "schema_version": "1.0.0",
+      "workspace_id": "WSP-two-study"
+    },
+    {
+      "artifact_id": "ART-screening-decisions-two-study",
+      "artifact_type": "screening_decisions",
+      "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+      "created_at": "2026-09-18T10:02:00Z",
+      "data": {
+        "batch_id": "batch-000",
+        "binding": {
+          "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+          "criteria_renderer_version": "1.0.0",
+          "dedup_configuration_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "preparation_run_id": "RUN-screening-prepare-two-study",
+          "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "screening_run_id": "RUN-screening-two-study"
+        },
+        "decisions": [
+          {
+            "decided_at": "2026-09-18T10:01:30Z",
+            "decision": "INCLUDE",
+            "decision_id": "SCR-alpha-human",
+            "method": "HUMAN",
+            "reason": "Meets frozen criteria.",
+            "screener_id": "reviewer-1",
+            "study_id": "STU-alpha"
+          },
+          {
+            "decided_at": "2026-09-18T10:01:40Z",
+            "decision": "INCLUDE",
+            "decision_id": "SCR-beta-human",
+            "method": "HUMAN",
+            "reason": "Meets frozen criteria.",
+            "screener_id": "reviewer-1",
+            "study_id": "STU-beta"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "artifact_id": "ART-screening-batch-two-study",
+          "sha256": "sha256:9c2e4eb758aed0a566b77fadc8c31b4b47cf0965d50cbd1efd049d0be5ab7116"
+        }
+      ],
+      "producer": {
+        "commit": "4444444444444444444444444444444444444444",
+        "package": "nexus-scholar-harness",
+        "version": "1.0.0"
+      },
+      "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "run_id": "RUN-screening-two-study",
+      "schema_version": "1.0.0",
+      "workspace_id": "WSP-two-study"
+    },
+    {
+      "artifact_id": "ART-documents-two-study",
+      "artifact_type": "document_manifest",
+      "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+      "created_at": "2026-09-18T10:03:00Z",
+      "data": {
+        "documents": [
+          {
+            "content_status": "VALID",
+            "document_id": "DOC-alpha-pdf",
+            "extracted_path": "extracted/STU-alpha.md",
+            "extraction_method": "DETERMINISTIC_RULE",
+            "source_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "study_id": "STU-alpha"
+          },
+          {
+            "content_status": "VALID",
+            "document_id": "DOC-beta-pdf",
+            "extracted_path": "extracted/STU-beta.md",
+            "extraction_method": "DETERMINISTIC_RULE",
+            "source_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "study_id": "STU-beta"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "artifact_id": "ART-screening-decisions-two-study",
+          "sha256": "sha256:fcd92d2dfce7482ebca69f12566fdd3740575b0aeb2f9fb2f78d4e0596b4a370"
+        }
+      ],
+      "producer": {
+        "commit": "4444444444444444444444444444444444444444",
+        "package": "scholar-pdf-kit",
+        "version": "1.0.0"
+      },
+      "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "run_id": "RUN-extraction-two-study",
+      "schema_version": "1.0.0",
+      "workspace_id": "WSP-two-study"
+    },
+    {
+      "artifact_id": "ART-claims-two-study",
+      "artifact_type": "claims_ledger",
+      "corpus_fingerprint": "sha256:eb39759f8399e2e9e93ecfd7ee3cb86717e84ad96b0d5526b3379ee458a9d960",
+      "created_at": "2026-09-18T10:04:00Z",
+      "data": {
+        "claims": [
+          {
+            "citation_tokens": [
+              "[rag:v2:WSP-two-study:STU-alpha:CHK-alpha-0001]"
+            ],
+            "claim_id": "CLM-alpha-effect",
+            "claim_kind": "finding",
+            "claim_text": "Alpha reports an effect.",
+            "evidence_ids": [
+              "EV-alpha-effect"
+            ],
+            "generation_method": "LLM",
+            "study_ids": [
+              "STU-alpha"
+            ]
+          },
+          {
+            "citation_tokens": [
+              "[rag:v2:WSP-two-study:STU-beta:CHK-beta-0001]"
+            ],
+            "claim_id": "CLM-beta-null",
+            "claim_kind": "finding",
+            "claim_text": "Beta reports a null result.",
+            "evidence_ids": [
+              "EV-beta-null"
+            ],
+            "generation_method": "LLM",
+            "study_ids": [
+              "STU-beta"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "document_id": "DOC-alpha-pdf",
+            "evidence_id": "EV-alpha-effect",
+            "extraction_method": "DETERMINISTIC_RULE",
+            "locator": "page 4",
+            "quote": "An effect was observed.",
+            "source_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "study_id": "STU-alpha"
+          },
+          {
+            "document_id": "DOC-beta-pdf",
+            "evidence_id": "EV-beta-null",
+            "extraction_method": "DETERMINISTIC_RULE",
+            "locator": "page 7",
+            "quote": "No effect was observed.",
+            "source_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "study_id": "STU-beta"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "artifact_id": "ART-documents-two-study",
+          "sha256": "sha256:940f1f86ec3eefc4d6fc9c038ed7aeacab282a066c797216587451c446f12fb0"
+        }
+      ],
+      "producer": {
+        "commit": "4444444444444444444444444444444444444444",
+        "package": "scholar-rag-kit",
+        "version": "1.0.0"
+      },
+      "protocol_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "run_id": "RUN-synthesis-two-study",
+      "schema_version": "1.0.0",
+      "workspace_id": "WSP-two-study"
+    }
+  ],
+  "case_id": "WP01-TWO-STUDY-CHAIN",
+  "description": "Two same-title studies remain distinct through corpus, screening, documents, and claims with exact parent hashes.",
+  "fixture_version": "1.0.0"
+}
