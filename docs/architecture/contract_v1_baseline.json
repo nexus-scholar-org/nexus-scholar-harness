@@ -1,0 +1,256 @@
+{
+  "anchor": {
+    "merge_commit": "384b2ae2564ac63cfa78e5935a86f35c856cd36e",
+    "merged_at": "2026-09-19T13:11:18Z",
+    "pull_request": 37
+  },
+  "baseline_id": "contract-v1-wp00",
+  "baseline_version": "1.0.0",
+  "locked_files": [
+    {
+      "path": ".agents/plugins/nexus-scholar/skills/critic-contract/SKILL.md",
+      "sha256": "9d9c35fbfb60720a057a298abac857c65e3743e1979bebbf12291bf5a3ad321f"
+    },
+    {
+      "path": ".agents/plugins/nexus-scholar/skills/doer-contract/SKILL.md",
+      "sha256": "994f196fd017b990d21dd8f4831928c6e86d29bab22f9c55d53e16f1c0662b4c"
+    },
+    {
+      "path": ".agents/skills/critic-contract/SKILL.md",
+      "sha256": "9d9c35fbfb60720a057a298abac857c65e3743e1979bebbf12291bf5a3ad321f"
+    },
+    {
+      "path": ".agents/skills/doer-contract/SKILL.md",
+      "sha256": "994f196fd017b990d21dd8f4831928c6e86d29bab22f9c55d53e16f1c0662b4c"
+    },
+    {
+      "path": ".opencode/agent/adjudicator.md",
+      "sha256": "69ac99ce4dc60c672c9100cebb93af69450231349a4ee149333da60ba818ba32"
+    },
+    {
+      "path": ".opencode/agent/coder.md",
+      "sha256": "e87bafb3d56bf2ec6de5d9f98a5ba4d0ee39def4fc3ecaac2bbd9feed6a80279"
+    },
+    {
+      "path": ".opencode/agent/extraction-critic.md",
+      "sha256": "5d65a307760dbee7097689b1fe14ed4dce2c6eebd2172a056444bc1bf9c725f8"
+    },
+    {
+      "path": ".opencode/agent/extractor-a.md",
+      "sha256": "e5335861e331b72d53a837eb983f14880612364d048e33c9dbf692e74d38151e"
+    },
+    {
+      "path": ".opencode/agent/extractor-b.md",
+      "sha256": "793186bf0f61e19ae1cc9bbd798a51e461a6fb7465a9baaac06e0a547d58b9ec"
+    },
+    {
+      "path": ".opencode/agent/orchestrator.md",
+      "sha256": "eca44c7fca914911309ec41ac03eb3a6aa357a63c34c44e5b120d2a99b267ffc"
+    },
+    {
+      "path": ".opencode/agent/reviewer.md",
+      "sha256": "717cd47f302fe070918a4f009711fef26678eedb3636e9d2f5c2be3925be3056"
+    },
+    {
+      "path": ".opencode/agent/screener.md",
+      "sha256": "1409cace6e94b8a1dc9fa88f9950c43fd8d3ab89bc4d68cbd9d79bb514df38f7"
+    },
+    {
+      "path": ".opencode/agent/screening-critic.md",
+      "sha256": "b19a5054df9d92eadc5e337af71142e435509deb662a4ce19689876f315df570"
+    },
+    {
+      "path": "docs/architecture/contract_v1_baseline.md",
+      "sha256": "10a4a097b611082d7d3de27a1724c39a3e652bba0b916665bd380d8d05d7c2fe"
+    },
+    {
+      "path": "docs/architecture/cross_kit_contract_v1.md",
+      "sha256": "01c929bf8770dc5503e5e3417e735ebed0df58cf1445e3900459ee0935b13187"
+    },
+    {
+      "path": "docs/architecture/wp01_contract_adoption_handoff.md",
+      "sha256": "7ea9554fa3344d7c1967d4bcdf92cc0a4cdad438051b2f101049be0e46d4baf0"
+    },
+    {
+      "path": "scripts/generate_contract_baseline.py",
+      "sha256": "8a1c0ef816ceb7b0aad164e0e9ec64f6418fa9db0511841d116de328c4608775"
+    },
+    {
+      "path": "specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md",
+      "sha256": "5d38521a38f092eb3dc0fda3d78b2ef7bec1a6bc6d4822e57b9147b092854165"
+    },
+    {
+      "path": "specs/deep-audit-remediation-2026-09-17/12_execution_roadmap.md",
+      "sha256": "c3dea0cc53ab90a500acaafd0eb66187ec79ffc8a7285271350c912107d41d83"
+    },
+    {
+      "path": "src/scholar_harness/contracts/__init__.py",
+      "sha256": "d3ce12eb1af8fcbcd9cb2c0ce6b7b26da108f475e0f5ff985f70b78085326e55"
+    },
+    {
+      "path": "src/scholar_harness/contracts/canonical.py",
+      "sha256": "5244492797851c0721bbbb02e5c92ac6d32b5166b4606f187e0a66f98ed8c2cc"
+    },
+    {
+      "path": "src/scholar_harness/contracts/chain.py",
+      "sha256": "6f05ca99471777a313bf52aa4daf1e3f7b70185477348f9a205a308586623d63"
+    },
+    {
+      "path": "src/scholar_harness/contracts/identifiers.py",
+      "sha256": "c6076ccd1be0106c82a21e852e70ef980702314ce37eb4d033ca4e7d9259e9eb"
+    },
+    {
+      "path": "src/scholar_harness/contracts/models.py",
+      "sha256": "fbf06d5a880c71ec4ebd49ddf9d288d1e64ad06b9e957d6fd67e68d2efe2aa95"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schema_catalog.py",
+      "sha256": "15cec0b994d97788f7747c1e27d0e6e7431337f5fe1b3bab1e72cd861ab26025"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/artifact-envelope.schema.json",
+      "sha256": "4c7b2f464312ecd38f99fdb6ec6edbc9ba78764c171ff7e63b4338cf2c82b1c7"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/claim-evidence-ledger.schema.json",
+      "sha256": "928887c87c3f47c5a55c149f70d47464413094dd70c8581ac0cc04428dcdfd85"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/contract-error.schema.json",
+      "sha256": "f9dd56165938b137cfc6df519ec1f793b05d52aeecb3c84f58938db8597c5099"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/corpus-snapshot.schema.json",
+      "sha256": "d99354e850b63177bd2544552e654b2fa393c9f77e47c7fded7b793e09a50a95"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/document-manifest.schema.json",
+      "sha256": "e546392d555d0a6c9cafd46018082aa5bbe440567677a0dbfaa8ffa6f8a627bb"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/identifier-registry.json",
+      "sha256": "eb3adc7b51f8e21078289e376e7c5afc633c33b12f4f259bd8d487d65a5ded34"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/operation-outcome.schema.json",
+      "sha256": "84dfad1fe1b9c16c9037c443eb693a13726a0579316321a24dc4701e4757f6cd"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/run-manifest.schema.json",
+      "sha256": "2a82e7bbde95ba98fca7839b15f9e57271b1a845bea2a55b27c1a4c76010fec4"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/screening-batch.schema.json",
+      "sha256": "7d8befe1efbdbb2fc483ee23a972e7cf0f71ac4c0012e0d4c94e768a11b7d4e9"
+    },
+    {
+      "path": "src/scholar_harness/contracts/schemas/v1/screening-decisions.schema.json",
+      "sha256": "873420e2832cddf283c081bd60506dc60c30076d707a6d5bcb1e20491216151f"
+    },
+    {
+      "path": "tests/conformance/test_contract_baseline.py",
+      "sha256": "975e1d6f836a5515eae354da6102969fa6470fb4390dc9182088f004ed6b9db9"
+    },
+    {
+      "path": "tests/conformance/test_opencode_dev_agents.py",
+      "sha256": "554b95caad5cc085b613a199f58da54c8d7df5c8753b565deb1184ce610ad3f0"
+    },
+    {
+      "path": "tests/conformance/test_scientific_opencode_agents.py",
+      "sha256": "5e773687aa9f40c56c41b5b0de87c3931271e3d626acccc1f9dd579e3421f681"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/artifact_envelope.json",
+      "sha256": "c752706ddf06eadd5f7b97611310f1f7c4b97851acf90dbe1b653890ac48b840"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/claim_evidence_ledger.json",
+      "sha256": "77bc4c6f8880a19120bb2e780b42fdaab83b96ef925660d3714766fe61827461"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/operation_outcome_partial.json",
+      "sha256": "44ed9126078338ba06461d17df7c9f28a81d6614ddcf4a4bd192da94373da9fb"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/run_manifest.json",
+      "sha256": "d814a4a4a4979ad6378e1e8d0f388cd5a3e1f84d614ce24d9578756e27dc1199"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/screening_batch.json",
+      "sha256": "57db68cffd77ae896e4492659f7feb3dfe69b2cf7d6b76c59fe442115d3c0481"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/screening_decisions.json",
+      "sha256": "bb2041511ef2d02e9ae881ead334fa0b2335b488882c740f08cac5891dd949e7"
+    },
+    {
+      "path": "tests/fixtures/contracts/v1/two_study_artifact_chain.json",
+      "sha256": "655132bebe9e29853ecb198d1373ffea285e85eb4e6222c70b843232dd8defec"
+    },
+    {
+      "path": "tests/test_contract_artifact_chain.py",
+      "sha256": "b6c7bcef6ee08025603210a20d1e937509675323860ae8b224b000a199a87d46"
+    },
+    {
+      "path": "tests/test_cross_kit_contracts.py",
+      "sha256": "ea6f908b5b3d0a561345d5f6c2e4e6df3affb35d460a28c93435f58bbaafc830"
+    }
+  ],
+  "non_goals": [
+    "No toolkit is migrated merely because its vendored copy imports Contract v1.",
+    "No legacy workspace is implicitly Contract v1.",
+    "No title-only identity merge is permitted.",
+    "No schema or golden-fixture weakening is permitted to unblock an adapter.",
+    "No unrelated SYS finding is folded into WP-01 without its owning work package."
+  ],
+  "state": {
+    "harness_consumers": "UNMIGRATED",
+    "legacy_workspaces": "UNMIGRATED",
+    "toolkit_producers": "UNMIGRATED",
+    "wp00": "FROZEN_REFERENCE_IMPLEMENTATION",
+    "wp01": "OPEN_NOT_ADOPTED"
+  },
+  "wp01_packets": {
+    "A_protocol_identity_producer": {
+      "depends_on": [
+        "contract-v1-wp00"
+      ],
+      "repository": "nexus-scholar-org/scholar-protocol-kit",
+      "status": "READY"
+    },
+    "B_search_corpus_snapshot_producer": {
+      "depends_on": [
+        "contract-v1-wp00"
+      ],
+      "repository": "nexus-scholar-org/scholar-search-kit",
+      "status": "READY"
+    },
+    "C_harness_artifact_acceptance_gate": {
+      "depends_on": [
+        "contract-v1-wp00"
+      ],
+      "repository": "nexus-scholar-org/nexus-scholar-harness",
+      "status": "READY"
+    },
+    "D_screening_producer_migration": {
+      "depends_on": [
+        "A_protocol_identity_producer",
+        "B_search_corpus_snapshot_producer",
+        "C_harness_artifact_acceptance_gate"
+      ],
+      "repository": "nexus-scholar-org/nexus-scholar-harness",
+      "status": "BLOCKED_BY_A_B_C"
+    },
+    "E_downstream_adapter_stubs": {
+      "depends_on": [
+        "A_protocol_identity_producer",
+        "B_search_corpus_snapshot_producer"
+      ],
+      "repositories": [
+        "nexus-scholar-org/scholar-pdf-kit",
+        "nexus-scholar-org/scholar-rag-kit"
+      ],
+      "status": "BLOCKED_BY_A_B"
+    }
+  }
+}
