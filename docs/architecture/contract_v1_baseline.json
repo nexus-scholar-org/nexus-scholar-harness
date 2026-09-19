@@ -5,7 +5,7 @@
     "pull_request": 37
   },
   "baseline_id": "contract-v1-wp00",
-  "baseline_version": "1.0.0",
+  "baseline_version": "1.1.0",
   "locked_files": [
     {
       "path": ".agents/plugins/nexus-scholar/skills/critic-contract/SKILL.md",
@@ -61,7 +61,7 @@
     },
     {
       "path": "docs/architecture/contract_v1_baseline.md",
-      "sha256": "7e48a8b7f99c23b46828fb77ddabd21839942c1bde264967e9f9af29cc907b0c"
+      "sha256": "588ef02d28f9b3fa37581d77529225ab0fe6464123551943c306d7cb9ca6234c"
     },
     {
       "path": "docs/architecture/cross_kit_contract_v1.md",
@@ -69,11 +69,15 @@
     },
     {
       "path": "docs/architecture/wp01_contract_adoption_handoff.md",
-      "sha256": "563ffd3d16552221c0ac6b35ab24d53db8093ef43b7caa4efa0772848ab932ac"
+      "sha256": "6e9d269965109c989ba9c5c6ffb8eb489b783ae993d0008716756bbc0a96d5a0"
+    },
+    {
+      "path": "docs/architecture/wp01_packet_c_reference.md",
+      "sha256": "6c7f1076847ed3236377a133f51b8c5eeaf321b7972ed88c764a4bf5d2b46d77"
     },
     {
       "path": "scripts/generate_contract_baseline.py",
-      "sha256": "30526b3e9830129554d7990c392b4e77edab5962586bc627c5b18cd70a770497"
+      "sha256": "90f92389af514d5f4c5745fc91eb750f1a7fa01e778875c19578693d04a94864"
     },
     {
       "path": "specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md",
@@ -85,7 +89,11 @@
     },
     {
       "path": "src/scholar_harness/contracts/__init__.py",
-      "sha256": "f1639383e268d463d0e7e7856eba6b494960328841d737777786dcd6636fd4dd"
+      "sha256": "f88770408255f1a998cfd30d441cc5be2937125699f95767ce7725c1dc02501c"
+    },
+    {
+      "path": "src/scholar_harness/contracts/acceptance.py",
+      "sha256": "7d6d10734849f55be25db7c622dd29e9ff8c1a3b755f03e8e870275874e5bae8"
     },
     {
       "path": "src/scholar_harness/contracts/canonical.py",
@@ -149,7 +157,7 @@
     },
     {
       "path": "tests/conformance/test_contract_baseline.py",
-      "sha256": "fa070939abd51dfeb8f975fa23be4d4628e63d8cb89bace2df209e14a36db52a"
+      "sha256": "0bbd0e140fc5f8c8a1180cf0ab2188904de5a02d73bdb421aef76583f16bdb82"
     },
     {
       "path": "tests/conformance/test_opencode_dev_agents.py",
@@ -188,12 +196,12 @@
       "sha256": "33f6c166df62f6d7e30191adda4368f2d128520bd68556b8252be6c584aec189"
     },
     {
-      "path": "tests/test_contract_artifact_chain.py",
-      "sha256": "e9c1dff958c3c6d0676fbcc45cf07edadb136fb48eaf6a4598589a94fca538e5"
+      "path": "tests/test_contract_acceptance.py",
+      "sha256": "90714b2c4aa5e1136b57584de9bf0292f420f44ac3d6d65ffc0b6b6ce20d9797"
     },
     {
-      "path": "tests/test_cross_kit_contracts.py",
-      "sha256": "67c7fd7c5097684b0b585e14083f55ac2816ff6b64c848a4a032ff39c0bc7f9f"
+      "path": "tests/test_contract_artifact_chain.py",
+      "sha256": "e9c1dff958c3c6d0676fbcc45cf07edadb136fb48eaf6a4598589a94fca538e5"
     }
   ],
   "non_goals": [
@@ -204,7 +212,7 @@
     "No unrelated SYS finding is folded into WP-01 without its owning work package."
   ],
   "state": {
-    "harness_consumers": "UNMIGRATED",
+    "harness_consumers": "CONSUMER_GATED_REFERENCE",
     "legacy_workspaces": "UNMIGRATED",
     "toolkit_producers": "UNMIGRATED",
     "wp00": "FROZEN_REFERENCE_IMPLEMENTATION",
@@ -230,7 +238,7 @@
         "contract-v1-wp00"
       ],
       "repository": "nexus-scholar-org/nexus-scholar-harness",
-      "status": "READY"
+      "status": "CONSUMER_GATED_REFERENCE"
     },
     "D_screening_producer_migration": {
       "depends_on": [
@@ -239,7 +247,7 @@
         "C_harness_artifact_acceptance_gate"
       ],
       "repository": "nexus-scholar-org/nexus-scholar-harness",
-      "status": "BLOCKED_BY_A_B_C"
+      "status": "BLOCKED_BY_A_B"
     },
     "E_downstream_adapter_stubs": {
       "depends_on": [

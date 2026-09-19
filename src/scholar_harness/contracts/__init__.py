@@ -1,5 +1,11 @@
 """Nexus Scholar cross-kit contract v1 reference implementation."""
 
+from .acceptance import (
+    AcceptanceContext,
+    AcceptanceIssue,
+    AcceptanceResult,
+    accept_artifact,
+)
 from .canonical import (
     canonical_fingerprint,
     canonical_json_bytes,
@@ -31,6 +37,7 @@ from .models import (
     MethodProvenance,
     OperationOutcome,
     OperationStatus,
+    Producer,
     RetrievalState,
     RunManifest,
     ScreeningBatchArtifact,
@@ -44,6 +51,9 @@ from .schema_catalog import load_schema, render_schema_files, schema_directory
 __all__ = [
     "CONTRACT_VERSION",
     "ID_PREFIXES",
+    "AcceptanceContext",
+    "AcceptanceIssue",
+    "AcceptanceResult",
     "ArtifactChainIssue",
     "ArtifactChainReport",
     "ArtifactEnvelope",
@@ -62,6 +72,7 @@ __all__ = [
     "MethodProvenance",
     "OperationOutcome",
     "OperationStatus",
+    "Producer",
     "RetrievalState",
     "RunManifest",
     "ScreeningBatchArtifact",
@@ -69,6 +80,7 @@ __all__ = [
     "ScreeningDecisionsArtifact",
     "TrustState",
     "VerificationAxes",
+    "accept_artifact",
     "canonical_fingerprint",
     "canonical_json_bytes",
     "corpus_snapshot_fingerprint",
