@@ -8,6 +8,7 @@ from scholar_harness.contracts import AcceptanceContext, accept_artifact
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "contracts" / "v1" / "two_study_artifact_chain.json"
+RUN_FIXTURE = ROOT / "tests" / "fixtures" / "contracts" / "v1" / "run_manifest.json"
 
 
 def _chain() -> list[dict]:
@@ -105,6 +106,77 @@ def test_same_payload_is_idempotent_but_same_id_different_payload_is_not(tmp_pat
     conflict = accept_artifact(workspace, changed, expected=context)
     assert not conflict.accepted
     assert conflict.issues[0].code == "IDEMPOTENCY_CONFLICT"
+
+
+def test_idempotent_replay_still_enforces_current_context(tmp_path: Path) -> None:
+    artifact = _chain()[0]
+    workspace = _workspace(tmp_path)
+
+    assert accept_artifact(workspace, artifact, expected=_context(artifact)).accepted
+    wrong_context = _context(artifact).model_copy(update={"workspace_id": "WS-OTHER"})
+
+    replay = accept_artifact(workspace, artifact, expected=wrong_context)
+
+    assert not replay.accepted
+    assert {issue.code for issue in replay.issues} == {"WORKSPACE_ID_MISMATCH"}
+
+
+def test_required_parent_type_is_enforced_from_registry(tmp_path: Path) -> None:
+    chain = _chain()
+    batch = copy.deepcopy(chain[1])
+    run_manifest = json.loads(RUN_FIXTURE.read_text(encoding="utf-8"))
+    for field in ("workspace_id", "protocol_fingerprint", "corpus_fingerprint"):
+        run_manifest[field] = batch[field]
+    workspace = _workspace(tmp_path)
+    context = _context(batch)
+
+    accepted_parent = accept_artifact(workspace, run_manifest, expected=context)
+    assert accepted_parent.accepted
+    batch["inputs"] = [
+        {
+            "artifact_id": run_manifest["artifact_id"],
+            "sha256": accepted_parent.payload_hash,
+        }
+    ]
+
+    result = accept_artifact(workspace, batch, expected=context)
+
+    assert not result.accepted
+    assert "REQUIRED_PARENT_TYPE_MISSING" in {issue.code for issue in result.issues}
+
+
+def test_screening_decisions_must_match_registered_batch(tmp_path: Path) -> None:
+    corpus, batch, decisions = copy.deepcopy(_chain()[:3])
+    workspace = _workspace(tmp_path)
+    context = _context(corpus)
+
+    assert accept_artifact(workspace, corpus, expected=context).accepted
+    assert accept_artifact(workspace, batch, expected=context).accepted
+    decisions["data"]["batch_id"] = "batch-other"
+
+    result = accept_artifact(workspace, decisions, expected=context)
+
+    assert not result.accepted
+    assert "SCREENING_BATCH_ID_MISMATCH" in {issue.code for issue in result.issues}
+
+
+def test_orphan_destination_is_rejected_without_overwrite(tmp_path: Path) -> None:
+    artifact = _chain()[0]
+    workspace = _workspace(tmp_path)
+    destination = (
+        workspace
+        / "artifacts"
+        / artifact["artifact_type"]
+        / f"{artifact['artifact_id']}.json"
+    )
+    destination.parent.mkdir(parents=True)
+    destination.write_bytes(b"preserve me")
+
+    result = accept_artifact(workspace, artifact, expected=_context(artifact))
+
+    assert not result.accepted
+    assert result.issues[0].code == "ORPHAN_ARTIFACT_PATH"
+    assert destination.read_bytes() == b"preserve me"
 
 
 def test_audit_failure_rolls_back_publication_and_registry(tmp_path: Path, monkeypatch) -> None:

@@ -37,6 +37,13 @@ _ARTIFACT_MODELS: dict[str, type[ArtifactEnvelope[Any]]] = {
     "screening_decisions": ScreeningDecisionsArtifact,
 }
 
+_REQUIRED_PARENT_TYPE = {
+    "screening_batch": "corpus_snapshot",
+    "screening_decisions": "screening_batch",
+    "document_manifest": "screening_decisions",
+    "claims_ledger": "document_manifest",
+}
+
 _REGISTRY_PATH = PurePosixPath("audit/artifact_registry.json")
 _MAX_ISSUES = 20
 _MAX_MESSAGE_LENGTH = 500
@@ -302,24 +309,20 @@ def accept_artifact(
 
     entries = registry.artifacts
     existing = entries.get(artifact.artifact_id)
+    idempotent = False
     if existing:
         if existing.sha256 == payload_hash:
-            return AcceptanceResult(
-                accepted=True,
-                payload_hash=payload_hash,
-                artifact_id=artifact.artifact_id,
-                artifact_type=artifact.artifact_type,
-                published_path=existing.path,
-                idempotent=True,
+            idempotent = True
+        else:
+            issues.append(
+                _issue(
+                    "IDEMPOTENCY_CONFLICT",
+                    "artifact_id is already registered with a different payload hash",
+                    artifact_id=artifact.artifact_id,
+                )
             )
-        issues.append(
-            _issue(
-                "IDEMPOTENCY_CONFLICT",
-                "artifact_id is already registered with a different payload hash",
-                artifact_id=artifact.artifact_id,
-            )
-        )
 
+    registered_parents: dict[str, tuple[RegistryEntry, dict[str, Any]]] = {}
     for parent in artifact.inputs:
         registered = entries.get(parent.artifact_id)
         if registered is None:
@@ -331,7 +334,8 @@ def accept_artifact(
                     related_id=parent.artifact_id,
                 )
             )
-        elif registered.sha256 != parent.sha256:
+            continue
+        if registered.sha256 != parent.sha256:
             issues.append(
                 _issue(
                     "PARENT_HASH_MISMATCH",
@@ -340,6 +344,139 @@ def accept_artifact(
                     related_id=parent.artifact_id,
                 )
             )
+            continue
+        parent_path = workspace / PurePosixPath(registered.path)
+        try:
+            parent_raw, _ = _load_payload(parent_path.read_bytes())
+        except (OSError, json.JSONDecodeError, TypeError, UnicodeDecodeError) as exc:
+            issues.append(
+                _issue(
+                    "REGISTERED_PARENT_INVALID",
+                    f"registered parent payload cannot be loaded: {exc}",
+                    artifact_id=artifact.artifact_id,
+                    related_id=parent.artifact_id,
+                )
+            )
+            continue
+        if canonical_fingerprint(parent_raw) != registered.sha256:
+            issues.append(
+                _issue(
+                    "REGISTERED_PARENT_HASH_MISMATCH",
+                    "registered parent payload differs from its registry hash",
+                    artifact_id=artifact.artifact_id,
+                    related_id=parent.artifact_id,
+                )
+            )
+            continue
+        parent_model = _ARTIFACT_MODELS.get(registered.artifact_type)
+        try:
+            if parent_model is None:
+                raise ValueError(
+                    f"unsupported registered artifact_type {registered.artifact_type!r}"
+                )
+            parent_model.model_validate(parent_raw)
+        except (ValidationError, ValueError) as exc:
+            issues.append(
+                _issue(
+                    "REGISTERED_PARENT_INVALID",
+                    f"registered parent type does not match its payload: {exc}",
+                    artifact_id=artifact.artifact_id,
+                    related_id=parent.artifact_id,
+                )
+            )
+            continue
+        registered_parents[parent.artifact_id] = (registered, parent_raw)
+
+    required_parent_type = _REQUIRED_PARENT_TYPE.get(artifact.artifact_type)
+    matching_parents = [
+        (parent_id, entry, raw)
+        for parent_id, (entry, raw) in registered_parents.items()
+        if entry.artifact_type == required_parent_type
+    ]
+    if required_parent_type and not matching_parents:
+        issues.append(
+            _issue(
+                "REQUIRED_PARENT_TYPE_MISSING",
+                f"{artifact.artifact_type} requires parent type {required_parent_type}",
+                artifact_id=artifact.artifact_id,
+            )
+        )
+
+    if isinstance(artifact, ScreeningDecisionsArtifact) and len(matching_parents) == 1:
+        try:
+            parent_batch = ScreeningBatchArtifact.model_validate(matching_parents[0][2])
+        except ValidationError as exc:
+            issues.append(
+                _issue(
+                    "REGISTERED_PARENT_INVALID",
+                    f"registered screening batch is invalid: {exc}",
+                    artifact_id=artifact.artifact_id,
+                    related_id=matching_parents[0][0],
+                )
+            )
+        else:
+            if artifact.data.batch_id != parent_batch.data.batch_id:
+                issues.append(
+                    _issue(
+                        "SCREENING_BATCH_ID_MISMATCH",
+                        "screening decisions batch_id does not match its parent batch",
+                        artifact_id=artifact.artifact_id,
+                        related_id=parent_batch.artifact_id,
+                    )
+                )
+            if artifact.data.binding != parent_batch.data.binding:
+                issues.append(
+                    _issue(
+                        "SCREENING_BINDING_MISMATCH",
+                        "screening decisions binding does not match its parent batch",
+                        artifact_id=artifact.artifact_id,
+                        related_id=parent_batch.artifact_id,
+                    )
+                )
+            candidate_ids = {candidate.study_id for candidate in parent_batch.data.candidates}
+            for decision in artifact.data.decisions:
+                if decision.study_id not in candidate_ids:
+                    issues.append(
+                        _issue(
+                            "DECISION_OUTSIDE_BATCH",
+                            f"decision study {decision.study_id} is absent from parent batch",
+                            artifact_id=artifact.artifact_id,
+                            related_id=decision.study_id,
+                        )
+                    )
+
+    if idempotent and existing is not None:
+        registered_path = workspace / PurePosixPath(existing.path)
+        try:
+            registered_payload = registered_path.read_bytes()
+        except OSError as exc:
+            issues.append(
+                _issue(
+                    "REGISTERED_ARTIFACT_MISSING",
+                    f"registered artifact payload cannot be read: {exc}",
+                    artifact_id=artifact.artifact_id,
+                )
+            )
+        else:
+            try:
+                registered_raw, _ = _load_payload(registered_payload)
+            except (json.JSONDecodeError, TypeError, UnicodeDecodeError) as exc:
+                issues.append(
+                    _issue(
+                        "REGISTERED_ARTIFACT_INVALID",
+                        f"registered artifact payload is invalid: {exc}",
+                        artifact_id=artifact.artifact_id,
+                    )
+                )
+            else:
+                if canonical_fingerprint(registered_raw) != existing.sha256:
+                    issues.append(
+                        _issue(
+                            "REGISTERED_ARTIFACT_HASH_MISMATCH",
+                            "registered artifact payload differs from its registry hash",
+                            artifact_id=artifact.artifact_id,
+                        )
+                    )
 
     if issues:
         return _rejection(
@@ -351,8 +488,33 @@ def accept_artifact(
             actor=actor,
         )
 
+    if idempotent and existing is not None:
+        return AcceptanceResult(
+            accepted=True,
+            payload_hash=payload_hash,
+            artifact_id=artifact.artifact_id,
+            artifact_type=artifact.artifact_type,
+            published_path=existing.path,
+            idempotent=True,
+        )
+
     relative = PurePosixPath("artifacts") / artifact.artifact_type / f"{artifact.artifact_id}.json"
     destination = workspace / relative
+    if destination.exists():
+        return _rejection(
+            workspace,
+            payload_hash=payload_hash,
+            artifact_id=artifact.artifact_id,
+            artifact_type=artifact.artifact_type,
+            issues=[
+                _issue(
+                    "ORPHAN_ARTIFACT_PATH",
+                    "artifact destination exists without a matching registry entry",
+                    artifact_id=artifact.artifact_id,
+                )
+            ],
+            actor=actor,
+        )
     previous_registry = registry_path.read_bytes() if registry_path.is_file() else None
     entries[artifact.artifact_id] = RegistryEntry(
         artifact_type=artifact.artifact_type,
