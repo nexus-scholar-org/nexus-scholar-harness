@@ -289,5 +289,35 @@ def prisma_check(
         )
 
 
+@app.command("identity")
+def identity(
+    path: pathlib.Path = typer.Argument(..., help="Path to protocol.json"),
+    json_output: bool = typer.Option(False, "--json", help="Output identity as JSON"),
+) -> None:
+    """Extract protocol identity, PRT-* ID, canonical fingerprint, and producer provenance."""
+    if not path.exists():
+        console.print(f"[bold red]Error:[/] File not found: {path}")
+        raise typer.Exit(2)
+
+    from scholar_protocol.identity import get_protocol_identity
+
+    try:
+        ident = get_protocol_identity(path)
+    except Exception as exc:
+        console.print(f"[bold red]Error:[/] Failed to resolve protocol identity: {exc}")
+        raise typer.Exit(2) from exc
+
+    if json_output:
+        print(json.dumps(ident.to_dict(), indent=2))
+    else:
+        print(f"protocol_id: {ident.protocol_id}")
+        print(f"protocol_fingerprint: {ident.protocol_fingerprint}")
+        print(f"schema_version: {ident.schema_version}")
+        print(
+            f"producer: {ident.producer.package}@{ident.producer.version} ({ident.producer.commit})"
+        )
+
+
 if __name__ == "__main__":
     app()
+
