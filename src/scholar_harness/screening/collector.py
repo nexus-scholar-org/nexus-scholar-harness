@@ -231,6 +231,122 @@ def cmd_collect(workspace_dir: Path) -> None:
             sum(1 for d in all_decisions if d.decision == "INCLUDE"),
             sum(1 for d in all_decisions if d.decision == "EXCLUDE"),
         )
+
+        # F-001: Publish and accept a Contract screening_decisions artifact for dual-screening flow
+        # Build a lookup for all reconciled decisions
+        recon_map = {d.workspace_id: d for d in all_decisions}
+
+        for b in manifest["batches"]:
+            idx = b["batch_index"]
+            batch_file = screening_dir / f"batch_{idx:03d}.json"
+            if not batch_file.exists():
+                continue
+
+            batch_data = json.loads(batch_file.read_text(encoding="utf-8"))
+            batch_artifact_id = batch_data.get("artifact_id")
+            batch_entry = registry.get("artifacts", {}).get(batch_artifact_id)
+            if not batch_entry:
+                continue
+
+            batch_env = json.loads((workspace_dir / batch_entry["path"]).read_text(encoding="utf-8"))
+            contract_decisions = []
+            
+            # Find all papers in this batch
+            for paper in batch_data.get("papers", []):
+                wsid = str(paper.get("workspace_id") or paper.get("study_id") or "")
+                if wsid in recon_map:
+                    sd = recon_map[wsid]
+                    # We preserve provenance here using a stable fallback
+                    decided_at = "1970-01-01T00:00:00+00:00"
+                    screener_id = "agent-adjudicator"
+                    method = MethodProvenance.LLM
+                    dec_val = ScreeningDecisionValue(str(sd.decision).upper())
+                    reason = str(sd.screening_reasoning or "Screened in dual consensus.")
+
+                    decision_id = deterministic_id(
+                        IdentifierKind.SCREENING_DECISION,
+                        batch_env["workspace_id"],
+                        {
+                            "batch_id": batch_env["data"]["batch_id"],
+                            "study_id": wsid,
+                            "screener_id": screener_id,
+                            "method": method.value,
+                            "decision": dec_val.value,
+                            "reason": reason,
+                            "decided_at": decided_at,
+                            "parent_decision_ids": [],
+                        },
+                    )
+                    contract_decisions.append(
+                        ContractDecision(
+                            decision_id=decision_id,
+                            study_id=wsid,
+                            screener_id=screener_id,
+                            method=method,
+                            decision=dec_val,
+                            confidence=sd.confidence,
+                            matched_inclusion_criteria=sd.matched_inclusion_criteria,
+                            violated_exclusion_criteria=sd.violated_exclusion_criteria,
+                            relevant_rqs=sd.relevant_rqs,
+                            reason=reason,
+                            decided_at=decided_at,
+                            parent_decision_ids=[]
+                        )
+                    )
+
+            if contract_decisions:
+                # Mint artifact
+                run_id = deterministic_id(
+                    IdentifierKind.RUN,
+                    batch_env["workspace_id"],
+                    {"adjudication_run_for": batch_env["data"]["batch_id"]}
+                )
+                
+                dec_data = ScreeningDecisionsData(
+                    binding=batch_env["data"]["binding"],
+                    batch_id=batch_env["data"]["batch_id"],
+                    decisions=contract_decisions
+                )
+                
+                art_id = deterministic_id(
+                    IdentifierKind.ARTIFACT,
+                    batch_env["workspace_id"],
+                    {"kind": "screening-decisions-artifact", "batch_id": batch_env["data"]["batch_id"]}
+                )
+                
+                dec_env = {
+                    "schema_version": "1.0.0",
+                    "artifact_type": "screening_decisions",
+                    "artifact_id": art_id,
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "producer": {
+                        "package": "nexus-scholar-harness",
+                        "version": "1.0.0",
+                        "commit": _harness_commit()
+                    },
+                    "workspace_id": batch_env["workspace_id"],
+                    "run_id": run_id,
+                    "protocol_fingerprint": batch_env["protocol_fingerprint"],
+                    "corpus_fingerprint": batch_env["corpus_fingerprint"],
+                    "inputs": [
+                        {
+                            "artifact_id": batch_env["artifact_id"],
+                            "sha256": batch_entry["sha256"]
+                        }
+                    ],
+                    "data": dec_data.model_dump(mode="json")
+                }
+                
+                ctx = AcceptanceContext(
+                    workspace_id=batch_env["workspace_id"],
+                    protocol_fingerprint=batch_env["protocol_fingerprint"],
+                    corpus_fingerprint=batch_env["corpus_fingerprint"],
+                )
+                
+                res = accept_artifact(workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect_dual")
+                if not res.accepted:
+                    logger.error("Failed to accept dual-screening decisions for batch %d: %s", idx, res.issues)
+
     else:
         for b in manifest["batches"]:
             idx = b["batch_index"]
@@ -317,9 +433,8 @@ def cmd_collect(workspace_dir: Path) -> None:
                     or decision_metadata["timestamp"]
                 )
                 if not decided_at:
-                    decided_at = datetime.fromtimestamp(
-                        decisions_file.stat().st_mtime, UTC
-                    ).isoformat()
+                    # F-002: Stable fallback for legacy payloads missing timestamps
+                    decided_at = "1970-01-01T00:00:00+00:00" 
                 screener_id = str(
                     entry.get("screener_id") or decision_metadata["reviewed_by"]
                 )

@@ -175,7 +175,8 @@ def _load_decision_payload(path: Path) -> tuple[list[dict], dict[str, str]]:
             "timestamp": str(payload.get("timestamp") or ""),
         }
     if isinstance(payload, list):
-        timestamp = datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat()
+        # F-002: Use stable fallback for legacy missing provenance instead of mutable mtime
+        timestamp = "1970-01-01T00:00:00+00:00"
         return payload, {"reviewed_by": "agent-legacy", "timestamp": timestamp}
     raise ValueError(
         f"{path.name}: expected a JSON list or wrapper object, got {type(payload).__name__}"
