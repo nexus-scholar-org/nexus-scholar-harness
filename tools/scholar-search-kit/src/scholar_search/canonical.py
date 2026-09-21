@@ -58,7 +58,7 @@ def canonical_json(documents: list[Document] | list[dict[str, Any]]) -> bytes:
     # Array ordering (e.g. the list of documents itself) is preserved.
     raw_str = json.dumps(
         raw_list,
-        ensure_ascii=True,
+        ensure_ascii=False,
         separators=(",", ":"),
         allow_nan=False,
         sort_keys=True,

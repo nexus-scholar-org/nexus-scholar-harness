@@ -241,11 +241,25 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
         "screening_criteria": protocol_data.get("screening_criteria", {}),
     }
 
+    verified_path = workspace_dir / "literature" / "verified.json"
+    verified_docs = []
+    if verified_path.exists():
+        verified_docs = json.loads(verified_path.read_text(encoding="utf-8"))
+    
+    verified_lookup = {d.get("workspace_id"): d for d in verified_docs if d.get("workspace_id")}
+    alias_to_doc = {}
+    for study in corpus_env["data"]["studies"]:
+        stu_id = study["study_id"]
+        for alias in study.get("alias_ids", []):
+            if alias in verified_lookup:
+                alias_to_doc[stu_id] = verified_lookup[alias]
+                break
+
     candidates = [
         ScreeningCandidate(
             study_id=study["study_id"],
             title=study["title"],
-            abstract=None,
+            abstract=alias_to_doc.get(study["study_id"], {}).get("abstract") or None,
         )
         for study in corpus_env["data"]["studies"]
     ]
@@ -254,9 +268,9 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
         for i in range(0, len(candidates), batch_size)
     ]
     total_batches = len(chunks)
-    renderer_version = "scholar-protocol-criteria-v1"
+    renderer_version = protocol_data.get("metadata", {}).get("version", "scholar-protocol-criteria-v1")
     dedup_hash = canonical_fingerprint(
-        {"identity_algorithm_version": corpus_env["data"]["identity_algorithm_version"]}
+        {"identity_algorithm_version": corpus_env["data"]["identity_algorithm_version"], "corpus_id": corpus_env["data"]["corpus_id"]}
     )
     run_id = deterministic_id(
         IdentifierKind.RUN,
@@ -341,10 +355,10 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
             {
                 "workspace_id": candidate.study_id,
                 "title": candidate.title,
-                "year": None,
+                "year": alias_to_doc.get(candidate.study_id, {}).get("year"),
                 "abstract": candidate.abstract or "No abstract available.",
-                "venue": None,
-                "doi": None,
+                "venue": alias_to_doc.get(candidate.study_id, {}).get("venue"),
+                "doi": (alias_to_doc.get(candidate.study_id, {}).get("external_ids") or {}).get("doi"),
             }
             for candidate in chunk
         ]

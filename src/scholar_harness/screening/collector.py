@@ -106,10 +106,25 @@ def cmd_collect(workspace_dir: Path) -> None:
     registry_path = workspace_dir / "audit" / "artifact_registry.json"
     registry = json.loads(registry_path.read_text(encoding="utf-8")) if registry_path.exists() else {"artifacts": {}}
 
+    alias_to_stu = {}
+    corpus_items = [(aid, entry) for aid, entry in registry.get("artifacts", {}).items() if entry.get("artifact_type") == "corpus_snapshot"]
+    if corpus_items:
+        _, corpus_entry = max(corpus_items, key=lambda item: item[1].get("accepted_at", ""))
+        corpus_env = json.loads((workspace_dir / corpus_entry["path"]).read_text(encoding="utf-8"))
+        for study in corpus_env.get("data", {}).get("studies", []):
+            stu_id = study["study_id"]
+            alias_to_stu[stu_id] = stu_id
+            for alias in study.get("alias_ids", []):
+                alias_to_stu[alias] = stu_id
+
     # Rebuild Document objects
     docs: list[Document] = []
     for i, raw in enumerate(raw_verified):
-        docs.append(_rebuild_doc(raw, fallback_id=raw.get("workspace_id") or f"SCI-{i+1:06d}"))
+        wid = raw.get("workspace_id") or f"SCI-{i+1:06d}"
+        if wid in alias_to_stu:
+            wid = alias_to_stu[wid]
+            raw["workspace_id"] = wid
+        docs.append(_rebuild_doc(raw, fallback_id=wid))
 
     # Collect all decisions
     all_decisions: list[ScreeningDecision] = []
@@ -139,7 +154,8 @@ def cmd_collect(workspace_dir: Path) -> None:
             if decisions_file.exists():
                 try:
                     for r in _load_decisions(decisions_file):
-                        s1_map[r.get("workspace_id") or r.get("study_id", "")] = r
+                        wid = r.get("workspace_id") or r.get("study_id", "")
+                        s1_map[alias_to_stu.get(wid, wid)] = r
                 except Exception:
                     pass
 
@@ -148,7 +164,8 @@ def cmd_collect(workspace_dir: Path) -> None:
         for sf in screener2_files:
             try:
                 for r in json.loads(sf.read_text(encoding="utf-8")):
-                    s2_map[r["workspace_id"]] = r
+                    wid = r.get("workspace_id") or r.get("study_id", "")
+                    s2_map[alias_to_stu.get(wid, wid)] = r
             except Exception:
                 pass
 
@@ -157,7 +174,8 @@ def cmd_collect(workspace_dir: Path) -> None:
         for af in adj_files:
             try:
                 for r in json.loads(af.read_text(encoding="utf-8")):
-                    adj_map[r["workspace_id"]] = r
+                    wid = r.get("workspace_id") or r.get("study_id", "")
+                    adj_map[alias_to_stu.get(wid, wid)] = r
             except Exception:
                 pass
 
