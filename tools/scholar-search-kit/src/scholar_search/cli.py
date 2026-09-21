@@ -905,9 +905,39 @@ def prisma_diagram(
         typer.echo(diagram)
 
 
+@app.command("identity")
+def identity(
+    corpus_file: Path = typer.Argument(
+        ..., help="Path to input corpus JSON/JSONL file", exists=True
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output raw JSON identity metadata"
+    ),
+):
+    """Emit the deterministic corpus identity and canonical fingerprint."""
+    import json
+    from .identity import get_corpus_identity
+
+    try:
+        ident = get_corpus_identity(corpus_file)
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {e}")
+        raise typer.Exit(1)
+
+    if json_output:
+        console.print(json.dumps(ident.to_dict(), indent=2, ensure_ascii=False))
+    else:
+        console.print(f"[bold]Corpus ID:[/bold] {ident.corpus_id}")
+        console.print(f"[bold]Fingerprint:[/bold] {ident.corpus_fingerprint}")
+        console.print(
+            f"[bold]Producer:[/bold] {ident.producer.package} @ {ident.producer.commit[:8]}"
+        )
+        if ident.workspace_id:
+            console.print(f"[bold]Workspace:[/bold] {ident.workspace_id}")
+
+
 def main():
     app()
-
 
 if __name__ == "__main__":
     main()
