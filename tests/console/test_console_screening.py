@@ -12,6 +12,7 @@ Covers:
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -187,7 +188,9 @@ def _bootstrap_collect(tmp, n_batches):
         ),
         encoding="utf-8",
     )
+    registry = {"artifacts": {}}
     for b in range(1, n_batches + 1):
+        art_id = f"ART-batch-{b:03d}"
         (ws / "literature" / "screening" / f"batch_{b:03d}.json").write_text(
             json.dumps(
                 {
@@ -199,10 +202,66 @@ def _bootstrap_collect(tmp, n_batches):
                         {"workspace_id": f"SCI-{(b-1)*2+1:06d}"},
                         {"workspace_id": f"SCI-{(b-1)*2+2:06d}"},
                     ],
+                    "artifact_id": art_id
                 }
             ),
             encoding="utf-8",
         )
+        dummy_sha256 = "sha256:" + "a" * 64
+        from scholar_harness.contracts.canonical import canonical_fingerprint, canonical_json_bytes
+        
+        payload_obj = {
+            "schema_version": "1.0.0",
+            "artifact_type": "screening_batch",
+            "artifact_id": art_id,
+            "created_at": "2026-09-01T00:00:00Z",
+            "producer": {
+                "package": "scholar-harness",
+                "version": "1.0.0",
+                "commit": "unknown"
+            },
+            "workspace_id": "WSP-1",
+            "run_id": "RUN-1",
+            "protocol_fingerprint": dummy_sha256,
+            "corpus_fingerprint": dummy_sha256,
+            "inputs": [],
+            "data": {
+                "binding": {
+                    "screening_run_id": "RUN-1",
+                    "protocol_fingerprint": dummy_sha256,
+                    "corpus_fingerprint": dummy_sha256,
+                    "criteria_renderer_version": "v1",
+                    "dedup_configuration_hash": dummy_sha256,
+                    "preparation_run_id": "RUN-PREP-1"
+                },
+                "batch_id": f"BAT-{b:03d}",
+                "batch_index": b,
+                "candidates": [
+                    {"study_id": f"SCI-{(b-1)*2+1:06d}", "title": f"Paper {(b-1)*2+1}"},
+                    {"study_id": f"SCI-{(b-1)*2+2:06d}", "title": f"Paper {(b-1)*2+2}"}
+                ]
+            }
+        }
+        computed_sha256 = canonical_fingerprint(payload_obj)
+        payload_bytes = canonical_json_bytes(payload_obj) + b"\n"
+
+        registry["artifacts"][art_id] = {
+            "artifact_type": "screening_batch",
+            "path": f"artifacts/screening_batch/{art_id}.json",
+            "sha256": computed_sha256,
+            "accepted_at": "2026-09-01T00:00:00Z",
+            "run_id": "RUN-1",
+            "producer": {
+                "package": "scholar-harness",
+                "version": "1.0.0",
+                "commit": "unknown"
+            }
+        }
+        art_path = ws / "artifacts" / "screening_batch" / f"{art_id}.json"
+        art_path.parent.mkdir(parents=True, exist_ok=True)
+        art_path.write_bytes(payload_bytes)
+        
+    (ws / "audit" / "artifact_registry.json").write_text(json.dumps(registry), encoding="utf-8")
     return ws
 
 

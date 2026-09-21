@@ -2,9 +2,21 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import sys
 from dataclasses import asdict
+from datetime import UTC, datetime
 from pathlib import Path
+
+from scholar_harness.contracts.acceptance import AcceptanceContext, accept_artifact
+from scholar_harness.contracts.canonical import deterministic_id
+from scholar_harness.contracts.identifiers import IdentifierKind
+from scholar_harness.contracts.models import (
+    ScreeningDecisionsData,
+    ScreeningDecision as ContractDecision,
+    MethodProvenance,
+    ScreeningDecisionValue,
+)
 
 from scholar_search.models import Document
 from scholar_search.screening import (
@@ -13,7 +25,20 @@ from scholar_search.screening import (
     partition_screening_results,
 )
 
-from .batcher import _rebuild_doc, _screening_dir, _load_decisions
+from .batcher import (
+    _harness_commit,
+    _load_decision_payload,
+    _load_decisions,
+    _rebuild_doc,
+    _screening_dir,
+)
+
+try:
+    from scholar_agent.calibration import build_checklist_schema, checklist_to_decision
+
+    _HAS_CALIBRATION = True
+except ImportError:
+    _HAS_CALIBRATION = False
 
 logger = logging.getLogger("agent_screen")
 
@@ -77,6 +102,9 @@ def cmd_collect(workspace_dir: Path) -> None:
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     raw_verified: list[dict] = json.loads(verified_path.read_text(encoding="utf-8"))
+
+    registry_path = workspace_dir / "audit" / "artifact_registry.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8")) if registry_path.exists() else {"artifacts": {}}
 
     # Rebuild Document objects
     docs: list[Document] = []
@@ -207,11 +235,11 @@ def cmd_collect(workspace_dir: Path) -> None:
         for b in manifest["batches"]:
             idx = b["batch_index"]
             decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
+            batch_file = screening_dir / f"batch_{idx:03d}.json"
 
             if not decisions_file.exists():
                 missing_batches.append(idx)
                 logger.warning("Batch %d: decision file missing — using heuristic fallback.", idx)
-                batch_file = screening_dir / f"batch_{idx:03d}.json"
                 if batch_file.exists():
                     batch_data = json.loads(batch_file.read_text(encoding="utf-8"))
                     for p in batch_data.get("papers", []):
@@ -223,11 +251,24 @@ def cmd_collect(workspace_dir: Path) -> None:
                 continue
 
             try:
-                raw_decisions: list[dict] = _load_decisions(decisions_file)
+                raw_decisions, decision_metadata = _load_decision_payload(decisions_file)
             except Exception as exc:
                 logger.error("Batch %d: failed to parse decisions file (%s).", idx, exc)
                 missing_batches.append(idx)
                 continue
+
+            # Load the parent batch artifact to mint the screening decisions
+            batch_data = json.loads(batch_file.read_text(encoding="utf-8"))
+            batch_artifact_id = batch_data.get("artifact_id")
+            batch_entry = registry.get("artifacts", {}).get(batch_artifact_id)
+            if not batch_entry:
+                logger.error("Batch %d: parent artifact %s not in registry.", idx, batch_artifact_id)
+                missing_batches.append(idx)
+                continue
+
+            batch_env = json.loads((workspace_dir / batch_entry["path"]).read_text(encoding="utf-8"))
+            contract_decisions = []
+            legacy_appends = []
 
             for entry in raw_decisions:
                 wsid = str(entry.get("workspace_id") or entry.get("study_id") or "")
@@ -246,17 +287,19 @@ def cmd_collect(workspace_dir: Path) -> None:
                         document_title=doc.title if doc else entry.get("title", ""),
                         doi=(doc.external_ids.doi if doc else None) or entry.get("doi"),
                     )
-                    all_decisions.append(sd)
                 else:
                     raw_dec = str(entry.get("decision", "INCLUDE")).upper()
+                    if raw_dec not in {item.value for item in ScreeningDecisionValue}:
+                        raise ValueError(
+                            f"{decisions_file.name}: invalid decision {raw_dec!r}"
+                        )
                     decision = "INCLUDE" if raw_dec == "INCLUDE" else "EXCLUDE"
                     try:
                         confidence = float(entry.get("confidence", 0.80))
                     except (TypeError, ValueError):
                         confidence = 0.80
-
-                    all_decisions.append(
-                        ScreeningDecision(
+                        
+                    sd = ScreeningDecision(
                             workspace_id=wsid,
                             decision=decision,
                             confidence=confidence,
@@ -267,7 +310,111 @@ def cmd_collect(workspace_dir: Path) -> None:
                             document_title=doc.title if doc else entry.get("title", ""),
                             doi=doc.external_ids.doi if doc else None,
                         )
+
+                decided_at = str(
+                    entry.get("decided_at")
+                    or entry.get("timestamp")
+                    or decision_metadata["timestamp"]
+                )
+                if not decided_at:
+                    decided_at = datetime.fromtimestamp(
+                        decisions_file.stat().st_mtime, UTC
+                    ).isoformat()
+                screener_id = str(
+                    entry.get("screener_id") or decision_metadata["reviewed_by"]
+                )
+                method = MethodProvenance(str(entry.get("method") or "LLM").upper())
+                dec_val = ScreeningDecisionValue(str(sd.decision).upper())
+                parent_ids = list(entry.get("parent_decision_ids") or [])
+                reason = str(sd.screening_reasoning or "Agent screened.")
+                decision_id = deterministic_id(
+                    IdentifierKind.SCREENING_DECISION,
+                    batch_env["workspace_id"],
+                    {
+                        "batch_id": batch_env["data"]["batch_id"],
+                        "study_id": wsid,
+                        "screener_id": screener_id,
+                        "method": method.value,
+                        "decision": dec_val.value,
+                        "reason": reason,
+                        "decided_at": decided_at,
+                        "parent_decision_ids": parent_ids,
+                    },
+                )
+                contract_decisions.append(
+                    ContractDecision(
+                        decision_id=decision_id,
+                        study_id=wsid,
+                        screener_id=screener_id,
+                        method=method,
+                        decision=dec_val,
+                        reason=reason,
+                        decided_at=decided_at,
+                        model_id=entry.get("model_id"),
+                        prompt_version=entry.get("prompt_version"),
+                        parent_decision_ids=parent_ids,
                     )
+                )
+                legacy_appends.append(sd)
+
+            if contract_decisions:
+                run_id = manifest.get("screening_run_id") or batch_env["run_id"]
+                dec_data = ScreeningDecisionsData(
+                    binding=batch_env["data"]["binding"],
+                    batch_id=batch_env["data"]["batch_id"],
+                    decisions=contract_decisions
+                )
+                
+                artifact_id = deterministic_id(
+                    IdentifierKind.ARTIFACT,
+                    batch_env["workspace_id"],
+                    {
+                        "kind": "screening-decisions",
+                        "batch_id": batch_env["data"]["batch_id"],
+                        "decision_ids": [item.decision_id for item in contract_decisions],
+                    },
+                )
+                dec_env = {
+                    "schema_version": "1.0.0",
+                    "artifact_type": "screening_decisions",
+                    "artifact_id": artifact_id,
+                    "created_at": max(item.decided_at for item in contract_decisions).isoformat(),
+                    "producer": {
+                        "package": "scholar-harness",
+                        "version": "1.0.0",
+                        "commit": _harness_commit()
+                    },
+                    "workspace_id": batch_env["workspace_id"],
+                    "run_id": run_id,
+                    "protocol_fingerprint": batch_env["protocol_fingerprint"],
+                    "corpus_fingerprint": batch_env["corpus_fingerprint"],
+                    "inputs": [
+                        {
+                            "artifact_id": batch_env["artifact_id"],
+                            "sha256": batch_entry["sha256"]
+                        }
+                    ],
+                    "data": dec_data.model_dump(mode="json")
+                }
+                
+                ctx = AcceptanceContext(
+                    workspace_id=batch_env["workspace_id"],
+                    protocol_fingerprint=batch_env["protocol_fingerprint"],
+                    corpus_fingerprint=batch_env["corpus_fingerprint"],
+                )
+                
+                res = accept_artifact(workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect")
+                if not res.accepted:
+                    logger.error("Failed to accept decisions for batch %d: %s", idx, res.issues)
+                    # Archive legacy mismatching decisions
+                    decisions_file.rename(decisions_file.with_name(f"{decisions_file.name}.rejected"))
+                    missing_batches.append(idx)
+                    continue
+                else:
+                    all_decisions.extend(legacy_appends)
+                    archive_dir = screening_dir / "legacy"
+                    archive_dir.mkdir(exist_ok=True)
+                    shutil.copy2(decisions_file, archive_dir / decisions_file.name)
 
         if missing_batches:
             logger.warning("%d batch(es) had missing/broken decision files: %s", len(missing_batches), missing_batches)
