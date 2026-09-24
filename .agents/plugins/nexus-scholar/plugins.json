@@ -7,17 +7,21 @@
       "name": "scholar-protocol-kit",
       "description": "Deterministic research protocol compiler, JSON-schema contract, and intent specification.",
       "repo": "https://github.com/nexus-scholar-org/scholar-protocol-kit.git",
-      "default_rev": "46874778cd0dde6d89414532b52d258843789132",
+      "default_rev": "4e10f25c25a1b150ce518348d211c7771683a9b7",
       "console_script": "scholar-protocol",
-      "extras": ["dev"]
+      "extras": [
+        "dev"
+      ]
     },
     {
       "name": "scholar-search-kit",
       "description": "Federated academic search, deduplication, verification, and export toolkit.",
       "repo": "https://github.com/nexus-scholar-org/scholar-search-kit.git",
-      "default_rev": "00010694b9f957a84047da340dff40c51e583ea1",
+      "default_rev": "911d864fcb6a706d4c0339f80524a46f591e2cad",
       "console_script": "scholar-search",
-      "extras": ["dev"]
+      "extras": [
+        "dev"
+      ]
     },
     {
       "name": "scholar-pdf-kit",
@@ -25,7 +29,9 @@
       "repo": "https://github.com/nexus-scholar-org/scholar-pdf-kit.git",
       "default_rev": "9fa9e00361cd6d3bd7aec3c5a079db80f0287f58",
       "console_script": "scholar-pdf",
-      "extras": ["extract"]
+      "extras": [
+        "extract"
+      ]
     },
     {
       "name": "scholar-bib-kit",

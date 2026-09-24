@@ -2,12 +2,38 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
+from scholar_harness.contracts import AcceptanceContext, accept_artifact
+from scholar_harness.contracts.canonical import canonical_fingerprint, deterministic_id
+from scholar_harness.contracts.identifiers import IdentifierKind
+from scholar_harness.contracts.models import (
+    ScreeningBatchData,
+    ScreeningBinding,
+    ScreeningCandidate,
+)
+from scholar_protocol.canonical import canonical_fingerprint as protocol_fingerprint
+from scholar_protocol.models import ResearchProtocol
 from scholar_search.models import Author, Document, ExternalIds
 
 logger = logging.getLogger("agent_screen")
+
+
+def _harness_commit() -> str:
+    explicit = os.environ.get("NEXUS_HARNESS_COMMIT", "").strip()
+    if explicit:
+        return explicit
+    result = subprocess.run(
+        ["git", "-C", str(Path(__file__).resolve().parents[3]), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 else "unknown"
 
 def _rebuild_doc(raw: dict, fallback_id: str) -> Document:
     """Reconstruct a Document dataclass from a JSON dict (from verified.json)."""
@@ -136,21 +162,41 @@ def _load_decisions(path: Path) -> list[dict]:
     raise ValueError(f"{path.name}: expected a JSON list or wrapper object, got {type(payload).__name__}")
 
 
+def _load_decision_payload(path: Path) -> tuple[list[dict], dict[str, str]]:
+    """Load decisions and preserve wrapper provenance for Contract v1 migration."""
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(payload, dict):
+        decisions = payload.get("decisions")
+        if not isinstance(decisions, list):
+            raise ValueError(f"{path.name}: 'decisions' key must be a list")
+        return decisions, {
+            "reviewed_by": str(payload.get("reviewed_by") or "agent-unknown"),
+            "timestamp": str(payload.get("timestamp") or ""),
+        }
+    if isinstance(payload, list):
+        # F-002: Use stable fallback for legacy missing provenance instead of mutable mtime
+        timestamp = "1970-01-01T00:00:00+00:00"
+        return payload, {"reviewed_by": "agent-legacy", "timestamp": timestamp}
+    raise ValueError(
+        f"{path.name}: expected a JSON list or wrapper object, got {type(payload).__name__}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # PREPARE
 # ---------------------------------------------------------------------------
 
 def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) -> None:
-    """Chunk verified.json into batch files ready for the agent to screen."""
-    lit_dir = workspace_dir / "literature"
-    verified_path = lit_dir / "verified.json"
+    """Create generation-bound screening batches from the accepted corpus."""
     protocol_path = workspace_dir / "protocol.json"
+    registry_path = workspace_dir / "audit" / "artifact_registry.json"
 
-    if not verified_path.exists():
-        logger.error("verified.json not found at %s", verified_path)
-        sys.exit(1)
     if not protocol_path.exists():
         logger.error("protocol.json not found at %s", protocol_path)
+        sys.exit(1)
+    if not registry_path.exists():
+        logger.error("No artifact registry found. Accept a corpus snapshot first.")
         sys.exit(1)
 
     screening_dir = _screening_dir(workspace_dir)
@@ -166,8 +212,28 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
         )
         sys.exit(0)
 
-    raw_verified: list[dict] = json.loads(verified_path.read_text(encoding="utf-8"))
     protocol_data: dict = json.loads(protocol_path.read_text(encoding="utf-8"))
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    corpus_items = [
+        (artifact_id, entry)
+        for artifact_id, entry in registry.get("artifacts", {}).items()
+        if entry.get("artifact_type") == "corpus_snapshot"
+    ]
+    if not corpus_items:
+        logger.error("No accepted corpus snapshot found in the artifact registry.")
+        sys.exit(1)
+    corpus_id, corpus_entry = max(
+        corpus_items, key=lambda item: item[1].get("accepted_at", "")
+    )
+    corpus_env = json.loads(
+        (workspace_dir / corpus_entry["path"]).read_text(encoding="utf-8")
+    )
+    actual_protocol_fingerprint = protocol_fingerprint(
+        ResearchProtocol.model_validate(protocol_data)
+    )
+    if actual_protocol_fingerprint != corpus_env["protocol_fingerprint"]:
+        logger.error("protocol.json does not match the accepted corpus generation.")
+        sys.exit(1)
 
     protocol_summary = {
         "title": (protocol_data.get("metadata") or {}).get("title", "Research Protocol"),
@@ -175,30 +241,126 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
         "screening_criteria": protocol_data.get("screening_criteria", {}),
     }
 
-    # Chunk into batches
+    verified_path = workspace_dir / "literature" / "verified.json"
+    verified_docs = []
+    if verified_path.exists():
+        verified_docs = json.loads(verified_path.read_text(encoding="utf-8"))
+    
+    verified_lookup = {d.get("workspace_id"): d for d in verified_docs if d.get("workspace_id")}
+    alias_to_doc = {}
+    for study in corpus_env["data"]["studies"]:
+        stu_id = study["study_id"]
+        for alias in study.get("alias_ids", []):
+            if alias in verified_lookup:
+                alias_to_doc[stu_id] = verified_lookup[alias]
+                break
+
+    candidates = [
+        ScreeningCandidate(
+            study_id=study["study_id"],
+            title=study["title"],
+            abstract=alias_to_doc.get(study["study_id"], {}).get("abstract") or None,
+        )
+        for study in corpus_env["data"]["studies"]
+    ]
     chunks = [
-        raw_verified[i : i + batch_size]
-        for i in range(0, len(raw_verified), batch_size)
+        candidates[i : i + batch_size]
+        for i in range(0, len(candidates), batch_size)
     ]
     total_batches = len(chunks)
+    renderer_version = protocol_data.get("metadata", {}).get("version", "scholar-protocol-criteria-v1")
+    dedup_hash = canonical_fingerprint(
+        {"identity_algorithm_version": corpus_env["data"]["identity_algorithm_version"], "corpus_id": corpus_env["data"]["corpus_id"]}
+    )
+    run_id = deterministic_id(
+        IdentifierKind.RUN,
+        corpus_env["workspace_id"],
+        {
+            "protocol_fingerprint": actual_protocol_fingerprint,
+            "corpus_fingerprint": corpus_env["corpus_fingerprint"],
+            "renderer_version": renderer_version,
+            "dedup_configuration_hash": dedup_hash,
+        },
+    )
+    binding = ScreeningBinding(
+        screening_run_id=run_id,
+        protocol_fingerprint=actual_protocol_fingerprint,
+        corpus_fingerprint=corpus_env["corpus_fingerprint"],
+        criteria_renderer_version=renderer_version,
+        dedup_configuration_hash=dedup_hash,
+        preparation_run_id=run_id,
+    )
 
     logger.info(
         "Preparing %d batches of up to %d papers from %d verified documents.",
-        total_batches, batch_size, len(raw_verified),
+        total_batches, batch_size, len(candidates),
     )
 
     for idx, chunk in enumerate(chunks, start=1):
-        # Build the lightweight paper list for the batch file
+        batch_id = deterministic_id(
+            IdentifierKind.ARTIFACT,
+            corpus_env["workspace_id"],
+            {"kind": "screening-batch", "run_id": run_id, "batch_index": idx},
+        ).replace("ART-", "batch-", 1)
+        data = ScreeningBatchData(
+            binding=binding,
+            batch_id=batch_id,
+            batch_index=idx,
+            candidates=chunk,
+        )
+        artifact_id = deterministic_id(
+            IdentifierKind.ARTIFACT,
+            corpus_env["workspace_id"],
+            {"kind": "screening-batch-artifact", "batch_id": batch_id},
+        )
+        existing_entry = registry.get("artifacts", {}).get(artifact_id)
+        created_at = datetime.now(UTC).isoformat()
+        if existing_entry:
+            existing_payload = json.loads(
+                (workspace_dir / existing_entry["path"]).read_text(encoding="utf-8")
+            )
+            created_at = existing_payload["created_at"]
+        envelope = {
+            "schema_version": "1.0.0",
+            "artifact_type": "screening_batch",
+            "artifact_id": artifact_id,
+            "created_at": created_at,
+            "producer": {
+                "package": "nexus-scholar-harness",
+                "version": "1.0.0",
+                "commit": _harness_commit(),
+            },
+            "workspace_id": corpus_env["workspace_id"],
+            "run_id": run_id,
+            "protocol_fingerprint": actual_protocol_fingerprint,
+            "corpus_fingerprint": corpus_env["corpus_fingerprint"],
+            "inputs": [{"artifact_id": corpus_id, "sha256": corpus_entry["sha256"]}],
+            "data": data.model_dump(mode="json"),
+        }
+        result = accept_artifact(
+            workspace_dir,
+            envelope,
+            expected=AcceptanceContext(
+                workspace_id=corpus_env["workspace_id"],
+                protocol_fingerprint=actual_protocol_fingerprint,
+                corpus_fingerprint=corpus_env["corpus_fingerprint"],
+            ),
+            actor="agent_screen.prepare",
+        )
+        if not result.accepted:
+            logger.error("Failed to accept batch %d: %s", idx, result.issues)
+            sys.exit(1)
+
         papers_for_batch = [
             {
-                "workspace_id": p.get("workspace_id") or f"SCI-{((idx-1)*batch_size + i + 1):06d}",
-                "title": p.get("title", "Untitled"),
-                "year": p.get("year"),
-                "abstract": p.get("abstract") or "No abstract available.",
-                "venue": p.get("venue"),
-                "doi": (p.get("external_ids") or {}).get("doi") or p.get("doi"),
+                "workspace_id": candidate.study_id,
+                "title": candidate.title,
+                "year": alias_to_doc.get(candidate.study_id, {}).get("year"),
+                "abstract": candidate.abstract or "No abstract available.",
+                "venue": alias_to_doc.get(candidate.study_id, {}).get("venue"),
+                "doi": (alias_to_doc.get(candidate.study_id, {}).get("external_ids") or {}).get("doi"),
             }
-            for i, p in enumerate(chunk)
+            for candidate in chunk
         ]
 
         batch_file = screening_dir / f"batch_{idx:03d}.json"
@@ -207,6 +369,8 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
             "total_batches": total_batches,
             "batch_size": len(papers_for_batch),
             "status": "PENDING",
+            "artifact_id": artifact_id,
+            "binding": binding.model_dump(mode="json"),
             "protocol": protocol_summary,
             "papers": papers_for_batch,
             "agent_instructions": _build_agent_instructions(
@@ -220,7 +384,8 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
 
     # Write a manifest
     manifest = {
-        "total_papers": len(raw_verified),
+        "screening_run_id": run_id,
+        "total_papers": len(candidates),
         "batch_size": batch_size,
         "total_batches": total_batches,
         "batches": [
