@@ -4,6 +4,8 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from scholar_harness.contracts import AcceptanceContext, accept_artifact
 from scholar_harness.screening.batcher import cmd_prepare
 from scholar_harness.screening.collector import cmd_collect
@@ -138,3 +140,107 @@ def test_prepare_and_collect_publish_bound_idempotent_artifacts(tmp_path: Path) 
         (workspace / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
     )
     assert second_registry["artifacts"].keys() == first_registry["artifacts"].keys()
+
+
+def test_collect_fails_closed_when_decision_file_is_missing(tmp_path: Path) -> None:
+    workspace, _ = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+
+    with pytest.raises(RuntimeError, match="collection blocked"):
+        cmd_collect(workspace)
+
+    literature = workspace / "literature"
+    assert not (literature / "included.json").exists()
+    assert not (literature / "excluded.json").exists()
+    registry = json.loads(
+        (workspace / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
+    )
+    assert all(
+        entry["artifact_type"] != "screening_decisions"
+        for entry in registry["artifacts"].values()
+    )
+
+
+def test_dual_screening_preserves_source_and_parent_lineage(tmp_path: Path) -> None:
+    workspace, study = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    screening = workspace / "literature" / "screening"
+    common = {
+        "workspace_id": study["study_id"],
+        "decision": "INCLUDE",
+        "method": "HUMAN",
+        "screening_reasoning": "Meets all frozen criteria.",
+    }
+    (screening / "batch_001_decisions.json").write_text(
+        json.dumps(
+            [
+                {
+                    **common,
+                    "decision_id": "SCR-screener-1",
+                    "screener_id": "reviewer-1",
+                    "decided_at": "2026-09-21T12:00:00Z",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (screening / "batch_001_decisions_screener2.json").write_text(
+        json.dumps(
+            [
+                {
+                    **common,
+                    "decision_id": "SCR-screener-2",
+                    "screener_id": "reviewer-2",
+                    "decided_at": "2026-09-21T12:01:00Z",
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (screening / "_adjudication_resolved_group_001.json").write_text(
+        "[]", encoding="utf-8"
+    )
+
+    cmd_collect(workspace)
+
+    registry = json.loads(
+        (workspace / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
+    )
+    entry = next(
+        item
+        for item in registry["artifacts"].values()
+        if item["artifact_type"] == "screening_decisions"
+    )
+    artifact = json.loads((workspace / entry["path"]).read_text(encoding="utf-8"))
+    decisions = artifact["data"]["decisions"]
+    assert {item["decision_id"] for item in decisions[:2]} == {
+        "SCR-screener-1",
+        "SCR-screener-2",
+    }
+    final = decisions[-1]
+    assert final["method"] == "COMPOSED"
+    assert set(final["parent_decision_ids"]) == {
+        "SCR-screener-1",
+        "SCR-screener-2",
+    }
+
+
+def test_dual_screening_fails_closed_without_source_provenance(tmp_path: Path) -> None:
+    workspace, study = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    screening = workspace / "literature" / "screening"
+    incomplete = [{"workspace_id": study["study_id"], "decision": "INCLUDE"}]
+    (screening / "batch_001_decisions.json").write_text(
+        json.dumps(incomplete), encoding="utf-8"
+    )
+    (screening / "batch_001_decisions_screener2.json").write_text(
+        json.dumps(incomplete), encoding="utf-8"
+    )
+    (screening / "_adjudication_resolved_group_001.json").write_text(
+        "[]", encoding="utf-8"
+    )
+
+    with pytest.raises(RuntimeError, match="missing contract provenance fields"):
+        cmd_collect(workspace)
+
+    assert not (workspace / "literature" / "included.json").exists()
