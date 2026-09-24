@@ -278,4 +278,3 @@ A task is done only when:
 
 The guiding rule is simple: **make the evidence chain trustworthy before making
 the agents more autonomous.**
-

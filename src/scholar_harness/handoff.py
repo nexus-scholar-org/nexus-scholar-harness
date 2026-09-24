@@ -3,7 +3,7 @@
 Implements the state-file contract, phase detection, and supervisor loop
 that automatically advances workspaces through the systematic review phases.
 
-See ``specs/phase_f_specialized_agents/handoff_spec.md`` for the full
+See ``specs/handoff/handoff_spec.md`` for the full
 specification.
 """
 

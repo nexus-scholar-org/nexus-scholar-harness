@@ -1,285 +1,126 @@
-# Nexus Scholar Harness: Phase Specifications Summary
+# Nexus Scholar Harness — System Specifications
 
-**Created:** 2026-09-15  
-**Last Updated:** 2026-09-15  
-**Author:** opencode (mimo-v2.5-free)  
-**Status:** All Phase Specs Complete (A-E), Post-Review v1.1.0
+Welcome to the central specification index for the Nexus Scholar ecosystem. This directory houses the formal engineering specifications, architectural contracts, and methodological frameworks governing the research harness and its eight specialized domain toolkits.
 
 ---
 
-## Overview
+## 1. Specification Architecture & Hierarchy
 
-This document provides an overview of all phase specifications for the Nexus Scholar Harness ecosystem. Each phase builds upon the existing codebase, wrapping and enhancing existing kit APIs rather than reimplementing.
+Specifications within this repository are structured hierarchically based on normative authority and operational scope:
 
----
+```mermaid
+graph TD
+    Root["specs/"]
+    Root --> DeepAudit["deep-audit-remediation-2026-09-17/<br/><b>(Normative Contract v1 & System Roadmap)</b>"]
+    Root --> Grounding["exploratory-grounding-agent/<br/><b>(Grounded Literature Reconnaissance)</b>"]
+    Root --> Ecosystem["inception-ecosystem/<br/><b>(Skill Boundaries & Distribution)</b>"]
+    Root --> Handoff["handoff/<br/><b>(Agent Handoff State Machine)</b>"]
+    Root --> Archive["archive/<br/><b>(Historical Sprints & Superseded Drafts)</b>"]
 
-## Phase Summary
-
-| Phase | Name | Duration | Features | Total Hours | Version |
-|-------|------|----------|----------|-------------|---------|
-| A | Interoperability | 3 days | 5 | 45.5 | 1.0.0 |
-| B | Scientometrics | 5 days | 5 | 37.5 | 1.1.0 |
-| C | RAG | 4 days | 3 | 20 | 1.1.0 |
-| D | Agent | 2 days | 2 | 8.5 | 1.1.0 |
-| E | Visualization | 2 days | 3 | 10 | 1.1.0 |
-| **Total** | | **16 days** | **18** | **121.5** | |
-
----
-
-## Phase A: Interoperability (Days 1–3)
-
-**Spec Location:** `specs/phase_a_interoperability/README.md`
-
-### Features
-1. **RIS Exporter** - Export `Document` objects to RIS format for Rayyan/Covidence
-2. **CSL-JSON Exporter** - Export BibTeX `Entry` objects to CSL-JSON for Zotero/Pandoc
-3. **0-11 Completeness Score** - Quantitative assessment of document metadata quality
-4. **Abstract Backfilling** - Enrich documents with abstracts from Crossref/Semantic Scholar
-5. **GEXF/GraphML Exporters** - Export citation graphs to Gephi/yEd
-
-### Key Learnings Applied
-- DocumentCluster `.duplicates` → `.members` (actual field name)
-- AcademicHttpClient has no `post()` method
-- P7.7 lazy imports for networkx
-- `doc.sources[0]` is a dict, not a string (access `.get("provider")`)
-
-### Total: 45.5 hours
-
----
-
-## Phase B: Scientometrics (Days 5–9)
-
-**Spec Location:** `specs/phase_b_scientometrics/README.md`
-
-### Features
-1. **HITS Hubs & Authorities** - Identify seminal reviews (Hubs) vs. empirical trials (Authorities)
-2. **Co-Citation & Coupling Networks** - Construct intellectual paradigm clusters
-3. **Louvain Community Detection** - Automatic thematic partitioning (sets `community` attribute)
-4. **Screening Run Comparator** - Compare screening runs with 2-state transition matrices
-5. **Golden Seed Self-Healing Query** - Validate queries against landmark papers
-
-### Key Learnings Applied
-- All networkx imports deferred inside function bodies
-- `ScreeningDecision` has exactly 2 states: `INCLUDE`, `EXCLUDE` (no `UNCERTAIN`)
-- `golden_seeds` added to `SearchStrategy` (NOT `ResearchProtocol` directly)
-- Monorepo sync with push_tools.py
-
-### Total: 37.5 hours
-
----
-
-## Phase C: RAG (Days 10–13)
-
-**Spec Location:** `specs/phase_c_rag/README.md`
-
-### Features
-1. **ChromaDB Vector Backend** - Enhanced `ScholarIndexer` with production-grade vector storage
-2. **Structured Extraction with LLM** - Schema-validated extraction aligned with `MethodologyMetadata`
-3. **Gemini Embedding Integration** - Added to existing `embedder.py` with `get_embedder()` factory
-
-### Key Learnings Applied
-- Reuse existing `MarkdownChunker` (NOT `chunk_document`)
-- `MethodologyMetadata` from `models.py` for extraction schemas
-- PII patterns: email, ORCID, phone, grant numbers
-- `_call_llm()` uses Gemini REST API with `responseMimeType:"application/json"`
-- Heuristic fallback on LLM failure
-
-### Total: 20 hours
-
----
-
-## Phase D: Agent (Days 14–15)
-
-**Spec Location:** `specs/phase_d_agent/README.md`
-
-### Features
-1. **LLM-Enhanced Screening MCP Tool** - `nexus_screen_llm` wrapping `LLMBatchScreener` + `calibration.py`
-2. **Pipeline Automation MCP Tool** - `nexus_pipeline_run` wrapping existing `ResearchOrchestrator`
-
-### Key Learnings Applied
-- `MCPServer` already IS the tool registry (D2 MCP Tool Abstraction dropped)
-- Wrap existing code, don't reimplement
-- Use `calibration.py`'s structured boolean checklist (prevents LLM drift)
-- Return `ScreeningDecision` dataclass objects (not raw dicts)
-- MCP tools in `scholar-agent-kit` (no Typer CLI)
-
-### Total: 8.5 hours
-
----
-
-## Phase E: Visualization (Days 16–17)
-
-**Spec Location:** `specs/phase_e_visualization/README.md`
-
-### Features
-1. **Enhanced Graph Visualization** - Add community coloring to existing `GraphVisualizer`
-2. **PRISMA Flow Diagrams** - Add `to_mermaid()`/`to_plantuml()` to existing `PrismaFlowReport`
-3. **PRISMA 2020 Compliance Scoring** - Add `prisma_compliance()` to existing `validate_protocol()`
-
-### Key Learnings Applied
-- `visualizer.py` already exists — enhance, don't recreate
-- `PrismaFlowReport` already exists in `scholar-search-kit` — extend, don't duplicate
-- RIS/CSL-JSON for protocols dropped (wrong format for research plans)
-- E1 depends on B3's `community` attribute for node coloring
-- E2 consumes `prisma_report.json` from D1's screening output
-
-### Total: 10 hours
-
----
-
-## Cross-Phase Dependencies
-
-```
-Phase A (Interoperability) ← independent
-Phase B (Scientometrics) ← independent
-Phase C (RAG) ← independent
-Phase D (Agent) ← independent (wraps existing code)
-Phase E (Visualization) ← depends on B3 (community coloring for E1)
+    DeepAudit --> Contracts["10_cross_kit_contracts.md<br/><i>Frozen Contract v1 Baseline</i>"]
+    DeepAudit --> Kits["01..09 Kit Specifications"]
+    DeepAudit --> Roadmap["12_execution_roadmap.md<br/><i>WP-00 to WP-14 Waves</i>"]
+    DeepAudit --> Loops["13..14 Scientific Agent Loops"]
 ```
 
-**Key Data Flow Chains:**
-- B3 → E1: Community detection sets `community` attribute → E1 colors nodes by community
-- D1 → E2: Screening produces `prisma_report.json` → E2 generates Mermaid/PlantUML diagrams
-- A3 → A4: Completeness scoring identifies missing abstracts → backfilling enriches them
+### Governing Authority
+
+1. **Contract v1 (`specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md`)** is the highest architectural authority for shared data structures, canonical identity, error envelopes, and cross-kit protocols.
+2. **Kit Specifications (`01_harness_spec.md` through `09_verify_kit_spec.md`)** govern subsystem boundaries and requirements for the harness and individual toolkits.
+3. **Execution Roadmap (`12_execution_roadmap.md`)** governs work-package scheduling, gate criteria, and rollout ordering.
+4. **Domain Series (`exploratory-grounding-agent/`, `inception-ecosystem/`, `handoff/`)** govern specialized workflows, cognitive agent loops, and phase transitions.
 
 ---
 
-## Implementation Order
+## 2. Active Specification Series
 
-### Recommended Sequence
+### 2.1 Normative System Remediation & Contract v1
+**Directory:** [`specs/deep-audit-remediation-2026-09-17/`](./deep-audit-remediation-2026-09-17/README.md)  
+**Status:** Normative Architecture Baseline (Frozen WP-00 / Active Waves)
 
-1. **Phase A** (Days 1-3) - Foundation for interoperability
-2. **Phase B** (Days 5-9) - Scientometric analysis
-3. **Phase C** (Days 10-13) - RAG capabilities
-4. **Phase D** (Days 14-15) - Agent integration
-5. **Phase E** (Days 16-17) - Visualization
+Translates the comprehensive 2026-09-17 system audit findings into strict, testable requirements organized into 15 work packages (WP-00 through WP-14) across four delivery waves:
 
-All phases are substantially independent except E1→B3.
-
----
-
-## Specification Quality Checklist
-
-Each specification includes:
-
-- [x] **Executive Summary** - High-level overview
-- [x] **Algorithm Specifications** - Detailed algorithms with pseudocode
-- [x] **File Modifications** - Exact files to create/modify
-- [x] **Implementation Details** - Complete code examples
-- [x] **CLI Integration** - Command-line interface design
-- [x] **Testing Strategy** - Unit and integration tests
-- [x] **Task List** - Breakdown with dependencies and estimates
-- [x] **Monorepo Governance** - Sync requirements
-- [x] **Definition of Done** - Feature and phase-level criteria
-- [x] **Acceptance Criteria** - Measurable targets
-- [x] **Dependencies & Constraints** - External and internal
-- [x] **Risk Mitigation** - Identified risks and mitigations
+| Specification Document | Boundary / Role | Core Requirements |
+| :--- | :--- | :--- |
+| [`00_system_scope_and_findings.md`](./deep-audit-remediation-2026-09-17/00_system_scope_and_findings.md) | Whole System | Severity model, audit findings (SYS-001..022), system invariants |
+| [`01_harness_spec.md`](./deep-audit-remediation-2026-09-17/01_harness_spec.md) | `scholar_harness` | Orchestration, agent-in-the-loop screening, DAG executor, audit journal |
+| [`02_search_kit_spec.md`](./deep-audit-remediation-2026-09-17/02_search_kit_spec.md) | `scholar-search-kit` | Multi-source discovery outcomes, lossless records, transitive deduplication |
+| [`03_pdf_kit_spec.md`](./deep-audit-remediation-2026-09-17/03_pdf_kit_spec.md) | `scholar-pdf-kit` | Download validation, layout extraction, frontmatter metadata |
+| [`04_bib_kit_spec.md`](./deep-audit-remediation-2026-09-17/04_bib_kit_spec.md) | `scholar-bib-kit` | Conservative BibTeX resolution, deduplication, atomic writes |
+| [`05_rag_kit_spec.md`](./deep-audit-remediation-2026-09-17/05_rag_kit_spec.md) | `scholar-rag-kit` | Study-bound AST chunking, honest retrieval, negative claim verification |
+| [`06_graph_kit_spec.md`](./deep-audit-remediation-2026-09-17/06_graph_kit_spec.md) | `scholar-graph-kit` | Scientometrics, bibliographic coupling, co-citation, PageRank, PyVis |
+| [`07_protocol_kit_spec.md`](./deep-audit-remediation-2026-09-17/07_protocol_kit_spec.md) | `scholar-protocol-kit` | Protocol compilation, schema validation, golden seed query preservation |
+| [`08_agent_kit_spec.md`](./deep-audit-remediation-2026-09-17/08_agent_kit_spec.md) | `scholar-agent-kit` | Model Context Protocol (MCP) server truthfulness, CLI-MCP parity, cache roots |
+| [`09_verify_kit_spec.md`](./deep-audit-remediation-2026-09-17/09_verify_kit_spec.md) | `scholar-verify-kit` | Retraction blocking, open-science artifact scans, COI audits, RoB scoring |
+| [**`10_cross_kit_contracts.md`**](./deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md) | Cross-Kit Architecture | **Contract v1 Baseline**: Identity registry, envelopes, outcomes, fingerprints |
+| [`11_validation_and_test_plan.md`](./deep-audit-remediation-2026-09-17/11_validation_and_test_plan.md) | Quality Assurance | Negative regressions, concurrency isolation, golden 2-study end-to-end chain |
+| [**`12_execution_roadmap.md`**](./deep-audit-remediation-2026-09-17/12_execution_roadmap.md) | Delivery Program | Delivery gates G0..G3, dependency order, work packages WP-00..WP-14 |
+| [`13_scientific_agent_loop_framework.md`](./deep-audit-remediation-2026-09-17/13_scientific_agent_loop_framework.md) | Orchestration Engine | Reusable multi-role loop schema, doer-critic contract, state persistence |
+| [`14_scientific_agent_loop_catalog.md`](./deep-audit-remediation-2026-09-17/14_scientific_agent_loop_catalog.md) | Agent Catalog | Concrete scientific agent workflows (dual-screening, deep extraction, audit) |
+| [`15_deep_audit_report.md`](./deep-audit-remediation-2026-09-17/15_deep_audit_report.md) | Audit Evidence | Consolidated codebase audit findings, severity metrics, and architectural risk |
+| [`16_publication_strategy.md`](./deep-audit-remediation-2026-09-17/16_publication_strategy.md) | Academic Strategy | Empirical benchmark plan, research contribution framing, venue target analysis |
 
 ---
 
-## Lessons Learned (Applied Across All Phases)
+### 2.2 Grounded Exploratory Inception Agent
+**Directory:** [`specs/exploratory-grounding-agent/`](./exploratory-grounding-agent/README.md)  
+**Status:** Implemented & Verified (M0.1 – M0.7)
 
-### From Phase A
-1. **Attribute Verification:** Always verify field names against actual code
-2. **Method Existence:** Check that methods exist before referencing them
-3. **P7.7 Lazy Imports:** All heavy dependencies must remain deferred
-4. **Monorepo Governance:** Kit changes require `push_tools.py` → `plugins.json` → `generate_nexus_scholar_pins.py`
+Specifies the pre-protocol literature reconnaissance subsystem (`src/scholar_harness/recon/`). Enables AI agents to probe the scholarly literature, calculate empirical grounding metrics, and establish saturated research directions before freezing a protocol:
 
-### From Phase B
-1. **ScreeningDecision Schema:** Exactly 2 states: `INCLUDE`, `EXCLUDE` (no `UNCERTAIN`)
-2. **Co-Citation Complexity:** O(n²) for large graphs, use sparse matrices
-3. **Louvain Determinism:** Use `seed=42` for reproducibility
-
-### From Phase C
-1. **ChromaDB Batch Size:** Default 100 documents per batch
-2. **PII Patterns:** Email, ORCID, phone, grant number regex patterns
-3. **Pydantic Validation:** Use `model_json_schema()` for LLM prompts
-
-### From Phase D
-1. **Kit Non-Reinvention:** Wrap existing code, don't reimplement
-2. **MCP Server:** `MCPServer` already handles tool registration and validation
-3. **Calibration:** Use structured boolean checklist to prevent LLM drift
-
-### From Phase E
-1. **Enhance, Don't Recreate:** Existing classes should be extended, not replaced
-2. **Correct Kit Placement:** Features must live where their data models live
-3. **Format Appropriateness:** RIS/CSL-JSON are for citations, not research plans
+- **Mathematical Grounding:** Defines the Question Echo Index (QEI ≤ 0.30 target) to detect query regurgitation and the Anchor-Provenance Ratio (APR ≥ 0.70) for empirical concept density.
+- **Corpus Saturation Seam:** Quantifies whether candidate search frontiers are dense, moderate, or thin, informing honest downstream screening budgets.
+- **Canonical Cache Architecture:** Guarantees deterministic, CWD-independent cache sharing (`canonical_recon_root()`) across interactive CLI wizards and background MCP servers.
+- **Tool Contracts:** Complete interface specifications for `recon_probe`, `recon_distill`, `recon_directions`, and `recon_delta`.
 
 ---
 
-## Testing Strategy Across Phases
+### 2.3 Inception Skill Ecosystem
+**Directory:** [`specs/inception-ecosystem/`](./inception-ecosystem/README.md)  
+**Status:** Implemented & Active
 
-### Common Principles
-1. **Hermetic Tests:** No network calls, no real API invocations
-2. **Isolated Workspaces:** Use `tmp_path` fixture for all file I/O
-3. **Contract-Driven:** Verify data schemas, not implementation details
-4. **Deterministic:** Same inputs always produce same outputs
+Specifies the boundaries, state transitions, and synchronization mechanics for agent skills supporting inception and protocol formulation:
 
-### Test Execution
-```bash
-# Run all tests
-uv run pytest -v
-
-# Run specific phase tests
-uv run pytest tests/ -k "phase_a" -v
-uv run pytest tests/ -k "phase_b" -v
-uv run pytest tests/ -k "phase_c" -v
-uv run pytest tests/ -k "phase_d" -v
-uv run pytest tests/ -k "phase_e" -v
-
-# Run with coverage
-uv run pytest --cov=src --cov-report=html
-```
+- **[`01_skill_boundaries.md`](./inception-ecosystem/01_skill_boundaries.md):** Strict division of responsibilities among `inception-agent`, `methodology-copilot`, `workspace-manager`, and domain kit skills.
+- **[`02_handoffs.md`](./inception-ecosystem/02_handoffs.md):** The `GENESIS` provenance contract and `audit/recon_context.json` sidecar schema bridging exploratory recon to protocol compilation.
+- **[`03_skill_tree_and_plugin_distribution.md`](./inception-ecosystem/03_skill_tree_and_plugin_distribution.md):** Source-of-truth rules and deterministic mirroring between `.agents/skills/` and `.agents/plugins/nexus-scholar/skills/`.
 
 ---
 
-## Monorepo Governance (All Phases)
+### 2.4 Agent Handoff Protocol
+**Directory:** [`specs/handoff/`](./handoff/README.md)  
+**Status:** Active Pipeline State Machine
 
-### Post-Implementation Steps
+Defines the file-based state machine that automatically advances research workspaces through the systematic review lifecycle:
 
-For each phase completion:
+$$\text{INCEPTION} \longrightarrow \text{SCREENING} \longrightarrow \text{EXTRACTION} \longrightarrow \text{GRAPH} \longrightarrow \text{SYNTHESIS} \longrightarrow \text{CRITIQUE} \longrightarrow \text{COMPLETE}$$
 
-```bash
-# 1. Sync kit changes to external repos
-python scripts/push_tools.py
-
-# 2. Update plugins.json (manual step after push)
-# Edit .agents/plugins/nexus-scholar/plugins.json
-
-# 3. Regenerate metapackage pins
-python scripts/generate_nexus_scholar_pins.py --check  # Verify freshness
-python scripts/generate_nexus_scholar_pins.py          # Regenerate
-
-# 4. Run conformance tests
-uv run pytest tests/conformance/ -v
-
-# 5. Run full test suite
-uv run pytest -v
-```
+- **File-First Triggers:** Advancement is governed by deterministic workspace artifacts (`protocol.json`, `literature/included.json`, `literature/knowledge_graph.json`, `synthesis/consensus.json`).
+- **Runtime Supervisor:** Managed by `src/scholar_harness/handoff.py` with state tracked in `handoff_state.json` and full event logging to `audit/journal.jsonl`.
 
 ---
 
-## Success Metrics
+## 3. Core Architectural Contracts (Contract v1)
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Test Coverage | ≥90% | `pytest --cov` |
-| Lint Clean | 0 errors | `ruff check scripts/` |
-| Type Clean | 0 errors | `mypy src/` |
-| Conformance | 100% | `pytest tests/conformance/` |
-| No Regressions | 0 failures | `pytest` |
+All active specifications and runtime components adhere to the Contract v1 standards established in [`deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md`](./deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md):
 
----
-
-## Next Steps
-
-1. **Review Phase A spec** - Start with `specs/phase_a_interoperability/README.md`
-2. **Approve or request changes** - Before implementation begins
-3. **Begin implementation** - After approval
-4. **Continue with Phase B** - After Phase A completion
+1. **Disambiguated Entity Identity:**
+   - `workspace_id`: Identifies a local research workspace namespace.
+   - `study_id`: Uniquely identifies a conceptual scholarly work.
+   - `document_id`: Identifies an acquired, full-text representation of a study.
+   - `chunk_id`: Identifies an indexed evidence chunk derived from a document.
+2. **Standardized Envelopes:**
+   - All inter-kit artifacts are serialized using `ArtifactEnvelope` v1, capturing producer metadata, protocol fingerprints, and typed payloads.
+   - Operations report status via `OperationOutcome` v1, ensuring partial failures and provider errors remain explicitly structured rather than silently swallowed.
+3. **Audit Ledger Immutability:**
+   - Every state-altering action appends a cryptographically traceable event to `audit/journal.jsonl` within the workspace.
 
 ---
 
-*Summary created by opencode (mimo-v2.5-free) on 2026-09-15*
-*Last updated: 2026-09-15 (post-sweep fixes applied)*
-*Source: Phase specifications A through E (all v1.1.0 or v1.0.0)*
+## 4. Historical Archive
+
+Historical sprint checklists, early draft data contracts, and implementation notes from earlier development cycles are preserved in [`specs/archive/`](./archive/README.md):
+
+- **[`INTER_PHASE_DATA_CONTRACT.md`](./archive/INTER_PHASE_DATA_CONTRACT.md):** Superseded early contract draft (September 2026).
+- **[`phase_0_refactoring/`](./archive/phase_0_refactoring/):** Historical refactoring plan for inception and test directories.
+- **[`phase_a_interoperability/`](./archive/phase_a_interoperability/) through [`phase_f_specialized_agents/`](./archive/phase_f_specialized_agents/):** Implementation sprint checklists for Phases A through F (merged in PR #34 and integrated into toolkits).
