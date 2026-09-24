@@ -17,6 +17,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 
 ### Contract v1 baseline (hard gate)
 
+- **Developer entrypoint:** before contract-related implementation, review, or orchestration, read `docs/architecture/DEVELOPER_COMPASS.md`. It records the current packet status, dependency order, mandatory gates, toolkit-sync rules, and prohibited shortcuts. The frozen baseline and typed models remain normative for contract semantics.
 - PR #37 merged the frozen WP-00 **reference implementation**, not WP-01 runtime adoption. Protocol/search producers, harness consumers, legacy workspaces, and screening remain unmigrated until their packet gates pass.
 - Before WP-01 or downstream remediation, read `docs/architecture/contract_v1_baseline.md` and run `uv run python scripts/generate_contract_baseline.py --check`. Failure is `BLOCKED_BASELINE_DRIFT`; never regenerate merely to bless unexplained changes.
 - Packet C is the `CONSUMER_GATED_REFERENCE` in `docs/architecture/wp01_packet_c_reference.md`. Packets A (protocol) and B (search) are ready. Packet D (screening migration) and Packet E (PDF/RAG stubs) are blocked on A+B.
