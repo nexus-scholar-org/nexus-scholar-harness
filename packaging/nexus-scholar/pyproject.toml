@@ -55,6 +55,13 @@ dependencies = [
     "networkx>=3.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    # Import-time reachability: the vendored E1 pdf-kit imports ``pypdf.errors``
+    # at package import (``scholar_pdf/__init__`` -> ``.acquisition`` -> ``pypdf``),
+    # and this metapackage force-includes kit *sources* rather than depending on
+    # kit wheels, so it must declare pypdf for the P7.7/CI minimal-dep wheel
+    # smoke (``--help``).  pypdf is lightweight pure Python; the heavy deps
+    # (pymupdf, chromadb, torch) stay lazy/deferred and are not imported here.
+    "pypdf>=4.0.0",
     "pyvis>=0.3.0",
     "requests>=2.31.0",
     "rich>=13.0.0",

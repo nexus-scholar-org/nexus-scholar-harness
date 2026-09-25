@@ -13,6 +13,50 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; removes corrupted HTML/paywall block pages. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
 4. **Smart Canonical Naming**: Formats filenames as `{year}_{author}_{title}.pdf` and exports structured metadata logs.
 5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `authors`, `year`, `extraction_engine`, `extracted_at`; empty keys are dropped).
+6. **Acquired-Document Boundary (WP01-E1)**: parent-bound, deterministic acquisition of exact PDF bytes for an *accepted* study (discovery download or `USER_PATH` ingest), publishing a `pdf-acquisition-manifest-v1` manifest. **API/CLI only — not available on MCP.**
+
+---
+
+## Acquired-document boundary (WP01-E1)
+
+**API:** `scholar_pdf.acquisition` (typed request/outcome models in
+`scholar_pdf.acquisition_models`: `AcquisitionRequest`, `AcquiredDocumentManifest`,
+`AcquisitionRunConfig`, `AcquisitionBatchOutcome`; parent-binding helpers in
+`scholar_pdf.contract_parents`).
+
+**CLI:** `uv run scholar-pdf acquire <config.json> --audit-logger <path-to-log_event.py>`
+— a serializable
+`AcquisitionRunConfig` in, a standard operation envelope out. JSON envelope on stdout;
+`--human` adds a rendered table; exit code mapped from `OperationStatus`. API and CLI
+route through the *same* public domain service and
+report the same `OperationStatus`, per-item `AcquisitionStatus`, errors, warnings, and
+manifest reference.
+
+- **Deterministic output.** One immutable `pdf-acquisition-manifest-v1` document per
+  run, committed atomically and addressed by an opaque `ACQ-<32 hex>` identity derived
+  from canonical content (never from a title, filename, or HTTP success). The manifest
+  is the **commit marker**: an interrupted or torn write publishes nothing new.
+- **Parent binding.** Every request must bind two already-accepted Contract v1
+  artifacts — `corpus_snapshot` and `screening_decisions` — by `artifact_id`, `sha256`,
+  and workspace-relative POSIX path. A request without accepted parents fails preflight.
+- **Every output resolves inside the canonical workspace root.** `..`, absolute, drive,
+  separator, and symlink escapes fail with `PATH_OUTSIDE_WORKSPACE`; final content paths
+  are document-identity addressed (`…/DOC-<32 hex>.pdf`).
+- **Fail-closed.** Unresolved legal OA is `UNRESOLVED`, never `RESTRICTED_CONFIRMED` and
+  never an empty success. All-failure batches still publish a manifest with `records=[]`
+  and `OperationStatus=FAILED`, which is distinguishable from a missing manifest.
+- **Not a Contract v1 registry type.** `pdf_acquisition_manifest` is kit-owned. Passing
+  it to the frozen harness acceptance/chain registries is rejected as
+  `UNSUPPORTED_ARTIFACT_TYPE` and **no registry entry is fabricated**.
+
+> **MCP: `UNSUPPORTED_CAPABILITY`.** PDF acquisition is **not** served on the MCP
+> surface. The agent kit declares capability `pdf_acquisition` with
+> `mcp_supported=false` and answers with `operation="acquire_pdf"`, `status="FAILED"`,
+> `artifacts=[]`, and one non-retryable `UNSUPPORTED_CAPABILITY` error — before any
+> provider transport, file, manifest, or audit I/O. This is a declared unsupported
+> difference, **not** a parity claim. Use the CLI/API above.
+
+Conformance: `tests/conformance/test_e1_acquired_document_boundary.py`.
 
 ---
 
@@ -49,6 +93,13 @@ uv run scholar-pdf download \
   --output workspaces/<project-slug>/pdfs/ \
   --proxy https://www.sndl1.arn.dz \
   --proxy-style subdomain      # auto | subdomain | ezproxy | prefix
+
+# 6. WP01-E1 Acquired-Document Boundary (API/CLI only; NOT on MCP)
+#    Parent-bound, fail-closed acquisition publishing a deterministic
+#    pdf-acquisition-manifest-v1 (ACQ-<32hex>), bound to accepted
+#    corpus_snapshot + screening_decisions parents.
+uv run scholar-pdf acquire workspaces/<project-slug>/acquisition_run.json \
+  --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
 ```
 
 ---
