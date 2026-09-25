@@ -104,6 +104,7 @@ an authoritative artifact.
 | Acceptance and atomic publication | `src/scholar_harness/contracts/acceptance.py` |
 | Packet C behavior | `docs/architecture/wp01_packet_c_reference.md` |
 | Packet E1 implementation-ready handoff | `docs/architecture/wp01_packet_e1_acquired_document_handoff.md` |
+| Packet E1 completion evidence | `docs/architecture/wp01_packet_e1_completion_report.md` |
 | Historical Packet A–E definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
 | Screening producer | `src/scholar_harness/screening/batcher.py` |
 | Screening collector | `src/scholar_harness/screening/collector.py` |
@@ -216,8 +217,12 @@ manifest; E2 emits Contract v1 `DocumentManifestArtifact` only after extraction.
 The older Packet E definition is historical compatibility guidance and does not
 replace this acquisition-specific packet.
 
-**Status:** E1 Stage 5 complete: harness vendored at pdf-kit 858911f… / agent-kit
-6050e0c…; pins + metapackage pins + conformance E1-NEG-030/044/047 green.
+**Status:** E1 complete and approved on harness merge
+`baaeeb43977897924bd6ba9fda252e1bc9d464b8`: PDF kit
+`858911f6b7dd5738de94fa749ffc4c65b6d0b70e`, agent kit
+`6050e0c99cdddb0f2c1ce7e0c62458a58eab5ce7`, full-SHA pins, generated
+metapackage pins, and E1-NEG-030/044/047 conformance agree. See
+`docs/architecture/wp01_packet_e1_completion_report.md`. E2 is next.
 
 ### Packet E2 — extracted-text boundary
 
