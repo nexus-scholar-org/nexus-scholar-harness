@@ -1,11 +1,11 @@
 # Packet E1 — Acquired-Document Boundary
 
-**Status:** `READY_FOR_IMPLEMENTATION`  
-**Architecture owner:** Harness Contract v1  
-**Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`  
-**Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (thin rejection adapter only)  
-**Current PDF-kit pin:** `9fa9e00361cd6d3bd7aec3c5a079db80f0287f58`  
-**Direct scientific parent:** accepted `ScreeningDecisionsArtifact`  
+- **Status:** `READY_FOR_IMPLEMENTATION`
+- **Architecture owner:** Harness Contract v1
+- **Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`
+- **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (thin rejection adapter only)
+- **Current PDF-kit pin:** `9fa9e00361cd6d3bd7aec3c5a079db80f0287f58`
+- **Direct scientific parent:** accepted `ScreeningDecisionsArtifact`
 **Required context:** its accepted `CorpusSnapshotArtifact` and protocol/corpus fingerprints
 
 ### 1.0 Supersession
