@@ -21,12 +21,12 @@ that no single skill covers.
 | Kit (package) | Public API anchor | CLI | MCP tool(s) | Harness role |
 | :-- | :-- | :-- | :-- | :-- |
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
-| pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators | `scholar-pdf` (download/ingest/extract) | `nexus_extract_pdf` (PyMuPDF only) | Phase-2 fulltext |
+| pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound) | `scholar-pdf` (download/ingest/**acquire**/extract) | `nexus_extract_pdf` (PyMuPDF only); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document boundary |
 | bib (`scholar_bib`) | `BibParser`, `BibLinter`, `BibDeduplicator`, `BibResolver` | `scholar-bib` (lint/merge/dedup/resolve) | `nexus_bib_clean` (lint only) | bibliography hygiene |
 | rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
-| agent (`scholar_agent`) | MCP server (19 tools) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
+| agent (`scholar_agent`) | MCP server (**24 tools**, incl. `nexus_pdf_acquire` = declared-unsupported E1 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
 | verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (Phase-4 streams) | Phase-4 trust |
 | harness (`scholar_harness`) | thin wrapper over the 8 kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
@@ -154,6 +154,14 @@ latent bug**, with the working path in parentheses.
     subcommand, including `--help`. One-line import fix applied (`Optional`); the CLI
     now resolves and all 7 subcommands are reachable. Also note: the module docstring
     lists an `ingress` command that is not registered on the app.
+12. **WP01-E1 acquired-document boundary: acquisition is API/CLI-only, and the MCP gap
+    is *declared*, not silent.** `nexus_pdf_acquire` is a registered MCP tool that
+    refuses rather than a tool that is missing, so the boundary is observable.
+    (Use `uv run scholar-pdf acquire <config.json> --audit-logger
+    <path-to-log_event.py>` or the
+    `scholar_pdf.acquisition` Python API; both route through the same public
+    `scholar-pdf-kit` domain service.) Full declaration in the
+    *WP01-E1 acquired-document boundary* section below.
 
 ---
 
@@ -196,7 +204,11 @@ latent bug**, with the working path in parentheses.
   (**positional** `pdf_path` — no `--input`; `--engine` accepts only **docling|grobid**;
   pymupdf is API/MCP only).
 - **MCP:** `nexus_extract_pdf(pdf_path, output_dir="./extracted", engine="pymupdf")`
-  — engine param dead, metadata dropped (finding 3).
+  — engine param dead, metadata dropped (finding 3). PDF **acquisition** is
+  `UNSUPPORTED` on MCP — see the *WP01-E1 acquired-document boundary* section.
+- **Acquisition (WP01-E1):** `scholar_pdf.acquisition` API + `scholar-pdf acquire`
+  CLI; typed models in `scholar_pdf.acquisition_models`; parent binding in
+  `scholar_pdf.contract_parents`.
 - **Knowledge:** env `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`,
   `DOWNLOAD_TIMEOUT`, `PROXY_URL/PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
   `ENABLE_PUBLISHER_DIRECT_PATTERNS` (no prefix); cascade = OpenAlex best_oa →
@@ -208,6 +220,53 @@ latent bug**, with the working path in parentheses.
   stream via aiohttp (Chrome UA) while metadata uses search-kit's httpx+hishel client;
   `import fitz` (PyMuPDF); `pyyaml` is an undeclared transitive dep; extraction
   writes a stub line on parse failure — "success" ≠ content.
+
+### WP01-E1 acquired-document boundary
+
+Normative spec: `docs/architecture/wp01_packet_e1_acquired_document_handoff.md`
+(E1, §4.7 for the MCP boundary; §10.2 `E1-NEG-030`/`044`/`047`).
+
+**Supported surfaces — API/CLI only.**
+
+| Surface | Surface artifact | Status |
+| :-- | :-- | :-- |
+| API | `scholar_pdf.acquisition` (typed request/outcome models in `scholar_pdf.acquisition_models`; parent binding in `scholar_pdf.contract_parents`) | **supported** |
+| CLI | `uv run scholar-pdf acquire <config.json> --audit-logger <path-to-log_event.py>` (serializable `AcquisitionRunConfig` → standard operation envelope) | **supported** |
+| MCP | `nexus_pdf_acquire` → capability `pdf_acquisition` | **`UNSUPPORTED_CAPABILITY`** |
+
+Declared facts (all harness-enforced by
+`tests/conformance/test_e1_acquired_document_boundary.py`, offline + deterministic):
+
+- **MCP declares `pdf_acquisition` with `mcp_supported=false`.** The declaration lives
+  in `scholar_agent.capabilities` as an immutable `CapabilityDeclaration`; the owning
+  surfaces are `("API", "CLI")` and the canonical owner is
+  `nexus-scholar-org/scholar-pdf-kit`.
+- **Stable rejection.** Every acquisition-shaped MCP call returns the standard
+  operation envelope with `operation=acquire_pdf`, `status=FAILED`, `artifacts=[]`, and
+  exactly one error with the **stable** code `UNSUPPORTED_CAPABILITY` and
+  `retryable=false`. Retrying a declared boundary cannot succeed, so it is never
+  retryable. The rejection is unconditional and pre-validation: no run identity is
+  echoed, because fabricating one would be worse than omitting it. The envelope uses
+  operation-envelope field vocabulary and is **not** a Contract v1 `OperationOutcome`.
+- **Zero I/O.** The rejection happens before any provider transport, temporary or
+  final file creation, manifest construction, or audit-success append. The envelope is
+  produced by pure functions over the immutable declaration, so the zero-I/O property
+  is structural rather than merely asserted.
+- **No parity claim.** This is a declared *unsupported difference* between surfaces. The
+  MCP surface must never be described as semantically equivalent to, or a substitute
+  for, the API/CLI acquisition path.
+- **The kit-owned manifest is not a registry type.** `pdf_acquisition_manifest`
+  (`pdf-acquisition-manifest-v1`, `ACQ-<32hex>`) is published atomically and
+  deterministically, bound to accepted `corpus_snapshot` + `screening_decisions`
+  parents — but the **frozen** Contract v1 acceptance/chain registries reject it as
+  `UNSUPPORTED_ARTIFACT_TYPE` and never fabricate a registry entry or an
+  `artifacts/pdf_acquisition_manifest/` directory for it. The harness registries stay
+  frozen at the six Contract v1 types; the harness does **not** absorb the kit type.
+- **Sync/packaging drift is a hard fail.** Canonical commit ↔ vendored tree ↔
+  full-SHA `plugins.json` pin ↔ generated metapackage pin must agree in both
+  directions; `tests/conformance/fixtures/e1_vendored/*.json` records the vendored
+  `(mode, blob, path)` rows at the merged E1 commits
+  (`scholar-pdf-kit` `858911f…`, `scholar-agent-kit` `6050e0c…`).
 
 ### scholar-bib-kit
 - **Public API:** `BibParser.load/save` (bibtexparser v2), `BibLinter.lint(lib,
@@ -293,11 +352,19 @@ latent bug**, with the working path in parentheses.
   JSON strings, not MCP failures; matrix-extract validates only structurally.
 
 ### scholar-agent-kit (MCP front-door)
-- **19 tools** (16 `nexus_*` + 3 `recon_*`); `--help` lists all 19 (parity enforced
+- **24 tools** (21 `nexus_*` + 3 `recon_*`); `--help` lists all 24 (listing parity enforced
   by `tests/conformance/test_mcp_tool_parity.py`). Full inventory and signatures in
-  `server.py` (tool list at lines 125-930); launch via `uv run
+  `server.py` (tool list at lines 203-1782); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in
   `mcp_config.json`).
+- **Declared unsupported capabilities (WP01-E1):** `nexus_pdf_acquire` is registered
+  but declares `pdf_acquisition` with `mcp_supported=false` in
+  `scholar_agent.capabilities`; every acquisition-shaped call returns
+  `operation="acquire_pdf"`, `status="FAILED"`, `artifacts=[]`, and one
+  non-retryable `UNSUPPORTED_CAPABILITY` error with **zero I/O** (no provider
+  transport, no temp/final file, no manifest, no audit-success append). The owning
+  surfaces are the PDF kit's `scholar_pdf.acquisition` API and `scholar-pdf acquire`
+  CLI. See the *WP01-E1 acquired-document boundary* section below.
 - **Harness adapter:** `_harness_src()` walks up for `src/scholar_harness/recon/__init__.py`,
   honors `NEXUS_HARNESS_SRC`, injects into `sys.path` at import; `RECON_CACHE_ROOT =
   canonical_recon_root()` (= `NEXUS_RECON_ROOT` or `<repo>/.cache/inception_recon`);

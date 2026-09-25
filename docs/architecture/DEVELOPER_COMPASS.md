@@ -216,6 +216,9 @@ manifest; E2 emits Contract v1 `DocumentManifestArtifact` only after extraction.
 The older Packet E definition is historical compatibility guidance and does not
 replace this acquisition-specific packet.
 
+**Status:** E1 Stage 5 complete: harness vendored at pdf-kit 858911f… / agent-kit
+6050e0c…; pins + metapackage pins + conformance E1-NEG-030/044/047 green.
+
 ### Packet E2 — extracted-text boundary
 
 E2 consumes the accepted E1 acquisition manifest, verifies its parent lineage,
