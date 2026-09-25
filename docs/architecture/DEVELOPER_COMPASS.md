@@ -103,7 +103,8 @@ an authoritative artifact.
 | Canonical hashing | `src/scholar_harness/contracts/canonical.py` |
 | Acceptance and atomic publication | `src/scholar_harness/contracts/acceptance.py` |
 | Packet C behavior | `docs/architecture/wp01_packet_c_reference.md` |
-| Packet definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
+| Packet E1 implementation-ready handoff | `docs/architecture/wp01_packet_e1_acquired_document_handoff.md` |
+| Historical Packet A–E definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
 | Screening producer | `src/scholar_harness/screening/batcher.py` |
 | Screening collector | `src/scholar_harness/screening/collector.py` |
 | Search identity producer | `tools/scholar-search-kit/src/scholar_search/identity.py` |
@@ -208,11 +209,20 @@ Define the accepted document artifact around `study_id`, acquisition outcome,
 legal/OA status, source URL, checksum, media type, and exact corpus parent.
 Do not treat a downloaded path as document identity.
 
+The implementation-ready contract and task packet is
+`docs/architecture/wp01_packet_e1_acquired_document_handoff.md`. It records the
+important frozen-contract boundary: acquisition publishes a PDF-kit-owned
+manifest; E2 emits Contract v1 `DocumentManifestArtifact` only after extraction.
+The older Packet E definition is historical compatibility guidance and does not
+replace this acquisition-specific packet.
+
 ### Packet E2 — extracted-text boundary
 
-Bind extracted text to the accepted document ID and source checksum. Record the
-requested and effective extraction engines, fallback chain, page/character
-counts, content status, and failure reason.
+E2 consumes the accepted E1 acquisition manifest, verifies its parent lineage,
+and binds extracted text to the accepted document ID and source checksum. Only
+after extraction emits the registered Contract v1 `DocumentManifestArtifact`.
+Record the requested and effective extraction engines, fallback chain,
+page/character counts, content status, and failure reason.
 
 ### Packet E3 — chunk and index boundary
 
