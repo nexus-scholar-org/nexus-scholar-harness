@@ -38,7 +38,6 @@ sleep, no clock dependence, and every filesystem effect is confined to pytest's
 from __future__ import annotations
 
 import ast
-import hashlib
 import json
 import subprocess
 from dataclasses import FrozenInstanceError
@@ -46,13 +45,13 @@ from pathlib import Path
 from types import MappingProxyType
 
 import pytest
-
 from scholar_agent import capabilities as caps
 from scholar_agent.server import mcp
+from scholar_pdf import acquisition_models as acq
+from scholar_pdf import cli as pdf_cli
+
 from scholar_harness.contracts import acceptance, chain, validate_artifact_chain
 from scholar_harness.contracts.acceptance import AcceptanceContext, accept_artifact
-from scholar_pdf import cli as pdf_cli
-from scholar_pdf import acquisition_models as acq
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -218,10 +217,11 @@ def test_vendored_tree_blob_matches_the_pinned_commit_exactly(kit: str, _commit:
 
 @pytest.mark.parametrize(("kit", "_commit"), E1_KITS, ids=[k for k, _ in E1_KITS])
 def test_vendored_files_exist_on_disk_with_matching_content(kit: str, _commit: str):
-    """Every pinned blob is present in the worktree, byte-for-byte.
+    """Every pinned blob is present and clean-filter-equivalent in the worktree.
 
-    Recomputes git's object id (``sha1("blob <len>\\0" + bytes)``) locally, so a
-    worktree that diverges from the index fails here even before staging.
+    ``git hash-object --path`` applies the repository's configured clean filters,
+    matching the bytes Git would stage. This detects unstaged content drift while
+    remaining portable across LF and ``core.autocrlf`` Windows checkouts.
     """
 
     for path, blob in _fixture_rows(_fixture(kit)).items():
@@ -229,8 +229,15 @@ def test_vendored_files_exist_on_disk_with_matching_content(kit: str, _commit: s
         assert target.is_file(), (
             f"pinned vendored file {path} is missing from the worktree"
         )
-        data = target.read_bytes()
-        digest = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+        result = subprocess.run(
+            ["git", "hash-object", f"--path={path}", "--", path],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        digest = result.stdout.strip()
         assert digest == blob, f"{path} content does not match its pinned blob"
 
 
