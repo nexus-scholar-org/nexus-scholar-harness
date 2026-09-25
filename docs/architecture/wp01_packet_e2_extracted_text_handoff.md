@@ -16,8 +16,11 @@ E2 turns *validated PDF bytes* into *truthful extracted text* without ever
 letting a path, a filename, or a successful HTTP/engine exit stand in for
 identity, content, or lineage. It verifies the E1 acquisition manifest and the
 exact committed source bytes, runs a declared extraction engine chain, records
-what was requested and what actually happened, and only then emits the
-**existing** registered Contract v1 `DocumentManifestArtifact`.
+what was requested and what actually happened, and only then constructs a
+candidate for the **existing** Contract v1 `DocumentManifestArtifact`. A
+bounded harness adapter owns acceptance, registry mutation, and authoritative
+publication; the standalone PDF kit never imports `scholar_harness` and never
+claims that its candidate was accepted.
 
 E1 is acquisition; E2 is extraction. E1 deliberately did not emit
 `DocumentManifestArtifact` because the frozen `DocumentRecord` is an
@@ -72,7 +75,7 @@ Consequences that are **normative** for E2:
    E1-NEG-044). The frozen keyset of six Contract v1 types must remain exactly
    that keyset (`acceptance.py:31-38`; asserted at
    `test_e1_acquired_document_boundary.py:77-86,327-341`).
-3. The frozen `DocumentRecord` is emitted with the six contract fields only.
+3. The frozen `DocumentRecord` is published with the six contract fields only.
    The generated schema does tolerate extra properties
    (`src/scholar_harness/contracts/schemas/v1/document-manifest.schema.json:32`,
    and `ContractModel` sets `extra="allow"` at `models.py:45-48`), so embedding
@@ -84,11 +87,11 @@ Consequences that are **normative** for E2:
    or `DocumentRecord` fields, that is a separate architecture/version
    decision** with regenerated schemas, regenerated golden fixtures, a negative
    regression test, and independent review.
-4. `DocumentManifestArtifact` is emitted **only after** the engine chain has run
+4. A `DocumentManifestArtifact` candidate is constructed **only after** the engine chain has run
    to a determined outcome for a document, so an acquisition-only or in-flight
    document never produces a record and `chain.py` never sees a half-populated
    one. A *determined outcome* includes failure. A document whose engine chain
-   yielded no usable text, or that has no text layer, is emitted with
+   yielded no usable text, or that has no text layer, is represented with
    `content_status` `FAILED`/`NEEDS_OCR` and `extracted_path` absent — exactly
    what the frozen model permits, since `models.py:503-510` requires a path only
    for `VALID`/`PARTIAL`, and exactly what the frozen chain anticipates, since
@@ -108,7 +111,8 @@ Consequences that are **normative** for E2:
    line is *was the engine chain actually run against verified bytes?* — if yes,
    the outcome is a truthful record; if no, it is a rejection.
 
-E2's `document_manifest` emission must be **consistent with** the frozen golden
+E2's `document_manifest` candidate and harness publication must be
+**consistent with** the frozen golden
 shape, not a new shape: `producer.package == "scholar-pdf-kit"`
 (`two_study_artifact_chain.json:192-196`), `inputs == [screening_decisions]`
 (`:186-191`), `content_status` and `extraction_method` as recorded, `extracted_path`
@@ -130,7 +134,7 @@ half is explicitly E3 and E2 must say so rather than absorb it.
 |---|---|---|
 | **PDF-008** | **E2 extraction** (owner: `nexus-scholar-org/scholar-pdf-kit`) | Extraction failure structure and usefulness thresholds. E2 defines per-item extraction outcomes, the minimum-usable-text rule, and when `PARTIAL`, `FAILED`, or `NEEDS_OCR` is the truthful status (§6.1, §6.7). Evidence: `E2-004`, `E2-NEG-013`, `E2-NEG-015`, `E2-NEG-016`, `E2-NEG-041`. Chunk-level usefulness scoring is E3. |
 | **PDF-009** | **E2 extraction** (owner: `nexus-scholar-org/scholar-pdf-kit`) | Requested vs effective engine, engine versions, and fallback reasons are recorded per document and per attempt (§6.3). Evidence: `E2-005`, `E2-NEG-010`, `E2-NEG-011`, `E2-NEG-012`, `E2-NEG-028`, `E2-NEG-038`. Retrieval-engine selection for RAG is E3. |
-| **PDF-010** | **E2 extraction** (owner: `nexus-scholar-org/scholar-pdf-kit`) | Study, DOI, bibliographic metadata, checksum, and engine/version flow into the extracted frontmatter **and** into the registered `DocumentManifestArtifact` at emission (§6.5, §6.6). E2's emitter is the integration point for PDF-010/011 lineage; E1 supplies source fields but is not that artifact (`wp01_packet_e1_acquired_document_handoff.md:75`). Evidence: `E2-008`, `E2-009`, `E2-NEG-033`. |
+| **PDF-010** | **E2 extraction + acceptance adapter** (owners: `nexus-scholar-org/scholar-pdf-kit` for the candidate; harness for acceptance/publication) | Study, DOI, bibliographic metadata, checksum, and engine/version flow into extracted frontmatter and the Contract-shaped candidate; the harness adapter passes that candidate through `accept_artifact` before the `DocumentManifestArtifact` becomes authoritative (§6.5, §6.6). E1 supplies source fields but is not that artifact (`wp01_packet_e1_acquired_document_handoff.md:75`). Evidence: `E2-008`, `E2-009`, `E2-NEG-033`. |
 | **PDF-011** | **E2 integration** (owner: `nexus-scholar-org/scholar-agent-kit` for the declaration; `scholar-pdf-kit` for engine selection) | MCP engine selection, rejection of unsupported engines, and preservation of canonical metadata through the extracted artifact or its inseparable sidecar (§9). E2 does not claim an MCP extraction result. Evidence: `E2-013`, `E2-NEG-010`, `E2-NEG-019`, `E2-NEG-020`, `E2-NEG-043`. |
 | **PDF-012** | **E2 extraction** (owner: `nexus-scholar-org/scholar-pdf-kit`) | `pyyaml` declaration and extraction-side packaging ship with the E2 implementation and its clean-wheel tests. Today `PyMuPDFEngine` emits YAML frontmatter with a function-local `import yaml` (`tools/scholar-pdf-kit/src/scholar_pdf/extract.py:26`) while `pyproject.toml` declares no `pyyaml` (`tools/scholar-pdf-kit/pyproject.toml:10-20`); `docs/kits_surface_matrix.md:221` already records `pyyaml` as an undeclared transitive dependency. Evidence: `E2-014`, `E2-NEG-031`, `E2-NEG-032`. |
 
@@ -240,12 +244,16 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
 6. **Publish the extraction manifest** (`pdf-extraction-manifest-v1`,
    `EXT-*`) atomically as the commit marker, then append exactly one canonical
    workspace-manager audit event (§7.3).
-7. **Emit the frozen Contract v1 `DocumentManifestArtifact`** through the
-   harness acceptance gate **only after** extraction, with truthful content
-   status (including `FAILED`/`NEEDS_OCR` records with no `extracted_path`),
+7. **Construct a frozen Contract v1 `DocumentManifestArtifact` candidate**
+   **only after** extraction, with truthful content status (including
+   `FAILED`/`NEEDS_OCR` records with no `extracted_path`),
    `inputs == [screening_decisions]`, producer `scholar-pdf-kit`, and
-   `source_hash` equal to the E1 `source_sha256`. A run with no byte-bearing
-   record emits no Contract artifact at all (§1.1 consequence 4, §6.5).
+   `source_hash` equal to the E1 `source_sha256`. The PDF kit returns that
+   deterministic candidate without importing the harness or mutating its
+   registry; the bounded harness adapter alone passes it through
+   `accept_artifact` and may describe it as published. A run with no
+   byte-bearing record constructs no candidate and publishes no Contract
+   artifact (§1.1 consequence 4, §6.5).
 8. **Declare the MCP boundary** for extraction in the agent kit: a new
    `pdf_extraction` capability declaration, the pre-I/O rejection envelope, and a
    truthful statement that the existing raw-path `nexus_extract_pdf` is
@@ -283,7 +291,7 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
    equal it or extraction fails. E2 never mints a second identity rule.
 2. A path is a location, not document identity; a filename, DOI, title, or URL
    is not identity either.
-3. `source_hash` in the emitted Contract artifact is the E1 `source_sha256` of
+3. `source_hash` in the candidate or accepted Contract artifact is the E1 `source_sha256` of
    the exact validated bytes, re-verified before extraction.
 4. Acquisition lineage is an **embedded, checksummed reference**, never a
    Contract v1 parent edge.
@@ -294,15 +302,17 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
    placeholder body is a failure, not a partial success.
 7. Every fallback is recorded with a reason; an unrecorded substitution is a
    failure of the record, not a silent convenience.
-8. Publication is fail-closed: no `DocumentManifestArtifact` without a committed
-   extraction manifest, and no extraction manifest without verified source
+8. Publication is fail-closed: the PDF kit constructs no
+   `DocumentManifestArtifact` candidate without a committed extraction
+   manifest, and the harness publishes no candidate that fails
+   `accept_artifact`; no extraction manifest exists without verified source
    bytes.
 9. Every committed path is relative to one caller-supplied canonical workspace
    root and is a portable POSIX path.
 10. A failed batch is still a real machine-readable outcome. Zero extracted
     records is `FAILED`, never an empty `SUCCESS`.
 11. Extraction determinism: the same accepted manifest, bytes, and requested
-    engine produce the same `EXT-` id and the same emitted payload, independent
+    engine produce the same `EXT-` id and the same candidate payload, independent
     of input order, attempt order, and wall-clock time.
 12. Required tests are hermetic, scriptable, and offline: local PDF fixtures, no
     network, no provider daemon, no sleep-dependent assertions.
@@ -314,7 +324,7 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
   lineage-mutated, or id-inconsistent acquisition manifest is rejected before
   any engine runs, any output file is written, or any audit event is appended.
   Evidence: `E2-NEG-001..004`, `E2-NEG-009`, `E2-NEG-025`.
-- **E2-002 Deterministic document identity reuse:** the emitted
+- **E2-002 Deterministic document identity reuse:** each candidate or published
   `DocumentRecord.document_id` is byte-for-byte the E1 `document_id`, and equals
   the helper's result for
   `deterministic_document_id(study_id=..., source_hash=<E1 source_sha256>,
@@ -344,34 +354,41 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
   manifest reference and checksum, and the normalized per-document extraction
   records; timestamps, retry counters, and attempt ordinals are excluded.
   Evidence: `E2-NEG-009`, `E2-NEG-042`.
-- **E2-007 Fail-closed publication and recovery:** the `DocumentManifestArtifact`
-  is emitted only after the extraction manifest is committed; faults injected at
-  output write, manifest replace, and post-commit audit append leave either the
-  prior valid state or an explicitly recoverable committed state, with an
-  idempotent rerun. Evidence: `E2-NEG-023`, `E2-NEG-029`, `E2-NEG-034`.
+- **E2-007 Fail-closed publication and recovery:** the PDF kit constructs the
+  `DocumentManifestArtifact` candidate only after the extraction manifest is
+  committed, and the harness publishes it only after acceptance; faults
+  injected at output write, manifest replace, adapter acceptance, and
+  post-commit audit append leave either the prior valid state or an explicitly
+  recoverable committed state, with an idempotent rerun. Evidence:
+  `E2-NEG-023`, `E2-NEG-029`, `E2-NEG-034`.
 - **E2-008 Bound extracted frontmatter (PDF-010):** every authoritative
   extracted file carries `document_id`, `source_sha256`,
   `acquisition_manifest_sha256`, acquisition manifest ID, engine name/version,
   and content status in its frontmatter, matching the sidecar record. A file
   missing those bindings is not authoritative. Evidence: `E2-NEG-033`,
   `E2-NEG-040`.
-- **E2-009 Registered Contract v1 emission (PDF-010):** the emitted artifact
-  validates against the frozen `DocumentManifestArtifact` shape with
+- **E2-009 Registered Contract v1 publication (PDF-010):** the PDF kit's
+  deterministic candidate validates against the frozen
+  `DocumentManifestArtifact` shape with
   `inputs == [screening_decisions]`, `producer.package == "scholar-pdf-kit"`,
   matching `protocol_fingerprint`/`corpus_fingerprint`/`workspace_id`, and
-  truthful per-document state; the acceptance gate accepts it, and the frozen
-  chain map is unchanged. Evidence: `E2-NEG-021`, `E2-NEG-022`, `E2-NEG-023`,
+  truthful per-document state. The harness adapter parses the candidate through
+  the frozen model, calls `accept_artifact`, and only then exposes the accepted
+  artifact reference; the PDF kit never imports `scholar_harness`, writes the
+  Contract registry, or claims acceptance. The frozen chain map is unchanged.
+  Evidence: `E2-NEG-021`, `E2-NEG-022`, `E2-NEG-023`,
   `E2-NEG-035`, `E2-NEG-045`.
 - **E2-010 Idempotency, replay, and determinism:** an exact replay reuses the
-  committed extraction without duplicating a file, manifest, artifact, or audit
+  committed extraction without duplicating a file, manifest, candidate,
+  accepted artifact, or audit
   event; a changed non-volatile input under an existing key is an
-  `IDEMPOTENCY_CONFLICT` and never overwrites; emitted payload hashes are
+  `IDEMPOTENCY_CONFLICT` and never overwrites; candidate payload hashes are
   stable across runs and input order. Evidence: `E2-NEG-017`, `E2-NEG-018`,
   `E2-NEG-034`, `E2-NEG-042`.
 - **E2-011 Workspace containment and portability:** extracted outputs and
   sidecars are workspace-relative POSIX paths inside the canonical root;
   traversal, absolute, drive-letter, and symlink escapes are rejected before
-  read/write; the sidecar and emitted artifact round-trip on Windows and POSIX
+  read/write; the sidecar and candidate/published artifact round-trip on Windows and POSIX
   with no absolute path. Evidence: `E2-NEG-024`, `E2-NEG-046`, `E2-NEG-025`.
 - **E2-012 Structured outcomes and surface parity:** success, partial, failed,
   `NEEDS_OCR`, all-failure, cancellation, and internal-failure outcomes stay
@@ -404,7 +421,7 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
 - **E2-015 Synchronization and lineage:** every changed canonical kit commit,
   the vendored `tools/<kit>/` snapshot, the full-SHA `plugins.json` pin, and the
   generated metapackage pin agree; the E1 `artifact_checksum`, the embedded
-  acquisition reference, the `EXT-` id, and the emitted artifact payload hash
+  acquisition reference, the `EXT-` id, and the candidate/accepted artifact payload hash
   agree exactly; the frozen Contract v1 registries, schemas, fixture, and
   baseline are unchanged. Evidence: `E2-NEG-037`, `E2-NEG-009`, `E2-NEG-035`.
 - **E2-016 Evidence and test-claim honesty:** PDF-008..012 each map to named
@@ -421,8 +438,9 @@ These IDs are deliberately small; every required negative and fault case has an
 explicit `E2-NEG-###` identifier.
 
 - `E2-POS-001`: an accepted E1 manifest plus committed bytes extracts through
-  the deterministic engine, publishes a fail-closed extraction manifest, and the
-  emitted `DocumentManifestArtifact` passes the frozen acceptance gate.
+  the deterministic engine, publishes a fail-closed extraction manifest, the
+  PDF kit returns a deterministic `DocumentManifestArtifact` candidate, and the
+  harness adapter passes it through the frozen acceptance gate.
 - `E2-POS-002`: an exact second run detects the committed extraction manifest
   and returns a reused result with identical `EXT-` id, artifact payload hash,
   and audit event identity — no duplicate file, manifest, artifact, or event.
@@ -449,7 +467,7 @@ outcome.
 | `E2-NEG-006` | Identity disagreement: a manifest whose `document_id` differs from `deterministic_document_id(study_id=..., source_hash=record.source_sha256, workspace_id=manifest.workspace_id, algorithm_version=record.document_identity_algorithm_version)` is rejected; the recomputed value is never substituted silently. |
 | `E2-NEG-007` | Changed source bytes: a one-byte mutation, truncation, or replaced file at the committed path is rejected before extraction; E2 does not re-hash-and-continue and does not downgrade the item to `FAILED` as a substitute for the lineage failure. |
 | `E2-NEG-008` | Missing/irregular source: a missing path, a directory, a symlink escaping the canonical root, or a length mismatch is rejected with no output. |
-| `E2-NEG-009` | Extraction-manifest integrity: mutation of any sidecar field, of `parent_lineage_sha256`, or of the null-excluded `artifact_checksum` fails verification and blocks Contract emission. |
+| `E2-NEG-009` | Extraction-manifest integrity: mutation of any sidecar field, of `parent_lineage_sha256`, or of the null-excluded `artifact_checksum` fails verification and blocks candidate construction and Contract publication. |
 | `E2-NEG-010` | Unsupported/unavailable requested engine: an engine that is not installed or not reachable produces a recorded fallback with a reason (or a structured failure), never a silent substitution. |
 | `E2-NEG-011` | Unrecorded fallback: the current silent `DoclingEngine → PyMuPDFEngine` behavior (and its CLI equivalent) is rejected as an authoritative outcome; a fallback without a reason entry fails the record. |
 | `E2-NEG-012` | Fallback-chain completeness: `effective != requested` with an empty reason, or a chain whose order contradicts the recorded attempts, is rejected. |
@@ -462,30 +480,30 @@ outcome.
 | `E2-NEG-019` | Unbound raw-path extraction: an MCP/CLI extraction invoked with a bare path, no acquisition manifest, no checksum verification, and no parent is declared **non-authoritative** and cannot produce a Contract artifact or a sidecar claim of one. |
 | `E2-NEG-020` | No silent broaden: E2 does not flip `pdf_acquisition` to supported, does not emit an authoritative artifact from MCP, and E1's `acquire_pdf` rejection envelope tests still pass unchanged. |
 | `E2-NEG-021` | Non-registry sidecar (E1-NEG-044 analog): `pdf_extraction_manifest` handed to the frozen acceptance/chain registries is rejected as `UNSUPPORTED_ARTIFACT_TYPE`; no registry entry is fabricated; the frozen keyset remains exactly the six Contract v1 types. |
-| `E2-NEG-022` | Parent discipline: a `DocumentManifestArtifact` whose `inputs` contain the acquisition manifest, a corpus snapshot, or anything but the accepted `screening_decisions` reference is rejected (`REQUIRED_PARENT_TYPE_MISSING` / `MISSING_PARENT_ARTIFACT` / `PARENT_HASH_MISMATCH`); an empty `inputs` list is also rejected. |
-| `E2-NEG-023` | No premature emission: injecting a failure between extraction success and Contract acceptance leaves no published artifact and no registry entry. |
+| `E2-NEG-022` | Parent discipline: the PDF-kit candidate may be constructed for validation, but the harness adapter rejects a `DocumentManifestArtifact` whose `inputs` contain the acquisition manifest, a corpus snapshot, or anything but the accepted `screening_decisions` reference (`REQUIRED_PARENT_TYPE_MISSING` / `MISSING_PARENT_ARTIFACT` / `PARENT_HASH_MISMATCH`); an empty `inputs` list is also rejected and no registry entry is written. |
+| `E2-NEG-023` | No premature publication: injecting a failure between extraction success and candidate construction leaves no candidate; injecting one between candidate construction and harness acceptance leaves no published artifact and no registry entry. |
 | `E2-NEG-024` | Output containment: `..`, absolute, drive-letter, separator tricks, and symlinked parents in the extracted destination fail before read/write. |
-| `E2-NEG-025` | Cross-workspace extraction: an acquisition manifest or screening parent bound to another workspace is rejected; the emitted artifact and sidecar stay in the accepted workspace only. |
+| `E2-NEG-025` | Cross-workspace extraction: an acquisition manifest or screening parent bound to another workspace is rejected; the candidate/published artifact and sidecar stay in the accepted workspace only. |
 | `E2-NEG-026` | Two studies, one text: identical extracted text for two studies produces two distinct document identities and two records; text is not identity. |
 | `E2-NEG-027` | Unknown study: a document whose `study_id` is not in the accepted corpus/screening lineage is rejected before emission (`UNKNOWN_DOCUMENT_STUDY` semantics, `chain.py:280-293`). |
 | `E2-NEG-028` | Engine-version provenance: an attempt without an engine version, or `requested == effective` while a fallback entry claims a step, is rejected. |
 | `E2-NEG-029` | Atomic-commit faults: faults injected at extracted-file promotion, sidecar replace, and post-commit audit append leave no partial authoritative state and preserve prior valid outputs. |
-| `E2-NEG-030` | API/CLI parity: the Python API and the CLI report the same `OperationStatus`, per-item extraction status, errors, warnings, sidecar reference, and emitted-artifact reference. |
+| `E2-NEG-030` | PDF-kit API/CLI parity: the standalone Python API and CLI report the same `OperationStatus`, per-item extraction status, errors, warnings, sidecar reference, and non-authoritative candidate reference/checksum; neither exposes an accepted-artifact reference. Harness-adapter tests separately require the accepted reference only after `accept_artifact`. |
 | `E2-NEG-031` | Clean-wheel packaging: the built wheel declares and can import its YAML dependency and public extraction models, and the extraction entrypoint's `--help` works with no repository checkout and no heavy engines. |
 | `E2-NEG-032` | Lazy heavy engines: importing the kit package, the agent server, and the metapackage entrypoints does not import `fitz`, `docling`, `requests`, or any other heavy engine at import time. |
 | `E2-NEG-033` | Frontmatter binding: an extracted file whose frontmatter lacks `document_id`/`source_sha256`/`acquisition_manifest_sha256`, or whose values disagree with the sidecar, is not authoritative and is rejected on verification. |
 | `E2-NEG-034` | Post-commit/pre-audit recovery: sidecar replace succeeds, audit append fails, rerun completes exactly the one missing event or returns an idempotent reused result with no duplication. |
-| `E2-NEG-035` | Parent registration at emission: an unregistered screening parent, or one whose registered `sha256` differs from the declared input hash, is rejected by the acceptance gate; the parent is never silently replaced. |
-| `E2-NEG-036` | Fingerprint agreement: a protocol/corpus fingerprint or workspace disagreement between the acquisition manifest, the screening parent, the E2 request, and the emitted artifact fails closed. |
+| `E2-NEG-035` | Parent registration at publication: an unregistered screening parent, or one whose registered `sha256` differs from the declared input hash, is rejected by the harness adapter's acceptance gate; the parent is never silently replaced. |
+| `E2-NEG-036` | Fingerprint agreement: a protocol/corpus fingerprint or workspace disagreement between the acquisition manifest, the screening parent, the E2 request, and the candidate/published artifact fails closed. |
 | `E2-NEG-037` | Cross-repository drift (E1-NEG-030 analog): canonical kit commits, the vendored `tools/<kit>/` snapshot (staged index and worktree content), the `plugins.json` full-SHA pin, and the generated metapackage pin must agree; any mismatch fails. |
 | `E2-NEG-038` | Unknown engine name: an unrecognized engine request (including a typo) is a structured error, never a silent fallback to the default engine. |
 | `E2-NEG-039` | `NEEDS_OCR` justification: `NEEDS_OCR` requires a recorded detection reason (for example, no extractable text layer) and never carries an authoritative `extracted_path` or grounds downstream evidence. |
 | `E2-NEG-040` | Extracted-content mutation: editing or truncating a committed extracted file (or its frontmatter) is detected on replay through the recorded `extracted_sha256` and is not re-published as current. |
 | `E2-NEG-041` | All-failure batch: a run where every document fails publishes a fail-closed extraction manifest with zero extracted records, explicit per-item outcomes and errors, and `OperationStatus=FAILED`; it is distinguishable from a missing manifest and never an empty success. Because `DocumentManifestData.documents` has `min_length=1`, **no** `DocumentManifestArtifact` and no registry entry is published for such a run (§6.5). |
-| `E2-NEG-042` | Determinism: the same manifest, bytes, and requested engine yield the same `EXT-` id and the same emitted payload hash regardless of document input order, attempt order, or wall-clock time. |
-| `E2-NEG-043` | No fabricated metadata: filename-, URL-, or regex-derived title/DOI/workspace values (the current `_pdf_metadata` behavior) never enter an authoritative frontmatter, sidecar, or emitted artifact. |
+| `E2-NEG-042` | Determinism: the same manifest, bytes, and requested engine yield the same `EXT-` id and the same candidate payload hash regardless of document input order, attempt order, or wall-clock time. |
+| `E2-NEG-043` | No fabricated metadata: filename-, URL-, or regex-derived title/DOI/workspace values (the current `_pdf_metadata` behavior) never enter an authoritative frontmatter, sidecar, candidate, or published artifact. |
 | `E2-NEG-044` | Doc-surface parity (E1-NEG-047 analog): the capability registry, both PDF/agent kit skills (canonical and mirrored), and `docs/kits_surface_matrix.md` state the same E2 extraction surfaces, the declared MCP boundary, and the non-authoritative raw-path tool. |
-| `E2-NEG-045` | Artifact idempotency: re-emitting a different payload under an already registered `ART-` id is an `IDEMPOTENCY_CONFLICT` at the acceptance gate, not an overwrite. |
+| `E2-NEG-045` | Artifact idempotency: when the harness adapter re-presents a different payload under an already registered `ART-` id, `accept_artifact` returns `IDEMPOTENCY_CONFLICT`, not an overwrite; standalone PDF-kit replay does not write the registry. |
 | `E2-NEG-046` | Sidecar placement and containment: the sidecar must live at the deterministic in-root path for its `EXT-` id and run; a relocated, symlinked, or escaping sidecar is rejected. |
 
 ## 5. Traceability
@@ -521,7 +539,7 @@ this table is where they become E2's to answer.
 |---|---|---|---|
 | PDF-008 extraction failure structure and usefulness thresholds | `nexus-scholar-org/scholar-pdf-kit` | E2-004 | `E2-NEG-013`, `E2-NEG-015`, `E2-NEG-016`, `E2-NEG-039`, `E2-NEG-041` |
 | PDF-009 requested/effective engines and fallback reasons | `nexus-scholar-org/scholar-pdf-kit` | E2-005 | `E2-NEG-010`, `E2-NEG-011`, `E2-NEG-012`, `E2-NEG-028`, `E2-NEG-038` |
-| PDF-010 metadata into extracted frontmatter + registered `DocumentManifestArtifact` | `nexus-scholar-org/scholar-pdf-kit` | E2-008, E2-009 | `E2-NEG-033`, `E2-NEG-040`, `E2-NEG-022`, `E2-NEG-035` |
+| PDF-010 metadata into extracted frontmatter + registered `DocumentManifestArtifact` | `nexus-scholar-org/scholar-pdf-kit` (candidate) + harness (acceptance/publication) | E2-008, E2-009 | `E2-NEG-033`, `E2-NEG-040`, `E2-NEG-022`, `E2-NEG-035` |
 | PDF-011 MCP engine selection/rejection and canonical metadata preservation | `nexus-scholar-org/scholar-agent-kit` (declaration) + `nexus-scholar-org/scholar-pdf-kit` (engine selection) | E2-013 | `E2-NEG-019`, `E2-NEG-020`, `E2-NEG-043`, `E2-NEG-044` |
 | PDF-012 `pyyaml` declaration and clean-wheel tests | `nexus-scholar-org/scholar-pdf-kit` (+ harness metapackage dependency list) | E2-014 | `E2-POS-004`, `E2-NEG-031`, `E2-NEG-032` |
 
@@ -559,7 +577,7 @@ record, because a byte-bearing record is defined by the existence of extracted
 bytes. Failed, no-text-layer, and cancelled items stay visible in
 `item_outcomes` with an explicit error or warning, exactly as E1 preserved
 negative acquisition results — and those `item_outcomes` are the source from
-which the emitted Contract artifact's `FAILED`/`NEEDS_OCR` `DocumentRecord`s are
+which the Contract candidate's `FAILED`/`NEEDS_OCR` `DocumentRecord`s are
 derived (§1.1 consequence 4, §6.5), so a failure is never invisible and never
 dropped just because it owns no file.
 
@@ -723,17 +741,18 @@ derived from its own embedded identity, and any mismatch is
 `PATH_OUTSIDE_WORKSPACE`/placement failure rather than a convenience write
 (`E2-NEG-046`).
 
-### 6.5 Emitting the frozen `DocumentManifestArtifact`
+### 6.5 Constructing and accepting the frozen `DocumentManifestArtifact`
 
-Only after the extraction manifest is committed does the E2 service construct
-and accept the Contract v1 artifact:
+Only after the extraction manifest is committed does the PDF-kit E2 service
+construct the deterministic Contract v1 candidate:
 
 ```text
 schema_version            1.x (frozen envelope validator, models.py:195-198)
 artifact_type             "document_manifest"
 artifact_id               ART-…  (deterministic per the acceptance gate's
-                           idempotency rule; re-emitting a different payload
-                           under the same id is IDEMPOTENCY_CONFLICT)
+                           idempotency rule; the harness re-presenting a
+                           different payload under the same id is
+                           IDEMPOTENCY_CONFLICT)
 created_at                RFC3339 UTC
 producer                  {package: "scholar-pdf-kit", version, commit}
 workspace_id              accepted parent workspace
@@ -749,30 +768,40 @@ data.documents            one DocumentRecord per document with a determined
                           consequence 4)
 ```
 
-The emitted set is the set of documents whose engine chain actually ran against
+The candidate set is the set of documents whose engine chain actually ran against
 verified bytes, so the manifest is a complete account of the batch rather than a
 quiet selection of the successes. Two boundaries follow from the frozen model
 and are not negotiable here:
 
 - `DocumentManifestData.documents` has `min_length=1` (`models.py:513-514`).
-  A run in which **no** document produced a byte-bearing record therefore emits
-  **no** Contract artifact at all; the fail-closed sidecar with
+  A run in which **no** document produced a byte-bearing record therefore
+  constructs **no** Contract candidate and publishes no Contract artifact; the fail-closed sidecar with
   `OperationStatus=FAILED` is the authoritative outcome (`E2-NEG-041`). A
   `DocumentManifestArtifact` with an empty `documents` list is a frozen-model
   violation, not a lenient encoding of "nothing worked".
-- A batch that has at least one byte-bearing record emits all of its determined
+- A batch that has at least one byte-bearing record includes all of its determined
   records, including the failed ones, because `chain.py:335-345` is written to
   catch evidence grounded in a failed or OCR-pending document and therefore
   presupposes that such documents can be published.
 
-Acceptance goes through the harness `accept_artifact` gate so the frozen
-property checks run: workspace/protocol/corpus agreement, parent registration and
-parent-hash agreement, the required `screening_decisions` parent
+This boundary must not reverse the repository dependency. The canonical PDF kit
+has no `scholar_harness` dependency, imports no harness module, writes no
+Contract registry, and never labels its returned candidate as accepted. Its
+standalone API/CLI outcome may expose the candidate and checksum, but an
+accepted-artifact reference is absent until a harness caller performs
+acceptance.
+
+The bounded harness adapter parses the candidate through the frozen
+`DocumentManifestArtifact` model and calls `accept_artifact`, so the frozen
+property checks run: workspace/protocol/corpus agreement, parent registration
+and parent-hash agreement, the required `screening_decisions` parent
 (`acceptance.py:40-45,325-403`), and artifact-id idempotency
-(`acceptance.py:311-323`). A rejection is reported as a rejection: the artifact
-is not published, no registry entry is fabricated, and the run is `PARTIAL` or
-`FAILED` with the acceptance issues attached. The chain gate must remain clean
-for `DocumentManifestArtifact` (`chain.py:280-293`).
+(`acceptance.py:311-323`). Only successful acceptance makes the artifact
+authoritative and yields an accepted-artifact reference. A rejection is
+reported as a rejection: the artifact is not published, no registry entry is
+fabricated, and the harness outcome is `PARTIAL` or `FAILED` with the acceptance
+issues attached. The chain gate must remain clean for
+`DocumentManifestArtifact` (`chain.py:280-293`).
 
 ### 6.6 Bound extracted frontmatter
 
@@ -845,7 +874,7 @@ enabled checks pass:
       rather than a hard-coded constant;
 6. `content_status` is derived only from (4) and (5) and the recorded
    degradation reasons;
-7. the emitted `extracted_sha256` is computed from the committed body bytes;
+7. the recorded `extracted_sha256` is computed from the committed body bytes;
 8. the `DocumentRecord` fields are derived from the E1 record and the extraction
    result, with no value invented;
 9. **single-document successor:** if a document that previously committed as
@@ -862,16 +891,16 @@ what keeps the batch honest:
 
 - A failure at steps **1-3** (parent, lineage, or source bytes) or at the commit
   itself is a **rejection**: it leaves the prior valid output and the prior valid
-  manifest untouched and publishes **no** Contract artifact for that document. It
+  manifest untouched, constructs **no** candidate record, and publishes **no** Contract artifact for that document. It
   is not downgraded to a `FAILED` document, because no engine ever ran against
   verified bytes.
 - A failure at steps **4-5** (the engine chain or the usefulness rule) is a
   **determined outcome**: no byte-bearing record is created for that document,
   but the batch still accounts for it truthfully — `EXTRACTION_FAILED` or
   `NO_TEXT_LAYER` in `item_outcomes`, and a `FAILED`/`NEEDS_OCR`
-  `DocumentRecord` with `extracted_path` absent in the emitted manifest
+  `DocumentRecord` with `extracted_path` absent in the candidate manifest
   alongside its successful siblings (§6.5). If it is the *only* document, no
-  manifest is emitted at all (`models.py:513-514`, `E2-NEG-041`).
+  candidate manifest is constructed at all (`models.py:513-514`, `E2-NEG-041`).
 
 ## 7. Identity, containment, atomicity, and recovery
 
@@ -928,15 +957,19 @@ files live in the **same directory as their final destination**.
 5. **Publish sidecar:** build and validate the extraction manifest, stage it in
    its destination directory, and atomically replace it. **The successfully
    replaced sidecar is the commit marker for extraction state.**
-6. **Accept the Contract artifact:** call the harness `accept_artifact` gate with
-   the frozen `DocumentManifestArtifact`. A rejection is a structured failure,
-   never a silent success, and never a fabricated registry entry.
+6. **Return the Contract candidate:** the PDF kit returns the frozen
+   `DocumentManifestArtifact` candidate and writes no Contract registry. The
+   bounded harness adapter parses the candidate and calls `accept_artifact`.
+   A rejection is a structured harness failure, never a silent success and
+   never a fabricated registry entry; standalone kit outcomes never claim
+   acceptance.
 7. **Post-commit audit:** append exactly one canonical workspace-manager audit
    event for the successful extraction commit, using the real kit identity, the
    `EXT-` id/checksum, the acquisition manifest ID/checksum, the document ID and
-   source hash, the Contract artifact ID, the operation status, and the
-   idempotency key. The event must not claim a Contract artifact was accepted
-   when step 6 failed.
+   source hash, the candidate Contract artifact ID, the operation status, and
+   the idempotency key. If the harness adapter runs, canonical Contract
+   acceptance evidence comes from `accept_artifact`; the extraction event must
+   not claim acceptance when step 6 was standalone or acceptance failed.
 
 For an all-failure run, steps 2-4 are skipped, the fail-closed sidecar is still
 staged, atomically published, and followed by the appropriate canonical
@@ -967,7 +1000,7 @@ transient diagnostics. A changed non-volatile payload under an existing key is
 An exact replay computes the same key and `EXT-` id, detects the published
 sidecar, re-verifies its checksum, its bound source bytes, and the committed
 extracted `extracted_sha256`, and reports `REUSED` without re-running the engine
-or duplicating the sidecar, the Contract artifact, or the audit event. If the
+or duplicating the sidecar, candidate, accepted artifact, or audit event. If the
 sidecar exists but its extracted body is missing, altered, or its source bytes no
 longer verify, recovery fails closed (`E2-NEG-017`, `E2-NEG-040`).
 
@@ -988,8 +1021,8 @@ event exactly once, or returns an already-idempotent `REUSED` result
 (`E2-NEG-034`). If the process dies after content promotion but before the
 sidecar replace, the content is an orphan until the deterministic key/`EXT-` check
 either recovers it under the same identity or removes it; it is never treated as
-committed. If it dies after the sidecar replace but before Contract acceptance,
-the rerun re-presents the same payload: the acceptance gate answers idempotently
+committed. If it dies after the sidecar replace but before harness Contract
+acceptance, the adapter rerun re-presents the same candidate: the acceptance gate answers idempotently
 for an identical payload and raises `IDEMPOTENCY_CONFLICT` for a different one
 (`E2-NEG-045`).
 
@@ -1016,6 +1049,8 @@ OBJECTIVE: Implement the deterministic extracted-text boundary in the
 OWNER_SURFACE: nexus-scholar-org/scholar-pdf-kit
 MCP_ADAPTER_OWNER_SURFACE: nexus-scholar-org/scholar-agent-kit
   (declaration/rejection only)
+CONTRACT_ACCEPTANCE_OWNER_SURFACE: nexus-scholar-harness
+  (bounded adapter and registry publication only)
 DEPENDENCIES_AND_EVIDENCE:
   - the accepted E1 AcquiredDocumentManifest (pdf-acquisition-manifest-v1,
     ACQ-*) at pin 858911f6b7dd5738de94fa749ffc4c65b6d0b70e
@@ -1033,8 +1068,10 @@ OUTPUTS:
   - reuse of the E1 identity, checksum, and canonicalization helpers
   - engine chain with requested/effective engines, versions, and reasons
   - identity-addressed, bound-frontmatter extracted output
-  - the frozen Contract v1 DocumentManifestArtifact emitter with
-    inputs == [screening_decisions] and truthful content status
+  - a deterministic frozen Contract v1 DocumentManifestArtifact candidate
+    builder with inputs == [screening_decisions] and truthful content status
+  - a bounded harness adapter that parses the candidate through the frozen
+    model, calls accept_artifact, and alone exposes an accepted reference
   - a pdf_extraction capability declaration and thin MCP rejection, without
     implementing PDF domain logic in the adapter
   - declared dependencies (pyyaml and any authoritative-path engine dependency)
@@ -1065,6 +1102,10 @@ OUTPUTS:
 
 ### 8.3 Allowed harness paths after the canonical kit changes land
 
+- `src/scholar_harness/` for the bounded E2 orchestration adapter that invokes
+  the PDF kit, parses its candidate as the frozen `DocumentManifestArtifact`,
+  calls `accept_artifact`, and returns the accepted reference; this allowance
+  does not permit edits under `src/scholar_harness/contracts/`;
 - `tools/scholar-pdf-kit/` synchronized snapshot;
 - `tools/scholar-agent-kit/` synchronized snapshot when the E2 MCP boundary
   changes the adapter;
@@ -1085,7 +1126,7 @@ OUTPUTS:
   the raw-path `nexus_extract_pdf` now *derives* `title`/`doi`/`workspace_id`
   from the PDF path, and E2 does not remove that behavior — it keeps the
   path-heuristic metadata, but `E2-NEG-043` bars filename-, URL-, and
-  regex-derived values from any authoritative frontmatter, sidecar, or emitted
+  regex-derived values from any authoritative frontmatter, sidecar, candidate, or published
   artifact, and `§7.2`/`§9.4` mark the tool non-authoritative. A matrix that
   still advertises finding 3 as simply `RESOLVED` would imply the heuristic is
   safe to rely on, which is exactly the claim E2 forbids;
@@ -1172,7 +1213,7 @@ observable through a registered rejection tool
 | Body validation | `E2-NEG-013`, `E2-NEG-015`, `E2-NEG-016` | Remove/quarantine the temporary; never publish a stub as `VALID`; preserve prior valid output. |
 | Content promotion | `E2-NEG-029` | No partial final; prior valid output and sidecar remain readable. |
 | Sidecar replace | `E2-NEG-029` | No newly authoritative sidecar; staged bytes cleaned. |
-| Contract acceptance | `E2-NEG-023`, `E2-NEG-022`, `E2-NEG-035` | No published artifact and no fabricated registry entry; the rejection issues are reported. |
+| Harness-adapter Contract acceptance | `E2-NEG-023`, `E2-NEG-022`, `E2-NEG-035` | The PDF-kit candidate remains non-authoritative; no published artifact or fabricated registry entry exists, and the rejection issues are reported. |
 | Post-commit append | `E2-NEG-034` | The sidecar is the extraction commit marker; the rerun appends or reconciles exactly one audit event. |
 
 ### 10.3 Mandatory negatives E2 inherits from E1's classes
@@ -1241,7 +1282,9 @@ step's gates are green at a **merged canonical** commit.
 1. **PDF-kit canonical extraction boundary.**
    Branch in the canonical `scholar-pdf-kit` fork. Implement §6 and §7: models,
    sidecar, engine chain, bound frontmatter, identity reuse, atomicity,
-   recovery, Contract emission, CLI/API surface, declared dependencies.
+   recovery, deterministic Contract candidate construction, CLI/API surface,
+   declared dependencies. The kit must not import `scholar_harness`, mutate a
+   Contract registry, or claim that a candidate is accepted.
    Gates: focused extraction tests, full kit suite, `uv run ruff check src tests`,
    `uv build --wheel` plus a clean-wheel import and `scholar-pdf extract --help`
    smoke, and the frozen-registry rejection check for
@@ -1257,7 +1300,9 @@ step's gates are green at a **merged canonical** commit.
 3. **Harness synchronization.**
    Separate harness branch. Synchronize each changed kit to its exact merged
    commit, update the affected `plugins.json` full-SHA pins, regenerate the
-   metapackage pins, add the E2 conformance test and fixtures (including
+   metapackage pins, implement the bounded E2 adapter that invokes the PDF kit,
+   parses its candidate through the frozen `DocumentManifestArtifact`, and
+   calls `accept_artifact`, add the E2 conformance test and fixtures (including
    cross-repository drift, frozen-registry rejection, and doc-surface parity
    limbs), update the E2 rows in `docs/kits_surface_matrix.md` and the affected
    kit skills, and add any metapackage dependency E2 made necessary. Gates: the
@@ -1312,7 +1357,8 @@ Agent-kit canonical repository, PR, and merge SHA:
 Extraction schema/version:
 Sidecar manifest type, id prefix, and placement:
 Engine names/versions supported and their optional extras:
-Public API/CLI surface:
+Public API/CLI surface and non-authoritative candidate result:
+Harness acceptance adapter and accepted-reference surface:
 Declared MCP capability (name, mcp_supported, rejection code/operation):
 Legacy surfaces retained/deprecated and their authoritative status:
 Files changed:
@@ -1330,7 +1376,8 @@ Reviewer verdict: APPROVE | CHANGES_REQUESTED | BLOCKED
 
 An `APPROVE` verdict means the extracted-text boundary is safe for E3 to
 consume: identity is reused, lineage is verifiable, status is truthful, and the
-Contract artifact exists only after real extraction. It does **not** claim
+Contract candidate exists only after real extraction, and the authoritative
+artifact exists only after harness acceptance. It does **not** claim
 chunking, indexing, evidence, claims, or synthesis are complete, and it does not
 claim MCP semantic parity.
 
