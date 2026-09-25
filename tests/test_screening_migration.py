@@ -244,3 +244,122 @@ def test_dual_screening_fails_closed_without_source_provenance(tmp_path: Path) -
         cmd_collect(workspace)
 
     assert not (workspace / "literature" / "included.json").exists()
+
+
+def test_collect_rejects_decisions_outside_parent_batch(tmp_path: Path) -> None:
+    """A decision for a study that was never a candidate in the parent batch is
+    rejected before any ContractDecision is minted: the decisions file is
+    renamed .rejected, the batch is recorded MISSING, no authoritative outputs
+    are written, and no screening_decisions artifact is published."""
+    workspace, study = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    screening = workspace / "literature" / "screening"
+
+    decisions_path = screening / "batch_001_decisions.json"
+    decisions_path.write_text(
+        json.dumps(
+            {
+                "batch": 1,
+                "reviewed_by": "human-reviewer-1",
+                "timestamp": "2026-09-21T12:00:00Z",
+                "decisions": [
+                    {
+                        "workspace_id": study["study_id"],
+                        "decision": "INCLUDE",
+                        "method": "HUMAN",
+                        "screening_reasoning": "Matches the frozen criteria.",
+                    },
+                    {
+                        # SPOOF: a study that was never screened and is not a
+                        # candidate of the accepted parent batch artifact.
+                        "workspace_id": "STU-UNKNOWN-12345",
+                        "decision": "INCLUDE",
+                        "method": "HUMAN",
+                        "screening_reasoning": "I found this myself!",
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="collection blocked"):
+        cmd_collect(workspace)
+
+    # The immutable parent-batch candidate set is the membership source: the
+    # whole decisions file is rejected, never partially accepted.
+    assert not decisions_path.exists()
+    assert (screening / "batch_001_decisions.json.rejected").is_file()
+
+    manifest = json.loads((screening / "MANIFEST.json").read_text(encoding="utf-8"))
+    assert manifest["batches"][0]["status"] == "MISSING"
+
+    literature = workspace / "literature"
+    assert not (literature / "included.json").exists()
+    assert not (literature / "excluded.json").exists()
+    assert not (literature / "conflicts.json").exists()
+    assert not (literature / "prisma_screening_report.md").exists()
+    assert not (literature / "prisma_report.json").exists()
+
+    registry = json.loads(
+        (workspace / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
+    )
+    assert all(
+        entry["artifact_type"] != "screening_decisions"
+        for entry in registry["artifacts"].values()
+    )
+
+
+def test_prepare_fails_closed_on_protocol_fingerprint_mismatch(
+    tmp_path: Path,
+) -> None:
+    """prepare must refuse to write batches when protocol.json no longer matches
+    the protocol fingerprint the accepted corpus was generated under."""
+    workspace, _ = _workspace(tmp_path)
+    protocol_path = workspace / "protocol.json"
+    protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    protocol["screening_criteria"]["inclusion"][0]["criterion"] = (
+        "Tampered criterion text with a different canonical fingerprint."
+    )
+    protocol_path.write_text(json.dumps(protocol), encoding="utf-8")
+
+    with pytest.raises(SystemExit) as exc_info:
+        cmd_prepare(workspace, batch_size=20)
+    assert exc_info.value.code == 1
+
+    screening = workspace / "literature" / "screening"
+    assert not list(screening.glob("batch_*.json"))
+    assert not (screening / "MANIFEST.json").exists()
+
+
+def test_prepare_rerun_is_idempotent_without_force(tmp_path: Path) -> None:
+    """Re-running prepare without --force must not mint new batch artifacts or
+    duplicate batch files."""
+    workspace, _ = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    screening = workspace / "literature" / "screening"
+    batch_files_before = sorted(p.name for p in screening.glob("batch_*.json"))
+
+    registry_path = workspace / "audit" / "artifact_registry.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    batch_keys_before = {
+        artifact_id
+        for artifact_id, entry in registry["artifacts"].items()
+        if entry["artifact_type"] == "screening_batch"
+    }
+    assert batch_keys_before
+
+    with pytest.raises(SystemExit) as exc_info:
+        cmd_prepare(workspace, batch_size=20)
+    assert exc_info.value.code == 0
+
+    registry_after = json.loads(registry_path.read_text(encoding="utf-8"))
+    batch_keys_after = {
+        artifact_id
+        for artifact_id, entry in registry_after["artifacts"].items()
+        if entry["artifact_type"] == "screening_batch"
+    }
+    assert batch_keys_after == batch_keys_before
+
+    batch_files_after = sorted(p.name for p in screening.glob("batch_*.json"))
+    assert batch_files_after == batch_files_before

@@ -149,6 +149,77 @@ def cmd_collect(workspace_dir: Path) -> None:
             "Detected dual-screening mode: %d screener2 batch files and %d adjudication group files found.",
             len(screener2_files), len(adj_files)
         )
+
+        def _canonical_wid(entry: dict) -> str:
+            raw = str(entry.get("workspace_id") or entry.get("study_id") or "")
+            return alias_to_stu.get(raw, raw)
+
+        def _batch_candidate_ids(batch_idx: int) -> set[str]:
+            """Authoritative per-batch membership set.
+
+            Sourced from the *accepted* parent batch artifact registered under
+            batch_data["artifact_id"]. The batch handoff file is mutable and
+            unaudited, so it is never used as a membership source here.
+            """
+            batch_file = screening_dir / f"batch_{batch_idx:03d}.json"
+            batch_artifact_id = None
+            if batch_file.exists():
+                try:
+                    batch_artifact_id = json.loads(
+                        batch_file.read_text(encoding="utf-8")
+                    ).get("artifact_id")
+                except Exception:
+                    batch_artifact_id = None
+            batch_entry = (
+                registry.get("artifacts", {}).get(batch_artifact_id)
+                if batch_artifact_id
+                else None
+            )
+            if batch_entry is None:
+                return set()
+            batch_env = json.loads(
+                (workspace_dir / batch_entry["path"]).read_text(encoding="utf-8")
+            )
+            return {
+                str(candidate.get("study_id"))
+                for candidate in batch_env.get("data", {}).get("candidates", [])
+            }
+
+        def _check_batch_membership(
+            batch_idx: int, entries: list[dict], *, label: str
+        ) -> None:
+            """Fail closed when a decision references a study that was not a
+            candidate in the accepted parent batch artifact (no silent drop)."""
+            candidate_ids = _batch_candidate_ids(batch_idx)
+            offenders = sorted(
+                {_canonical_wid(entry) for entry in entries} - candidate_ids
+            )
+            if not offenders and candidate_ids:
+                return
+            snippet = (
+                ", ".join(offenders)
+                if offenders
+                else "batch has no accepted parent batch artifact to validate against"
+            )
+            logger.error(
+                "Dual screening blocked: batch %d %s decisions failed parent-batch "
+                "membership validation (%s).",
+                batch_idx, label, snippet,
+            )
+            for name in (
+                f"batch_{batch_idx:03d}_decisions.json",
+                f"batch_{batch_idx:03d}_decisions_screener2.json",
+            ):
+                path = screening_dir / name
+                if path.exists():
+                    path.rename(path.with_name(f"{path.name}.rejected"))
+            missing_batches.append(batch_idx)
+            raise RuntimeError(
+                f"dual screening blocked: batch {batch_idx} {label} decisions are "
+                "not verifiable against the accepted parent batch candidate set; "
+                "refusing collection"
+            )
+
         # Load Screener 1 decisions
         s1_map: dict[str, dict] = {}
         for b in manifest["batches"]:
@@ -156,21 +227,27 @@ def cmd_collect(workspace_dir: Path) -> None:
             decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
             if decisions_file.exists():
                 try:
-                    for r in _load_decisions(decisions_file):
-                        wid = r.get("workspace_id") or r.get("study_id", "")
-                        s1_map[alias_to_stu.get(wid, wid)] = r
+                    s1_entries = _load_decisions(decisions_file)
                 except Exception:
-                    pass
+                    continue
+                _check_batch_membership(idx, s1_entries, label="screener 1")
+                for r in s1_entries:
+                    s1_map[_canonical_wid(r)] = r
 
         # Load Screener 2 decisions
         s2_map: dict[str, dict] = {}
-        for sf in screener2_files:
+        for b in manifest["batches"]:
+            idx = b["batch_index"]
+            sf = screening_dir / f"batch_{idx:03d}_decisions_screener2.json"
+            if not sf.exists():
+                continue
             try:
-                for r in json.loads(sf.read_text(encoding="utf-8")):
-                    wid = r.get("workspace_id") or r.get("study_id", "")
-                    s2_map[alias_to_stu.get(wid, wid)] = r
+                s2_entries = _load_decisions(sf)
             except Exception:
-                pass
+                continue
+            _check_batch_membership(idx, s2_entries, label="screener 2")
+            for r in s2_entries:
+                s2_map[_canonical_wid(r)] = r
 
         # Load Adjudication decisions
         adj_map: dict[str, dict] = {}
@@ -421,6 +498,40 @@ def cmd_collect(workspace_dir: Path) -> None:
                 continue
 
             batch_env = json.loads((workspace_dir / batch_entry["path"]).read_text(encoding="utf-8"))
+
+            # Packet D deliverable: reject decisions outside the parent batch.
+            # Membership is validated against the *accepted* batch artifact's
+            # candidate set (the immutable truth); the batch handoff file is
+            # mutable and unaudited and therefore never a membership source.
+            # This runs before any ContractDecision is minted or any state is
+            # touched, so a spoofed decision never reaches the published
+            # ScreeningDecisionsArtifact and never contributes to the legacy
+            # partition outputs.
+            batch_candidate_ids = {
+                str(candidate.get("study_id"))
+                for candidate in batch_env.get("data", {}).get("candidates", [])
+            }
+            out_of_batch = sorted(
+                {
+                    str(entry.get("workspace_id") or entry.get("study_id") or "")
+                    for entry in raw_decisions
+                }
+                - batch_candidate_ids
+            )
+            if out_of_batch:
+                logger.error(
+                    "Batch %d: decisions reference study id(s) outside the parent "
+                    "batch candidate set: %s; rejecting decisions file %s.",
+                    idx,
+                    ", ".join(out_of_batch),
+                    decisions_file.name,
+                )
+                decisions_file.rename(
+                    decisions_file.with_name(f"{decisions_file.name}.rejected")
+                )
+                missing_batches.append(idx)
+                continue
+
             contract_decisions = []
             legacy_appends = []
 
@@ -569,13 +680,26 @@ def cmd_collect(workspace_dir: Path) -> None:
                     archive_dir.mkdir(exist_ok=True)
                     shutil.copy2(decisions_file, archive_dir / decisions_file.name)
 
-        if missing_batches:
-            logger.warning("%d batch(es) had missing/broken decision files: %s", len(missing_batches), missing_batches)
-        if missing_batches:
-            raise RuntimeError(
-                "screening collection blocked: missing, invalid, or rejected "
-                f"decision artifacts for batches {sorted(set(missing_batches))}"
-            )
+    # Update manifest statuses before partition: a rejected or missing batch
+    # must leave an accurate machine-readable record even when collection stops.
+    for b in manifest["batches"]:
+        idx = b["batch_index"]
+        decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
+        b["status"] = "DONE" if decisions_file.exists() else "MISSING"
+    (screening_dir / "MANIFEST.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
+
+    if missing_batches:
+        logger.warning(
+            "%d batch(es) had missing/broken decision files: %s",
+            len(missing_batches),
+            missing_batches,
+        )
+        raise RuntimeError(
+            "screening collection blocked: missing, invalid, or rejected "
+            f"decision artifacts for batches {sorted(set(missing_batches))}"
+        )
 
     # Look for raw provenance manifest to get exact total_identified and duplicates_removed
     manifest_raw = lit_dir / "raw" / "provenance_manifest.json"
@@ -612,13 +736,6 @@ def cmd_collect(workspace_dir: Path) -> None:
     (lit_dir / "prisma_report.json").write_text(
         json.dumps(asdict(report), indent=2), encoding="utf-8"
     )
-
-    # Update manifest statuses
-    for b in manifest["batches"]:
-        idx = b["batch_index"]
-        decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
-        b["status"] = "DONE" if decisions_file.exists() else "MISSING"
-    (screening_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     inc_with_abs = sum(1 for d in inc_docs if d.get("abstract") and len(d.get("abstract", "")) > 30)
     logger.info("=" * 60)
