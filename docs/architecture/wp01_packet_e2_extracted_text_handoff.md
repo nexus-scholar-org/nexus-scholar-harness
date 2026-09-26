@@ -1,6 +1,8 @@
 # Packet E2 — Extracted-Text Boundary
 
-- **Status:** `READY_FOR_IMPLEMENTATION`
+- **Status:** `COMPLETE` — closed on canonical harness main at
+  `0fb665558e0808d66348476eda2c927439a96be1`; see
+  `docs/architecture/wp01_packet_e2_completion_report.md`
 - **Architecture owner:** Harness Contract v1
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (declaration/rejection adapter only)
@@ -448,8 +450,9 @@ explicit `E2-NEG-###` identifier.
   fallback to the deterministic engine with a reason, and the emitted status and
   frontmatter state the effective engine.
 - `E2-POS-004`: a clean isolated wheel imports the public extraction models and
-  answers `scholar-pdf extract --help` (and, if the E2 CLI subcommand is added,
-  its own `--help`) without the repository checkout and without heavy engines.
+  answers `scholar-pdf extract-run --help` without the repository checkout and
+  without heavy engines. The legacy `extract --help` smoke does not substitute
+  for the authoritative E2 entrypoint.
 
 ### 4.2 Stable negative-test ledger
 
@@ -1260,8 +1263,9 @@ uv run python scripts/generate_nexus_scholar_pins.py --check
 
 # distribution smoke
 uv build --wheel packaging/nexus-scholar
-uv run nexus-scholar --help
-uv run scholar-agent --help
+$wheel = (Resolve-Path packaging/nexus-scholar/dist/nexus_scholar-*.whl).Path
+uvx --from $wheel nexus-scholar --help
+uvx --from $wheel scholar-agent --help
 
 # documentation/review gate
 git diff --check
@@ -1286,7 +1290,7 @@ step's gates are green at a **merged canonical** commit.
    declared dependencies. The kit must not import `scholar_harness`, mutate a
    Contract registry, or claim that a candidate is accepted.
    Gates: focused extraction tests, full kit suite, `uv run ruff check src tests`,
-   `uv build --wheel` plus a clean-wheel import and `scholar-pdf extract --help`
+   `uv build --wheel` plus a clean-wheel import and `scholar-pdf extract-run --help`
    smoke, and the frozen-registry rejection check for
    `pdf_extraction_manifest`. Open a PR to
    `nexus-scholar-org/scholar-pdf-kit` and record the full merge SHA.
