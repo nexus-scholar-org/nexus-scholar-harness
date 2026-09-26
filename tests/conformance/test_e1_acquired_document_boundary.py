@@ -71,7 +71,7 @@ SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
 # file; the cross-check against plugins.json below is what makes the two facts
 # agree, so neither can drift alone.
 E1_KITS: tuple[tuple[str, str], ...] = (
-    ("scholar-pdf-kit", "6ec6e3bb45612b40498772124de2ebc16717eb56"),
+    ("scholar-pdf-kit", "0430ee40c491edbb055af4ab068637275aada476"),
     ("scholar-agent-kit", "deebfad995ba88bbd748be9beddd1aa2b8a51264"),
 )
 

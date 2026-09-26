@@ -4,7 +4,7 @@
 - **Architecture owner:** Harness Contract v1
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (declaration/rejection adapter only)
-- **Current PDF-kit pin:** `6ec6e3bb45612b40498772124de2ebc16717eb56`
+- **Current PDF-kit pin:** `0430ee40c491edbb055af4ab068637275aada476`
 - **Current agent-kit pin:** `deebfad995ba88bbd748be9beddd1aa2b8a51264`
 - **Direct scientific parent:** accepted `ScreeningDecisionsArtifact` (the only Contract v1 parent type `document_manifest` may declare)
 - **Required context:** the accepted E1 `AcquiredDocumentManifest` (`pdf-acquisition-manifest-v1`, `ACQ-*`) and the corpus/screening parent lineage it embeds
