@@ -987,6 +987,214 @@ def test_e2_neg_045_changed_payload_under_a_registered_id_never_overwrites(
 
 
 # --------------------------------------------------------------------------- #
+# E2-NEG-023 -- no premature publication (harness-adapter window)
+# --------------------------------------------------------------------------- #
+
+
+def test_e2_neg_023_injected_log_event_failure_in_the_acceptance_window_publishes_nothing(
+    accepted_chain: AcceptedChain, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E2-NEG-023 second limb: an abort in the acceptance window publishes nothing.
+
+    Which limb is proven where
+    ---------------------------
+    E2-NEG-023 has two limbs. The *first* -- "injecting a failure between
+    extraction success and candidate construction leaves no candidate" -- belongs to
+    the canonical pdf-kit and is proven by its own behavioral tests
+    (``tools/scholar-pdf-kit/tests/test_extraction_atomicity.py:138-172``, whose
+    ``ExtractionFault.VALIDATION`` injection fires after the engine returned usable
+    text but before the commit). This harness packet does not re-prove kit
+    behavior (§10.1.7), and no engine is executed here at all.
+
+    This test proves only the *second* limb -- "injecting one between candidate
+    construction and harness acceptance leaves no published artifact and no
+    registry entry" -- because that window is harness-owned and provable nowhere
+    else.
+
+    The injection point
+    -------------------
+    ``scholar_harness.contracts.acceptance`` resolves ``log_event`` as a module
+    global (imported at ``acceptance.py:16``) and calls it at ``acceptance.py:538``,
+    *inside* the same ``try`` block that has already moved both the artifact and
+    the registry into place with ``os.replace`` (``:536-537``). Patching that
+    global is therefore the one point that fails *after* the writes and *before*
+    the acceptance is reported -- exactly the window under test. The patch is
+    runtime-only: no frozen file is edited.
+
+    What the frozen rollback guarantees (all five states asserted jointly below,
+    per §10.1.3):
+
+    * ``acceptance.py:554`` unlinks the published artifact.
+    * ``acceptance.py:555-558`` unlinks the temp files.
+    * ``acceptance.py:559`` calls ``_prune_empty_directories`` (``:158-165``),
+      which ``rmdir``-walks upward and **stops at the first failure**. The
+      now-empty ``artifacts/document_manifest`` is removed, but ``artifacts/``
+      still holds the three accepted golden-prefix type directories, so its
+      ``rmdir`` fails and the walk breaks. ``artifacts/`` must therefore still
+      exist; asserting its absence would be asserting a lie.
+    * ``acceptance.py:560`` calls ``_restore_registry`` (``:151-155``), rewriting
+      the registry from the pre-attempt bytes captured at ``acceptance.py:518``.
+    * ``acceptance.py:561-567`` returns a rejection whose single issue is
+      ``_issue("ATOMIC_COMMIT_FAILED", str(exc), artifact_id=...)``.
+    """
+
+    workspace = accepted_chain.workspace
+    candidate = accepted_chain.candidate
+    registry_path = workspace / "audit" / "artifact_registry.json"
+    published = (
+        workspace
+        / "artifacts"
+        / extraction_models.CONTRACT_ARTIFACT_TYPE
+        / f"{candidate.artifact_id}.json"
+    )
+
+    # 1. Pre-attempt snapshot: exact registry bytes and the accepted parent entry.
+    before_bytes = registry_path.read_bytes()
+    before_registry = _registry(workspace)
+    before_parent = before_registry["artifacts"][accepted_chain.parent.artifact_id]
+    before_accepted_events = len(_journal_events(workspace, "ARTIFACT_ACCEPTED"))
+    assert before_parent["artifact_type"] == (
+        extraction_models.SCREENING_DECISIONS_ARTIFACT_TYPE
+    )
+
+    # 2. Inject the failure at the one point inside the atomic-commit block.
+    injected_message = "injected audit failure"
+    attempted: list[tuple[str, str]] = []
+
+    def failing_log_event(
+        _workspace: Path, action: str, _description: str, **kwargs: Any
+    ) -> dict:
+        attempted.append((action, kwargs.get("status", "")))
+        raise OSError(injected_message)
+
+    monkeypatch.setattr(acceptance, "log_event", failing_log_event)
+
+    # 3. Hand the constructed candidate to the harness acceptance boundary.
+    result = accept_extraction_candidate(
+        workspace, candidate.payload, expected=accepted_chain.context
+    )
+
+    # (a) The patch provably fired inside the atomic-commit block -- otherwise
+    # this test would be vacuous and (b)-(f) would be asserting a pass.
+    assert attempted, "the injected log_event failure was never reached"
+    assert attempted[0] == ("ARTIFACT_ACCEPTED", "SUCCESS"), (
+        "the fault must be injected at the acceptance audit append "
+        "(acceptance.py:538), the last step inside the try block, not earlier"
+    )
+    assert any(action == "ARTIFACT_REJECTED" for action, _ in attempted), (
+        "the rejection path must also have consulted the (failing) audit sink "
+        "(acceptance.py:196)"
+    )
+
+    # (b) Rejection status: the frozen code and the exact _issue shape
+    # (AcceptanceIssue, acceptance.py:86-92, built by _issue at :109-111).
+    assert result.accepted is False
+    assert result.published_path is None
+    assert result.event_id is None, (
+        "the rejection's own audit append also failed, so no event id exists "
+        "(acceptance.py:194-213 swallows the OSError)"
+    )
+    assert result.artifact_id == candidate.artifact_id
+    assert result.artifact_type == extraction_models.CONTRACT_ARTIFACT_TYPE
+    assert result.payload_hash == candidate.payload_sha256
+    assert result.idempotent is False
+    assert _codes(result) == {"ATOMIC_COMMIT_FAILED"}
+    assert len(result.issues) == 1
+    (issue,) = result.issues
+    assert issue.code == "ATOMIC_COMMIT_FAILED"
+    assert issue.message == injected_message, (
+        "the frozen issue carries the OSError text verbatim (acceptance.py:566)"
+    )
+    assert issue.artifact_id == candidate.artifact_id
+    assert issue.related_id is None, "no related id is passed by _issue"
+
+    # The issues are reported, not swallowed (§10.2:1216 outcome): the rejection
+    # record is written without the audit sink.
+    assert result.rejection_path == (
+        f"audit/rejections/{candidate.payload_sha256.removeprefix('sha256:')}.json"
+    )
+    rejection_record = json.loads(
+        (workspace / result.rejection_path).read_text(encoding="utf-8")
+    )
+    assert [item["code"] for item in rejection_record["issues"]] == [
+        "ATOMIC_COMMIT_FAILED"
+    ]
+    assert rejection_record["artifact_id"] == candidate.artifact_id
+
+    # (c) Nothing published: the artifact file is gone.
+    assert not published.exists(), (
+        "the rollback must unlink the already-replaced artifact (acceptance.py:554)"
+    )
+
+    # (d) Cleanup/prune: no manifest survives anywhere, the emptied
+    # document_manifest directory is pruned, and ``artifacts/`` itself survives
+    # precisely because the accepted prefix still occupies it.
+    assert not (
+        workspace / "artifacts" / extraction_models.CONTRACT_ARTIFACT_TYPE
+    ).exists()
+    assert (workspace / "artifacts").is_dir(), (
+        "_prune_empty_directories stops at the first failing rmdir, and the "
+        "accepted golden prefix keeps artifacts/ occupied"
+    )
+    # Exactly the three accepted prefix artifacts remain on disk: no manifest,
+    # and no other file either.
+    assert {item.name for item in (workspace / "artifacts").rglob("*.json")} == {
+        f"{artifact_id}.json" for artifact_id in before_registry["artifacts"]
+    }
+    assert not list((workspace / "artifacts").rglob("*.tmp-*")), (
+        "no temp artifact file may survive (acceptance.py:555-558). A surviving "
+        "temp would also have kept the directory from being pruned at all, since "
+        "_prune_empty_directories uses rmdir"
+    )
+    assert not list((workspace / "audit").glob("artifact_registry.json.tmp-*")), (
+        "the registry temp written before os.replace must be removed too"
+    )
+
+    # (e) No fabricated registry entry: byte-identical restore, lineage intact.
+    assert registry_path.read_bytes() == before_bytes, (
+        "the registry must be restored to the exact pre-attempt bytes "
+        "(acceptance.py:518 + :560)"
+    )
+    after_registry = _registry(workspace)
+    assert after_registry == before_registry
+    assert set(after_registry["artifacts"]) == set(before_registry["artifacts"])
+    assert (
+        after_registry["artifacts"][accepted_chain.parent.artifact_id] == before_parent
+    )
+    assert candidate.artifact_id not in after_registry["artifacts"], (
+        "the candidate must never appear in the registry"
+    )
+    assert _candidate_id(workspace) is None
+
+    # (f) No false acceptance claim in the journal: the ARTIFACT_ACCEPTED append
+    # that failed is the only one attempted, so none was recorded.
+    assert (
+        len(_journal_events(workspace, "ARTIFACT_ACCEPTED")) == before_accepted_events
+    )
+
+    # 4. With the fault removed the very same candidate is accepted, proving the
+    # failure was the injected point and not a broken chain or a bad candidate.
+    monkeypatch.undo()
+    assert acceptance.log_event is not failing_log_event
+
+    recovered = accept_extraction_candidate(
+        workspace, candidate.payload, expected=accepted_chain.context
+    )
+    assert recovered.accepted is True, _codes(recovered)
+    assert recovered.idempotent is False
+    assert recovered.artifact_id == candidate.artifact_id
+    assert recovered.payload_hash == candidate.payload_sha256
+    assert recovered.published_path == (
+        f"artifacts/document_manifest/{candidate.artifact_id}.json"
+    )
+    assert recovered.event_id, "the recovered acceptance must append a real event"
+    assert published.is_file()
+    assert _registry(workspace)["artifacts"][candidate.artifact_id]["sha256"] == (
+        candidate.payload_sha256
+    )
+
+
+# --------------------------------------------------------------------------- #
 # E2-NEG-022 -- parent discipline
 # --------------------------------------------------------------------------- #
 
