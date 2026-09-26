@@ -14,6 +14,7 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 4. **Smart Canonical Naming**: Formats filenames as `{year}_{author}_{title}.pdf` and exports structured metadata logs.
 5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `authors`, `year`, `extraction_engine`, `extracted_at`; empty keys are dropped).
 6. **Acquired-Document Boundary (WP01-E1)**: parent-bound, deterministic acquisition of exact PDF bytes for an *accepted* study (discovery download or `USER_PATH` ingest), publishing a `pdf-acquisition-manifest-v1` manifest. **API/CLI only — not available on MCP.**
+7. **Extracted-Text Boundary (WP01-E2)**: parent-bound, deterministic extraction of committed PDF bytes, publishing a `pdf-extraction-manifest-v1` sidecar plus a non-authoritative `document_manifest` Contract v1 candidate. **API/CLI only — not available on MCP.**
 
 ---
 
@@ -60,6 +61,56 @@ Conformance: `tests/conformance/test_e1_acquired_document_boundary.py`.
 
 ---
 
+## Extracted-text boundary (WP01-E2)
+
+Parent-bound, deterministic extraction of **committed PDF bytes** for an *accepted*
+study, producing a `pdf-extraction-manifest-v1` sidecar and a `document_manifest`
+Contract v1 **candidate**. **API/CLI only — not available on MCP.**
+
+**API:** `scholar_pdf.extraction.PDFExtractionService` (typed models in
+`scholar_pdf.extraction_models`: `ExtractedDocumentRecord`, `ExtractionRequest`,
+`ArtifactRecordProjection`; the Contract v1 candidate builder in
+`scholar_pdf.contract_candidate.build_document_manifest_candidate`).
+
+**CLI:** `uv run scholar-pdf extract-run <config.json> --audit-logger <path-to-log_event.py>`
+— a serializable run config in, a standard operation envelope out. The legacy
+`uv run scholar-pdf extract` (positional raw path, CLI engines `docling|grobid` only)
+remains as a non-authoritative convenience; **the parent-bound path is `extract-run`**.
+
+- **The candidate is non-authoritative.** The kit stamps
+  `contract_acceptance="not_performed_by_kit"`; only the harness adapter
+  (`scholar_harness.extraction_adapter.accept_extraction_candidate`) can accept it, and
+  it binds the accepted `screening_decisions` parent. Until then there is no accepted
+  `artifact_id`/`published_path` to cite.
+- **Parent binding.** Every request must bind already-accepted Contract v1 artifacts
+  (`corpus_snapshot` and `screening_decisions`) by `artifact_id`, `sha256`, and
+  workspace-relative POSIX path. A request without accepted parents fails preflight, and
+  a parent bound to another workspace is rejected.
+- **Deterministic identity.** A record is addressed by an opaque `DOC-<32 hex>`
+  identity derived from study + source hash + workspace; never from a title or filename.
+  The sidecar is the commit marker: an interrupted or torn write publishes nothing.
+- **Fail-closed and truthful.** No usable text is `FAILED` or `NEEDS_OCR`, never an
+  empty success; a `VALID`/`PARTIAL` record always carries a workspace-relative
+  `extracted_path`. Every output resolves inside the canonical workspace root — `..`,
+  absolute, drive, separator, and symlink escapes fail with `PATH_OUTSIDE_WORKSPACE`.
+- **Not a Contract v1 registry type.** `pdf_extraction_manifest` is kit-owned. Passing
+  it to the frozen harness acceptance/chain registries is rejected as
+  `UNSUPPORTED_ARTIFACT_TYPE` and **no registry entry is fabricated**; the registries
+  stay frozen at the six Contract v1 types.
+
+> **MCP: `UNSUPPORTED_CAPABILITY`.** PDF extraction is **not** served on the MCP
+> surface. The agent kit declares capability `pdf_extraction` with
+> `mcp_supported=false` and answers with `operation="extract_pdf"`, `status="FAILED"`,
+> `artifacts=[]`, and one non-retryable `UNSUPPORTED_CAPABILITY` error — before any
+> engine execution, extracted text, sidecar, Contract artifact, or audit I/O. This is a
+> declared unsupported difference, **not** a parity claim. Use the CLI/API above.
+> (`nexus_extract_pdf` still exists as the older, non-authoritative PyMuPDF tool; it is
+> not the parent-bound E2 path.)
+
+Conformance: `tests/conformance/test_e2_extraction_boundary.py`.
+
+---
+
 ## Quick CLI Cheat-Sheet
 
 All commands should be executed via `uv run`:
@@ -75,13 +126,14 @@ uv run scholar-pdf download \
   --smart-names \
   --export json
 
-# 3. Extract Section-Aware Markdown (CLI engines: docling | grobid only)
+# 3. Extract Section-Aware Markdown (legacy raw-path CLI; engines: docling | grobid only)
 uv run scholar-pdf extract \
   workspaces/<project-slug>/pdfs/ \
   --output workspaces/<project-slug>/extracted/ \
   --engine docling
 # NOTE: positional PDF file/dir path — there is NO --input flag and NO --engine pymupdf
 #       (PyMuPDF is the API/MCP default; the CLI only offers docling/grobid).
+#       This legacy command is NOT the parent-bound path — that is `extract-run` (#7).
 
 # 4. Ingest an Existing PDF Manually
 uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/35057062 --smart-names
@@ -99,6 +151,14 @@ uv run scholar-pdf download \
 #    pdf-acquisition-manifest-v1 (ACQ-<32hex>), bound to accepted
 #    corpus_snapshot + screening_decisions parents.
 uv run scholar-pdf acquire workspaces/<project-slug>/acquisition_run.json \
+  --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
+
+# 7. WP01-E2 Extracted-Text Boundary (API/CLI only; NOT on MCP)
+#    Parent-bound, fail-closed extraction of committed PDF bytes. Publishes a
+#    pdf-extraction-manifest-v1 (EXT-<32hex>) sidecar plus a NON-AUTHORITATIVE
+#    document_manifest candidate; only the harness adapter
+#    (scholar_harness.extraction_adapter.accept_extraction_candidate) can accept it.
+uv run scholar-pdf extract-run workspaces/<project-slug>/extraction_run.json \
   --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
 ```
 

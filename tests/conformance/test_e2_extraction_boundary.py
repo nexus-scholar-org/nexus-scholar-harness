@@ -51,6 +51,65 @@ this file proves is that the harness side of the boundary is real:
     proven structurally. The E1 ``pdf_acquisition`` declaration is asserted
     un-broadened by E2.
 
+``E2-NEG-023`` no premature publication
+    Two limbs. The first -- a failure between extraction success and candidate
+    construction leaves no candidate -- is the canonical kit's proof
+    (``tools/scholar-pdf-kit/tests/test_extraction_atomicity.py:138-172``) and is
+    deliberately **not** re-proven here (§10.1.7); no engine runs in this file.
+    The second -- a failure between candidate construction and harness acceptance
+    leaves no published artifact and no registry entry -- is harness-owned, so it
+    is injected here at the one point that fails *after* the atomic writes
+    (``acceptance.py:538``, the ``ARTIFACT_ACCEPTED`` audit append) and the frozen
+    rollback is asserted jointly.
+
+``E2-NEG-036`` fingerprint and generation agreement, and its fail-closed limb
+    The accepted reference must agree exactly with the candidate's canonical
+    fingerprint and with the accepted parent's workspace/protocol/corpus
+    generation. The fail-closed half is proved through the adapter: a candidate
+    whose embedded ``workspace_id`` disagrees with the trusted
+    ``AcceptanceContext`` is rejected with ``WORKSPACE_ID_MISMATCH`` and nothing
+    is published -- the gate compares all three context fields
+    (``acceptance.py:288-301``), so a disagreement in any of them fails closed.
+
+``E2-NEG-025`` cross-workspace extraction
+    A candidate built against workspace A's accepted lineage cannot be accepted
+    by workspace B's context. The kit-side limb (a parent bound to another
+    workspace cannot authorize a service-level extraction) is the kit's proof
+    (``tools/scholar-pdf-kit/tests/test_extraction_contract.py:2636``,
+    ``test_e2_neg_025_cross_workspace_extraction_is_rejected``); the harness limb
+    proved here is that the frozen gate refuses the cross-workspace candidate in
+    *both* workspaces.
+
+``E2-NEG-044`` documented surface parity (this gate)
+    The declared MCP boundary must be *documented*, not merely coded: every
+    boundary document names ``pdf_extraction`` and ``UNSUPPORTED_CAPABILITY``, the
+    agent skills name the mechanism (``mcp_supported``,
+    ``nexus_pdf_extraction``), the PDF skills name both supported alternatives,
+    and the surface matrix carries the ``WP01-E2 extracted-text boundary`` section
+    with an explicit no-parity-claim statement. Mirrors E1's four doc-parity
+    tests, so a doc that drifts from the shipped declaration fails here rather
+    than misleading an agent.
+
+Kit-side-only IDs, **cited not re-proven** (§10.1.7 -- a green run of this file is
+not evidence for any of them; the canonical suite is):
+
+``E2-NEG-004`` cross-workspace acquisition manifest
+    ``tools/scholar-pdf-kit/tests/test_extraction_contract.py:847``,
+    ``test_e2_neg_004_cross_workspace_acquisition_manifest_is_rejected``.
+``E2-NEG-024`` storage-prefix containment
+    ``tools/scholar-pdf-kit/tests/test_extraction_contract.py:2461``,
+    ``test_e2_neg_024_escaping_storage_prefix_is_refused_before_any_filesystem_work``
+    (plus the symlink and non-regular-destination limbs at ``:2489`` and ``:2523``).
+``E2-NEG-046`` relocated sidecar is never adopted
+    ``tools/scholar-pdf-kit/tests/test_extraction_contract.py:2906``,
+    ``test_e2_neg_046_relocated_sidecar_is_never_adopted_as_the_commit`` (plus the
+    symlinked-sidecar limb at ``:2960``).
+``E2-NEG-029`` atomic sidecar commit / no partial sidecar
+    ``tools/scholar-pdf-kit/tests/test_extraction_atomicity.py:114``,
+    ``test_e2_neg_029_crash_before_sidecar_leaves_no_authoritative_output``, and
+    its fault-injection limb at ``:138``,
+    ``test_e2_neg_029b_fault_injection_leaves_no_partial_sidecar``.
+
 Everything here is offline and deterministic: no network, no provider, no PDF
 engine, no daemon, no sleep, no clock dependence in any assertion, and every
 filesystem effect confined to pytest's ``tmp_path``. No PDF is actually
@@ -1621,3 +1680,256 @@ def test_e2_cli_extract_run_help_claims_no_mcp_parity() -> None:
     assert "non-authoritative" in legacy_help.lower(), (
         f"the legacy extract command must be labelled non-authoritative: {legacy_help!r}"
     )
+
+
+# --------------------------------------------------------------------------- #
+# E2-NEG-036 fail-closed limb -- the generation agreement is *enforced*
+# --------------------------------------------------------------------------- #
+
+
+def _events_for(workspace: Path, action: str, artifact_id: str) -> list[dict]:
+    """Journal events with ``action`` whose parameters name ``artifact_id``.
+
+    Scoped to the candidate's own id on purpose: the ``accepted_chain`` fixture
+    legitimately accepted the three golden ancestors first, so a bare
+    "no ``ARTIFACT_ACCEPTED`` event exists" assertion would be false for reasons
+    that have nothing to do with this packet.
+    """
+
+    return [
+        event
+        for event in _journal_events(workspace, action)
+        if event.get("parameters", {}).get("artifact_id") == artifact_id
+    ]
+
+
+def _rejection_codes(workspace: Path, result) -> set[str]:
+    """The issue codes the gate persisted in its rejection record."""
+
+    assert result.rejection_path, "a refused candidate must record why it was refused"
+    record = json.loads((workspace / result.rejection_path).read_text(encoding="utf-8"))
+    assert record["artifact_id"], "the rejection record must name the artifact"
+    return {issue["code"] for issue in record["issues"]}
+
+
+def test_e2_neg_036_a_disagreeing_generation_fails_closed_through_the_adapter(
+    accepted_chain: AcceptedChain,
+) -> None:
+    """E2-NEG-036: disagreement is a hard failure, not a silent normalization.
+
+    The agreement row is only real if a disagreeing generation is *refused*, so
+    this drives the negative half through the adapter. The trusted context names
+    a different -- but equally well-formed -- workspace, while the protocol and
+    corpus fingerprints are left untouched, which makes the single ``issue``
+    below attributable to the workspace limb alone rather than to collateral
+    drift.
+
+    The gate compares **all three** generation fields against the trusted context
+    (``acceptance.py:288-301``), so a disagreement in any of them fails
+    closed as ``<FIELD>_MISMATCH``. This test drifts only the workspace limb, so
+    only that one code is asserted; the sibling codes are named in the comment
+    below without being claimed as proven.
+    """
+
+    candidate = accepted_chain.candidate
+    drifted = AcceptanceContext(
+        # A *well-formed* workspace id, just not this candidate's. An ill-formed
+        # one would be rejected by the context's own validator and the test would
+        # pass for the wrong reason.
+        workspace_id="WSP-other-study",
+        protocol_fingerprint=accepted_chain.context.protocol_fingerprint,
+        corpus_fingerprint=accepted_chain.context.corpus_fingerprint,
+    )
+
+    # Attribution controls: exactly one field differs, and it differs from the
+    # candidate's own value -- so the rejection below cannot be a coincidence of
+    # an unrelated defect.
+    assert drifted.workspace_id != candidate.payload["workspace_id"]
+    assert drifted.protocol_fingerprint == candidate.payload["protocol_fingerprint"]
+    assert drifted.corpus_fingerprint == candidate.payload["corpus_fingerprint"]
+
+    result = accept_extraction_candidate(
+        accepted_chain.workspace, candidate.payload, expected=drifted
+    )
+
+    assert result.accepted is False
+    assert _codes(result) == {"WORKSPACE_ID_MISMATCH"}
+    assert not result.published_path, "a refused candidate must cite no publication"
+    # The issue code is derived from the field name, so it is not a hard-coded
+    # literal in the frozen gate: `f"{field.upper()}_MISMATCH"`. The two sibling
+    # generation codes are therefore ``PROTOCOL_FINGERPRINT_MISMATCH`` and
+    # ``CORPUS_FINGERPRINT_MISMATCH`` -- named here, not asserted, because this
+    # test deliberately drifts only the workspace limb.
+
+    # The refusal is *recorded*, not merely returned: the gate persists a
+    # rejection record and an ARTIFACT_REJECTED event for this exact candidate.
+    assert _rejection_codes(accepted_chain.workspace, result) == {
+        "WORKSPACE_ID_MISMATCH"
+    }
+    rejected = _events_for(
+        accepted_chain.workspace, "ARTIFACT_REJECTED", candidate.artifact_id
+    )
+    assert len(rejected) == 1
+    assert rejected[0]["event_id"] == result.event_id
+    assert rejected[0]["status"] == "FAILED"
+
+    # Nothing was published and no registry entry was fabricated, even though the
+    # declared screening parent *is* present in this workspace -- the context
+    # disagreement is refused before any commit.
+    assert (
+        _events_for(
+            accepted_chain.workspace, "ARTIFACT_ACCEPTED", candidate.artifact_id
+        )
+        == []
+    )
+    assert _candidate_id(accepted_chain.workspace) is None
+    assert not (
+        accepted_chain.workspace
+        / "artifacts"
+        / "document_manifest"
+        / f"{candidate.artifact_id}.json"
+    ).exists()
+
+
+# --------------------------------------------------------------------------- #
+# E2-NEG-025 -- a candidate cannot cross workspaces through the adapter
+# --------------------------------------------------------------------------- #
+
+
+def test_e2_neg_025_cross_workspace_candidate_is_refused_in_both_workspaces(
+    accepted_chain: AcceptedChain, tmp_path: Path
+) -> None:
+    """E2-NEG-025: workspace A's accepted lineage does not travel to B.
+
+    The candidate is built by the kit over workspace A's *accepted* screening
+    parent. Presenting it under another workspace's trusted context must fail
+    closed in both directions:
+
+    * in **A**, the declared parent resolves, so the only possible objection is
+      the generation disagreement -- exactly ``WORKSPACE_ID_MISMATCH``;
+    * in **B** (a different workspace with its own registry), the trusted context
+      is foreign *and* the accepted lineage is not present, so the gate reports
+      the mismatch alongside ``MISSING_PARENT_ARTIFACT``.
+
+    A workspace is not a study identity: neither workspace ends up holding an
+    accepted extraction reference, and the kit never fabricates one.
+    """
+
+    candidate = accepted_chain.candidate
+    foreign = AcceptanceContext(
+        # Another canonical workspace generation -- not a malformed string, which
+        # the context's own validator would reject before the gate ever runs.
+        workspace_id="WSP-foreign-workspace",
+        protocol_fingerprint=accepted_chain.context.protocol_fingerprint,
+        corpus_fingerprint=accepted_chain.context.corpus_fingerprint,
+    )
+    assert foreign.workspace_id != candidate.payload["workspace_id"]
+
+    # (1) The origin workspace, presented with a foreign trusted context: the
+    #     parent is present, so the mismatch is the *only* issue.
+    in_origin = accept_extraction_candidate(
+        accepted_chain.workspace, candidate.payload, expected=foreign
+    )
+    assert in_origin.accepted is False
+    assert _codes(in_origin) == {"WORKSPACE_ID_MISMATCH"}
+    assert not in_origin.published_path
+
+    # (2) The foreign workspace, presented with its own matching context: the
+    #     generation is foreign there and the lineage is not present either.
+    other_workspace = tmp_path / "other-workspace"
+    other_workspace.mkdir()
+    in_foreign = accept_extraction_candidate(
+        other_workspace, candidate.payload, expected=foreign
+    )
+    assert in_foreign.accepted is False
+    assert "WORKSPACE_ID_MISMATCH" in _codes(in_foreign)
+    assert "MISSING_PARENT_ARTIFACT" in _codes(in_foreign), (
+        "the foreign workspace must not resolve workspace A's accepted parent: "
+        f"{sorted(_codes(in_foreign))}"
+    )
+    assert not in_foreign.published_path
+
+    # (3) Nothing published in either workspace, and no registry entry invented.
+    #     Each refusal is recorded in its own workspace, and neither produced an
+    #     acceptance event for the candidate.
+    assert "WORKSPACE_ID_MISMATCH" in _rejection_codes(
+        accepted_chain.workspace, in_origin
+    )
+    assert "WORKSPACE_ID_MISMATCH" in _rejection_codes(other_workspace, in_foreign)
+    for workspace in (accepted_chain.workspace, other_workspace):
+        assert (
+            _events_for(workspace, "ARTIFACT_ACCEPTED", candidate.artifact_id) == []
+        ), f"{workspace} recorded an acceptance for a cross-workspace candidate"
+        assert _candidate_id(workspace) is None
+        assert not (
+            workspace
+            / "artifacts"
+            / "document_manifest"
+            / f"{candidate.artifact_id}.json"
+        ).exists()
+
+
+# --------------------------------------------------------------------------- #
+# E2-NEG-044 -- the declared MCP boundary must also be *documented*
+# --------------------------------------------------------------------------- #
+
+SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
+SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
+SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
+DOC_HANDOFF = (
+    REPO_ROOT / "docs" / "architecture" / "wp01_packet_e2_extracted_text_handoff.md"
+)
+
+DOC_SKILL_PDF = SKILLS_CANONICAL / "scholar-pdf-kit" / "SKILL.md"
+DOC_SKILL_PDF_MIRROR = SKILLS_MIRROR / "scholar-pdf-kit" / "SKILL.md"
+DOC_SKILL_AGENT = SKILLS_CANONICAL / "scholar-agent-kit" / "SKILL.md"
+DOC_SKILL_AGENT_MIRROR = SKILLS_MIRROR / "scholar-agent-kit" / "SKILL.md"
+
+#: Every document that states the E2 boundary must carry both marker strings. The
+#: handoff is the normative spec, the matrix is the cross-kit contract, and the
+#: two skills (canonical + generated mirror) are what an agent actually reads --
+#: so a boundary that is coded but undocumented fails here.
+BOUNDARY_DOCS = (
+    DOC_HANDOFF,
+    SURFACE_MATRIX,
+    DOC_SKILL_PDF,
+    DOC_SKILL_PDF_MIRROR,
+    DOC_SKILL_AGENT,
+    DOC_SKILL_AGENT_MIRROR,
+)
+
+#: The agent-kit skills additionally name the mechanism and the registered tool.
+AGENT_SKILL_DOCS = (DOC_SKILL_AGENT, DOC_SKILL_AGENT_MIRROR)
+
+#: The pdf-kit skills additionally name both supported alternatives.
+PDF_SKILL_DOCS = (DOC_SKILL_PDF, DOC_SKILL_PDF_MIRROR)
+
+
+@pytest.mark.parametrize("doc", BOUNDARY_DOCS, ids=lambda p: p.name if p else "")
+def test_boundary_documents_declare_the_unsupported_capability(doc: Path) -> None:
+    text = doc.read_text(encoding="utf-8")
+    assert "pdf_extraction" in text, f"{doc} does not name the capability"
+    assert "UNSUPPORTED_CAPABILITY" in text, f"{doc} does not name the rejection code"
+
+
+@pytest.mark.parametrize("doc", AGENT_SKILL_DOCS, ids=lambda p: p.name if p else "")
+def test_agent_skill_documents_declare_the_mcp_mechanism(doc: Path) -> None:
+    text = doc.read_text(encoding="utf-8")
+    assert "mcp_supported" in text, f"{doc} does not declare the mcp_supported flag"
+    assert "nexus_pdf_extraction" in text, f"{doc} does not name the registered tool"
+
+
+@pytest.mark.parametrize("doc", PDF_SKILL_DOCS, ids=lambda p: p.name if p else "")
+def test_pdf_skill_documents_name_the_supported_alternatives(doc: Path) -> None:
+    text = doc.read_text(encoding="utf-8")
+    assert "scholar-pdf extract-run" in text, f"{doc} does not name the CLI alternative"
+    assert "scholar_pdf.extraction" in text, f"{doc} does not name the API alternative"
+
+
+def test_surface_matrix_declares_api_cli_only_with_no_parity_claim() -> None:
+    text = SURFACE_MATRIX.read_text(encoding="utf-8")
+    assert "WP01-E2 extracted-text boundary" in text
+    assert "mcp_supported=false" in text
+    assert "extract_pdf" in text
+    assert "Zero I/O" in text or "zero I/O" in text
+    assert "not** a parity claim" in text or "no parity claim" in text.lower()
