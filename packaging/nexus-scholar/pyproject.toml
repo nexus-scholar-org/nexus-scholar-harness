@@ -63,6 +63,11 @@ dependencies = [
     # (pymupdf, chromadb, torch) stay lazy/deferred and are not imported here.
     "pypdf>=4.0.0",
     "pyvis>=0.3.0",
+    # E2-014 mirror: the E2 pdf-kit declares ``pyyaml>=6.0.0`` and its extraction
+    # / frontmatter modules parse and render YAML frontmatter.  Those imports are
+    # function-local (``extract.extract_markdown``, ``frontmatter.render_frontmatter``),
+    # so unlike pypdf this is a runtime dep rather than an import-time one.
+    "pyyaml>=6.0.0",
     "requests>=2.31.0",
     "rich>=13.0.0",
     "tenacity>=8.0.0",

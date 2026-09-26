@@ -63,13 +63,16 @@ SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
 
-# The two kits whose E1 work Stage 5 vendored, and the exact merged canonical
-# commits they were vendored from. The commit is duplicated inside each fixture
+# The two kits whose E1 acquisition work Stage 5 first vendored, and the exact
+# merged canonical commits they are currently vendored from. WP01-E2 Stage 3
+# re-vendored both at their merged E2 commits (the E2 extraction surface and the
+# ``nexus_pdf_extraction`` MCP tool), so these SHAs moved with the trees and the
+# fixtures below moved with them. The commit is duplicated inside each fixture
 # file; the cross-check against plugins.json below is what makes the two facts
 # agree, so neither can drift alone.
 E1_KITS: tuple[tuple[str, str], ...] = (
-    ("scholar-pdf-kit", "858911f6b7dd5738de94fa749ffc4c65b6d0b70e"),
-    ("scholar-agent-kit", "6050e0c99cdddb0f2c1ce7e0c62458a58eab5ce7"),
+    ("scholar-pdf-kit", "6ec6e3bb45612b40498772124de2ebc16717eb56"),
+    ("scholar-agent-kit", "deebfad995ba88bbd748be9beddd1aa2b8a51264"),
 )
 
 # The frozen Contract v1 registry keyset. Asserted exactly (not as a subset) so
@@ -260,8 +263,8 @@ def test_pdf_kit_vendoring_has_no_exclusions():
     """The pdf-kit snapshot is complete: every canonical path is vendored."""
 
     pdf_paths = set(_fixture_rows(_fixture("scholar-pdf-kit")))
-    assert len(pdf_paths) == 38, (
-        f"expected 38 vendored pdf-kit paths, got {len(pdf_paths)}"
+    assert len(pdf_paths) == 46, (
+        f"expected 46 vendored pdf-kit paths, got {len(pdf_paths)}"
     )
     for required in (
         "tools/scholar-pdf-kit/src/scholar_pdf/acquisition.py",
@@ -535,15 +538,15 @@ def test_unknown_capability_is_never_silently_unsupported():
         caps.unsupported_capability_envelope_json("not_a_capability")
 
 
-def test_pdf_acquire_tool_is_registered_and_the_surface_is_24_tools():
+def test_pdf_acquire_tool_is_registered_and_the_surface_is_25_tools():
     """The boundary is observable: the tool is registered, and --help lists it."""
 
     registered = {tool.name for tool in mcp._tool_manager.list_tools()}
     assert "nexus_pdf_acquire" in registered, (
         "the declared-unsupported tool must exist so the boundary is observable"
     )
-    assert len(registered) == 24, (
-        f"expected 24 registered MCP tools, found {len(registered)}"
+    assert len(registered) == 25, (
+        f"expected 25 registered MCP tools, found {len(registered)}"
     )
 
 
