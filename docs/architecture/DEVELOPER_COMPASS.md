@@ -18,16 +18,18 @@ acceptance/publication gate (Packet C)
         ↓ accepted immutable parents
 screening batch and decisions (Packet D)
         ↓ exact batch binding + decision lineage
-PDF/document and RAG boundaries (Packet E — next)
+acquired PDF + accepted extracted text (Packets E1-E2 — adopted)
+        ↓ exact document/extraction lineage
+stable chunks and index manifest (Packet E3 — next)
 ```
 
-| Packet | Responsibility | State after `ca6a77b` |
+| Packet | Responsibility | Current state |
 |---|---|---|
 | A | Protocol identity producer | Adopted |
 | B | Corpus snapshot and study identity producer | Adopted |
 | C | Typed acceptance and atomic publication | Reference adopted |
 | D | Bound screening batches and decisions | Adopted |
-| E | PDF/document and RAG boundary adapters | Next |
+| E | PDF/document and RAG boundary adapters | E1-E2 adopted; E3 next |
 
 Older documents may still describe A, B, or D as blocked. For implementation
 status, this compass and canonical `main` at or after `ca6a77b` take precedence.
@@ -222,15 +224,25 @@ replace this acquisition-specific packet.
 `858911f6b7dd5738de94fa749ffc4c65b6d0b70e`, agent kit
 `6050e0c99cdddb0f2c1ce7e0c62458a58eab5ce7`, full-SHA pins, generated
 metapackage pins, and E1-NEG-030/044/047 conformance agree. See
-`docs/architecture/wp01_packet_e1_completion_report.md`. E2 is next.
+`docs/architecture/wp01_packet_e1_completion_report.md`. E2 subsequently
+closed at `0fb665558e0808d66348476eda2c927439a96be1`; E3 is next.
 
 ### Packet E2 — extracted-text boundary
 
 E2 consumes the accepted E1 acquisition manifest, verifies its parent lineage,
 and binds extracted text to the accepted document ID and source checksum. Only
-after extraction emits the registered Contract v1 `DocumentManifestArtifact`.
-Record the requested and effective extraction engines, fallback chain,
-page/character counts, content status, and failure reason.
+after extraction does the PDF kit construct a non-authoritative Contract v1
+`DocumentManifestArtifact` candidate; the bounded harness adapter alone calls
+the frozen acceptance gate and publishes the authoritative artifact. Requested
+and effective extraction engines, fallback chain, page/character counts,
+content status, and failure reason remain recorded in the kit-owned sidecar.
+
+**Status:** E2 complete and approved on harness merge
+`0fb665558e0808d66348476eda2c927439a96be1`: PDF kit
+`0430ee40c491edbb055af4ab068637275aada476`, agent kit
+`deebfad995ba88bbd748be9beddd1aa2b8a51264`, bounded harness acceptance
+adapter, full-SHA pins, generated metapackage pins, and E2 conformance agree.
+See `docs/architecture/wp01_packet_e2_completion_report.md`. E3 is next.
 
 ### Packet E3 — chunk and index boundary
 
