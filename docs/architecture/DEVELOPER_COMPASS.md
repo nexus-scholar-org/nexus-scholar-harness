@@ -249,6 +249,11 @@ See `docs/architecture/wp01_packet_e2_completion_report.md`. E3 is next.
 Mint stable chunk IDs from the accepted document/extraction lineage. Publish an
 index manifest containing the exact extraction parents, chunking configuration,
 embedding model/version, and index fingerprint. Detect and reject stale chunks.
+The frozen Contract v1 does not contain a chunk/index artifact type; E3 therefore
+uses a kit-owned typed sidecar plus a harness acceptance record and must not
+silently extend the frozen contract. The ratified readiness boundary and
+implementation ordering are recorded in
+`docs/architecture/wp01_packet_e3_readiness_baseline.md`.
 
 ### Packet E4 — negative end-to-end proof
 
