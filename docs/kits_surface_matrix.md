@@ -310,8 +310,11 @@ Declared facts (all harness-enforced by
 - **No parity claim.** This is a declared *unsupported difference* between surfaces. The
   MCP surface must never be described as semantically equivalent to, or a substitute
   for, the API/CLI extraction path.
-- **Parent-bound and deterministic.** Every request binds already-accepted Contract v1
-  parents — `corpus_snapshot` and `screening_decisions` — and the run publishes a
+- **Parent-bound and deterministic.** Every request binds **exactly one**
+  already-accepted Contract v1 parent — `screening_decisions` — with the corpus bound
+  by `corpus_fingerprint` as a transitive ancestor through the screening chain (unlike
+  E1's acquisition request, which really does carry both `corpus_snapshot` and
+  `screening_decisions`), and the run publishes a
   `pdf-extraction-manifest-v1` sidecar plus a `document_manifest` Contract v1
   **candidate** stamped `contract_acceptance="not_performed_by_kit"`. A candidate is
   non-authoritative: the harness adapter

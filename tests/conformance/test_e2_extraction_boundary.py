@@ -1933,3 +1933,87 @@ def test_surface_matrix_declares_api_cli_only_with_no_parity_claim() -> None:
     assert "extract_pdf" in text
     assert "Zero I/O" in text or "zero I/O" in text
     assert "not** a parity claim" in text or "no parity claim" in text.lower()
+
+
+def test_documented_mcp_tool_count_matches_the_live_surface() -> None:
+    """The *documented* count is derived from the live surface, never copied.
+
+    ``test_count_freshness.py`` pins the runtime count and reads no documentation,
+    which is precisely how handoff row 17 sat at "24 registered tools" after E2
+    added a tool: a doc can rot while every green test still asserts the code.
+    This closes that class of defect. The expected number is read from the
+    vendored tool manager at test time and every documented surface must state
+    that same number.
+
+    The mechanism is mirrored from E1's
+    ``test_pdf_acquire_tool_is_registered_and_the_surface_is_25_tools``
+    (``tests/conformance/test_e1_acquired_document_boundary.py:541-550``):
+    ``{tool.name for tool in mcp._tool_manager.list_tools()}``.
+
+    ``count == 25`` is asserted rather than assumed -- if a later packet changes
+    the surface, this test must fail loudly instead of blessing whatever number
+    the prose happens to carry.
+    """
+
+    from scholar_agent.server import mcp
+
+    registered = {tool.name for tool in mcp._tool_manager.list_tools()}
+    count = len(registered)
+    assert count == 25, (
+        f"the live MCP surface is {count} tools, not 25; every documented count "
+        "checked below is now stale and the declared-unsupported surface has moved"
+    )
+    assert "nexus_pdf_extraction" in registered, (
+        "the E2 declared-unsupported tool must be part of the counted surface"
+    )
+
+    agent_skill = DOC_SKILL_AGENT.read_text(encoding="utf-8")
+    assert f"Exposed MCP Tools ({count} total)" in agent_skill, (
+        f"the agent skill header must state the live count of {count}"
+    )
+    assert f"lists all {count} registered tools" in agent_skill, (
+        f"the agent skill --help note must state {count} registered tools"
+    )
+
+    matrix = SURFACE_MATRIX.read_text(encoding="utf-8")
+    quick_map_row = next(
+        line
+        for line in matrix.splitlines()
+        if line.startswith("| agent (`scholar_agent`)")
+    )
+    assert f"**{count} tools**" in quick_map_row, (
+        "the matrix quick-map agent row must state the live count, got: "
+        f"{quick_map_row[:140]!r}"
+    )
+    agent_section = matrix.split("### scholar-agent-kit", 1)[1]
+    consumer_note = next(
+        line for line in agent_section.splitlines() if line.startswith("- **")
+    )
+    assert f"**{count} tools**" in consumer_note, (
+        "the matrix agent-kit consumer note must state the live count, got: "
+        f"{consumer_note!r}"
+    )
+
+    # Handoff row 17, first cell only. The count stays an adjacent
+    # "<N> registered tools" phrase, so it parses without depending on the
+    # explanation that follows it; if that phrasing is ever reworded, the
+    # membership check below fails rather than silently skipping the row.
+    handoff = DOC_HANDOFF.read_text(encoding="utf-8")
+    row_17 = next(line for line in handoff.splitlines() if line.startswith("| 17 |"))
+    cells = row_17.split("|")
+    # | 17 | <finding> | <evidence> | <normative> |  -- cells[0] is empty and
+    # cells[1] is the row number, so the finding is cells[2].
+    assert cells[1].strip() == "17", f"row anchor drifted: {cells[1]!r}"
+    first_cell = cells[2]
+    words = first_cell.split()
+    assert "registered" in words, (
+        f"handoff row 17 no longer states a 'registered tools' count: {first_cell!r}"
+    )
+    index = words.index("registered")
+    documented = words[index - 1]
+    assert documented.isdigit(), (
+        f"handoff row 17 count token is not a bare number: {first_cell!r}"
+    )
+    assert int(documented) == count, (
+        f"handoff row 17 documents {documented} tools, the live surface has {count}"
+    )

@@ -82,10 +82,14 @@ remains as a non-authoritative convenience; **the parent-bound path is `extract-
   (`scholar_harness.extraction_adapter.accept_extraction_candidate`) can accept it, and
   it binds the accepted `screening_decisions` parent. Until then there is no accepted
   `artifact_id`/`published_path` to cite.
-- **Parent binding.** Every request must bind already-accepted Contract v1 artifacts
-  (`corpus_snapshot` and `screening_decisions`) by `artifact_id`, `sha256`, and
-  workspace-relative POSIX path. A request without accepted parents fails preflight, and
-  a parent bound to another workspace is rejected.
+- **Parent binding.** Every request must bind **exactly one** already-accepted
+  Contract v1 artifact — `screening_decisions` — by `artifact_id`, `sha256`, and
+  workspace-relative POSIX path, with the corpus bound by `corpus_fingerprint` as a
+  transitive ancestor through the screening chain. (E1's `acquire` request is the one
+  that really does bind both `corpus_snapshot` and `screening_decisions`; the E2 request
+  model forbids extra fields, so a config still carrying a `corpus_snapshot` key is
+  rejected explicitly instead of ignored.) A request without the accepted parent fails
+  preflight, and a parent bound to another workspace is rejected.
 - **Deterministic identity.** A record is addressed by an opaque `DOC-<32 hex>`
   identity derived from study + source hash + workspace; never from a title or filename.
   The sidecar is the commit marker: an interrupted or torn write publishes nothing.
