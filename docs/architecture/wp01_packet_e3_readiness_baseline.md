@@ -1,9 +1,13 @@
 # WP01-E3 Readiness Baseline: Stable Chunks and Index Lineage
 
-**Status:** READY FOR HANDOFF AUTHORING; implementation is not authorized by this document  
-**Date:** 2026-09-26  
-**Owner:** Nexus Scholar Harness maintainers  
-**Canonical starting point:** harness `f9aa0b64165983b00d502f988e9af0a303eb33e0`  
+**Status:** READY FOR HANDOFF AUTHORING; implementation is not authorized by this document
+
+**Date:** 2026-09-26
+
+**Owner:** Nexus Scholar Harness maintainers
+
+**Canonical starting point:** harness `f9aa0b64165983b00d502f988e9af0a303eb33e0`
+
 **Pinned RAG kit:** `c89b68f0d35173082a03b8c6b228e84381271185`
 
 ## 1. Purpose
@@ -237,4 +241,3 @@ The next agent may author the full E3 handoff only if it preserves every rule
 above. Runtime coding must wait for that handoff to be independently reviewed
 and merged. Any proposal to add `chunk_manifest` to Contract v1 is
 `BLOCKED_CONTRACT_VERSION_DECISION`, not an implementation shortcut.
-
