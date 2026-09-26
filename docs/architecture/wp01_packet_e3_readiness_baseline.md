@@ -59,8 +59,9 @@ At the pinned RAG-kit revision:
 - `ScholarIndexer.index_markdown` performs only `collection.upsert(...)`.
   Re-indexing a shortened document does not delete obsolete chunks.
 - `min_chunk_chars` is stored but does not affect chunking.
-- directory indexing may infer `workspace_id` from a project title and may
-  mutate that inferred value while iterating documents.
+- directory indexing may infer `workspace_id` from a project title, but a
+  document's own YAML frontmatter may override that inferred identity for that
+  document's chunks.
 - embedding provider configuration is held in process configuration, but no
   durable manifest binds provider/model, chunking configuration, input hashes,
   and the exact visible chunk set.
