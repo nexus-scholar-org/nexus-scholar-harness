@@ -7,7 +7,7 @@ description: Instructions for using the scholar-agent-kit Model Context Protocol
 
 You are the AI agent interoperability and MCP specialist of the Nexus Scholar Suite. `scholar-agent-kit` exposes the full suite of research tools to Claude Code, Antigravity, and MCP-compatible AI agent clients over standard Model Context Protocol (MCP).
 
-## Exposed MCP Tools (24 total)
+## Exposed MCP Tools (25 total)
 
 **Protocol (3):**
 1. **`nexus_protocol_compile`** — path or JSON-string intent → `{status, protocol_id, fingerprint, protocol}`; does **not** persist (write protocol.json yourself).
@@ -39,19 +39,20 @@ You are the AI agent interoperability and MCP specialist of the Nexus Scholar Su
 17. **`nexus_verify_claims`** — verbatim quote verification. Digests scholar-rag `claims.json` (`{claims:[…]}` or bare list; `claim_text` as the quote), returns aggregate metrics + per-claim verdicts + failures-by-reason.
 18. **`nexus_verify_phase4`** — run a scholar-verify Phase-4 stream against a workspace: `retraction` (OpenAlex/Crossref), `open-science` (DAS/CAS), `coi`, `risk-of-bias` (QUADAS-2/PROBAST), `trust-context`, or `all`; writes `<ws>/phase4/<name>.{json,md}`. `skip_retraction=True` by default.
 
-**Declared unsupported (1):**
+**Declared unsupported (2):**
 19. **`nexus_pdf_acquire`** — **DECLARED UNSUPPORTED (WP01-E1):** returns the standard JSON envelope `operation="acquire_pdf"`, `status="FAILED"`, `artifacts=[]`, and exactly one non-retryable `UNSUPPORTED_CAPABILITY` error naming the API/CLI alternatives. Its arguments mirror an acquisition request for discoverability only; nothing is validated, echoed, downloaded, staged, or written. Use `uv run scholar-pdf acquire <config.json> --audit-logger <path-to-log_event.py>` or the `scholar_pdf.acquisition` Python API instead.
+20. **`nexus_pdf_extraction`** — **DECLARED UNSUPPORTED (WP01-E2):** returns the standard JSON envelope `operation="extract_pdf"`, `status="FAILED"`, `artifacts=[]`, and exactly one non-retryable `UNSUPPORTED_CAPABILITY` error naming the API/CLI alternatives. Its arguments mirror an extraction request for discoverability only; nothing is validated, echoed, extracted, written, or registered as a Contract artifact. Use `uv run scholar-pdf extract-run <config.json> --audit-logger <path-to-log_event.py>` or the `scholar_pdf.extraction.PDFExtractionService` Python API instead.
 
 **Methodology Critique (1):**
-20. **`nexus_critique_methodology`** — Methodology Critique Agent: wraps `scholar-verify-kit` risk-of-bias (QUADAS-2/PROBAST) over extracted records + manifest; outputs `phase4/methodological_critique.md` with domain-level summary and per-study table.
+21. **`nexus_critique_methodology`** — Methodology Critique Agent: wraps `scholar-verify-kit` risk-of-bias (QUADAS-2/PROBAST) over extracted records + manifest; outputs `phase4/methodological_critique.md` with domain-level summary and per-study table.
 
 **Pipeline (1):**
-21. **`nexus_pipeline_run`** — run the full 10-stage `ResearchOrchestrator` pipeline (protocol → discovery → dedup → screening → verification → PDF → extraction → RAG → synthesis). Parameters: `workspace_dir`, `query`, `protocol_path`, `skip_stages` (comma-separated stage names to skip).
+22. **`nexus_pipeline_run`** — run the full 10-stage `ResearchOrchestrator` pipeline (protocol → discovery → dedup → screening → verification → PDF → extraction → RAG → synthesis). Parameters: `workspace_dir`, `query`, `protocol_path`, `skip_stages` (comma-separated stage names to skip).
 
 **Recon (3) — Grounded Exploratory Inception Agent:**
-22. **`recon_probe`** — probe a topic into a FAIR recon session (OpenAlex; `semantic=True` → `search.semantic`).
-23. **`recon_distill`** — distill latest session pool into anchored terms (deterministic, lexicon-mergeable).
-24. **`recon_delta`** — bounded adaptive gap follow-up probes (hard cap 3).
+23. **`recon_probe`** — probe a topic into a FAIR recon session (OpenAlex; `semantic=True` → `search.semantic`).
+24. **`recon_distill`** — distill latest session pool into anchored terms (deterministic, lexicon-mergeable).
+25. **`recon_delta`** — bounded adaptive gap follow-up probes (hard cap 3).
 
 ---
 
@@ -68,7 +69,7 @@ uv run --directory tools/scholar-agent-kit scholar-agent
 ### 2. Display Help & Tool Registry
 ```bash
 uv run --directory tools/scholar-agent-kit scholar-agent --help
-# lists all 24 registered tools
+# lists all 25 registered tools
 ```
 
 ### 3. Launch a raw recon function (for testing/RECON_SEARCH_FN)
@@ -94,23 +95,30 @@ uv run python -c "from scholar_harness.recon import ReconEngine; import asyncio;
 
 ---
 
-## Declared unsupported capabilities (WP01-E1)
+## Declared unsupported capabilities (WP01-E1, WP01-E2)
 
 The agent kit is the MCP front-door, and a *silent omission* is not a boundary: an
-acquisition-shaped call that merely went missing is indistinguishable from a client
-bug or a vanished tool. So the kit **declares** the capability it does not serve,
-in `scholar_agent.capabilities`:
+acquisition- or extraction-shaped call that merely went missing is indistinguishable
+from a client bug or a vanished tool. So the kit **declares** both capabilities it
+does not serve, in `scholar_agent.capabilities`:
 
 - capability `pdf_acquisition` → **`mcp_supported=false`** (owning surfaces: `API`, `CLI`;
+  canonical owner: `nexus-scholar-org/scholar-pdf-kit`).
+- capability `pdf_extraction` → **`mcp_supported=false`** (owning surfaces: `API`, `CLI`;
   canonical owner: `nexus-scholar-org/scholar-pdf-kit`).
 - registered tool `nexus_pdf_acquire` answers **every** request with the standard
   operation envelope: `operation="acquire_pdf"`, `status="FAILED"`, `artifacts=[]`,
   and exactly one error with code **`UNSUPPORTED_CAPABILITY`**, `retryable=false`,
   whose message names both supported alternatives.
-- **Zero I/O:** the rejection is returned *before* any provider transport, temporary
-  or final file creation, manifest construction, or audit-success append. The envelope
-  is built by pure functions over an immutable declaration mapping, so the zero-I/O
-  property is structural, not merely asserted.
+- registered tool `nexus_pdf_extraction` answers **every** request the same way:
+  `operation="extract_pdf"`, `status="FAILED"`, `artifacts=[]`, and exactly one error
+  with code **`UNSUPPORTED_CAPABILITY`**, `retryable=false`, whose message names the
+  `scholar-pdf extract-run` CLI and the `scholar_pdf.extraction.PDFExtractionService`
+  API.
+- **Zero I/O:** the rejection is returned *before* any provider transport, engine
+  execution, temporary or final file creation, sidecar or manifest construction, or
+  audit-success append. The envelope is built by pure functions over an immutable
+  declaration mapping, so the zero-I/O property is structural, not merely asserted.
 - Retrying cannot succeed, so the error is never retryable. The rejection envelope is
   operation-envelope vocabulary, **not** a Contract v1 `OperationOutcome`, and claims
   no run identity (the rejection is unconditional and pre-validation).
@@ -118,11 +126,17 @@ in `scholar_agent.capabilities`:
   <path-to-log_event.py>` (CLI) or the
   `scholar_pdf.acquisition` Python API. Both route through the same public PDF-kit
   domain service. This is an explicit *unsupported difference*, **not** a parity claim.
-- The kit-owned `pdf_acquisition_manifest` is likewise **not** a Contract v1 registry
-  type: the frozen harness acceptance/chain registries reject it as
-  `UNSUPPORTED_ARTIFACT_TYPE` and never fabricate a registry entry for it.
+- **Use instead (extraction):** `uv run scholar-pdf extract-run <config.json>
+  --audit-logger <path-to-log_event.py>` (CLI) or the
+  `scholar_pdf.extraction.PDFExtractionService` Python API. The same explicit
+  *unsupported difference*, **not** a parity claim.
+- The kit-owned `pdf_acquisition_manifest` and `pdf_extraction_manifest` are likewise
+  **not** Contract v1 registry types: the frozen harness acceptance/chain registries
+  reject them as `UNSUPPORTED_ARTIFACT_TYPE` and never fabricate a registry entry for
+  either.
 
-Conformance: `tests/conformance/test_e1_acquired_document_boundary.py`.
+Conformance: `tests/conformance/test_e1_acquired_document_boundary.py`,
+`tests/conformance/test_e2_extraction_boundary.py`.
 
 ---
 
@@ -154,7 +168,7 @@ To register `scholar-agent-kit` in your Claude Desktop, Claude Code, or Antigrav
 ```python
 from scholar_agent.server import mcp   # mcp.MCPServer, stdio transport (mcp==2.1.1)
 
-# All 21 suite tools are registered via FastMCP's @mcp.tool() decorator:
+# All 22 suite tools are registered via FastMCP's @mcp.tool() decorator:
 # @mcp.tool()
 # def nexus_rag_query(...): ...
 ```

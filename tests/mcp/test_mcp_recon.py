@@ -124,8 +124,10 @@ def _probe(monkeypatch, tmp_path, search_fn=_topic_search_fn) -> dict:
 def test_three_recon_tools_registered_on_mcp():
     names = {tool.name for tool in asyncio.run(server.mcp.list_tools())}
     assert {"recon_probe", "recon_distill", "recon_delta"} <= names
-    # The 21 existing nexus_* tools (added F1/F2 + the WP01-E1 acquisition-boundary tool).
-    assert len(names) == 24
+    # The 22 nexus_* tools (F1/F2 + the WP01-E1 acquisition-boundary tool
+    # ``nexus_pdf_acquire`` + the WP01-E2 declared-unsupported extraction-boundary
+    # tool ``nexus_pdf_extraction``), plus the 3 recon_* tools asserted above.
+    assert len(names) == 25
     assert "nexus_discover" in names
 
 

@@ -4,8 +4,8 @@
 - **Architecture owner:** Harness Contract v1
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (declaration/rejection adapter only)
-- **Current PDF-kit pin:** `858911f6b7dd5738de94fa749ffc4c65b6d0b70e`
-- **Current agent-kit pin:** `6050e0c99cdddb0f2c1ce7e0c62458a58eab5ce7`
+- **Current PDF-kit pin:** `0430ee40c491edbb055af4ab068637275aada476`
+- **Current agent-kit pin:** `deebfad995ba88bbd748be9beddd1aa2b8a51264`
 - **Direct scientific parent:** accepted `ScreeningDecisionsArtifact` (the only Contract v1 parent type `document_manifest` may declare)
 - **Required context:** the accepted E1 `AcquiredDocumentManifest` (`pdf-acquisition-manifest-v1`, `ACQ-*`) and the corpus/screening parent lineage it embeds
 - **Frozen Contract v1 change required:** **none** (see §1.1)
@@ -204,7 +204,7 @@ E2 replaces or wraps this behavior; it must not silently inherit it.
 | 14 | The kit already has a reusable `ManifestReference` (manifest_id, manifest_type, workspace_relative_path, artifact_checksum) and `ArtifactReference` (artifact_id, path, sha256) model, plus `canonical_json_bytes`/`canonical_fingerprint` and `deterministic_document_id`/`deterministic_acquisition_manifest_id`. | `acquisition_models.py:933-975`, `canonical.py:81-104,168-246` | E2's sidecar reuses these primitives; it does not mint a second canonicalization or identity rule. |
 | 15 | The kit's local frozen-shape gate validates only `corpus_snapshot` and `screening_decisions` parents and reports anything else rather than coercing it. | `tools/scholar-pdf-kit/src/scholar_pdf/contract_parents.py:83-100` | `document_manifest`'s required parent is `screening_decisions`, so E2 can validate its Contract parent with the existing gate and must never coerce an unknown parent type. |
 | 16 | The `nexus-scholar` metapackage and the pdf kit declare **no** `pyyaml`. | `packaging/nexus-scholar/pyproject.toml` (dependency block), `tools/scholar-pdf-kit/pyproject.toml:10-20` | PDF-012 is a real, currently open defect; E2 must close it in the canonical kit **and** reflect it in the metapackage dependency list when the kit starts importing `yaml` on an authoritative path. |
-| 17 | The MCP surface is 24 registered tools, and two harness conformance files assert tool-registration/`--help` parity. | `tools/scholar-agent-kit/.../server.py` (tool count asserted in `tests/conformance/test_e1_acquired_document_boundary.py:538-547`); `tests/conformance/test_mcp_tool_parity.py:16-31` | If E2 adds or removes an MCP tool, the count assertions are an E2 harness obligation — a test update, never a contract change. |
+| 17 | The MCP surface is 25 registered tools (22 `nexus_*` + 3 `recon_*`; WP01-E2 added the declared-unsupported `nexus_pdf_extraction`), and two harness conformance files assert tool-registration/`--help` parity. | `tools/scholar-agent-kit/.../server.py` (tool count asserted in `tests/conformance/test_e1_acquired_document_boundary.py:538-547`); `tests/conformance/test_mcp_tool_parity.py:16-31` | If E2 adds or removes an MCP tool, the count assertions are an E2 harness obligation — a test update, never a contract change. |
 | 18 | The canonical workspace layout includes `pdfs/` and `extracted/`. | `AGENTS.md:33` | E2's extracted-text store is `extracted/`, alongside E1's `pdfs/acquired/` (`acquisition_models.py:201` `storage_prefix`). |
 
 ## 2. Scope

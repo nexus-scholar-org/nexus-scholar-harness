@@ -1,6 +1,6 @@
 {
   "kit": "scholar-pdf-kit",
-  "commit": "858911f6b7dd5738de94fa749ffc4c65b6d0b70e",
+  "commit": "0430ee40c491edbb055af4ab068637275aada476",
   "files": [
     [
       "100644",
@@ -29,17 +29,17 @@
     ],
     [
       "100644",
-      "8ede9adf54d9bd87b83e8fdca2901fb6705ffae8",
+      "00939f8fa490244c924efa75749d7c7265a73eeb",
       "tools/scholar-pdf-kit/.github/workflows/scholar-pdf-kit-ci.yml"
     ],
     [
       "100644",
-      "825d2129e776182db1062cbbf73c6d97be670f3a",
+      "20b0f2ddafd3f251989ac8f862cc49c4a76a8547",
       "tools/scholar-pdf-kit/.gitignore"
     ],
     [
       "100644",
-      "a5c2086d6a205f6719f596823d8f9229e7f3acac",
+      "166c6b9d9796acdaa92299bae727772badadaeb2",
       "tools/scholar-pdf-kit/README.md"
     ],
     [
@@ -79,12 +79,12 @@
     ],
     [
       "100644",
-      "9933a86e82904623ec6003ea44d611826697f6c3",
+      "f7aaabbd81a69e6e56e9bb337fdd2f0947760973",
       "tools/scholar-pdf-kit/pyproject.toml"
     ],
     [
       "100644",
-      "3293081106ff6268a76af87b1a24d90be7e0e44a",
+      "f78236bf70e4d9366294259910e38bc6fc4899d3",
       "tools/scholar-pdf-kit/src/scholar_pdf/__init__.py"
     ],
     [
@@ -99,18 +99,23 @@
     ],
     [
       "100644",
-      "703615bc90a5d36f57edb522d55ed467f9f4bbfc",
+      "4e6e63ed6fdabf76b5ed137bf0718eab77b20141",
       "tools/scholar-pdf-kit/src/scholar_pdf/canonical.py"
     ],
     [
       "100644",
-      "3dec4506cf3148907b2236354485556a26b56bfd",
+      "de2db4f437be4565d7da07789097f5f5b1c16f12",
       "tools/scholar-pdf-kit/src/scholar_pdf/cli.py"
     ],
     [
       "100644",
       "17509e96d71d2adcafbfebcf4918eced916dfe3c",
       "tools/scholar-pdf-kit/src/scholar_pdf/config.py"
+    ],
+    [
+      "100644",
+      "212f7d410e58137ff56eed5530b5560521bac3b9",
+      "tools/scholar-pdf-kit/src/scholar_pdf/contract_candidate.py"
     ],
     [
       "100644",
@@ -126,6 +131,26 @@
       "100644",
       "52e93cdcaeb97809a23a715196993bc9db6d5c4b",
       "tools/scholar-pdf-kit/src/scholar_pdf/extract.py"
+    ],
+    [
+      "100644",
+      "7cc732735012fb08826a537348270507e427e2bb",
+      "tools/scholar-pdf-kit/src/scholar_pdf/extraction.py"
+    ],
+    [
+      "100644",
+      "0bf26a8518317c175d1b0ef15a917d39b9e5f2c8",
+      "tools/scholar-pdf-kit/src/scholar_pdf/extraction_engines.py"
+    ],
+    [
+      "100644",
+      "bc96b2d85f1c8256db01bc3066139698798099f6",
+      "tools/scholar-pdf-kit/src/scholar_pdf/extraction_models.py"
+    ],
+    [
+      "100644",
+      "6d479d4ec94f1c8853245aab516c6171432cc0fe",
+      "tools/scholar-pdf-kit/src/scholar_pdf/frontmatter.py"
     ],
     [
       "100644",
@@ -154,6 +179,11 @@
     ],
     [
       "100644",
+      "27a84fc3ce9c18c84702611f8176b2cee6f700ac",
+      "tools/scholar-pdf-kit/tests/fixtures/real_text_layer.pdf"
+    ],
+    [
+      "100644",
       "ec16432415f709ea264794f52b33736a41a36c63",
       "tools/scholar-pdf-kit/tests/test_acquisition_contract.py"
     ],
@@ -179,6 +209,16 @@
     ],
     [
       "100644",
+      "4aab88c0632d0174f48764b7ccdb42bed87523b8",
+      "tools/scholar-pdf-kit/tests/test_extraction_atomicity.py"
+    ],
+    [
+      "100644",
+      "1d09bf516d997149aa23f8b9cf716a44789a784f",
+      "tools/scholar-pdf-kit/tests/test_extraction_contract.py"
+    ],
+    [
+      "100644",
       "acf7f95e3de00f1a535378c48281a6b7b600a384",
       "tools/scholar-pdf-kit/tests/test_publisher_patterns.py"
     ],
@@ -189,7 +229,7 @@
     ],
     [
       "100644",
-      "5ce3918fb3546b6f90aa59d2b03b4b37529315eb",
+      "95c83ad463b14e1c7e7c5c93c6560eac48b3fea7",
       "tools/scholar-pdf-kit/uv.lock"
     ]
   ]
