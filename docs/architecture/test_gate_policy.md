@@ -1,7 +1,9 @@
 # Test Gate Selection Policy
 
-**Status:** Active  
-**Applies to:** harness and canonical `scholar-*-kit` development  
+**Status:** Active
+
+**Applies to:** harness and canonical `scholar-*-kit` development
+
 **Machine-readable map:** `docs/architecture/test_gate_manifest.json`
 
 ## Purpose
@@ -75,4 +77,3 @@ is an error, not permission to skip testing.
 The full suite must still be rerun after any executable repair made following a
 failed PR gate. Cross-platform repetition belongs to CI unless the failure is
 platform-specific.
-
