@@ -23,7 +23,7 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 - Packet C is the `CONSUMER_GATED_REFERENCE` in `docs/architecture/wp01_packet_c_reference.md`. Packets A (protocol) and B (search) are ready. Packet D (screening migration) and Packet E (PDF/RAG stubs) are blocked on A+B.
 - Contract changes require an architecture/version decision, regenerated schemas and golden fixtures, a negative regression test, and independent review. Adapter inconvenience never authorizes weakening the contract.
 
-- All tests: `uv run pytest` (measured 2026-09-14: **391 passed, 5 skipped — 0 failures**, including the `tests/conformance/` drift suite). Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
+- Test gates are tiered by `docs/architecture/test_gate_policy.md`; the machine-readable E3 mapping is `docs/architecture/test_gate_manifest.json`. Use `uv run python scripts/select_test_gate.py --task T-<n> --stage inner|checkpoint|pr|closure` to select commands. Run targeted tests during edits, the owning repo's full suite once for a final executable PR candidate, and the full harness/cross-platform gates at packet closure. Documentation-only repairs may reuse recorded executable evidence when the policy's SHA/path conditions hold. Tests import the harness from `src/` and kits from `tools/*/src` via `[tool.pytest.ini_options] pythonpath`.
 - Lint: `uv run ruff check scripts/` (CI scopes ruff to `scripts/` only). Note: `scripts/` currently passes clean; if you run ruff with a broader scope (`src/`, `tools/`) you'll see pre-existing findings in `src/scholar_harness/cli.py` (B008/BLE001/S110) and `tools/scholar-agent-kit` (BLB001/RUF013/…) that are out of CI scope and not ours to fix.
 - This repo's own CLI: `uv run scholar-harness` with `status|sync|run|export|inception` subcommands (defined in `src/scholar_harness/cli.py`, Phase-0 wizard in `src/scholar_harness/inception/`).
 - Multi-step research is agent-driven and file-based, so commands often hand off:
@@ -52,7 +52,7 @@ The Nexus Scholar dev loop uses four specialized agents that operate fully auton
 
 **Autonomous mode:** All agents have `permission: allow` — no human approval required. Execute the full workflow without pausing.
 
-**Testing strategy:** During task development, run only targeted tests (~5-10s). Run full suite only at phase completion (~90s).
+**Testing strategy:** Follow `docs/architecture/test_gate_policy.md`: `inner` targeted tests, `checkpoint` boundary tests, `pr` full owning-repo suite once, and `closure` full harness/CI matrix. Do not rerun a full suite after a documentation-only repair when recorded evidence remains valid.
 
 **Git workflow:** `main` (production) → `staging/phase-{X}` (phase integration) → `dev/phase-{X}/task-{N}` (active development).
 
