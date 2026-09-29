@@ -61,6 +61,20 @@ htmlcov/
 *.swo
 *~
 
+# Research UI (Next.js)
+apps/research-ui/node_modules/
+apps/research-ui/.next/
+apps/research-ui/out/
+apps/research-ui/.env*.local
+apps/research-ui/coverage/
+apps/research-ui/.vitest/
+apps/research-ui/test-results/
+apps/research-ui/playwright-report/
+
+# NOT ignored, on purpose: apps/research-ui/screenshots/ is committed. The
+# browser suite writes real captures there and they are the evidence for the
+# rendering gates in apps/research-ui/GATES.md.
+
 # Operating System Files
 .DS_Store
 Thumbs.db
