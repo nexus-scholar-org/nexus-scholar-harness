@@ -1,9 +1,10 @@
 # Research UI verification gates
 
 This file records what packet UI-00 made executable, what packet UI-01 added on
-top of it, what packet UI-00b measured in a real browser, and — just as
-importantly — what remains **unverified** or **failing**. Nothing below is
-claimed as covered unless a command in this directory produced the evidence.
+top of it, what packet UI-00b measured in a real browser, the mobile-dialog-open
+axe run added afterwards (§3.6), and — just as importantly — what remains
+**unverified** or **failing**. Nothing below is claimed as covered unless a
+command in this directory produced the evidence.
 
 Commands referenced here all run in `apps/research-ui/`:
 
@@ -209,10 +210,28 @@ teardown — the server is gone after the run whether it passed or failed. The
 suite is Chromium only (`npx playwright install chromium`), serial, one worker,
 `deviceScaleFactor: 1`, at two viewports: **375x812** and **1440x900**.
 
-**22 tests: 22 pass.** UI-00b's first run reported 20 pass and 2 fail, both on
+**23 tests: 23 pass.** UI-00b's first run reported 20 pass and 2 fail, both on
 `color-contrast`; the contrast repair in §3.2 closed both, and the run now exits
 0. Every number below is copied from a run's own `[measured]` output; nothing
 here is inferred.
+
+**The count is 23, and the arithmetic is auditable** — it is the sum of the
+`playwright test --list` output, and only the axe spec changed:
+
+| Spec file | Tests | Why |
+|---|---:|---|
+| `tests-browser/focus-visibility.spec.ts` | 3 | unchanged |
+| `tests-browser/hygiene.spec.ts` | 3 | unchanged |
+| `tests-browser/overflow.spec.ts` | 3 | 2 from the viewport loop + 1 standalone |
+| `tests-browser/rendered-axe.spec.ts` | **4** | 2 from the viewport loop + the `image-alt` negative control + **the §3.6 dialog-open run** |
+| `tests-browser/responsive-nav.spec.ts` | 3 | unchanged |
+| `tests-browser/screenshots.spec.ts` | 5 | unchanged |
+| `tests-browser/tab-order.spec.ts` | 2 | unchanged |
+| **Total (7 files)** | **23** | was 22; +1, from `rendered-axe.spec.ts` alone |
+
+No other spec file gained or lost a test, and no existing test was restructured
+to make room: the new one is a fourth `test()` in the existing
+`test.describe("axe-core on rendered CSS", …)`.
 
 ### 3.1 CLOSED by UI-00b
 
@@ -227,6 +246,7 @@ here is inferred.
 | B7 | Mobile disclosure focus trap (residual UI-01 item) | On open, focus moves to Headless UI's dialog root; 6 consecutive `Tab` presses cycle `button:Close main navigation` -> `a:Overview` -> back, never leaving the dialog subtree; `Escape` removes the panel and restores focus to `button:Open main navigation` | `tests-browser/responsive-nav.spec.ts` |
 | B8 | axe non-vacuity, in a real browser | An `<img>` with no `alt`, injected into the live page, is reported as `critical` `image-alt`, 1 node | `tests-browser/rendered-axe.spec.ts` |
 | B9 | No external origin, no analytics, no secrets | 0 non-localhost requests, 0 absolute non-localhost URLs in the served HTML, 0 analytics globals on `window`, 0 analytics payloads inlined, 0 credential-shaped literals in the Playwright config | `tests-browser/hygiene.spec.ts`, plus a non-localhost request guard on **every** test via the `page` fixture in `tests-browser/helpers.ts` |
+| B10 | axe with the **mobile dialog open**, in a browser — the last unmeasured accessibility surface | 375px: `color-contrast=pass ; violations=none ; incomplete=aria-hidden-focus(2)`. Zero violations of any impact; `color-contrast` a decided pass, not an `incomplete`; the one `incomplete` rule is Headless UI's own focus guards, not a contrast node. See §3.6 | `tests-browser/rendered-axe.spec.ts` |
 
 **B1 confirms §1 gate 12 rather than contradicting it.** The documented union
 across viewport widths is what jsdom can see; the measured per-viewport rings
@@ -255,7 +275,7 @@ against the dialog subtree (`[role="dialog"]`), not against
 
 ### 3.2 CLOSED — rendered colour contrast, and two repairs it exposed
 
-**`npm run test:browser` now exits 0 with 22/22.** At UI-00b's first run two
+**`npm run test:browser` now exits 0 with 23/23.** At UI-00b's first run two
 tests were red on `color-contrast` because the application genuinely failed
 WCAG 2.1 AA. That was not a runner problem and it was not suppressed,
 allow-listed or downgraded: axe returned `incomplete: []` at both viewports
@@ -349,12 +369,14 @@ overlapping element that makes contrast undecidable — would therefore have lef
 the run green while the empty `violations` array became vacuous, which is the one
 failure this guard exists to catch. It now requires `color-contrast` in
 `outcome.passes` specifically. The assertion is
-`expect(outcome.passes, …).toContain("color-contrast")`; no test was added, the
-suite remains at 22, and a genuine failure continues to be caught by the
-`violations` `toEqual([])` assertion above. The suite stayed green on the first
-run after the tightening, so it was not over-tightened. Its failing path has not
-been exercised by a live negative control — see `NOT_VERIFIED` in the repair
-report — so satisfiability is established by measurement, bite by reasoning.
+`expect(outcome.passes, …).toContain("color-contrast")`; no test was added by
+that tightening, the suite was 22 immediately afterwards (it is 23 now — §3.6,
+and the arithmetic is in §3), and a genuine failure continues to be caught by
+the `violations` `toEqual([])` assertion above. The suite stayed green on the
+first run after the tightening, so it was not over-tightened. Its failing path
+has still not been exercised by a live negative control — see `NOT_VERIFIED` in
+the repair report and §3.6.4 — so satisfiability is established by measurement,
+bite by reasoning.
 
 #### 3.2.3 Residual, disclosed rather than closed
 
@@ -389,6 +411,12 @@ at both viewports, `incomplete: []`, no rule suppressed to get there). It is
 named here rather than deleted so this section stays a complete ledger of
 everything that was ever outstanding.
 
+**Closed since §3.3:** axe with the mobile dialog open, in a browser (§3.6, now
+B10). The jsdom half of this item was already closed by `tests/shell.test.tsx`;
+§3.6 closes the rendered half, and closes it with a negative control, which
+that jsdom run does not have. Named here rather than deleted for the same
+reason as the item above.
+
 Still open:
 
 - [ ] **Automated visual-regression baselines.** Not started. `screenshots/`
@@ -396,10 +424,6 @@ Still open:
       a future visual regression would not be caught automatically.
 - [ ] **A second route.** §4.3, unchanged by UI-00b. Still only `/`, so the
       layout-owned `main` is tested but not yet *exercised twice*.
-- [ ] **axe on the mobile disclosure open, in a browser.** UI-01 proves the
-      open state in jsdom at document scope (`tests/shell.test.tsx`); the
-      browser run covers focus behaviour but does not repeat the axe run with
-      the dialog open.
 - [ ] **Cross-browser rendering.** Chromium only. Firefox and WebKit are not
       installed and were not run, so no gate here may be read as
       engine-independent.
@@ -416,7 +440,7 @@ Still open:
 "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
 ```
 
-It then serves correctly anyway: all 22 tests ran against real rendered markup
+It then serves correctly anyway: all 23 tests ran against real rendered markup
 at both viewports, and the measured values in §3.1 are consistent with the
 source. The warning is recorded rather than silenced and the alternative was
 not adopted, because switching the harness to `.next/standalone/server.js` would
@@ -437,6 +461,134 @@ change what is under test without a reason any gate requires. Next.js
 The UI-02, UI-04, UI-05 and UI-06 gates remain fully closable in jsdom with the
 §1 runner. UI-01 is now wholly closable. UI-03 is not, and the reason is
 missing application surfaces, not a missing browser.
+
+### 3.6 The mobile dialog open, measured in a browser (B10)
+
+**This state was previously unmeasured, and the §3.2 contrast repair was blind to
+it.** The three "Not yet available" nav tags live in the desktop `<nav>`, which
+is `hidden lg:block`, so below 1024px they render nowhere. On mobile they live
+inside `MobileNav`'s Headless UI dialog, which **unmounts when closed** —
+measured in-repo at `tests-browser/responsive-nav.spec.ts:122`, where the panel
+goes to `toHaveCount(0)` after `Escape`. So the 375px axe run in §3.2 was
+measuring a page with **no navigation in the DOM at all**, and it was green
+over that absence. §3.2's per-site table says the `text-slate-500` → `text-slate-600`
+repair was measured at "1440px, 3 nodes" — correct, and true of no other
+viewport. Nothing in the file claimed mobile-dialog contrast had been checked,
+because it never had.
+
+`tests-browser/rendered-axe.spec.ts` now carries a fourth test,
+`375px: zero real violations with the mobile dialog open`, which sets
+`MOBILE_VIEWPORT`, opens the disclosure by role + accessible name
+(`MOBILE_NAV_TRIGGER_LABEL`), asserts `#mobile-primary-nav` is **visible** before
+measuring, then runs the same `runAxe` / `summarise` / `report` path as its
+siblings and asserts the same two things: `outcome.violations` is `[]` at any
+impact, and `color-contrast` is in `outcome.passes`. The visibility assertion is
+load-bearing, not decoration — Headless UI unmounts the panel when closed, so
+without it this test could pass while measuring the same navigation-free page
+the closed-dialog run already covers.
+
+#### 3.6.1 The measured result, quoted
+
+```text
+[measured] 375px: zero real violations on the rendered page
+[measured] 375px axe: color-contrast=pass ; violations=none ; incomplete=none ;
+[measured] 375px dialog-open axe: color-contrast=pass ; violations=none ; incomplete=aria-hidden-focus(2) ;
+```
+
+Zero violations of any impact. `color-contrast` is a **decided pass**, present in
+`outcome.passes` — not an `incomplete` — so the §3.2.2 non-vacuity guard is
+satisfied by a real verdict and the empty `violations` array is not vacuous.
+**`incomplete` holds exactly one rule, `aria-hidden-focus`, on 2 nodes.**
+
+#### 3.6.2 Why the translucent backdrop did not force `color-contrast` into `incomplete`
+
+The risk was real and it was checked rather than assumed. `DialogBackdrop` is
+`bg-slate-900/30`, computed as `oklab(0.207998 -0.00311178 -0.0418783 / 0.3)`,
+and anything painted over it would have had an undecidable background. Nothing
+is, at 375px, because the panel covers the viewport completely:
+
+| Measurement | Value |
+|---|---|
+| `DialogPanel` rect at 375px | `x: 0`, `width: 375` (`w-full` beats `max-w-sm`, 384px) |
+| `DialogBackdrop` rect at 375px | `x: 0`, `width: 375` — entirely behind the opaque panel |
+| `DialogPanel` computed background | `rgb(255, 255, 255)` — opaque, so axe resolves every text node in it |
+| `[role="dialog"]` computed background | `rgba(0, 0, 0, 0)` — transparent, but it paints no text |
+| Leaf text nodes outside the panel | 71 — all of them in the `aria-hidden` background (6 `aria-hidden` nodes, 1 `inert`), which is consistent with the run producing **zero** `color-contrast` `incomplete` entries: none of them was left undecidable, because none of them was in the accessibility tree |
+
+So the translucent backdrop is present and fully rendered, and it is still not a
+contrast hazard, because the opaque panel sits on top of all of it. **No
+allow-list, no `exclude`, no disabled rule and no relaxed assertion was needed
+to reach that result** — it is what the markup already does. Had the panel been
+narrower than the viewport, the backdrop question would have been live and
+`color-contrast` could legitimately have gone to `incomplete`; that was the
+finding to watch for, and it did not occur.
+
+#### 3.6.3 The one `incomplete` node, named exactly
+
+`aria-hidden-focus`, impact `serious`, 2 nodes, and it is **not** the application's
+markup — it is Headless UI's own focus guards:
+
+```text
+button[data-headlessui-focus-guard="true"]:nth-child(1)
+button[data-headlessui-focus-guard="true"]:nth-child(3)
+```
+
+Both are `<button>` elements measuring **1 × 0 px**, sitting inside
+`aria-hidden="true"` and **not** inside the `[inert]` subtree. `aria-hidden-focus`
+fires precisely because they are focusable elements inside an aria-hidden
+subtree — which is their entire purpose: they are sentinels Headless UI injects
+at the boundary of the hidden background so the browser's sequential focus
+cannot land in it. The rule is correctly describing a real, library-generated
+situation; it is not a defect in `MobileNav`, and it is not a contrast result.
+It is reported, not suppressed.
+
+Recorded precisely, because "the suite is green" is not the claim: the run's
+`incomplete` is not empty, and that is why `summarise` prints
+`incomplete=aria-hidden-focus(2)` rather than `incomplete=none`. The §3.2
+header's "`incomplete: []` at both viewports" is still true **of the two
+closed-dialog runs** and is not extended to this third state.
+
+#### 3.6.4 Negative control: the new test does bite
+
+The packet's point was that a negative control re-breaking
+`components/primary-nav.tsx:52` to `text-slate-500` **passed at 375px** and
+failed only at 1440px, so the closed-dialog mobile run protected nothing. With
+the dialog-open test in place, re-breaking that one class makes the **375px
+dialog-open** test fail. Reverting only `text-slate-600` → `text-slate-500` on
+`UNAVAILABLE_TAG_CLASS` and re-running `npx playwright test
+tests-browser/rendered-axe.spec.ts`:
+
+```text
+[measured] 375px axe: color-contrast=pass ; violations=none ; incomplete=none ;
+  ✓  1 … 375px: zero real violations on the rendered page (3.9s)
+[measured] 1440px axe: color-contrast=pass ; violations=color-contrast(serious, 3 nodes) ; incomplete=none ; …
+  ✘  2 … 1440px: zero real violations on the rendered page (4.3s)
+[measured] 375px dialog-open axe: color-contrast=pass ; violations=color-contrast(serious, 3 nodes) ; incomplete=aria-hidden-focus(2) ; color-contrast@4.34 .flex-col > li:nth-child(2) > .flex-wrap.gap-2.rounded-md > .py-0\.5.text-\[0\.6875rem\].bg-slate-100 | …
+  ✘  3 … 375px: zero real violations with the mobile dialog open (4.1s)
+  ✓  4 … negative control: axe really runs on the live page (2.0s)
+  2 failed
+```
+
+All three broken-contrast nodes read
+`Element has insufficient color contrast of 4.34 (foreground color: #62748e,
+background color: #f1f5f9, font size: 8.3pt (11px), font weight: normal).
+Expected contrast ratio of 4.5:1`, failing at `rendered-axe.spec.ts:213` on
+`expect(outcome.violations).toEqual([])`. `components/primary-nav.tsx` was
+restored and SHA-256-verified back to `52d02a9302ce5af90fa00ab431af4dec8fc440b1e163bf83105d75f94bb290fc`,
+its pre-control hash, and the full suite was re-run green. Test 1 passing while
+tests 2 and 3 fail is the measurement that matters: the closed-dialog mobile
+run still cannot see navigation, and the open-dialog one can.
+
+**One honest limit, which this control did *not* close.** The failure landed on
+the `violations` assertion at line 213, so the non-vacuity guard at line 214
+never executed. This control proves the new test detects a real contrast
+failure; it does **not** exercise the §3.2.2 guard's own failing path, and that
+item stays in `NOT_VERIFIED`. (A separate pre-existing wrinkle, visible in the
+quoted line and left alone: when a rule passes for some nodes and violates for
+others, `summarise`'s three-way precedence prints `color-contrast=pass` because
+the id is present in `passes` at all. The adjacent `violations=` field and the
+`toEqual([])` assertion carry the real verdict, which is why the run was still
+correctly red. `summarise` was not restructured in this packet.)
 
 ## 4. Known benign runner warnings
 

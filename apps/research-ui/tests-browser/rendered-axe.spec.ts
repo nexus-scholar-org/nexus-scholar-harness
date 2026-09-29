@@ -1,6 +1,14 @@
 import { createRequire } from "node:module";
 
-import { DESKTOP_VIEWPORT, expect, MOBILE_VIEWPORT, report, test } from "./helpers";
+import {
+  DESKTOP_VIEWPORT,
+  expect,
+  MOBILE_NAV_PANEL_ID,
+  MOBILE_NAV_TRIGGER_LABEL,
+  MOBILE_VIEWPORT,
+  report,
+  test,
+} from "./helpers";
 
 /**
  * axe-core on the *rendered* page, in Chromium.
@@ -181,6 +189,33 @@ test.describe("axe-core on rendered CSS", () => {
       ).toContain(AXE_CONTRAST_RULE_ID);
     });
   }
+
+  test("375px: zero real violations with the mobile dialog open", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    await page.getByRole("button", { name: MOBILE_NAV_TRIGGER_LABEL }).click();
+
+    // The panel must be open *and* visible first. Headless UI unmounts it when
+    // closed (measured at `responsive-nav.spec.ts:122`), and the desktop `<nav>`
+    // is `hidden lg:block`, so an axe run against a closed dialog would measure a
+    // page containing no navigation at all — and still look green.
+    const panel = page.locator(`#${MOBILE_NAV_PANEL_ID}`);
+    await expect(panel).toBeVisible();
+
+    const outcome = await runAxe(page);
+    report(`375px dialog-open axe: ${summarise(outcome)}`);
+
+    expect(
+      outcome.violations,
+      "375px with the mobile dialog open: axe reported real violations on the rendered page",
+    ).toEqual([]);
+    expect(
+      outcome.passes,
+      `375px with the mobile dialog open: ${AXE_CONTRAST_RULE_ID} is not in axe's passing rule set, so the empty violations array is meaningless (an undecidable contrast is reported under "incomplete", not here)`,
+    ).toContain(AXE_CONTRAST_RULE_ID);
+  });
 
   test("negative control: axe really runs on the live page", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
