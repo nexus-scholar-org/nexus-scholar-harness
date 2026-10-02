@@ -32,6 +32,11 @@ Every task packet must declare one delivery lane before implementation starts.
 The lane selects the minimum review cadence; it never waives a gate made
 necessary by the actual changed surface.
 
+Every active task also requires the context capsule defined in
+`docs/architecture/agent_context_protocol.md`. Gate selection uses the capsule's
+current commit, changed paths, and evidence record; a repair round reads its
+delta rather than replaying the complete task history.
+
 | Lane | Use for | Minimum evidence and review cadence |
 |---|---|---|
 | `FAST` | Documentation, isolated UI, test-only corrections, and local refactors with no public or persisted semantic change | `inner` evidence, one scoped review, and a repair-delta check. No owner-repository full suite unless the changed path or a failed gate requires it. |

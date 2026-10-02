@@ -25,7 +25,7 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 
 ## Implementation rules
 
-1. Read `docs/architecture/research_ui/README.md` and the assigned work packet.
+1. Read `docs/architecture/research_ui/README.md`, the assigned work packet, and the active task context capsule from `docs/architecture/agent_context_protocol.md`.
 2. Work on exactly one screen or cross-cutting UI primitive.
 3. Search Tailwind Plus by capability; adapt only the component needed.
 4. Use semantic HTML, keyboard navigation, visible focus, and text labels in addition to color.
@@ -33,6 +33,13 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 6. Use mock data only until an API contract is approved.
 7. Run targeted type, component, and browser checks for the changed surface.
 8. Report files changed, screenshots checked, tests run, and any missing API capability.
+
+## Context boundary
+
+UI work is its own context domain. For a UI task, keep the repeated reading set
+to the active capsule, this file, the assigned UI packet, and the API contract
+being displayed. Do not load E3 handoffs, kit internals, or Contract v1 history
+unless an approved UI/API boundary packet explicitly makes them relevant.
 
 ## Definition of done
 

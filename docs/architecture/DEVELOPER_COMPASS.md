@@ -158,6 +158,9 @@ Every task must declare its `FAST`, `STANDARD`, or `RELEASE` delivery lane
 using `docs/architecture/test_gate_policy.md` before implementation. The lane
 sets the review cadence and minimum gate level; contract, identity,
 publication, public-surface, and cross-kit work is always `RELEASE`.
+Every active task also carries the short context capsule defined in
+`docs/architecture/agent_context_protocol.md`; use its cited sources and delta
+instead of reloading complete packet history on each repair round.
 
 During implementation, run focused tests. Select the final PR or closure
 commands from the test-gate policy rather than rerunning the full harness suite
