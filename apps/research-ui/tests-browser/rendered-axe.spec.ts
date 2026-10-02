@@ -44,6 +44,21 @@ import {
  * reports it as a `critical` `image-alt` violation, so a run in which the
  * injected core silently failed to evaluate anything cannot look identical to
  * a clean one.
+ *
+ * Packet UI-01c (acceptance A6) added the third outcome as an ASSERTION.
+ * `incomplete` was described correctly in this header and then never checked:
+ * `summarise` printed it, and that was all. A run whose `color-contrast` had
+ * quietly moved from `passes` to `incomplete` — an undecidable background, an
+ * overlap, a translucent backdrop showing through — would have stayed green on
+ * every assertion in this file. Each of the three runs now asserts the whole
+ * `incomplete` ledger with `toEqual`, so an unexpected rule, or a change in the
+ * node count of the one expected rule, is a red run rather than an extra line in
+ * a log. Nothing is suppressed, allow-listed or excluded; the expected value is
+ * the value the run has always reported.
+ *
+ * The same packet also repaired `summarise`'s precedence, which printed
+ * `color-contrast=pass` for a rule that both passed and violated — see the note
+ * on that function.
  */
 
 const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");
@@ -134,21 +149,70 @@ async function runAxe(page: import("@playwright/test").Page): Promise<AxeOutcome
 }
 
 function summarise(outcome: AxeOutcome): string {
-  const contrast = outcome.passes.includes(AXE_CONTRAST_RULE_ID)
-    ? "pass"
+  /*
+   * Three-way precedence, and the order matters (packet UI-01c, finding F5).
+   *
+   * This used to ask `passes` first, so a rule that passed for some nodes and
+   * violated for others printed `color-contrast=pass`: the run's own log
+   * contradicted the red assertion two lines below it. Reporting only — the
+   * adjacent `violations=` field and the `toEqual([])` assertion always carried
+   * the real verdict — but a log line that says "pass" for a failing page is the
+   * kind of thing that later gets quoted in a report. A violation now wins.
+   */
+  const contrast = outcome.violations.some((item) => item.id === AXE_CONTRAST_RULE_ID)
+    ? "violation"
     : outcome.incomplete.some((item) => item.id === AXE_CONTRAST_RULE_ID)
       ? "incomplete"
-      : "violation";
+      : outcome.passes.includes(AXE_CONTRAST_RULE_ID)
+        ? "pass"
+        : "not-evaluated";
   const detail = outcome.violations
     .flatMap((item) => item.nodes.map((node) => `${item.id}@${node.contrastRatio ?? "?"} ${node.target}`))
     .join(" | ");
   return [
     `${AXE_CONTRAST_RULE_ID}=${contrast}`,
     `violations=${outcome.violations.map((item) => `${item.id}(${item.impact}, ${item.nodes.length} nodes)`).join(", ") || "none"}`,
-    `incomplete=${outcome.incomplete.map((item) => `${item.id}(${item.nodes})`).join(", ") || "none"}`,
+    `incomplete=${incompleteSummary(outcome).join(", ") || "none"}`,
     detail,
   ].join(" ; ");
 }
+
+/**
+ * The `incomplete` ("needs review") results as `<id>(<node count>)` strings.
+ *
+ * Packet UI-01c, acceptance A6: `incomplete` was previously **printed** by
+ * {@link summarise} and never asserted, which is exactly the condition that
+ * lets a contrast gate become vacuously green — an `incomplete` result is not a
+ * pass, and `color-contrast` reaching it silently is the one regression the
+ * non-vacuity guard above exists to catch. This function is what makes the
+ * ledger assertable, and it is compared with `toEqual` so an unexpected rule
+ * fails by name.
+ */
+function incompleteSummary(outcome: AxeOutcome): string[] {
+  return outcome.incomplete.map((item) => `${item.id}(${item.nodes})`);
+}
+
+/**
+ * The `incomplete` ledger the closed-dialog runs must present (A6).
+ *
+ * Empty, at both viewports. The only `incomplete` this application has ever
+ * produced is `aria-hidden-focus` from Headless UI's own focus guards, and only
+ * with the mobile dialog open — see {@link EXPECTED_DIALOG_OPEN_INCOMPLETE}.
+ */
+const EXPECTED_CLOSED_INCOMPLETE: readonly string[] = [];
+
+/**
+ * The `incomplete` ledger the 375px dialog-open run must present (A6).
+ *
+ * `aria-hidden-focus` on exactly 2 nodes: the two 1x0px
+ * `button[data-headlessui-focus-guard]` sentinels Headless UI injects at the
+ * boundary of the background it marks `aria-hidden`. They are library-generated,
+ * they are expected, and they are reported rather than suppressed — but they are
+ * now *pinned*, so a change that adds a third focusable-inside-aria-hidden node,
+ * or a new undecidable contrast node, turns this suite red instead of adding one
+ * more line to a log nobody diffs.
+ */
+const EXPECTED_DIALOG_OPEN_INCOMPLETE: readonly string[] = ["aria-hidden-focus(2)"];
 
 test.describe("axe-core on rendered CSS", () => {
   for (const [name, viewport] of [
@@ -162,17 +226,34 @@ test.describe("axe-core on rendered CSS", () => {
       // styles rather than an in-flight paint.
       await page.waitForLoadState("networkidle");
 
-    const outcome = await runAxe(page);
-    report(`${name} axe: ${summarise(outcome)}`);
+      const outcome = await runAxe(page);
+      report(`${name} axe: ${summarise(outcome)}`);
 
-    // Any impact, not just critical/serious: this is the same bar gate 18
-    // sets for the document-scope jsdom run. A `color-contrast` failure here is
-    // a real WCAG failure on rendered CSS and is left red, not allow-listed.
-    expect(
-      outcome.violations,
-      `${name}: axe reported real violations on the rendered page`,
-    ).toEqual([]);
+      // Any impact, not just critical/serious: this is the same bar gate 18
+      // sets for the document-scope jsdom run. A `color-contrast` failure here is
+      // a real WCAG failure on rendered CSS and is left red, not allow-listed.
+      expect(
+        outcome.violations,
+        `${name}: axe reported real violations on the rendered page`,
+      ).toEqual([]);
 
+      /*
+       * A6: the `incomplete` ledger is asserted, not merely printed.
+       *
+       * This is the assertion that stands between the contrast gate and vacuity.
+       * `color-contrast` is separately required to be a decided *pass*, but that
+       * check is about one rule id; this one is about the whole incomplete set.
+       * An undecidable contrast node — a gradient, an overlap, a translucent
+       * backdrop showing through — would land here rather than in `violations`,
+       * and without this assertion it would only ever be read in a log.
+       *
+       * With the dialog closed, nothing is undecidable on this page, so the
+       * expectation is empty at BOTH viewports.
+       */
+      expect(
+        incompleteSummary(outcome),
+        `${name}: axe reported an "incomplete" (needs review) result. Nothing may be undecidable with the dialog closed; an incomplete is not a pass.`,
+      ).toEqual([...EXPECTED_CLOSED_INCOMPLETE]);
 
       // Non-vacuity: `color-contrast` must be *decided*, not merely attempted.
       // Requiring it in `passes` specifically is deliberate — see the note in
@@ -211,6 +292,19 @@ test.describe("axe-core on rendered CSS", () => {
       outcome.violations,
       "375px with the mobile dialog open: axe reported real violations on the rendered page",
     ).toEqual([]);
+    /*
+     * A6, the third state. This is the one run with a non-empty ledger, and it
+     * is pinned exactly: `aria-hidden-focus` on 2 nodes, which are Headless UI's
+     * own 1x0px focus guards inside the `aria-hidden` background (see
+     * `GATES.md` §3.6.3 for the node selectors). Naming the count means a new
+     * focusable-inside-aria-hidden node is a red run rather than a longer log
+     * line, and means a contrast node that goes undecidable here cannot hide
+     * inside the one `incomplete` that is legitimately expected.
+     */
+    expect(
+      incompleteSummary(outcome),
+      '375px with the mobile dialog open: the only expected "incomplete" is Headless UI\'s two focus guards, aria-hidden-focus(2)',
+    ).toEqual([...EXPECTED_DIALOG_OPEN_INCOMPLETE]);
     expect(
       outcome.passes,
       `375px with the mobile dialog open: ${AXE_CONTRAST_RULE_ID} is not in axe's passing rule set, so the empty violations array is meaningless (an undecidable contrast is reported under "incomplete", not here)`,

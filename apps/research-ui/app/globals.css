@@ -1,28 +1,156 @@
 @import "tailwindcss";
 
 /*
- * Tailwind v4 design tokens (packet UI-01, "global styling").
+ * PROSE MUST NOT GENERATE CSS. Tailwind v4 auto-detects sources by scanning the
+ * tree, and its scanner does not distinguish a class name in a component from the
+ * same characters inside a Markdown sentence. So documentation that *describes* a
+ * finding was silently compiling it.
  *
- * `@theme` is the single place raw colour values are declared. Tailwind emits
- * these as `--color-*` custom properties on `:root` and exposes matching
- * utilities (`bg-surface`, `text-ink`, ...), so the tokens are usable from
- * markup as well as from the hand-written CSS below.
+ * The concrete damage: `GATES.md` and `UI-01C_WORK_PACKET.md` quote the retired
+ * UI-01 utilities because the findings are written in terms of them
+ * (`text-slate-500`, `bg-slate-100`, ...). Those were harvested and shipped as
+ * real rules with real `--color-slate-*` values. A future author typing
+ * `text-slate-500` would have silently received UI-00b's `#62748e`, and nothing
+ * would have failed: not the build, not axe (the colour passes 4.5:1), and not
+ * gate 20, which only knows the three UI-01 token names.
  *
- * The two values that were previously hardcoded in the `:root` block are
- * preserved verbatim (`--background` -> `--color-surface`, `--foreground` ->
- * `--color-ink`), so this is structural cleanup, not a redesign: the rendered
- * colours are unchanged.
+ * `@source not` removes Markdown **and the test suites** from the scan. Class
+ * names that must exist in the product live in `app/` and `components/`, both of
+ * which stay scanned, so no real utility is lost. The test directories are
+ * excluded for the same reason as the prose, and this is not hypothetical:
+ * `tests-browser/hygiene.spec.ts` documents the retired palette in its own
+ * JSDoc, and being a `.ts` file it was being read as a class-name source. The
+ * guard was regenerating the exact defect it exists to catch.
+ *
+ * Note the asymmetry, because it decides what the guard must do: Tailwind strips
+ * `/* … *​/` comments from **its own stylesheet**, so naming a retired utility in
+ * `globals.css` prose is harmless (verified — zero occurrences in the shipped
+ * CSS). It does **not** strip comments from `.ts`/`.tsx`. That is why the two
+ * exclusions are both needed, and why `stripCssComments()` in
+ * `tests-browser/hygiene.spec.ts` applies only to CSS.
+ *
+ * PATH SEMANTICS — read this before editing the four lines below, because the
+ * obvious spelling is wrong and fails *silently*. `@source` paths resolve
+ * **relative to this file's own directory**, which is `app/` — NOT relative to
+ * the application root. So `./tests-browser/**` means
+ * `app/research-ui/app/tests-browser/**`, which does not exist, excludes nothing,
+ * and still compiles the palette. It must be `../tests-browser/**`. This was hit
+ * during implementation: the first two directives worked only because `../`
+ * happens to reach the app root, and the two test-directory exclusions appeared
+ * correct, produced no warning, and did nothing.
+ *
+ * Arithmetic, stated exactly, because this block exists to stop the next reader
+ * "correcting" it. Paths resolve from THIS file, which is in `app/`: `..` is
+ * `apps/research-ui/` and `../..` is `apps/`. So the first directive below —
+ * every `*.md` file under `../../**` — covers all of `apps/`, and strictly
+ * SUBSUMES the `*.md`-under-`../**` rule it replaced (that one reached
+ * `apps/research-ui/` alone). It does NOT reach `docs/`, which sits outside
+ * `apps/`. `docs/` is deliberately not excluded: no file under it has ever been
+ * scanned, and adding an exclusion on a false premise would be a guess dressed
+ * as a fix. See `GATES.md` §3.7.9.
+ *
+ * (Note for whoever edits this comment: a CSS comment cannot contain the
+ * sequence `*` + `/`, so these globs are described by their head — `../../**` —
+ * and never written out in full. Writing one out closes this comment early and
+ * PostCSS fails the build on the prose. That is not hypothetical either.)
+ */
+@source not "../../**/*.md";
+@source not "../tests/**";
+@source not "../tests-browser/**";
+
+/*
+ * The Nexus Scholar visual direction (packet UI-01c).
+ *
+ * `VISUAL_DIRECTION.md` states the principles in prose; this file is where they
+ * become values. `@theme` is the single place raw colour and typeface values
+ * are declared. Tailwind emits these as `--color-*` / `--font-*` custom
+ * properties on `:root` and exposes matching utilities (`bg-paper`,
+ * `text-ink-muted`, `font-display`, ...), so every role is reachable from
+ * markup and from the hand-written CSS below without a second source of truth.
+ *
+ * CHARACTER. The product is a research instrument, so the ground is warm paper
+ * and the type is ink, not a cold dashboard grey on white. Structure is carried
+ * by hairline rules and by a display serif for the document voice; depth,
+ * rounded containers and drop shadows are not used to imply hierarchy at all.
+ *
+ * MEASURED CONTRAST (WCAG 2.1). These are the ratios axe-core reported for
+ * rendered text on the real page — read out of the `color-contrast` pass nodes'
+ * own `contrastRatio` / `fgColor` / `bgColor` fields at 375px and 1440px, not
+ * hand-computed from the hexes and not assumed. `GATES.md` §3.7 quotes the run
+ * that produced them. Every text role below clears normal-size 4.5:1 on BOTH
+ * grounds, and the tightest role on the page, `ink-faint`, has 0.84 to spare:
+ *
+ *   role   hex        on --color-paper   on --color-leaf
+ *   ink        #1c1a17      15.66:1           16.79:1
+ *   ink-muted  #4a453d       8.57:1            9.19:1
+ *   ink-faint  #6b6357       5.34:1            5.72:1
+ *   evidence   #1f3a5f      10.36:1           11.11:1
+ *   success    #1f5c3a       7.15:1            7.67:1
+ *   warning    #7a5410       6.11:1            6.54:1
+ *   refusal    #8f2f28       7.27:1            7.80:1
+ *
+ * REPRODUCIBILITY, so this comment is not read as stronger than it is: the
+ * figures above are MEASURED ONCE, in the UI-01c run, and are NOT reproducible by
+ * the committed suite. The browser suite asserts that every text node passes
+ * 4.5:1, which is what makes them safe to design against; it asserts no
+ * individual ratio. `GATES.md` §3.7.1 is the record of what is enforced and what
+ * is a snapshot. Re-measure `ink-faint` first if you darken `--color-paper`.
+ *
+ * The two `--color-rule-*` values are hairlines, not a signal: they carry
+ * separation, never meaning. The one boundary that carries meaning is the
+ * focus ring, and it is ink.
+ *
+ * `--color-paper` and `--color-ink` intentionally REPLACE the values UI-01
+ * preserved verbatim (`#f8fafc` / `#172033`). That preservation was recorded as
+ * gate 19 in `GATES.md` §1.2 precisely so a later packet could name a deliberate
+ * change; this is that change, and `GATES.md` §3.7 records it as a
+ * redesign rather than a regression.
  */
 @theme {
-  --color-surface: #f8fafc;
-  --color-ink: #172033;
-  --color-raised: #ffffff;
-  --color-accent: #1d4ed8;
+  /* --- grounds and type ------------------------------------------------ */
+  --color-paper: #f6f3ec;
+  --color-leaf: #fdfbf7;
+  --color-ink: #1c1a17;
+  --color-ink-muted: #4a453d;
+  --color-ink-faint: #6b6357;
+
+  /* --- rules: hairlines, never meaning --------------------------------- */
+  --color-rule: #ded5c3;
+  --color-rule-strong: #bfb39b;
+
+  /* --- semantic state, one hue each ------------------------------------ */
+  --color-evidence: #1f3a5f;
+  --color-success: #1f5c3a;
+  --color-warning: #7a5410;
+  --color-refusal: #8f2f28;
+
+  /*
+   * Focus is INK, not an accent, and is declared as its own token rather than
+   * reused from `--color-ink` on purpose: the focus ring is an interaction
+   * contract, so a future change to the body ink must not silently restate it.
+   * `--color-evidence` (the active-route marker and the editorial aside rule)
+   * is deliberately a different role with a different colour, so a focused
+   * control never reads as "the current page".
+   */
+  --color-focus: #1c1a17;
+
+  /*
+   * Two typeface roles and no web fonts (decision D1). `--font-display` is the
+   * document voice — titles, section heads, the product name. `--font-interface`
+   * is everything that has to be read precisely: body copy, labels, stamps,
+   * numbers. A meetup demo must not depend on conference wifi, so both stacks
+   * resolve from fonts the OS already has, and there is no third role: exact
+   * identifiers are marked by case and tracking rather than by a monospace face.
+   */
+  --font-display: georgia, "Iowan Old Style", "Palatino Linotype", palatino, "Book Antiqua",
+    "Times New Roman", serif;
+  --font-interface: ui-sans-serif, system-ui, -apple-system, "Segoe UI", roboto, "Helvetica Neue",
+    arial, sans-serif;
 }
 
 :root {
   color-scheme: light;
-  --background: var(--color-surface);
+  --background: var(--color-paper);
   --foreground: var(--color-ink);
 }
 
@@ -30,22 +158,31 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-interface);
+  /*
+   * The document voice is opt-in per element (`font-display`), so the interface
+   * role is the inherited default. Tabular figures everywhere keep marginal
+   * numerals, stage ordinals and counts in vertical columns like a ledger,
+   * instead of letting proportional digits wobble inside a ruled record.
+   */
+  font-variant-numeric: tabular-nums;
 }
 
 /*
  * One application focus ring for every link and button.
  *
  * UI-00b measured that the skip link carried a real application ring while the
- * primary-nav link and the mobile disclosure trigger had no focus rule of
- * their own and fell back to the user-agent default (`1px auto`, which varies
- * with platform settings and is low-contrast on this palette). Restating the
- * ring per component is how the two presentations would drift again, so the
- * treatment is declared once, here, for links and buttons.
+ * primary-nav link and the mobile disclosure trigger had no focus rule of their
+ * own and fell back to the user-agent default (`1px auto`, which varies with
+ * platform settings). Restating the ring per component is how the two
+ * presentations would drift again, so the treatment is declared once, here.
  *
- * It uses `var(--color-accent)` — the same token, and the same value, as
- * `.skip-link:focus` below — and the same 2px geometry, so the skip link is
- * not a special case but the first element this rule happens to reach first.
+ * It uses `var(--color-focus)` — the same token, and the same value, as
+ * `.skip-link:focus` below — and the same 2px geometry, so the skip link is not
+ * a special case but the first element this rule happens to reach first.
+ * `tests-browser/focus-visibility.spec.ts` reads the rendered token rather than
+ * a literal, and cross-checks the nav ring against the skip-link ring in the
+ * same run, so the two cannot drift apart unnoticed.
  *
  * This supersedes the earlier bare `button, a { outline-offset: 3px; }`
  * declaration rather than sitting beside it. That rule applied an offset in
@@ -55,7 +192,7 @@ body {
  */
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -83,6 +220,20 @@ button:focus-visible {
   border-width: 0;
 }
 
+/*
+ * The one rounded, one shadowed element in the application.
+ *
+ * Acceptance criterion A4 exempts the skip link's focus affordance and the
+ * shared focus ring from the radius/shadow prohibitions, and this is that
+ * exemption spent. It has to be argued: the focused skip link is a floating
+ * overlay that lands on top of whatever content follows it, and in a design
+ * whose whole depth model is "hairlines, no shadows", an overlay with neither a
+ * radius nor any elevation disappears into the text it covers. So it carries a
+ * single soft shadow layer (UI-00b had two) and a small radius, plus a hairline
+ * in `--color-rule-strong` so its edge is defined even where the shadow is
+ * faint. Both are interaction affordance, not decoration: they say "this is on
+ * top, and it is where you are".
+ */
 .skip-link:focus {
   position: fixed;
   top: 1rem;
@@ -94,14 +245,15 @@ button:focus-visible {
   overflow: visible;
   white-space: normal;
   clip-path: none;
-  border-radius: 0.5rem;
-  background-color: var(--color-raised);
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-rule-strong);
+  background-color: var(--color-leaf);
   color: var(--color-ink);
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.25rem;
-  box-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.1);
-  outline: 2px solid var(--color-accent);
+  box-shadow: 0 8px 20px -8px rgb(28 26 23 / 0.28);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
