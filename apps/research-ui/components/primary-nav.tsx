@@ -38,18 +38,34 @@ export const PRIMARY_NAV_ITEMS: readonly PrimaryNavItem[] = [
 export const UNAVAILABLE_NAV_TEXT = "Not yet available";
 
 const LIST_CLASS = {
-  inline: "flex flex-wrap items-center gap-1",
-  stacked: "flex flex-col items-stretch gap-1",
+  inline: "flex flex-wrap items-center gap-x-1 gap-y-1",
+  stacked: "flex flex-col items-stretch gap-y-1",
 } as const;
 
+/*
+ * Navigation treatment (packet UI-01c).
+ *
+ * No corner rounding (the whole `rounded-*` family), no tinted pill behind the
+ * current route: the active surface is marked the way a contents page marks an
+ * entry — a real underline in
+ * `--color-evidence`, drawn on a transparent decoration so it appears on hover
+ * and on `aria-current` and is absent otherwise. That keeps the "which surface
+ * am I on" signal a rule rather than a filled chip, which is what makes the
+ * header read as a masthead rather than as a toolbar.
+ *
+ * `UNAVAILABLE_TAG_CLASS` was the 4.34:1 near miss that UI-00b repaired; it is
+ * now a hairline-boxed marginal stamp in `--color-ink-faint` (measured 5.72:1
+ * on `--color-leaf`) rather than a filled pill, so it is both lighter in weight
+ * and no longer competing with the one real link beside it.
+ */
 const AVAILABLE_ITEM_CLASS =
-  "block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 hover:text-blue-800 aria-[current]:bg-blue-50 aria-[current]:text-blue-900";
+  "block px-2 py-1.5 text-sm font-medium text-ink-muted underline decoration-2 underline-offset-4 decoration-transparent hover:text-ink hover:decoration-rule-strong aria-[current]:text-evidence aria-[current]:decoration-evidence";
 
 const UNAVAILABLE_ITEM_CLASS =
-  "flex flex-wrap items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-600";
+  "flex flex-wrap items-center gap-2 px-2 py-1.5 text-sm text-ink-muted";
 
 const UNAVAILABLE_TAG_CLASS =
-  "rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-medium uppercase tracking-wide text-slate-600";
+  "border border-rule-strong px-1.5 py-0.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.12em] text-ink-faint";
 
 /**
  * The navigation entries themselves, without the surrounding `<nav>` landmark,

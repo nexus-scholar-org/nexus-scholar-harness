@@ -4,6 +4,7 @@ import {
   focusStyleOf,
   type FocusStyle,
   MOBILE_VIEWPORT,
+  readColourToken,
   report,
   test,
 } from "./helpers";
@@ -21,28 +22,40 @@ import {
  * `screenshots.spec.ts`, which owns the whole committed set.
  */
 
-
 const SKIP_LINK = "a.skip-link";
 const PRIMARY_NAV_LINK = 'nav[aria-label="Primary"] a[href]';
 const MOBILE_TRIGGER = "[aria-controls='mobile-primary-nav']";
 
 /**
- * The one application focus ring, as it must read on the rendered page.
+ * The custom property that defines the application ring, in `app/globals.css`.
  *
- * `app/globals.css` declares it once, for `a:focus-visible, button:focus-visible`,
- * using `var(--color-accent)`. UI-00b measured that the primary-nav link and
- * the mobile trigger were falling through to the user-agent default
- * (`outline: 1px auto rgb(16, 16, 16)`), which is platform-dependent and
- * low-contrast — and an assertion of "outline-width > 0" is satisfied by that
- * default, so it could not have caught the gap. These constants are the
- * application's own values, quoted from `app/globals.css` (`--color-accent:
- * #1d4ed8`) and the 2px/2px geometry shared with `.skip-link:focus`; a
- * regression to `1px auto` fails all three.
+ * Packet UI-01c (finding F3) changed this token. It used to read
+ * `--color-accent: #1d4ed8`, and this file asserted the *literal*
+ * `rgb(29, 78, 216)` in two places, so the palette could not move without the
+ * literal going stale — the literal was a second, undeclared copy of the
+ * stylesheet, and it was the copy that decided the test.
+ *
+ * The expected colour is now read off the live document with
+ * `readColourToken`, which normalises the declared hex into the `rgb()` form
+ * Chromium reports for a computed colour. That keeps the assertion about what
+ * it was always about — *the application's own declared ring, not the browser's
+ * fallback* — and stops it from being a stale mirror of a value it is supposed
+ * to police.
+ *
+ * Three things stop this from being a weakening, and all three are asserted
+ * below: the ring's width, style and offset are pinned to values no user-agent
+ * default produces; the resolved token is asserted to be different from the
+ * user-agent default colour; and the nav ring is cross-checked against the skip
+ * link's own ring in the same run, so `a:focus-visible` and `.skip-link:focus`
+ * cannot drift onto different tokens without the suite going red.
  */
-const APP_FOCUS_OUTLINE = "2px solid rgb(29, 78, 216)";
+const FOCUS_COLOUR_TOKEN = "--color-focus";
+
+/** What Chromium reports when the application rule is absent. */
+const USER_AGENT_OUTLINE_COLOUR = "rgb(16, 16, 16)";
+
 const APP_FOCUS_OUTLINE_WIDTH_PX = 2;
 const APP_FOCUS_OUTLINE_OFFSET_PX = 2;
-const APP_ACCENT_RGB = "rgb(29, 78, 216)";
 
 /** A computed colour is "real" when it is an `rgb()`/`rgba()` with alpha > 0. */
 function parseColour(value: string): { r: number; g: number; b: number; a: number } | null {
@@ -61,11 +74,12 @@ function parseColour(value: string): { r: number; g: number; b: number; a: numbe
  *
  * The user-agent default reports `1px auto rgb(16, 16, 16)`, so the width, the
  * style and the colour are each checked: width 2px, style solid, and the
- * accent token. Width alone is not enough (1px is a width), style alone is not
- * enough (`auto` is a style), and colour alone is not enough (`rgb(16,16,16)`
- * is a colour). All three together cannot be produced by the browser default.
+ * resolved `--color-focus` token. Width alone is not enough (1px is a width),
+ * style alone is not enough (`auto` is a style), and colour alone is not enough
+ * (`rgb(16,16,16)` is a colour). All three together cannot be produced by the
+ * browser default.
  */
-function expectAppFocusRing(name: string, style: FocusStyle): void {
+function expectAppFocusRing(name: string, style: FocusStyle, expectedColour: string): void {
   expect(style.focusVisible, `${name} must match :focus-visible`).toBe(true);
   expect(
     Number.parseFloat(style.outlineWidth),
@@ -77,14 +91,14 @@ function expectAppFocusRing(name: string, style: FocusStyle): void {
   ).toBe("solid");
   expect(
     style.outlineColor,
-    `${name} outline-color: expected the app accent from app/globals.css`,
-  ).toBe(APP_ACCENT_RGB);
+    `${name} outline-color: expected the app focus token ${FOCUS_COLOUR_TOKEN} (${expectedColour}), got ${style.outlineColor}`,
+  ).toBe(expectedColour);
   expect(
     Number.parseFloat(style.outlineOffset),
     `${name} outline-offset: expected ${APP_FOCUS_OUTLINE_OFFSET_PX}px, got ${style.outlineOffset}`,
   ).toBe(APP_FOCUS_OUTLINE_OFFSET_PX);
   report(
-    `${name} application ring: ${style.outlineWidth} ${style.outlineStyle} ${style.outlineColor} offset=${style.outlineOffset} (expected "${APP_FOCUS_OUTLINE}")`,
+    `${name} application ring: ${style.outlineWidth} ${style.outlineStyle} ${style.outlineColor} offset=${style.outlineOffset} (expected "${APP_FOCUS_OUTLINE_WIDTH_PX}px solid ${expectedColour}")`,
   );
 }
 
@@ -129,6 +143,14 @@ test.describe("rendered focus visibility", () => {
     expect(style.width).toBeGreaterThan(20);
     expect(style.height).toBeGreaterThan(10);
     expect(style.withinViewport).toBe(true);
+
+    // The skip link's ring is the application's, not the browser's. Asserted on
+    // the token so the palette can move without a stale literal going green
+    // (packet UI-01c, finding F3); see the note on `FOCUS_COLOUR_TOKEN`.
+    expect(
+      style.outlineColor,
+      "the skip link must carry the application focus token, not the user-agent default",
+    ).toBe(await readColourToken(page, FOCUS_COLOUR_TOKEN));
   });
 
   test("the skip link is visibly focused at 1440px", async ({ page }) => {
@@ -147,6 +169,13 @@ test.describe("rendered focus visibility", () => {
     expect(colour, `outline-color did not resolve to a colour: ${style.outlineColor}`).not.toBeNull();
     expect(colour?.a ?? 0).toBeGreaterThan(0);
     expect(style.clipPath).toBe("none");
+
+    // Same application-token assertion as the 375px run, for the same reason:
+    // a focus ring that is merely *some* ring is not the gate.
+    expect(
+      style.outlineColor,
+      "the skip link must carry the application focus token, not the user-agent default",
+    ).toBe(await readColourToken(page, FOCUS_COLOUR_TOKEN));
   });
 
   test("keyboard focus on the primary nav link and the mobile trigger is visible", async ({
@@ -162,6 +191,26 @@ test.describe("rendered focus visibility", () => {
       `primary nav link FOCUSED @1440: :focus-visible=${navLink.focusVisible} outline=${navLink.outlineWidth} ${navLink.outlineStyle} ${navLink.outlineColor} offset=${navLink.outlineOffset}`,
     );
 
+    /*
+     * The expected ring colour, read from the served stylesheet rather than
+     * copied beside it. If the declaration is missing entirely this throws,
+     * which is the correct outcome: the run measured a page whose stylesheet has
+     * no focus token, and a colour assertion against a hard-coded value would
+     * have silently passed or failed for unrelated reasons.
+     */
+    const focusToken = await readColourToken(page, FOCUS_COLOUR_TOKEN);
+    report(`${FOCUS_COLOUR_TOKEN} resolves to ${focusToken}`);
+
+    // The non-vacuity guard. Without this, a stylesheet that declared
+    // `--color-focus` as the browser default would satisfy the colour assertion
+    // while the application rule was absent; the width/style/offset assertions
+    // would still fail in that case, so this is belt-and-braces rather than the
+    // only thing standing between the suite and a vacuous pass.
+    expect(
+      focusToken,
+      `${FOCUS_COLOUR_TOKEN} must not be the user-agent default outline colour`,
+    ).not.toBe(USER_AGENT_OUTLINE_COLOUR);
+
     // 375px: the disclosure trigger.
     await page.setViewportSize(MOBILE_VIEWPORT);
     await page.goto("/");
@@ -172,11 +221,17 @@ test.describe("rendered focus visibility", () => {
       `mobile trigger FOCUSED @375: :focus-visible=${trigger.focusVisible} outline=${trigger.outlineWidth} ${trigger.outlineStyle} ${trigger.outlineColor} offset=${trigger.outlineOffset}`,
     );
 
-    expectAppFocusRing("primary nav link @1440", navLink);
-    expectAppFocusRing("mobile trigger @375", trigger);
+    expectAppFocusRing("primary nav link @1440", navLink, focusToken);
+    expectAppFocusRing("mobile trigger @375", trigger, focusToken);
 
     // Cross-check: the shared rule must agree with the skip link's own
     // explicit `:focus` treatment, or "one application ring" is only a claim.
+    //
+    // This is also the check that catches the specific drift packet UI-01c
+    // warns about (finding F3): moving `a:focus-visible` onto a new
+    // `--color-focus` token while `.skip-link:focus` keeps the old one would
+    // satisfy acceptance A9 perfectly and fail here, because the two render
+    // different colours. Both rules now read `--color-focus`, so they agree.
     await page.setViewportSize(DESKTOP_VIEWPORT);
     await page.goto("/");
     await page.keyboard.press("Tab");

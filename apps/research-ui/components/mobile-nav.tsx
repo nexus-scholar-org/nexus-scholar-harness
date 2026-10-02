@@ -22,38 +22,46 @@ export const MOBILE_NAV_PANEL_ID = "mobile-primary-nav";
  * The panel's entire content sits inside its own `<nav>` landmark, and the
  * landmark is named differently from the primary one, so the two never collide
  * on the `landmark-unique` rule while the disclosure is open.
+ *
+ * Packet UI-01c removed the panel's heavy elevation shadow and the `rounded-*`
+ * classes from the trigger and close control. In this application depth is not how
+ * hierarchy is communicated, so a floating card for a menu was the one place
+ * the old generated-SaaS language survived most visibly; separation now comes
+ * from the backdrop, the hairline left edge and the rules inside the panel. The
+ * panel stays `w-full max-w-sm` and opaque, which is what keeps every text node
+ * in it decidable for `color-contrast` at 375px (see `GATES.md` §3.6.2).
  */
 export function MobileNav({ currentItemId = "overview" }: { currentItemId?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mt-3 lg:hidden">
+    <div className="mt-4 lg:hidden">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={MOBILE_NAV_PANEL_ID}
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        className="inline-flex items-center gap-2 border border-rule-strong bg-leaf px-3 py-2 text-sm font-medium text-ink hover:bg-paper"
       >
-        <Bars3Icon aria-hidden="true" className="size-5" />
+        <Bars3Icon aria-hidden="true" className="size-5 text-ink-muted" />
         <span className="sr-only">{MOBILE_NAV_TRIGGER_LABEL}</span>
       </button>
 
       <Dialog open={open} onClose={setOpen}>
-        <DialogBackdrop className="fixed inset-0 bg-slate-900/30" />
+        <DialogBackdrop className="fixed inset-0 bg-ink/40" />
         <DialogPanel
           id={MOBILE_NAV_PANEL_ID}
-          className="fixed inset-y-0 right-0 w-full max-w-sm overflow-y-auto bg-white p-6 shadow-xl"
+          className="fixed inset-y-0 right-0 w-full max-w-sm overflow-y-auto border-l border-rule-strong bg-leaf p-6"
         >
           <nav aria-label="Primary (mobile menu)">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-base font-semibold text-slate-950">Main menu</DialogTitle>
+            <div className="flex items-center justify-between border-b border-rule pb-4">
+              <DialogTitle className="font-display text-base leading-6 text-ink">Main menu</DialogTitle>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 border border-rule-strong px-3 py-2 text-sm font-medium text-ink hover:bg-paper"
               >
-                <XMarkIcon aria-hidden="true" className="size-5" />
+                <XMarkIcon aria-hidden="true" className="size-5 text-ink-muted" />
                 <span className="sr-only">{MOBILE_NAV_CLOSE_LABEL}</span>
               </button>
             </div>

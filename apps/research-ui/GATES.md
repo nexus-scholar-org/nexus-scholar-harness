@@ -43,7 +43,9 @@ server and needs a Chromium build (`npx playwright install chromium`).
 | 16 | The primary navigation is a `<nav>` landmark with an accessible name; the active item carries `aria-current="page"`; no link points at a route that does not exist | `tests/shell.test.tsx` | EXECUTABLE |
 | 17 | The mobile disclosure opens from the keyboard, closes via `Escape` and via its own close control, and returns focus to the trigger | `tests/shell.test.tsx` | EXECUTABLE (see §2) |
 | 18 | axe-core reports **zero violations of any impact** on an assembled document, with `bypass`, `landmark-one-main`, `landmark-unique`, `page-has-heading-one` and `region` genuinely evaluated — and `region` / `landmark-unique` genuinely **pass** with the mobile disclosure open | `tests/shell.test.tsx` | EXECUTABLE (see §2) |
-| 19 | The emitted CSS carries `--color-surface: #f8fafc` and `--color-ink: #172033`, the two pre-UI-01 raw-hex values **quoted in §1.2** so the comparison has a target in the tree, and no colour token was removed. Gate 19 makes **no** claim about the declarations UI-01 added, one of which (`color-scheme: light`) does change rendered behaviour | `npm run build` + inspection of the emitted CSS | EXECUTABLE (see §1.2) |
+| 19 | **SUPERSEDED BY HUMAN-RATIFIED SUBSTITUTION — see §3.7.5, which carries the authority, the date, and the condition.** Originally: the emitted CSS carries `--color-surface: #f8fafc` and `--color-ink: #172033`, the two pre-UI-01 raw-hex values **quoted in §1.2**, and no colour token was removed. It passed on the evidence in §1.2. UI-01c deliberately changed the palette and **removed all three of those tokens**, so gate 19 as written **fails**; it was not silently deleted | `npm run build` + inspection of the emitted CSS | **FAILED as written**, then **substituted under ratified authority** — the substitution is conditional, and the condition is discharged by gate 21 |
+| 20 | UI-01c: the emitted CSS carries all twelve UI-01c role tokens and both `--font-*` roles, and carries **no** UI-01 token (`--color-surface`, `--color-raised`, `--color-accent`) or UI-01 raw hex (`#f8fafc`, `#172033`, `#1d4ed8`) anywhere | `npm run build` + inspection of the emitted CSS | EXECUTABLE (see §3.7.5) |
+| 21 | **Token discipline, general (UI-01c repair R1).** The property gate 19 used to carry, now enforced rather than traded away. (a) every `var(--token)` in `app/` and `components/` is **declared** in `app/globals.css` **and** reaches the browser; (b) **no raw palette utility** in `components/*.tsx` or `app/*.tsx` (this is A1, previously a convention with zero enforcement); (c) the **shipped stylesheet** contains no raw-palette utility, no raw-palette theme variable, and no retired UI-01 token or hex | `tests-browser/hygiene.spec.ts` | EXECUTABLE, with four live negative controls (§3.7.9) |
 
 Gate 1 matters specifically because `lib/mock-project.ts` never uses `refused`;
 the component is driven directly by prop to close that gap.
@@ -131,6 +133,16 @@ removed — is the one worth keeping. The declarations UI-01 added are disclosed
 above rather than folded into that comparison, because one of them,
 `color-scheme: light`, does change rendered behaviour.**
 
+**This section is now history, and its subject has been deliberately changed.**
+§1.2 exists so that gate 19 had a comparison target, and it worked: gate 19
+passed on the evidence recorded here. Packet UI-01c then **replaced**
+`--color-surface` and `--color-ink` with `--color-paper` and `--color-ink` at new
+values, and dropped `--color-raised` and `--color-accent` outright. Gate 19
+therefore fails as written. It is left in the table in that state rather than
+reworded into a pass, and §3.7.5 records the replacement gate. The reasoning
+here — that a preservation claim is worth little without a target quoted into
+the tree — is the reason the supersession is checkable at all.
+
 ## 2. Limits of the in-process checks (read before trusting gate 7 or 8)
 
 Gate 7 is **jsdom + axe-core in a single Node process**. That means:
@@ -210,28 +222,55 @@ teardown — the server is gone after the run whether it passed or failed. The
 suite is Chromium only (`npx playwright install chromium`), serial, one worker,
 `deviceScaleFactor: 1`, at two viewports: **375x812** and **1440x900**.
 
-**23 tests: 23 pass.** UI-00b's first run reported 20 pass and 2 fail, both on
+**24 tests: 24 pass.** UI-00b's first run reported 20 pass and 2 fail, both on
 `color-contrast`; the contrast repair in §3.2 closed both, and the run now exits
 0. Every number below is copied from a run's own `[measured]` output; nothing
-here is inferred.
+here is inferred. The count moved 23 → 24 in packet UI-01c, by exactly one new
+test in `screenshots.spec.ts`; the arithmetic is in §3.7.2.
 
-**The count is 23, and the arithmetic is auditable** — it is the sum of the
-`playwright test --list` output, and only the axe spec changed:
+**The count is 25, and the arithmetic is auditable** — it is the sum of the
+`playwright test --list` output. UI-00b added one test to `rendered-axe.spec.ts`;
+UI-01c added one to `screenshots.spec.ts`; the UI-01c repair pass (R1) added one
+to `hygiene.spec.ts`:
 
 | Spec file | Tests | Why |
 |---|---:|---|
-| `tests-browser/focus-visibility.spec.ts` | 3 | unchanged |
-| `tests-browser/hygiene.spec.ts` | 3 | unchanged |
-| `tests-browser/overflow.spec.ts` | 3 | 2 from the viewport loop + 1 standalone |
-| `tests-browser/rendered-axe.spec.ts` | **4** | 2 from the viewport loop + the `image-alt` negative control + **the §3.6 dialog-open run** |
+| `tests-browser/focus-visibility.spec.ts` | 3 | unchanged; assertions added *inside* the 3 existing tests (§3.7.3) |
+| `tests-browser/hygiene.spec.ts` | **4** | **+1 in the UI-01c repair pass (R1)**: the token-discipline guard, gate 21 (§3.7.9) |
+| `tests-browser/overflow.spec.ts` | 3 | 2 from the viewport loop (`overflow.spec.ts:23`) + 1 standalone |
+| `tests-browser/rendered-axe.spec.ts` | **4** | 2 from the viewport loop (`rendered-axe.spec.ts:218`) + the `image-alt` negative control + **the §3.6 dialog-open run**; assertions added *inside*, no new `test()` (§3.7.3) |
 | `tests-browser/responsive-nav.spec.ts` | 3 | unchanged |
-| `tests-browser/screenshots.spec.ts` | 5 | unchanged |
+| `tests-browser/screenshots.spec.ts` | **6** | **+1 in UI-01c**: `1440-evidence-trail.png` (§3.7.2) |
 | `tests-browser/tab-order.spec.ts` | 2 | unchanged |
-| **Total (7 files)** | **23** | was 22; +1, from `rendered-axe.spec.ts` alone |
+| **Total (7 files)** | **25** | 23 → 24 in UI-01c, then 24 → **25** in the repair pass |
 
-No other spec file gained or lost a test, and no existing test was restructured
-to make room: the new one is a fourth `test()` in the existing
-`test.describe("axe-core on rendered CSS", …)`.
+No existing test was restructured, deleted, or loosened to make room. **25 = 23
+`test()` call sites + 2 loop expansions**, where the two expansions are the
+viewport loops named in the table, each iterating two viewports.
+
+**Why a naive `grep` for `test(` returns 25 and is nevertheless not the test
+count** — every discrepancy named, so this needs no re-running to trust:
+
+| Step | Value |
+|---|---:|
+| `grep -o 'test(' \| wc -l` across the 7 specs | **25** |
+| less hits that are not a Playwright `test()` call | **−2** |
+| = real `test()` call sites | **23** |
+| plus one execution per loop iteration, two loops × 2 viewports | **+2** |
+| **= tests Playwright actually runs** | **25** |
+
+The two non-test hits, by file and line, both in `hygiene.spec.ts`:
+
+- `:78` — `/\.(tsx|css)$/.test(entry.name)`, a real `RegExp.prototype.test` call
+  in the R1 guard's file walk.
+- `:133` — `needle.test(html)`, the pre-existing analytics-payload detector.
+
+**A correction to the note this section used to carry.** It claimed a naive grep
+"counts the 7 `test.describe` blocks plus a `needle.test(html)` false positive."
+Both halves were wrong. `test.describe(` does **not** contain the substring
+`test(` — there is no overlap, so those 7 blocks are never counted by that grep at
+all — and the grep total was misstated. The line has been recomputed from the
+files rather than argued from the old figure.
 
 ### 3.1 CLOSED by UI-00b
 
@@ -239,9 +278,9 @@ to make room: the new one is a fourth `test()` in the existing
 |---|---|---|---|
 | B1 | Real per-viewport tab order | 375px: `["a:Skip to main content","button:Open main navigation"]`. 1440px: `["a:Skip to main content","a:Overview"]` | `tests-browser/tab-order.spec.ts` |
 | B2 | Tailwind's `lg:` breakpoint behaviour | 375px: `<nav aria-label="Primary">` hidden, trigger visible. 1440px: the exact reverse | `tests-browser/responsive-nav.spec.ts` |
-| B3 | Rendered focus, skip link | `:focus-visible` true; `outline: 2px solid rgb(29, 78, 216)`, `outline-offset: 2px`, `position: fixed`; `clip-path` `inset(50%)` -> `none`; box 1x1 -> 169.69x40, inside the viewport. Same at both widths | `tests-browser/focus-visibility.spec.ts` |
-| B4 | Rendered focus, primary-nav link and mobile trigger | Both `:focus-visible` true with the **application** ring `outline: 2px solid rgb(29, 78, 216)`, `outline-offset: 2px` — identical to the skip link's own ring. (At UI-00b's first run these two fell through to the user-agent `outline: 1px auto rgb(16, 16, 16)`, `outline-offset: 3px`; see §3.2 D1) | same |
-| B5 | Screenshots of a route | 5 committed captures, 11,125-108,911 bytes each, PNG magic verified, `deviceScaleFactor: 1`, animations and caret off | `tests-browser/screenshots.spec.ts`, `screenshots/` |
+| B3 | Rendered focus, skip link | `:focus-visible` true; `outline: 2px solid rgb(29, 78, 216)`, `outline-offset: 2px`, `position: fixed`; `clip-path` `inset(50%)` -> `none`; box 1x1 -> 169.69x40, inside the viewport. Same at both widths. **Superseded by UI-01c: the ring is now `rgb(28, 26, 23)` and the box is 166.23x42, because `.skip-link:focus` gained a 1px border and lost 1px of vertical padding (§3.7.4). Every other part of this row — `:focus-visible`, 2px solid, offset 2px, `position: fixed`, the clip reveal, within-viewport — is unchanged and re-measured** | `tests-browser/focus-visibility.spec.ts` |
+| B4 | Rendered focus, primary-nav link and mobile trigger | Both `:focus-visible` true with the **application** ring `outline: 2px solid rgb(29, 78, 216)`, `outline-offset: 2px` — identical to the skip link's own ring. (At UI-00b's first run these two fell through to the user-agent `outline: 1px auto rgb(16, 16, 16)`, `outline-offset: 3px`; see §3.2 D1) **Superseded: the ring is now `rgb(28, 26, 23)` (§3.7.4)** | same |
+| B5 | Screenshots of a route | **6** committed captures (UI-01c added `1440-evidence-trail.png`), PNG magic verified, `deviceScaleFactor: 1`, animations and caret off | `tests-browser/screenshots.spec.ts`, `screenshots/` |
 | B6 | Horizontal overflow | 375px: `documentElement` 375/375, `body` 375/375, `<main>` 375/375. 1440px: 1440/1440 on all three. No sideways scroll at either width | `tests-browser/overflow.spec.ts` |
 | B7 | Mobile disclosure focus trap (residual UI-01 item) | On open, focus moves to Headless UI's dialog root; 6 consecutive `Tab` presses cycle `button:Close main navigation` -> `a:Overview` -> back, never leaving the dialog subtree; `Escape` removes the panel and restores focus to `button:Open main navigation` | `tests-browser/responsive-nav.spec.ts` |
 | B8 | axe non-vacuity, in a real browser | An `<img>` with no `alt`, injected into the live page, is reported as `critical` `image-alt`, 1 node | `tests-browser/rendered-axe.spec.ts` |
@@ -270,7 +309,9 @@ that element — an **ancestor** of `DialogPanel`, which itself carries no `role
 — is what receives focus on open. Focus containment is therefore asserted
 against the dialog subtree (`[role="dialog"]`), not against
 `#mobile-primary-nav`. In a real browser Headless UI marks the background
-`inert` (1 node) and `aria-hidden` (6 nodes); `tests/shell.test.tsx` asserts
+`inert` (1 node) and `aria-hidden` (6 nodes; **12 after UI-01c**, which added
+elements to the page — the count is descriptive, not asserted);
+`tests/shell.test.tsx` asserts
 `aria-hidden` under jsdom. Same mechanism, different environment.
 
 ### 3.2 CLOSED — rendered colour contrast, and two repairs it exposed
@@ -337,6 +378,11 @@ unchanged — confirmed by the two skip-link tests still passing on
 `outline=2px solid rgb(29, 78, 216) offset=2px` and the clip reveal still
 `inset(50%)` -> `none`, box 1x1 -> 169.69x40.
 
+(This paragraph is the record of the UI-00b run. UI-01c moved both rules onto
+`--color-focus`, so the colour quoted above is superseded — see §3.7.4. The
+*claim* it makes, that the shared rule reaches the skip link as its first
+element, is unchanged and still measured.)
+
 **D1 has a negative control, because the old assertion could not have caught
 it.** `tests-browser/focus-visibility.spec.ts` asserted only
 `outline-width > 0`, which the user-agent default satisfies — so the gap in B4
@@ -378,26 +424,33 @@ has still not been exercised by a live negative control — see `NOT_VERIFIED` i
 the repair report and §3.6.4 — so satisfiability is established by measurement,
 bite by reasoning.
 
-#### 3.2.3 Residual, disclosed rather than closed
+#### 3.2.3 Residual, disclosed rather than closed — **now CLOSED by UI-01c**
 
 Three `text-slate-500` sites were already passing, were not in scope, and were
 not changed — but they are the tightest margins left on the page and are
 recorded so a future edit to them re-measures rather than assumes headroom:
 
-| Site | Size | Foreground / background | Measured | Required |
-|---|---|---|---|---|
-| "Latest: …", `app/page.tsx:13` | 14px | `#62748e` on `#f8fafc` | **4.55:1** | 4.5:1 |
-| "Research integrity you can inspect", `components/app-shell.tsx:51` | 12px | `#62748e` on `#ffffff` | **4.76:1** | 4.5:1 |
-| "Read-only demonstrator…", `components/app-shell.tsx:77` | 12px | `#62748e` on `#ffffff` | **4.76:1** | 4.5:1 |
+| Site | Size | Foreground / background | Measured then | **Measured now** | Required |
+|---|---|---|---|---|---|
+| "Latest: …", `app/page.tsx:13` | 14px | `#62748e` on `#f8fafc` | **4.55:1** | **8.57:1** | 4.5:1 |
+| "Research integrity you can inspect", `components/app-shell.tsx:51` | 12px | `#62748e` on `#ffffff` | **4.76:1** | **9.19:1** | 4.5:1 |
+| "Read-only demonstrator…", `components/app-shell.tsx:77` | 12px | `#62748e` on `#ffffff` | **4.76:1** | **9.19:1** | 4.5:1 |
 
 `4.55:1` is 0.05 above the threshold and `4.76:1` is 0.26 above it. They are
 passes, not violations, and they are called out here precisely because they
 would not survive an unnoticed edit to the `text-slate-500` token or to either
 of the two backgrounds above.
 
+**UI-01c closed all three**, which is what findings F1 and F2 were opened for.
+The margins are now 4.02 and 4.43 above the threshold respectively, measured in a
+browser (§3.7.1), and the tokens involved no longer exist. **This table is
+retained rather than deleted**, for the reason the "Closed since" items above
+were: it records what the tightest margins on this page used to be, which is the
+part a future edit needs.
+
 Two corrections to this table, both found on review of the record rather than in
-the code, since a gate record that miscounts its own residual-risk table is not
-a trustworthy baseline. The `app-shell.tsx:51` row was missing entirely, so the
+the code, since a gate record that miscounts its own residual-risk table is not a
+trustworthy baseline. The `app-shell.tsx:51` row was missing entirely, so the
 table recorded two sites where the page has three. And the footer row cited
 line 78, which is the text, not the class — the `text-slate-500` class is on
 line 77. No ratio was recomputed: the two `#ffffff` rows carry the `4.76:1`
@@ -419,9 +472,11 @@ reason as the item above.
 
 Still open:
 
-- [ ] **Automated visual-regression baselines.** Not started. `screenshots/`
-      holds real captures and nothing compares two runs against each other, so
-      a future visual regression would not be caught automatically.
+- [ ] **Automated visual-regression baselines.** Not started, and **made more
+      valuable by UI-01c** rather than less. `screenshots/` now holds six
+      captures of a deliberately composed screen, which is exactly the input a
+      visual-regression gate needs; nothing still compares two runs against each
+      other, so a future visual regression would not be caught automatically.
 - [ ] **A second route.** §4.3, unchanged by UI-00b. Still only `/`, so the
       layout-owned `main` is tested but not yet *exercised twice*.
 - [ ] **Cross-browser rendering.** Chromium only. Firefox and WebKit are not
@@ -431,6 +486,15 @@ Still open:
       UI-00b supplies narrow-width evidence for `/` only. The loading, empty and
       error states that clause is really about do not exist yet, so the item
       cannot be closed by this packet.
+- [ ] **The governing UI-01c packet has no immutable identity** (F8).
+      `docs/architecture/research_ui/` is untracked in every tree, so
+      `AGENT_WORK_PACKETS.md` can drift or be falsified silently. Not fixable in
+      this packet; the repository, not the file, is the problem.
+- [ ] **`AGENT_WORK_PACKETS.md:40` points at a `VISUAL_DIRECTION.md` that does
+      not exist there** (F9). Decision D3 relocated that document into
+      `apps/research-ui/`, where the mission's write scope and the design tokens
+      both live. The governing packet is not editable in this packet, so the
+      reference stays broken until a follow-up fixes it.
 
 ### 3.4 Runner note: `next start` under `output: "standalone"`
 
@@ -440,12 +504,16 @@ Still open:
 "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
 ```
 
-It then serves correctly anyway: all 23 tests ran against real rendered markup
+It then serves correctly anyway: **all 25 tests ran** against real rendered markup
 at both viewports, and the measured values in §3.1 are consistent with the
-source. The warning is recorded rather than silenced and the alternative was
-not adopted, because switching the harness to `.next/standalone/server.js` would
+source. The warning is recorded rather than silenced and the alternative was not
+adopted, because switching the harness to `.next/standalone/server.js` would
 change what is under test without a reason any gate requires. Next.js
 **16.3.6**, Chromium build 1243.
+
+*(This paragraph read "all 23 tests ran" and was missed when §3 and §3.1 were
+updated during UI-01c. The figure is now 25 — 23 at UI-01c, 25 after the repair
+pass's gate 21. Corrected rather than left to drift again.)*
 
 ### 3.5 Effect on the packet table
 
@@ -589,6 +657,499 @@ others, `summarise`'s three-way precedence prints `color-contrast=pass` because
 the id is present in `passes` at all. The adjacent `violations=` field and the
 `toEqual([])` assertion carry the real verdict, which is why the run was still
 correctly red. `summarise` was not restructured in this packet.)
+
+**The `summarise` wrinkle above is FIXED by UI-01c** — finding F5 — by inverting
+the precedence so a violation outranks a pass. See §3.7.3. It is left in this
+section's text as written, because §3.6.4 is the record of that run and editing
+it would falsify the quoted output.
+
+### 3.7 Packet UI-01c — the visual-direction redesign
+
+**This section is measurement, not judgement.** UI-01c changed how `/` looks:
+warm paper for a cold dashboard, hairlines for cards, a document trail for a
+stack of panels. `VISUAL_DIRECTION.md` is the design argument. What follows is
+only what was measured, so that a reviewer can check the claims rather than take
+them on trust.
+
+**What is deliberately not in this section.** UI-01c cannot certify its own
+visual direction. Nothing here claims a screenshot was looked at or judged. The
+six captures in `screenshots/` exist for the human to open; §3.7.2 says which
+motif each one should show, and that mapping is a claim to be checked, not a
+result.
+
+**Which of these numbers a reviewer can re-run, and which they cannot — stated
+before any of them, so the tables are not read as more durable than they are.**
+
+| Evidence | Reproducible from the committed suite? |
+|---|---|
+| Zero axe violations; `incomplete` exactly `[]` / `[]` / `aria-hidden-focus(2)` | **Yes.** `rendered-axe.spec.ts` asserts all of it, on every run |
+| Focus ring `2px solid rgb(28, 26, 23) offset=2px`, both rules, both viewports | **Yes.** `focus-visibility.spec.ts` prints and asserts it |
+| No horizontal overflow, 375/375 and 1440/1440 | **Yes.** `overflow.spec.ts` asserts it |
+| Tab order, dialog focus trap, Escape restoration | **Yes.** `tab-order.spec.ts`, `responsive-nav.spec.ts` |
+| Six PNGs with valid magic bytes and their byte sizes | **Yes.** `screenshots.spec.ts` asserts and prints each size |
+| **Per-site contrast ratios** (§3.7.1) | **No.** The committed suite asserts *that every text node passed*, not *which ratio each one got*. The specific ratios came from a temporary measurement spec, now deleted |
+| **Box geometry** (§3.7.6) | **No.** Same: the committed suite asserts overflow-free, not box dimensions |
+| **Lab ΔE separations** (§3.7.7) | **No.** Computed from the token hexes; no committed test measures colour distance |
+
+The second group is real measurement, taken in a real browser, and is reported
+as such. But it is **not** enforced, and a future edit could invalidate a number
+in §3.7.1, §3.7.6 or §3.7.7 without turning any gate red. That is the honest
+boundary of this section: the *assertions* are permanent, the *tables* are
+snapshots.
+
+**The run that produced all of it**, recorded once, as the packet requires:
+
+```
+npm run typecheck && npm test && npm run build && npm run test:browser
+```
+
+| Stage | Result |
+|---|---|
+| `tsc --noEmit` | **exit 0** |
+| `vitest run` | **53 passed / 7 files**, 11.57s |
+| `next build` (Next 16.3.6, Turbopack) | **exit 0** — `/` and `/_not-found` static |
+| `playwright test` | **24 passed**, 43.6s, 1 worker |
+
+23 → 24 browser tests is **exactly one** added test, `1440-evidence-trail.png`.
+No test was deleted, renamed, skipped, or loosened. All 53 unit tests still pass
+against restyled markup with **zero** edits to any file in `tests/` — which is
+the strongest single piece of evidence for F6 and A5 in this record: content was
+preserved by construction rather than by rewriting the assertions that check it.
+
+Three pre-existing runner warnings, unchanged and benign: jsdom cannot provide
+`HTMLCanvasElement.getContext` (×3), `next start` ignores `output: standalone`
+(the config's own `webServer` is used in practice), and npm's
+`allow-scripts` notice from the WebServer subprocess.
+
+#### 3.7.1 Contrast, re-measured on the new palette
+
+Read out of axe's own `color-contrast` **pass** nodes — `fgColor`, `bgColor`,
+`contrastRatio`, `expectedContrastRatio` — on the rendered page at both
+viewports. Not recomputed from the hexes, not assumed.
+
+The two findings UI-00b left open, both now closed with large margins:
+
+| Site | Then | Now | Margin gained | Required |
+|---|---|---|---|---|
+| "Latest: …" (`app/page.tsx`, F1) | 4.55:1 | **8.57:1** | +4.02 | 4.5:1 |
+| "Research integrity you can inspect" (`app-shell.tsx`, F2) | 4.76:1 | **9.19:1** | +4.43 | 4.5:1 |
+| "Read-only demonstrator…" (`app-shell.tsx`, F2) | 4.76:1 | **9.19:1** | +4.43 | 4.5:1 |
+
+Every text role on the page, against both grounds:
+
+| Role | Ground | Ratio | Size | Required |
+|---|---|---|---|---|
+| `ink` `#1c1a17` | paper | 15.66:1 | 18-36px | 4.5:1 |
+| `ink` `#1c1a17` | leaf | 16.79:1 | 12-18px | 4.5:1 |
+| `ink-muted` `#4a453d` | paper | 8.57:1 | 14-18px | 4.5:1 |
+| `ink-muted` `#4a453d` | leaf | 9.19:1 | 11-14px | 4.5:1 |
+| **`ink-faint` `#6b6357`** | **paper** | **5.34:1** | **11px** | 4.5:1 |
+| **`ink-faint` `#6b6357`** | **leaf** | **5.72:1** | **11px** | 4.5:1 |
+| `evidence` `#1f3a5f` | paper / leaf | 10.36:1 / 11.11:1 | 11-14px | 4.5:1 |
+| `success` `#1f5c3a` | paper / leaf | 7.15:1 / 7.67:1 | 11px | 4.5:1 |
+| `warning` `#7a5410` | paper / leaf | 6.11:1 / 6.54:1 | 11px | 4.5:1 |
+| `refusal` `#8f2f28` | paper / leaf | 7.27:1 / 7.80:1 | 11px | 4.5:1 |
+
+**`ink-faint` is the tightest role on the page, at 5.34:1 with 0.84 of headroom.**
+It carries the marginal `Stage N` ordinals, the trail's ordinals, and the
+`Not yet available` stamp. If `--color-paper` is ever darkened, these are the
+nodes that must be re-measured first. The hand-written table in
+`app/globals.css` was corrected to these axe-reported figures; the values it
+carried before were computed by hand and were up to 0.02 out.
+
+#### 3.7.2 Screenshots: six, and which motif each should show
+
+| File | Viewport | Motif a reviewer should find it in |
+|---|---|---|
+| `1440-evidence-trail.png` | 1440, element-scoped on `section[aria-labelledby="evidence-title"]` | **M1** the signature motif at readable size |
+| `1440-overview.png` | 1440, full page | M1, M2, M4, M5, M6 |
+| `375-overview.png` | 375, full page | M2, M3 — and M1's narrow-width form |
+| `375-mobile-nav-open.png` | 375, dialog open | M4 on the panel; focus containment |
+| `375-skiplink-focused.png` | 375, skip link focused | the A4/P6 exemption, visible |
+| `1440-skiplink-focused.png` | 1440, skip link focused | the exemption at desktop size |
+
+`1440-evidence-trail.png` is new in this packet and is the reason the browser
+count moved 23 → 24. It is element-scoped, selected by the `aria-labelledby` the
+section already carried, so it adds no attribute to the markup.
+
+#### 3.7.3 What the suite now enforces that it did not before
+
+**One new test** (`screenshots.spec.ts`, above). Everything else in this
+subsection is assertions added *inside* existing tests. No test was deleted,
+renamed, skipped, or loosened, and no axe rule was disabled, allow-listed or
+excluded.
+
+| Addition | Protects | Where |
+|---|---|---|
+| `incomplete` ledger asserted: exactly `["aria-hidden-focus(2)"]` on the dialog-open run, `[]` on the other two | **A6.** `incomplete` was previously *printed* by `summarise` and never checked, so a `color-contrast` that silently moved `passes` → `incomplete` — an undecidable background, a gradient, an overlap — would have stayed green on every assertion in the file. This is the assertion standing between the contrast gate and vacuity | `rendered-axe.spec.ts` |
+| Skip-link `outlineColor` asserted against the live `--color-focus` token, at **both** viewports | A9 / **F3**. Previously the skip-link tests checked width, `clip-path` and box geometry but never the ring *colour*, so a skip link carrying a different colour from the shared rule would have passed | `focus-visibility.spec.ts` |
+| `--color-focus` asserted `!== "rgb(16, 16, 16)"` | Non-vacuity for the above. Reading the token cannot catch a deleted CSS rule, but width/style/offset are pinned independently and would | `focus-visibility.spec.ts` |
+| Nav ring cross-checked against the skip-link ring, both now on `--color-focus` | A9. **F3's real trap**: a separate `--color-focus` on the global rule while `.skip-link:focus` kept `--color-accent` would satisfy A9 perfectly and fail here, because the two render different colours | `focus-visibility.spec.ts` |
+| `summarise` precedence inverted: violation → incomplete → pass → not-evaluated | **F5.** It read `passes` first, so a rule that both passed and violated printed `color-contrast=pass` — a log contradicting the red assertion beside it. Reporting only, but a log that says "pass" for a failing page is what later gets quoted in a report | `rendered-axe.spec.ts` |
+| `toRgbString` / `readColourToken` in `helpers.ts` | **D4/F3.** A declared hex reads back as `#1c1a17`; a computed colour reads back as `rgb(28, 26, 23)`. Comparing them fails on format even though both are the same colour. `toRgbString` **throws** on anything it cannot normalise rather than returning a best-effort string | `helpers.ts` |
+
+**The stale-literal removal is the one judgement call here**, so it is argued
+rather than asserted. `focus-visibility.spec.ts` used to assert the literal
+`rgb(29, 78, 216)` twice. That literal was a second, undeclared copy of
+`--color-accent: #1d4ed8`, and the copy — not the stylesheet — was deciding the
+test. Reading the token instead is what the test was always about: *the
+application's own declared ring, not the browser's fallback*. It is not a
+weakening, because three things are asserted independently of the colour: the
+ring is `2px`, `solid`, offset `2px` (no user-agent default produces that
+triple); the token is not the user-agent default colour; and the nav ring is
+compared against the skip link's measured ring in the same run. **The failing
+path of the colour assertion has not been exercised by a live negative control**
+— see `NOT_VERIFIED`.
+
+#### 3.7.4 The focus ring moved, and both rules moved together
+
+`--color-accent` (`#1d4ed8`, `rgb(29, 78, 216)`) is **gone**. The ring is
+`--color-focus` = `#1c1a17` = `rgb(28, 26, 23)`, declared as its own token so a
+future change to body ink cannot silently restate the ring. Both rules read it,
+which the emitted CSS confirms:
+
+```css
+a:focus-visible,button:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+.skip-link:focus{...outline:2px solid var(--color-focus);outline-offset:2px;...}
+```
+
+Every §3.1/§3.2 line that quotes `rgb(29, 78, 216)` is marked superseded above.
+The **geometry is unchanged** — 2px, solid, offset 2px, on the skip link, the
+desktop nav link, the mobile trigger, the dialog close button and the mobile nav
+link. Only the colour changed, and it changed to ink, which is the right choice
+for a design whose only meaning-bearing boundary should be unmistakable against
+a warm ground.
+
+`.skip-link:focus` also changed shape, under the A4 functional-state exemption:
+radius `0.5rem` → `0.25rem`, a **one**-layer box-shadow instead of two, and a
+new 1px `--color-rule-strong` border so its edge is defined where the shadow is
+faint. The argument for spending the exemption here, rather than leaving the
+overlay with neither radius nor elevation, is written out at
+`app/globals.css:158-171`.
+
+#### 3.7.5 Gate 19 superseded under ratified authority; gate 20 substituted; gate 21 restores the traded property
+
+##### The authority
+
+Gate 19 required `--color-surface: #f8fafc` and `--color-ink: #172033` in the
+emitted CSS and that **no colour token was removed**. UI-01c did all three things
+it forbids, so gate 19 as written **fails**. It is recorded as **failed as
+written** in the §1 table, not quietly reworded, and it is not deleted.
+
+The substitution was **not** taken on an implementer's own authority. An earlier
+revision of this section recorded the failure as "knowingly", which named no
+decision-maker and so read as an implementer's private judgement. That was wrong
+in substance, not just in tone: no agent may waive a gate. The record now reads:
+
+| Field | Value |
+|---|---|
+| **Decided by** | The **human packet owner**, through the UI-01c review (`CHANGES_REQUESTED`), which **ratified** the gate 19 → gate 20 supersession. Not an implementer, not a subagent, and not this repair pass. |
+| **Recorded** | **2026-10-02**, in this section and on gate 19's row in §1. |
+| **Review date** | The review itself carries no in-repo date, so this row records the date the decision was *written down*, not a date claimed for the decision. |
+| **Scope** | Authorises **this** palette change — the twelve UI-01c role tokens replacing the three UI-01 tokens. It is **not** a standing waiver, **not** a precedent for any future palette change, and **not** permission for any other gate to be superseded. |
+| **Condition** | Ratified **only on condition that the general property gate 19 carried survives as a committed, enforced check.** That condition is discharged by **gate 21**, below. Without gate 21 the ratification is void and gate 19 stands as failing. |
+
+##### Why a general property was traded for an enumeration
+
+Because gate 19 was a **drift detector** and gate 20 is an **enumeration**, and
+they detect different things:
+
+| | Gate 19 (drift detector) | Gate 20 (enumeration) |
+|---|---|---|
+| Catches | The removal of **any** colour token, and drift in two named values | Only the **three named** UI-01 tokens and the three named UI-01 hexes |
+| Stability | **Unsatisfiable by any deliberate palette change.** UI-01 preserved those values *on purpose*, so that a later packet would have to name a change. Naming it is the mechanism working | Stable indefinitely; a token added in UI-02 and later deleted is **not** caught |
+| Verdict | Honest but unusable | Usable but narrow |
+
+An enumeration is the right instrument for "did *this* change do what it said".
+It is the wrong instrument for "could anything have leaked", and two real leaks
+were found once the trade was examined — see §3.7.9. So the trade is legitimate
+**only** because the general property was not discarded with it: gate 21 asserts
+the property generally, over *every* token and *every* palette family, rather than
+over the twelve names that happen to exist today. Had the enumeration been
+substituted alone, the correct verdict would have been to refuse the
+ratification.
+
+Gate 20, against `.next/static/chunks/*.css`:
+
+| Check | Result |
+|---|---|
+| `--color-paper`, `--color-leaf`, `--color-ink`, `--color-ink-muted`, `--color-ink-faint`, `--color-rule`, `--color-rule-strong`, `--color-evidence`, `--color-success`, `--color-warning`, `--color-refusal`, `--color-focus` present | **yes, all 12** |
+| `--font-display`, `--font-interface` present | **yes, both** |
+| `--color-surface`, `--color-raised`, `--color-accent` absent | **yes, 0 occurrences** |
+| `#f8fafc`, `#172033`, `#1d4ed8` absent | **yes, 0 occurrences** |
+| `#f6f3ec` (paper) and `#fdfbf7` (leaf) present | **yes** |
+| **no other `--color-*` variable at all** — the shipped stylesheet carries exactly those 12 | **yes, 12 total** (Tailwind v4 tree-shakes its default theme) |
+
+`color-scheme: light` is retained unchanged, and still governs canvas resolution
+and UA-rendered controls exactly as §1.2 disclosed.
+
+#### 3.7.6 Layout, measured at both viewports
+
+| Measurement | 375px | 1440px |
+|---|---|---|
+| `documentElement` scrollWidth / clientWidth | **375 / 375** | **1440 / 1440** |
+| Evidence trail `<ol>` box | 327 x 526 | 856 x 426 |
+| Workflow `<ol>` box | 327 x 699 | 1216 x 535 |
+| Editorial `<aside>` box | 327 x **171** | 320 x **171** |
+| Each trail `<li>`'s `firstElementChild` | `<span>` holding `1`..`5` | same |
+| Each trail `<li>`'s spine `border-left` | **1px** | **1px** |
+
+Three things this settles, none of them by assertion:
+
+- **A10.** No horizontal overflow at either viewport, and the aside measures
+  **171px against the trail's 426px** at 1440px — it hugs its content instead of
+  stretching into an oversized empty block. `self-start` from UI-00b's repair D2
+  still does its job under the redesign.
+- **A12.** The trail keeps its **document form at 375px**: the marginal ordinal is
+  a real `<span>` with real text, and the hairline spine is still 1px. It did not
+  collapse into cards at narrow width. The marginal node kind stacks above the
+  label instead of hiding behind a breakpoint.
+- **A13.** The workflow `<ol>` is one 699px (375px) / 535px (1440px) ruled
+  sequence, not a grid of tiles.
+
+#### 3.7.7 State distinguishability (F7)
+
+`tests/status-badge.test.tsx:36` proves only that the four states carry distinct
+class *strings*. Four visually identical palettes would pass it. Measured
+instead, in CIE Lab, with the three instantiated states read off the live DOM and
+`refused` read off its token (the fixture never declares it):
+
+| State | Token | Rendered colour | on paper | Closest neighbour | ΔE |
+|---|---|---|---|---|---|
+| `complete` | `--color-success` | `rgb(31, 92, 58)` | 7.15:1 | `waiting` | **47.8** |
+| `active` | `--color-evidence` | `rgb(31, 58, 95)` | 10.36:1 | `complete` | **51.1** |
+| `waiting` | `--color-warning` | `rgb(122, 84, 16)` | 6.11:1 | `refused` | **34.5** |
+| `refused` | `--color-refusal` | *(not instantiated)* | 7.27:1 | `waiting` | **34.5** |
+
+The tightest pair is `waiting`~`refused` — ochre against oxide — at ΔE 34.5, an
+order of magnitude above a just-noticeable difference. All six pairwise
+separations exceed it by a wide margin. Colour is in any case never the only
+channel: every stamp renders its state word inside the stamp, plus a filled dot,
+and `tests/status-badge.test.tsx:18` pins the word.
+
+**`refused` was not rendered anywhere on this screen.** Its numbers are
+token-derived, which is weaker than rendered measurement, and that is stated
+here rather than glossed.
+
+#### 3.7.8 Findings closed, and what stays open
+
+| ID | Outcome |
+|---|---|
+| **F1**, **F2** | **Closed.** Re-measured above with 4+ points of margin gained. |
+| **F3** | **Closed.** The accent moved; the literal is gone; hex→rgb normalisation added; both rules on one token; the cross-check still bites. |
+| **F4** | **Closed by enforcement.** `incomplete=aria-hidden-focus(2)` is now asserted exactly, on the one run that legitimately produces it, and `[]` on the other two. Still reported, never suppressed. |
+| **F5** | **Closed.** Precedence inverted. |
+| **F6** | **Satisfied as design constraints.** All five couplings hold with **zero** test edits. `home-page.test.tsx` and `evidence-chain.test.tsx` are byte-identical to the baseline. The `Demonstration data` label stayed in the shell `<header>` because it is an anti-fabrication guard, not presentation. |
+| **F7** | **Closed by measurement** (§3.7.7). The class-string test is untouched. |
+| **F8** | **Open, not fixable in this packet.** `docs/architecture/research_ui/` is untracked, so the governing UI-01c packet has no immutable SHA. `VISUAL_DIRECTION.md` was therefore relocated into `apps/research-ui/` (decision D3) so that the design direction *does* have an identity, but the governing packet still does not. |
+| **F9** | **Open.** `AGENT_WORK_PACKETS.md:40` still points at a `docs/…/VISUAL_DIRECTION.md` that does not exist. That file is not editable in this packet. |
+| **F10** | **Closed by the A4 functional-state exemption**, argued in place at `app/globals.css:158-171` and recorded in §3.7.4. |
+
+**A5 — nothing removed.** The redesign is a composition change, and the component
+tests that pin content held green throughout without being adjusted. Specifically
+still present: all six stage labels with their descriptions, states and counts
+(four complete, one active, one waiting — the packet's "four workflow stages" are
+the four complete ones); all five evidence nodes with kind, label and detail; the
+`Demonstration data` marker; and the read-only authority statement. **No badge,
+description, count or node kind was dropped to satisfy A4, A11 or A12**, which
+was the specific failure mode this packet had to avoid.
+
+#### 3.7.9 Gate 21 — the root cause, and four live negative controls
+
+The ratification's condition (above) is discharged here. Three things happened, in
+this order: fix the root cause, then guard it, then prove the guard bites.
+
+##### The root cause: documentation was compiling into the stylesheet
+
+Gate 20 checks *names*. It cannot notice that those names were being **shipped**.
+Tailwind v4 discovers utility candidates by scanning the tree, and its scanner does
+not distinguish a class name in a component from the same characters inside a
+sentence. So Markdown that *described* the retired palette — `GATES.md`, the
+packet, `VISUAL_DIRECTION.md`, `docs/architecture/research_ui/` — was being
+compiled into real rules:
+
+| Present in emitted CSS before the fix | Source |
+|---|---|
+| `.text-slate-500`, `.text-slate-400`, `.text-slate-600`, `.bg-slate-100`, `.bg-slate-900/30` | findings prose in `GATES.md` and `UI-01C_WORK_PACKET.md:182` |
+| `--color-slate-100/400/500/600/900` | same |
+| `.rounded-lg`, `.rounded-xl`, `.blur`, `.mt-10`, `.mt-12`, `.py-0`, `.static` | `VISUAL_DIRECTION.md` A5/A8 and `GATES.md` prose |
+
+The severity is in the last row. `VISUAL_DIRECTION.md` was **generating the exact
+utilities it forbids** — `rounded-lg` and `blur` were in the "avoid" list and in
+the shipped CSS. And a future author typing `text-slate-500` would silently
+receive UI-00b's `#62748e`, which **passes axe at 4.55:1**, fails nothing, and is
+wrong.
+
+##### Two implementation findings, both recorded because both failed silently
+
+**1. The test suite was a second source, and the guard was feeding itself.**
+Fixing only Markdown left three selectors and three variables in the build. The
+residue came from `tests-browser/hygiene.spec.ts` — **the new guard's own JSDoc**,
+which names `text-slate-500`, `bg-slate-900/30` and `blue-700` to document what it
+forbids. Being a `.ts` file it is read as a class-name source, and Tailwind does
+not strip comments from `.ts`/`.tsx`. The guard was regenerating the exact defect
+it exists to catch. This was not caught by reading the diff: it was caught by
+gate 21 failing on a clean tree during the targeted run.
+
+**2. `@source` paths resolve relative to the CSS file's directory, not the app
+root.** `app/globals.css` lives in `app/`, so `./tests-browser/**` means
+`app/research-ui/app/tests-browser/**`, which does not exist. It excludes nothing,
+emits no warning, and still compiles the palette. The first two directives
+appeared to work only because `../` incidentally reaches the app root. The
+directives as shipped are:
+
+```css
+@source not "../../**/*.md";
+@source not "../tests/**";
+@source not "../tests-browser/**";
+```
+
+`../../**/*.md` replaces the original pair. Paths resolve from `app/`, so `..` is
+`apps/research-ui/` and `../..` is `apps/`: the new pattern covers every Markdown
+file under `apps/`, which strictly subsumes the `../**/*.md` it replaced (that one
+reached `apps/research-ui/` alone). It does **not** reach `docs/`, which sits
+outside `apps/`. An earlier revision of this section claimed it covered the
+monorepo "including `docs/`"; that was wrong arithmetic in the one comment whose
+job is to stop the next maintainer "correcting" the path, and it has been corrected
+in `app/globals.css` too.
+
+`docs/` is deliberately **not** excluded. Nothing under it has ever been scanned:
+the only Tailwind-shaped token anywhere in `docs/architecture/research_ui/` is
+`text-layer`, which is not emitted and is not a class this application could use.
+Adding an exclusion for a directory that was never scanned would be a guess
+presented as a fix. `app/` and `components/` stay scanned, so no real utility is
+lost. This is written into the comment block above the directives in
+`globals.css` as well, because the incorrect spelling is the one anyone would
+naturally write.
+
+##### Verified empirically on Tailwind 4.3.3, not assumed
+
+`@source not` was confirmed to exist and take effect by rebuilding and diffing the
+emitted CSS against the pre-fix baseline, with both measurements taken by the same
+script and the same regexes:
+
+| | Before | After |
+|---|---|---|
+| `.next/static/chunks/*.css` size | 21,170 bytes | **17,656 bytes** (−3,514) |
+| raw-palette utility selectors | **5** | **0** |
+| `--color-*` palette variables | **5** distinct | **0** |
+| total class selectors in the file | 152 | 131 |
+| selectors **removed** | — | **21, every one prose-only** |
+| selectors **lost that any `.tsx` references** | — | **0** |
+| selectors **gained** | — | **0** |
+
+`--color-blue-700` is the diagnostic tell for finding 1: it occurs in exactly two
+files, `GATES.md` (excluded) and `tests-browser/hygiene.spec.ts` (not excluded
+until the paths were corrected), and it appeared in the intermediate build and in
+neither of the endpoints.
+
+The "0 legitimately lost" row is the load-bearing one, and it was checked per
+selector by harvesting every `className` token from `app/*.tsx` and
+`components/*.tsx` (112 tokens, variant prefixes stripped) and testing each
+removed selector against that set. Two apparent hits were false positives of my
+own earlier grep and are worth recording, because a laxer check would have
+reported them as regressions:
+
+* `.outline` matched `@heroicons/react/24/outline` in an import path, not a class.
+* `.py-0` matched `py-0.5`.
+* `.bg-paper` matched `hover:bg-paper` in `mobile-nav.tsx:44,62`. The *bare*
+  utility was dead CSS harvested from prose; the used variant survives and
+  resolves to the correct token:
+  `.hover\:bg-paper:hover{background-color:var(--color-paper)}`.
+
+So the bare `.bg-paper` rule was removed because nothing referenced it, not
+because something lost it.
+
+##### What `@source not` does not do, stated so nobody assumes it does
+
+Tailwind still scans CSS *comments* it does not skip. `app/globals.css` names the
+retired palette in prose, and that prose does **not** reach the stylesheet —
+verified, the post-fix CSS contains zero `.text-slate-500` while the comment
+remains in the source. `stripCssComments()` in the guard mirrors that behaviour
+exactly, because a guard that reports the documentation as a defect is a guard
+that gets disabled.
+
+##### The guard: `tests-browser/hygiene.spec.ts`, one new test
+
+Browser **24 → 25**, from **one** added `test()`, not three. One test, four
+assertions, because all four share a single fixture — the served stylesheet — and
+because each assertion carries a self-describing message naming the offending
+**file and token**, so a failure is diagnosable without a re-run. If one of the
+four breaks, the other three are masked until it is fixed; that trade was made
+deliberately, and it is recorded here rather than hidden. Splitting into three
+tests would mean fetching the stylesheet twice for no extra coverage.
+
+| # | Assertion | Property restored |
+|---|---|---|
+| 1a | every `var(--token)` in `app/` + `components/` is **declared** in `app/globals.css` | **dangling reference.** CSS custom properties fail *silently*: a deleted token resolves to nothing, renders nothing, and `next build` exits 0 |
+| 1b | …and actually **reaches the browser** (`token:` present in the served CSS) | a token can be declared in a file Tailwind does not scan — declared, never shipped, equally silent |
+| 2 | **no raw palette utility** in `components/*.tsx` or `app/*.tsx` | **A1**, which was a source convention with **zero** enforcement. This is the enforcement |
+| 3 | the **shipped stylesheet** has no raw-palette utility, no raw-palette variable, and none of the retired UI-01 tokens/hexes | the *actual* leak gate 20 could not express — it reads the bytes the server sends, not the build directory |
+
+Assertion 3 is also what protects the `@source not` directives: they are a
+four-line file edit, and this is the check that fails if they are deleted — or if
+they are written in the plausible-but-wrong relative form described above.
+
+##### Four live negative controls
+
+A guard nobody has watched fail is an assumption. All four were run, and all four
+were reverted.
+
+| Control | Mutation | Result |
+|---|---|---|
+| **1a** | `var(--color-raised)` injected into a real rule in `app/globals.css` | **FAILS**, naming the file and the undeclared token. The message reads "every `var(--token)` in `app/` or `components/` must be declared in `app/globals.css`, or it resolves to nothing at runtime and no build error is raised" |
+| **2** | `text-slate-500` added to a real `className` in `primary-nav.tsx`, no dangling token present | **FAILS** at assertion 2, naming `components\primary-nav.tsx: text-slate-500`, with the A1 message |
+| **3** | **`@source not` directives deleted**, source tree otherwise **completely clean** | **FAILS** at assertion 3, reporting `--color-slate-100/400/500/600/900` and `--color-blue-700` in the shipped CSS |
+| **4** | **no mutation at all** — run against an unmodified tree during the targeted browser pass | **FAILS**, reporting `.text-slate-500`, `.bg-slate-900`, `.bg-slate-900\/30` in the served CSS. It was **correct**: finding 1 was still live. Fixed at the root by excluding the test directories, not by relaxing the assertion |
+
+Control 3 is the reviewer's own scenario: a clean tree, a small deletion, and the
+gate goes red on the shipped bytes.
+
+Control 4 is the one that earns the rest. It is the only control that was not
+staged — it fired on the real repair, on a tree I believed was correct, and it
+found a defect I had introduced two minutes earlier and would otherwise have
+shipped. A guard that only ever catches mutations I planted would not have caught
+this. Every mutation was reverted and the reverted state re-verified (0
+directives removed, 0 residual `text-slate-500`, 0 residual `color-raised`).
+
+Three defects were found **by running** rather than by reading the guard, and all
+three are fixed:
+
+- the failure path printed `pp\globals.css` because
+  `file.slice(APP_ROOT.length + 1)` over-trimmed a path that already ends in a
+  separator;
+- assertion 2 initially scanned `.css` as well as `.tsx`, so it reported
+  `app/globals.css`'s own prose — three false hits, one of which this section
+  would otherwise have had to avoid writing;
+- and the one from control 4: the guard's own JSDoc was a Tailwind source,
+  because a `.ts` file is scanned and its comments are not stripped.
+
+#### 3.7.10 `NOT_VERIFIED` for UI-01c
+
+1. **Visual direction is unverified and cannot be verified here.** No agent in
+   this lane can view an image. Nothing in this section certifies that the
+   composition reads as deliberate. §3.7.2 is the mapping a human checks.
+2. **The anti-template question is unanswered by measurement.** "Could this page
+   be relabelled as a finance or CRM dashboard without changing its structure?" is
+   a judgement about structure. `VISUAL_DIRECTION.md` §1 answers it in prose; a
+   human answers it in fact.
+3. **The failing path of the rewritten focus-colour assertion** has not been
+   exercised by a live negative control. §3.2.2's identical limitation is
+   inherited, not introduced: §3.7.3 argues the assertion is not vacuous, but
+   satisfiability of the *colour* branch is established by measurement and bite
+   by reasoning.
+4. **No visual-regression baseline.** Six captures exist; nothing compares two
+   runs. The §3.3 item stands, unchanged by this packet.
+5. **Chromium only**, as always. No Firefox or WebKit evidence.
+6. **`refused` was never rendered**, so §3.7.7's row for it is token-derived.
+7. **The per-site ratios, box dimensions and ΔE values in §3.7 are not
+   re-runnable.** The temporary spec that produced them was deleted, because it
+   was scaffolding rather than a gate. The committed suite enforces the
+   *conclusions* (every text node passes; nothing overflows) but not the specific
+   numbers. Promoting these tables to enforced evidence would mean adding
+   assertions on exact contrast ratios and box sizes, which is a maintenance
+   liability for a screen that will keep changing — so this packet leaves it as a
+   deliberate, recorded trade rather than pretending the gap is closed.
 
 ## 4. Known benign runner warnings
 

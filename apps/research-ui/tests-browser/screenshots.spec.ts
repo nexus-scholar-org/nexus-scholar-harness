@@ -20,8 +20,13 @@ import {
  * assertions are on the rendered DOM *and* on the bytes on disk, so a 0-byte
  * file or a renamed text file fails instead of passing quietly.
  *
- * All five files are produced here rather than borrowed from another spec, so
- * the set does not depend on test-file execution order.
+ * All six files are produced here rather than borrowed from another spec, so the
+ * set does not depend on test-file execution order. The one overlap is
+ * `375-mobile-nav-open.png`, which `responsive-nav.spec.ts` also writes from
+ * inside its focus-trap test; this file remains the owner and the byte checks
+ * live here. That overlap is pre-existing and is recorded rather than changed,
+ * because the trap test's capture is evidence about focus containment and
+ * removing it would remove that evidence.
  */
 
 const MIN_PNG_BYTES = 5_000;
@@ -64,6 +69,34 @@ test.describe("committed screenshots", () => {
       scale: "css",
     });
     await assertRealCapture("1440-overview.png");
+  });
+
+  /*
+   * The signature motif, at a size a human can actually judge.
+   *
+   * Packet UI-01c makes the visible path from a research claim back through
+   * evidence and provenance the application's defining composition, and a
+   * reviewer asked "is this deliberate rather than incidental?" cannot answer
+   * that about four marginal numerals in a 1440px full-page capture. So the
+   * evidence section is captured on its own: element-scoped, no new attribute on
+   * the markup (it is selected by the `aria-labelledby` the section already
+   * carries), so the image shows the hairline spine, the marginal ordinals and
+   * the marginal node kinds at their rendered size rather than scaled down.
+   */
+  test("1440-evidence-trail.png", async ({ page }) => {
+    await page.setViewportSize(DESKTOP_VIEWPORT);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const trail = page.locator('section[aria-labelledby="evidence-title"]');
+    await expect(trail).toBeVisible();
+    await trail.screenshot({
+      path: join(SCREENSHOT_DIR, "1440-evidence-trail.png"),
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("1440-evidence-trail.png");
   });
 
   test("375-skiplink-focused.png", async ({ page }) => {

@@ -157,3 +157,67 @@ export async function focusStyleOf(page: Page, selector: string): Promise<FocusS
 export function report(line: string): void {
   console.log(`[measured] ${line}`);
 }
+
+/**
+ * Normalise a CSS colour literal to the `rgb(r, g, b)` spelling Chromium uses
+ * for a computed colour.
+ *
+ * This exists (packet UI-01c, decision D4) because the two spellings of the
+ * same colour are not interchangeable. A custom property declared in
+ * `app/globals.css` keeps the literal that was written, so `--color-focus:
+ * #1c1a17` reads back as `#1c1a17`, while `getComputedStyle(el).outlineColor`
+ * for an element using that token reads back as `rgb(28, 26, 23)`. Comparing the
+ * two directly fails on format even though both are the same colour and the
+ * rendered result is correct.
+ *
+ * It accepts 3- and 6-digit hex and passes `rgb()`/`rgba()` through unchanged,
+ * and **throws** on anything else rather than returning a best-effort string: a
+ * silent fallback here would turn a colour-token regression into a confusing
+ * string mismatch instead of a legible error at the point of failure.
+ */
+export function toRgbString(value: string): string {
+  const literal = value.trim();
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(literal);
+  if (hex !== null) {
+    const digits =
+      hex[1].length === 3
+        ? hex[1]
+            .split("")
+            .map((digit) => digit + digit)
+            .join("")
+        : hex[1];
+    const channels = [0, 2, 4].map((offset) =>
+      Number.parseInt(digits.slice(offset, offset + 2), 16),
+    );
+    return `rgb(${channels.join(", ")})`;
+  }
+  if (/^rgba?\(/i.test(literal)) {
+    return literal;
+  }
+  throw new Error(
+    `cannot normalise CSS colour literal to an rgb() form: ${JSON.stringify(value)}`,
+  );
+}
+
+/**
+ * Read a `--color-*` / `--font-*` custom property off the live document and, for
+ * a colour, normalise it with {@link toRgbString}.
+ *
+ * The token is read from `:root` on the running page, so the assertion follows
+ * the shipped stylesheet instead of a literal copied beside it — a literal is
+ * exactly what goes stale when the palette is redesigned (packet UI-01c,
+ * finding F3). The companion assertion that keeps this honest is in
+ * `tests-browser/focus-visibility.spec.ts`: the width, style and offset are
+ * pinned independently of the colour, and the ring is cross-checked against the
+ * skip link's own ring, so deleting the CSS rule still fails the suite rather
+ * than silently passing a different colour.
+ */
+export async function readColourToken(page: Page, token: string): Promise<string> {
+  const declared = await page.evaluate((name) => {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }, token);
+  if (declared === "") {
+    throw new Error(`custom property ${token} is not declared on :root in the served CSS`);
+  }
+  return toRgbString(declared);
+}
