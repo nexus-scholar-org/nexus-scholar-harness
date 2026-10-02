@@ -154,7 +154,17 @@ list both source decision IDs. Missing lineage blocks collection.
 
 ## 7. Required validation before declaring a task done
 
-During implementation, run focused tests. Before phase completion or PR:
+Every task must declare its `FAST`, `STANDARD`, or `RELEASE` delivery lane
+using `docs/architecture/test_gate_policy.md` before implementation. The lane
+sets the review cadence and minimum gate level; contract, identity,
+publication, public-surface, and cross-kit work is always `RELEASE`.
+
+During implementation, run focused tests. Select the final PR or closure
+commands from the test-gate policy rather than rerunning the full harness suite
+after every repair. In particular, a `STANDARD` task runs its owner suite once
+for the final executable PR candidate; `RELEASE` work runs the full applicable
+packet/closure gates. For contract-bound `RELEASE` work, the required checks
+include:
 
 ```powershell
 uv run pytest
