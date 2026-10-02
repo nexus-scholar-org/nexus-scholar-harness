@@ -1124,15 +1124,42 @@ three are fixed:
 - and the one from control 4: the guard's own JSDoc was a Tailwind source,
   because a `.ts` file is scanned and its comments are not stripped.
 
-#### 3.7.10 `NOT_VERIFIED` for UI-01c
+#### 3.7.10 The human visual gate, answered
 
-1. **Visual direction is unverified and cannot be verified here.** No agent in
-   this lane can view an image. Nothing in this section certifies that the
-   composition reads as deliberate. §3.7.2 is the mapping a human checks.
-2. **The anti-template question is unanswered by measurement.** "Could this page
-   be relabelled as a finance or CRM dashboard without changing its structure?" is
-   a judgement about structure. `VISUAL_DIRECTION.md` §1 answers it in prose; a
-   human answers it in fact.
+UI-01c's §12 gate is the one no agent in this lane can close, because no agent
+here can view an image. It was closed by the human packet owner on
+`2026-10-02`, reviewing the six committed captures.
+
+| | |
+|---|---|
+| **Decided by** | The **human packet owner**, opening the six captures in `screenshots/`. Not an implementer, not a subagent, and not this record. |
+| **Recorded** | `2026-10-02` — the date written down. No in-repo artefact carries the decision's own timestamp, so this row is the record rather than a claim about when it was spoken. |
+| **Scope** | The **visual direction** of this packet's single screen (`/`, including its chrome). It is **not** a waiver of any executable gate, **not** authority for a second route, and **not** precedent for a later packet. Every executable row above stands on its own recorded evidence, independently of this decision. |
+| **Anti-template question** | **Answered no.** The page "no longer reads like a generic AI dashboard or a relabelled CRM", and reads as "a restrained research instrument". |
+| **Motifs** | All three requested motifs confirmed **clearly visible**: the numbered spine (workflow stages and claim-trace nodes), the ruled workflow ledger, and the square stamps (`COMPLETE`, `ACTIVE`, `WAITING`). This discharges **A3** and §3.7.11 items 1 and 2. |
+| **375px degradation** | **Accepted.** The marginal node-kind labels stack above their content at 375px; the hierarchy stays readable and the vertical rule plus numeral retains the lineage motif. Forcing a desktop-style margin on mobile "would likely hurt legibility". This closes the residual §3.7.6 disclosed. |
+
+**One non-blocking observation, recorded not fixed (FU-2).** The human noted that
+in both skip-link captures the focused skip link **overlaps the brand**. Accepted as
+is, on the grounds that the state is transient and highly visible; a later polish
+pass could give the affordance a dedicated top-layer placement. Left unfixed
+deliberately: it changes no acceptance criterion, the skip link is correctly
+focusable, visible and correctly ordered at both viewports (A8/A9, asserted), and
+altering the layout inside this packet would have meant an unrequested change to a
+composition the human had just approved.
+
+
+#### 3.7.11 `NOT_VERIFIED` for UI-01c
+
+1. **Visual direction was unverified here and is now answered by the human.**
+   No agent in this lane can view an image, so nothing in this section certifies
+   the composition. The human answered it on `2026-10-02`; see §3.7.10. §3.7.2
+   is the mapping that was checked.
+2. **The anti-template question was unanswered by measurement, and is now
+   answered by the human.** "Could this page be relabelled as a finance or CRM
+   dashboard without changing its structure?" is a judgement about structure.
+   `VISUAL_DIRECTION.md` §1 answers it in prose; the human answered it in fact
+   — **no** — and the record is §3.7.10.
 3. **The failing path of the rewritten focus-colour assertion** has not been
    exercised by a live negative control. §3.2.2's identical limitation is
    inherited, not introduced: §3.7.3 argues the assertion is not vacuous, but

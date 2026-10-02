@@ -255,9 +255,41 @@ This packet cannot self-certify: I and the subagents **cannot view images**.
 4. Outcome is recorded here: `sign_off: <pending|approved|rejected>` plus notes.
    **Rejected ⇒ one more bounded repair pass, then stop.** Agents must not self-sign.
 
+### Outcome
+
+`sign_off: **approved**`
+
+| | |
+|---|---|
+| **Decided by** | The **human packet owner**, reviewing the six delivered captures. Not an implementer, not a subagent, and not this record. |
+| **Recorded** | `2026-10-02` — the date this decision was written down. As with the gate-19 ratification at §3.7.5, no in-repo artefact carries the decision's own timestamp; this row is the record, not a claim about when it was spoken. |
+| **Scope** | Approves the **visual direction** of this packet's single screen (`/`, including its chrome). It does **not** extend to any later packet, does not authorise a second route, and does not waive any executable gate. |
+| **Anti-template question** | **Answered no.** The human's finding: the page "no longer reads like a generic AI dashboard or a relabelled CRM", and reads instead as "a restrained research instrument". This discharges A3 and the §12 gate-3 question. |
+| **Motifs** | All three requested motifs confirmed **clearly visible**: the numbered spine (workflow stages and claim-trace nodes), the ruled workflow ledger (horizontal record structure), and the square stamps (`COMPLETE`, `ACTIVE`, `WAITING`). |
+| **375px degradation** | **Accepted.** The marginal node-kind labels stack above their content at 375. The human's reasoning: hierarchy remains readable and the vertical rule plus number retains the lineage motif, and forcing a desktop-style margin on mobile "would likely hurt legibility". This closes the residual the implementer flagged as `NOT_VERIFIED` and §3.7.6 disclosed. |
+
+**What this sign-off does not certify.** It covers composition only. It does not
+re-open, replace, or add to any executable gate — `typecheck`, `vitest 53/7`,
+`build`, `playwright 25/7`, the axe runs and gate 21 all stand on their own recorded
+evidence, independently of this decision. No agent in this lane can view an image, so
+this row transcribes a human judgement and does not extend it.
+
 ---
 
 ## Follow-ups
+
+### FU-2 — focused skip link overlaps the brand. **Non-blocking, raised by the human at sign-off.**
+
+The human noted that in both skip-link captures the focused skip link **overlaps the
+brand**. Their assessment: acceptable, because the state is transient and highly visible.
+A later polish pass could give the affordance a dedicated top-layer placement so it never
+sits over the brand mark.
+
+Deliberately **not** fixed here. It is a visual polish item, it changes no acceptance
+criterion, and the skip link is correctly focusable, visible, and correctly ordered at both
+viewports (A8/A9, asserted). Fixing it inside this packet would have meant an unrequested
+layout change to a composition the human had just approved. Recorded so the observation is
+not lost — see `GATES.md` §3.7 for the open-item list.
 
 ### FU-1 (was F9) — broken cross-reference in the governing packet. **ORCHESTRATOR-OWNED. Not fixed by this packet.**
 
