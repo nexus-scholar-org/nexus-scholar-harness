@@ -28,6 +28,11 @@ To ensure high modularity, the Nexus Scholar architecture separates the research
 - **[`phase_6/`](./phase_6/)**: Scientific trust specifications, external harness bridges, and multi-agent interaction policies.
 - **[`phase_7_distribution/`](./phase_7_distribution/README.md)**: Bench-portable distribution blueprint, gap analysis checklist, and packaging architecture.
 
+- **[Harness core modularity roadmap](./harness_core_modularity_roadmap.md)**:
+  deferred modular-monolith cleanup after Packet E4. It records how workspace,
+  audit, pipeline, MCP, console, and UI boundaries can be simplified without
+  extracting more standalone packages.
+
 ---
 
 > For public usage documentation, see the [User Guide](../nexus_scholar_user_guide.md), the [Kit Surface Matrix](../kits_surface_matrix.md), the [Roadmap](../UPCOMING_WORK.md), and the master [Documentation Index](../README.md).
