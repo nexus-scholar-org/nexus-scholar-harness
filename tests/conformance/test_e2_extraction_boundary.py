@@ -200,7 +200,7 @@ GOLDEN_PREFIX = ("corpus_snapshot", "screening_batch", "screening_decisions")
 # metapackage pin must all name the same commit (E1's E1-NEG-030 blob-level
 # index/worktree comparison owns the deeper tree check).
 E2_KITS: tuple[tuple[str, str], ...] = (
-    ("scholar-pdf-kit", "0430ee40c491edbb055af4ab068637275aada476"),
+    ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
     ("scholar-agent-kit", "deebfad995ba88bbd748be9beddd1aa2b8a51264"),
 )
 
@@ -219,7 +219,7 @@ FROZEN_ARTIFACT_TYPES = frozenset(
 
 #: The vendored canonical pdf-kit commit recorded as the candidate producer.
 #: Not an invented revision: the same E2 pdf-kit pin asserted in E2-NEG-037.
-PDF_KIT_COMMIT = "0430ee40c491edbb055af4ab068637275aada476"
+PDF_KIT_COMMIT = "3c024c37071b49265cfea6e713c1c9065e2a2cc0"
 
 #: The extraction run id used for the candidate envelope. Deterministic: the
 #: candidate's ``artifact_id`` is a pure function of the payload, so nothing here
