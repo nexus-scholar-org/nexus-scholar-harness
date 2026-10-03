@@ -17,7 +17,7 @@ You are the scientific retrieval-augmented generation and synthesis specialist o
 5. **Grounded Attributed Synthesis**: Generates research reviews with atomic citation tokens `[WORKSPACE_ID#SECTION#CHUNK_ID]` and verifies semantic claim entailment.
 6. **Cross-Study Methodology Matrix**: Extracts 7-dimension comparative matrices (`matrix.json` and `matrix.md`).
 7. **Consensus Cartographer**: Clusters attributed synthesis claims into high-consensus findings vs. active debates with deterministic stance attribution and verdicts (`consensus.json`/`consensus.md`).
-8. **Append-Only Audit Journal**: Logs `RAG_INDEX_BUILT`, `RAG_QUERY_RETRIEVED`, and `SYNTHESIS_GENERATED` events to `audit/journal.jsonl`.
+8. **Explicit-Journal, No-Discovery Indexing**: `index` writes its audit events to the journal you pass via `--journal` (`<ws>/audit/journal.jsonl`). It never discovers, infers, or creates a journal path. The typed service refuses any run whose identity limbs it was not told — `--run-id`, `--created-at`, `--producer-version`, `--producer-commit`, `--embedder-provider`, `--embedder-model`, `--embedder-dimension`, `--parent-view`, `--workspace-root` are all required, and none is ever minted or read for you. A missing journal flag is a failure, not a silent default.
 
 ---
 
@@ -25,10 +25,19 @@ You are the scientific retrieval-augmented generation and synthesis specialist o
 
 ### 1. Index Extracted Literature
 ```bash
-uv run scholar-rag index workspaces/<project-slug>/extracted/ \
-  --bib workspaces/<project-slug>/literature/references.bib \
-  --workspace-id <project-slug>
+uv run scholar-rag index <ws>/extracted/ \
+  --parent-view <ws>/parent-view.json \
+  --journal <ws>/audit/journal.jsonl \
+  --workspace-root <ws> \
+  --run-id <RUN-...> \
+  --created-at <rfc3339> \
+  --producer-version <version> \
+  --producer-commit <40-hex> \
+  --embedder-provider <provider> \
+  --embedder-model <model> \
+  --embedder-dimension <int>
 ```
+All ten flags are **required** — the typed indexing service will not invent any identity limb you omit. `--workspace-id` was removed from `index` (it survives only on `query`) and is not a valid substitute for `--workspace-root`. Supply your own `db_path` explicitly if you need a persistent store: the default is CWD-relative `./chroma_db`.
 
 ### 2. Query with Graph Boost & Slicing
 ```bash
@@ -164,12 +173,7 @@ synthesis = engine.synthesize("What are the empirical findings?", rq_id="RQ1")
 
 ## Verified surface, MCP mapping & knowledge
 
-- **MCP tool defaults are CWD-relative**: `nexus_rag_index(docs_dir, db_path="./chroma_db")`
-  and `nexus_rag_query(db_path="./chroma_db")` resolve against `tools/scholar-agent-kit/`
-  when launched through MCP — always pass absolute workspace paths
-  (e.g. `<ws>/chroma_db`). `nexus_matrix_extract` pins its db to
-  `<workspace_dir>/chroma_db`, so align by indexing with an explicit
-  `db_path=<ws>/chroma_db`.
+- **`nexus_rag_index` is declared unsupported** (capability `rag_indexing`, `mcp_supported: false`, owner `nexus-scholar-org/scholar-rag-kit`). The MCP server refuses it with a non-retryable `UNSUPPORTED_CAPABILITY` envelope before any file, manifest, or audit I/O; it is not a soft "not found" and not a parity claim. Use the `scholar-rag index` CLI or the `scholar_rag.index_service` Python API instead. That declaration does not narrow the query tools: `nexus_rag_query(docs_dir, db_path="./chroma_db")` is still CWD-relative and unsupported-with-arguments is not the failure mode — always pass absolute workspace paths (e.g. `<ws>/chroma_db`). `nexus_matrix_extract` pins its db to `<workspace_dir>/chroma_db`, so align by indexing with an explicit `db_path=<ws>/chroma_db`.
 - **MCP `nexus_rag_query` cannot graph-boost**: the tool exposes only `boost_doi`
   (seed boost, β=0.15); there is no `graph_source`/`alpha`/`beta` parameter. Full hybrid
   retrieval (`Score = cos + α·PR + β·seed`) requires the CLI (`--graph <graph.json>

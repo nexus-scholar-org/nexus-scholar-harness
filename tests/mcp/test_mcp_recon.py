@@ -39,7 +39,15 @@ def _isolate_recon_cache_root(tmp_path, monkeypatch):
     P4 made the module default a repo-anchored absolute path; every hermetic
     probe must land under ``tmp_path/.cache/inception_recon`` instead of the
     real checkout.
+
+    T-110b/F-AGT-01 made the harness recon import lazy, so the recon symbols
+    (``ReconEngine``, ``DEFAULT_LEXICON``, ...) are ``None`` until
+    ``_ensure_harness_recon_loaded`` runs. The load is forced here -- once per
+    test -- instead of restoring the retired eager module-level import, so the
+    lazy path the kit ships is the one under test. It runs *before* the
+    monkeypatch so this fixture's isolation still wins.
     """
+    server._ensure_harness_recon_loaded()
     monkeypatch.setattr(
         server, "RECON_CACHE_ROOT", tmp_path / ".cache" / "inception_recon"
     )
@@ -687,10 +695,15 @@ def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
     monkeypatch.setenv("NEXUS_RECON_ROOT", str(canonical))
     try:
         module = importlib.reload(server)
+        # T-110b: a reload restores the lazy (unset) state, so the loader is
+        # forced before the resolved root is read. The claim under test is still
+        # "the root honours NEXUS_RECON_ROOT" -- asserted after the real load.
+        module._ensure_harness_recon_loaded()
         assert module.RECON_CACHE_ROOT == canonical
     finally:
         monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
         importlib.reload(server)
+        server._ensure_harness_recon_loaded()
         # Env unset: P4 default, repo-anchored and CWD-independent (absolute,
         # under the checkout), NOT the old CWD-relative fallback.
         assert server.RECON_CACHE_ROOT == (_repo_root() / ".cache" / "inception_recon")

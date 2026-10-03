@@ -26,7 +26,7 @@ You are the AI agent interoperability and MCP specialist of the Nexus Scholar Su
 10. **`nexus_bib_clean`** — full documented pipeline: lint + `generate_keys=True` + dedup, saved to the output path (in-place by default).
 
 **RAG (4):**
-11. **`nexus_rag_index`** — AST-chunk + index a docs dir (collection/embedder locked).
+11. **`nexus_rag_index`** — **DECLARED UNSUPPORTED as of E3-008 (WP01-E3)**: answers *every* request with `operation="rag_index"`, `status="FAILED"`, `artifacts=[]`, and exactly one non-retryable `UNSUPPORTED_CAPABILITY` error naming the `scholar-rag index` CLI and the `scholar_rag.index_service` API. Rejected before any I/O; it does **not** AST-chunk or index anything. Use the RAG kit's CLI/API instead (see the boundary section below).
 12. **`nexus_rag_query`** — hybrid search + sectional slicing + `boost_doi` seed + graph boosting via `graph_source` (α=0.25, β=0.15 defaults).
 13. **`nexus_rag_synthesize`** — grounded synthesis with entailment verification (`rq_id` default `"RQ1"`).
 14. **`nexus_matrix_extract`** — dynamic protocol extraction matrix (db pinned to `<workspace_dir>/chroma_db`).
@@ -95,17 +95,22 @@ uv run python -c "from scholar_harness.recon import ReconEngine; import asyncio;
 
 ---
 
-## Declared unsupported capabilities (WP01-E1, WP01-E2)
+## Declared unsupported capabilities (WP01-E1, WP01-E2, WP01-E3)
 
 The agent kit is the MCP front-door, and a *silent omission* is not a boundary: an
-acquisition- or extraction-shaped call that merely went missing is indistinguishable
-from a client bug or a vanished tool. So the kit **declares** both capabilities it
-does not serve, in `scholar_agent.capabilities`:
+acquisition-, extraction-, or indexing-shaped call that merely went missing is
+indistinguishable from a client bug or a vanished tool. So the kit **declares** all
+three capabilities it does not serve, in `scholar_agent.capabilities`:
 
 - capability `pdf_acquisition` → **`mcp_supported=false`** (owning surfaces: `API`, `CLI`;
   canonical owner: `nexus-scholar-org/scholar-pdf-kit`).
 - capability `pdf_extraction` → **`mcp_supported=false`** (owning surfaces: `API`, `CLI`;
   canonical owner: `nexus-scholar-org/scholar-pdf-kit`).
+- capability `rag_indexing` → **`mcp_supported=false`** (owning surfaces: `API`, `CLI`;
+  canonical owner: `nexus-scholar-org/scholar-rag-kit`). A *third* registry key with a
+  *different* canonical owner: the PDF kit owns bytes and fulltext, the RAG kit owns the
+  vector store and its canonical identities. Adding it changed nothing about the two PDF
+  rows above.
 - registered tool `nexus_pdf_acquire` answers **every** request with the standard
   operation envelope: `operation="acquire_pdf"`, `status="FAILED"`, `artifacts=[]`,
   and exactly one error with code **`UNSUPPORTED_CAPABILITY`**, `retryable=false`,

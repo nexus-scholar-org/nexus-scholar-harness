@@ -7,8 +7,8 @@
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-rag-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit`
   (declaration/rejection adapter only)
-- **Current RAG-kit pin:** `c89b68f0d35173082a03b8c6b228e84381271185`
-- **Current agent-kit pin:** `deebfad995ba88bbd748be9beddd1aa2b8a51264`
+- **Current RAG-kit pin:** `f108fa897147f4c837760c81b558d1b82a044fdf` (merge of canonical PR #12, `fix/e3-identity-limbs-through-chroma-store`; superseded pin `033191eff967abf19023b258539c9a1422c8747f` is pre-fix and is retained here only as that PR's base)
+- **Current agent-kit pin:** `79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92`
 - **Governing readiness baseline:** `docs/architecture/wp01_packet_e3_readiness_baseline.md`
 - **Normative requirement source:** `specs/deep-audit-remediation-2026-09-17/05_rag_kit_spec.md:54-74`
   (`RAG-001`…`RAG-021`), `specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md:134`
@@ -173,17 +173,28 @@ E2 allocated its own boundary and E3 inherits it unchanged:
    usefulness thresholds, engine chains, frontmatter binding, or PDF provenance
    (`docs/architecture/wp01_packet_e2_extracted_text_handoff.md:267-289`).
 
-### 1.4 Current indexing behavior, characterized at the pinned revisions
+### 1.4 Indexing behavior at the pinned revisions (pre-fix characterization)
 
 Every row below was read at RAG-kit pin
-`c89b68f0d35173082a03b8c6b228e84381271185` and, where marked *executed*, was run
-offline against the vendored tree. These are observations, not permission to
-preserve the behavior (readiness baseline `:74`).
+`c89b68f0d35173082a03b8c6b228e84381271185` — the **superseded pre-fix** revision —
+and, where marked *executed*, was run offline against that vendored tree. These are
+observations, not permission to preserve the behavior (readiness baseline `:74`).
 
-| # | Observed fact | Location | E3 consequence |
+The shipped pin on this branch is `f108fa897147f4c837760c81b558d1b82a044fdf`
+(`.agents/plugins/nexus-scholar/plugins.json`), so rows 1–3 describe code that is
+**no longer at those line numbers**: at the shipped pin `chunker.py` mints `CHK-`
+ids from the frozen canonical rule (`chunker.py:136`, `:616`). The lower-case
+`chk-` spelling those rows describe survives only as classified legacy/degraded
+state — `recovery.py:160-161` (`^chk-[0-9a-z]+$`, `^chk-\d+$`), the `chk-*`
+legacy-identity detail at `recovery.py:946`, and the Chroma return-value
+placeholder at `retriever.py:222`. The `CHK-` registry form is defined at
+`canonical.py:65` and validated at `index_manifest.py:282`. Re-read a row's
+location at the shipped pin before citing it as current behaviour.
+
+| # | Observed fact | Location (at the superseded pin) | E3 consequence |
 |---|---|---|---|
-| 1 | Chunk IDs are `chk-<doc-slug>-<section-slug>-<NN>` — lower-case, and the trailing component is a **global running position** | `tools/scholar-rag-kit/src/scholar_rag/chunker.py:78`, called at `:216-218` | Not content identity: §5.1 mints `CHK-*` from a canonical payload. `E3-NEG-033`. |
-| 2 | *executed:* `generate_deterministic_chunk_id("10.1016/j.jclinepi.2024.1","data",1)` returns `chk-1010-a11ef5-data-01`, and returns the **same string** after any change to the text | `tools/scholar-rag-kit/src/scholar_rag/chunker.py:64-78`; the caller passes the DOI or the filename stem (`tools/scholar-rag-kit/src/scholar_rag/indexer.py:248`) | This is the positional-reuse defect: identical identity, different content. `E3-NEG-028`, and it is the limb the `§5.1` rule fixes. |
+| 1 | Chunk IDs are `chk-<doc-slug>-<section-slug>-<NN>` — lower-case, and the trailing component is a **global running position** | `tools/scholar-rag-kit/src/scholar_rag/chunker.py:78`, called at `:216-218` (superseded; at the shipped pin the mint is `CHK-` at `chunker.py:136`/`:616`) | Not content identity: §5.1 mints `CHK-*` from a canonical payload. `E3-NEG-033`. |
+| 2 | *executed:* `generate_deterministic_chunk_id("10.1016/j.jclinepi.2024.1","data",1)` returns `chk-1010-a11ef5-data-01`, and returns the **same string** after any change to the text | `tools/scholar-rag-kit/src/scholar_rag/chunker.py:64-78` (superseded); the caller passed the DOI or the filename stem (`tools/scholar-rag-kit/src/scholar_rag/indexer.py:248`) | This is the positional-reuse defect: identical identity, different content. `E3-NEG-028`, and it is the limb the `§5.1` rule fixes. |
 | 3 | *executed:* the frozen registry rejects that id: `validate_identifier(IdentifierKind.CHUNK, "chk-1010-a11ef5-data-01")` → `ValueError: chunk_id must start with one of: CHK-` | `src/scholar_harness/contracts/identifiers.py:58-66` | The current surface cannot emit a contract-valid chunk identity. `E3-NEG-033`. |
 | 4 | The only backend mutation in the whole kit is `collection.upsert(...)`; there is no delete/replace call anywhere | `tools/scholar-rag-kit/src/scholar_rag/indexer.py:78` (sole mutation), `tools/scholar-rag-kit/src/scholar_rag/indexer.py:265-267` (only `count()`) | A shortened or revised document leaves obsolete chunks retrievable. `E3-NEG-032`. |
 | 5 | `min_chunk_chars` is accepted and stored, and read nowhere else in the kit | `tools/scholar-rag-kit/src/scholar_rag/chunker.py:23`, `:27` (assignment only) | Stored-but-inert behaviour-affecting option. `E3-013`/`E3-NEG-027`. |

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 import pytest
 import typer
@@ -62,10 +63,13 @@ def test_init_scaffold_only_full_layout(tmp_path):
     # project.json mirrors the workspace-manager init_project.py manifest.
     manifest = json.loads((target / "project.json").read_text(encoding="utf-8"))
     assert set(manifest) == {
-        "$schema", "project_id", "title", "description", "created_at", "updated_at",
-        "status", "paradigm", "research_questions", "keywords", "stats",
+        "$schema", "project_id", "registered_workspace_id", "title", "description",
+        "created_at", "updated_at", "status", "paradigm", "research_questions",
+        "keywords", "stats",
     }
     assert manifest["project_id"] == "on-device-weed-detection"
+    # The registered identity is minted at inception; project_id stays the label.
+    assert re.fullmatch(r"WSP-[0-9a-f]{32}", manifest["registered_workspace_id"])
     assert manifest["title"] == _TITLE
     assert manifest["status"] == "active"
     assert len(manifest["research_questions"]) == 1

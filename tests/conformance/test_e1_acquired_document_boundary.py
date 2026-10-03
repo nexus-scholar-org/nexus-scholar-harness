@@ -72,7 +72,7 @@ SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
 # agree, so neither can drift alone.
 E1_KITS: tuple[tuple[str, str], ...] = (
     ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
-    ("scholar-agent-kit", "deebfad995ba88bbd748be9beddd1aa2b8a51264"),
+    ("scholar-agent-kit", "79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92"),
 )
 
 # The frozen Contract v1 registry keyset. Asserted exactly (not as a subset) so
@@ -294,17 +294,25 @@ def test_metapackage_pins_mirror_the_manifest_for_e1_kits(kit: str, commit: str)
     assert by_name[kit]["repo"] == _plugins()[kit]["repo"]
 
 
-def test_other_six_kits_were_not_disturbed_by_the_e1_sync():
-    """The E1 vendoring did not spill into another kit's snapshot.
+def test_non_e1_kit_snapshots_stay_within_their_own_directories():
+    """No kit's vendored snapshot contains a path from another kit.
 
-    Scope guard, not a content gate: every non-E1 kit still has a vendored tree,
-    and every tracked path under it stays inside its own directory. (Byte-level
-    content of the other six kits is not this packet's concern -- the kit-sync
-    drift gate for them is their own fixtures' job.)
+    SCOPE GUARD, NOT A CONTENT GATE. It asserts two things only: every non-E1 kit
+    still has a non-empty vendored tree, and every tracked path under that kit's
+    directory really is under it. It deliberately does **not** assert that the other
+    kits' *bytes* match some fixture.
+
+    That distinction matters because "untouched" is not true of every non-E1 kit on
+    this branch: ``scholar-rag-kit`` was deliberately re-pinned and re-vendored by
+    the E3 packet (to ``f108fa8...``), so its blobs are covered by ITS own fixture
+    drift gate, not by anything asserted here. The original name of this test --
+    ``test_other_six_kits_were_not_disturbed_by_the_e1_sync`` -- asserted that all
+    six were undisturbed, which stopped being true the moment RAG was re-vendored;
+    the name was the false claim, so it now states the property actually checked.
     """
 
     e1_kits = {name for name, _ in E1_KITS}
-    assert len(_plugins()) - len(e1_kits) == 6, "expected six untouched kits"
+    assert len(_plugins()) - len(e1_kits) == 6, "expected six non-E1 kits"
     for kit in _plugins():
         if kit in e1_kits:
             continue

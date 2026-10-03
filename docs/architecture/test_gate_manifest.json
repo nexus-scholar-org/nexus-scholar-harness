@@ -138,7 +138,7 @@
     },
     "T-150": {
       "repo": "harness",
-      "paths": ["docs/kits_surface_matrix.md", ".agents/skills/scholar-rag-kit/SKILL.md", "packaging/nexus-scholar/bundled_skills/scholar-rag-kit/SKILL.md"],
+      "paths": ["docs/kits_surface_matrix.md", ".agents/skills/scholar-rag-kit/SKILL.md", ".agents/plugins/nexus-scholar/skills/scholar-rag-kit/SKILL.md"],
       "inner": ["uv run python scripts/sync_skills_bundle.py --check"],
       "checkpoint": ["uv run python scripts/sync_skills_bundle.py --check", "uv run pytest tests/conformance/test_count_freshness.py -q"],
       "pr": ["uv run pytest tests/conformance -q", "uv run ruff check scripts/"],

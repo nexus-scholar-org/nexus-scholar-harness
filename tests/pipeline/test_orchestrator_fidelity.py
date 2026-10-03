@@ -23,6 +23,20 @@ import networkx as nx
 
 from scholar_harness import orchestrator as orch
 
+# Registered workspace identity this fixture workspace records. Stage 6 states the
+# value recorded in project.json and refuses to index under anything else, so a
+# fixture workspace that reaches Stage 6 must record one.
+FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
+
+
+def _record_workspace_identity(ws: Path, project_id: str) -> None:
+    (ws / "project.json").write_text(
+        json.dumps(
+            {"project_id": project_id, "registered_workspace_id": FIXTURE_WORKSPACE_ID}
+        ),
+        encoding="utf-8",
+    )
+
 
 def _write_protocol(ws: Path, slug: str = "fidelity-test-workspace") -> Path:
     from scholar_protocol.canonical import canonical_json
@@ -50,10 +64,18 @@ def _write_protocol(ws: Path, slug: str = "fidelity-test-workspace") -> Path:
             {"criterion": "Reports benchmark pass rates", "maps_to_rqs": ["RQ1"]}
         ],
         "exclusion_criteria": [
-            {"criterion": "Non-English", "reason_category": "LANGUAGE", "maps_to_rqs": ["RQ1"]}
+            {
+                "criterion": "Non-English",
+                "reason_category": "LANGUAGE",
+                "maps_to_rqs": ["RQ1"],
+            }
         ],
         "matrix_dimensions": [
-            {"id": "throughput", "name": "Throughput", "description": "Operations per second"}
+            {
+                "id": "throughput",
+                "name": "Throughput",
+                "description": "Operations per second",
+            }
         ],
     }
     intent = IntentPacket.model_validate(data)
@@ -150,7 +172,8 @@ class _FakeGraph:
 
     def export_json(self, G, path: Path):
         path.write_text(
-            json.dumps({"nodes": list(G.nodes), "links": list(G.edges)}), encoding="utf-8"
+            json.dumps({"nodes": list(G.nodes), "links": list(G.edges)}),
+            encoding="utf-8",
         )
 
 
@@ -172,7 +195,9 @@ def _stub_kit_engines(monkeypatch):
     monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
     monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
     monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
-    monkeypatch.setattr("scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None)
+    monkeypatch.setattr(
+        "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
+    )
     return orch
 
 
@@ -195,7 +220,9 @@ def test_pipeline_pauses_for_collect_and_skips_stages_5_9(tmp_path, monkeypatch)
     assert results["status"] == "PENDING_AGENT_REVIEW"
     for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
         assert results["stages"][stage]["status"] == "SKIPPED"
-    assert not list((ws / "extracted").glob("*.md")), "no extraction may occur before collect"
+    assert not list((ws / "extracted").glob("*.md")), (
+        "no extraction may occur before collect"
+    )
     assert not (ws / "synthesis" / "literature_review.md").exists()
 
     journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
@@ -207,10 +234,13 @@ def test_pipeline_pauses_for_collect_and_skips_stages_5_9(tmp_path, monkeypatch)
 # ---------------------------------------------------------------------------
 
 
-def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(tmp_path, monkeypatch):
+def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(
+    tmp_path, monkeypatch
+):
     _stub_kit_engines(monkeypatch)
     ws = tmp_path
     _write_protocol(ws)
+    _record_workspace_identity(ws, "fidelity-test-workspace")
 
     (ws / "literature").mkdir(parents=True, exist_ok=True)
     (ws / "literature" / "included.json").write_text(
@@ -235,13 +265,16 @@ def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(tmp_p
     assert results["status"] == "SUCCESS"
     assert results["stages"]["extraction"]["status"] == "DONE"
 
-    md = (ws / "extracted" / "SCI-000001.md")
+    md = ws / "extracted" / "SCI-000001.md"
     assert md.is_file()
     text = md.read_text(encoding="utf-8")
     assert 'extraction_engine: "metadata"' in text
     assert "Empirically measured latency under load." in text
     assert "Methodology" not in text.replace("## Abstract", "")
-    assert "Evaluated using standard benchmarks and controlled baseline comparisons." not in text
+    assert (
+        "Evaluated using standard benchmarks and controlled baseline comparisons."
+        not in text
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +290,7 @@ def test_stages_7_9_bind_retriever_and_8_uses_real_client(tmp_path, monkeypatch)
 
     ws = tmp_path
     _write_protocol(ws)
+    _record_workspace_identity(ws, "fidelity-test-workspace")
 
     (ws / "literature").mkdir(parents=True, exist_ok=True)
     (ws / "literature" / "included.json").write_text(
@@ -282,8 +316,12 @@ def test_stages_7_9_bind_retriever_and_8_uses_real_client(tmp_path, monkeypatch)
     assert (ws / "literature" / "knowledge_graph.json").is_file()
     assert (ws / "literature" / "knowledge_graph.html").is_file()
 
-    assert any(call.get("collection_name") == "scholar_docs" for call in RETRIEVER_CALLS)
-    assert any(str(call.get("db_path") or "").endswith("chroma_db") for call in RETRIEVER_CALLS)
+    assert any(
+        call.get("collection_name") == "scholar_docs" for call in RETRIEVER_CALLS
+    )
+    assert any(
+        str(call.get("db_path") or "").endswith("chroma_db") for call in RETRIEVER_CALLS
+    )
     assert SEEN_MATRIX_RETRIEVERS and SEEN_SYNTH_RETRIEVERS
     assert SEEN_MATRIX_RETRIEVERS[-1] is SEEN_SYNTH_RETRIEVERS[-1]
 
@@ -299,15 +337,27 @@ def test_provider_resolution_resolves_names_to_instances():
     resolved = orch._resolve_providers(["openalex", "crossref"])
     assert len(resolved) == 2
     assert isinstance(resolved[0], OpenAlexProvider)
-    assert orch._resolve_providers(["openalex", "not-a-provider"])  # unknown names dropped
+    assert orch._resolve_providers(
+        ["openalex", "not-a-provider"]
+    )  # unknown names dropped
     assert orch._resolve_providers([]) is None
 
 
-def test_study_slug_and_pdf_helpers(tmp_path):
+def test_extraction_file_stem_and_pdf_helpers(tmp_path):
+    """The stem is a FILENAME, not an identity.
+
+    ``_extraction_file_stem`` and ``_study_pdf`` exist to locate a file on disk.
+    They are deliberately not wired to any typed request: Stage 6 takes both
+    identity limbs from the accepted document manifest instead. A stem derived
+    from ``workspace_id`` therefore names a file and nothing more -- it never
+    becomes a ``document_id`` or ``study_id``.
+    """
     doc = {"workspace_id": "SCI-000009", "external_ids": {"doi": "10.1/aa/bb"}}
     assert orch._study_doi(doc) == "10.1/aa/bb"
-    assert orch._study_slug(doc) == "SCI-000009"
-    assert orch._study_slug({"external_ids": {}, "doi": "10.1/aa"}) == "10.1_aa"
+    assert orch._extraction_file_stem(doc) == "SCI-000009"
+    assert (
+        orch._extraction_file_stem({"external_ids": {}, "doi": "10.1/aa"}) == "10.1_aa"
+    )
 
     pdf_dir = tmp_path / "pdfs"
     pdf_dir.mkdir()
