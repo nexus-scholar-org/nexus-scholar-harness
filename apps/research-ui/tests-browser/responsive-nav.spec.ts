@@ -6,6 +6,8 @@ import {
   describeStop,
   expect,
   MOBILE_NAV_PANEL_ID,
+  MOBILE_NAV_TRIGGER,
+  PRIMARY_NAV,
   MOBILE_VIEWPORT,
   report,
   SCREENSHOT_DIR,
@@ -25,20 +27,20 @@ import {
 test.describe("responsive navigation", () => {
   test("375px shows the disclosure and hides the desktop <nav>", async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
 
-    await expect(page.locator('nav[aria-label="Primary"]')).toBeHidden();
-    await expect(page.getByRole("button", { name: "Open main navigation" })).toBeVisible();
+    await expect(page.locator(PRIMARY_NAV)).toBeHidden();
+    await expect(page.locator(MOBILE_NAV_TRIGGER)).toBeVisible();
 
     report("375px: nav[aria-label=Primary] hidden = true, trigger visible = true");
   });
 
   test("1440px shows the desktop <nav> and hides the disclosure", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
 
-    await expect(page.locator('nav[aria-label="Primary"]')).toBeVisible();
-    await expect(page.getByRole("button", { name: "Open main navigation" })).toBeHidden();
+    await expect(page.locator(PRIMARY_NAV)).toBeVisible();
+    await expect(page.locator(MOBILE_NAV_TRIGGER)).toBeHidden();
 
     report("1440px: nav[aria-label=Primary] visible = true, trigger visible = false");
   });
@@ -47,9 +49,9 @@ test.describe("responsive navigation", () => {
     page,
   }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
 
-    const trigger = page.getByRole("button", { name: "Open main navigation" });
+    const trigger = page.locator(MOBILE_NAV_TRIGGER);
 
     // Open from the keyboard, not the mouse: the packet asks for keyboard
     // reachability, and a click would bypass the tab-order work above.

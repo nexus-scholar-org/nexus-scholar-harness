@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import { translate, type Locale } from "@/i18n";
+
+import { LocaleSwitcher } from "./locale-switcher";
 import { MobileNav } from "./mobile-nav";
 import { PrimaryNav } from "./primary-nav";
 
@@ -19,8 +22,9 @@ export const MAIN_CONTENT_ID = "main-content";
  * The application shell (packet UI-01; visual direction packet UI-01c).
  *
  * Owns, in document order: the skip link, the banner landmark with the project
- * identity and the demonstration-data marker, the primary navigation and the
- * narrow-screen disclosure, the route's own content, and a minimal footer.
+ * identity and the demonstration-data marker, the primary navigation, the
+ * narrow-screen disclosure, the locale selector, the route's own content, and a
+ * minimal footer.
  *
  * The banner is a *sibling* of `main`, never an ancestor or descendant of it.
  * Nested banner/main is a real landmark defect: assistive technology then
@@ -40,25 +44,50 @@ export const MAIN_CONTENT_ID = "main-content";
  * than the `--color-paper` ground of the route, divided by hairlines rather than
  * by floating cards. That is the whole chrome treatment — two rules, one type
  * swap, no shadow and no radius anywhere in it.
+ *
+ * **Localization (packet UI-01d).** Every string in this file is now a catalog
+ * lookup, and `locale` is a required prop rather than something read from a
+ * context (D-I18N-05): the shell is rendered by the locale layout, the prop makes
+ * the language an explicit input, and a component test can render any locale
+ * without a provider. The `<html lang dir>` pair is owned one level up by
+ * `LocaleDocument` and is not repeated here; nothing in this file declares a
+ * direction.
+ *
+ * The `LocaleSwitcher` is the **last** item in the header, after `MobileNav`
+ * (D-I18N-11). That position is load-bearing and not aesthetic: it keeps the
+ * measured focus-indicator counts in `tests-browser/responsive-nav.spec.ts` and
+ * `tests-browser/focus-visibility.spec.ts` correct without editing their press
+ * counts, and it confines the indicator's growth to the wide viewport's union. It
+ * also carries no breakpoint of its own — a reader at 375px gets the same
+ * affordance as a reader at 1440px, because with the URL as the only source of
+ * locale truth a hidden selector would leave a narrow screen no way to change
+ * language at all.
  */
-export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
+export function AppShell({
+  locale,
+  children,
+}: Readonly<{ locale: Locale; children: ReactNode }>) {
   return (
     <>
       <a className="skip-link" href={`#${MAIN_CONTENT_ID}`}>
-        Skip to main content
+        {translate(locale, "a11y.skipToMain")}
       </a>
 
       <header className="border-b border-rule-strong bg-leaf">
         <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
           <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
             <div className="min-w-0">
-              <p className="font-display text-lg leading-tight text-ink">Nexus Scholar</p>
+              <p className="font-display text-lg leading-tight text-ink">
+                {translate(locale, "brand.productName")}
+              </p>
               {/*
                 The product's one-line position. It was the F2 thin-margin site
                 at 4.76:1; `--color-ink-muted` on `--color-leaf` measures
                 9.19:1. See `GATES.md` §3.7.
               */}
-              <p className="mt-1 text-xs leading-5 text-ink-muted">Research integrity you can inspect</p>
+              <p className="mt-1 text-xs leading-5 text-ink-muted">
+                {translate(locale, "shell.tagline")}
+              </p>
             </div>
             {/*
               The demonstration-data marker is a safety label, not chrome: it is
@@ -71,12 +100,22 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
               pins it inside this `<header>`, so it cannot be moved out of the
               banner and demoted to page content.
             */}
-            <span className="self-center border border-warning/50 px-2.5 py-1 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-warning">
-              Demonstration data
+            <span className="self-center border border-warning/50 px-2.5 py-1 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-warning rtl:tracking-normal rtl:text-[0.75rem]">
+              {translate(locale, "safety.demoDataLabel")}
             </span>
-            <PrimaryNav />
+            <PrimaryNav locale={locale} />
           </div>
-          <MobileNav />
+          <MobileNav locale={locale} />
+          {/*
+            Last, and at every width. The label arrives as a prop because this
+            switcher is a client component and must not pull a catalog into the
+            client bundle; the three link texts are locale metadata, not
+            messages, and come from inside the switcher.
+          */}
+          <LocaleSwitcher
+            locale={locale}
+            selectorLabel={translate(locale, "locale.selectorLabel")}
+          />
         </div>
       </header>
 
@@ -95,8 +134,7 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
             repaired on the same token: 4.76:1 before, 9.19:1 now.
           */}
           <p className="max-w-3xl text-xs leading-5 text-ink-muted">
-            Read-only demonstrator. The Python harness remains authoritative for contracts, identity,
-            acceptance, toolkit execution and audit events.
+            {translate(locale, "shell.authorityStatement")}
           </p>
         </div>
       </footer>

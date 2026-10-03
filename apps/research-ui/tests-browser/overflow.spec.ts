@@ -1,4 +1,5 @@
 import { DESKTOP_VIEWPORT, expect, MOBILE_VIEWPORT, report, test } from "./helpers";
+import { expectNoSidewaysScroll, measureOverflow } from "./overflow-recipe";
 
 /**
  * Horizontal overflow, measured on the real layout.
@@ -7,51 +8,46 @@ import { DESKTOP_VIEWPORT, expect, MOBILE_VIEWPORT, report, test } from "./helpe
  * sideways scrollbar. `scrollWidth`/`clientWidth` are read off the live
  * `documentElement`, `body` and `<main>`.
  *
- * The `<body>` and `<main>` checks use a 1px tolerance: sub-pixel rounding of
- * fractional layout widths is not a scrollbar, and asserting a strict `<=`
- * against it would be a flaky assertion dressed up as a strict one. The
- * `documentElement` check is strict, because that is the one that decides
- * whether the viewport actually scrolls sideways.
+ * The measurement and its assertions live in `overflow-recipe.ts`, not here,
+ * because the 30 % expansion gate has to run literally this recipe rather than a
+ * paraphrase of it; see that module for why the check is not per-element, and why
+ * the `<body>`/`<main>` comparisons carry a 1px tolerance while
+ * `documentElement`'s is strict.
+ *
+ * `fr` and `ar` are measured with the same recipe (packet UI-01d, N16): French
+ * runs longer than English in this corpus and Arabic has far fewer spaces to
+ * break in, so a layout that fits the English strings is not thereby a layout
+ * that fits the other two.
  */
 
-interface Overflow {
-  scrollWidth: number;
-  clientWidth: number;
-}
+const VIEWPORTS = [
+  ["375px", MOBILE_VIEWPORT],
+  ["1440px", DESKTOP_VIEWPORT],
+] as const;
 
 test.describe("horizontal overflow", () => {
-  for (const [name, viewport] of [
-    ["375px", MOBILE_VIEWPORT],
-    ["1440px", DESKTOP_VIEWPORT],
-  ] as const) {
+  for (const [name, viewport] of VIEWPORTS) {
     test(`${name}: nothing scrolls sideways`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      await page.goto("/");
+      await page.goto("/en");
 
-      const measured = await page.evaluate(() => {
-        const main = document.querySelector("main");
-        const read = (element: Element | null): Record<string, number> =>
-          element === null
-            ? {}
-            : { scrollWidth: element.scrollWidth, clientWidth: element.clientWidth };
-        return {
-          innerWidth: window.innerWidth,
-          documentElement: read(document.documentElement),
-          body: read(document.body),
-          main: read(main),
-        };
-      });
-
-      report(
-        `${name} overflow: ${JSON.stringify(measured)}`,
-      );
-
-      expect(measured.documentElement.scrollWidth).toBeLessThanOrEqual(
-        measured.documentElement.clientWidth,
-      );
-      expect(measured.body.scrollWidth).toBeLessThanOrEqual(measured.body.clientWidth + 1);
-      expect(measured.main.scrollWidth).toBeLessThanOrEqual(measured.main.clientWidth + 1);
+      const measured = await measureOverflow(page);
+      report(`${name} overflow: ${JSON.stringify(measured)}`);
+      expectNoSidewaysScroll(measured, `${name}/en`);
     });
+  }
+
+  for (const locale of ["fr", "ar"] as const) {
+    for (const [name, viewport] of VIEWPORTS) {
+      test(`${name}/${locale}: nothing scrolls sideways`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        await page.goto(`/${locale}`);
+
+        const measured = await measureOverflow(page);
+        report(`${name}/${locale} overflow: ${JSON.stringify(measured)}`);
+        expectNoSidewaysScroll(measured, `${name}/${locale}`);
+      });
+    }
   }
 
   test("no unbreakable token in the shipped fixture can force a sideways scroll", async ({
@@ -61,7 +57,7 @@ test.describe("horizontal overflow", () => {
     // synthetic long token injected here: inventing one would be fabricating
     // data to make a gate look covered.
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
 
     const widest = await page.evaluate(() => {
       let longest = { text: "", width: 0 };

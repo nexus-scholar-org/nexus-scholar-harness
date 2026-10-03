@@ -3,7 +3,7 @@ import axe from "axe-core";
 import type { AxeResults, ImpactValue, Result } from "axe-core";
 import { describe, expect, it } from "vitest";
 
-import HomePage from "@/app/page";
+import { OverviewPage } from "@/components/overview-page";
 
 /** Renders a violation as a reviewable one-liner so a red build is diagnosable. */
 function describeViolation(violation: Result): string {
@@ -71,8 +71,8 @@ function resultsWith(violations: Result[]): AxeResults {
  *   - responsive rendering at 375px / 1440px.
  */
 describe("in-process accessibility (jsdom + axe-core)", () => {
-  it("reports zero critical and zero serious violations on the rendered / page", async () => {
-    const { container } = render(<HomePage />);
+  it("reports zero critical and zero serious violations on the rendered overview page", async () => {
+    const { container } = render(<OverviewPage locale="en" />);
 
     const results = await axe.run(container);
 
@@ -94,7 +94,7 @@ describe("in-process accessibility (jsdom + axe-core)", () => {
   });
 
   it("actually ran the engine: the result set is populated and the rule engine executed", async () => {
-    const { container } = render(<HomePage />);
+    const { container } = render(<OverviewPage locale="en" />);
 
     const results = await axe.run(container);
 
