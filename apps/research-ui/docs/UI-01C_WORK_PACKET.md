@@ -55,7 +55,7 @@ Explicitly rejected: AI-dashboard cards, excessive pills, decorative gradients, 
 |---|---|---|
 | D1 | **No web fonts — CONFIRMED by human.** One display role from a local serif stack, one interface/data role from the system UI stack. | Confirmed. Packet requires ≤2 typeface roles and that the app stay usable if web fonts fail. A meetup demo must not depend on conference wifi. Known cost, accepted: no custom glyph identity. |
 | D2 | **`components/status-badge.tsx` — scope extension.** It is 16 lines, the **sole** definition of state colour (a `Record<WorkflowState,string>` of raw `emerald/blue/slate/rose`, lines 3-8), `rounded-full` at line 12, and consumed only via `workflow-timeline.tsx:15`. Redesigning the workflow while leaving it untouched would leave raw palette as the last thing on the screen. | UI-01c packet requires a written reason **before** editing. |
-| D3 | **`VISUAL_DIRECTION.md` at `apps/research-ui/VISUAL_DIRECTION.md`** — scope relocation from the governing packet's `docs/architecture/research_ui/`. | Mission restricts work to `apps/research-ui/`, and `docs/architecture/research_ui/` is untracked pre-existing work. Cost recorded as F9. |
+| D3 | **`VISUAL_DIRECTION.md` at `./VISUAL_DIRECTION.md`** — scope relocation from the governing packet's `docs/architecture/research_ui/`. | Mission restricts work to `apps/research-ui/`, and `docs/architecture/research_ui/` is untracked pre-existing work. Cost recorded as F9. |
 | D4 | **`tests-browser/helpers.ts` — scope extension.** F3's fix has no natural home otherwise: the asserted colour literal and its normalisation both live in `helpers.ts` / `focus-visibility.spec.ts`. | Same rule as D2. |
 
 ## 4. Allowed paths
@@ -295,7 +295,7 @@ not lost — see `GATES.md` §3.7 for the open-item list.
 
 `docs/architecture/research_ui/AGENT_WORK_PACKETS.md:40` points at a
 `VISUAL_DIRECTION.md` **under `docs/`**. Decision D3 relocated that document to
-`apps/research-ui/VISUAL_DIRECTION.md`, because the mission's write scope and the
+`./VISUAL_DIRECTION.md`, because the mission's write scope and the
 design tokens both live there. **The reference is therefore broken and will stay
 broken until an orchestrator acts on it.** Recorded here rather than silently
 left, because a dangling pointer in a governing document is invisible to every
@@ -310,7 +310,7 @@ Two options, and they are not equivalent:
 
 | Option | Action | Also |
 |---|---|---|
-| **A** | Correct the reference in place, pointing at `apps/research-ui/VISUAL_DIRECTION.md` | Fixes the broken pointer only. The file stays untracked and identity-less |
+| **A** | Correct the reference in place, pointing at `./VISUAL_DIRECTION.md` | Fixes the broken pointer only. The file stays untracked and identity-less |
 | **B** | Commit the whole `docs/architecture/research_ui/` tree so it is tracked, **then** correct the reference | Fixes the pointer **and** closes F8, because a tracked file has a SHA a capsule can pin |
 
 **Option B is the better fix** and is the reason F8 and FU-1 are the same problem
@@ -323,7 +323,7 @@ pointer leaves the more serious half open.
 `docs/architecture/research_ui/` is intended to be tracked at all — it was
 untracked at both `ddcefe5` and on this branch, so intent is genuinely unrecorded.
 
-**Do not close FU-1 by editing `apps/research-ui/VISUAL_DIRECTION.md` to suit the
+**Do not close FU-1 by editing `./VISUAL_DIRECTION.md` to suit the
 broken pointer.** The document's location is correct; the pointer is wrong.
 
 ---
@@ -350,9 +350,9 @@ allowed_paths:
   - apps/research-ui/tests-browser/*.spec.ts            # only those covering the above
   - apps/research-ui/screenshots/
   - apps/research-ui/README.md
-  - apps/research-ui/GATES.md
-  - apps/research-ui/VISUAL_DIRECTION.md                # new, D3
-  - apps/research-ui/UI-01C_WORK_PACKET.md              # orchestrator-owned
+  - ./GATES.md
+  - ./VISUAL_DIRECTION.md                # new, D3
+  - ./UI-01C_WORK_PACKET.md              # orchestrator-owned
 immutable_boundaries:                                    # by path; rules in §5, not restated
   - apps/research-ui/lib/contracts.ts
   - apps/research-ui/lib/mock-project.ts
@@ -390,7 +390,7 @@ evidence:
 next_gate: inner
 stable_sources:
   - apps/research-ui/AGENTS.md            # NOTE: pre-context-protocol revision at ddcefe5
-  - apps/research-ui/UI-01C_WORK_PACKET.md#this-file
+  - ./UI-01C_WORK_PACKET.md#this-file
   - docs/architecture/research_ui/AGENT_WORK_PACKETS.md  # UNTRACKED - no @sha (F8)
   - docs/architecture/research_ui/README.md              # UNTRACKED - no @sha (F8)
 ```
