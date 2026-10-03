@@ -45,7 +45,7 @@ server and needs a Chromium build (`npx playwright install chromium`).
 | 18 | axe-core reports **zero violations of any impact** on an assembled document, with `bypass`, `landmark-one-main`, `landmark-unique`, `page-has-heading-one` and `region` genuinely evaluated — and `region` / `landmark-unique` genuinely **pass** with the mobile disclosure open | `tests/shell.test.tsx` | EXECUTABLE (see §2) |
 | 19 | **SUPERSEDED BY HUMAN-RATIFIED SUBSTITUTION — see §3.7.5, which carries the authority, the date, and the condition.** Originally: the emitted CSS carries `--color-surface: #f8fafc` and `--color-ink: #172033`, the two pre-UI-01 raw-hex values **quoted in §1.2**, and no colour token was removed. It passed on the evidence in §1.2. UI-01c deliberately changed the palette and **removed all three of those tokens**, so gate 19 as written **fails**; it was not silently deleted | `npm run build` + inspection of the emitted CSS | **FAILED as written**, then **substituted under ratified authority** — the substitution is conditional, and the condition is discharged by gate 21 |
 | 20 | UI-01c: the emitted CSS carries all twelve UI-01c role tokens and both `--font-*` roles, and carries **no** UI-01 token (`--color-surface`, `--color-raised`, `--color-accent`) or UI-01 raw hex (`#f8fafc`, `#172033`, `#1d4ed8`) anywhere | `npm run build` + inspection of the emitted CSS | EXECUTABLE (see §3.7.5) |
-| 21 | **Token discipline, general (UI-01c repair R1).** The property gate 19 used to carry, now enforced rather than traded away. (a) every `var(--token)` in `app/` and `components/` is **declared** in `app/globals.css` **and** reaches the browser; (b) **no raw palette utility** in `components/*.tsx` or `app/*.tsx` (this is A1, previously a convention with zero enforcement); (c) the **shipped stylesheet** contains no raw-palette utility, no raw-palette theme variable, and no retired UI-01 token or hex | `tests-browser/hygiene.spec.ts` | EXECUTABLE, with four live negative controls (§3.7.9) |
+| 21 | **Token discipline, general (UI-01c repair R1).** The property gate 19 used to carry, now enforced rather than traded away. (a) every `var(--token)` in `app/` and `components/` is **declared** in `app/globals.css` **and** reaches the browser; (b) **no raw palette utility** anywhere in `components/**/*.tsx` or `app/**/*.tsx` — **recursively**, since UI-01d moved the routes into `app/[locale]/` (M5) (this is A1, previously a convention with zero enforcement); (c) the **shipped stylesheet** contains no raw-palette utility, no raw-palette theme variable, and no retired UI-01 token or hex | `tests-browser/hygiene.spec.ts` | EXECUTABLE, with four live negative controls (§3.7.9) |
 
 Gate 1 matters specifically because `lib/mock-project.ts` never uses `refused`;
 the component is driven directly by prop to close that gap.
@@ -1266,3 +1266,223 @@ one route currently in existence can exercise:
 route must render **no** `main` of its own; it renders content only. No route
 exists beyond `/` today, so the contract is *tested* but not yet *exercised
 twice* (§3).
+
+---
+
+## 5. Packet UI-01d - i18n, RTL and the three-locale shell
+
+This section records what packet UI-01d made executable, what it measured, and the
+two items it **could not** close. The locale contract itself is
+[`I18N.md`](./I18N.md); the governing packet is
+[`UI-01D_WORK_PACKET.md`](./UI-01D_WORK_PACKET.md).
+
+Everything below was produced by a command in this directory on this working tree.
+Rows that could not be executed are marked, not omitted.
+
+### 5.1 Executable gates added by UI-01d
+
+| # | Gate | Covered by | Status |
+|---|------|-----------|--------|
+| I1 | Catalog parity: `fr` and `ar` carry **exactly** the same 41 keys as `en`, no extras, no gaps, with a pinned digest | `tests/i18n-catalog.test.ts` | EXECUTABLE - 10 files / 140 tests pass |
+| I2 | Byte pins hold: `lib/mock-project.ts`, `lib/contracts.ts`, `package.json`, `package-lock.json` | `tests/i18n-catalog.test.ts` | EXECUTABLE - all four SHA-256 verified on the working tree |
+| I3 | `translate()` refuses an unknown key and an empty interpolation result; no raw-key fallback | `tests/i18n-render.test.tsx` | EXECUTABLE |
+| I4 | `<html lang dir>` is correct per locale **before hydration** | `tests-browser/locale-routing.spec.ts` (AC-2), `tests/shell.test.tsx` | EXECUTABLE - for supported locales; raw 404 lacks `lang`/`dir` (see §5.4) |
+| I5 | The locale is the URL only: no cookie, no `localStorage`, no `sessionStorage`, verified from a **fresh browser context** | `tests-browser/locale-switch.spec.ts` (N13) | EXECUTABLE |
+| I6 | Each selector link is the same path in another locale; activating `ar` from `/fr` lands on `/ar` | `tests-browser/locale-switch.spec.ts` (N14) | EXECUTABLE |
+| I7 | The selector has no breakpoint: it is in the rendered ring at 375px and at 1440px | `tests-browser/tab-order.spec.ts` (D-I18N-11) | EXECUTABLE |
+| I8 | No physical direction utility in `app/` or `components/`; `@source not` excludes Markdown, tests, `i18n/` and `messages/` | `tests/i18n-direction-source.test.ts` | EXECUTABLE - 6/6 |
+| I9 | Arabic mirrors the trail's spine and ordinal column; ordinals stay 1...5 in document order; counts are locale-formatted and never digit-reversed; fixture runs are `<bdi>`-isolated and byte-identical; no icon is mirrored; focus order is unchanged | `tests-browser/direction.spec.ts` | EXECUTABLE |
+| I10 | No hydration mismatch in any locale | `tests-browser/locale-routing.spec.ts` (N15) | EXECUTABLE |
+| I11 | No horizontal overflow in `fr` and `ar` at 375px and 1440px, plus the original `en` runs | `tests-browser/overflow.spec.ts` (N16) | EXECUTABLE |
+| I12 | No horizontally unbreakable token in the shipped fixture | `tests-browser/overflow.spec.ts` | EXECUTABLE |
+| I13 | Rendered axe-core: zero real violations at 375px and 1440px, dialog open and closed, in all three locales | `tests-browser/rendered-axe.spec.ts` | EXECUTABLE - parameterized over `SUPPORTED_LOCALES` per P0-2 fix |
+| I14 | **Contrast coverage** - the only contrast coverage is `rendered-axe.spec.ts` (M2). There is no `evidence-contrast.spec.ts`; the phantom file named in an earlier packet revision does not exist and nothing waits on it | `tests-browser/rendered-axe.spec.ts` | EXECUTABLE - the fr/ar runs are part of the evidence, because a longer string changes where a label wraps and therefore which tint it sits on |
+| I15 | Skip link is keyboard reachable and its clip reveal really happens, in every locale | `tests-browser/focus-visibility.spec.ts` | EXECUTABLE |
+| I16 | Token discipline (gate 21) after the new files landed | `tests-browser/hygiene.spec.ts` | EXECUTABLE - see 5.3 |
+| I17 | **30 % expansion, and the precondition that makes it mean something** | `playwright.long-strings.config.ts` + `tests-long-strings/long-strings.spec.ts` | EXECUTABLE - 10/10, see 5.2 |
+| I18 | Ten committed screenshots, `en`/`fr`/`ar` at 375px and `ar` at 1440px, plus the focus and dialog states | `tests-browser/screenshots.spec.ts` | EXECUTABLE - all ten regenerated in this run |
+
+Browser suite: **53 passed / 53**, 10 files. Long-strings suite: **10 passed / 10**.
+Vitest: **140 passed / 140**, 10 files. `npm run typecheck`: exit 0.
+
+### 5.2 AC-9P - the 30 % expansion precondition, with the numbers
+
+The previous formulation of this gate was **vacuous** (packet 13.2.1, finding B1): it
+asked for 30 % inflation and then measured the already-built `.next` tree, which —
+because `NEXT_PUBLIC_*` is inlined at build time — contained zero inflation. It passed
+while proving nothing.
+
+`playwright.long-strings.config.ts` now runs its own `next build` with
+`NEXT_PUBLIC_I18N_EXPANSION_PERCENT=30` into `NEXT_DIST_DIR=.next-longstrings` on port
+3121, and the spec's first assertion fetches the **served response body** and measures
+one catalogued prose sentence inside it. Measured:
+
+| Locale | Sentence | Un-inflated | Served | Ratio |
+| --- | --- | --- | --- | --- |
+| `en` | `overview.traceLede` | 60 | 103 | **1.7167** |
+| `fr` | `overview.asideBody` | 121 | 168 | **1.3884** |
+| `ar` | `overview.asideBody` | 88 | 118 | **1.3409** |
+
+All three are `>= 1.30` and strictly greater than the source length, so the clipping
+assertions that follow are measuring an inflated document. The `en` ratio exceeds
+1.30 because `inflate()` appends whole filler phrases until the threshold is met, so
+a short sentence overshoots; the guarantee is `>= 30 %`, not `== 30 %`.
+
+At 30 % expansion, no locale scrolls sideways at either viewport
+(`scrollWidth === clientWidth` for `documentElement`, `body` and `main` in all six
+runs), and no element truncates instead of wrapping.
+
+**Two runner notes, both measured rather than assumed:**
+
+- React escapes `'` as `&#x27;` in text nodes, and French catalog entries contain
+  apostrophes. Counting escaped bytes would inflate the *un-inflated* side of the
+  ratio by however many apostrophes a sentence happens to have, which could
+  manufacture a 1.30 ratio from a build that expanded nothing. The spec un-escapes
+  before counting.
+- A long-strings `next build` makes **Next.js itself** append
+  `.next-longstrings/types/**/*.ts` and `.next-longstrings/dev/types/**/*.ts` to the
+  `tsconfig.json` `include` array, printing *"We detected TypeScript in your project
+  and reconfigured your tsconfig.json file for you."* Per **D-I18N-09** (ratified),
+  these two include lines are now **committed** and the byte-freeze is amended to the
+  new known-good SHA-256 `8e2f6721f36bb5e190accf7b210deb7b4f523d3f126e119611e41009fcbaf687`.
+  `npm run typecheck` passes with or without those two lines (the existing `**/*.ts`
+  include already covers the alternate tree), but they are now part of the committed
+  freeze so the long-strings build no longer mutates the file. The previous reliance
+  on an un-scripted `git checkout -- tsconfig.json` is removed.
+
+### 5.3 Gate 21 after UI-01d - one real gap, closed
+
+`sourceFiles()` in `tests-browser/hygiene.spec.ts` read only the **top level** of
+`app/` and `components/`. That was complete while the routes lived directly in
+`app/`; UI-01d moved them to `app/[locale]/`, and the walk was made recursive. The
+failure mode was symmetric and worth stating, because both directions are a disabled
+check:
+
+- a raw palette utility in `app/[locale]/page.tsx` would have been reported as clean;
+- a utility used **only** there (`leading-7`, in `not-found.tsx`) was reported as an
+  emitted utility that no product source referenced.
+
+After the fix, gate 21 passes with `emitted from a comment only: []`. Two comment
+tokens had to be reworded rather than allow-listed, because the comment-naming rule
+is stricter than the collateral list:
+
+- `next.config.ts` said *"a static mapping does not need a request interceptor"* - now
+  *"a redirect table declared here"*. `static` is a real Tailwind utility, so the
+  prose was naming one.
+- `components/workflow-timeline.tsx` said wrapping a numeral in `<bdi>` *"would blur
+  the very distinction"* - now *"obscure"*.
+
+Neither rewording weakened a rule; both were prose, and the packet's own remedy for a
+utility named in a comment is to break the token in the prose. `COLLATERAL_EMITTED`
+is unchanged at its seven original entries.
+
+`app/globals.css` gained four `@source not` directives (`i18n/`, `messages/`,
+`tests-browser/`, `tests-long-strings/`) on top of the existing `*.md` and `tests/`
+exclusions (M6). This application has **no `tailwind.config.*`** - it is pure Tailwind
+v4 CSS-first auto source detection, whose scanner reads every non-excluded file under
+the app root as a candidate class-name source. Excluding the catalogs and the two
+test trees is what keeps a translated string or an English assertion from compiling
+into a real utility; the absence of those directives was what made `blur`, `ring` and
+`static` emit in the first place.
+
+### 5.4 OPEN: the unsupported-locale 404 cannot carry both correct raw `lang`/`dir` and name the refused segment
+
+**This is escalated to the packet owner, not decided here.** Measured on Next 16.3.6
+with temporary probes - not inferred:
+
+| Requirement | What Next does |
+| --- | --- |
+| `app/[locale]/not-found.tsx` can read the refused segment | It receives **no props at all** - not an empty `params`, an absent one. Request headers carry no path either: only `host`, `user-agent`, `accept`, `x-forwarded-host`, `x-forwarded-port`, `x-forwarded-proto`, `x-forwarded-for` |
+| HTTP status is `404` | `notFound()` does emit `404` |
+| Raw pre-hydration `<html lang dir>` on the 404 | It emits `<html id="__next_error__">` with **no** `lang` and **no** `dir` |
+| The refusal names `{requested}` | Rendered **instead of** `children` it gives full content and correct `lang`/`dir` - but the status becomes **`200`**. Rendered **alongside** `children` it keeps `404`, and the naming text is in the RSC payload but the served HTML is effectively only "Nexus Scholar" |
+
+Three options exist and all three were rejected or deferred here, deliberately:
+
+1. **`middleware.ts` rewrite** - rejected on the merits, same reasoning as the
+   redirect: it adds a runtime layer and is framework-version-sensitive.
+2. **A locale context/provider** - rejected: it reintroduces client locale state,
+   which is exactly what D-I18N-01 forbids.
+3. **Return `200` and label the page** - this *is* a soft 404. Rejected: it
+   contradicts D-I18N-13's `404` requirement outright.
+
+**D-I18N-13A ratification:** The refusal enumerates available locales but does **not**
+echo the refused segment (D-I18N-13A). The raw 404 document's missing `lang`/`dir`
+is a known Next.js 16.3.6 limitation that cannot be resolved without middleware
+(rejected) or a custom server (out of scope). This limitation is honestly recorded
+here rather than papered over. The `LocaleNotFound({ requested })` component
+remains exported but unwired, with the naming UI implemented and commented.
+
+**Test coverage is therefore split, on purpose:** N20 (`/de` is a valid page - one
+`h1`, one `main`, the shell's landmarks) and the fallback-language half of N2 are
+executable and pass after hydration; the raw pre-hydration `lang`/`dir` and the
+naming sentence are recorded as **BLOCKED** above.
+
+### 5.5 OPEN: case-insensitive static serving on Windows
+
+Freshly measured on this machine, with a build from the current tree:
+
+| Request | Status | Served |
+| --- | --- | --- |
+| `/EN` | **200** | `lang="en" dir="ltr"`, full English overview |
+| `/Fr` | **200** | `lang="fr" dir="ltr"`, full French overview |
+| `/DE` | 404 | `<html id="__next_error__">`; visible text only "Nexus Scholar"; the naming text is in the RSC payload |
+
+Locale resolution in `i18n/locales.ts` is exact and case-sensitive, and
+`generateStaticParams` returns only `en`, `fr`, `ar`. The case-folded request never
+reaches either: Next has already matched `en.html`/`fr.html` on a case-insensitive
+filesystem before the route function runs, so `notFound()` cannot see it. The
+application therefore behaves as the contract requires *in the router* and cannot
+behave as the contract requires *on this filesystem*.
+
+This is a platform behaviour, not an application defect, and it is folded into the
+same H8 escalation rather than worked around: every workaround (middleware, context,
+normalisation) is one of the three mechanisms already rejected in 5.4.
+
+### 5.6 Human review - NOT VERIFIED
+
+These cannot be self-certified and are not claimed anywhere in this tree.
+
+| # | Question | Reviewer | Status |
+| --- | --- | --- | --- |
+| H1 | Is the French wording idiomatic and free of anglicisms? | fluent French reader | **NOT VERIFIED** |
+| H2 | Is the Arabic wording idiomatic **and** correct in register for a research tool? | fluent Arabic reader | **NOT VERIFIED** |
+| H3 | Do the Arabic screenshots show a genuinely mirrored reading flow - correct skip-link corner, panel edge, lineage rail side, aligned ordinals? | image-capable reviewer | **NOT VERIFIED** |
+| H4 | Are the Arabic 12px label sites legible after the D-I18N-08 size/tracking adaptation? | image-capable reviewer | **NOT VERIFIED** |
+| H5 | Visual confirmation of the **already-ratified** D-I18N-02: translated chrome beside English fixture content | image-capable reviewer | **NOT VERIFIED** |
+| H6 | **RQ-1** - ratify D-I18N-07: translating the *display label* while preserving canonical tokens as data | packet owner | **NOT VERIFIED** |
+| H8 | **RQ-3** - ratify the two written scope-extension requests (`playwright.long-strings.config.ts`, `next.config.ts` + `.gitignore`), **and** rule on the two open items in 5.4 and 5.5 | packet owner | **NOT VERIFIED** |
+| H9 | **Resolved** - the two include lines are committed and the byte-freeze amended to SHA-256 `8e2f6721f36bb5e190accf7b210deb7b4f523d3f126e119611e41009fcbaf687` per D-I18N-09 | packet owner | **VERIFIED** |
+
+The mechanical half of D-I18N-02 *is* verified: the fixture is byte-identical
+(SHA-256), every fixture run is `<bdi>`-isolated, and `375-overview-ar.png` and
+`1440-overview-ar.png` demonstrate it. H5 is the visual/product confirmation of that
+decision, which is a different question.
+
+### 5.7 Test titles changed by this packet
+
+Exactly two, both in `tests-browser/tab-order.spec.ts`, both **packet-sanctioned**
+(13.1 lists rows 35, 40, 44, 53, 56 of that file as updated for M3/D-I18N-11), and
+both because the measurement changed rather than because the assertion was relaxed:
+
+| Was | Now |
+| --- | --- |
+| `375px: the desktop <nav> is display:none, so the ring is [skip, trigger]` | `... so the ring is [skip, trigger, three locales]` |
+| `1440px: the mobile disclosure is display:none, so the ring is [skip, Overview]` | `... so the ring is [skip, Overview, three locales]` |
+
+D-I18N-11 requires the selector at **both** viewports, which adds three stops at each
+width. Both tests now assert the complete five-stop ring, in `en` and in `ar` - a
+strictly stronger claim than the two stops they replaced. Every other original test
+title in the seven pre-existing browser specs is byte-identical.
+
+### 5.8 Scope notes
+
+- `apps/research-ui/I18N.md` is the deliverable path (D-I18N-01c). The untracked
+  `docs/architecture/research_ui/` tree was **left exactly as found**: the FU-1 and
+  index corrections named in D-I18N-01c are a working-tree-only correction **to the
+  human operator**, explicitly not part of this packet's deliverable and explicitly not
+  to be staged or committed.
+- `.next-longstrings/` is the one `.gitignore` line this packet adds (H8). The
+  long-strings runner's Playwright `outputDir` is nested inside the already-ignored
+  `test-results/` rather than given a sibling `test-results-longstrings/`, precisely so
+  that no second ignore rule is needed.

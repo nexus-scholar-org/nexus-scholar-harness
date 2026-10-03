@@ -23,7 +23,8 @@ import {
  */
 
 const SKIP_LINK = "a.skip-link";
-const PRIMARY_NAV_LINK = 'nav[aria-label="Primary"] a[href]';
+const PRIMARY_NAV_LINK = 'nav[data-nav-region="primary"] a[href]';
+const LOCALE_NAV_LINK = 'nav[data-nav-region="locale"] a[href]';
 const MOBILE_TRIGGER = "[aria-controls='mobile-primary-nav']";
 
 /**
@@ -107,7 +108,7 @@ test.describe("rendered focus visibility", () => {
     page,
   }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
 
     // Before focus: the clip technique is in force, so the element occupies a
     // 1px box. This is the state `app/globals.css:53-63` describes.
@@ -155,7 +156,7 @@ test.describe("rendered focus visibility", () => {
 
   test("the skip link is visibly focused at 1440px", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.keyboard.press("Tab");
 
     const style = await focusStyleOf(page, SKIP_LINK);
@@ -183,7 +184,7 @@ test.describe("rendered focus visibility", () => {
   }) => {
     // 1440px: the primary nav link.
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     const navLink = await focusStyleOf(page, PRIMARY_NAV_LINK);
@@ -213,7 +214,7 @@ test.describe("rendered focus visibility", () => {
 
     // 375px: the disclosure trigger.
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     const trigger = await focusStyleOf(page, MOBILE_TRIGGER);
@@ -233,7 +234,7 @@ test.describe("rendered focus visibility", () => {
     // satisfy acceptance A9 perfectly and fail here, because the two render
     // different colours. Both rules now read `--color-focus`, so they agree.
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.keyboard.press("Tab");
     const skipLink = await focusStyleOf(page, SKIP_LINK);
     report(
@@ -243,5 +244,56 @@ test.describe("rendered focus visibility", () => {
       `${navLink.outlineWidth} ${navLink.outlineStyle} ${navLink.outlineColor}`,
       "the nav link ring must match the skip link ring",
     ).toBe(`${skipLink.outlineWidth} ${skipLink.outlineStyle} ${skipLink.outlineColor}`);
+  });
+
+  /*
+   * The same ring in Arabic (packet UI-01d, N18).
+   *
+   * Focus visibility is the one accessibility guarantee that a mirrored layout
+   * can plausibly break on its own: a logical `inset-inline-start` offset, an
+   * `rtl:` typography override or a reordered flex row can all push the indicator
+   * out of the box it is supposed to be marking. Nothing about the *ring* is
+   * translated, so the assertions here are the English ones applied to `ar` —
+   * plus the locale links, which are new focusables this packet introduced and
+   * would otherwise never be focus-tested in any locale at all.
+   */
+  test("the ring is visible on the nav link, the trigger and each locale link in ar", async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP_VIEWPORT);
+    await page.goto("/ar");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+
+    const navLink = await focusStyleOf(page, PRIMARY_NAV_LINK);
+    const firstLocaleLink = await focusStyleOf(page, LOCALE_NAV_LINK);
+    const focusToken = await readColourToken(page, FOCUS_COLOUR_TOKEN);
+    report(
+      `ar nav link FOCUSED: :focus-visible=${navLink.focusVisible} outline=${navLink.outlineWidth} ${navLink.outlineStyle}; locale link ${JSON.stringify(firstLocaleLink.label)} :focus-visible=${firstLocaleLink.focusVisible}`,
+    );
+
+    expectAppFocusRing("primary nav link @1440/ar", navLink, focusToken);
+    expectAppFocusRing("first locale link @1440/ar", firstLocaleLink, focusToken);
+
+    // Each of the three selector links is reachable and ringed, not just the
+    // first one — the ring is asserted after every press, so a locale whose link
+    // dropped out of the order fails here rather than silently never being
+    // visited.
+    for (let index = 0; index < 2; index += 1) {
+      await page.keyboard.press("Tab");
+      const next = await focusStyleOf(page, LOCALE_NAV_LINK);
+      expectAppFocusRing(`locale link ${index + 2} @1440/ar`, next, focusToken);
+      report(`ar locale link ${index + 2} FOCUSED: ${JSON.stringify(next.label)}`);
+    }
+
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/ar");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    const trigger = await focusStyleOf(page, MOBILE_TRIGGER);
+    report(
+      `ar mobile trigger FOCUSED @375: :focus-visible=${trigger.focusVisible} outline=${trigger.outlineWidth} ${trigger.outlineStyle} ${trigger.outlineColor}`,
+    );
+    expectAppFocusRing("mobile trigger @375/ar", trigger, focusToken);
   });
 });

@@ -29,7 +29,7 @@
  * exclusions are both needed, and why `stripCssComments()` in
  * `tests-browser/hygiene.spec.ts` applies only to CSS.
  *
- * PATH SEMANTICS — read this before editing the four lines below, because the
+ * PATH SEMANTICS — read this before editing the six lines below, because the
  * obvious spelling is wrong and fails *silently*. `@source` paths resolve
  * **relative to this file's own directory**, which is `app/` — NOT relative to
  * the application root. So `./tests-browser/**` means
@@ -39,7 +39,7 @@
  * happens to reach the app root, and the two test-directory exclusions appeared
  * correct, produced no warning, and did nothing.
  *
- * Arithmetic, stated exactly, because this block exists to stop the next reader
+* Arithmetic, stated exactly, because this block exists to stop the next reader
  * "correcting" it. Paths resolve from THIS file, which is in `app/`: `..` is
  * `apps/research-ui/` and `../..` is `apps/`. So the first directive below —
  * every `*.md` file under `../../**` — covers all of `apps/`, and strictly
@@ -47,7 +47,29 @@
  * `apps/research-ui/` alone). It does NOT reach `docs/`, which sits outside
  * `apps/`. `docs/` is deliberately not excluded: no file under it has ever been
  * scanned, and adding an exclusion on a false premise would be a guess dressed
- * as a fix. See `GATES.md` §3.7.9.
+ * up as a fix. See `GATES.md` §3.7.9.
+ *
+ * The five directives after the Markdown one (packet UI-01d, M6) exclude the
+ * three test directories and the two new translation directories, so the
+ * exclusion list is now six entries: `../../**` for every Markdown file under
+ * `apps/`, then `../tests/**`, `../tests-browser/**`, `../tests-long-strings/**`,
+ * `../i18n/**` and `../messages/**`. The
+ * last two are excluded for the same reason as the test directories, and the
+ * reason is the same failure mode as Markdown prose: `i18n/` and `messages/` are
+ * fourteen files whose entire content is natural language. A catalog word that
+ * collides with a utility name is harvested into a real rule, and a French or
+ * Arabic sentence contains plenty — `table`, `inline`, `hidden`, `contents`,
+ * `sr-only`, `truncate`, `grid`, `flex`, `outline` are all ordinary words in a
+ * research tool. Nothing in either directory is a class name, so excluding them
+ * costs no real utility; the alternative, grandfathering whatever the catalogs
+ * happen to harvest, would silently widen the gate-21(c) allow-list and make that
+ * gate weaker every time a translator chose a common word.
+ *
+ * `../tests-long-strings/**` is the third test directory and is excluded for the
+ * third reason: that suite carries deliberately absurd measurement strings (the
+ * ones the expansion gate inflates) and a `data-nav-region` selector it drives
+ * the browser with. It is a measurement harness, not a source of utility names,
+ * and nothing under it may reach the scanner.
  *
  * (Note for whoever edits this comment: a CSS comment cannot contain the
  * sequence `*` + `/`, so these globs are described by their head — `../../**` —
@@ -57,6 +79,9 @@
 @source not "../../**/*.md";
 @source not "../tests/**";
 @source not "../tests-browser/**";
+@source not "../tests-long-strings/**";
+@source not "../i18n/**";
+@source not "../messages/**";
 
 /*
  * The Nexus Scholar visual direction (packet UI-01c).
@@ -237,7 +262,16 @@ button:focus-visible {
 .skip-link:focus {
   position: fixed;
   top: 1rem;
-  left: 1rem;
+  /*
+   * DC3 (packet UI-01d): the inline start, not the left. The skip link is the
+   * one element that must appear in the corner the reader's eye starts from, so
+   * in a right-to-left document it belongs on the right, and a physical `left`
+   * would put it on the far side of the page from the focus ring the keyboard
+   * user is following. `inset-inline-start` follows `<html dir>`, which is
+   * declared once in `components/locale-document.tsx`; nothing in this file
+   * needs to know which language is being served.
+   */
+  inset-inline-start: 1rem;
   z-index: 50;
   width: auto;
   height: auto;

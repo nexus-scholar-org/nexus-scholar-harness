@@ -1,5 +1,7 @@
 import type { WorkflowState } from "@/lib/contracts";
 
+import { stateKey, translate, type Locale } from "@/i18n";
+
 /**
  * The state stamp.
  *
@@ -20,11 +22,27 @@ import type { WorkflowState } from "@/lib/contracts";
  * `active`, green for `complete`, ochre for `waiting`, oxide for `refused`).
  * `tests/status-badge.test.tsx` pins the class-string distinctness that the
  * browser suite cannot see, and `tests-browser/` measures the rendered colours.
+ *
+ * **The word is translated; the token is not (packet UI-01d, D-I18N-07).** What
+ * arrives here is the canonical `WorkflowState`, and it stays the canonical
+ * value everywhere except the glyphs a reader sees: the colour comes from the
+ * frozen `styles` map keyed by the token, the class distinctness is asserted per
+ * token, and only the text is looked up. So the English stamp still reads exactly
+ * `complete`/`active`/`waiting`/`refused` — the existing component test is
+ * unchanged — while the French and Arabic stamps read in their own language and
+ * still map to the same four hues.
+ *
+ * `uppercase` is a no-op in Arabic, so the only adaptation this stamp needs is
+ * the size-and-tracking pair from D-I18N-08: at 11px with 0.12em of tracking, the
+ * Arabic glyphs lose the letter separation the uppercase Latin relied on, so in
+ * a right-to-left document they are set half a point larger with normal tracking.
+ * Colour and contrast are unchanged by that; WCAG AA for the Arabic glyphs is
+ * re-measured in the browser gate rather than assumed here.
  */
 
 /** Shared shape. The per-state entry supplies colour only. */
 const STAMP_SHAPE =
-  "inline-flex items-center gap-1.5 border px-2 py-0.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.12em]";
+  "inline-flex items-center gap-1.5 border px-2 py-0.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.12em] rtl:tracking-normal rtl:text-[0.75rem]";
 
 const styles: Record<WorkflowState, string> = {
   complete: "border-success/45 text-success",
@@ -33,17 +51,23 @@ const styles: Record<WorkflowState, string> = {
   refused: "border-refusal/45 text-refusal",
 };
 
-export function StatusBadge({ state }: { state: WorkflowState }) {
+export function StatusBadge({
+  state,
+  locale,
+}: {
+  state: WorkflowState;
+  locale: Locale;
+}) {
   return (
     <span className={`${STAMP_SHAPE} ${styles[state]}`}>
       {/*
         `aria-hidden`, and carrying no text, so the stamp's accessible name and
         its `textContent` are exactly the state word — which is what the
-        component test asserts, and what keeps the visible label and the
+        component test asserts, and what keeps the readable label and the
         announced label the same string.
       */}
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-      {state}
+      {translate(locale, stateKey(state))}
     </span>
   );
 }

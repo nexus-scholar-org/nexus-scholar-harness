@@ -5,6 +5,7 @@ import {
   DESKTOP_VIEWPORT,
   expect,
   MOBILE_NAV_PANEL_ID,
+  MOBILE_NAV_TRIGGER,
   MOBILE_VIEWPORT,
   report,
   SCREENSHOT_DIR,
@@ -20,13 +21,19 @@ import {
  * assertions are on the rendered DOM *and* on the bytes on disk, so a 0-byte
  * file or a renamed text file fails instead of passing quietly.
  *
- * All six files are produced here rather than borrowed from another spec, so the
+ * All ten files are produced here rather than borrowed from another spec, so the
  * set does not depend on test-file execution order. The one overlap is
  * `375-mobile-nav-open.png`, which `responsive-nav.spec.ts` also writes from
  * inside its focus-trap test; this file remains the owner and the byte checks
  * live here. That overlap is pre-existing and is recorded rather than changed,
  * because the trap test's capture is evidence about focus containment and
  * removing it would remove that evidence.
+ *
+ * The `fr`/`ar` captures (packet UI-01d, §15.1) exist because a mirrored layout
+ * cannot be reviewed from an English screenshot: a reversed reading order, a
+ * mirrored skip-link offset or an Arabic line breaking in the wrong place are all
+ * invisible in `375-overview.png`. Each one is a real capture of the same
+ * document in another locale, at the widths the layout actually has to work at.
  */
 
 const MIN_PNG_BYTES = 5_000;
@@ -45,7 +52,7 @@ async function assertRealCapture(name: string): Promise<number> {
 test.describe("committed screenshots", () => {
   test("375-overview.png", async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.waitForLoadState("networkidle");
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "375-overview.png"),
@@ -57,9 +64,39 @@ test.describe("committed screenshots", () => {
     await assertRealCapture("375-overview.png");
   });
 
+  test("375-overview-fr.png", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/fr");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "375-overview-fr.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("375-overview-fr.png");
+  });
+
+  test("375-overview-ar.png", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/ar");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "375-overview-ar.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("375-overview-ar.png");
+  });
+
   test("1440-overview.png", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.waitForLoadState("networkidle");
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "1440-overview.png"),
@@ -69,6 +106,21 @@ test.describe("committed screenshots", () => {
       scale: "css",
     });
     await assertRealCapture("1440-overview.png");
+  });
+
+  test("1440-overview-ar.png", async ({ page }) => {
+    await page.setViewportSize(DESKTOP_VIEWPORT);
+    await page.goto("/ar");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "1440-overview-ar.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("1440-overview-ar.png");
   });
 
   /*
@@ -85,7 +137,7 @@ test.describe("committed screenshots", () => {
    */
   test("1440-evidence-trail.png", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.waitForLoadState("networkidle");
 
     const trail = page.locator('section[aria-labelledby="evidence-title"]');
@@ -101,7 +153,7 @@ test.describe("committed screenshots", () => {
 
   test("375-skiplink-focused.png", async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.keyboard.press("Tab");
     // The clip reveal is the thing being evidenced, so the capture must show
     // the focused state. A viewport shot, not fullPage: the skip link is
@@ -118,7 +170,7 @@ test.describe("committed screenshots", () => {
 
   test("1440-skiplink-focused.png", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/");
+    await page.goto("/en");
     await page.keyboard.press("Tab");
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "1440-skiplink-focused.png"),
@@ -131,8 +183,8 @@ test.describe("committed screenshots", () => {
 
   test("375-mobile-nav-open.png", async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/");
-    await page.getByRole("button", { name: "Open main navigation" }).click();
+    await page.goto("/en");
+    await page.locator(MOBILE_NAV_TRIGGER).click();
     await expect(page.locator(`#${MOBILE_NAV_PANEL_ID}`)).toBeVisible();
     await page.screenshot({
       path: join(SCREENSHOT_DIR, "375-mobile-nav-open.png"),
@@ -141,5 +193,20 @@ test.describe("committed screenshots", () => {
       scale: "css",
     });
     await assertRealCapture("375-mobile-nav-open.png");
+  });
+
+  test("375-mobile-ar.png", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/ar");
+    await page.locator(MOBILE_NAV_TRIGGER).click();
+    await expect(page.locator(`#${MOBILE_NAV_PANEL_ID}`)).toBeVisible();
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "375-mobile-ar.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("375-mobile-ar.png");
   });
 });

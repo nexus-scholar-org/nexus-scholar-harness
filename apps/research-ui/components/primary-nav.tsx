@@ -1,3 +1,5 @@
+import { navKey, translate, type Locale } from "@/i18n";
+
 import Link from "next/link";
 
 /**
@@ -18,10 +20,23 @@ export interface PrimaryNavItem {
 /**
  * The surfaces that actually exist as packets, and nothing beyond them.
  *
- * `overview` is the only route in the application today (`/`). `screening`,
- * `evidence` and `audit` are packets UI-04, UI-05 and UI-06; they carry no
- * `href` on purpose so the navigation cannot present a dead route as a working
- * link.
+ * `overview` is the only route in the application today (`/`, and since packet
+ * UI-01d the locale-prefixed `/en`, `/fr`, `/ar`). `screening`, `evidence` and
+ * `audit` are packets UI-04, UI-05 and UI-06; they carry no `href` on purpose so
+ * the navigation cannot present a dead route as a working link.
+ *
+ * Every field here is **frozen** by packet UI-01c, and packet UI-01d keeps it
+ * frozen. Two consequences are worth stating because they look like violations:
+ *
+ * - `label` is the English source string, and it is not what gets rendered. The
+ *   rendered label is `translate(locale, navKey(item.id))`, whose English value
+ *   is byte-identical to `label` — asserted by `tests/i18n-catalog.test.ts`, so
+ *   the pin cannot rot into a difference.
+ * - `href` stays the sentinel `"/"` rather than becoming `"/en"`. It is the
+ *   "which route exists" declaration, and `tests/shell.test.tsx` uses its
+ *   *absence* on the other three entries to pick the no-route ones. The rendered
+ *   href is computed at render time from the locale, below, and asserted for all
+ *   three locales so the sentinel can never surface as a bare root link.
  */
 export const PRIMARY_NAV_ITEMS: readonly PrimaryNavItem[] = [
   { id: "overview", label: "Overview", href: "/" },
@@ -65,31 +80,43 @@ const UNAVAILABLE_ITEM_CLASS =
   "flex flex-wrap items-center gap-2 px-2 py-1.5 text-sm text-ink-muted";
 
 const UNAVAILABLE_TAG_CLASS =
-  "border border-rule-strong px-1.5 py-0.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.12em] text-ink-faint";
+  "border border-rule-strong px-1.5 py-0.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.12em] text-ink-faint rtl:tracking-normal rtl:text-[0.75rem]";
 
 /**
  * The navigation entries themselves, without the surrounding `<nav>` landmark,
  * so the desktop and mobile presentations cannot drift apart.
+ *
+ * `locale` is required (D-I18N-05): it decides both the rendered labels and the
+ * rendered href, and a component that could default it would let a route ship an
+ * English link inside an Arabic document.
  */
 export function PrimaryNavList({
   variant,
   currentItemId,
+  locale,
 }: {
   variant: "inline" | "stacked";
   currentItemId: string;
+  locale: Locale;
 }) {
   return (
     <ul className={LIST_CLASS[variant]}>
       {PRIMARY_NAV_ITEMS.map((item) => (
         <li key={item.id}>
           {item.href ? (
-            <Link href={item.href} aria-current={item.id === currentItemId ? "page" : undefined} className={AVAILABLE_ITEM_CLASS}>
-              {item.label}
+            <Link
+              href={renderedHref(locale)}
+              aria-current={item.id === currentItemId ? "page" : undefined}
+              className={AVAILABLE_ITEM_CLASS}
+            >
+              {translate(locale, navKey(item.id))}
             </Link>
           ) : (
             <span className={UNAVAILABLE_ITEM_CLASS}>
-              {item.label}
-              <span className={UNAVAILABLE_TAG_CLASS}>{UNAVAILABLE_NAV_TEXT}</span>
+              {translate(locale, navKey(item.id))}
+              <span className={UNAVAILABLE_TAG_CLASS}>
+                {translate(locale, "nav.unavailable")}
+              </span>
             </span>
           )}
         </li>
@@ -98,11 +125,34 @@ export function PrimaryNavList({
   );
 }
 
+/**
+ * The href a nav entry renders with.
+ *
+ * Computed from the locale, never read from `item.href`: the frozen constant
+ * carries the sentinel root, and a rendered link to `/` from `/ar` would drop the
+ * reader's language without saying so. Only the overview exists, so the target is
+ * the locale root — but the decision is derived here, in one place, so the day a
+ * second route lands there is a single site to change.
+ */
+function renderedHref(locale: Locale): string {
+  return `/${locale}`;
+}
+
 /** Desktop/narrow-screen primary navigation landmark. */
-export function PrimaryNav({ currentItemId = "overview" }: { currentItemId?: string }) {
+export function PrimaryNav({
+  locale,
+  currentItemId = "overview",
+}: {
+  locale: Locale;
+  currentItemId?: string;
+}) {
   return (
-    <nav aria-label="Primary" className="hidden lg:block">
-      <PrimaryNavList variant="inline" currentItemId={currentItemId} />
+    <nav
+      aria-label={translate(locale, "nav.landmark.primary")}
+      data-nav-region="primary"
+      className="hidden lg:block"
+    >
+      <PrimaryNavList variant="inline" currentItemId={currentItemId} locale={locale} />
     </nav>
   );
 }

@@ -1,23 +1,52 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import type { AxeResults, Result } from "axe-core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import RootLayout, { DOCUMENT_LANG, metadata } from "@/app/layout";
-import HomePage from "@/app/page";
+import { generateMetadata } from "@/app/[locale]/layout";
+import { OverviewPage } from "@/components/overview-page";
 import { AppShell, MAIN_CONTENT_ID } from "@/components/app-shell";
 import { MOBILE_NAV_CLOSE_LABEL, MOBILE_NAV_TRIGGER_LABEL } from "@/components/mobile-nav";
 import { PRIMARY_NAV_ITEMS, UNAVAILABLE_NAV_TEXT } from "@/components/primary-nav";
+import { LOCALE_METADATA, SUPPORTED_LOCALES, type Locale } from "@/i18n";
+import { CATALOGS } from "@/messages";
 
 const SKIP_LINK_LABEL = "Skip to main content";
 
-/** Renders the real `/` route: the UI-01 shell wrapping the overview page. */
-function renderRoute() {
+/**
+ * The pathname the mocked router reports.
+ *
+ * `LocaleSwitcher` reads it with `usePathname()`, which is a client hook and has
+ * no meaning outside a running app. The mock returns exactly the path the test
+ * rendered, so the selector's hrefs and the assertions about them agree — and
+ * any test that renders a different locale must move this value too, or it would
+ * be measuring English links inside a French document.
+ */
+let currentPath = "/en";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => currentPath,
+}));
+
+/**
+ * Renders the real locale route: the shell around the overview page.
+ *
+ * `AppShell` is mounted directly rather than through `LocaleDocument`, so this
+ * file's scope is the shell and its chrome rather than the document wrapper.
+ * `LocaleDocument` renders the `<html>`/`<body>` pair, and React 19 applies those
+ * elements to the real document instead of rendering them inside the container —
+ * which is exactly what makes the `lang`/`dir` assertions in
+ * `runAxeOnRealDocument` meaningful, and is exercised where the assembled route
+ * is the subject: `tests/home-page.test.tsx` and `tests/i18n-render.test.tsx`
+ * mount `LocaleDocument` themselves.
+ */
+function renderRoute(locale: Locale = "en") {
+  currentPath = `/${locale}`;
   return render(
-    <RootLayout>
-      <HomePage />
-    </RootLayout>,
+    <AppShell locale={locale}>
+      <OverviewPage locale={locale} />
+    </AppShell>,
   );
 }
 
@@ -97,7 +126,7 @@ describe("application shell (UI-01)", () => {
     // alone rather than on the one route that exists today, so it holds for the
     // routes UI-02..UI-06 will add.
     render(
-      <AppShell>
+      <AppShell locale="en">
         <p>route content</p>
       </AppShell>,
     );
@@ -167,14 +196,14 @@ describe("application shell (UI-01)", () => {
   });
 
   it("exposes the primary navigation as a named landmark", () => {
-    renderRoute();
+    renderRoute("en");
 
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Primary" })).toHaveAttribute("aria-label", "Primary");
   });
 
   it("keeps the navigation reachable without opening the mobile disclosure", () => {
-    renderRoute();
+    renderRoute("en");
 
     expect(screen.queryByRole("dialog")).toBeNull();
     const nav = screen.getByRole("navigation", { name: "Primary" });
@@ -182,7 +211,7 @@ describe("application shell (UI-01)", () => {
   });
 
   it("marks the active surface with aria-current and only that surface", () => {
-    renderRoute();
+    renderRoute("en");
 
     const nav = screen.getByRole("navigation", { name: "Primary" });
     const current = within(nav)
@@ -196,11 +225,6 @@ describe("application shell (UI-01)", () => {
   it("offers no link to a route that does not exist", () => {
     renderRoute();
 
-    // The only two links in the whole route: the skip link and the one route
-    // that exists. Anything else would be a dead-route fiction.
-    const hrefs = Array.from(document.querySelectorAll("a[href]")).map((link) => link.getAttribute("href"));
-    expect(hrefs).toEqual([`#${MAIN_CONTENT_ID}`, "/"]);
-
     const nav = screen.getByRole("navigation", { name: "Primary" });
     const unavailable = PRIMARY_NAV_ITEMS.filter((item) => item.href === undefined);
     expect(unavailable.length).toBeGreaterThan(0);
@@ -211,6 +235,47 @@ describe("application shell (UI-01)", () => {
       expect(entry.tagName).not.toBe("A");
       // The annotation is real, visible text, not `sr-only` chrome.
       expect(entry).toHaveTextContent(UNAVAILABLE_NAV_TEXT);
+    }
+  });
+
+  it("offers exactly the links that exist, in every locale", () => {
+    // The only five links on the route: the skip link, the one route that
+    // exists, and the three locale links. Anything else would be a dead-route
+    // fiction or a locale link outside the header.
+    //
+    // The rendered Overview href is `/${locale}`, computed at render, while
+    // `PRIMARY_NAV_ITEMS[0].href` stays the frozen sentinel `"/"` — see the
+    // frozen-field table in `UI-01D_WORK_PACKET.md` §4.1. Asserting all three
+    // locales here is what stops the sentinel from shipping as a bare root link
+    // that silently drops the reader's language. The array stays exhaustive, so
+    // an unexpected href still fails.
+    for (const locale of SUPPORTED_LOCALES) {
+      renderRoute(locale);
+
+      const hrefs = Array.from(document.querySelectorAll("a[href]")).map((link) =>
+        link.getAttribute("href"),
+      );
+      expect(hrefs).toEqual([
+        `#${MAIN_CONTENT_ID}`,
+        `/${locale}`,
+        ...SUPPORTED_LOCALES.map((code) => `/${code}`),
+      ]);
+
+      // The same honesty rule in the translated documents: an entry with no
+      // route is annotated text, never a link, and the annotation is the
+      // translated wording rather than the English pin.
+      const nav = screen.getByRole("navigation", {
+        name: CATALOGS[locale]["nav.landmark.primary"],
+      });
+      for (const item of PRIMARY_NAV_ITEMS.filter((entry) => entry.href === undefined)) {
+        const label = CATALOGS[locale][`nav.${item.id}` as "nav.audit"];
+        expect(within(nav).queryByRole("link", { name: label })).toBeNull();
+        expect(within(nav).getByText(label)).toHaveTextContent(
+          CATALOGS[locale]["nav.unavailable"],
+        );
+      }
+
+      cleanup();
     }
   });
 
@@ -266,64 +331,96 @@ describe("application shell (UI-01)", () => {
   it("keeps the two navigation landmarks distinctly named while the disclosure is open", async () => {
     // Two `navigation` landmarks of the same name would be a `landmark-unique`
     // violation the moment the menu opens, so the distinct name is load-bearing.
-    const user = userEvent.setup();
-    renderRoute();
+    // All three locales are checked because the two names are translated: a
+    // locale that overwrote one label with the other would still satisfy the
+    // English `Set` check and fail only here.
+    for (const locale of SUPPORTED_LOCALES) {
+      const user = userEvent.setup();
+      renderRoute(locale);
 
-    await user.click(screen.getByRole("button", { name: MOBILE_NAV_TRIGGER_LABEL }));
+      // The trigger's own translated name, not `MOBILE_NAV_TRIGGER_LABEL`: that
+      // constant is the English string, and an English name here would match by
+      // accident in `fr`/`ar` or — worse — match *any* button if the key were
+      // wrong, because `getByRole` ignores a `name` of `undefined`.
+      await user.click(
+        screen.getByRole("button", {
+          name: CATALOGS[locale]["a11y.openMainNavigation"],
+        }),
+      );
 
-    // Queried from the DOM rather than by role on purpose: while the modal
-    // disclosure is open, Headless UI marks the rest of the page `aria-hidden`,
-    // which is correct modal behaviour but would hide the desktop landmark from
-    // a role query and make this assertion vacuous.
-    const names = Array.from(document.querySelectorAll("nav")).map((nav) => nav.getAttribute("aria-label"));
-    expect(names).toEqual(["Primary", "Primary (mobile menu)"]);
-    expect(new Set(names).size).toBe(names.length);
+      // Queried from the DOM rather than by role on purpose: while the modal
+      // disclosure is open, Headless UI marks the rest of the page `aria-hidden`,
+      // which is correct modal behaviour but would hide the desktop landmark from
+      // a role query and make this assertion vacuous.
+      //
+      // Three landmarks, not two: the header also holds the locale selector's own
+      // `navigation`. The dialog is portaled to `document.body`, so it is last in
+      // document order — which is why this stays a document query and not a
+      // container query.
+      const names = Array.from(document.querySelectorAll("nav")).map((nav) =>
+        nav.getAttribute("aria-label"),
+      );
+      expect(names).toEqual([
+        CATALOGS[locale]["nav.landmark.primary"],
+        CATALOGS[locale]["locale.selectorLabel"],
+        CATALOGS[locale]["nav.landmark.primaryMobile"],
+      ]);
+      expect(new Set(names).size).toBe(names.length);
+
+      cleanup();
+    }
   });
 
   /**
-   * Assemble the rendered route into a real document, run axe over it, and
-   * restore the tree.
+   * Run axe over the real document the route rendered into.
    *
-   * React omits `<html>`/`<body>` when a layout is mounted into a container, so
-   * the container's children are already exactly what `<body>` would contain.
-   * They are transplanted onto the real body so document-level rules have a
-   * document to evaluate, then restored in a `finally` so React's unmount still
-   * finds its own nodes.
+   * The tree is audited **exactly as rendered** — nothing is transplanted. That
+   * is a deliberate correction, and the reason is the open-disclosure run: while
+   * the modal menu is open, Headless UI marks the page's own container
+   * `aria-hidden` and portals the panel to the body. An earlier version of this
+   * helper moved the container's children onto `<body>` before auditing "so
+   * document-level rules have a document" — which is not what that was for, since
+   * `axe.run(document.documentElement)` evaluates the document either way, and
+   * which had the side effect of lifting the whole page *out* of the subtree the
+   * library had just hidden. The result was a document where the modal was
+   * correctly the only exposed content and the skip link was nonetheless exposed
+   * chrome outside every landmark, so `region` failed on `.skip-link` — a state no
+   * browser can produce and no screen reader would ever see.
+   *
+   * So: no transplant. `container` is a child of the real `<body>` either way, the
+   * page keeps whatever `aria-hidden` the open dialog gave it, and `region` /
+   * `landmark-unique` / `html-has-lang` / `document-title` are all still evaluated
+   * over the whole document. The assertions below are unchanged.
    *
    * The assembly mirrors what Next.js renders and nothing more: the shell's
-   * elements come from the layout's own output, `lang` is the layout's exported
-   * `DOCUMENT_LANG`, and the title comes from the layout's exported `metadata`.
-   * Nothing is invented.
+   * elements come from the layout's own output, `lang` and `title` come from the
+   * two exported sources the real server render uses —
+   * `LOCALE_METADATA[locale].lang` and `generateMetadata({ params })` — and
+   * nothing is invented here. Both are asserted across all three locales above
+   * this helper, so the axe run cannot inherit an unverified assumption about
+   * which language it is auditing.
    *
-   * Note that anything Headless UI has *portaled* — the open disclosure panel —
-   * is already a child of the real `body` and so is not moved or restored here;
-   * React's own cleanup removes it.
-   *
-   * `lang` and `title` are set on the real document too, and are restored in the
-   * same `finally`: they are global state this helper mutates, and leaking them
-   * into the next test in the file would make that test's axe result depend on
+   * `lang` and `title` are set on the real document, and are restored in the
+   * `finally`: they are global state this helper mutates, and leaking them into
+   * the next test in the file would make that test's axe result depend on
    * execution order.
    */
-  async function runAxeOnRealDocument(container: HTMLElement): Promise<AxeResults> {
+  async function runAxeOnRealDocument(container: HTMLElement, locale: Locale): Promise<AxeResults> {
+    const metadata = await generateMetadata({ params: Promise.resolve({ locale }) });
     expect(metadata.title).toBeTruthy();
-    expect(DOCUMENT_LANG).toBeTruthy();
+    expect(LOCALE_METADATA[locale].lang).toBeTruthy();
+    // The tree under audit must be the one that was rendered. A transplant would
+    // invalidate the premise of every rule that depends on tree position, so this
+    // asserts the invariant rather than trusting it.
+    expect(container.ownerDocument.body.contains(container)).toBe(true);
     const previousLang = document.documentElement.getAttribute("lang");
     const previousTitle = document.title;
-    document.documentElement.setAttribute("lang", DOCUMENT_LANG);
+    document.documentElement.setAttribute("lang", LOCALE_METADATA[locale].lang);
     document.title = String(metadata.title);
-
-    const moved: ChildNode[] = [];
-    while (container.firstChild) {
-      moved.push(container.firstChild);
-      document.body.appendChild(container.firstChild);
-    }
 
     try {
       return await axe.run(document.documentElement);
     } finally {
-      for (const node of moved.reverse()) {
-        container.appendChild(node);
-      }
       if (previousLang === null) {
         document.documentElement.removeAttribute("lang");
       } else {
@@ -352,8 +449,8 @@ describe("application shell (UI-01)", () => {
    * document and evaluates them.
    */
   it("reports no critical or serious violations with document-level rules evaluated", async () => {
-    const { container } = renderRoute();
-    const results = await runAxeOnRealDocument(container);
+    const { container } = renderRoute("en");
+    const results = await runAxeOnRealDocument(container, "en");
 
     // Non-vacuity: the engine really executed against this document.
     expect(results.violations.length + results.incomplete.length + results.passes.length).toBeGreaterThan(0);
@@ -395,18 +492,22 @@ describe("application shell (UI-01)", () => {
    */
   it("reports no critical or serious violations with the mobile disclosure open", async () => {
     const user = userEvent.setup();
-    const { container } = renderRoute();
+    const { container } = renderRoute("en");
 
     await user.click(screen.getByRole("button", { name: MOBILE_NAV_TRIGGER_LABEL }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     // Premise check: if Headless UI did not aria-hide the page, this test would
     // be re-running the previous one and proving nothing about the open state.
-    const appShell = container.querySelector("header")?.parentElement;
-    expect(appShell).not.toBeNull();
-    expect(appShell?.closest("[aria-hidden='true']")).not.toBeNull();
+    // The shell is mounted straight into the RTL container, so the container *is*
+    // the page subtree the library hides. Both assertions have to hold: a nullable
+    // query result checked with `not.toBeNull()` would let a header that had moved
+    // out of the container turn this premise into a no-op and the run below into
+    // a silent re-run of the closed-state case.
+    expect(container.querySelector("header")).not.toBeNull();
+    expect(container.getAttribute("aria-hidden")).toBe("true");
 
-    const results = await runAxeOnRealDocument(container);
+    const results = await runAxeOnRealDocument(container, "en");
 
     expect(results.violations.length + results.incomplete.length + results.passes.length).toBeGreaterThan(0);
 

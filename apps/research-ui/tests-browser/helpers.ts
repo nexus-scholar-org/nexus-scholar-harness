@@ -24,9 +24,29 @@ export const DESKTOP_VIEWPORT = { width: 1440, height: 900 } as const;
 
 /** `components/mobile-nav.tsx` exports these; mirrored here, never invented. */
 export const MOBILE_NAV_PANEL_ID = "mobile-primary-nav";
-export const MOBILE_NAV_TRIGGER_LABEL = "Open main navigation";
 export const MOBILE_NAV_CLOSE_LABEL = "Close main navigation";
 export const SKIP_LINK_LABEL = "Skip to main content";
+
+/**
+ * Locale-stable selectors (packet UI-01d, D-I18N-10).
+ *
+ * These replace `nav[aria-label="Primary"]` and
+ * `getByRole("button", { name: "Open main navigation" })` throughout the suite,
+ * and the reason is not tidiness: both of those spell an *English string* that
+ * this packet translates. A selector built from an English accessible name keeps
+ * matching nothing in `fr` and `ar` — or, worse, keeps matching the wrong element
+ * if a translation collides — so a test that passed in `en` would quietly stop
+ * asserting anything in the other two locales. The hooks are part of the markup
+ * contract (`D-I18N-10`), so the suite reads them the same way the packet does.
+ *
+ * `MOBILE_NAV_TRIGGER_LABEL` is deliberately **gone** rather than kept as an
+ * unused export: leaving it invites the next test to reach for it, and the whole
+ * point is that the English label is no longer a reliable handle.
+ */
+export const PRIMARY_NAV = 'nav[data-nav-region="primary"]';
+export const LOCALE_NAV = 'nav[data-nav-region="locale"]';
+export const MOBILE_NAV = 'nav[data-nav-region="mobile"]';
+export const MOBILE_NAV_TRIGGER = '[data-nav-region="mobile-trigger"]';
 
 /**
  * Base test with one inherited guard: the running application must not make a
@@ -76,7 +96,7 @@ export async function activeStop(page: Page): Promise<FocusStop | null> {
       tag: el.tagName.toLowerCase(),
       text,
       focusId: el.id,
-      inPrimaryNav: el.closest('nav[aria-label="Primary"]') !== null,
+      inPrimaryNav: el.closest('nav[data-nav-region="primary"]') !== null,
       inMobileDisclosure: el.closest("[aria-controls]") !== null,
       inMobileDialog: el.closest(`#${panelId}`) !== null,
       // The accessibility boundary is the dialog subtree, which Headless UI
@@ -100,9 +120,36 @@ export function describeStop(stop: FocusStop | null): string {
  * navigation starting point" that `blur()` does not reliably reset, so a warm
  * page would measure where the last test left off rather than the top of the
  * document.
+ *
+ * `locale` is stated explicitly (packet UI-01d, M4) rather than left to the `/`
+ * redirect: the ring's *contents* are translated — the skip link, the nav item
+ * and the three language names all change — so a ring measured through a redirect
+ * is a ring measured in one locale by accident. `/` still redirects to `/en`, so
+ * the default keeps old call sites green while every locale-aware test says which
+ * document it meant.
+ *
+ * The `documentElement.lang` check immediately after the navigation is a
+ * non-vacuity guard, not an assertion the caller opted into. The default
+ * `locale = "en"` is a convenience, and a convenience alone leaves the original
+ * defect reachable by omission: a caller who asks for the `ar` ring against a
+ * page that silently served `en` would assert an Arabic ring and measure an
+ * English one. So the helper **throws** unless the served document really declares
+ * the locale it was asked for — the failure is loud, at the point of the mistake,
+ * instead of a green assertion somewhere downstream.
  */
-export async function measureTabRing(page: Page, presses = 8): Promise<FocusStop[]> {
-  await page.goto("/");
+export async function measureTabRing(
+  page: Page,
+  presses = 8,
+  locale = "en",
+): Promise<FocusStop[]> {
+  await page.goto(`/${locale}`);
+  const declared = await page.evaluate(() => document.documentElement.lang);
+  if (declared !== locale) {
+    throw new Error(
+      `measureTabRing asked for the /${locale} ring but the served document declares ` +
+        `lang="${declared}"; measuring the wrong language is worse than failing`,
+    );
+  }
   const ring: FocusStop[] = [];
   for (let index = 0; index < presses; index += 1) {
     await page.keyboard.press("Tab");

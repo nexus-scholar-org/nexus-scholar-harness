@@ -15,3 +15,11 @@ next-env.d.ts
 # redirects this into `.next/cache/` (already ignored above), but a stray
 # `tsconfig.tsbuildinfo` in the app root would be an artifact, not a source.
 tsconfig.tsbuildinfo
+
+# The translation-expansion build's output directory (packet UI-01d, AC-9).
+# `playwright.long-strings.config.ts` sets `NEXT_DIST_DIR=.next-longstrings` and
+# runs its own `next build`, so this tree exists beside `.next/` after the
+# long-string gate has been run. It is build output in exactly the sense the
+# entries above describe, and leaving it visible would pollute `git status` for
+# every developer who runs the gate.
+.next-longstrings/

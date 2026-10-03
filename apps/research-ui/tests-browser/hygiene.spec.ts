@@ -89,15 +89,34 @@ const RAW_PALETTE_VARIABLE_IN_CSS = new RegExp(
 const RETIRED_TOKENS = ["--color-surface", "--color-raised", "--color-accent"];
 const RETIRED_HEXES = ["#f8fafc", "#172033", "#1d4ed8"];
 
-/** Application source we are allowed to scan for colour decisions. */
+/**
+ * Application source we are allowed to scan for colour decisions.
+ *
+ * The walk is **recursive**, and that is not tidiness. It used to read only the
+ * top level of `app/` and `components/`, which was complete while the routes
+ * lived directly in `app/`. UI-01d moved them to `app/[locale]/`, and the effect
+ * of the non-recursive walk was that the new route files became invisible to this
+ * guard: a raw palette utility in `app/[locale]/page.tsx` would have been reported
+ * as clean, and a utility used only there (`leading-7`, in `not-found.tsx`) was
+ * reported as an emitted utility that no product source referenced — which is the
+ * same class of defect as a disabled check, reached by the other direction.
+ */
 async function sourceFiles(): Promise<string[]> {
   const found: string[] = [];
-  for (const dir of ["app", "components"]) {
-    for (const entry of await readdir(join(APP_ROOT, dir), { withFileTypes: true })) {
+  const walk = async (dir: string): Promise<void> => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(path);
+        continue;
+      }
       if (!entry.isFile()) continue;
       if (!/\.(tsx|css)$/.test(entry.name)) continue;
-      found.push(join(APP_ROOT, dir, entry.name));
+      found.push(path);
     }
+  };
+  for (const dir of ["app", "components"]) {
+    await walk(join(APP_ROOT, dir));
   }
   return found.sort();
 }
@@ -290,7 +309,7 @@ test.describe("browser-suite hygiene", () => {
   });
 
   test("the running page exposes no analytics globals", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en");
     const globals = await page.evaluate(() =>
       ["gtag", "ga", "analytics", "_paq", "plausible", "segment", "intercom", "hotjar"]
         .filter((name) => (window as unknown as Record<string, unknown>)[name] !== undefined)
@@ -396,7 +415,7 @@ test.describe("browser-suite hygiene", () => {
     ).toEqual([]);
 
     // --- 3. the bytes the browser actually receives -------------------------
-    await page.goto("/");
+    await page.goto("/en");
     const hrefs = await page.evaluate(() =>
       Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="stylesheet"]')).map(
         (link) => link.href,
