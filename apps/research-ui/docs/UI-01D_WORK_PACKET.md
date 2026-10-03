@@ -4,9 +4,9 @@
 implementation contract for the next agent.
 
 **Governing specification:**
-`docs/architecture/research_ui/AGENT_WORK_PACKETS.md` § UI-01d (lines 125–244),
+`../architecture/research_ui/AGENT_WORK_PACKETS.md` § UI-01d (lines 125–244),
 read together with `apps/research-ui/AGENTS.md` and the structural/rigour
-precedent of `apps/research-ui/UI-01C_WORK_PACKET.md`.
+precedent of `./UI-01C_WORK_PACKET.md`.
 
 **Branch / base (verified):** `feat/ui-01d-i18n-rtl`, HEAD `8ba4fb6`
 ("Merge pull request #57 from nexus-scholar/feat/ui-01c-visual-direction").
@@ -55,7 +55,7 @@ Make the existing shell + overview locale-aware across `en`, `fr`, `ar`:
 - No machine-translation service, no render-time `fetch`, no `localStorage`
   locale, no `Accept-Language`/`navigator.language` negotiation in this packet.
 - Do not internationalize screens UI-02…UI-06 have not created.
-- Do not edit `docs/architecture/research_ui/AGENT_WORK_PACKETS.md` in this
+- Do not edit `../architecture/research_ui/AGENT_WORK_PACKETS.md` in this
   packet (see D-I18N-01c).
 
 ---
@@ -105,18 +105,18 @@ cached and the default locale must stay changeable. Existing `output:
 
 ### D-I18N-01c — `I18N.md` lands in `apps/research-ui/`, not `docs/`
 
-D-I18N-01 (ratified): the deliverable is `apps/research-ui/I18N.md`. The
+D-I18N-01 (ratified): the deliverable is `./I18N.md`. The
 governing packet's allowed-paths list (line 154) names
-`docs/architecture/research_ui/I18N.md`, which sits in a currently **untracked**
-tree (`git ls-files docs/architecture/research_ui/` → 0 files; `git status`
-reports `?? docs/architecture/research_ui/`), so a file there would be invisible
+`../architecture/research_ui/I18N.md`, which sits in a currently **untracked**
+tree (`git ls-files ../architecture/research_ui/` → 0 files; `git status`
+reports `?? ../architecture/research_ui/`), so a file there would be invisible
 to the PR. This is a deliberate, recorded divergence from line 154. A separate
-**working-tree-only** correction to `docs/architecture/research_ui/AGENT_WORK_PACKETS.md`
+**working-tree-only** correction to `../architecture/research_ui/AGENT_WORK_PACKETS.md`
 (FU-1 plus the `I18N.md` path) is authorized to the human operator, but:
 
 - it is **not** part of this packet's deliverable,
 - it must **not** be staged, committed, or included in the PR,
-- the untracked `docs/architecture/research_ui/` tree must be left exactly as
+- the untracked `../architecture/research_ui/` tree must be left exactly as
   found.
 
 ### D-I18N-02 — `lib/mock-project.ts` is byte-identical — **RATIFIED**
@@ -140,7 +140,7 @@ already-ratified D-I18N-02 renders, not as the open question.
 
 | Field | Value |
 |---|---|
-| **Decided by** | The **human packet owner** through the UI-01d governing packet itself (`docs/architecture/research_ui/AGENT_WORK_PACKETS.md` §UI-01d) and the standing architecture policy in `docs/architecture/research_ui/README.md` §"Internationalization policy" (lines 64–75). Not an implementer and not a subagent of this packet. |
+| **Decided by** | The **human packet owner** through the UI-01d governing packet itself (`../architecture/research_ui/AGENT_WORK_PACKETS.md` §UI-01d) and the standing architecture policy in `../architecture/research_ui/README.md` §"Internationalization policy" (lines 64–75). Not an implementer and not a subagent of this packet. |
 | **Recorded** | **2026-10-03**, in §3.1 of this packet. Round 1 of the UI-01d review (`CHANGES_REQUESTED`) is the event that required the record; the ratification itself predates this packet and is not re-decided here. |
 | **Review date** | The UI-01d governing packet carries no in-repo date, so this row records the date the decision was *written down*, following the `GATES.md` §3.7.5 convention. It does **not** claim a date for the decision. |
 | **Scope** | D-I18N-01 ratifies **only** the URL-as-source-of-truth rule and the `GET /` → `/en` 307. D-I18N-02 ratifies **only** the non-translation of fixture/authoritative content and its visible consequence. Neither is a standing waiver of any negative case, and neither authorises editing `lib/mock-project.ts` (it stays byte-frozen by §5.1). |
@@ -1140,7 +1140,7 @@ own vocabulary** (`docs/architecture/test_gate_policy.md`'s table: `inner`
 "after an executable edit", `checkpoint` "a task … is complete", `pr` "the final
 executable candidate is ready to publish"), and each row's content is correct
 lane practice for this application. And
-`docs/architecture/research_ui/README.md:91` explicitly exempts this application
+`../architecture/research_ui/README.md:91` explicitly exempts this application
 from the Python full suite ("The UI does not require the Python full suite until
 a Python API boundary is introduced"), so there is no Python gate to select
 either.
@@ -1259,9 +1259,9 @@ is superseded, and superseded *differently from how H5 was superseded*:
   decision is about *three* paths in one place rather than one path in a
   question table and two paths in a prose paragraph.
 - D-I18N-01c's *own* content — the working-tree-only correction to
-  `docs/architecture/research_ui/AGENT_WORK_PACKETS.md` (FU-1 plus the `I18N.md`
+  `../architecture/research_ui/AGENT_WORK_PACKETS.md` (FU-1 plus the `I18N.md`
   path) — remains explicitly **not** part of this packet's deliverable, still
-  **not** staged, and still leaves the untracked `docs/architecture/research_ui/`
+  **not** staged, and still leaves the untracked `../architecture/research_ui/`
   tree exactly as found. That was never in question and is not escalated.
 - **What H7 was mistaken for** is noted so the record is honest: §5 previously
   framed D-I18N-01c as open *and* carried a duplicate of the D-I18N-02 question in
@@ -1292,7 +1292,7 @@ A machine gate cannot produce H1–H5. `GATES.md` must show them as
 
 ## 18. Could not determine from the allowed inputs
 
-### 18.1 `docs/architecture/research_ui/README.md` — **WAS READ** (M9)
+### 18.1 `../architecture/research_ui/README.md` — **WAS READ** (M9)
 
 The previous item 1 here claimed the file "is outside the read set for this
 packet" and that "its `known_baseline_failures` ladder check must be reconciled".
@@ -1300,14 +1300,14 @@ packet" and that "its `known_baseline_failures` ladder check must be reconciled"
 
 | Claim | Fact |
 | --- | --- |
-| "outside the read set for this packet" | It is **tracked** (`git ls-files docs/architecture/research_ui/README.md` returns the path), **present**, **readable**, and **mandatory**: `apps/research-ui/AGENTS.md` Implementation rule 1 is "Read `docs/architecture/research_ui/README.md` and the assigned work packet". A mandatory input was recorded as absent. It **was read**, and the two sections below are its conformance record. |
+| "outside the read set for this packet" | It is **tracked** (`git ls-files ../architecture/research_ui/README.md` returns the path), **present**, **readable**, and **mandatory**: `apps/research-ui/AGENTS.md` Implementation rule 1 is "Read `../architecture/research_ui/README.md` and the assigned work packet". A mandatory input was recorded as absent. It **was read**, and the two sections below are its conformance record. |
 | "`known_baseline_failures` ladder check" | **No such field exists** in that file. It has no machine-readable status object at all; its ladder is the five-step prose list at lines 85–89, and its i18n policy is lines 64–75. Reconciling a field that is not there is not possible, and naming one implies the file has a structure it does not have. |
 
 **The two reconciliations that the file's actual content requires:**
 
 | # | Conformance row | README location | Status | Basis |
 | --- | --- | --- | --- | --- |
-| 18.1a | **Verification ladder step 5** — "Confirm `git diff --name-only` remains inside `apps/research-ui/` unless the packet explicitly includes this architecture folder" | lines 85–89 (step 5) | **SATISFIED — with one recorded exception** | Every UI-01d file is inside `apps/research-ui/` (§11.1–§11.3), so step 5 holds by construction. The single file outside it is `docs/architecture/research_ui/AGENT_WORK_PACKETS.md`, under D-I18N-01c's **working-tree-only** correction, which is **explicitly never staged, never committed, and never in the PR**, and which leaves the untracked `docs/architecture/research_ui/` tree exactly as found. The README's own escape hatch — "unless the packet explicitly includes this architecture folder" — is what that correction invokes, and the packet states the exclusion explicitly. **This row is satisfied by construction, not by inspection:** the only executable proof is `git diff --name-only` / `git status --short` showing no staged change under `docs/`, which is a `pr`-stage gate in `README.md:89` terms and belongs in the packet's report, not in its design. |
+| 18.1a | **Verification ladder step 5** — "Confirm `git diff --name-only` remains inside `apps/research-ui/` unless the packet explicitly includes this architecture folder" | lines 85–89 (step 5) | **SATISFIED — with one recorded exception** | Every UI-01d file is inside `apps/research-ui/` (§11.1–§11.3), so step 5 holds by construction. The single file outside it is `../architecture/research_ui/AGENT_WORK_PACKETS.md`, under D-I18N-01c's **working-tree-only** correction, which is **explicitly never staged, never committed, and never in the PR**, and which leaves the untracked `../architecture/research_ui/` tree exactly as found. The README's own escape hatch — "unless the packet explicitly includes this architecture folder" — is what that correction invokes, and the packet states the exclusion explicitly. **This row is satisfied by construction, not by inspection:** the only executable proof is `git diff --name-only` / `git status --short` showing no staged change under `docs/`, which is a `pr`-stage gate in `README.md:89` terms and belongs in the packet's report, not in its design. |
 | 18.1b | **Internationalization policy** — "Non-English catalogs are demonstration translations until a fluent reviewer approves them" | lines 64–75 (the sentence is at line 73) | **PARTIALLY SATISFIED — a required change is added by this packet** | H1/H2 cover the *review* half. They do not cover the *marking* half. Recording the caveat in a decision table is not marking it: the requirement is that the non-English catalogs **be marked** as demonstration translations. So (i) `I18N.md` (§11.1) **carries** the caveat as a visible, named statement — not a footnote in a rationale block — including which keys it applies to and that `brand.productName` and the three endonyms are outside it; and (ii) the `fr` and `ar` screenshots in §15.1 are **presented with** that caveat in the report/PR description, so a viewer of the image sees that the French and Arabic strings have not had a fluent review. The governing packet's own lines 139–141 require the same thing ("they do not claim that translation has been professionally reviewed. Until such review occurs, non-English catalogs must be marked as demonstration translations in developer documentation"), and line 236–238 requires a fluent reviewer — which is H1/H2. Both halves are now separately assigned. |
 
 A **third** item from the same file is already satisfied by existing structure and

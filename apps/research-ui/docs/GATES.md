@@ -487,7 +487,7 @@ Still open:
       error states that clause is really about do not exist yet, so the item
       cannot be closed by this packet.
 - [ ] **The governing UI-01c packet has no immutable identity** (F8).
-      `docs/architecture/research_ui/` is untracked in every tree, so
+      `../architecture/research_ui/` is untracked in every tree, so
       `AGENT_WORK_PACKETS.md` can drift or be falsified silently. Not fixable in
       this packet; the repository, not the file, is the problem.
 - [ ] **`AGENT_WORK_PACKETS.md:40` points at a `VISUAL_DIRECTION.md` that does
@@ -941,7 +941,7 @@ here rather than glossed.
 | **F5** | **Closed.** Precedence inverted. |
 | **F6** | **Satisfied as design constraints.** All five couplings hold with **zero** test edits. `home-page.test.tsx` and `evidence-chain.test.tsx` are byte-identical to the baseline. The `Demonstration data` label stayed in the shell `<header>` because it is an anti-fabrication guard, not presentation. |
 | **F7** | **Closed by measurement** (§3.7.7). The class-string test is untouched. |
-| **F8** | **Open, not fixable in this packet.** `docs/architecture/research_ui/` is untracked, so the governing UI-01c packet has no immutable SHA. `VISUAL_DIRECTION.md` was therefore relocated into `apps/research-ui/` (decision D3) so that the design direction *does* have an identity, but the governing packet still does not. |
+| **F8** | **Open, not fixable in this packet.** `../architecture/research_ui/` is untracked, so the governing UI-01c packet has no immutable SHA. `VISUAL_DIRECTION.md` was therefore relocated into `apps/research-ui/` (decision D3) so that the design direction *does* have an identity, but the governing packet still does not. |
 | **F9** | **Open.** `AGENT_WORK_PACKETS.md:40` still points at a `docs/…/VISUAL_DIRECTION.md` that does not exist. That file is not editable in this packet. |
 | **F10** | **Closed by the A4 functional-state exemption**, argued in place at `app/globals.css:158-171` and recorded in §3.7.4. |
 
@@ -965,7 +965,7 @@ Gate 20 checks *names*. It cannot notice that those names were being **shipped**
 Tailwind v4 discovers utility candidates by scanning the tree, and its scanner does
 not distinguish a class name in a component from the same characters inside a
 sentence. So Markdown that *described* the retired palette — `GATES.md`, the
-packet, `VISUAL_DIRECTION.md`, `docs/architecture/research_ui/` — was being
+packet, `VISUAL_DIRECTION.md`, `../architecture/research_ui/` — was being
 compiled into real rules:
 
 | Present in emitted CSS before the fix | Source |
@@ -1014,7 +1014,7 @@ job is to stop the next maintainer "correcting" the path, and it has been correc
 in `app/globals.css` too.
 
 `docs/` is deliberately **not** excluded. Nothing under it has ever been scanned:
-the only Tailwind-shaped token anywhere in `docs/architecture/research_ui/` is
+the only Tailwind-shaped token anywhere in `../architecture/research_ui/` is
 `text-layer`, which is not emitted and is not a class this application could use.
 Adding an exclusion for a directory that was never scanned would be a guess
 presented as a fix. `app/` and `components/` stay scanned, so no real utility is
@@ -1477,8 +1477,8 @@ title in the seven pre-existing browser specs is byte-identical.
 
 ### 5.8 Scope notes
 
-- `apps/research-ui/I18N.md` is the deliverable path (D-I18N-01c). The untracked
-  `docs/architecture/research_ui/` tree was **left exactly as found**: the FU-1 and
+- `./I18N.md` is the deliverable path (D-I18N-01c). The untracked
+  `../architecture/research_ui/` tree was **left exactly as found**: the FU-1 and
   index corrections named in D-I18N-01c are a working-tree-only correction **to the
   human operator**, explicitly not part of this packet's deliverable and explicitly not
   to be staged or committed.
