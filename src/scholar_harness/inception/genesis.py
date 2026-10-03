@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import secrets
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from typing import Any
 import typer
 from rich.console import Console
 
+from ..contracts.identifiers import IdentifierKind, primary_prefix, validate_identifier
 from ..mcp_setup import _serialize, build_mcp_entry
 from .display import console, _bounded
 from .intent import ConceptDraft, RQDraft, Survey, draft_default_concepts, make_intent, recommend_playbook, PARADIGM_PROFILE
@@ -226,6 +228,54 @@ def scaffold_project(ws_root: Path, title: str, slug: str, paradigm: str, rqs: l
     return ws_root / "workspaces" / slug
 
 
+def mint_registered_workspace_id() -> str:
+    """Mint the registered workspace identity recorded in ``project.json``.
+
+    The Contract v1 identifier registry admits exactly one registered form for a
+    workspace, ``WSP-<opaque>`` (``IdentifierKind.WORKSPACE``), so a human slug
+    such as ``evidence-synthesis`` is not a workspace identity and every typed
+    surface refuses it. The registered identity is therefore minted here, once, at
+    project initialization and recorded in ``project.json`` as
+    ``registered_workspace_id``; ``project_id`` keeps the human slug.
+
+    The suffix is 32 lowercase hex characters drawn from ``secrets`` (the OS
+    CSPRNG), so two workspaces never collide and the value cannot be guessed from
+    the title. The candidate is validated against the frozen registry before it is
+    returned: a mint that would not validate is a bug, never a value to paper over.
+
+    This is the only mint point for a workspace identity in the harness. Consumers
+    must record and re-read it -- minting at use time would let one workspace
+    present two identities, and deriving one from a slug would fabricate it.
+
+    Mirrored in ``.agents/skills/workspace-manager/scripts/init_project.py``, the
+    other ``project.json`` writer, which runs as a standalone script and so cannot
+    import this package. Both writers are held to the same shape by
+    ``tests/inception/test_registered_workspace_id.py``.
+    """
+    candidate = f"{primary_prefix(IdentifierKind.WORKSPACE)}{secrets.token_hex(16)}"
+    return validate_identifier(IdentifierKind.WORKSPACE, candidate)
+
+
+def recorded_or_minted_workspace_id(ws_dir: Path) -> str:
+    """Reuse an already-recorded identity; mint only when there is none.
+
+    A workspace identity is minted once and never regenerated. ``scaffold_raw_project``
+    normally targets an empty folder, but re-scaffolding an existing workspace must
+    not silently re-identify it: artifacts already accepted under the old id would
+    no longer share a workspace.
+    """
+    manifest_path = ws_dir / "project.json"
+    if manifest_path.is_file():
+        try:
+            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = {}
+        recorded = existing.get("registered_workspace_id")
+        if isinstance(recorded, str) and recorded.strip():
+            return validate_identifier(IdentifierKind.WORKSPACE, recorded.strip())
+    return mint_registered_workspace_id()
+
+
 def scaffold_raw_project(
     ws_dir: Path,
     title: str,
@@ -253,6 +303,7 @@ def scaffold_raw_project(
     manifest = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "project_id": slug,
+        "registered_workspace_id": recorded_or_minted_workspace_id(ws_dir),
         "title": title,
         "description": f"Systematic literature review for {title}",
         "created_at": now,

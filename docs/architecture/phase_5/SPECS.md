@@ -140,7 +140,7 @@ Location: `src/scholar_harness/console/runtimes/actions.py`. One table drives (a
 | `screen_collect` | Assemble screening decisions | `uv run python src/scholar_harness/agent_screen.py collect {ws}` | `nexus_screen` | yes |
 | `download` | Harvest OA PDFs | `uv run scholar-pdf download --input {ws}/literature/included.json --output {ws}/pdfs/` | `nexus_extract_pdf` | yes |
 | `extract` | Extract fulltext | `uv run scholar-pdf extract --input {ws}/pdfs/ --output {ws}/extracted/` | `nexus_extract_pdf` | yes |
-| `rag_index` | Index into vector store | `uv run scholar-rag index {ws}/extracted/ --workspace-id {ws}` | `nexus_rag_index` | yes |
+| `rag_index` | Index into vector store | `uv run scholar-rag index {ws}/extracted/ --parent-view {ws}/parent-view.json --journal {ws}/audit/journal.jsonl --workspace-root {ws} --run-id <RUN-...> --created-at <rfc3339> --producer-version <version> --producer-commit <40-hex> --embedder-provider <provider> --embedder-model <model> --embedder-dimension <int>` | `nexus_rag_index` | yes |
 | `trust_context` | Build trust consensus | `uv run scholar-verify trust-context --workspace {ws}` | — | yes |
 | `synthesize` | Grounded synthesis | `uv run scholar-rag synthesize "{q}" --rq-id RQ1 --output-claims {ws}/synthesis/claims.json` | `nexus_rag_synthesize` | yes |
 | `graph` | Build citation graph | `uv run scholar-graph build --input {ws}/literature/included.json --output {ws}/literature/knowledge_graph.html` | `nexus_graph_build` | yes |

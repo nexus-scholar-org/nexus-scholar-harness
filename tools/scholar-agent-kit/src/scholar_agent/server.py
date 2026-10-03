@@ -92,7 +92,10 @@ from scholar_verify import cli as verify_cli
 from scholar_verify import coi, open_science, retraction, risk_of_bias, trust_context
 
 # Phase 2 Imports
-from scholar_rag.indexer import ScholarIndexer
+# WP01-E3: scholar_rag.indexer.ScholarIndexer is deliberately NOT imported.
+# The E3 indexing surface is declared unsupported (Packet E3 section 9.1), so
+# no legacy indexing path may be reachable from this adapter -- see
+# nexus_rag_index below and tests/test_mcp_indexing_boundary.py.
 from scholar_rag.retriever import ScholarRetriever
 from scholar_rag.synthesis import GroundedSynthesisEngine
 from scholar_rag.matrix import MatrixExtractor
@@ -112,9 +115,16 @@ from scholar_bib.parser import BibParser
 # E2-013) with the same discipline: the canonical scholar-pdf-kit owns
 # extraction (API/CLI), so no engine, sidecar, or identity logic may appear
 # in the MCP adapter either.
+# WP01-E3 adds the third declared MCP capability boundary (Packet E3
+# section 9.1, E3-008): the canonical scholar-rag-kit owns indexing through the
+# T-90 shared service (API/CLI). This kit declares and refuses only -- no
+# chunker, store, identity, parent-bound, or journal logic may appear in the
+# MCP adapter, and the legacy ScholarIndexer path is removed rather than
+# forwarded to.
 from scholar_agent.capabilities import (
     PDF_ACQUISITION,
     PDF_EXTRACTION,
+    RAG_INDEXING,
     unsupported_capability_envelope_json,
 )
 
@@ -130,6 +140,15 @@ from scholar_agent.capabilities import (
 # we resolve the harness ``src/`` directory from this file's location and
 # inject it onto ``sys.path`` as a thin, documented adapter seam.  An
 # optional ``NEXUS_HARNESS_SRC`` env var overrides discovery for odd layouts.
+#
+# E3/T-110b / F-AGT-01: this function MUST NOT raise. It is called at module
+# level, and ``nexus-scholar-harness`` is deliberately not a declared runtime
+# dependency (see the lazy-guard note in pyproject.toml), so on a standalone
+# wheel install the harness is genuinely absent. Raising here would make
+# ``import scholar_agent.server`` fail outright and defeat the whole point of
+# dropping the dependency. Returning "" simply means "nothing to inject": the
+# recon names stay None and the recon tools report a missing capability, which is
+# the documented fallback. The discovery order below is unchanged.
 def _harness_src() -> str:
     env_override = os.environ.get("NEXUS_HARNESS_SRC")
     if env_override:
@@ -146,11 +165,9 @@ def _harness_src() -> str:
         candidate = parent / "src" / "scholar_harness" / "recon" / "__init__.py"
         if candidate.is_file():
             return str(parent / "src")
-    raise ImportError(
-        "scholar_harness.recon not found under any ancestor of "
-        + str(here)
-        + "; set NEXUS_HARNESS_SRC to the harness src/ directory"
-    )
+    # Standalone install: the harness is not present and is not a declared
+    # dependency. Nothing to inject; recon stays lazily unavailable.
+    return ""
 
 
 _HARNESS_SRC = _harness_src()
@@ -165,21 +182,55 @@ if _HARNESS_SRC and _HARNESS_SRC not in sys.path:
 # instead of the kit SearchEngine (mirrors ReconEngine(search_fn=...)).
 RECON_SEARCH_FN = None
 
-from scholar_harness.recon import (
-    DEFAULT_LEXICON,
-    DomainLexicon,
-    ReconEngine,
-    canonical_recon_root,
-    distill_pool,
-    execute_followups,
-    merge_lexicons,
-)
+# Lazy-load harness recon to avoid hard runtime dependency (T-110b/F-AGT-01).
+# Imported on-demand by recon tools and paths that actually use them.
+DEFAULT_LEXICON = None  # type: ignore[assignment]
+DomainLexicon = None  # type: ignore[assignment]
+ReconEngine = None  # type: ignore[assignment]
+canonical_recon_root = None  # type: ignore[assignment]
+distill_pool = None  # type: ignore[assignment]
+execute_followups = None  # type: ignore[assignment]
+merge_lexicons = None  # type: ignore[assignment]
+compute_pool_sufficiency = None  # type: ignore[assignment]
+compute_topic_purity = None  # type: ignore[assignment]
+RECON_CACHE_ROOT = None
 
-RECON_CACHE_ROOT = canonical_recon_root()
-from scholar_harness.recon.gates import (
-    compute_pool_sufficiency,
-    compute_topic_purity,
-)
+_harness_recon_loaded = False
+
+
+def _ensure_harness_recon_loaded() -> None:
+    global \
+        _harness_recon_loaded, \
+        DEFAULT_LEXICON, \
+        DomainLexicon, \
+        ReconEngine, \
+        canonical_recon_root, \
+        distill_pool, \
+        execute_followups, \
+        merge_lexicons, \
+        RECON_CACHE_ROOT, \
+        compute_pool_sufficiency, \
+        compute_topic_purity
+    if _harness_recon_loaded:
+        return
+    try:
+        from scholar_harness import recon as _recon
+        from scholar_harness.recon import gates as _recon_gates
+
+        DEFAULT_LEXICON = _recon.DEFAULT_LEXICON
+        DomainLexicon = _recon.DomainLexicon
+        ReconEngine = _recon.ReconEngine
+        canonical_recon_root = _recon.canonical_recon_root
+        distill_pool = _recon.distill_pool
+        execute_followups = _recon.execute_followups
+        merge_lexicons = _recon.merge_lexicons
+        RECON_CACHE_ROOT = canonical_recon_root()
+        compute_pool_sufficiency = _recon_gates.compute_pool_sufficiency
+        compute_topic_purity = _recon_gates.compute_topic_purity
+        _harness_recon_loaded = True
+    except Exception:
+        _harness_recon_loaded = True
+
 
 mcp = MCPServer("ScholarAgentKit")
 
@@ -587,7 +638,7 @@ def nexus_pipeline_run(
         )
 
     try:
-        from scholar_harness.orchestrator import ResearchOrchestrator
+        from scholar_harness.orchestrator import ResearchOrchestrator  # type: ignore
 
         skip: set[str] = set()
         if skip_stages:
@@ -778,25 +829,47 @@ def nexus_rag_index(
     bib_file: str = None,
     workspace_id: str = None,
 ) -> str:
+    """DECLARED UNSUPPORTED: RAG indexing is not available through MCP (E3).
+
+    This tool exists so the boundary is *observable* rather than silently
+    omitted. RAG indexing (``rag_indexing``) is declared in
+    ``scholar_agent.capabilities`` with ``mcp_supported=False``; the canonical
+    scholar-rag-kit owns the domain service and exposes it through its Python
+    API (``scholar_rag.index_service.index_workspace``, taking an
+    ``IndexServiceRequest`` and returning an ``IndexServiceResult``) and the
+    ``scholar-rag index`` CLI. Those API/CLI surfaces are the supported E3
+    indexing surfaces and both call the same T-90 shared service.
+
+    This tool used to call ``scholar_rag.indexer.ScholarIndexer`` directly.
+    That path was non-authoritative and is deliberately removed rather than
+    kept: it hard-coded a working-directory-relative ``db_path``, silently
+    substituted workspace identity from ``project.json`` when ``workspace_id``
+    was omitted, could not carry an accepted parent, an embedder identity, or a
+    ``PARTIAL`` result, and returned free-text success/failure strings. A
+    superficially working tool that silently substitutes caller intent is the
+    exact divergence Packet E3 section 9.1 declares against, so no partial MCP
+    indexing and no forwarding to the legacy indexer remains here.
+
+    Arguments mirror the shape of the retired request and are accepted for
+    discoverability only: the rejection is unconditional, so no argument value
+    is validated, interpreted, or echoed. In particular no store path, workspace
+    identity, accepted parent, or journal is derived from ``db_path``, from the
+    working directory, or from local workspace contents.
+
+    Returns a JSON operation envelope: ``operation="rag_index"``,
+    ``status="FAILED"``, ``artifacts=[]``, ``warnings=[]``, and exactly one
+    non-retryable error with ``code="UNSUPPORTED_CAPABILITY"`` whose message
+    names the ``scholar-rag index`` CLI and the
+    ``scholar_rag.index_service`` API. The rejection occurs before any store is
+    opened, any directory is read, any index is built, or any filesystem or
+    audit I/O occurs; the envelope is produced by pure functions over the
+    immutable declaration.
+
+    Retrieval over an existing index (``nexus_rag_query``,
+    ``nexus_rag_synthesize``) is unaffected: E3 declares only the *indexing*
+    surface unsupported, and no retrieval MCP tool is added by this packet.
     """
-    Index a directory of Markdown files into the Chroma Vector DB using Structural AST Chunking,
-    enriching with companion BibTeX metadata if available.
-    """
-    docs_dir = _resolve_path(docs_dir) or docs_dir
-    db_path = _resolve_path(db_path) or db_path
-    bib_file = _resolve_path(bib_file) or bib_file
-    d_dir = Path(docs_dir)
-    if not d_dir.exists():
-        return f"Error: Directory {docs_dir} not found."
-    try:
-        indexer = ScholarIndexer(db_path=db_path)
-        b_file = Path(bib_file) if bib_file else None
-        result = indexer.index_directory(
-            docs_dir=d_dir, bib_file=b_file, workspace_id=workspace_id
-        )
-        return f"Successfully indexed {result['indexed_files']} files ({result['total_chunks']} structural chunks) into {db_path}."
-    except Exception as e:
-        return f"Error during indexing: {e}"
+    return unsupported_capability_envelope_json(RAG_INDEXING)
 
 
 @mcp.tool()
@@ -1972,7 +2045,10 @@ def main(argv: list[str] | None = None) -> None:
             "operation=extract_pdf / status=FAILED / UNSUPPORTED_CAPABILITY before any I/O; "
             "use the scholar-pdf extract-run CLI or "
             "scholar_pdf.extraction.PDFExtractionService API instead\n"
-            "  - nexus_rag_index: Index Markdown into ChromaDB with structural AST chunking\n"
+            "  - nexus_rag_index: DECLARED UNSUPPORTED (E3) - rejects RAG indexing with "
+            "operation=rag_index / status=FAILED / UNSUPPORTED_CAPABILITY before any store is "
+            "opened or any I/O; use the scholar-rag index CLI or "
+            "scholar_rag.index_service (index_workspace/IndexServiceRequest) API instead\n"
             "  - nexus_rag_query: Hybrid search with sectional slicing and graph PageRank boosting\n"
             "  - nexus_rag_synthesize: Grounded synthesis with claim entailment verification\n"
             "  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies\n"

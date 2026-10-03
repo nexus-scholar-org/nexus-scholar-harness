@@ -17,6 +17,8 @@ from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
 from scholar_pdf.extract import PyMuPDFEngine
 from scholar_protocol.models import ResearchProtocol
+from scholar_rag.chunker import text_fingerprint
+from scholar_rag.index_models import IndexDocumentRequest
 from scholar_rag.indexer import ScholarIndexer
 from scholar_rag.matrix import MatrixExtractor
 from scholar_rag.retriever import ScholarRetriever
@@ -35,6 +37,19 @@ from scholar_search.providers import (
     SemanticScholarProvider,
 )
 from scholar_search.verifier import DocumentVerifier
+
+from .contracts.identifiers import IdentifierKind, validate_identifier
+
+
+class RegisteredWorkspaceIdentityMissingError(RuntimeError):
+    """The workspace has no recorded registered identity to index under.
+
+    Raised instead of indexing under a substitute value. The typed indexing
+    surface states the workspace limb of every chunk identity, so there is no
+    honest default: a slug is a human label and a freshly derived id would let
+    the same workspace present two identities.
+    """
+
 
 _PROVIDER_MAP: dict[str, type[SearchProvider]] = {
     "openalex": OpenAlexProvider,
@@ -753,11 +768,37 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 6: Vector & Semantic Indexing (ChromaDB)
         # -------------------------------------------------------------
+        # E3-008 / T-90: the typed indexing surface refuses to mint chunk
+        # identity it was not told, so identity is bound per document from the
+        # pipeline's own recorded state (see _index_accepted_documents). The
+        # workspace limb is the registered identity recorded in project.json at
+        # inception -- never the project slug, never a value minted here. A
+        # document with no accepted screening parent is REFUSED, never indexed
+        # on an inferred workspace_id.
         indexer = ScholarIndexer(db_path=str(chroma_dir))
-        index_res = indexer.index_directory(
-            docs_dir=ext_dir, workspace_id=protocol.project_slug
+        index_res = self._index_accepted_documents(
+            indexer=indexer,
+            workspace_id=self.recorded_workspace_id(),
+            inc_docs=inc_docs,
+            ext_dir=ext_dir,
         )
         results["stages"]["indexing"] = index_res
+        self._log_audit_event(
+            action="RAG_INDEX_BUILT",
+            agent="scholar-harness",
+            description=(
+                f"Indexed {index_res['indexed_files']} accepted document(s) with explicit "
+                f"per-document identity bound to the accepted screening-decisions artifact; "
+                f"{len(index_res['refused'])} refused for want of an accepted parent"
+            ),
+            inputs=[str(inc_file)],
+            outputs=[str(ext_dir)],
+            metrics={
+                "indexed_files": index_res["indexed_files"],
+                "total_chunks": index_res["total_chunks"],
+                "refused_documents": len(index_res["refused"]),
+            },
+        )
 
         # -------------------------------------------------------------
         # Stage 7: Dynamic Protocol Matrix Extraction
@@ -853,6 +894,204 @@ class ResearchOrchestrator:
                 protocol_path=protocol_path, max_search_results=max_search_results
             )
         )
+
+    def _accepted_screening_parents(self) -> dict[str, dict[str, str]]:
+        """Map each included ``study_id`` to the accepted artifact that bound it.
+
+        Read-only over the Contract v1 artifact registry that
+        ``agent_screen.py collect`` publishes. An included study's scientific
+        parent is the accepted ``screening_decisions`` artifact carrying its
+        INCLUDE decision; the registry entry supplies that artifact's id and
+        its accepted payload hash, and the artifact payload supplies the
+        decision. Nothing is inferred here: a study with no accepted INCLUDE
+        decision is simply absent from the result, and Stage 6 then refuses it
+        rather than binding it to something that was never accepted.
+        """
+        registry_path = self.workspace_dir / "audit" / "artifact_registry.json"
+        if not registry_path.is_file():
+            return {}
+
+        try:
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+        parents: dict[str, dict[str, str]] = {}
+        for artifact_id, entry in sorted((registry.get("artifacts") or {}).items()):
+            if entry.get("artifact_type") != "screening_decisions":
+                continue
+            try:
+                payload = json.loads(
+                    (self.workspace_dir / str(entry["path"])).read_text(
+                        encoding="utf-8"
+                    )
+                )
+            except (OSError, KeyError, json.JSONDecodeError):
+                continue
+            for decision in (payload.get("data") or {}).get("decisions") or []:
+                if str(decision.get("decision") or "").upper() != "INCLUDE":
+                    continue
+                study_id = str(decision.get("study_id") or "").strip()
+                if not study_id:
+                    continue
+                parents[study_id] = {
+                    "parent_artifact_id": artifact_id,
+                    "parent_artifact_sha256": str(entry.get("sha256") or ""),
+                    "decision_id": str(decision.get("decision_id") or ""),
+                }
+        return parents
+
+    def recorded_workspace_id(self) -> str:
+        """Return the workspace identity recorded in ``project.json``.
+
+        The registered identity is minted once at inception and recorded as
+        ``registered_workspace_id``. This method only records and re-reads it:
+        it never mints, never derives the value from the project slug, and never
+        falls back to one. A workspace scaffolded before registered identities
+        existed has no such field, and indexing under anything other than the
+        recorded id would fabricate identity, so that case fails closed.
+
+        ``sync_state`` merges into an existing manifest rather than rebuilding
+        it, so the recorded id survives ``scholar-harness sync``.
+        """
+        manifest_path = self.workspace_dir / "project.json"
+        manifest: dict[str, Any] = {}
+        recorded: Any = None
+        if manifest_path.is_file():
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise RegisteredWorkspaceIdentityMissingError(
+                    f"cannot read the recorded workspace identity from "
+                    f"{manifest_path}: {exc}. Repair or re-create project.json "
+                    f"(see: nexus-scholar init <title>, or add "
+                    f'"registered_workspace_id": "WSP-<32 hex>").'
+                ) from exc
+            recorded = manifest.get("registered_workspace_id")
+
+        if not isinstance(recorded, str) or not recorded.strip():
+            raise RegisteredWorkspaceIdentityMissingError(
+                f"{manifest_path} records no 'registered_workspace_id'. Stage 6 "
+                f"indexes under the workspace identity minted at inception and "
+                f"will not substitute the project slug "
+                f"({manifest.get('project_id')!r}) or mint a new one. "
+                f"Fix: re-create the workspace so inception records a registered "
+                f"identity (nexus-scholar init <title>), or add "
+                f'"registered_workspace_id": "WSP-<32 hex>" to {manifest_path}.'
+            )
+
+        try:
+            return validate_identifier(IdentifierKind.WORKSPACE, recorded.strip())
+        except (TypeError, ValueError) as exc:
+            raise RegisteredWorkspaceIdentityMissingError(
+                f"{manifest_path} records 'registered_workspace_id' "
+                f"({recorded!r}) which is not a registered workspace identity: "
+                f"{exc}. Fix: replace it with a registered identity of the form "
+                f"WSP-<32 lowercase hex>, or re-create the workspace."
+            ) from exc
+
+    def _index_accepted_documents(
+        self,
+        *,
+        indexer: ScholarIndexer,
+        workspace_id: str,
+        inc_docs: list[dict[str, Any]],
+        ext_dir: Path,
+    ) -> dict[str, Any]:
+        """Stage 6: index accepted documents behind an explicit typed request.
+
+        Each extracted document gets its own ``IndexDocumentRequest`` because the
+        six chunk-identity limbs describe one document: a shared request across a
+        whole directory would bind several different documents to a single
+        ``document_id`` and ``extracted_content_sha256``. Every limb is read from
+        real recorded state:
+
+        * ``workspace_id`` -- the registered identity recorded in ``project.json`` at
+          inception (``recorded_workspace_id``), not the human project slug.
+        * ``study_id`` -- the included record's study identity, the same value the
+          accepted screening decision was recorded against.
+        * ``document_id`` -- the extracted file's own deterministic slug, fixed
+          when Stage 5 wrote ``extracted/<slug>.md``.
+        * ``parent_artifact_id`` / ``parent_artifact_sha256`` -- the accepted
+          ``screening_decisions`` artifact that admitted the study.
+        * ``extracted_content_sha256`` -- ``text_fingerprint`` of the exact text
+          handed to the indexer.
+        * ``backend_provider`` / ``collection`` -- the bound indexer's own backend
+          and collection; the kit refuses a request that names another.
+
+        A document whose accepted parent is missing is recorded as refused and is
+        not indexed: no limb is ever invented to get past the refusal.
+        """
+        parents = self._accepted_screening_parents()
+
+        indexed: list[dict[str, str]] = []
+        refused: list[dict[str, str]] = []
+        total_chunks = 0
+
+        for doc_item in inc_docs:
+            study_id = str(
+                doc_item.get("workspace_id") or doc_item.get("study_id") or ""
+            ).strip()
+            document_id = _study_slug(doc_item)
+            md_path = ext_dir / f"{document_id}.md"
+
+            if not study_id:
+                refused.append(
+                    {"document_id": document_id, "reason": "no recorded study identity"}
+                )
+                continue
+            if not md_path.is_file():
+                refused.append(
+                    {
+                        "document_id": document_id,
+                        "reason": "no extracted markdown for this study",
+                    }
+                )
+                continue
+            parent = parents.get(study_id)
+            if parent is None:
+                refused.append(
+                    {
+                        "document_id": document_id,
+                        "reason": "no accepted screening parent binds this study",
+                    }
+                )
+                continue
+
+            text = md_path.read_text(encoding="utf-8")
+            request = IndexDocumentRequest(
+                workspace_id=workspace_id,
+                study_id=study_id,
+                document_id=document_id,
+                parent_artifact_id=parent["parent_artifact_id"],
+                parent_artifact_sha256=parent["parent_artifact_sha256"],
+                extracted_content_sha256=text_fingerprint(text),
+                backend_provider=indexer.embedder_kwargs.get("provider"),
+                backend_model=indexer.embedder_kwargs.get("model_name") or None,
+                collection=indexer.collection_name,
+            )
+            chunks = indexer.index_markdown(text, request=request)
+            total_chunks += len(chunks)
+            indexed.append(
+                {
+                    "document_id": document_id,
+                    "study_id": study_id,
+                    "parent_artifact_id": parent["parent_artifact_id"],
+                    "screening_decision_id": parent["decision_id"],
+                    "chunks": str(len(chunks)),
+                }
+            )
+
+        return {
+            "status": "DONE" if indexed else "REFUSED",
+            "indexed_files": len(indexed),
+            "total_chunks": total_chunks,
+            # Only meaningful once this stage has written to the store: None says
+            # "this stage indexed nothing", which is not "the collection is empty".
+            "collection_count": indexer.get_collection_count() if indexed else None,
+            "documents": indexed,
+            "refused": refused,
+        }
 
     def _log_audit_event(
         self,

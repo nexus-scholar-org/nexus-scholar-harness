@@ -21,7 +21,8 @@ from scholar_protocol.intent import (
     RQIntent,
 )
 from scholar_protocol.models import PlaybookType
-from scholar_rag.chunker import MarkdownChunker
+from scholar_rag.chunker import MarkdownChunker, text_fingerprint
+from scholar_rag.index_models import IndexDocumentRequest
 from scholar_rag.indexer import ScholarIndexer
 from scholar_rag.matrix import MatrixExtractor
 from scholar_rag.retriever import ScholarRetriever
@@ -144,10 +145,15 @@ Multi-turn reinforcement fine-tuning yields a 15% relative improvement in execut
 Computational cost of beam search during inference remains significant.
 """
 
-    p1_file = papers_dir / "2024_chen_neural_code_synthesis.md"
-    p2_file = papers_dir / "2024_smith_multilanguage_benchmark.md"
-    p1_file.write_text(paper1_md, encoding="utf-8")
-    p2_file.write_text(paper2_md, encoding="utf-8")
+    # One directory per document: the six chunk-identity limbs describe a single
+    # document, so a request is built per document and the run is scoped to that
+    # document's own directory rather than sharing one request across the corpus.
+    p1_doc_id = "2024_chen_neural_code_synthesis"
+    p2_doc_id = "2024_smith_multilanguage_benchmark"
+    for doc_id, body in ((p1_doc_id, paper1_md), (p2_doc_id, paper2_md)):
+        doc_dir = papers_dir / doc_id
+        doc_dir.mkdir(parents=True, exist_ok=True)
+        (doc_dir / f"{doc_id}.md").write_text(body, encoding="utf-8")
 
     # -------------------------------------------------------------
     # 3. Phase 2 Cycle A & B: Structural Chunking & ChromaDB Indexing
@@ -158,17 +164,81 @@ Computational cost of beam search during inference remains significant.
         embedder_kwargs={"provider": "mock"},
     )
 
-    index_result = indexer.index_directory(docs_dir=papers_dir, log_journal=True)
-    assert index_result["indexed_files"] == 2
-    assert index_result["total_chunks"] >= 8
+    # Explicit identity per document, constructed exactly as the orchestrator
+    # constructs it at Stage 6: every limb is stated, none is read back out of a
+    # filename, a title, a DOI, or the working directory.
+    accepted_parent_sha = "sha256:" + "1" * 64
+    documents = (
+        (p1_doc_id, "SCI-000001", paper1_md, "code-gen-synthesis"),
+        (p2_doc_id, "SCI-000002", paper2_md, "code-gen-synthesis"),
+    )
+
+    indexed_files = 0
+    total_chunks = 0
+    for doc_id, study_id, body, workspace_id in documents:
+        request = IndexDocumentRequest(
+            workspace_id=workspace_id,
+            study_id=study_id,
+            document_id=doc_id,
+            parent_artifact_id="ART-" + "1" * 32,
+            parent_artifact_sha256=accepted_parent_sha,
+            extracted_content_sha256=text_fingerprint(body),
+            backend_provider=indexer.embedder_kwargs["provider"],
+            collection=indexer.collection_name,
+        )
+        index_result = indexer.index_directory(
+            docs_dir=papers_dir / doc_id,
+            request=request,
+            log_journal=True,
+        )
+        indexed_files += index_result["indexed_files"]
+        total_chunks += index_result["total_chunks"]
+
+    assert indexed_files == 2
+    assert total_chunks >= 8
     assert indexer.get_collection_count() >= 8
 
-    # Verify chunk structure and metadata fidelity
+    # Verify chunk structure and metadata fidelity. Only workspace_id is surfaced as
+    # a metadata field; the other five limbs are bound into chunk_id, so they are
+    # asserted there. Under E3 a workspace is not a study, so the workspace limb
+    # now carries the project namespace and the study identity is no longer
+    # smuggled in as a workspace id.
     chunker = MarkdownChunker()
-    chunks_p1 = chunker.chunk_markdown(paper1_md, doc_id="2024_chen_neural_code_synthesis")
+
+    def _p1_request(**overrides) -> IndexDocumentRequest:
+        fields = {
+            "workspace_id": "code-gen-synthesis",
+            "study_id": "SCI-000001",
+            "document_id": p1_doc_id,
+            "parent_artifact_id": "ART-" + "1" * 32,
+            "parent_artifact_sha256": accepted_parent_sha,
+            "extracted_content_sha256": text_fingerprint(paper1_md),
+            "backend_provider": indexer.embedder_kwargs["provider"],
+            "collection": indexer.collection_name,
+        }
+        fields.update(overrides)
+        return IndexDocumentRequest(**fields)
+
+    p1_identity = _p1_request()
+    chunks_p1 = chunker.chunk_markdown(
+        paper1_md, base_metadata=p1_identity.to_base_metadata()
+    )
     assert any(c.metadata.section_category == "methodology" for c in chunks_p1)
     assert any(c.metadata.section_category == "results_empirical" for c in chunks_p1)
-    assert any(c.metadata.workspace_id == "SCI-000001" for c in chunks_p1)
+    assert any(c.metadata.workspace_id == "code-gen-synthesis" for c in chunks_p1)
+
+    # The stated identity is load-bearing: reproducing it reproduces the chunk ids
+    # exactly, and rebinding any one limb changes them.
+    again = chunker.chunk_markdown(
+        paper1_md, base_metadata=_p1_request().to_base_metadata()
+    )
+    assert [c.chunk_id for c in again] == [c.chunk_id for c in chunks_p1]
+    for limb in ("study_id", "document_id", "parent_artifact_sha256"):
+        rebound = chunker.chunk_markdown(
+            paper1_md,
+            base_metadata=_p1_request(**{limb: "0" * 32}).to_base_metadata(),
+        )
+        assert [c.chunk_id for c in rebound] != [c.chunk_id for c in chunks_p1], limb
 
     # -------------------------------------------------------------
     # 4. Phase 2 Cycle D: Citation & Concept Knowledge Graph
@@ -275,7 +345,10 @@ Computational cost of beam search during inference remains significant.
     # -------------------------------------------------------------
     journal_file = audit_dir / "journal.jsonl"
     assert journal_file.exists()
-    journal_lines = [json.loads(line) for line in journal_file.read_text(encoding="utf-8").strip().split("\n")]
+    journal_lines = [
+        json.loads(line)
+        for line in journal_file.read_text(encoding="utf-8").strip().split("\n")
+    ]
     actions = [j.get("action") for j in journal_lines]
 
     assert "RAG_INDEX_BUILT" in actions

@@ -8,7 +8,7 @@
 
 **Canonical starting point:** harness `f9aa0b64165983b00d502f988e9af0a303eb33e0`
 
-**Pinned RAG kit:** `c89b68f0d35173082a03b8c6b228e84381271185`
+**Pinned RAG kit:** `f108fa897147f4c837760c81b558d1b82a044fdf` (canonical merge of PR #12; the pre-fix pin `033191eff967abf19023b258539c9a1422c8747f` is superseded and referenced here only as history)
 
 ## 1. Purpose
 

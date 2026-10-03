@@ -23,6 +23,18 @@ import networkx as nx
 
 from scholar_harness import orchestrator as orch
 
+# Registered workspace identity this fixture workspace records. Stage 6 states the
+# value recorded in project.json and refuses to index under anything else, so a
+# fixture workspace that reaches Stage 6 must record one.
+FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
+
+
+def _record_workspace_identity(ws: Path, project_id: str) -> None:
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": project_id, "registered_workspace_id": FIXTURE_WORKSPACE_ID}),
+        encoding="utf-8",
+    )
+
 
 def _write_protocol(ws: Path, slug: str = "fidelity-test-workspace") -> Path:
     from scholar_protocol.canonical import canonical_json
@@ -211,6 +223,7 @@ def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(tmp_p
     _stub_kit_engines(monkeypatch)
     ws = tmp_path
     _write_protocol(ws)
+    _record_workspace_identity(ws, "fidelity-test-workspace")
 
     (ws / "literature").mkdir(parents=True, exist_ok=True)
     (ws / "literature" / "included.json").write_text(
@@ -257,6 +270,7 @@ def test_stages_7_9_bind_retriever_and_8_uses_real_client(tmp_path, monkeypatch)
 
     ws = tmp_path
     _write_protocol(ws)
+    _record_workspace_identity(ws, "fidelity-test-workspace")
 
     (ws / "literature").mkdir(parents=True, exist_ok=True)
     (ws / "literature" / "included.json").write_text(

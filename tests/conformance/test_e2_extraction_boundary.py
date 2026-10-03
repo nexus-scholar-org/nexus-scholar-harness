@@ -201,7 +201,7 @@ GOLDEN_PREFIX = ("corpus_snapshot", "screening_batch", "screening_decisions")
 # index/worktree comparison owns the deeper tree check).
 E2_KITS: tuple[tuple[str, str], ...] = (
     ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
-    ("scholar-agent-kit", "deebfad995ba88bbd748be9beddd1aa2b8a51264"),
+    ("scholar-agent-kit", "79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92"),
 )
 
 # The frozen Contract v1 registry keyset. Asserted exactly (not as a subset) so
@@ -1548,9 +1548,22 @@ def test_e2_neg_019_rejection_envelope_is_pure_and_zero_io() -> None:
 
 
 def test_e2_neg_020_e2_does_not_broaden_the_e1_acquisition_declaration() -> None:
-    """E2-NEG-020: exactly two declared capabilities, E1's boundary unchanged."""
+    """E2-NEG-020: E1's acquisition declaration is unchanged by E2 or E3.
 
-    assert set(caps.CAPABILITIES) == {caps.PDF_ACQUISITION, caps.PDF_EXTRACTION}
+    The kit now declares three capabilities, because E3-008 adopts the
+    declared-unsupported ``rag_indexing`` capability (owner: the canonical
+    ``nexus-scholar-org/scholar-rag-kit``; ``mcp_supported: false``; see
+    ``docs/architecture/wp01_packet_e3_implementation_handoff.md``). That third
+    entry is a separate E3 declaration for a different domain service, not a
+    broadening of ``pdf_acquisition`` or ``pdf_extraction``: the two E1/E2 rows
+    below are asserted unchanged, limb by limb.
+    """
+
+    assert set(caps.CAPABILITIES) == {
+        caps.PDF_ACQUISITION,
+        caps.PDF_EXTRACTION,
+        caps.RAG_INDEXING,
+    }
     assert caps.PDF_ACQUISITION_DECLARATION.mcp_supported is False
     assert (
         caps.PDF_ACQUISITION_DECLARATION.rejection_operation

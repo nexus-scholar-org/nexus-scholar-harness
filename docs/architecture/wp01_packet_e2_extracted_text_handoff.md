@@ -7,7 +7,7 @@
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (declaration/rejection adapter only)
 - **Current PDF-kit pin:** `3c024c37071b49265cfea6e713c1c9065e2a2cc0`
-- **Current agent-kit pin:** `deebfad995ba88bbd748be9beddd1aa2b8a51264`
+- **Current agent-kit pin:** `79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92`
 - **Direct scientific parent:** accepted `ScreeningDecisionsArtifact` (the only Contract v1 parent type `document_manifest` may declare)
 - **Required context:** the accepted E1 `AcquiredDocumentManifest` (`pdf-acquisition-manifest-v1`, `ACQ-*`) and the corpus/screening parent lineage it embeds
 - **Frozen Contract v1 change required:** **none** (see §1.1)

@@ -7,8 +7,8 @@
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-rag-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit`
   (declaration/rejection adapter only)
-- **Current RAG-kit pin:** `c89b68f0d35173082a03b8c6b228e84381271185`
-- **Current agent-kit pin:** `deebfad995ba88bbd748be9beddd1aa2b8a51264`
+- **Current RAG-kit pin:** `f108fa897147f4c837760c81b558d1b82a044fdf` (merge of canonical PR #12, `fix/e3-identity-limbs-through-chroma-store`; superseded pin `033191eff967abf19023b258539c9a1422c8747f` is pre-fix and is retained here only as that PR's base)
+- **Current agent-kit pin:** `79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92`
 - **Governing readiness baseline:** `docs/architecture/wp01_packet_e3_readiness_baseline.md`
 - **Normative requirement source:** `specs/deep-audit-remediation-2026-09-17/05_rag_kit_spec.md:54-74`
   (`RAG-001`…`RAG-021`), `specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md:134`

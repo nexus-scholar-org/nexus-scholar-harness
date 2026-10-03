@@ -3,8 +3,50 @@
 import argparse
 import json
 import re
+import secrets
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Registered workspace identity (Contract v1 ``IdentifierKind.WORKSPACE``). The
+# frozen registry admits exactly one registered form, ``WSP-<opaque>``, so a human
+# slug is not a workspace identity and every typed surface refuses it. Minted once
+# at initialization and recorded as ``registered_workspace_id``; ``project_id``
+# stays the human label.
+#
+# This mirrors ``mint_registered_workspace_id`` in
+# ``src/scholar_harness/inception/genesis.py``. It is restated rather than
+# imported because this script runs standalone (``python init_project.py``) and
+# from the distribution wheel's bundled skills copy, where the harness package is
+# not importable. Both writers are held to the same shape by
+# ``tests/inception/test_registered_workspace_id.py``.
+_REGISTERED_WORKSPACE_ID = re.compile(r"^WSP-[0-9a-f]{32}$")
+
+
+def mint_registered_workspace_id() -> str:
+    """Return a fresh registered workspace identity: ``WSP-<32 hex>`` from the OS CSPRNG."""
+    candidate = f"WSP-{secrets.token_hex(16)}"
+    if not _REGISTERED_WORKSPACE_ID.fullmatch(candidate):  # pragma: no cover
+        raise RuntimeError(f"minted workspace id is not registered: {candidate!r}")
+    return candidate
+
+
+def recorded_or_minted_workspace_id(project_dir: Path) -> str:
+    """Reuse an already-recorded identity; mint only when there is none.
+
+    A workspace identity is minted once and never regenerated. Re-running init on
+    an existing project must not silently re-identify it, because artifacts
+    already accepted under the old id would no longer share a workspace.
+    """
+    manifest_path = project_dir / "project.json"
+    if manifest_path.is_file():
+        try:
+            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = {}
+        recorded = existing.get("registered_workspace_id")
+        if isinstance(recorded, str) and _REGISTERED_WORKSPACE_ID.fullmatch(recorded):
+            return recorded
+    return mint_registered_workspace_id()
 
 def slugify(text: str) -> str:
     """Converts a title to a clean URL/filesystem friendly slug."""
@@ -34,6 +76,7 @@ def init_project(
     manifest = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "project_id": project_slug,
+        "registered_workspace_id": recorded_or_minted_workspace_id(project_dir),
         "title": title,
         "description": description or f"Systematic literature review for {title}",
         "created_at": now,
