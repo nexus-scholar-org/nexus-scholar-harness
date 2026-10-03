@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -18,7 +19,15 @@ from rich.console import Console
 from ..contracts.identifiers import IdentifierKind, primary_prefix, validate_identifier
 from ..mcp_setup import _serialize, build_mcp_entry
 from .display import console, _bounded
-from .intent import ConceptDraft, RQDraft, Survey, draft_default_concepts, make_intent, recommend_playbook, PARADIGM_PROFILE
+from .intent import (
+    ConceptDraft,
+    RQDraft,
+    Survey,
+    draft_default_concepts,
+    make_intent,
+    recommend_playbook,
+    PARADIGM_PROFILE,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -169,10 +178,6 @@ def _log_project_event(
         )
 
 
-
-
-
-
 # ---------------------------------------------------------------------------
 # Responder protocol: abstraction over every interactive prompt
 # ---------------------------------------------------------------------------
@@ -189,14 +194,20 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
         from scholar_protocol.intent import IntentPacket
         from scholar_protocol.render import render_screening_criteria
     except ImportError as exc:  # pragma: no cover - kit dependency missing
-        raise typer.Exit("scholar-protocol-kit is not installed; run scripts/install_plugins.py first") from exc
+        raise typer.Exit(
+            "scholar-protocol-kit is not installed; run scripts/install_plugins.py first"
+        ) from exc
 
     intent_path = ws_dir / "intent.json"
-    intent_path.write_text(json.dumps(intent, indent=2, ensure_ascii=False), encoding="utf-8")
+    intent_path.write_text(
+        json.dumps(intent, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     compiled = compile_protocol(IntentPacket.model_validate(intent))
     (ws_dir / "protocol.json").write_bytes(canonical_json(compiled))
-    (ws_dir / "SCREENING_CRITERIA.md").write_text(render_screening_criteria(compiled), encoding="utf-8")
+    (ws_dir / "SCREENING_CRITERIA.md").write_text(
+        render_screening_criteria(compiled), encoding="utf-8"
+    )
     return {
         "protocol_fingerprint": canonical_fingerprint(compiled),
         "protocol_path": str(ws_dir / "protocol.json"),
@@ -204,7 +215,9 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
     }
 
 
-def scaffold_project(ws_root: Path, title: str, slug: str, paradigm: str, rqs: list[str]) -> Path:
+def scaffold_project(
+    ws_root: Path, title: str, slug: str, paradigm: str, rqs: list[str]
+) -> Path:
     """Scaffold ``workspaces/<slug>/`` by delegating to workspace-manager's init_project.py."""
     ws_root = ws_root.resolve()
     scripts = resolve_workspace_manager_scripts()
@@ -214,17 +227,26 @@ def scaffold_project(ws_root: Path, title: str, slug: str, paradigm: str, rqs: l
             "(NEXUS_SKILLS_SRC / wheel bundle / repo .agents/skills unavailable)"
         )
     cmd = [
-        sys.executable, str(scripts / "init_project.py"), title,
-        "--slug", slug,
-        "--paradigm", paradigm,
-        "--root", str(ws_root),
+        sys.executable,
+        str(scripts / "init_project.py"),
+        title,
+        "--slug",
+        slug,
+        "--paradigm",
+        paradigm,
+        "--root",
+        str(ws_root),
     ]
     for rq in rqs:
         cmd += ["--rq", rq]
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True, encoding="utf-8")
+        subprocess.run(
+            cmd, check=True, capture_output=True, text=True, encoding="utf-8"
+        )
     except subprocess.CalledProcessError as exc:
-        raise typer.Exit(f"init_project.py failed:\\n{exc.stderr or exc.stdout}") from exc
+        raise typer.Exit(
+            f"init_project.py failed:\\n{exc.stderr or exc.stdout}"
+        ) from exc
     return ws_root / "workspaces" / slug
 
 
@@ -256,24 +278,97 @@ def mint_registered_workspace_id() -> str:
     return validate_identifier(IdentifierKind.WORKSPACE, candidate)
 
 
-def recorded_or_minted_workspace_id(ws_dir: Path) -> str:
-    """Reuse an already-recorded identity; mint only when there is none.
+class RegisteredWorkspaceIdentityMissingError(RuntimeError):
+    """A recorded workspace identity is absent, unusable, or not registered.
 
-    A workspace identity is minted once and never regenerated. ``scaffold_raw_project``
-    normally targets an empty folder, but re-scaffolding an existing workspace must
-    not silently re-identify it: artifacts already accepted under the old id would
-    no longer share a workspace.
+    This is the single typed refusal for workspace identity across the harness. It
+    is defined here, beside the mint policy that creates the identity, and is
+    imported by :mod:`scholar_harness.orchestrator`, so a caller can catch one
+    exception type whether the refusal came from creating a workspace or from
+    reading one back. Nothing is ever minted to get past it: a substitute identity
+    would let one workspace present two identities and destroy lineage.
+    """
+
+
+#: Hex characters in the opaque part of a registered workspace identity.
+SHA_LEN = 32
+
+#: The registered workspace identity is exactly ``WSP-`` plus 32 lowercase hex.
+#: Stricter than the registry's prefix check on purpose: the registry admits any
+#: opaque ``WSP-`` limb, but a recorded identity that is not in canonical form is
+#: legacy debt to be classified, not an identity to index under.
+REGISTERED_WORKSPACE_ID = re.compile(rf"^WSP-[0-9a-f]{{{SHA_LEN}}}$")
+
+
+def validate_registered_workspace_id(value: str) -> str:
+    """Return ``value`` if it is a registered workspace identity, else refuse.
+
+    Enforces the canonical ``WSP-`` + 32 lowercase hex form *and* the frozen
+    Contract v1 registry, so the harness never states an identity the typed
+    surfaces would reject.
+    """
+    candidate = value.strip()
+    if not REGISTERED_WORKSPACE_ID.fullmatch(candidate):
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"{value!r} is not a registered workspace identity: the registered "
+            f"form is WSP-<{SHA_LEN} lowercase hex>. Fix: replace the recorded "
+            f"value with a registered identity, or re-create the workspace."
+        )
+    return validate_identifier(IdentifierKind.WORKSPACE, candidate)
+
+
+def recorded_or_minted_workspace_id(ws_dir: Path) -> str:
+    """Resolve a workspace's identity under one fail-closed policy.
+
+    Minting is permitted only when the workspace has no recorded identity to lose:
+    a missing ``project.json``, or a readable manifest without the field. Every
+    other case is a typed refusal rather than a fresh identity, because silently
+    minting over recorded state is silent re-identification -- artifacts already
+    accepted under the old id would no longer share a workspace.
+
+    The policy, identical in both ``project.json`` creators:
+
+    * no manifest / manifest without ``registered_workspace_id`` -> mint;
+    * recorded value that is not ``WSP-<32 hex>`` -> refuse, naming the value;
+    * unreadable, corrupt, or non-object ``project.json`` -> refuse, naming the
+      path and the corruption.
+
+    The workspace-manager copy of this function restates the policy verbatim
+    because that script runs standalone; ``tests/inception/test_registered_workspace_id.py``
+    runs both creators over the same cases so the two cannot drift.
     """
     manifest_path = ws_dir / "project.json"
-    if manifest_path.is_file():
-        try:
-            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            existing = {}
-        recorded = existing.get("registered_workspace_id")
-        if isinstance(recorded, str) and recorded.strip():
-            return validate_identifier(IdentifierKind.WORKSPACE, recorded.strip())
-    return mint_registered_workspace_id()
+    if not manifest_path.is_file():
+        return mint_registered_workspace_id()
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"cannot read the recorded workspace identity from {manifest_path}: "
+            f"{exc}. Repair or re-create project.json rather than minting over "
+            f"recorded state (nexus-scholar init <title>)."
+        ) from exc
+    if not isinstance(manifest, dict):
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"cannot read the recorded workspace identity from {manifest_path}: "
+            f"it is not a JSON object. Repair or re-create project.json rather "
+            f"than minting over recorded state."
+        )
+
+    recorded = manifest.get("registered_workspace_id")
+    if recorded is None:
+        # No identity has ever been recorded for this workspace, so there is no
+        # lineage to destroy and minting creates rather than replaces one.
+        return mint_registered_workspace_id()
+    if not isinstance(recorded, str):
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"{manifest_path} records 'registered_workspace_id' as "
+            f"{type(recorded).__name__} ({recorded!r}) rather than a string. "
+            f"Fix: replace it with a registered identity of the form "
+            f"WSP-<{SHA_LEN} lowercase hex>."
+        )
+    return validate_registered_workspace_id(recorded)
 
 
 def scaffold_raw_project(
@@ -348,9 +443,6 @@ def scaffold_raw_project(
     return ws_dir
 
 
-
-
-
 def log_genesis(
     ws_dir: Path,
     description: str,
@@ -371,7 +463,9 @@ def log_genesis(
     if recon_context:
         rc_file = ws_dir / "audit" / "recon_context.json"
         rc_file.parent.mkdir(parents=True, exist_ok=True)
-        rc_file.write_text(json.dumps(recon_context, ensure_ascii=False, indent=2), encoding="utf-8")
+        rc_file.write_text(
+            json.dumps(recon_context, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         anchors = _bounded(recon_context.get("anchor_dois") or [])
         concepts = _bounded(recon_context.get("default_concepts") or [])
         summary = {
@@ -387,9 +481,8 @@ def log_genesis(
             "anchored_term_count": len(recon_context.get("anchored_terms") or {}),
             "provenance_file": str(rc_file.relative_to(ws_dir)).replace("\\", "/"),
         }
-        description = (
-            f"{description} recon_context="
-            + json.dumps(summary, ensure_ascii=False, separators=(",", ":"))
+        description = f"{description} recon_context=" + json.dumps(
+            summary, ensure_ascii=False, separators=(",", ":")
         )
         outputs.append(rc_file)
     _log_project_event(
@@ -402,43 +495,57 @@ def log_genesis(
     )
 
 
-
 def _default_matrix_dimensions(playbook: str, unit: str) -> list[dict]:
     """Suggested extraction matrix columns per playbook archetype."""
     base: dict[str, dict] = {
         "sample_size": {
-            "id": "sample_size", "name": "Sample Size",
+            "id": "sample_size",
+            "name": "Sample Size",
             "description": f"Number of {unit} sampled / evaluated",
-            "target_section_category": "methodology", "data_type": "numeric",
-            "required": True, "fallback_value": "Not Reported",
+            "target_section_category": "methodology",
+            "data_type": "numeric",
+            "required": True,
+            "fallback_value": "Not Reported",
         },
         "key_findings": {
-            "id": "key_findings", "name": "Key Findings",
+            "id": "key_findings",
+            "name": "Key Findings",
             "description": "Summary of the study's primary reported findings",
-            "target_section_category": "results_empirical", "data_type": "free_text",
-            "required": False, "fallback_value": "Not Reported",
+            "target_section_category": "results_empirical",
+            "data_type": "free_text",
+            "required": False,
+            "fallback_value": "Not Reported",
         },
         "limitations": {
-            "id": "limitations", "name": "Limitations",
+            "id": "limitations",
+            "name": "Limitations",
             "description": "Author-reported limitations and caveats",
-            "target_section_category": "discussion_limitations", "data_type": "free_text",
-            "required": False, "fallback_value": "Not Reported",
+            "target_section_category": "discussion_limitations",
+            "data_type": "free_text",
+            "required": False,
+            "fallback_value": "Not Reported",
         },
     }
     if playbook == "DESIGN_SCIENCE":
         return [
             base["sample_size"],
             {
-                "id": "performance", "name": "Performance Metric",
+                "id": "performance",
+                "name": "Performance Metric",
                 "description": "Primary accuracy/quality metric with value (e.g. mIoU, F1, latency ms)",
-                "target_section_category": "results_empirical", "data_type": "numeric",
-                "required": True, "fallback_value": "Not Reported",
+                "target_section_category": "results_empirical",
+                "data_type": "numeric",
+                "required": True,
+                "fallback_value": "Not Reported",
             },
             {
-                "id": "artifact", "name": "Artifact & Stack",
+                "id": "artifact",
+                "name": "Artifact & Stack",
                 "description": "Implemented artifact, architecture and runtime stack",
-                "target_section_category": "methodology", "data_type": "free_text",
-                "required": False, "fallback_value": "Not Reported",
+                "target_section_category": "methodology",
+                "data_type": "free_text",
+                "required": False,
+                "fallback_value": "Not Reported",
             },
         ]
     return [base["sample_size"], base["key_findings"], base["limitations"]]
@@ -497,7 +604,11 @@ def install_skills(source: Path | None, dest_root: Path) -> list[dict]:
         dest = dest_root / skill_dir.name
         if dest.exists() or dest.is_symlink():
             records.append(
-                {"name": skill_dir.name, "mode": "existing", "source": str(skill_dir.resolve())}
+                {
+                    "name": skill_dir.name,
+                    "mode": "existing",
+                    "source": str(skill_dir.resolve()),
+                }
             )
             continue
         mode = "symlink"
@@ -573,10 +684,16 @@ def install_workspace_support_files(target: Path) -> dict:
             "(NEXUS_SKILLS_SRC / wheel bundle / repo .agents/skills); "
             ".agents/skills left empty[/yellow]"
         )
-    records = install_skills(skills_root, target / ".agents" / "skills") if skills_root else []
+    records = (
+        install_skills(skills_root, target / ".agents" / "skills")
+        if skills_root
+        else []
+    )
     for rec in records:
         if rec["mode"] == "symlink":
-            console.print(f"   [dim]skill {rec['name']}: symlinked from {rec['source']}[/dim]")
+            console.print(
+                f"   [dim]skill {rec['name']}: symlinked from {rec['source']}[/dim]"
+            )
         elif rec["mode"] == "copy":
             console.print(
                 f"   [dim]skill {rec['name']}: COPIED (symlink unavailable on this "
@@ -626,7 +743,9 @@ def _scaffold_only_intent(title: str, slug: str, genesis_timestamp: str) -> dict
         title=title,
         venue="",
         timeline_weeks=None,
-        rqs=[RQDraft(text=rq_text, facet=profile["facet"], evidence=profile["evidence"])],
+        rqs=[
+            RQDraft(text=rq_text, facet=profile["facet"], evidence=profile["evidence"])
+        ],
         concepts=concepts,
         extra_inclusions=[],
         extra_exclusions=[],
@@ -634,5 +753,3 @@ def _scaffold_only_intent(title: str, slug: str, genesis_timestamp: str) -> dict
         matrix_dimensions=[],
     )
     return make_intent(survey, slug, genesis_timestamp)
-
-

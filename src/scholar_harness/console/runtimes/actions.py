@@ -100,9 +100,11 @@ ACTIONS: list[Action] = [
         # operator cannot run the action at all. The `<...>` literals are
         # deliberately left for the operator to supply (run id, timestamp,
         # producer identity, embedding identity); they are stated, never read or
-        # minted by the kit. `--workspace-id` was removed in rag `033191ef` -- that
-        # revision is the historical pre-fix pin, superseded by `f108fa8`; the
-        # removal is a property of the interface, not of either pin. It survives
+        # minted by the kit. `--workspace-id` was removed in rag
+        # `033191eff967abf19023b258539c9a1422c8747f` -- that full SHA is the
+        # historical pre-fix pin; the current pin is the full SHA recorded in
+        # `.agents/plugins/nexus-scholar/plugins.json`. The removal is a property of
+        # the interface, not of either pin. It survives
         # only on `query`. This mirrors the agent kit's canonical
         # INDEX_CLI_ALTERNATIVE (capabilities.py:266-273).
         "uv run scholar-rag index {ws}/extracted/ "

@@ -13,40 +13,98 @@ from pathlib import Path
 # at initialization and recorded as ``registered_workspace_id``; ``project_id``
 # stays the human label.
 #
-# This mirrors ``mint_registered_workspace_id`` in
-# ``src/scholar_harness/inception/genesis.py``. It is restated rather than
-# imported because this script runs standalone (``python init_project.py``) and
-# from the distribution wheel's bundled skills copy, where the harness package is
-# not importable. Both writers are held to the same shape by
-# ``tests/inception/test_registered_workspace_id.py``.
+# This restates ``mint_registered_workspace_id``,
+# ``validate_registered_workspace_id``, and ``recorded_or_minted_workspace_id``
+# from ``src/scholar_harness/inception/genesis.py`` rather than importing them,
+# because this script runs standalone (``python init_project.py``) and from the
+# distribution wheel's bundled skills copy, where the harness package is not
+# importable. ``RegisteredWorkspaceIdentityMissingError`` is the same single typed
+# refusal the harness raises, restated for the same reason.
+#
+# ``tests/inception/test_registered_workspace_id.py`` runs BOTH creators over the
+# same cases (valid recorded, absent, non-``WSP-``, non-hex ``WSP-``, corrupt JSON,
+# missing file), so this copy cannot drift from the harness one.
 _REGISTERED_WORKSPACE_ID = re.compile(r"^WSP-[0-9a-f]{32}$")
+
+
+class RegisteredWorkspaceIdentityMissingError(RuntimeError):
+    """A recorded workspace identity is absent, unusable, or not registered.
+
+    Restatement of the harness's single typed refusal for workspace identity; see
+    ``scholar_harness.inception.genesis.RegisteredWorkspaceIdentityMissingError``.
+    """
 
 
 def mint_registered_workspace_id() -> str:
     """Return a fresh registered workspace identity: ``WSP-<32 hex>`` from the OS CSPRNG."""
     candidate = f"WSP-{secrets.token_hex(16)}"
     if not _REGISTERED_WORKSPACE_ID.fullmatch(candidate):  # pragma: no cover
-        raise RuntimeError(f"minted workspace id is not registered: {candidate!r}")
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"minted workspace id is not registered: {candidate!r}"
+        )
+    return candidate
+
+
+def validate_registered_workspace_id(value: str) -> str:
+    """Return ``value`` if it is ``WSP-<32 lowercase hex>``, else refuse naming it."""
+    candidate = value.strip()
+    if not _REGISTERED_WORKSPACE_ID.fullmatch(candidate):
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"{value!r} is not a registered workspace identity: the registered "
+            f"form is WSP-<32 lowercase hex>. Fix: replace the recorded value "
+            f"with a registered identity, or re-create the workspace."
+        )
     return candidate
 
 
 def recorded_or_minted_workspace_id(project_dir: Path) -> str:
-    """Reuse an already-recorded identity; mint only when there is none.
+    """Resolve a workspace's identity under one fail-closed policy.
 
-    A workspace identity is minted once and never regenerated. Re-running init on
-    an existing project must not silently re-identify it, because artifacts
-    already accepted under the old id would no longer share a workspace.
+    Minting is permitted only when the workspace has no recorded identity to lose:
+    a missing ``project.json``, or a readable manifest without the field. Every
+    other case is a typed refusal rather than a fresh identity, because silently
+    minting over recorded state is silent re-identification -- artifacts already
+    accepted under the old id would no longer share a workspace.
+
+    The policy, identical in both ``project.json`` creators:
+
+    * no manifest / manifest without ``registered_workspace_id`` -> mint;
+    * recorded value that is not ``WSP-<32 hex>`` -> refuse, naming the value;
+    * unreadable, corrupt, or non-object ``project.json`` -> refuse, naming the
+      path and the corruption.
     """
     manifest_path = project_dir / "project.json"
-    if manifest_path.is_file():
-        try:
-            existing = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            existing = {}
-        recorded = existing.get("registered_workspace_id")
-        if isinstance(recorded, str) and _REGISTERED_WORKSPACE_ID.fullmatch(recorded):
-            return recorded
-    return mint_registered_workspace_id()
+    if not manifest_path.is_file():
+        return mint_registered_workspace_id()
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"cannot read the recorded workspace identity from {manifest_path}: "
+            f"{exc}. Repair or re-create project.json rather than minting over "
+            f"recorded state (nexus-scholar init <title>)."
+        ) from exc
+    if not isinstance(manifest, dict):
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"cannot read the recorded workspace identity from {manifest_path}: "
+            f"it is not a JSON object. Repair or re-create project.json rather "
+            f"than minting over recorded state."
+        )
+
+    recorded = manifest.get("registered_workspace_id")
+    if recorded is None:
+        # No identity has ever been recorded for this workspace, so there is no
+        # lineage to destroy and minting creates rather than replaces one.
+        return mint_registered_workspace_id()
+    if not isinstance(recorded, str):
+        raise RegisteredWorkspaceIdentityMissingError(
+            f"{manifest_path} records 'registered_workspace_id' as "
+            f"{type(recorded).__name__} ({recorded!r}) rather than a string. "
+            f"Fix: replace it with a registered identity of the form "
+            f"WSP-<32 lowercase hex>."
+        )
+    return validate_registered_workspace_id(recorded)
 
 def slugify(text: str) -> str:
     """Converts a title to a clean URL/filesystem friendly slug."""

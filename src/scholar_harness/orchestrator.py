@@ -38,17 +38,12 @@ from scholar_search.providers import (
 )
 from scholar_search.verifier import DocumentVerifier
 
-from .contracts.identifiers import IdentifierKind, validate_identifier
-
-
-class RegisteredWorkspaceIdentityMissingError(RuntimeError):
-    """The workspace has no recorded registered identity to index under.
-
-    Raised instead of indexing under a substitute value. The typed indexing
-    surface states the workspace limb of every chunk identity, so there is no
-    honest default: a slug is a human label and a freshly derived id would let
-    the same workspace present two identities.
-    """
+from .contracts.acceptance import ArtifactRegistry, RegistryEntry
+from .contracts.models import ArtifactReference, DocumentManifestArtifact
+from .inception.genesis import (
+    RegisteredWorkspaceIdentityMissingError,
+    validate_registered_workspace_id,
+)
 
 
 _PROVIDER_MAP: dict[str, type[SearchProvider]] = {
@@ -89,7 +84,21 @@ def _study_doi(doc_item: dict[str, Any]) -> str:
     return (doc_item.get("external_ids") or {}).get("doi") or doc_item.get("doi") or ""
 
 
-def _study_slug(doc_item: dict[str, Any]) -> str:
+def _extraction_file_stem(doc_item: dict[str, Any]) -> str:
+    """The on-disk filename stem for a document's extracted markdown.
+
+    FILESYSTEM RESOLUTION ONLY. This value names a file under ``extracted/``;
+    it is never an identity. Reading a ``document_id``, ``study_id``, or
+    ``workspace_id`` out of this stem would be inference from a filename, which
+    Contract v1 forbids: identity is stated in a typed request or inherited from
+    an accepted artifact, never derived from a slug. Stage 6 therefore takes
+    both limbs from the accepted ``document_manifest`` (``_accepted_document_records``)
+    and takes its path from the record's own ``extracted_path``.
+
+    The stem still prefers ``workspace_id`` over ``study_id`` because that is how
+    Stage 5 has always named the file; the collision is a filename, not an
+    identity, and it cannot reach a typed request.
+    """
     idv = doc_item.get("workspace_id") or doc_item.get("study_id") or ""
     doi = _study_doi(doc_item)
     return (idv or doi or "doc").replace("/", "_").replace(":", "_")
@@ -98,7 +107,7 @@ def _study_slug(doc_item: dict[str, Any]) -> str:
 def _study_pdf(pdf_dir: Path, doc_item: dict[str, Any]) -> Path | None:
     """Locate a harvested PDF for a study, preferring deterministic slugs."""
     doi = _study_doi(doc_item)
-    slug = _study_slug(doc_item)
+    slug = _extraction_file_stem(doc_item)
     candidates = [
         pdf_dir / f"{slug}.pdf",
         pdf_dir / f"{doi.replace('/', '_').replace(':', '_')}.pdf",
@@ -714,7 +723,7 @@ class ResearchOrchestrator:
         metadata_frontmatter_only: list[str] = []
         pymupdf = PyMuPDFEngine()
         for doc_item in inc_docs:
-            slug = _study_slug(doc_item)
+            slug = _extraction_file_stem(doc_item)
             md_path = ext_dir / f"{slug}.md"
             if md_path.exists():
                 extracted_files.append(md_path)
@@ -775,30 +784,8 @@ class ResearchOrchestrator:
         # inception -- never the project slug, never a value minted here. A
         # document with no accepted screening parent is REFUSED, never indexed
         # on an inferred workspace_id.
-        indexer = ScholarIndexer(db_path=str(chroma_dir))
-        index_res = self._index_accepted_documents(
-            indexer=indexer,
-            workspace_id=self.recorded_workspace_id(),
-            inc_docs=inc_docs,
-            ext_dir=ext_dir,
-        )
+        index_res, indexer = self._run_indexing_stage(chroma_dir)
         results["stages"]["indexing"] = index_res
-        self._log_audit_event(
-            action="RAG_INDEX_BUILT",
-            agent="scholar-harness",
-            description=(
-                f"Indexed {index_res['indexed_files']} accepted document(s) with explicit "
-                f"per-document identity bound to the accepted screening-decisions artifact; "
-                f"{len(index_res['refused'])} refused for want of an accepted parent"
-            ),
-            inputs=[str(inc_file)],
-            outputs=[str(ext_dir)],
-            metrics={
-                "indexed_files": index_res["indexed_files"],
-                "total_chunks": index_res["total_chunks"],
-                "refused_documents": len(index_res["refused"]),
-            },
-        )
 
         # -------------------------------------------------------------
         # Stage 7: Dynamic Protocol Matrix Extraction
@@ -895,6 +882,60 @@ class ResearchOrchestrator:
             )
         )
 
+    def _load_artifact_registry(self) -> ArtifactRegistry | None:
+        """Parse the Contract v1 artifact registry through the frozen model.
+
+        The registry is the recorded proof of what was accepted, so it is read with
+        the frozen ``ArtifactRegistry`` / ``RegistryEntry`` models rather than
+        hand-parsed: a missing or malformed ``sha256``, an unknown key, or a missing
+        ``accepted_at`` / ``run_id`` / ``producer`` now makes the *registry*
+        unusable instead of being silently coerced to ``""``.
+
+        ``None`` means "nothing may be inherited from the registry": either no
+        registry exists yet, or it does not validate. Callers treat that as an
+        absence and refuse the affected documents, which is the fail-closed
+        direction -- an unparseable registry must not widen what Stage 6 accepts.
+        """
+        registry_path = self.workspace_dir / "audit" / "artifact_registry.json"
+        if not registry_path.is_file():
+            return None
+        try:
+            return ArtifactRegistry.model_validate_json(
+                registry_path.read_text(encoding="utf-8")
+            )
+        except (OSError, ValueError) as exc:
+            logger.warning(
+                "artifact registry %s is unusable (%s); refusing to inherit "
+                "identity from it",
+                registry_path,
+                exc,
+            )
+            return None
+
+    def _accepted_artifact_payload(self, entry: RegistryEntry) -> Any | None:
+        """Read one accepted artifact's payload, with typed path containment.
+
+        ``RegistryEntry.path`` is workspace-relative, so it is validated with the
+        frozen ``ArtifactReference`` path rule and then re-checked against the
+        resolved workspace root. A registry that points outside the workspace is
+        refused, not followed.
+        """
+        try:
+            ArtifactReference.portable_workspace_path(entry.path)
+        except ValueError:
+            logger.warning("registry entry %r has a non-portable path", entry.path)
+            return None
+        try:
+            resolved = (self.workspace_dir / entry.path).resolve()
+            resolved.relative_to(self.workspace_dir)
+        except (OSError, ValueError):
+            logger.warning("registry entry %r escapes the workspace", entry.path)
+            return None
+        try:
+            return json.loads(resolved.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return None
+
     def _accepted_screening_parents(self) -> dict[str, dict[str, str]]:
         """Map each included ``study_id`` to the accepted artifact that bound it.
 
@@ -907,26 +948,16 @@ class ResearchOrchestrator:
         decision is simply absent from the result, and Stage 6 then refuses it
         rather than binding it to something that was never accepted.
         """
-        registry_path = self.workspace_dir / "audit" / "artifact_registry.json"
-        if not registry_path.is_file():
-            return {}
-
-        try:
-            registry = json.loads(registry_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        registry = self._load_artifact_registry()
+        if registry is None:
             return {}
 
         parents: dict[str, dict[str, str]] = {}
-        for artifact_id, entry in sorted((registry.get("artifacts") or {}).items()):
-            if entry.get("artifact_type") != "screening_decisions":
+        for artifact_id, entry in sorted(registry.artifacts.items()):
+            if entry.artifact_type != "screening_decisions":
                 continue
-            try:
-                payload = json.loads(
-                    (self.workspace_dir / str(entry["path"])).read_text(
-                        encoding="utf-8"
-                    )
-                )
-            except (OSError, KeyError, json.JSONDecodeError):
+            payload = self._accepted_artifact_payload(entry)
+            if not isinstance(payload, dict):
                 continue
             for decision in (payload.get("data") or {}).get("decisions") or []:
                 if str(decision.get("decision") or "").upper() != "INCLUDE":
@@ -936,10 +967,58 @@ class ResearchOrchestrator:
                     continue
                 parents[study_id] = {
                     "parent_artifact_id": artifact_id,
-                    "parent_artifact_sha256": str(entry.get("sha256") or ""),
+                    "parent_artifact_sha256": entry.sha256,
                     "decision_id": str(decision.get("decision_id") or ""),
                 }
         return parents
+
+    def _accepted_document_records(self) -> dict[str, dict[str, str]]:
+        """Map each accepted ``document_id`` to its recorded identity and path.
+
+        This is where Stage 6's document and study identity are *inherited* rather
+        than derived. Both limbs come from a ``DocumentRecord`` inside an accepted
+        ``document_manifest`` -- the frozen artifact that records them
+        (``contracts/schemas/v1/document-manifest.schema.json``, which requires
+        ``document_id``, ``study_id``, ``source_hash``, ``content_status``, and
+        ``extraction_method``, and requires an ``extracted_path`` for VALID/PARTIAL
+        content). The registry entry supplies the manifest's artifact id and its
+        accepted payload hash, so the parent binding is the accepted one.
+
+        A document with no accepted manifest record is simply absent, and Stage 6
+        refuses it. Nothing here derives a ``document_id`` from a filename, a
+        title, or a DOI, and ``workspace_id`` is never offered as a study: under
+        Contract v1 a workspace is not a study, and this method has no access to the
+        workspace limb at all.
+        """
+        registry = self._load_artifact_registry()
+        if registry is None:
+            return {}
+
+        records: dict[str, dict[str, str]] = {}
+        for artifact_id, entry in sorted(registry.artifacts.items()):
+            if entry.artifact_type != "document_manifest":
+                continue
+            payload = self._accepted_artifact_payload(entry)
+            if payload is None:
+                continue
+            try:
+                manifest = DocumentManifestArtifact.model_validate(payload)
+            except ValueError as exc:
+                logger.warning(
+                    "accepted document manifest %s is not a valid "
+                    "DocumentManifestArtifact: %s",
+                    artifact_id,
+                    exc,
+                )
+                continue
+            for record in manifest.data.documents:
+                records[record.document_id] = {
+                    "study_id": record.study_id,
+                    "extracted_path": record.extracted_path or "",
+                    "parent_artifact_id": artifact_id,
+                    "parent_artifact_sha256": entry.sha256,
+                }
+        return records
 
     def recorded_workspace_id(self) -> str:
         """Return the workspace identity recorded in ``project.json``.
@@ -981,8 +1060,8 @@ class ResearchOrchestrator:
             )
 
         try:
-            return validate_identifier(IdentifierKind.WORKSPACE, recorded.strip())
-        except (TypeError, ValueError) as exc:
+            return validate_registered_workspace_id(recorded)
+        except (TypeError, ValueError, RegisteredWorkspaceIdentityMissingError) as exc:
             raise RegisteredWorkspaceIdentityMissingError(
                 f"{manifest_path} records 'registered_workspace_id' "
                 f"({recorded!r}) which is not a registered workspace identity: "
@@ -995,65 +1074,85 @@ class ResearchOrchestrator:
         *,
         indexer: ScholarIndexer,
         workspace_id: str,
-        inc_docs: list[dict[str, Any]],
-        ext_dir: Path,
     ) -> dict[str, Any]:
         """Stage 6: index accepted documents behind an explicit typed request.
 
-        Each extracted document gets its own ``IndexDocumentRequest`` because the
-        six chunk-identity limbs describe one document: a shared request across a
-        whole directory would bind several different documents to a single
-        ``document_id`` and ``extracted_content_sha256``. Every limb is read from
-        real recorded state:
+        Each accepted document gets its own ``IndexDocumentRequest`` because the six
+        chunk-identity limbs describe one document: a shared request across a whole
+        directory would bind several different documents to a single ``document_id``
+        and ``extracted_content_sha256``. Every limb is read from real recorded
+        state:
 
         * ``workspace_id`` -- the registered identity recorded in ``project.json`` at
           inception (``recorded_workspace_id``), not the human project slug.
-        * ``study_id`` -- the included record's study identity, the same value the
-          accepted screening decision was recorded against.
-        * ``document_id`` -- the extracted file's own deterministic slug, fixed
-          when Stage 5 wrote ``extracted/<slug>.md``.
+        * ``study_id`` -- the accepted study identity recorded on the document's own
+          ``DocumentRecord``, and the same value the accepted screening decision was
+          recorded against. ``workspace_id`` is never substituted for it: a workspace
+          is not a study.
+        * ``document_id`` -- the identity the accepted ``document_manifest`` recorded
+          for that document. It is **not** the extracted filename stem, not the title,
+          and not the DOI.
+        * the extracted file's location -- the record's own ``extracted_path``, not a
+          slug-resolved guess.
         * ``parent_artifact_id`` / ``parent_artifact_sha256`` -- the accepted
-          ``screening_decisions`` artifact that admitted the study.
+          ``screening_decisions`` artifact that admitted the study, as bound by the
+          accepted ``document_manifest``.
         * ``extracted_content_sha256`` -- ``text_fingerprint`` of the exact text
           handed to the indexer.
         * ``backend_provider`` / ``collection`` -- the bound indexer's own backend
           and collection; the kit refuses a request that names another.
 
-        A document whose accepted parent is missing is recorded as refused and is
-        not indexed: no limb is ever invented to get past the refusal.
+        The iteration source is the accepted manifest, not ``literature/included.json``:
+        the manifest is the recorded artifact that states which documents exist and
+        what they are called, so a document that was never accepted cannot be indexed
+        just because a search record mentioned it.
+
+        A document with no accepted manifest record is recorded as refused and is not
+        indexed; so is one with no extracted file at its recorded path or no accepted
+        screening parent. No limb is ever invented to get past a refusal.
         """
         parents = self._accepted_screening_parents()
+        documents = self._accepted_document_records()
 
         indexed: list[dict[str, str]] = []
         refused: list[dict[str, str]] = []
         total_chunks = 0
 
-        for doc_item in inc_docs:
-            study_id = str(
-                doc_item.get("workspace_id") or doc_item.get("study_id") or ""
-            ).strip()
-            document_id = _study_slug(doc_item)
-            md_path = ext_dir / f"{document_id}.md"
-
+        for document_id, record in sorted(documents.items()):
+            study_id = record["study_id"].strip()
             if not study_id:
-                refused.append(
-                    {"document_id": document_id, "reason": "no recorded study identity"}
-                )
-                continue
-            if not md_path.is_file():
                 refused.append(
                     {
                         "document_id": document_id,
-                        "reason": "no extracted markdown for this study",
+                        "reason": (
+                            "the accepted document manifest records no study identity"
+                        ),
                     }
                 )
                 continue
+
+            extracted = record["extracted_path"]
+            md_path = (self.workspace_dir / extracted) if extracted else None
+            if md_path is None or not md_path.is_file():
+                refused.append(
+                    {
+                        "document_id": document_id,
+                        "reason": (
+                            "no extracted markdown at the recorded extracted_path "
+                            f"({extracted or 'none recorded'})"
+                        ),
+                    }
+                )
+                continue
+
             parent = parents.get(study_id)
             if parent is None:
                 refused.append(
                     {
                         "document_id": document_id,
-                        "reason": "no accepted screening parent binds this study",
+                        "reason": (
+                            f"no accepted screening parent binds study {study_id!r}"
+                        ),
                     }
                 )
                 continue
@@ -1082,8 +1181,20 @@ class ResearchOrchestrator:
                 }
             )
 
+        # Canonical OperationStatus vocabulary, not an ad-hoc stage word: this
+        # value is written to the audit ledger, which has a fixed enum. A run that
+        # indexed some documents but refused others is PARTIAL, and a run that
+        # indexed none because every document was refused is FAILED -- never a
+        # SUCCESS over an empty store.
+        if indexed and refused:
+            stage_status = "PARTIAL"
+        elif indexed:
+            stage_status = "SUCCESS"
+        else:
+            stage_status = "FAILED"
+
         return {
-            "status": "DONE" if indexed else "REFUSED",
+            "status": stage_status,
             "indexed_files": len(indexed),
             "total_chunks": total_chunks,
             # Only meaningful once this stage has written to the store: None says
@@ -1093,6 +1204,56 @@ class ResearchOrchestrator:
             "refused": refused,
         }
 
+    def _run_indexing_stage(self, chroma_dir: Path) -> tuple[dict[str, Any], Any]:
+        """Stage 6: bind each accepted document to a typed identity, then index it.
+
+        This is its own method rather than an inline block so the ordering guarantee
+        below is exercised directly by the Stage 6 tests instead of only
+        transitively through a nine-stage run.
+
+        The registered workspace identity is acquired and validated BEFORE any store
+        exists: ``ScholarIndexer`` creates its Chroma directory on construction, so
+        validating afterwards would leave ``rag/chroma_db/`` behind on a refusal --
+        a failed run that looks like it touched the store.
+
+        Document and study identity are inherited inside
+        ``_index_accepted_documents`` from the accepted ``document_manifest``; the
+        workspace limb comes from ``project.json``. Nothing here is derived from a
+        slug, a filename, a title, or a DOI, and a value is never minted at use time.
+        """
+        workspace_id = self.recorded_workspace_id()
+        indexer = ScholarIndexer(db_path=str(chroma_dir))
+        index_res = self._index_accepted_documents(
+            indexer=indexer,
+            workspace_id=workspace_id,
+        )
+        self._log_audit_event(
+            action="RAG_INDEX_BUILT",
+            agent="scholar-harness",
+            description=(
+                f"Indexed {index_res['indexed_files']} accepted document(s) with identity "
+                f"inherited from the accepted document manifest; "
+                f"{len(index_res['refused'])} refused: "
+                + "; ".join(
+                    f"{r['document_id']}: {r['reason']}" for r in index_res["refused"]
+                )
+            ),
+            status=index_res["status"],
+            # The inputs of record are the accepted artifacts identity came from,
+            # not ``included.json``: this stage no longer reads the latter.
+            inputs=[str(self.workspace_dir / "audit" / "artifact_registry.json")],
+            outputs=[str(chroma_dir)],
+            metrics={
+                "indexed_files": index_res["indexed_files"],
+                "total_chunks": index_res["total_chunks"],
+                "refused_documents": len(index_res["refused"]),
+            },
+        )
+        # The indexer is returned, not just its result: Stage 7 binds its retriever
+        # to the SAME backend kwargs and collection, and re-deriving them would let
+        # the two stages address different embeddings.
+        return index_res, indexer
+
     def _log_audit_event(
         self,
         action: str,
@@ -1101,8 +1262,15 @@ class ResearchOrchestrator:
         inputs: list[str],
         outputs: list[str],
         metrics: dict[str, Any],
+        status: str = "SUCCESS",
     ) -> None:
-        """Appends an event to audit/journal.jsonl."""
+        """Appends an event to audit/journal.jsonl.
+
+        ``status`` is the outcome the caller actually observed, not a constant.
+        A stage that indexed nothing because every document was refused must not
+        write ``SUCCESS``: the ledger is the record of what happened, and a green
+        event over an empty run is how a refusal gets mistaken for progress.
+        """
         audit_file = self.workspace_dir / "audit" / "journal.jsonl"
         audit_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -1116,7 +1284,7 @@ class ResearchOrchestrator:
             "inputs": inputs,
             "outputs": outputs,
             "metrics": metrics,
-            "status": "SUCCESS",
+            "status": status,
         }
 
         with open(audit_file, "a", encoding="utf-8") as f:

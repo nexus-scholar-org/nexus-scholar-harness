@@ -1555,8 +1555,15 @@ def test_e2_neg_020_e2_does_not_broaden_the_e1_acquisition_declaration() -> None
     ``nexus-scholar-org/scholar-rag-kit``; ``mcp_supported: false``; see
     ``docs/architecture/wp01_packet_e3_implementation_handoff.md``). That third
     entry is a separate E3 declaration for a different domain service, not a
-    broadening of ``pdf_acquisition`` or ``pdf_extraction``: the two E1/E2 rows
-    below are asserted unchanged, limb by limb.
+    broadening of ``pdf_acquisition`` or ``pdf_extraction``.
+
+    What THIS test asserts is narrower than "both rows are unchanged": it asserts the
+    three-member keyset, and then E1's acquisition declaration and its rejection
+    envelope limb by limb (the assertions that follow). E2's extraction row is
+    covered by the immutability test above, which snapshots and re-checks
+    ``PDF_EXTRACTION_DECLARATION`` and its deterministic envelope -- deliberately a
+    separate test, so an E3 change to one declaration cannot mask a change to the
+    other. Neither row is claimed here beyond the limbs actually checked.
     """
 
     assert set(caps.CAPABILITIES) == {
