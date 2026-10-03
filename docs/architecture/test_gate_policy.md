@@ -26,6 +26,34 @@ Documentation-only revisions run prose/link checks, drift checks required by
 their governing packet, and `git diff --check`. They do not invalidate a full
 suite result for the same executable tree.
 
+## Delivery lanes and review cadence
+
+Every task packet must declare one delivery lane before implementation starts.
+The lane selects the minimum review cadence; it never waives a gate made
+necessary by the actual changed surface.
+
+Every active task also requires the context capsule defined in
+`docs/architecture/agent_context_protocol.md`. Gate selection uses the capsule's
+current commit, changed paths, and evidence record; a repair round reads its
+delta rather than replaying the complete task history.
+
+| Lane | Use for | Minimum evidence and review cadence |
+|---|---|---|
+| `FAST` | Documentation, isolated UI, test-only corrections, and local refactors with no public or persisted semantic change | `inner` evidence, one scoped review, and a repair-delta check. No owner-repository full suite unless the changed path or a failed gate requires it. |
+| `STANDARD` | A bounded behavior, packaging, or dependency change owned by one repository | `inner` and `checkpoint` evidence while editing; the owning repository's full suite once for the final PR candidate; one broad review and, if repaired, one review limited to the original findings and repair delta. |
+| `RELEASE` | Contract semantics; artifact identity or persistence; public API, CLI, or MCP semantics; cross-kit compatibility; pins, vendors, or acceptance publication | The applicable `pr` and `closure` evidence, independent review/tester where the governing packet requires them, and cross-repository checks. |
+
+Escalate a task to `RELEASE` immediately when its actual diff changes Contract
+v1 semantics, an authoritative artifact's identity or publication behavior, a
+public API/CLI/MCP contract, or a cross-kit compatibility boundary. A declared
+lane may not be used to avoid that escalation.
+
+After the first broad review, repairs must be bounded to accepted findings.
+New unrelated P3 observations become follow-up tasks. A new broad review is
+required only when a repair expands scope, changes a public/persisted boundary,
+or invalidates recorded evidence. This preserves adversarial review while
+preventing unrelated polish from repeatedly reopening an otherwise-ready PR.
+
 ## Evidence reuse
 
 A test result may be reused by a coder, reviewer, or tester when all of these
@@ -73,6 +101,10 @@ is an error, not permission to skip testing.
 - `T-110`: isolated install/import and wheel checks in both affected kits.
 - `T-120` through `T-150`: focused harness conformance during development;
   full harness, pins, vendoring, wheel, and CI matrix at closure.
+
+For the current sequence, `T-110` is `STANDARD`; `T-120` and `T-130` are
+`RELEASE`. Documentation, test-only, and isolated UI work that does not change
+the above semantic boundaries normally uses `FAST`.
 
 The full suite must still be rerun after any executable repair made following a
 failed PR gate. Cross-platform repetition belongs to CI unless the failure is
