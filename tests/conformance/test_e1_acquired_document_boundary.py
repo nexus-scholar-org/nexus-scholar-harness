@@ -71,7 +71,7 @@ SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
 # file; the cross-check against plugins.json below is what makes the two facts
 # agree, so neither can drift alone.
 E1_KITS: tuple[tuple[str, str], ...] = (
-    ("scholar-pdf-kit", "0430ee40c491edbb055af4ab068637275aada476"),
+    ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
     ("scholar-agent-kit", "deebfad995ba88bbd748be9beddd1aa2b8a51264"),
 )
 
@@ -263,8 +263,8 @@ def test_pdf_kit_vendoring_has_no_exclusions():
     """The pdf-kit snapshot is complete: every canonical path is vendored."""
 
     pdf_paths = set(_fixture_rows(_fixture("scholar-pdf-kit")))
-    assert len(pdf_paths) == 46, (
-        f"expected 46 vendored pdf-kit paths, got {len(pdf_paths)}"
+    assert len(pdf_paths) == 47, (
+        f"expected 47 vendored pdf-kit paths, got {len(pdf_paths)}"
     )
     for required in (
         "tools/scholar-pdf-kit/src/scholar_pdf/acquisition.py",
