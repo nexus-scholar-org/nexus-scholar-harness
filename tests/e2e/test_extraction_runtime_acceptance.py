@@ -1581,23 +1581,27 @@ def _workspace_dir(root: Path, name: str) -> Path:
     return target
 
 
-def _script(args: list[str]) -> tuple[int, str]:
-    """Run the standalone script exactly as an operator would."""
+def _script(args: list[str], *, env: dict[str, str] | None = None) -> tuple[int, str]:
+    """Run the standalone script exactly as an operator would.
+
+    The environment is inherited and only ``NO_COLOR``/``TERM`` are pinned, so the
+    subprocess sees a real, working environment. An earlier hand-rolled allowlist of four
+    variables looked hermetic but silently broke any case that reached Stage 6, which is
+    the opposite of hermetic -- a stripped environment fails for unrelated reasons.
+    ``env`` adds per-case overrides (the embedder shim) on top of that.
+    """
 
     import subprocess
+
+    child_env = {**os.environ, "NO_COLOR": "1", "TERM": "dumb", **(env or {})}
+    child_env.pop("FORCE_COLOR", None)
 
     completed = subprocess.run(
         ["uv", "run", "python", str(AGENT_EXTRACT), *args],
         capture_output=True,
         text=True,
         check=False,
-        env={
-            "NO_COLOR": "1",
-            "TERM": "dumb",
-            "PATH": os.environ["PATH"],
-            "SYSTEMROOT": os.environ["SYSTEMROOT"],
-            "VIRTUAL_ENV": os.environ.get("VIRTUAL_ENV", ""),
-        },
+        env=child_env,
     )
     return completed.returncode, completed.stdout
 
@@ -1644,8 +1648,9 @@ def test_script_index_json_parses_on_success_and_refusal(
 ) -> None:
     """``main()`` in-process so the stubbed indexer keeps Stage 6 hermetic.
 
-    The wire format is the property under test; the indexing *outcome* is covered by
-    the producer-level tests, and a real Stage 6 here would need a live embedder.
+    The same two cases are also driven through a *real* subprocess further down, with the
+    rag kit's deterministic ``mock`` embedder injected, so this in-process pair is the
+    fast duplicate rather than the only evidence.
     """
 
     from scholar_harness import agent_extract
@@ -1668,6 +1673,179 @@ def test_script_index_json_parses_on_success_and_refusal(
     assert indexed["indexed_files"] == 1
 
 
+def _mock_embedder_dir(root: Path) -> Path:
+    """Force the rag kit's deterministic ``mock`` embedder inside a real subprocess.
+
+    Stage 6's default provider is ``sentence-transformers``, which downloads
+    ``all-MiniLM-L6-v2`` on a cold cache, so a subprocess success case would otherwise be
+    a network test. ``scholar_rag.embedder.get_embedder`` documents ``mock`` as the
+    provider "for unit tests / CI without GPU/downloads", and :class:`CapturingIndexer`
+    already binds that provider for the in-process cases -- so this shim makes the
+    subprocess cases hermetic in exactly the way the file already does.
+
+    It works by patching the module attribute *before* ``scholar_rag.indexer`` is
+    imported, because ``indexer.py`` binds ``get_embedder`` with a module-level
+    ``from ... import``. A ``sitecustomize`` on ``PYTHONPATH`` is the only injection point
+    that runs early enough without touching the kits or ``orchestrator.py``, and the venv
+    ships no ``sitecustomize`` of its own to shadow.
+    """
+
+    shim = root / "mock_embedder_shim"
+    shim.mkdir(parents=True, exist_ok=True)
+    (shim / "sitecustomize.py").write_text(
+        "import os\n"
+        "\n"
+        "if os.environ.get('SCHOLAR_RAG_EMBEDDER_PROVIDER') == 'mock':\n"
+        "    import scholar_rag.embedder as _embedder\n"
+        "\n"
+        "    _real = _embedder.get_embedder\n"
+        "\n"
+        "    def _mocked(provider='mock', model_name=None, api_key=None):\n"
+        "        return _real('mock')\n"
+        "\n"
+        "    _embedder.get_embedder = _mocked\n",
+        encoding="utf-8",
+    )
+    return shim
+
+
+def _offline_embedder_env(shim: Path) -> dict[str, str]:
+    """``PYTHONPATH`` for the shim, with the HF hubs pinned offline to prove no download."""
+
+    return {
+        "SCHOLAR_RAG_EMBEDDER_PROVIDER": "mock",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "PYTHONPATH": os.pathsep.join(
+            [
+                str(shim),
+                *([os.environ["PYTHONPATH"]] if os.environ.get("PYTHONPATH") else []),
+            ]
+        ),
+    }
+
+
+def _script_json(
+    args: list[str], **env_overrides: str
+) -> tuple[int, dict[str, Any], str]:
+    """Run the script with ``--json`` and return (exit code, parsed document, stdout)."""
+
+    code, stdout = _script([*args, "--json"], env=env_overrides)
+    assert "\x1b[" not in stdout, f"ANSI in --json output: {stdout!r}"
+    # A single document, asserted by parsing the whole stream: a banner before it, or a
+    # second body after it, both fail here rather than degrading to a substring match.
+    return code, json.loads(stdout), stdout
+
+
+def test_script_index_json_refusal_in_a_real_subprocess(tmp_path: Path) -> None:
+    """Standalone ``index --json`` with no accepted manifest: one document, exit 1.
+
+    The preflight refuses before Stage 6 is constructed, so this case runs no embedder at
+    all and needs no stub -- it is hermetic as written.
+    """
+
+    workspace = _extracted_state(tmp_path)["workspace"]
+
+    code, payload, _ = _script_json(["index", str(workspace)])
+
+    assert code == 1
+    # The script's own envelope, not the cli.py ``stage6_refused`` shape: the two entry
+    # points disagree here on purpose and that divergence is out of scope.
+    assert payload["indexing_refused"]["code"] == "DOCUMENT_MANIFEST_NOT_ACCEPTED"
+    assert payload["indexing_refused"]["message"]
+    assert not (workspace / "rag" / "chroma_db").exists()
+
+
+def test_script_index_json_success_in_a_real_subprocess(tmp_path: Path) -> None:
+    """Standalone ``index --json`` after a real publish: one document, exit 0."""
+
+    workspace = _extracted_state(tmp_path)["workspace"]
+    offline = _offline_embedder_env(_mock_embedder_dir(tmp_path))
+
+    code, published, _ = _script_json(["publish", str(workspace)], **offline)
+    assert code == 0
+    assert published["publication"]["accepted"] is True
+
+    code, indexed, _ = _script_json(["index", str(workspace)], **offline)
+
+    assert code == 0
+    assert indexed["status"] == OperationStatus.SUCCESS.value
+    assert indexed["indexed_files"] >= 1
+    assert indexed["refused"] == []
+    # Every identity limb Stage 6 bound is present and non-empty. Which artifact the
+    # parent resolves to is scientific-lineage territory test_a1 already owns, so this
+    # asserts the shape of the parsed document rather than restating that claim.
+    document = indexed["documents"][0]
+    assert all(
+        isinstance(document[limb], str) and document[limb]
+        for limb in (
+            "document_id",
+            "study_id",
+            "parent_artifact_id",
+            "screening_decision_id",
+        )
+    ), document
+    assert (workspace / "rag" / "chroma_db").exists()
+
+
+def test_script_index_json_zero_indexed_exits_one_in_a_real_subprocess(
+    tmp_path: Path,
+) -> None:
+    """A run that indexed nothing must not exit 0, on the real script path too."""
+
+    workspace = _extracted_state(tmp_path)["workspace"]
+    offline = _offline_embedder_env(_mock_embedder_dir(tmp_path))
+
+    assert _script_json(["publish", str(workspace)], **offline)[0] == 0
+    _delete_extracted_output(workspace)
+
+    code, payload, _ = _script_json(["index", str(workspace)], **offline)
+
+    assert code == 1
+    assert payload["status"] == OperationStatus.FAILED.value
+    assert payload["indexed_files"] == 0
+
+
+def test_script_status_json_identity_refusal_in_a_real_subprocess(
+    tmp_path: Path,
+) -> None:
+    """``WORKSPACE_IDENTITY_NOT_RECORDED`` asserted through the script, not just the cli.
+
+    Cheap and hermetic: ``status`` only reads recorded state, so it refuses without
+    running the gate or touching an embedder.
+    """
+
+    workspace = _extracted_state(tmp_path)["workspace"]
+    _unregister_identity(workspace)
+
+    code, payload, _ = _script_json(["status", str(workspace)])
+
+    assert code == 0  # status reports, it does not gate
+    assert payload["ready_to_publish"] is False
+    assert payload["recordings"]["refusal"]["code"] == (
+        "WORKSPACE_IDENTITY_NOT_RECORDED"
+    )
+    assert payload["recordings"]["refusal"]["message"]
+
+
+def test_cli_index_json_zero_indexed_exits_one(
+    tmp_path: Path, indexer: CapturingIndexer
+) -> None:
+    """The cli half of the same rule: a FAILED run is reported as FAILED, and exits 1."""
+
+    state = _extracted_state(tmp_path)
+    workspace = state["workspace"]
+    assert _invoke(["publish", str(workspace)]).exit_code == 0
+    _delete_extracted_output(workspace)
+
+    result = _invoke(["index", str(workspace), "--json"])
+    payload = _assert_parses(result)
+
+    assert result.exit_code == 1
+    assert payload["status"] == OperationStatus.FAILED.value
+    assert payload["indexed_files"] == 0
+    # Not a typed refusal: this run reported an outcome, it did not decline to start.
+    assert "stage6_refused" not in payload
 def _temp_leftovers(workspace: Path) -> list[str]:
     """Any temp file the producer left behind, anywhere under the workspace."""
 
