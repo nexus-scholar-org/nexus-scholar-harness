@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -276,6 +277,177 @@ def log_sync_index_command(
 
 
 app.add_typer(log_app, name="log")
+
+
+extract_app = typer.Typer(
+    name="extract",
+    help=(
+        "Publish the Contract v1 document manifest for a workspace's real Stage 5 "
+        "extraction output and hand it to Stage 6 (runtime acceptance adoption)."
+    ),
+    add_completion=False,
+    no_args_is_help=True,
+)
+
+
+def _extract_workspace(value: str) -> Path:
+    return Path(value).resolve()
+
+
+def _emit_json(payload: dict) -> None:
+    """Write one machine-readable JSON document to stdout, and nothing else.
+
+    ``--json`` is a wire format, so it must not be rendered through the shared
+    ``console``: that one is built with ``force_terminal=True`` for the human tables,
+    which makes Rich emit ANSI regardless of TTY, ``NO_COLOR`` or ``TERM=dumb`` and
+    turns a human refusal banner into unparseable output. Plain ``print`` is what
+    ``doctor.render`` already does for its own ``--json``, and the two surfaces now
+    behave identically. ``sort_keys`` keeps the output diffable across runs.
+
+    Callers must emit this *instead of* the human block, never alongside it.
+    """
+
+    print(
+        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False, default=str)
+    )
+
+
+@extract_app.command("status")
+def extract_status(
+    workspace: str = typer.Argument(..., help="Workspace directory path"),
+    as_json: bool = typer.Option(False, "--json", help="Emit machine-readable JSON"),
+):
+    """Report what is recorded for extraction publication; publish nothing."""
+    from .extraction_producer import publication_status
+
+    report = publication_status(_extract_workspace(workspace))
+    if as_json:
+        _emit_json(report)
+        return
+    recordings = report.get("recordings") or {}
+    refusal = recordings.get("refusal")
+    if refusal:
+        console.print(
+            f"[bold yellow]Not ready to publish: {refusal['code']}[/bold yellow]"
+        )
+        console.print(f"[dim]{refusal['message']}[/dim]")
+    else:
+        console.print(
+            f"[bold green]Ready to publish[/bold green] "
+            f"workspace={recordings['workspace_id']} "
+            f"run={recordings['screening_run_id']} "
+            f"accepted_manifests={recordings['document_manifests'] or 'none'}"
+        )
+    console.print(f"extracted files: {len(report['extracted_files'])}")
+
+
+@extract_app.command("publish")
+def extract_publish(
+    workspace: str = typer.Argument(..., help="Workspace directory path"),
+    index: bool = typer.Option(
+        False, "--index", help="Run Stage 6 over the accepted manifest afterwards"
+    ),
+    as_json: bool = typer.Option(False, "--json", help="Emit machine-readable JSON"),
+):
+    """Publish the accepted document manifest through the frozen acceptance gate."""
+    from .extraction_producer import publish_document_manifest
+
+    outcome = publish_document_manifest(_extract_workspace(workspace))
+    payload: dict = {"publication": outcome.as_dict()}
+    exit_code = 0 if outcome.accepted else 1
+    if index:
+        if outcome.accepted:
+            indexing, exit_code = _extract_index(workspace, exit_code)
+            payload["indexing"] = indexing
+        else:
+            # Nothing was accepted, so there is nothing to index. Running Stage 6 here
+            # would only record a refusal over an empty run.
+            payload["indexing"] = {"skipped": "no accepted document manifest"}
+
+    if as_json:
+        # One document, and only that: a second JSON body on stdout would make the
+        # whole stream unparseable just as surely as a human banner would.
+        _emit_json(payload)
+    else:
+        if outcome.accepted:
+            console.print(
+                f"[bold green]Published {outcome.documents} document record(s)[/bold green] "
+                f"{outcome.artifact_id} -> {outcome.published_path}"
+                + (" (idempotent replay)" if outcome.idempotent else "")
+            )
+            if outcome.record_path:
+                console.print(f"provenance record: {outcome.record_path}")
+        else:
+            refusal = outcome.refusal or {}
+            console.print(
+                f"[bold red]Refused ({outcome.status}): {refusal.get('code')}[/bold red]"
+            )
+            console.print(f"[dim]{refusal.get('message')}[/dim]")
+        if index:
+            _print_index(payload.get("indexing") or {})
+    if exit_code:
+        raise typer.Exit(exit_code)
+
+
+@extract_app.command("index")
+def extract_index(
+    workspace: str = typer.Argument(..., help="Workspace directory path"),
+    as_json: bool = typer.Option(False, "--json", help="Emit machine-readable JSON"),
+):
+    """Run Stage 6 over the already-accepted document manifest."""
+    result, exit_code = _extract_index(workspace, 0)
+    if as_json:
+        _emit_json(result)
+    else:
+        _print_index(result)
+    if exit_code:
+        raise typer.Exit(exit_code)
+
+
+def _extract_index(workspace: str, exit_code: int) -> tuple[dict, int]:
+    """Run Stage 6 and return its JSON result plus the process exit code.
+
+    Both ``extract index`` and ``extract publish --index`` need this, and both must
+    agree: the typed refusal is returned as data rather than raised past the caller, so
+    a refusal is rendered (or serialized) by the one code path that owns the format.
+    """
+
+    from .extraction_producer import PublicationRefused, index_accepted_documents
+
+    try:
+        result = index_accepted_documents(_extract_workspace(workspace))
+    except PublicationRefused as refusal:
+        # ``stage6_refused`` rather than ``refused``: a *successful* Stage 6 result
+        # already carries a ``refused`` list of rejected documents, and reusing that
+        # name for the refusal case would make the two shapes indistinguishable.
+        result = {"stage6_refused": True, "status": "FAILED", **refusal.as_dict()}
+        exit_code = exit_code or 1
+    else:
+        if result.get("indexed_files", 0) == 0:
+            exit_code = exit_code or 1
+    return result, exit_code
+
+
+def _print_index(result: dict) -> None:
+    """Render one Stage 6 result as the human block, unchanged in wording and order."""
+
+    if result.get("stage6_refused"):
+        console.print(f"[bold red]Stage 6 refused: {result['code']}[/bold red]")
+        console.print(f"[dim]{result['message']}[/dim]")
+        return
+    if result.get("skipped"):
+        # ``publish --index`` on a refused publication: previously the command exited
+        # before indexing, so the human block said nothing about Stage 6. It stays
+        # silent here for that reason; the reason itself is still in the JSON payload.
+        return
+    console.print(
+        f"[bold green]Stage 6 {result['status']}[/bold green]: indexed "
+        f"{result['indexed_files']} document(s), {result['total_chunks']} chunk(s), "
+        f"{len(result['refused'])} refused"
+    )
+
+
+app.add_typer(extract_app, name="extract")
 
 
 @app.command("supervise")
