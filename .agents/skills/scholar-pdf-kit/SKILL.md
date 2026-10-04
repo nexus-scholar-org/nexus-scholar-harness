@@ -115,6 +115,65 @@ Conformance: `tests/conformance/test_e2_extraction_boundary.py`.
 
 ---
 
+## Runtime acceptance of the E2 output (harness, E2-RUNTIME-ACCEPTANCE-ADOPTION)
+
+The kit publishes a **non-authoritative candidate**; the harness producer is what turns
+committed Stage 5 output into an accepted Contract v1 `document_manifest` that Stage 6
+actually consumes. It adds no second gate — it hands the candidate to the frozen adapter
+`scholar_harness.extraction_adapter.accept_extraction_candidate`, which owns acceptance,
+the registry entry, the published path, the rejection record, and idempotency.
+
+**CLI:** `uv run scholar-harness extract <status|publish|index> <workspace>` (also
+`python src/scholar_harness/agent_extract.py ...`).
+
+- **Trusted context, never the candidate.** The `AcceptanceContext` limbs are derived
+  from *recorded state only*: `project.json` → `registered_workspace_id` (a
+  `WSP-<32 hex>` minted at inception — the project slug is a label, never an identity),
+  `protocol.json` → `scholar_protocol` canonical fingerprint, and the accepted
+  `corpus_snapshot` → `corpus_fingerprint`. That context travels on the candidate as
+  `Candidate.context` and is handed to the gate as `expected=`; it is never rebuilt from
+  the candidate payload, because a payload-derived expectation always agrees with the
+  payload it is checking. A candidate limb that disagrees is refused by the gate.
+- **Scientific lineage.** Every included study must resolve to an accepted
+  `screening_decisions` artifact carrying its `INCLUDE` decision, and the accepted
+  screening run must match the corpus generation. A study admitted by an amended
+  protocol, or by a screening decision that never included it, is refused.
+- **Fail-closed refusals.** Legacy `Extracted content from …` stubs, bodies under the
+  200-character usability threshold, unreadable frontmatter, a file whose frontmatter
+  claims another study or DOI, a missing or unusable accepted generation, a registry
+  path that is not workspace-relative, a study PDF whose link resolves outside the
+  workspace, and provider/indexer failure are all typed refusals or `FAILED` — never an
+  empty success, and never a fabricated registry entry.
+- **CRLF on Windows.** The kit's frontmatter grammar is LF-only, and Stage 5 on Windows
+  commits CRLF. The producer normalizes to LF before parsing and records both the
+  on-disk and normalized-body hashes plus `line_endings_normalized: true`.
+- **Skips are disclosed, never silent.** A *registered* artifact that cannot be used is
+  not refused — passing it over is correct — but it is also never invisible. Skipped
+  artifact ids and reasons (`OTHER_GENERATION`, `ACCEPTED_ARTIFACT_UNREADABLE`,
+  `CORPUS_SNAPSHOT_INVALID`, …) appear in `skipped_registry_entries` on the outcome, in
+  the publication record, in the `DOCUMENT_MANIFEST_PUBLISHED` event parameters, and in
+  `extract status`. A corrupt entry from an older generation is then visible as an entry
+  that existed, rather than looking like one that never did.
+- **A refusal after acceptance does not un-accept it.** The frozen `DocumentRecord` has
+  no body field, so an edited body yields the *same* `artifact_id`; republishing it would
+  report an idempotent replay over bytes that were never accepted and overwrite the
+  record. That is refused with `STALE_EXTRACTED_BODY`, leaving the accepted manifest and
+  its record byte-identical. An unchanged body still replays idempotently.
+- **Provenance is harness-owned.** The publication record lives at
+  `literature/extraction_publications/<ART-…>.json` with per-document source kind/hash,
+  extraction method, and the registered parent. It is **not** the kit's
+  `pdf-extraction-manifest-v1` sidecar and is never presented as one.
+- **Indexing is an observation, not a claim.** `extract index` hands *accepted*
+  documents to `ScholarIndexer` and records what actually happened; indexing zero
+  documents is `FAILED`, and Stage 6 re-reads the accepted manifest rather than the
+  provenance record. It also refuses with `DOCUMENT_MANIFEST_NOT_ACCEPTED` **before**
+  constructing Stage 6, so a workspace that has never published gets no
+  `rag/chroma_db` directory and no embedding-model download.
+
+Acceptance evidence: `tests/e2e/test_extraction_runtime_acceptance.py`.
+
+---
+
 ## Quick CLI Cheat-Sheet
 
 All commands should be executed via `uv run`:
@@ -164,6 +223,15 @@ uv run scholar-pdf acquire workspaces/<project-slug>/acquisition_run.json \
 #    (scholar_harness.extraction_adapter.accept_extraction_candidate) can accept it.
 uv run scholar-pdf extract-run workspaces/<project-slug>/extraction_run.json \
   --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
+
+# 8. Harness runtime acceptance of the E2 output (E2-RUNTIME-ACCEPTANCE-ADOPTION)
+#    Accepts the Stage 5 committed extraction through the FROZEN adapter and
+#    publishes the Contract v1 document_manifest Stage 6 consumes. Fail-closed:
+#    a stub, a short body, a mismatched frontmatter, or a missing accepted
+#    screening parent refuses and publishes nothing.
+uv run scholar-harness extract status  workspaces/<project-slug>
+uv run scholar-harness extract publish workspaces/<project-slug> --index
+uv run scholar-harness extract index  workspaces/<project-slug>
 ```
 
 ---
