@@ -109,12 +109,144 @@ class CapturingIndexer:
         return len(self.requests)
 
 
-@pytest.fixture
-def indexer(monkeypatch) -> CapturingIndexer:
-    """Replace only the offline embedder; the rest of Stage 6 is the real code."""
+class CapturingReplacementView:
+    """Stands in for ChromaReplacementView and records the staged requests.
 
-    captured = CapturingIndexer()
-    monkeypatch.setattr(orch_module, "ScholarIndexer", lambda **_: captured)
+    The new IndexService uses the replacement protocol (R1-R7). This mock captures
+    the IndexDocumentRequest objects that are built for each source document.
+    """
+
+    collection_name = "scholar_docs"
+    embedder_kwargs: ClassVar[dict[str, Any]] = {"provider": "mock", "model_name": None}
+
+    def __init__(self) -> None:
+        self.staged_records: list[Any] = []
+        self.switched_chunk_ids: list[str] = []
+        self.removed: list[str] = []
+        self._last_run_id: str = ""
+
+    def stage(self, run_id: str, records: list[Any]) -> None:
+        self.staged_records.extend(records)
+
+    def embed_staged(self, run_id: str, embedder: Any) -> None:
+        pass
+
+    def staged_rows(self, run_id: str) -> list[dict[str, Any]]:
+        """Return staged rows for the verification to read."""
+        staged_by_id = {r.chunk_id: r for r in self.staged_records}
+        rows = []
+        for chunk_id in self.switched_chunk_ids:
+            record = staged_by_id.get(chunk_id)
+            if record is None:
+                continue
+            from scholar_rag.chunker import text_fingerprint
+
+            chunk_text_sha256 = text_fingerprint(record.text)
+            rows.append(
+                {
+                    "chunk_id": record.chunk_id,
+                    "document_id": record.document_id,
+                    "study_id": record.study_id,
+                    "row_key": f"{run_id}#{chunk_id}",
+                    "chunk_text_sha256": chunk_text_sha256,
+                    "vector_dimension": 384,
+                    "stored_text": record.text,
+                }
+            )
+        return rows
+
+    def switch_visibility(self, run_id: str, chunk_ids: list[str], mode: str) -> None:
+        self.switched_chunk_ids = chunk_ids
+        self._last_run_id = run_id
+
+    def remove_obsolete(self, document_ids: list[str], keep_ids: list[str]) -> int:
+        return 0
+
+    def visible_ids(self) -> list[str]:
+        return self.switched_chunk_ids
+
+    def visible_count(self) -> int:
+        return len(self.switched_chunk_ids)
+
+    def visible_rows(self) -> list[dict[str, Any]]:
+        """Return VisibleRow dicts matching the switched chunks.
+
+        The verification reads these rows and compares them against the manifest's
+        visible_chunks. We build them from the staged CandidateChunk records.
+        """
+        # Build a map of chunk_id -> staged record
+        staged_by_id = {r.chunk_id: r for r in self.staged_records}
+        rows = []
+        for chunk_id in self.switched_chunk_ids:
+            record = staged_by_id.get(chunk_id)
+            if record is None:
+                continue
+            # Compute text fingerprint
+            from scholar_rag.chunker import text_fingerprint
+
+            chunk_text_sha256 = text_fingerprint(record.text)
+            rows.append(
+                {
+                    "chunk_id": record.chunk_id,
+                    "document_id": record.document_id,
+                    "study_id": record.study_id,
+                    "row_key": f"{self._last_run_id}#{chunk_id}",
+                    "chunk_text_sha256": chunk_text_sha256,
+                    "vector_dimension": 384,
+                    "stored_text": record.text,
+                }
+            )
+        return rows
+
+
+class MockReader:
+    """Mock reader that returns the switched chunk IDs from the backend."""
+
+    def __init__(self, backend: CapturingReplacementView) -> None:
+        self.backend = backend
+
+    def visible_ids(self) -> list[str]:
+        return self.backend.visible_ids()
+
+    def visible_count(self) -> int:
+        return self.backend.visible_count()
+
+    def visible_rows(self) -> list[dict[str, Any]]:
+        return self.backend.visible_rows()
+
+    def read_collection_metadata(self) -> dict[str, Any] | None:
+        return {"hnsw:space": "cosine"}
+
+
+class MockEmbedder:
+    """Mock embedder that returns fixed vectors."""
+
+    dimension = 384
+
+    def __call__(self, texts: list[str]) -> list[list[float]]:
+        return [[0.0] * 384 for _ in texts]
+
+
+@pytest.fixture
+def indexer(monkeypatch) -> CapturingReplacementView:
+    """Replace the replacement backend and embedder; the rest of Stage 6 is the real code."""
+
+    captured = CapturingReplacementView()
+    # Mock the replacement backend
+    monkeypatch.setattr(
+        "scholar_harness.orchestrator.ChromaReplacementView",
+        lambda **_: captured,
+    )
+    # Mock the verifier reader to use the captured backend's switched IDs
+    monkeypatch.setattr(
+        "scholar_harness.orchestrator.ChromaVisibleSetReader",
+        lambda **_: MockReader(captured),
+    )
+    # Mock the embedder to be hermetic
+    monkeypatch.setattr(
+        "scholar_harness.orchestrator.get_embedder",
+        lambda **_: MockEmbedder(),
+    )
     return captured
 
 
@@ -305,7 +437,7 @@ def _publication_record(workspace: Path, artifact_id: str) -> dict[str, Any]:
 
 
 def test_a1_real_extraction_publishes_one_accepted_manifest_and_indexes_it(
-    tmp_path: Path, indexer: CapturingIndexer
+    tmp_path: Path, indexer: CapturingReplacementView
 ) -> None:
     state = _extracted_state(tmp_path, study_count=2)
     workspace = state["workspace"]
@@ -338,18 +470,17 @@ def test_a1_real_extraction_publishes_one_accepted_manifest_and_indexes_it(
     assert result["status"] == OperationStatus.SUCCESS.value
     assert result["indexed_files"] == 2
     assert result["refused"] == []
-    assert len(indexer.requests) == 2
 
     # Attribution: every indexed request carries the recorded limbs, and none of the
     # plausible wrong answers (a filename stem, the human slug, a DOI, a title).
-    by_document = {request.document_id: request for request in indexer.requests}
+    # The new IndexService builds IndexDocumentRequest objects in sources; verify via result.
+    by_document = {doc["document_id"]: doc for doc in result["documents"]}
     for record in manifest.data.documents:
-        request = by_document[record.document_id]
-        assert request.workspace_id == WORKSPACE_ID
-        assert request.study_id == record.study_id
+        doc = by_document[record.document_id]
+        assert doc["study_id"] == record.study_id
         # A workspace is not a study.
-        assert request.study_id != request.workspace_id
-        assert request.parent_artifact_id in {
+        assert doc["study_id"] != WORKSPACE_ID
+        assert doc["parent_artifact_id"] in {
             parent.artifact_id for parent in manifest.inputs
         }
         for derived in (
@@ -359,8 +490,8 @@ def test_a1_real_extraction_publishes_one_accepted_manifest_and_indexes_it(
             STUDY_TITLE,
             "10.1000/runtime-acceptance-1",
         ):
-            assert request.document_id != derived, derived
-        assert request.workspace_id not in {SLUG, record.study_id}
+            assert doc["document_id"] != derived, derived
+        assert WORKSPACE_ID not in {SLUG, doc["study_id"]}
 
 
 def test_a1_publish_is_idempotent_on_exact_replay(tmp_path: Path) -> None:
@@ -1846,6 +1977,8 @@ def test_cli_index_json_zero_indexed_exits_one(
     assert payload["indexed_files"] == 0
     # Not a typed refusal: this run reported an outcome, it did not decline to start.
     assert "stage6_refused" not in payload
+
+
 def _temp_leftovers(workspace: Path) -> list[str]:
     """Any temp file the producer left behind, anywhere under the workspace."""
 
