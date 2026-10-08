@@ -719,8 +719,11 @@ def accept_index_candidate(
         try:
             rederive_chunk_identities(typed.canonical_payload())
         except IndexManifestError as exc:
+            code = getattr(exc, "code", "VALIDATION_ERROR")
+            if code not in ("VALIDATION_ERROR", "CHUNK_IDENTITY_COLLISION"):
+                code = "VALIDATION_ERROR"
             raise _Refusal(
-                5, "CHUNK_IDENTITY_COLLISION", f"chunk identity: {exc}"
+                5, code, f"chunk identity [{getattr(exc, 'code', '?')}]: {exc}"
             ) from exc
 
         manifest_id = str(typed.manifest_id)
@@ -816,9 +819,20 @@ def accept_index_candidate(
             configuration=dict(typed.chunker.configuration),
         )
         # Both prepared, then committed: the record first, then the event. A
-        # journal failure rolls the record back; the intent is removed only
-        # after both are durable.
-        _atomic_write(accepted_path, (canonical_json_bytes(record) + b"\n"))
+        # record or journal failure rolls the record back; the intent is
+        # removed only after both are durable.
+        try:
+            _atomic_write(accepted_path, (canonical_json_bytes(record) + b"\n"))
+        except OSError as exc:
+            _restore_accepted(accepted_path, previous_bytes)
+            raise _Refusal(
+                7, "ATOMIC_COMMIT_FAILED", f"record unwritable ({type(exc).__name__})"
+            ) from exc
+        except Exception as exc:  # noqa: BLE001 - an unexpected record fault still rolls back
+            _restore_accepted(accepted_path, previous_bytes)
+            raise _Refusal(
+                7, "ATOMIC_COMMIT_FAILED", f"record fault ({type(exc).__name__})"
+            ) from exc
         try:
             if journal_append is not None:
                 appended = journal_append(

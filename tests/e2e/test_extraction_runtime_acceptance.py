@@ -2532,6 +2532,27 @@ def test_adapter_each_failed_check_yields_its_code_and_no_record(
     refused5b = attempt(bad5b)
     assert (refused5b.failing_step, refused5b.code) == (5, "CHUNK_IDENTITY_COLLISION")
 
+    # Check 5 non-collision limb: a rederive VALIDATION_ERROR stays
+    # VALIDATION_ERROR (never blanket-mapped to COLLISION).
+    import scholar_harness.index_acceptance as _adapter_module5c
+    from scholar_rag.index_manifest import ManifestValidationError
+
+    _orig_rederive = _adapter_module5c.rederive_chunk_identities
+
+    def _boom(_payload: Any) -> Any:
+        raise ManifestValidationError(
+            "inert test configuration", field="chunker.configuration"
+        )
+
+    monkeypatch.setattr(_adapter_module5c, "rederive_chunk_identities", _boom)
+    try:
+        refused5c = attempt(copy.deepcopy(payload))
+    finally:
+        monkeypatch.setattr(
+            _adapter_module5c, "rederive_chunk_identities", _orig_rederive
+        )
+    assert (refused5c.failing_step, refused5c.code) == (5, "VALIDATION_ERROR")
+
     # Check 6: a dropped live chunk is BACKEND_STATE_INCONSISTENT.
     from scholar_rag.index_verifier import VisibleRow
 
@@ -2905,3 +2926,356 @@ def test_adapter_partial_is_recorded_never_complete(
     assert event["action"] == "RAG_INDEX_BUILT"
     assert event["status"] == "PARTIAL"
     assert event["status"] != OperationStatus.SUCCESS.value
+
+
+def test_adapter_record_write_failure_is_atomic_commit_failed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R1-F1a: a record-write OSError is step-7 ATOMIC_COMMIT_FAILED, old bytes intact."""
+
+    import scholar_harness.index_acceptance as adapter_module
+    from scholar_harness.index_acceptance import (
+        ACCEPTED_RELPATH,
+        accept_index_candidate,
+    )
+
+    built = _adapter_candidate(tmp_path, monkeypatch)
+    workspace = built["workspace"]
+    first = accept_index_candidate(
+        workspace,
+        built["payload"],
+        run_id=_ADAPTER_RUN_ID,
+        manifest_path=_ADAPTER_MANIFEST_RELPATH,
+        reader=built["reader"],
+        accepted_at=_ADAPTER_ACCEPTED_AT,
+    )
+    assert first.accepted is True
+    before_bytes = (workspace / ACCEPTED_RELPATH).read_bytes()
+    journal_before = _adapter_journal(workspace)
+    intent_rel = "rag/index/RUN-b2/commit-intent.json"
+    intent_path = workspace / intent_rel
+    intent_path.parent.mkdir(parents=True, exist_ok=True)
+    intent_path.write_text(json.dumps({"run_id": "RUN-b2"}), encoding="utf-8")
+
+    real_atomic = adapter_module._atomic_write
+    calls = {"count": 0}
+
+    def _fail_once(path: Any, content: bytes) -> None:
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise OSError("simulated unwritable record")
+        return real_atomic(path, content)
+
+    monkeypatch.setattr(adapter_module, "_atomic_write", _fail_once)
+
+    from scholar_harness.orchestrator import ResearchOrchestrator
+    from scholar_rag.index_service import IndexServiceRequest, _build_candidate_manifest
+    from scholar_rag.index_verifier import VisibleRow
+
+    orch = ResearchOrchestrator(workspace)
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    base_request = orch._build_index_service_request(
+        chroma_dir=tmp_path / "chroma-unused-2",
+        parent_view=parent_view,
+        run_id="RUN-" + "b2" * 16,
+        created_at="2026-09-28T00:00:00Z",
+        producer_commit=_ADAPTER_COMMIT,
+        producer_version=_ADAPTER_VERSION,
+    )
+    altered_config = dict(base_request.chunker_configuration)
+    altered_config["max_chunk_chars"] = 800
+    request2 = IndexServiceRequest(
+        **{
+            **base_request.model_dump(mode="python"),
+            "chunker_configuration": altered_config,
+            "run_id": "RUN-" + "b2" * 16,
+            "created_at": "2026-09-28T00:00:00Z",
+        }
+    )
+    manifest2 = _build_candidate_manifest(
+        request2, docs_path=workspace / "extracted", workspace_root=workspace
+    )
+    assert manifest2.manifest_id != built["manifest"].manifest_id
+    rows2 = [
+        VisibleRow(
+            row_key=f"{request2.run_id}#{chunk.chunk_id}",
+            chunk_id=chunk.chunk_id,
+            document_id=chunk.document_id,
+            study_id=chunk.study_id,
+            embedding_dimension=manifest2.embedder.dimension,
+            stored_text=None,
+        )
+        for chunk in manifest2.visible_chunks
+    ]
+
+    class _Reader2:
+        def __init__(self, rows: Any, space: str) -> None:
+            self._rows = rows
+            self._space = space
+
+        def visible_ids(self) -> list[str]:
+            return sorted(r.chunk_id for r in self._rows)
+
+        def visible_count(self) -> int:
+            return len(self._rows)
+
+        def visible_rows(self) -> list[Any]:
+            return list(self._rows)
+
+        def read_collection_metadata(self) -> dict[str, Any]:
+            return {"hnsw:space": self._space}
+
+    refused = accept_index_candidate(
+        workspace,
+        manifest2.canonical_payload(),
+        run_id=request2.run_id,
+        manifest_path="rag/index/RUN-b2/manifest.json",
+        reader=_Reader2(rows2, manifest2.backend.hnsw_space),
+        intent_path=intent_rel,
+        accepted_at="2026-09-29T00:00:00Z",
+    )
+
+    assert refused.accepted is False
+    assert (refused.failing_step, refused.code) == (7, "ATOMIC_COMMIT_FAILED")
+    assert (workspace / ACCEPTED_RELPATH).read_bytes() == before_bytes
+    assert _adapter_journal(workspace) == journal_before
+    assert intent_path.is_file()
+
+
+def test_adapter_refusal_coverage_steps_1_3_6_and_backend_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R1-F3: one code per step for the uncovered limbs; steps 1-5 never read."""
+
+    import copy
+
+    import scholar_harness.index_acceptance as adapter_module
+    from scholar_harness.index_acceptance import (
+        ACCEPTED_RELPATH,
+        accept_index_candidate,
+    )
+
+    built = _adapter_candidate(tmp_path, monkeypatch)
+    workspace = built["workspace"]
+    payload = built["payload"]
+    reader = built["reader"]
+
+    calls: list[tuple[Any, Any]] = []
+    real_verify = adapter_module.verify_backend
+
+    def _spy(manifest: Any, view: Any) -> Any:
+        calls.append((manifest, view))
+        return real_verify(manifest, view)
+
+    monkeypatch.setattr(adapter_module, "verify_backend", _spy)
+
+    def attempt(mutated: dict[str, Any], *, reader_override: Any = None) -> Any:
+        return accept_index_candidate(
+            workspace,
+            mutated,
+            run_id=_ADAPTER_RUN_ID,
+            manifest_path=_ADAPTER_MANIFEST_RELPATH,
+            reader=(reader_override if reader_override is not None else reader),
+            accepted_at=_ADAPTER_ACCEPTED_AT,
+        )
+
+    # Step 1 UNSUPPORTED_ARTIFACT_TYPE: registry entry is a known non-Contract type.
+    registry_path = workspace / "audit" / "artifact_registry.json"
+    registry_raw = json.loads(registry_path.read_text(encoding="utf-8"))
+    parent_id = str(payload["parent_artifact_ref"]["artifact_id"])
+    orig_type = registry_raw["artifacts"][parent_id]["artifact_type"]
+    registry_raw["artifacts"][parent_id]["artifact_type"] = "index_manifest"
+    registry_path.write_text(json.dumps(registry_raw, indent=2), encoding="utf-8")
+    try:
+        refused_unsupported = attempt(copy.deepcopy(payload))
+    finally:
+        registry_raw["artifacts"][parent_id]["artifact_type"] = orig_type
+        registry_path.write_text(json.dumps(registry_raw, indent=2), encoding="utf-8")
+    assert (refused_unsupported.failing_step, refused_unsupported.code) == (
+        1,
+        "UNSUPPORTED_ARTIFACT_TYPE",
+    )
+
+    # Step 1 VALIDATION_ERROR: no parent reference at all.
+    bad1v = copy.deepcopy(payload)
+    del bad1v["parent_artifact_ref"]
+    refused1v = attempt(bad1v)
+    assert (refused1v.failing_step, refused1v.code) == (1, "VALIDATION_ERROR")
+
+    # Step 3 REQUIRED_PARENT_TYPE_MISSING: declared type is a known non-required one.
+    bad3r = copy.deepcopy(payload)
+    bad3r["parent_artifact_ref"] = dict(bad3r["parent_artifact_ref"])
+    bad3r["parent_artifact_ref"]["artifact_type"] = "corpus_snapshot"
+    refused3r = attempt(bad3r)
+    assert (refused3r.failing_step, refused3r.code) == (
+        3,
+        "REQUIRED_PARENT_TYPE_MISSING",
+    )
+
+    # Step 3 PROTOCOL_FINGERPRINT_MISMATCH.
+    bad3p = copy.deepcopy(payload)
+    bad3p["protocol_fingerprint"] = "sha256:" + "1" * 64
+    refused3p = attempt(bad3p)
+    assert (refused3p.failing_step, refused3p.code) == (
+        3,
+        "PROTOCOL_FINGERPRINT_MISMATCH",
+    )
+
+    # Step 3 CORPUS_FINGERPRINT_MISMATCH.
+    bad3c = copy.deepcopy(payload)
+    bad3c["corpus_fingerprint"] = "sha256:" + "2" * 64
+    refused3c = attempt(bad3c)
+    assert (refused3c.failing_step, refused3c.code) == (
+        3,
+        "CORPUS_FINGERPRINT_MISMATCH",
+    )
+
+    # Steps 1-5 never touched the backend.
+    assert calls == []
+
+    # Step 6 EMBEDDING_IDENTITY_CHANGED: same ids, one row with a wrong dimension.
+    from scholar_rag.index_verifier import VisibleRow
+
+    manifest = built["manifest"]
+    dim_rows = [
+        VisibleRow(
+            row_key=row.row_key,
+            chunk_id=row.chunk_id,
+            document_id=row.document_id,
+            study_id=row.study_id,
+            embedding_dimension=int(manifest.embedder.dimension) + 1,
+            stored_text=None,
+        )
+        for row in built["rows"]
+    ]
+
+    class _DimReader:
+        def __init__(self, rows: Any, space: str) -> None:
+            self._rows = list(rows)
+            self._space = space
+
+        def visible_ids(self) -> list[str]:
+            return sorted(r.chunk_id for r in self._rows)
+
+        def visible_count(self) -> int:
+            return len(self._rows)
+
+        def visible_rows(self) -> list[Any]:
+            return list(self._rows)
+
+        def read_collection_metadata(self) -> dict[str, Any]:
+            return {"hnsw:space": self._space}
+
+    refused6e = attempt(
+        copy.deepcopy(payload),
+        reader_override=_DimReader(dim_rows, manifest.backend.hnsw_space),
+    )
+    assert (refused6e.failing_step, refused6e.code) == (
+        6,
+        "EMBEDDING_IDENTITY_CHANGED",
+    )
+
+    # Step 6 CONFIGURATION_INEFFECTIVE: the store records no distance space.
+    class _NoSpaceReader:
+        def __init__(self, rows: Any) -> None:
+            self._rows = list(rows)
+
+        def visible_ids(self) -> list[str]:
+            return sorted(r.chunk_id for r in self._rows)
+
+        def visible_count(self) -> int:
+            return len(self._rows)
+
+        def visible_rows(self) -> list[Any]:
+            return list(self._rows)
+
+        def read_collection_metadata(self) -> dict[str, Any]:
+            return {}
+
+    refused6c = attempt(
+        copy.deepcopy(payload), reader_override=_NoSpaceReader(built["rows"])
+    )
+    assert (refused6c.failing_step, refused6c.code) == (
+        6,
+        "CONFIGURATION_INEFFECTIVE",
+    )
+
+    # The spy saw exactly the two step-6 reads, nothing for steps 1-5.
+    assert len(calls) == 2
+    # Nothing was published: no record, no success event.
+    assert not (workspace / ACCEPTED_RELPATH).exists()
+    assert [
+        e
+        for e in _adapter_journal(workspace)
+        if e["action"] == "RAG_INDEX_BUILT"
+        and e["status"] == OperationStatus.SUCCESS.value
+    ] == []
+
+
+def test_orchestrator_adapter_fault_fails_closed_without_legacy_event(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R1-F1b: an unexpected adapter raise is FAILED, never a legacy BUILT line."""
+
+    from types import SimpleNamespace
+
+    import scholar_harness.index_acceptance as adapter_module
+    from scholar_harness.orchestrator import ResearchOrchestrator
+
+    built = _adapter_candidate(tmp_path, monkeypatch)
+    workspace = built["workspace"]
+    payload = built["payload"]
+    sidecar_rel = "rag/index/RUN-fault/manifest.json"
+    sidecar_abs = workspace / sidecar_rel
+    sidecar_abs.parent.mkdir(parents=True, exist_ok=True)
+    sidecar_abs.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    journal_before = _adapter_journal(workspace)
+    chroma_dir = tmp_path / "chroma-fault"
+
+    stub = SimpleNamespace(
+        outcome="SUCCESS",
+        counts=SimpleNamespace(
+            accepted_documents=1,
+            rejected_documents=0,
+            visible_chunks=len(payload["visible_chunks"]),
+        ),
+        rejected_documents=(),
+        sidecar_path=sidecar_rel,
+        live_set_matches=True,
+        intent_path=None,
+    )
+
+    def _fake_index_workspace(request: Any, **kwargs: Any) -> Any:
+        return stub
+
+    monkeypatch.setattr(orch_module, "index_workspace", _fake_index_workspace)
+    monkeypatch.setattr(
+        orch_module, "ChromaReplacementView", lambda **_: SimpleNamespace()
+    )
+    monkeypatch.setattr(
+        orch_module, "ChromaVisibleSetReader", lambda **_: SimpleNamespace()
+    )
+
+    def _boom(*_: Any, **__: Any) -> Any:
+        raise RuntimeError("simulated adapter fault")
+
+    monkeypatch.setattr(adapter_module, "accept_index_candidate", _boom)
+
+    orch = ResearchOrchestrator(workspace)
+    result, _indexer = orch._run_indexing_stage(chroma_dir)
+
+    assert result["status"] == "FAILED"
+    assert result["indexed_files"] == 0
+    assert result["total_chunks"] == 0
+    assert result["refused"] == [{"document_id": "", "code": "INTERNAL_ERROR"}]
+    # No accepted record was written.
+    assert not (workspace / "rag" / "index" / "accepted.json").exists()
+    # No legacy BUILT line: the journal is byte-identical, so no absolute
+    # chroma_dir output and no incomplete metrics were published.
+    assert _adapter_journal(workspace) == journal_before
+    assert [
+        e for e in _adapter_journal(workspace) if e["action"] == "RAG_INDEX_BUILT"
+    ] == [e for e in journal_before if e["action"] == "RAG_INDEX_BUILT"]
+    blob = json.dumps(_adapter_journal(workspace), sort_keys=True)
+    assert str(chroma_dir) not in blob

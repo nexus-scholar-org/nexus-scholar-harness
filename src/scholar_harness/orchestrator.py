@@ -1528,11 +1528,36 @@ class ResearchOrchestrator:
                             return index_res["total_chunks"]
 
                     return index_res, MinimalIndexer()
-            except Exception:
+            except Exception as exc:
+                # Fail closed: an unexpected adapter fault is a FAILED run
+                # with the adapter/refusal code, never a legacy BUILT line
+                # (which would carry an absolute chroma_dir and incomplete
+                # metrics). Stubs without sidecar_path/live_set_matches never
+                # enter this branch and keep the legacy mapping below.
                 logger.warning(
-                    "E3 acceptance adapter did not decide; legacy event kept",
+                    "E3 acceptance adapter did not decide; failing closed",
                     exc_info=True,
                 )
+                _fault_code = str(getattr(exc, "code", None) or "INTERNAL_ERROR")
+
+                class MinimalIndexer:
+                    collection_name = "scholar_docs"
+                    embedder_kwargs = {
+                        "provider": "sentence-transformers",
+                        "model_name": "all-MiniLM-L6-v2",
+                    }
+
+                    def get_collection_count(self) -> int:
+                        return 0
+
+                return {
+                    "status": "FAILED",
+                    "indexed_files": 0,
+                    "total_chunks": 0,
+                    "collection_count": None,
+                    "documents": [],
+                    "refused": [{"document_id": "", "code": _fault_code}],
+                }, MinimalIndexer()
 
         # Log audit event (the IndexService already journals its run report)
         # We also log the harness-level RAG_INDEX_BUILT for continuity
