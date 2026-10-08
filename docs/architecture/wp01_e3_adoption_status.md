@@ -30,4 +30,7 @@ Per `docs/architecture/wp01_packet_e3_implementation_handoff.md` (Status: `SPECI
 **E3: in progress.** Identity-limbs adoption is merged; full E3 implementation remains open.
 
 ## Next work
-Narrow first unit of full E3 implementation (kit-owned + harness verification) as specified in the E3 handoff. **Do not** start E4: conceptually named in the Compass (negative end-to-end mutation proof) but no execution-ready handoff exists.
+Complete the remaining E3 acceptance-adapter and ledger work as specified in
+the E3 handoff. E4 now has an implementation-ready definition at
+`docs/architecture/wp01_packet_e4_negative_proof_handoff.md`, but remains
+blocked until E3 has an approved completion report.
