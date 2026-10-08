@@ -73,9 +73,9 @@ and then skips, so none of them can pass vacuously):
         (``EXTRACTED_CONTENT_CHANGED`` is kit T-50); publish-time staleness is
         the producer's ``STALE_EXTRACTED_BODY`` (e2e Major 5).
     ``E3-NEG-037`` (C-32) / ``E3-POS-008`` -- the §6.6 accepted-record audit
-        event belongs to the ``index-acceptance-v1`` adapter, which does not
-        exist yet (tripwire: the string appears nowhere under
-        ``src/scholar_harness/``); the kit journals its own run report.
+        event belongs to the ``index-acceptance-v1`` adapter
+        (``src/scholar_harness/index_acceptance.py``); the kit journals only its
+        own run report (live: ``test_e3_neg_037_...`` / ``test_e3_pos_008_...``).
     ``E3-POS-009`` (§9 / RAG-014) -- T-100 has not landed: the agent-kit MCP
         surface still declares ``workspace_id: str = None``
         (``server.py:830``); no parity is claimed here.
@@ -1054,9 +1054,9 @@ def test_e3_pos_007_refusal_proves_zero_publication(
     At each harness-owned failure point -- no accepted manifest in this
     generation, and no indexable documents -- the run proves zero publication:
     no vector store, no registry mutation, no success audit event, and no
-    accepted E3 record. ``rag/index/accepted.json`` belongs to the future
-    adapter; its absence here is asserted so a later writer cannot appear
-    silently.
+    accepted E3 record. ``rag/index/accepted.json`` is adapter-owned
+    (``index-acceptance-v1``); its absence here is asserted so a later writer
+    cannot appear silently.
     """
 
     if failure_point == "no-manifest":
@@ -1089,6 +1089,178 @@ def test_e3_pos_007_refusal_proves_zero_publication(
         if e["action"] == "RAG_INDEX_BUILT"
         and e["status"] == OperationStatus.SUCCESS.value
     ] == []
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-037 / E3-POS-008 -- the section 6.6 accepted record and event (live)
+# --------------------------------------------------------------------------- #
+# The adapter (``src/scholar_harness/index_acceptance.py``,
+# ``index-acceptance-v1``) owns the accepted E3 record plus the canonical
+# ``RAG_INDEX_BUILT`` event. These two rows were MISSING until T-131; they are
+# live here, hermetic (deterministic mock embedder, offline flags, tmp dirs),
+# and prove the exact section 6.6 field set with none of the forbidden
+# members (absolute path, ``db_path``, secret, bearer token, environment
+# value, free-text success claim).
+
+
+def _adapter_live_candidate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> dict[str, Any]:
+    """One real workspace plus one real kit candidate and its fake live set."""
+
+    from scholar_harness.orchestrator import ResearchOrchestrator
+    from scholar_rag.index_service import _build_candidate_manifest
+    from scholar_rag.index_verifier import VisibleRow
+
+    _mock_embedder(monkeypatch)
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    orch = ResearchOrchestrator(workspace)
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    request = _fixed_request(orch, parent_view, chroma_dir=tmp_path / "chroma-unused")
+    manifest = _build_candidate_manifest(
+        request, docs_path=workspace / "extracted", workspace_root=workspace
+    )
+    rows = [
+        VisibleRow(
+            row_key=f"{FIXED_RUN_ID}#{chunk.chunk_id}",
+            chunk_id=chunk.chunk_id,
+            document_id=chunk.document_id,
+            study_id=chunk.study_id,
+            embedding_dimension=manifest.embedder.dimension,
+            stored_text=None,
+        )
+        for chunk in manifest.visible_chunks
+    ]
+
+    class _LiveReader:
+        def __init__(self, rows: Any, space: str) -> None:
+            self._rows = list(rows)
+            self._space = space
+
+        def visible_ids(self) -> list[str]:
+            return sorted(row.chunk_id for row in self._rows)
+
+        def visible_count(self) -> int:
+            return len(self._rows)
+
+        def visible_rows(self) -> list[Any]:
+            return list(self._rows)
+
+        def read_collection_metadata(self) -> dict[str, Any]:
+            return {"hnsw:space": self._space}
+
+    return {
+        "workspace": workspace,
+        "manifest": manifest,
+        "payload": manifest.canonical_payload(),
+        "reader": _LiveReader(rows, manifest.backend.hnsw_space),
+    }
+
+
+def test_e3_neg_037_acceptance_event_has_no_incomplete_or_leaking_field(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-037 (C-32): the adapter emits no incomplete or leaking event."""
+
+    from scholar_harness.index_acceptance import (
+        ACCEPTANCE_SCHEMA_VERSION,
+        ACCEPTED_RELPATH,
+        accept_index_candidate,
+    )
+
+    built = _adapter_live_candidate(tmp_path, monkeypatch)
+    workspace = built["workspace"]
+    result = accept_index_candidate(
+        workspace,
+        built["payload"],
+        run_id=FIXED_RUN_ID,
+        manifest_path="rag/index/RUN-e3/manifest.json",
+        reader=built["reader"],
+        accepted_at="2026-09-28T00:00:00Z",
+    )
+    assert result.accepted is True, (result.failing_step, result.code, result.detail)
+    # The accepted record is present, sealed, and versioned.
+    record = json.loads((workspace / ACCEPTED_RELPATH).read_text(encoding="utf-8"))
+    assert record["schema_version"] == ACCEPTANCE_SCHEMA_VERSION
+    assert record["schema_version"] == "index-acceptance-v1"
+    # Exactly one new event, and it is not an incomplete or leaking one.
+    events = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
+    assert len(events) == 1
+    event = events[-1]
+    blob = json.dumps(event, sort_keys=True)
+    lowered = blob.lower()
+    # No forbidden member reaches the ledger.
+    assert "chroma_db" not in blob and "db_path" not in blob
+    assert "/tmp/" not in blob and "C:\\" not in blob and "C:/" not in blob
+    assert "sk-" not in blob and "ghp_" not in blob and "bearer" not in lowered
+    assert "os.environ" not in blob and "getenv" not in lowered
+    for banned in ("verified", "entailed", "entailment"):
+        assert banned not in lowered, banned
+
+
+def test_e3_pos_008_acceptance_event_carries_the_full_section_66_field_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-POS-008: the adapter event carries the full section 6.6 field set."""
+
+    from scholar_harness.index_acceptance import (
+        ACCEPTED_RELPATH,
+        accept_index_candidate,
+    )
+
+    built = _adapter_live_candidate(tmp_path, monkeypatch)
+    workspace = built["workspace"]
+    result = accept_index_candidate(
+        workspace,
+        built["payload"],
+        run_id=FIXED_RUN_ID,
+        manifest_path="rag/index/RUN-e3/manifest.json",
+        reader=built["reader"],
+        accepted_at="2026-09-28T00:00:00Z",
+    )
+    assert result.accepted is True
+    manifest = built["manifest"]
+    record = json.loads((workspace / ACCEPTED_RELPATH).read_text(encoding="utf-8"))
+    assert record["manifest_id"] == manifest.manifest_id
+    assert (
+        record["parent_artifact_ref"]["artifact_id"]
+        == manifest.parent_artifact_ref.artifact_id
+    )
+    events = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
+    assert len(events) == 1
+    params = events[-1]["parameters"]
+    assert params["workspace_id"] == manifest.workspace_id
+    assert params["run_id"] == FIXED_RUN_ID
+    assert params["parent_artifact_id"] == manifest.parent_artifact_ref.artifact_id
+    assert params["parent_artifact_sha256"] == manifest.parent_artifact_ref.sha256
+    assert params["manifest_id"] == manifest.manifest_id
+    assert params["manifest_path"] == "rag/index/RUN-e3/manifest.json"
+    assert params["artifact_checksum"] == manifest.artifact_checksum
+    assert params["index_fingerprint"] == manifest.index_fingerprint
+    assert params["chunk_set_fingerprint"] == manifest.chunk_set_fingerprint
+    assert params["configuration_fingerprint"] == manifest.configuration_fingerprint
+    assert params["production_fingerprint"] == manifest.production_fingerprint
+    assert params["protocol_fingerprint"] == manifest.protocol_fingerprint
+    assert params["corpus_fingerprint"] == manifest.corpus_fingerprint
+    assert params["counts"] == {
+        "accepted_documents": manifest.counts.accepted_documents,
+        "rejected_documents": manifest.counts.rejected_documents,
+        "visible_chunks": manifest.counts.visible_chunks,
+    }
+    assert params["rejected_documents"] == [
+        {"document_id": doc.document_id, "code": doc.code}
+        for doc in manifest.rejected_documents
+    ]
+    assert params["embedding_identity"] == {
+        "provider": manifest.embedder.provider,
+        "model": manifest.embedder.model,
+        "dimension": manifest.embedder.dimension,
+        "distance_metric": manifest.embedder.distance_metric,
+    }
+    assert params["configuration"] == dict(manifest.chunker.configuration)
+    assert "failing_step" not in params and "code" not in params
 
 
 # --------------------------------------------------------------------------- #
@@ -1176,22 +1348,6 @@ MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
         "EXTRACTED_CONTENT_CHANGED",
         True,
         "kit-owned T-50 staleness code; index-time drift has no Stage 6 check (publish-time is STALE_EXTRACTED_BODY)",
-    ),
-    (
-        "E3-NEG-037",
-        "§10.2 C-32",
-        REPO_ROOT / "src/scholar_harness",
-        "index-acceptance-v1",
-        False,
-        "the §6.6 accepted-record audit event belongs to the future adapter, which does not exist yet",
-    ),
-    (
-        "E3-POS-008",
-        "§10.1 E3-POS-008 / §6.6",
-        REPO_ROOT / "src/scholar_harness",
-        "index-acceptance-v1",
-        False,
-        "the accepted E3 record and its event are adapter future work; the kit journals only its own run report",
     ),
     (
         "E3-POS-009",
@@ -1469,7 +1625,7 @@ LEDGER_INDEX: dict[str, str] = {
     "E3-NEG-034": "test_e3_neg_034_no_emittable_identity_leaves_stage6",
     "E3-NEG-035": "MISSING (kit-owned usability refusal)",
     "E3-NEG-036": "test_e3_neg_036_no_similarity_as_entailment_language",
-    "E3-NEG-037": "MISSING (adapter-future §6.6 event)",
+    "E3-NEG-037": "test_e3_neg_037_acceptance_event_has_no_incomplete_or_leaking_field",
     "E3-NEG-038": "test_e3_neg_038_frozen_registries_reject_the_index_manifest_sidecar",
     "E3-NEG-039": "MISSING (publish-time frozen-gate check)",
     "E3-NEG-048": "test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored",
@@ -1478,7 +1634,7 @@ LEDGER_INDEX: dict[str, str] = {
     "E3-POS-005": "test_e3_pos_005_harness_fixture_matches_kit_golden_bytes "
     "+ test_e3_pos_005_baseline_chunk_id_rederives_from_the_fixture_limbs",
     "E3-POS-007": "test_e3_pos_007_refusal_proves_zero_publication",
-    "E3-POS-008": "MISSING (adapter-future accepted record)",
+    "E3-POS-008": "test_e3_pos_008_acceptance_event_carries_the_full_section_66_field_set",
     "E3-POS-009": "MISSING (T-100 MCP boundary not landed)",
     "E3-POS-012": "MISSING (CI-owned wheel smoke)",
 }
@@ -1525,4 +1681,4 @@ def test_e3_ledger_index_covers_every_required_id() -> None:
         for ledger_id, owner in LEDGER_INDEX.items()
         if owner.startswith("MISSING")
     }, "every MISSING table row must match the index, and vice versa"
-    assert len(MISSING) == 14
+    assert len(MISSING) == 12
