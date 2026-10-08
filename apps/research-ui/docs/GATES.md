@@ -1283,7 +1283,7 @@ Rows that could not be executed are marked, not omitted.
 
 | # | Gate | Covered by | Status |
 |---|------|-----------|--------|
-| I1 | Catalog parity: `fr` and `ar` carry **exactly** the same 41 keys as `en`, no extras, no gaps, with a pinned digest | `tests/i18n-catalog.test.ts` | EXECUTABLE - 10 files / 140 tests pass |
+| I1 | Catalog parity: `fr` and `ar` carry **exactly** the same keys as `en`, no extras, no gaps — **74 keys since packet UI-02; the "41" this row originally stated was already stale against its own 42-key assertion** (there is no catalog digest; the SHA-256 pins in this test cover the four byte-frozen files only, see I2) | `tests/i18n-catalog.test.ts` | UI-01d snapshot - 10 files / 140 tests pass; **superseded for current totals by §6 U2 and §6.2** |
 | I2 | Byte pins hold: `lib/mock-project.ts`, `lib/contracts.ts`, `package.json`, `package-lock.json` | `tests/i18n-catalog.test.ts` | EXECUTABLE - all four SHA-256 verified on the working tree |
 | I3 | `translate()` refuses an unknown key and an empty interpolation result; no raw-key fallback | `tests/i18n-render.test.tsx` | EXECUTABLE |
 | I4 | `<html lang dir>` is correct per locale **before hydration** | `tests-browser/locale-routing.spec.ts` (AC-2), `tests/shell.test.tsx` | EXECUTABLE - for supported locales; raw 404 lacks `lang`/`dir` (see §5.4) |
@@ -1304,6 +1304,8 @@ Rows that could not be executed are marked, not omitted.
 
 Browser suite: **53 passed / 53**, 10 files. Long-strings suite: **10 passed / 10**.
 Vitest: **140 passed / 140**, 10 files. `npm run typecheck`: exit 0.
+*(UI-01d snapshot, kept as this packet's dated evidence; the tree has since grown —
+the current totals are §6.2. The stale numbers here are why §6 exists.)*
 
 ### 5.2 AC-9P - the 30 % expansion precondition, with the numbers
 
@@ -1486,3 +1488,72 @@ title in the seven pre-existing browser specs is byte-identical.
   long-strings runner's Playwright `outputDir` is nested inside the already-ignored
   `test-results/` rather than given a sibling `test-results-longstrings/`, precisely so
   that no second ignore rule is needed.
+
+---
+
+## 6. Packet UI-02 - the project-overview state model
+
+This section records what packet UI-02 made executable. The packet's gate was
+"populated, loading, empty, and error fixtures; component tests", and its negative
+case was "counts are never inferred in the browser: an absent count renders unknown
+rather than zero". Everything below was produced by a command in this directory on
+this working tree.
+
+### 6.1 Executable gates added by UI-02
+
+| # | Gate | Covered by | Status |
+|---|------|-----------|--------|
+| U1 | The state model is a discriminated union: a phase is reachable only when `record === "ready"`, so no component can render a project state it never received | `lib/project-state.ts` + `npm run typecheck` | EXECUTABLE - `tsc --noEmit` exit 0 |
+| U2 | Eleven fixtures (2 arrival + 9 phases); the nine phase words are pairwise distinct per locale and apart from the arrival words; the five statistic labels are distinct and apart from "unknown"; `phaseKey`/`countKey`/`phaseDescriptionKey` throw `UnmappedTokenError` for an undeclared token; catalog parity now at **74 keys × 3 locales** | `tests/project-state-record.test.tsx`, `tests/i18n-catalog.test.ts` | EXECUTABLE - 31 + 37 tests pass |
+| U3 | Every fixture renders all five statistic rows; an absent field reads the translated `counts.unknown` and never `0`; every fixture count is one of the frozen corpus numbers (143/18) | `tests/project-state-record.test.tsx` | EXECUTABLE |
+| U4 | A failed read renders neither a phase word nor the refusal word and no counts; a pending read the same; the refusal fixture renders the refusal word plus its `<bdi>`-isolated note, byte-identical in all three locales | `tests/project-state-record.test.tsx` | EXECUTABLE - per locale |
+| U5 | The continuation surface renders translated text plus the "not yet available" tag, with **zero** links and zero focusable elements in the section; the section is one named region at heading level 2, adds no `listitem`, and the route's 6-stage + 5-evidence list counts and level-3 stage headings are unchanged | `tests/project-state-record.test.tsx`, `tests/home-page.test.tsx` | EXECUTABLE |
+| U6 | Translation boundary: every rendered sentence outside `<bdi>` in `fr`/`ar` still comes from that locale's catalog (the substituted destination sentence is matched with its hole as a wildcard) | `tests/i18n-render.test.tsx` | EXECUTABLE - fr/ar scans return `[]` |
+| U7 | Token discipline (gate 21) after the new files: no dangling token, no raw palette utility in source or shipped CSS, `emitted from a comment only: []` | `tests-browser/hygiene.spec.ts` | EXECUTABLE - part of the 59/59 run |
+| U8 | Rendered axe zero real violations in `en`/`fr`/`ar` at 375px and 1440px, dialog open and closed; no horizontal overflow; no unbreakable token; tab ring unchanged at both widths | `tests-browser/rendered-axe.spec.ts`, `overflow.spec.ts`, `tab-order.spec.ts` | EXECUTABLE |
+| U9 | The 30 % expansion gate still holds **with the 32 new strings inflated**: no sideways scroll in any locale at either width, no truncation instead of wrapping | `playwright.long-strings.config.ts` + `tests-long-strings/long-strings.spec.ts` | EXECUTABLE - 10/10, ratios `en 1.7167` / `fr 1.3884` / `ar 1.3409` |
+| U10 | Committed screenshots regenerated against the new section (8 of 10 changed; the evidence-trail and mobile-dialog shots are unaffected) | `tests-browser/screenshots.spec.ts` | EXECUTABLE - all ten rewritten and verified as PNG |
+
+**Design note (review finding F5):** the read-failure stamp deliberately shares the
+refusal hue (`text-refusal`). The palette has four semantic hues and its oxide tone
+is the palette's *negative/failure* role — reusing the ochre `warning` (the
+waiting-state tone) for a failed read would mislabel it as pending, which is the
+confusion the packet exists to prevent. The distinction the packet claims is carried
+by the word and by the absence of any phase/count, both asserted per locale in
+`tests/project-state-record.test.tsx`; the hue marks severity only, and this row is
+what makes that choice evidence rather than accident.
+
+### 6.2 Measured totals
+
+- `npm run typecheck`: exit 0.
+- `npm test`: **179 passed / 179**, 11 files (was 144/10 before UI-02: +35 tests,
+  +1 file — 31 in `tests/project-state-record.test.tsx`, +4 vocabulary/distinctness
+  tests in `tests/i18n-catalog.test.ts`).
+- `npm run build`: 5 prerendered outputs — `/_not-found`, `/[locale]` (the route
+  definition), and `/en`, `/fr`, `/ar`.
+- `npm run test:browser`: **59 passed / 59**, 10 files.
+- Long-strings suite: **10 passed / 10**.
+
+### 6.3 Existing assertions this packet deliberately changed
+
+Two, both because the measurement changed rather than because an assertion was
+relaxed (the UI-01d §5.7 rule):
+
+| Was | Now | Why |
+| --- | --- | --- |
+| `i18n-catalog.test.ts`: "exactly the 42 keys" → length 42 | length **74** | 32 keys added by this packet |
+| `i18n-render.test.tsx`: `getByText(formatNumber("ar", 143))` | `getAllByText(...).length > 0` | 143 now renders twice on the route (timeline stage 1 and the record's "records discovered" row); the claim "Arabic-Indic digits are rendered" is unchanged |
+
+`i18n-catalog.test.ts` also gained the `{destination}` interpolation value in its
+fixed-values loop — the new `overview.nextDestination` hole would otherwise throw
+`MissingMessageError` under test, which is the failure mode that hole exists to
+prevent.
+
+### 6.4 Not closed by this packet
+
+- **H1–H5 carry over unchanged**: the 32 new `fr`/`ar` strings are demonstration
+  translations like the rest of the catalog (`I18N.md` §9), not fluently reviewed.
+- The `../architecture/research_ui/` tree is **tracked since `0fe5315`** (so the
+  "untracked" adjective in §5.8's older scope note is itself stale) and was **left
+  exactly as found**: this packet changed nothing under it, and the tree is clean
+  there in `git status`.
