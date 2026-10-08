@@ -1459,6 +1459,81 @@ class ResearchOrchestrator:
             )
         index_res["documents"] = indexed_docs
 
+        # E3 acceptance boundary (T-131, handoff section 6): when the kit
+        # produced a real candidate (a sidecar file plus a verified live set),
+        # the harness adapter decides acceptance and owns the canonical
+        # section 6.6 event. Stubbed IndexService results (conformance
+        # mapping tests) carry no sidecar and keep the legacy event below.
+        _sidecar_rel = getattr(result, "sidecar_path", None)
+        _live_matches = bool(getattr(result, "live_set_matches", False))
+        if _sidecar_rel and _live_matches and result.outcome in ("SUCCESS", "PARTIAL"):
+            try:
+                from scholar_harness.index_acceptance import accept_index_candidate
+
+                _sidecar_abs = self.workspace_dir / str(_sidecar_rel)
+                if _sidecar_abs.is_file():
+                    _candidate = json.loads(_sidecar_abs.read_text(encoding="utf-8"))
+                    _decision = accept_index_candidate(
+                        self.workspace_dir,
+                        _candidate,
+                        run_id=request.run_id,
+                        manifest_path=str(_sidecar_rel),
+                        reader=reader,
+                        intent_path=getattr(result, "intent_path", None),
+                    )
+                    if not _decision.accepted:
+                        # Adapter refusal: zero publication beyond the kit's own
+                        # run report (check 7 never ran). No legacy BUILT line.
+                        _refused_docs = [
+                            {
+                                "document_id": "",
+                                "code": str(_decision.code or "REFUSED"),
+                            }
+                        ]
+                        _failed: dict[str, Any] = {
+                            "status": "FAILED",
+                            "indexed_files": 0,
+                            "total_chunks": 0,
+                            "collection_count": None,
+                            "documents": [],
+                            "refused": _refused_docs,
+                            "acceptance": _decision.as_dict(),
+                        }
+
+                        class MinimalIndexer:
+                            collection_name = "scholar_docs"
+                            embedder_kwargs = {
+                                "provider": "sentence-transformers",
+                                "model_name": "all-MiniLM-L6-v2",
+                            }
+
+                            def get_collection_count(self) -> int:
+                                return 0
+
+                        return _failed, MinimalIndexer()
+                    # Adapter accepted: it already appended the canonical
+                    # RAG_INDEX_BUILT event with the full section 6.6 field
+                    # set, so the legacy continuity line below is skipped to
+                    # avoid a second, incomplete event.
+                    index_res["acceptance"] = _decision.as_dict()
+
+                    class MinimalIndexer:
+                        collection_name = "scholar_docs"
+                        embedder_kwargs = {
+                            "provider": "sentence-transformers",
+                            "model_name": "all-MiniLM-L6-v2",
+                        }
+
+                        def get_collection_count(self) -> int:
+                            return index_res["total_chunks"]
+
+                    return index_res, MinimalIndexer()
+            except Exception:
+                logger.warning(
+                    "E3 acceptance adapter did not decide; legacy event kept",
+                    exc_info=True,
+                )
+
         # Log audit event (the IndexService already journals its run report)
         # We also log the harness-level RAG_INDEX_BUILT for continuity
         self._log_audit_event(
