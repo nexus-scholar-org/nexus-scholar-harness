@@ -1,0 +1,150 @@
+{
+  "artifact_checksum": "sha256:93a5464304f2fb8b6bdc7fe12b0fe571be3050ab5cb17031102e9d2dbc5c8273",
+  "backend": {
+    "collection_name": "nexus-evidence-v1",
+    "configuration_fingerprint": "sha256:3eeab05fb65e7134aae01eb437f7a69cc74b995a60b1056420ea2115101e7c82",
+    "hnsw_space": "cosine",
+    "storage_schema_version": "chroma-2",
+    "type": "chroma"
+  },
+  "chunk_identity_algorithm_version": "rag-chunk-identity-v1",
+  "chunk_set_fingerprint": "sha256:1b7ae1a9ea99dd1173f51b87e1c57f8e700b5ca7722ff34052b2027c4ba052c5",
+  "chunker": {
+    "algorithm_version": "structural-ast-markdown-v2",
+    "configuration": {
+      "heading_levels": [
+        1,
+        2,
+        3
+      ],
+      "max_chunk_chars": 1200,
+      "min_chunk_chars": 200,
+      "normalize_whitespace": true,
+      "overlap_chars": 120,
+      "sentence_split_pattern": "(?<=[.!?])\\s+",
+      "strip_frontmatter": true
+    },
+    "configuration_fingerprint": "sha256:df987253699f5dd93e8821d81eaf48f873323a1f7efee4baf6f37cb3ddc40846"
+  },
+  "configuration_fingerprint": "sha256:a5a536f0263ac1ff84aafc2f5201d2da8bdffabce855fc668120c29f7a0201c6",
+  "corpus_fingerprint": "sha256:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d",
+  "counts": {
+    "accepted_documents": 2,
+    "rejected_documents": 1,
+    "visible_chunks": 3
+  },
+  "created_at": "2026-09-27T00:00:00Z",
+  "documents": [
+    {
+      "chunk_ids": [
+        "CHK-ab10cb5729e20ff5dc8d26a93455010c",
+        "CHK-c7c2ec27c99f59ad643a0979f2341523"
+      ],
+      "detail": null,
+      "document_id": "DOC-33333333333333333333333333333333",
+      "extracted_content_sha256": "sha256:5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b",
+      "extracted_path": "extracted/DOC-33333333333333333333333333333333.md",
+      "extraction_method": "DETERMINISTIC_RULE",
+      "status": "INDEXED",
+      "study_id": "STU-44444444444444444444444444444444"
+    },
+    {
+      "chunk_ids": [
+        "CHK-4d2120ace9cbf53314aa2878a2ddc3a2"
+      ],
+      "detail": null,
+      "document_id": "DOC-66666666666666666666666666666666",
+      "extracted_content_sha256": "sha256:6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e",
+      "extracted_path": "extracted/DOC-66666666666666666666666666666666.md",
+      "extraction_method": "HUMAN",
+      "status": "INDEXED",
+      "study_id": "STU-77777777777777777777777777777777"
+    }
+  ],
+  "embedder": {
+    "configuration_fingerprint": "sha256:04efcfeecbc7e30057c0a8e2101d4140d0bc153f7b136faee510be98fa703783",
+    "dimension": 384,
+    "distance_metric": "cosine",
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "model_revision": null,
+    "normalize_embeddings": true,
+    "provider": "sentence-transformers"
+  },
+  "failures": [],
+  "index_fingerprint": "sha256:c1f6a2d084e09691985d82715612103e0bf90a008bf26d310cbf6e45bbb7ba37",
+  "manifest_id": "IDX-748c4d3dd6cfc8133835092b36b7b4bc",
+  "manifest_identity_algorithm_version": "rag-index-identity-v1",
+  "manifest_type": "index_manifest",
+  "parent_artifact_ref": {
+    "artifact_id": "ART-11111111111111111111111111111111",
+    "artifact_type": "document_manifest",
+    "sha256": "sha256:1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a"
+  },
+  "parent_lineage_sha256": "sha256:79734e6cbbdf269b8b76a2de677bd189d7d87e9b9a81271866be285b4449406b",
+  "producer": {
+    "commit": "c89b68f0d35173082a03b8c6b228e84381271185",
+    "package": "scholar-rag-kit",
+    "version": "0.2.0"
+  },
+  "production_fingerprint": "sha256:948aac5f8a68da8a1b7dadc01d393d2b28d597b58a3ae1843381a08188e025d3",
+  "protocol_fingerprint": "sha256:2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c",
+  "rejected_documents": [
+    {
+      "code": "EXTRACTED_TEXT_UNUSABLE",
+      "detail": "extracted text is 0 usable characters after normalization",
+      "document_id": "DOC-99999999999999999999999999999999",
+      "extracted_path": "extracted/DOC-99999999999999999999999999999999.md",
+      "study_id": "STU-88888888888888888888888888888888"
+    }
+  ],
+  "run_id": "RUN-0f3a9c2b1d4e5f60718293a4b5c6d7e8",
+  "schema_version": "index-manifest-v1",
+  "status": "PARTIAL",
+  "visible_chunks": [
+    {
+      "character_count": 1103,
+      "chunk_id": "CHK-4d2120ace9cbf53314aa2878a2ddc3a2",
+      "chunk_text_sha256": "sha256:bfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbfbf",
+      "document_id": "DOC-66666666666666666666666666666666",
+      "locator": {
+        "heading_path": [
+          "Results"
+        ],
+        "ordinal_in_section": 1,
+        "section_category": "results"
+      },
+      "study_id": "STU-77777777777777777777777777777777"
+    },
+    {
+      "character_count": 1184,
+      "chunk_id": "CHK-ab10cb5729e20ff5dc8d26a93455010c",
+      "chunk_text_sha256": "sha256:9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d9d",
+      "document_id": "DOC-33333333333333333333333333333333",
+      "locator": {
+        "heading_path": [
+          "Methods",
+          "Data"
+        ],
+        "ordinal_in_section": 1,
+        "section_category": "methods"
+      },
+      "study_id": "STU-44444444444444444444444444444444"
+    },
+    {
+      "character_count": 962,
+      "chunk_id": "CHK-c7c2ec27c99f59ad643a0979f2341523",
+      "chunk_text_sha256": "sha256:aeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeae",
+      "document_id": "DOC-33333333333333333333333333333333",
+      "locator": {
+        "heading_path": [
+          "Methods",
+          "Data"
+        ],
+        "ordinal_in_section": 2,
+        "section_category": "methods"
+      },
+      "study_id": "STU-44444444444444444444444444444444"
+    }
+  ],
+  "workspace_id": "WSP-0123456789abcdef0123456789abcdef"
+}

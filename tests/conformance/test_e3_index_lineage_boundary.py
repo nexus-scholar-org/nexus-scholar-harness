@@ -1,0 +1,1528 @@
+"""WP01-E3 index-lineage boundary conformance (harness limbs) -- T-140.
+
+Packet E3 (``docs/architecture/wp01_packet_e3_implementation_handoff.md``) draws
+the same hard line Packet E2 drew: the *behavioral* proofs of indexing live in
+the canonical ``scholar-rag-kit`` (and, for the MCP refusal, the future
+``scholar-agent-kit`` T-100 work), and the harness enforces only its own
+**cross-repository** obligations. A green run of this file is therefore **not**
+evidence that indexing works -- the kit suites are. What this file proves is
+that the harness side of the boundary is real:
+
+``E3-POS-005`` byte-for-byte golden parity
+    The harness fixture ``tests/conformance/fixtures/e3_golden_manifest.json``
+    is canonically byte-identical to the kit-pinned
+    ``GOLDEN_MANIFEST`` (``tools/scholar-rag-kit/tests/test_index_manifest.py:66``,
+    pin ``f108fa89``), and the baseline ``CHK-`` re-derives from the fixture's
+    own limbs through the kit's ``mint_chunk_id``. Either side drifting fails
+    loudly here rather than silently diverging.
+
+Harness-live ledger rows (each names its handoff class and its exact test):
+
+    ``E3-NEG-010`` (C-28 / §6.2 step 4) -- Stage 6 request limbs inherit recorded
+        identity; filename/DOI/title never bind (``test_e3_neg_010_...``).
+    ``E3-NEG-012`` (C-05 / RAG-010) -- cross-workspace manifest is not inherited;
+        the preflight refuses before any store exists (``test_e3_neg_012_...``).
+    ``E3-NEG-013`` (C-29 / RAG-012) -- a zero-accepted run is FAILED with
+        ``NO_DOCUMENTS_TO_INDEX``, never SUCCESS (``test_e3_neg_013_...``).
+    ``E3-NEG-014`` (C-29 / RAG-012) -- a mixed batch maps to PARTIAL, never
+        SUCCESS (``test_e3_neg_014_...``).
+    ``E3-NEG-015`` (C-02 / §6.2 step 1) -- a malformed accepted parent refuses
+        before any store exists (``test_e3_neg_015_...``).
+    ``E3-NEG-016`` (C-01 / §6.2 step 1) -- no manifest refuses with
+        ``DOCUMENT_MANIFEST_NOT_ACCEPTED`` before any store exists
+        (``test_e3_neg_016_...``; also the required negative-case shape).
+    ``E3-NEG-026`` (C-17 / RAG-010) -- the embedder identity is fully explicit
+        in the typed request (``test_e3_neg_026_...``).
+    ``E3-NEG-028`` (C-15) -- Stage 6 orders sources deterministically
+        (``test_e3_neg_028_...``).
+    ``E3-NEG-034`` (C-30) -- no emittable ``CHK-``/citation token leaves Stage 6
+        (``test_e3_neg_034_...``).
+    ``E3-NEG-036`` (C-25) -- no similarity-as-entailment language leaves Stage 6
+        (``test_e3_neg_036_...``).
+    ``E3-NEG-038`` (C-03) -- the frozen registries reject the kit-owned
+        ``index_manifest`` sidecar as ``UNSUPPORTED_ARTIFACT_TYPE``
+        (``test_e3_neg_038_...``; mirrors E2-NEG-021).
+    ``E3-NEG-048`` (C-34) -- the rag-kit pin is a full SHA and the import
+        resolves vendored (``test_e3_neg_048_...``; mirrors E2-NEG-037).
+    ``E3-NEG-049`` (C-08 / §6.2 step 3) -- a post-acceptance protocol mutation
+        breaks generation agreement and refuses (``test_e3_neg_049_...``).
+    ``E3-POS-007`` (§6.2 / E3-007, harness scope) -- at each harness failure
+        point the run proves zero publication: no store, no registry mutation,
+        no success event (``test_e3_pos_007_...``).
+
+Kit-side-only and adapter-future IDs, **explicitly MISSING, never re-proven**
+(the ``MISSING`` table below; each marker checks that its reason is still true
+and then skips, so none of them can pass vacuously):
+
+    ``E3-NEG-009`` (C-09), ``E3-NEG-011`` (C-10) -- the eligibility join is the
+        kit's proof (``index_service.py`` ``eligibility join``); the harness only
+        forwards ``parent_view`` verbatim.
+    ``E3-NEG-017`` (C-06) -- hash-stale detection (``PARENT_HASH_MISMATCH``) is
+        kit-owned; Stage 6 re-reads but never recomputes the registry hash.
+    ``E3-NEG-021`` / ``E3-NEG-022`` (C-12) -- path-shape and docs-directory
+        containment refuse inside the kit (``_refuse_path_shaped`` /
+        ``docs_destination``); the harness never synthesizes a path.
+    ``E3-NEG-030`` / ``E3-NEG-031`` (C-27) -- chunk-uniqueness scope is the
+        kit's proof (``cross-document collision``); the harness mints nothing.
+    ``E3-NEG-035`` (C-13) -- unusable-extraction refusal is kit T-50
+        (``EXTRACTED_TEXT_UNUSABLE``); the harness producer refusal is E2-era.
+    ``E3-NEG-039`` (C-07) -- the required-parent-type gate fires at publish
+        through the frozen acceptance (``contracts/acceptance.py:399``); Stage 6
+        inherits the accepted manifest without re-checking it.
+    ``E3-NEG-050`` (C-11) -- index-time staleness has no Stage 6 check
+        (``EXTRACTED_CONTENT_CHANGED`` is kit T-50); publish-time staleness is
+        the producer's ``STALE_EXTRACTED_BODY`` (e2e Major 5).
+    ``E3-NEG-037`` (C-32) / ``E3-POS-008`` -- the §6.6 accepted-record audit
+        event belongs to the ``index-acceptance-v1`` adapter, which does not
+        exist yet (tripwire: the string appears nowhere under
+        ``src/scholar_harness/``); the kit journals its own run report.
+    ``E3-POS-009`` (§9 / RAG-014) -- T-100 has not landed: the agent-kit MCP
+        surface still declares ``workspace_id: str = None``
+        (``server.py:830``); no parity is claimed here.
+    ``E3-POS-012`` (RAG-019) -- the clean-wheel ``--help`` smoke is a CI/RELEASE
+        gate; this file owns only the declared-dependency half (E3-NEG-048).
+
+Diagnostic case (``test_e3_diagnostic_real_chroma_...``)
+    The one real-Chroma reproducer the blocked kit task requires: a real
+    accepted-manifest workspace, the exact typed ``IndexServiceRequest`` limbs
+    plus parent view plus collection metadata plus backend state before/after
+    plus the full exception ``__cause__`` chain on failure, through the shipped
+    ``index_accepted_documents`` path with a deterministic mock embedder and a
+    tmp ``db_path`` (HF/TRANSFORMERS offline flags set, nothing written outside
+    tmp plus the workspace fixture).
+
+    Conditional close-out (recorded here and in the task report):
+
+    * if healthy indexing succeeds, the historical ``ATOMIC_COMMIT_FAILED``
+      concern is UNSUBSTANTIATED on this path, and the exact environment
+      (chromadb / python / OS versions, printed by the test) is the scope of
+      that claim;
+    * if it reproduces, the failure output carries the minimal kit-level
+      reproducer (request fields + corpus texts + store state + cause chain)
+      and the verdict is REOPEN-KIT with that evidence attached.
+
+Everything here is offline and deterministic except the diagnostic's live clock
+(run identity) and its real Chroma store under tmp: no network, no provider, no
+model download, no daemon, and every filesystem effect confined to pytest's
+``tmp_path`` (plus the ``tmp_path`` workspace fixture itself).
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import os
+import platform
+import re
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+from scholar_protocol.canonical import canonical_fingerprint
+from scholar_protocol.models import ResearchProtocol
+from scholar_rag.canonical import canonical_json_bytes
+from scholar_rag.chunker import mint_chunk_id, text_fingerprint
+from scholar_rag.embedder import get_embedder as kit_get_embedder
+from scholar_rag.index_manifest import MANIFEST_TYPE
+from scholar_rag.index_models import IndexDocumentRequest
+from scholar_rag.index_service import INDEX_SERVICE_OUTCOMES, IndexServiceRequest
+from scholar_search.identity import build_corpus_snapshot_artifact
+from scholar_search.models import Author, Document, ExternalIds
+
+from scholar_harness import orchestrator as orch_module
+from scholar_harness.contracts.acceptance import AcceptanceContext, accept_artifact
+from scholar_harness.contracts.models import OperationStatus
+from scholar_harness.extraction_producer import (
+    PublicationRefused,
+    index_accepted_documents,
+    publish_document_manifest,
+)
+from scholar_harness.orchestrator import ResearchOrchestrator
+from scholar_harness.screening.batcher import cmd_prepare
+from scholar_harness.screening.collector import cmd_collect
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+#: The kit-pinned golden source. Read-only: the harness never edits the kit
+#: tree; the ``:66`` citation is the ``GOLDEN_MANIFEST`` literal, ``:185`` the
+#: printed canonical chunk input, ``:197`` the frozen digest table.
+KIT_GOLDEN_TEST = (
+    REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_manifest.py"
+)
+KIT_RAG_PIN = "f108fa897147f4c837760c81b558d1b82a044fdf"
+
+#: The harness-side frozen copy. A fixture, not a live view: parity with the
+#: kit bytes is asserted in E3-POS-005, so either side drifting fails here.
+HARNESS_GOLDEN_FIXTURE = (
+    REPO_ROOT / "tests" / "conformance" / "fixtures" / "e3_golden_manifest.json"
+)
+
+PLUGINS_JSON = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
+PINS_JSON = REPO_ROOT / "packaging" / "nexus-scholar" / "nexus_scholar_pins.json"
+AGENT_SERVER = (
+    REPO_ROOT / "tools" / "scholar-agent-kit" / "src" / "scholar_agent" / "server.py"
+)
+
+PROTOCOL_FIXTURE = (
+    REPO_ROOT
+    / "tools"
+    / "scholar-protocol-kit"
+    / "tests"
+    / "fixtures"
+    / "canonical"
+    / "identity_base.json"
+)
+
+WORKSPACE_ID = "WSP-" + "0123456789abcdef" * 2
+FOREIGN_WORKSPACE_ID = "WSP-" + "9" * 32
+SLUG = "e3-lineage-boundary"
+STUDY_TITLE = "E3 lineage bound extraction"
+RUN_ID = "RUN-e3-lineage-boundary-search"
+SCREENING_REASON = "Meets the frozen inclusion criteria."
+
+#: A body the frozen Stage 5 usability rule calls usable, written the way the
+#: frozen Stage 5 writers write it (YAML frontmatter + prose). Mirrors
+#: ``tests/e2e/test_extraction_runtime_acceptance.py:79-85``.
+_USABLE_BODY = (
+    "## Abstract\n\n"
+    + "This study reports a measured lineage-bound extraction result. " * 12
+    + "\n"
+)
+
+#: Fixed limbs for the request-inspection tests. Stated, never minted: the run
+#: id is an opaque ``RUN-`` value and the timestamp is frozen, so the built
+#: request is byte-reproducible and no clock is read.
+FIXED_RUN_ID = "RUN-" + "e3" * 16
+FIXED_CREATED_AT = "2026-09-27T00:00:00Z"
+FIXED_PRODUCER_COMMIT = "ab" * 20
+FIXED_PRODUCER_VERSION = "0.2.0"
+
+#: The baseline chunk the golden manifest and the T-10 battery agree on.
+BASELINE_CHUNK_ID = "CHK-ab10cb5729e20ff5dc8d26a93455010c"
+
+
+# --------------------------------------------------------------------------- #
+# Golden loaders
+# --------------------------------------------------------------------------- #
+
+
+def _kit_golden_module() -> Any:
+    """The kit's golden test module, loaded read-only from the vendored tree."""
+
+    spec = importlib.util.spec_from_file_location(
+        "kit_test_index_manifest_golden_ref", KIT_GOLDEN_TEST
+    )
+    assert spec is not None and spec.loader is not None, (
+        f"cannot load the kit-pinned golden source at {KIT_GOLDEN_TEST}"
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _kit_golden_manifest() -> dict[str, Any]:
+    return json.loads(json.dumps(_kit_golden_module().GOLDEN_MANIFEST))
+
+
+def _harness_golden_manifest() -> dict[str, Any]:
+    return json.loads(HARNESS_GOLDEN_FIXTURE.read_text(encoding="utf-8"))
+
+
+# --------------------------------------------------------------------------- #
+# Workspace builder (mirrors tests/e2e/test_extraction_runtime_acceptance.py)
+# --------------------------------------------------------------------------- #
+#
+# Cross-directory test imports are not possible (``tests/e2e/`` is not a
+# package), so the builder below mirrors the e2e shapes instead of importing
+# them: ``_write_extracted`` mirrors e2e ``:253-279``, ``_build_workspace``
+# mirrors e2e ``:282-386``, ``_extracted_state`` mirrors e2e ``:389-395``. Any
+# drift in the frozen writer shapes breaks the publish assertions below, which
+# is the tripwire that keeps the mirror honest.
+# --------------------------------------------------------------------------- #
+
+
+def _write_extracted(
+    workspace: Path, record: dict[str, Any], *, body: str = _USABLE_BODY
+) -> Path:
+    from scholar_harness.orchestrator import _extraction_file_stem
+
+    extracted = workspace / "extracted"
+    extracted.mkdir(exist_ok=True)
+    path = extracted / f"{_extraction_file_stem(record)}.md"
+    path.write_text(
+        "---\n"
+        f'workspace_id: "{record.get("workspace_id", "")}"\n'
+        f'doi: "{record.get("external_ids", {}).get("doi", "")}"\n'
+        f"title: {json.dumps(record.get('title') or 'Untitled', ensure_ascii=False)}\n"
+        'extraction_engine: "metadata"\n'
+        "---\n\n"
+        f"{body}",
+        encoding="utf-8",
+    )
+    return path
+
+
+def _build_workspace(tmp_path: Path, *, study_count: int = 1) -> dict[str, Any]:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    (workspace / "project.json").write_text(
+        json.dumps(
+            {
+                "project_id": SLUG,
+                "registered_workspace_id": WORKSPACE_ID,
+                "stats": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+    protocol = json.loads(PROTOCOL_FIXTURE.read_text(encoding="utf-8"))
+    (workspace / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+    protocol_fp = canonical_fingerprint(ResearchProtocol.model_validate(protocol))
+
+    sources = [
+        Document(
+            title=f"{STUDY_TITLE} {index}",
+            year=2026,
+            provider="crossref",
+            provider_id=f"e3-boundary-record-{index}",
+            external_ids=ExternalIds(doi=f"10.1000/e3-lineage-boundary-{index}"),
+            authors=[Author("Reviewer")],
+            abstract="Abstract sentence. " * 5,
+        )
+        for index in range(1, study_count + 1)
+    ]
+    built = build_corpus_snapshot_artifact(
+        sources,
+        workspace_id=WORKSPACE_ID,
+        run_id=RUN_ID,
+        protocol_fingerprint=protocol_fp,
+        created_at=datetime(2026, 9, 21, tzinfo=UTC),
+        commit="3" * 40,
+    )
+    corpus = built.artifact
+    result = accept_artifact(
+        workspace,
+        corpus,
+        expected=AcceptanceContext(
+            workspace_id=WORKSPACE_ID,
+            protocol_fingerprint=protocol_fp,
+            corpus_fingerprint=corpus["corpus_fingerprint"],
+        ),
+    )
+    assert result.accepted is True, [issue.code for issue in result.issues]
+
+    studies = corpus["data"]["studies"]
+    literature = workspace / "literature"
+    literature.mkdir()
+    (literature / "verified.json").write_text(
+        json.dumps(
+            [
+                {
+                    "workspace_id": study["study_id"],
+                    "title": study["title"],
+                    "year": study["publication_year"],
+                    "external_ids": {"doi": f"10.1000/e3-lineage-boundary-{index + 1}"},
+                    "abstract": "Abstract sentence. " * 5,
+                }
+                for index, study in enumerate(studies)
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    cmd_prepare(workspace, batch_size=20)
+    screening = workspace / "literature" / "screening"
+    (screening / "batch_001_decisions.json").write_text(
+        json.dumps(
+            {
+                "batch": 1,
+                "reviewed_by": "human-reviewer-1",
+                "timestamp": "2026-09-21T12:00:00Z",
+                "decisions": [
+                    {
+                        "workspace_id": study["study_id"],
+                        "decision": "INCLUDE",
+                        "method": "HUMAN",
+                        "screening_reasoning": SCREENING_REASON,
+                        "parent_decision_ids": [],
+                    }
+                    for study in studies
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    cmd_collect(workspace)
+
+    included = json.loads((literature / "included.json").read_text(encoding="utf-8"))
+    assert len(included) == study_count
+    return {
+        "workspace": workspace,
+        "included": included,
+        "study_ids": [s["study_id"] for s in studies],
+    }
+
+
+def _extracted_state(tmp_path: Path, *, study_count: int = 1) -> dict[str, Any]:
+    state = _build_workspace(tmp_path, study_count=study_count)
+    for record in state["included"]:
+        _write_extracted(state["workspace"], record)
+    return state
+
+
+def _published_state(tmp_path: Path, *, study_count: int = 1) -> dict[str, Any]:
+    """A workspace whose manifest the frozen gate really accepted."""
+
+    state = _extracted_state(tmp_path, study_count=study_count)
+    outcome = publish_document_manifest(state["workspace"])
+    assert outcome.accepted is True, outcome.refusal
+    state["artifact_id"] = outcome.artifact_id
+    return state
+
+
+def _registry(workspace: Path) -> dict[str, Any]:
+    path = workspace / "audit" / "artifact_registry.json"
+    if not path.is_file():
+        return {"artifacts": {}}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _journal(workspace: Path) -> list[dict[str, Any]]:
+    journal = workspace / "audit" / "journal.jsonl"
+    if not journal.is_file():
+        return []
+    return [
+        json.loads(line)
+        for line in journal.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+
+def _registered_manifests(workspace: Path) -> dict[str, Any]:
+    return {
+        artifact_id: entry
+        for artifact_id, entry in _registry(workspace)["artifacts"].items()
+        if isinstance(entry, dict) and entry.get("artifact_type") == "document_manifest"
+    }
+
+
+def _mock_embedder(monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Deterministic mock embedder standing in for the downloading provider.
+
+    Stage 6 defaults to ``sentence-transformers`` (a model download on a cold
+    cache), so every request-inspection test patches the orchestrator's
+    ``get_embedder`` global with the kit's documented hermetic provider and
+    pins the HF hubs offline, per the e2e shim pattern
+    (``tests/e2e/test_extraction_runtime_acceptance.py:1807-1856``). The
+    ``dimension`` attribute mirrors the declared request dimension so the
+    kit's observed-vs-declared dimension check sees one consistent claim.
+    """
+
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
+    mock = kit_get_embedder("mock")
+    mock.dimension = 384
+    monkeypatch.setattr(orch_module, "get_embedder", lambda **_: mock)
+    return mock
+
+
+def _fixed_request(
+    orch: ResearchOrchestrator, parent_view: dict[str, Any], *, chroma_dir: Path
+) -> IndexServiceRequest:
+    return orch._build_index_service_request(
+        chroma_dir=chroma_dir,
+        parent_view=parent_view,
+        run_id=FIXED_RUN_ID,
+        created_at=FIXED_CREATED_AT,
+        producer_commit=FIXED_PRODUCER_COMMIT,
+        producer_version=FIXED_PRODUCER_VERSION,
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Anchors -- the rows name the kit's own identifiers, not copied literals
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_anchors_are_the_kits_own_constants() -> None:
+    """The E3 rows name the kit's own identities, types, and outcomes."""
+
+    assert MANIFEST_TYPE == "index_manifest"
+    assert INDEX_SERVICE_OUTCOMES == frozenset(
+        {"SUCCESS", "PARTIAL", "REFUSED", "FAILED"}
+    )
+    # The six T-30 chunk-identity limbs plus the explicit execution-bound
+    # identity a request must carry (E3-002 / E3-004).
+    fields = IndexDocumentRequest.model_fields
+    for limb in (
+        "workspace_id",
+        "study_id",
+        "document_id",
+        "parent_artifact_id",
+        "parent_artifact_sha256",
+        "extracted_content_sha256",
+        "backend_provider",
+        "backend_model",
+        "collection",
+    ):
+        assert limb in fields, f"IndexDocumentRequest lost the {limb} limb"
+    assert IndexDocumentRequest.model_config.get("frozen") is True
+    assert IndexDocumentRequest.model_config.get("extra") == "forbid"
+
+
+def test_e3_anchors_producer_pin_is_the_pinned_kit_commit() -> None:
+    """The parity source is the pinned kit commit, not a floating branch."""
+
+    assert len(KIT_RAG_PIN) == 40, "a full canonical commit, not a branch"
+    assert KIT_GOLDEN_TEST.is_file(), "the kit-pinned golden source must exist"
+
+
+# --------------------------------------------------------------------------- #
+# E3-POS-005 -- kit/harness byte-for-byte golden parity
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_pos_005_harness_fixture_matches_kit_golden_bytes() -> None:
+    """E3-POS-005: the harness fixture agrees byte-for-byte with the kit bytes.
+
+    The comparison is over ``canonical_json_bytes`` of each side's parse, so a
+    drift in either repository -- a reworded digest, a reordered array, a new
+    field -- fails here with the exact digest that moved, rather than silently
+    diverging. Source: ``tools/scholar-rag-kit/tests/test_index_manifest.py:66``
+    (``GOLDEN_MANIFEST``) at pin ``f108fa89``.
+    """
+
+    kit = _kit_golden_manifest()
+    harness = _harness_golden_manifest()
+
+    assert canonical_json_bytes(harness) == canonical_json_bytes(kit), (
+        "the harness E3 golden fixture drifted from the kit-pinned golden bytes; "
+        "do not regenerate to make this pass -- reconcile the two repositories"
+    )
+    for field in (
+        "manifest_id",
+        "index_fingerprint",
+        "artifact_checksum",
+        "production_fingerprint",
+        "chunk_set_fingerprint",
+        "configuration_fingerprint",
+    ):
+        assert harness[field] == kit[field], f"golden digest moved: {field}"
+    assert harness["manifest_id"] == "IDX-748c4d3dd6cfc8133835092b36b7b4bc"
+    assert harness["workspace_id"] == "WSP-0123456789abcdef0123456789abcdef"
+
+
+def test_e3_pos_005_baseline_chunk_id_rederives_from_the_fixture_limbs() -> None:
+    """E3-POS-005 (identity limb): the baseline CHK- re-derives, not copied."""
+
+    manifest = _harness_golden_manifest()
+    record = next(
+        doc
+        for doc in manifest["documents"]
+        if doc["document_id"] == "DOC-33333333333333333333333333333333"
+    )
+    chunk = next(
+        c for c in manifest["visible_chunks"] if c["chunk_id"] == BASELINE_CHUNK_ID
+    )
+    assert record["chunk_ids"] and BASELINE_CHUNK_ID in record["chunk_ids"]
+
+    assert (
+        mint_chunk_id(
+            workspace_namespace=manifest["workspace_id"],
+            parent_artifact_id=manifest["parent_artifact_ref"]["artifact_id"],
+            parent_artifact_sha256=manifest["parent_artifact_ref"]["sha256"],
+            study_id=record["study_id"],
+            document_id=record["document_id"],
+            extracted_content_sha256=record["extracted_content_sha256"],
+            chunker_algorithm_version=manifest["chunker"]["algorithm_version"],
+            chunker_configuration_fingerprint=manifest["chunker"][
+                "configuration_fingerprint"
+            ],
+            heading_path=chunk["locator"]["heading_path"],
+            ordinal_in_section=chunk["locator"]["ordinal_in_section"],
+            section_category=chunk["locator"]["section_category"],
+            chunk_text_sha256=chunk["chunk_text_sha256"],
+        )
+        == BASELINE_CHUNK_ID
+    )
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-010 -- identity is inherited, never re-derived (C-28, RAG-003)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_010_request_limbs_inherit_recorded_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-010: every Stage 6 limb is inherited from recorded state.
+
+    The workspace limb comes from ``project.json``'s recorded identity, the
+    study/document limbs from the accepted manifest's own records, the parent
+    limbs from the registry entry, and the content hash from the on-disk bytes.
+    None of the plausible wrong answers -- a filename stem, the project slug, a
+    DOI, a title -- appears in any limb: a workspace is not a study, a title is
+    not an identity, and similarity is not entailment.
+    """
+
+    _mock_embedder(monkeypatch)
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    orch = ResearchOrchestrator(workspace)
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    request = _fixed_request(orch, parent_view, chroma_dir=tmp_path / "chroma")
+
+    assert request.parent_view["workspace_id"] == WORKSPACE_ID
+    assert parent_view["workspace_id"] == WORKSPACE_ID
+    assert len(request.sources) == 1
+    source = request.sources[0]
+    limbs = source.request
+
+    manifest_records = {
+        record["document_id"]: record for record in parent_view["documents"]
+    }
+    assert limbs.workspace_id == WORKSPACE_ID
+    assert limbs.document_id in manifest_records
+    assert limbs.study_id == manifest_records[limbs.document_id]["study_id"]
+    assert limbs.study_id == state["included"][0]["workspace_id"]
+    assert limbs.parent_artifact_id == parent_view["artifact_id"]
+    assert limbs.parent_artifact_sha256 == parent_view["sha256"]
+    on_disk = (workspace / source.extracted_path).read_text(encoding="utf-8")
+    assert limbs.extracted_content_sha256 == text_fingerprint(on_disk)
+    assert limbs.backend_provider == "chromadb"
+    assert limbs.collection == "scholar_docs"
+
+    stem = Path(source.extracted_path).stem
+    for derived in (
+        stem,
+        SLUG,
+        STUDY_TITLE,
+        "10.1000/e3-lineage-boundary-1",
+        WORKSPACE_ID,
+    ):
+        assert limbs.document_id != derived, derived
+    assert limbs.study_id != WORKSPACE_ID
+    assert limbs.study_id != SLUG
+    assert limbs.workspace_id != SLUG
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-012 -- cross-workspace parent is not inherited (C-05, RAG-010)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_012_cross_workspace_manifest_is_not_inherited(
+    tmp_path: Path,
+) -> None:
+    """E3-NEG-012: a manifest bound to another workspace cannot authorize indexing.
+
+    Retargeting the recorded identity makes the accepted generation foreign, so
+    the preflight refuses before any backend exists: no store directory, no
+    success event, and the registry bytes untouched.
+    """
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    before_registry = (workspace / "audit" / "artifact_registry.json").read_bytes()
+    (workspace / "project.json").write_text(
+        json.dumps(
+            {
+                "project_id": SLUG,
+                "registered_workspace_id": FOREIGN_WORKSPACE_ID,
+                "stats": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(PublicationRefused) as caught:
+        index_accepted_documents(workspace)
+
+    assert caught.value.code == "WORKSPACE_IDENTITY_DISAGREEMENT"
+    assert FOREIGN_WORKSPACE_ID in caught.value.message
+    assert not (workspace / "rag").exists()
+    assert (workspace / "audit" / "artifact_registry.json").read_bytes() == (
+        before_registry
+    )
+    assert [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"] == []
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-013 -- a zero-accepted run is FAILED, never SUCCESS (C-29, RAG-012)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_013_zero_accepted_run_is_failed_never_success(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-013 / the ``NO_DOCUMENTS_TO_INDEX`` shape: emptiness is FAILED.
+
+    The empty-sources limb of ``_run_indexing_stage`` is exercised white-box
+    (the typed request constructor itself refuses an empty source list, so no
+    public path reaches the limb with a real request): the harness shape is
+    ``status == FAILED`` with a ``NO_DOCUMENTS_TO_INDEX`` refusal, a FAILED
+    ``RAG_INDEX_REJECTED`` event, and no store directory -- and it is never a
+    success string and never an empty successful result.
+    """
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    target = tmp_path / "chroma-empty"
+    orch = ResearchOrchestrator(workspace)
+    monkeypatch.setattr(
+        ResearchOrchestrator,
+        "_build_index_service_request",
+        lambda self, **_: SimpleNamespace(sources=[]),
+    )
+
+    result, _indexer = orch._run_indexing_stage(target)
+
+    assert result["status"] == OperationStatus.FAILED.value
+    assert result["status"] != OperationStatus.SUCCESS.value
+    assert result["indexed_files"] == 0
+    assert result["refused"] == [{"document_id": "", "code": "NO_DOCUMENTS_TO_INDEX"}]
+    assert not target.exists()
+    assert not (workspace / "rag").exists()
+    rejected = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_REJECTED"]
+    assert len(rejected) == 1
+    assert rejected[0]["status"] == OperationStatus.FAILED.value
+    assert rejected[0]["metrics"]["rejection_code"] == "NO_DOCUMENTS_TO_INDEX"
+    assert [
+        e
+        for e in _journal(workspace)
+        if e["action"] == "RAG_INDEX_BUILT"
+        and e["status"] == OperationStatus.SUCCESS.value
+    ] == []
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-014 -- a mixed batch is PARTIAL, never SUCCESS (C-29, RAG-012)
+# --------------------------------------------------------------------------- #
+
+
+def _stub_index_workspace(
+    monkeypatch: pytest.MonkeyPatch, *, outcome: str
+) -> dict[str, Any]:
+    """Stand in for the kit service and record the harness status mapping."""
+
+    seen: dict[str, Any] = {}
+    if outcome == "PARTIAL":
+        stub = SimpleNamespace(
+            outcome="PARTIAL",
+            counts=SimpleNamespace(
+                accepted_documents=1, rejected_documents=1, visible_chunks=2
+            ),
+            rejected_documents=(
+                SimpleNamespace(
+                    document_id="DOC-" + "9" * 32,
+                    code="EXTRACTED_TEXT_UNUSABLE",
+                ),
+            ),
+        )
+    else:
+        stub = SimpleNamespace(
+            outcome="SUCCESS",
+            counts=SimpleNamespace(
+                accepted_documents=1, rejected_documents=0, visible_chunks=2
+            ),
+            rejected_documents=(),
+        )
+
+    def _fake(request: Any, **kwargs: Any) -> Any:
+        seen["outcome"] = request
+        return stub
+
+    monkeypatch.setattr(orch_module, "index_workspace", _fake)
+    monkeypatch.setattr(
+        orch_module, "ChromaReplacementView", lambda **_: SimpleNamespace()
+    )
+    monkeypatch.setattr(
+        orch_module, "ChromaVisibleSetReader", lambda **_: SimpleNamespace()
+    )
+    _mock_embedder(monkeypatch)
+    return seen
+
+
+def test_e3_neg_014_mixed_batch_is_partial_never_success(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-014: the harness maps the kit PARTIAL to PARTIAL, not SUCCESS."""
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    _stub_index_workspace(monkeypatch, outcome="PARTIAL")
+
+    result = index_accepted_documents(workspace, chroma_dir=tmp_path / "chroma")
+
+    assert result["status"] == "PARTIAL"
+    assert result["status"] != OperationStatus.SUCCESS.value
+    assert result["indexed_files"] == 1
+    assert result["refused"] == [
+        {"document_id": "DOC-" + "9" * 32, "code": "EXTRACTED_TEXT_UNUSABLE"}
+    ]
+    events = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
+    assert len(events) == 1
+    assert events[0]["status"] == "PARTIAL"
+    assert events[0]["metrics"]["refused_documents"] == 1
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-015 -- malformed parent refuses before any store (C-02, §6.2 step 1)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_015_malformed_parent_refuses_before_any_store(
+    tmp_path: Path,
+) -> None:
+    """E3-NEG-015: an unreadable accepted payload is an absence, not a licence."""
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    manifests = _registered_manifests(workspace)
+    assert list(manifests) == [state["artifact_id"]]
+    payload_path = workspace / manifests[state["artifact_id"]]["path"]
+    assert payload_path.is_file()
+    payload_path.write_text("{not valid json", encoding="utf-8")
+
+    with pytest.raises(PublicationRefused) as caught:
+        index_accepted_documents(workspace)
+
+    assert caught.value.code == "ACCEPTED_ARTIFACT_UNREADABLE"
+    assert state["artifact_id"] in caught.value.message
+    assert not (workspace / "rag").exists()
+    assert [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"] == []
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-016 -- no manifest refuses before any store (C-01, §6.2 step 1)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_016_no_manifest_refuses_before_touching_a_store(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-016 / ``DOCUMENT_MANIFEST_NOT_ACCEPTED``: refusal precedes stores.
+
+    The workspace is fully valid -- corpus, screening, registry, Stage 5 output
+    -- and has simply never published. Constructing Stage 6 would create the
+    vector store before finding out there is nothing accepted to index, so the
+    preflight refuses first and leaves no trace. This is also the first required
+    negative-case shape.
+    """
+
+    state = _extracted_state(tmp_path)
+    workspace = state["workspace"]
+    assert _registered_manifests(workspace) == {}
+
+    def _explode(*_: Any, **__: Any) -> Any:
+        raise AssertionError("Stage 6 was constructed with no accepted manifest")
+
+    monkeypatch.setattr(orch_module, "ResearchOrchestrator", _explode)
+
+    with pytest.raises(PublicationRefused) as caught:
+        index_accepted_documents(workspace)
+
+    assert caught.value.code == "DOCUMENT_MANIFEST_NOT_ACCEPTED"
+    assert "publish" in caught.value.message
+    assert not (workspace / "rag").exists()
+    assert [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"] == []
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-026 -- the embedder identity is explicit, never defaulted (C-17)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_026_embedder_identity_is_explicit_in_the_request(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-026: no provider, model, dimension, or distance is ever defaulted."""
+
+    mock = _mock_embedder(monkeypatch)
+    state = _published_state(tmp_path)
+    orch = ResearchOrchestrator(state["workspace"])
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    request = _fixed_request(orch, parent_view, chroma_dir=tmp_path / "chroma")
+
+    assert request.embedder_provider == "sentence-transformers"
+    assert request.embedder_model == "all-MiniLM-L6-v2"
+    assert request.embedder_dimension == 384
+    assert request.embedder_dimension == mock.dimension
+    assert request.embedder_distance_metric == "cosine"
+    assert request.embedder_normalize_embeddings is True
+    assert request.backend_type == "chromadb"
+    assert request.collection_name == "scholar_docs"
+    assert request.storage_schema_version == "1.0.0"
+    assert request.hnsw_space == "cosine"
+    for limb in (
+        request.embedder_provider,
+        request.embedder_model,
+        request.backend_type,
+        request.collection_name,
+    ):
+        assert isinstance(limb, str) and limb.strip()
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-028 -- deterministic source order (C-15)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_028_sources_are_deterministically_ordered(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-028 (harness limb): backend/filesystem order never reaches identity.
+
+    Stage 6 sorts documents by ``document_id`` before building sources, so an
+    unsorted ``glob`` order cannot observably move a fingerprint. Positional-id
+    reuse itself is the kit's proof and is MISSING below.
+    """
+
+    _mock_embedder(monkeypatch)
+    state = _published_state(tmp_path, study_count=2)
+    orch = ResearchOrchestrator(state["workspace"])
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    first = _fixed_request(orch, parent_view, chroma_dir=tmp_path / "chroma")
+    second = _fixed_request(orch, parent_view, chroma_dir=tmp_path / "chroma")
+
+    ordered = [source.request.document_id for source in first.sources]
+    assert len(ordered) == 2
+    assert ordered == sorted(ordered)
+    assert [source.request.document_id for source in second.sources] == ordered
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-034 -- no emittable identity leaves Stage 6 (C-30)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_034_no_emittable_identity_leaves_stage6(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-034: Stage 6 emits inherited limbs only -- no CHK-, no token."""
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    _stub_index_workspace(monkeypatch, outcome="SUCCESS")
+
+    result = index_accepted_documents(workspace, chroma_dir=tmp_path / "chroma")
+
+    assert result["status"] == OperationStatus.SUCCESS.value
+    blob = json.dumps(result, sort_keys=True)
+    events = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
+    assert len(events) == 1
+    blob += json.dumps(events[0], sort_keys=True)
+    for banned in ("CHK-", "chk-", "[rag:", "rag:v2:"):
+        assert banned not in blob, banned
+    for document in result["documents"]:
+        assert document["document_id"].startswith("DOC-")
+        assert document["study_id"].startswith("STU-")
+        assert document["parent_artifact_id"].startswith("ART-")
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-036 -- similarity is not entailment (C-25)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_036_no_similarity_as_entailment_language(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-036: no VERIFIED/ENTAILED label and no entailment score is emitted."""
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    _stub_index_workspace(monkeypatch, outcome="SUCCESS")
+
+    result = index_accepted_documents(workspace, chroma_dir=tmp_path / "chroma")
+
+    assert result["status"] == OperationStatus.SUCCESS.value
+    blob = json.dumps(result, sort_keys=True)
+    events = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
+    assert len(events) == 1
+    blob += json.dumps(events[0], sort_keys=True)
+    lowered = blob.lower()
+    for banned in ("entailment", "entailed", "verified", "entailment_score"):
+        assert banned not in lowered, banned
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-038 -- the sidecar is not a Contract type (C-03, §1.1)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_038_frozen_registries_reject_the_index_manifest_sidecar(
+    tmp_path: Path,
+) -> None:
+    """E3-NEG-038: offering the kit sidecar to the frozen gate fails closed.
+
+    Mirrors E2-NEG-021: the rejection is ``UNSUPPORTED_ARTIFACT_TYPE``, no
+    registry entry is fabricated, and no artifact directory is created.
+    """
+
+    assert MANIFEST_TYPE == "index_manifest"
+    payload = {
+        "schema_version": "index-manifest-v1",
+        "artifact_type": MANIFEST_TYPE,
+        "artifact_id": "IDX-" + "e" * 32,
+        "contract_version": "1.0.0",
+    }
+    context = AcceptanceContext(
+        workspace_id=WORKSPACE_ID,
+        protocol_fingerprint="sha256:" + "0" * 64,
+        corpus_fingerprint="sha256:" + "0" * 64,
+    )
+    result = accept_artifact(workspace=tmp_path, payload=payload, expected=context)
+
+    assert result.accepted is False
+    assert {issue.code for issue in result.issues} == {"UNSUPPORTED_ARTIFACT_TYPE"}
+    assert result.published_path is None
+    assert not (tmp_path / "artifacts").exists()
+    assert not (tmp_path / "audit" / "artifact_registry.json").exists()
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-048 -- declared dependencies (C-34)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored() -> None:
+    """E3-NEG-048 (harness half): pin, snapshot, and import agree on one commit."""
+
+    import scholar_rag
+
+    plugins = json.loads(PLUGINS_JSON.read_text(encoding="utf-8"))
+    by_name = {plugin["name"]: plugin for plugin in plugins["plugins"]}
+    rev = by_name["scholar-rag-kit"]["default_rev"]
+    assert rev == KIT_RAG_PIN
+    assert re.fullmatch(r"[0-9a-f]{40}", rev) is not None, (
+        "the pin must be a full commit SHA, never a floating branch"
+    )
+    assert scholar_rag.__file__ is not None, "namespace package without a file"
+    resolved = Path(scholar_rag.__file__).resolve()
+    assert REPO_ROOT / "tools" / "scholar-rag-kit" in resolved.parents, (
+        f"scholar_rag resolved outside the vendored tree: {resolved}"
+    )
+    pins = json.loads(PINS_JSON.read_text(encoding="utf-8"))
+    pinned = {pin["name"]: pin for pin in pins["kits"]}["scholar-rag-kit"]
+    assert pinned["default_rev"] == rev, "the metapackage pin must follow plugins.json"
+
+
+# --------------------------------------------------------------------------- #
+# E3-NEG-049 -- generation agreement (C-08, §6.2 step 3)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_049_protocol_mutation_breaks_generation_agreement(
+    tmp_path: Path,
+) -> None:
+    """E3-NEG-049: a post-acceptance protocol edit refuses with a typed code."""
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    protocol_path = workspace / "protocol.json"
+    protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    protocol["research_questions"][0]["text"] += " (amended after screening)"
+    protocol_path.write_text(json.dumps(protocol), encoding="utf-8")
+
+    with pytest.raises(PublicationRefused) as caught:
+        index_accepted_documents(workspace)
+
+    assert caught.value.code == "PROTOCOL_FINGERPRINT_MISMATCH"
+    assert not (workspace / "rag").exists()
+    assert [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"] == []
+
+
+# --------------------------------------------------------------------------- #
+# E3-POS-007 -- zero publication at each harness failure point (E3-007)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.parametrize("failure_point", ["no-manifest", "no-documents"])
+def test_e3_pos_007_refusal_proves_zero_publication(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure_point: str
+) -> None:
+    """E3-POS-007 (harness scope): refusal before step 7 publishes nothing.
+
+    At each harness-owned failure point -- no accepted manifest in this
+    generation, and no indexable documents -- the run proves zero publication:
+    no vector store, no registry mutation, no success audit event, and no
+    accepted E3 record. ``rag/index/accepted.json`` belongs to the future
+    adapter; its absence here is asserted so a later writer cannot appear
+    silently.
+    """
+
+    if failure_point == "no-manifest":
+        workspace = _extracted_state(tmp_path)["workspace"]
+        before_registry = (workspace / "audit" / "artifact_registry.json").read_bytes()
+        with pytest.raises(PublicationRefused) as caught:
+            index_accepted_documents(workspace)
+        assert caught.value.code == "DOCUMENT_MANIFEST_NOT_ACCEPTED"
+        after_registry = (workspace / "audit" / "artifact_registry.json").read_bytes()
+    else:
+        workspace = _published_state(tmp_path)["workspace"]
+        before_registry = (workspace / "audit" / "artifact_registry.json").read_bytes()
+        monkeypatch.setattr(
+            ResearchOrchestrator,
+            "_build_index_service_request",
+            lambda self, **_: SimpleNamespace(sources=[]),
+        )
+        result, _indexer = ResearchOrchestrator(workspace)._run_indexing_stage(
+            tmp_path / "chroma"
+        )
+        assert result["status"] == OperationStatus.FAILED.value
+        after_registry = (workspace / "audit" / "artifact_registry.json").read_bytes()
+
+    assert after_registry == before_registry
+    assert not (workspace / "rag").exists()
+    assert not (workspace / "rag" / "index" / "accepted.json").exists()
+    assert [
+        e
+        for e in _journal(workspace)
+        if e["action"] == "RAG_INDEX_BUILT"
+        and e["status"] == OperationStatus.SUCCESS.value
+    ] == []
+
+
+# --------------------------------------------------------------------------- #
+# MISSING -- explicitly not covered here; the marker checks its reason is true
+# --------------------------------------------------------------------------- #
+
+#: ``(ledger id, handoff row, proof file, needle, must_contain, one-line reason)``.
+MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
+    (
+        "E3-NEG-009",
+        "§10.2 C-09 / §6.2 step 4",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
+        "eligibility join",
+        True,
+        "kit-owned document-eligibility join; the harness forwards parent_view verbatim",
+    ),
+    (
+        "E3-NEG-011",
+        "§10.2 C-10 / §6.2 step 4",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
+        "eligibility join",
+        True,
+        "kit-owned study-lineage join; the harness forwards parent_view verbatim",
+    ),
+    (
+        "E3-NEG-017",
+        "§10.2 C-06 / §6.2 step 2",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
+        "PARENT_HASH_MISMATCH",
+        True,
+        "kit-owned hash-stale detection; Stage 6 re-reads but never recomputes the registry hash",
+    ),
+    (
+        "E3-NEG-021",
+        "§10.2 C-12",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
+        "_refuse_path_shaped",
+        True,
+        "kit-owned path-shape refusal; the harness never synthesizes an extracted path",
+    ),
+    (
+        "E3-NEG-022",
+        "§10.2 C-12",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
+        "docs_destination",
+        True,
+        "kit-owned docs-directory containment; harness skip-missing is proven under E3-NEG-013/016",
+    ),
+    (
+        "E3-NEG-030",
+        "§10.2 C-27",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
+        "cross-document collision",
+        True,
+        "kit-owned per-study uniqueness; the harness mints no chunk identity",
+    ),
+    (
+        "E3-NEG-031",
+        "§10.2 C-27",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
+        "cross-document collision",
+        True,
+        "kit-owned collection-global uniqueness; the harness mints no chunk identity",
+    ),
+    (
+        "E3-NEG-035",
+        "§10.2 C-13",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
+        "EXTRACTED_TEXT_UNUSABLE",
+        True,
+        "kit-owned T-50 usability refusal; the harness producer refusal is E2-era, not E3",
+    ),
+    (
+        "E3-NEG-039",
+        "§10.2 C-07 / §6.2 step 3",
+        REPO_ROOT / "src/scholar_harness/contracts/acceptance.py",
+        "REQUIRED_PARENT_TYPE_MISSING",
+        True,
+        "publish-time frozen-gate check; Stage 6 inherits the accepted manifest without re-checking inputs",
+    ),
+    (
+        "E3-NEG-050",
+        "§10.2 C-11",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
+        "EXTRACTED_CONTENT_CHANGED",
+        True,
+        "kit-owned T-50 staleness code; index-time drift has no Stage 6 check (publish-time is STALE_EXTRACTED_BODY)",
+    ),
+    (
+        "E3-NEG-037",
+        "§10.2 C-32",
+        REPO_ROOT / "src/scholar_harness",
+        "index-acceptance-v1",
+        False,
+        "the §6.6 accepted-record audit event belongs to the future adapter, which does not exist yet",
+    ),
+    (
+        "E3-POS-008",
+        "§10.1 E3-POS-008 / §6.6",
+        REPO_ROOT / "src/scholar_harness",
+        "index-acceptance-v1",
+        False,
+        "the accepted E3 record and its event are adapter future work; the kit journals only its own run report",
+    ),
+    (
+        "E3-POS-009",
+        "§10.1 E3-POS-009 / §9",
+        AGENT_SERVER,
+        "workspace_id: str = None,",
+        True,
+        "T-100 has not landed; the MCP indexing surface is unchanged so no parity is claimed",
+    ),
+    (
+        "E3-POS-012",
+        "§10.1 E3-POS-012",
+        REPO_ROOT / "tests/conformance/test_nexus_scholar_pins.py",
+        "nexus_scholar_pins",
+        True,
+        "the clean-wheel --help smoke is a CI/RELEASE gate; this file owns only the pin half (E3-NEG-048)",
+    ),
+)
+
+
+def _proof_haystack(path: Path) -> str:
+    if path.is_dir():
+        return "\n".join(
+            candidate.read_text(encoding="utf-8")
+            for candidate in sorted(path.rglob("*.py"))
+        )
+    return path.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "ledger_id,row,proof_path,needle,must_contain,reason",
+    [pytest.param(*row, id=row[0]) for row in MISSING],
+)
+def test_e3_missing_ids_are_explicitly_not_covered_here(
+    ledger_id: str,
+    row: str,
+    proof_path: Path,
+    needle: str,
+    must_contain: bool,
+    reason: str,
+) -> None:
+    """Each ledger ID is present either as a live test above or as this marker.
+
+    The needle check keeps the marker honest: it proves the cited owner (or the
+    cited absence, for adapter-future rows) is still the true state of the
+    tree. The skip then records that this file claims no coverage for the row.
+    """
+
+    assert proof_path.exists(), f"the MISSING proof path moved: {proof_path}"
+    haystack = _proof_haystack(proof_path)
+    if must_contain:
+        assert needle in haystack, (
+            f"MISSING {ledger_id} ({row}): the cited owner no longer shows "
+            f"{needle!r} -- revisit the marker, the ownership may have moved"
+        )
+    else:
+        assert needle not in haystack, (
+            f"MISSING {ledger_id} ({row}): {needle!r} now appears under "
+            f"{proof_path} -- the future work may have landed; convert this "
+            "marker into a live test instead of skipping"
+        )
+    pytest.skip(f"MISSING {ledger_id} ({row}): {reason}")
+
+
+# --------------------------------------------------------------------------- #
+# Diagnostic -- the one real-Chroma reproducer (slow, hermetic, tmp-only)
+# --------------------------------------------------------------------------- #
+
+
+def _cause_chain(exc: BaseException) -> list[dict[str, str]]:
+    """The full ``__cause__``/``__context__`` chain as data, never a traceback."""
+
+    chain: list[dict[str, str]] = []
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        entry: dict[str, str] = {
+            "type": type(current).__name__,
+            "message": str(current)[:2000],
+        }
+        if current.__cause__ is not None:
+            entry["edge"] = "__cause__"
+        elif current.__context__ is not None:
+            entry["edge"] = "__context__"
+            entry["suppress_context"] = str(current.__suppress_context__)
+        chain.append(entry)
+        current = current.__cause__ or current.__context__
+    return chain
+
+
+def _reader_snapshot(reader: Any) -> dict[str, Any]:
+    """Backend state through the read-only verification surface only."""
+
+    try:
+        ids = [str(chunk_id) for chunk_id in reader.visible_ids()]
+    except Exception as exc:  # the pre-run store has no collection: record, don't raise
+        return {
+            "observable": False,
+            "error_type": type(exc).__name__,
+            "error": str(exc)[:1000],
+        }
+    snapshot: dict[str, Any] = {
+        "observable": True,
+        "visible_count": reader.visible_count(),
+        "visible_ids": sorted(ids),
+    }
+    try:
+        snapshot["collection_metadata"] = dict(reader.read_collection_metadata() or {})
+    except Exception as exc:
+        snapshot["collection_metadata_error"] = f"{type(exc).__name__}: {exc}"[:500]
+    return snapshot
+
+
+def test_e3_diagnostic_real_chroma_index_workspace_reproducer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    """Real-Chroma diagnostic: the exact typed request and backend sequence.
+
+    Slow and hermetic-safe: a deterministic mock embedder (no weight download),
+    ``HF_HUB_OFFLINE``/``TRANSFORMERS_OFFLINE`` set, a tmp ``db_path``, and
+    nothing written outside tmp plus the ``tmp_path`` workspace fixture. The
+    shipped ``index_accepted_documents`` path runs for real against a real
+    ``ChromaReplacementView``; the typed request is captured exact, the backend
+    is snapshotted before/after through the read-only verification surface,
+    and any failure carries the full ``__cause__`` chain plus the minimal
+    kit-level reproducer. See the module docstring for the close-out rule.
+    """
+
+    mock = _mock_embedder(monkeypatch)
+    environment = {
+        "python": platform.python_version(),
+        "os": platform.platform(),
+        "chromadb": __import__("chromadb").__version__,
+        "embedder": "mock(deterministic, dim=384)",
+    }
+
+    state = _published_state(tmp_path)
+    workspace = state["workspace"]
+    chroma_dir = tmp_path / "diag-chroma"
+
+    from scholar_rag.index_verifier import ChromaVisibleSetReader
+
+    reader_before = ChromaVisibleSetReader(
+        db_path=str(chroma_dir), collection_name="scholar_docs"
+    )
+    backend_before = _reader_snapshot(reader_before)
+
+    captured: dict[str, Any] = {}
+    real_index_workspace = orch_module.index_workspace
+
+    def _recording(request: Any, **kwargs: Any) -> Any:
+        captured["request"] = request
+        captured["backend_type"] = type(kwargs["backend"]).__name__
+        captured["reader_type"] = type(kwargs["reader"]).__name__
+        captured["embedder_type"] = type(kwargs["embedder"]).__name__
+        result = real_index_workspace(request, **kwargs)
+        captured["envelope"] = result.envelope()
+        return result
+
+    monkeypatch.setattr(orch_module, "index_workspace", _recording)
+
+    failure: dict[str, Any] = {}
+    try:
+        result = index_accepted_documents(workspace, chroma_dir=chroma_dir)
+    except Exception as exc:  # never a vacuous pass: the chain is attached below
+        failure = {"raised": True, "cause_chain": _cause_chain(exc)}
+        raise
+    finally:
+        reader_after = ChromaVisibleSetReader(
+            db_path=str(chroma_dir), collection_name="scholar_docs"
+        )
+        captured["backend_before"] = backend_before
+        captured["backend_after"] = _reader_snapshot(reader_after)
+        captured["environment"] = environment
+
+    request = captured["request"]
+    envelope = captured["envelope"]
+    evidence = {
+        "environment": environment,
+        "request_limbs": {
+            "run_id": request.run_id,
+            "created_at": request.created_at,
+            "workspace_id": request.parent_view["workspace_id"],
+            "collection_name": request.collection_name,
+            "backend_type": request.backend_type,
+            "parent_view": request.parent_view,
+            "chunker_configuration": request.chunker_configuration,
+            "embedder": request.embedder_section(),
+            "backend": request.backend_section(),
+            "sources": [
+                {
+                    "request": source.request.model_dump(mode="json"),
+                    "extracted_path": source.extracted_path,
+                    "extraction_method": source.extraction_method,
+                    "extracted_text": source.extracted_text,
+                }
+                for source in request.sources
+            ],
+            "journal_path": request.journal_path,
+            "docs_path": request.docs_path,
+        },
+        "plumbing": {
+            "backend_type": captured["backend_type"],
+            "reader_type": captured["reader_type"],
+            "embedder_type": captured["embedder_type"],
+            "embedder_dimension_observed": getattr(mock, "dimension", None),
+        },
+        "result_envelope": envelope,
+        "harness_result": result,
+        "backend_before": captured["backend_before"],
+        "backend_after": captured["backend_after"],
+    }
+    print(json.dumps(evidence, indent=2, default=str))
+    capsys.readouterr()
+
+    if failure:
+        pytest.fail(
+            "REOPEN-KIT: the diagnostic raised; the cause chain and the "
+            f"minimal reproducer are attached: {json.dumps(failure)[:4000]}"
+        )
+
+    if result["status"] != OperationStatus.SUCCESS.value or envelope["codes"]:
+        pytest.fail(
+            "REOPEN-KIT: ATOMIC_COMMIT_FAILED-class outcome reproduced; minimal "
+            "kit reproducer (request fields + corpus texts + store state) is "
+            "printed above. "
+            f"status={result['status']!r} codes={envelope['codes']!r} "
+            f"verification={envelope['verification_codes']!r}"
+        )
+
+    # Healthy-path close-out: the concern is UNSUBSTANTIATED on this path.
+    assert result["status"] == OperationStatus.SUCCESS.value
+    assert result["indexed_files"] >= 1
+    assert result["refused"] == []
+    assert envelope["journaled"] is True
+    assert envelope["live_set_matches"] is True
+    assert envelope["manifest_id"] and envelope["manifest_id"].startswith("IDX-")
+    assert request.parent_view["workspace_id"] == WORKSPACE_ID
+    assert captured["backend_type"] == "ChromaReplacementView"
+    assert captured["reader_type"] == "ChromaVisibleSetReader"
+    after = captured["backend_after"]
+    assert after["observable"] is True
+    assert after["visible_count"] >= 1
+    assert all(str(chunk_id).startswith("CHK-") for chunk_id in after["visible_ids"])
+    blob = json.dumps(
+        {"result": result, "envelope": envelope, "journal": _journal(workspace)},
+        sort_keys=True,
+    )
+    assert "ATOMIC_COMMIT_FAILED" not in blob
+    # Tmp containment: the workspace default store was never created.
+    assert not (workspace / "rag" / "chroma_db").exists()
+    assert (workspace / "run-reports" / "rag-index.jsonl").is_file()
+    assert [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"] != []
+
+
+#: Landed here so the ledger-ID -> test mapping survives refactors that move
+#: the tests above. Every one of the 29 required IDs names exactly one owner.
+LEDGER_INDEX: dict[str, str] = {
+    "E3-NEG-009": "MISSING (kit-owned eligibility join)",
+    "E3-NEG-010": "test_e3_neg_010_request_limbs_inherit_recorded_identity",
+    "E3-NEG-011": "MISSING (kit-owned study-lineage join)",
+    "E3-NEG-012": "test_e3_neg_012_cross_workspace_manifest_is_not_inherited",
+    "E3-NEG-013": "test_e3_neg_013_zero_accepted_run_is_failed_never_success",
+    "E3-NEG-014": "test_e3_neg_014_mixed_batch_is_partial_never_success",
+    "E3-NEG-015": "test_e3_neg_015_malformed_parent_refuses_before_any_store",
+    "E3-NEG-016": "test_e3_neg_016_no_manifest_refuses_before_touching_a_store",
+    "E3-NEG-017": "MISSING (kit-owned PARENT_HASH_MISMATCH)",
+    "E3-NEG-021": "MISSING (kit-owned path-shape refusal)",
+    "E3-NEG-022": "MISSING (kit-owned docs-directory containment)",
+    "E3-NEG-026": "test_e3_neg_026_embedder_identity_is_explicit_in_the_request",
+    "E3-NEG-028": "test_e3_neg_028_sources_are_deterministically_ordered",
+    "E3-NEG-030": "MISSING (kit-owned per-study uniqueness)",
+    "E3-NEG-031": "MISSING (kit-owned collection-global uniqueness)",
+    "E3-NEG-034": "test_e3_neg_034_no_emittable_identity_leaves_stage6",
+    "E3-NEG-035": "MISSING (kit-owned usability refusal)",
+    "E3-NEG-036": "test_e3_neg_036_no_similarity_as_entailment_language",
+    "E3-NEG-037": "MISSING (adapter-future §6.6 event)",
+    "E3-NEG-038": "test_e3_neg_038_frozen_registries_reject_the_index_manifest_sidecar",
+    "E3-NEG-039": "MISSING (publish-time frozen-gate check)",
+    "E3-NEG-048": "test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored",
+    "E3-NEG-049": "test_e3_neg_049_protocol_mutation_breaks_generation_agreement",
+    "E3-NEG-050": "MISSING (kit-owned staleness code)",
+    "E3-POS-005": "test_e3_pos_005_harness_fixture_matches_kit_golden_bytes "
+    "+ test_e3_pos_005_baseline_chunk_id_rederives_from_the_fixture_limbs",
+    "E3-POS-007": "test_e3_pos_007_refusal_proves_zero_publication",
+    "E3-POS-008": "MISSING (adapter-future accepted record)",
+    "E3-POS-009": "MISSING (T-100 MCP boundary not landed)",
+    "E3-POS-012": "MISSING (CI-owned wheel smoke)",
+}
+
+
+def test_e3_ledger_index_covers_every_required_id() -> None:
+    """The file:line index above names all 29 required IDs exactly once."""
+
+    required = {
+        "E3-NEG-009",
+        "E3-NEG-010",
+        "E3-NEG-011",
+        "E3-NEG-012",
+        "E3-NEG-013",
+        "E3-NEG-014",
+        "E3-NEG-015",
+        "E3-NEG-016",
+        "E3-NEG-017",
+        "E3-NEG-021",
+        "E3-NEG-022",
+        "E3-NEG-026",
+        "E3-NEG-028",
+        "E3-NEG-030",
+        "E3-NEG-031",
+        "E3-NEG-034",
+        "E3-NEG-035",
+        "E3-NEG-036",
+        "E3-NEG-037",
+        "E3-NEG-038",
+        "E3-NEG-039",
+        "E3-NEG-048",
+        "E3-NEG-049",
+        "E3-NEG-050",
+        "E3-POS-005",
+        "E3-POS-007",
+        "E3-POS-008",
+        "E3-POS-009",
+        "E3-POS-012",
+    }
+    assert set(LEDGER_INDEX) == required
+    missing_ids = {row[0] for row in MISSING}
+    assert missing_ids == {
+        ledger_id
+        for ledger_id, owner in LEDGER_INDEX.items()
+        if owner.startswith("MISSING")
+    }, "every MISSING table row must match the index, and vice versa"
+    assert len(MISSING) == 14
