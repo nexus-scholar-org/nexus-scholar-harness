@@ -14,14 +14,22 @@ import type { EvidenceNode, WorkflowStage } from "@/lib/contracts";
 export const ALL_WORKFLOW_STATES = ["complete", "active", "waiting", "refused"] as const;
 
 /**
- * A four-stage sequence that exercises every `WorkflowState`, including
+ * A five-stage sequence that exercises every `WorkflowState`, including
  * `refused`, which `lib/mock-project.ts` never uses.
+ *
+ * The `refused` row carries the *stage's own* presentation state — the step was
+ * stopped — and, like every other row here, it records no verdict about any
+ * record: no inclusion, exclusion, acceptance or refusal decision, no
+ * identifier, and no refusal code (see the file header). The order is
+ * deliberate: states only ever degrade along the sequence, so no later row
+ * claims `complete` after an earlier row stopped being complete.
  */
 export const ALL_STATES_STAGES: WorkflowStage[] = [
   { id: "fixture-a", label: "Sealed protocol", description: "Question and criteria written down", state: "complete" },
   { id: "fixture-b", label: "Record discovery", description: "Records gathered and deduplicated", state: "complete", count: 143 },
   { id: "fixture-c", label: "Extraction", description: "Extraction in progress", state: "active", count: 18 },
   { id: "fixture-d", label: "Synthesis", description: "Held back pending a decision", state: "waiting" },
+  { id: "fixture-e", label: "Document access", description: "Stopped before anything was retrieved", state: "refused" },
 ];
 
 /** Same stage label, used to isolate the presence/absence of `count`. */

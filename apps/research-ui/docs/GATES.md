@@ -1557,3 +1557,186 @@ prevent.
   "untracked" adjective in §5.8's older scope note is itself stale) and was **left
   exactly as found**: this packet changed nothing under it, and the tree is clean
   there in `git status`.
+
+## 7. Packet UI-03 - the workflow timeline's second channel
+
+This section records what packet UI-03 made executable. The packet's deliverable
+was the stage sequence showing `complete`, `active`, `waiting` and `refused`
+"with text and icons, not color alone"; its negative cases were "no claim that a
+future stage is complete" and "refused is distinct from failed infrastructure";
+its gate was a "state matrix test and narrow-width visual check". Everything
+below was produced by a command in this directory on this working tree. The
+packet's design decisions, stable-input list and repair-delta table live in
+`docs/UI-03_CONTEXT_CAPSULE.md`.
+
+### 7.1 Executable gates added by UI-03
+
+| # | Gate | Covered by | Status |
+|---|------|-----------|--------|
+| W1 | **State matrix — four states × three locales.** Inside each stage's own `<li>`: exactly one `svg[data-stage-state-icon]` naming that row's state, `aria-hidden="true"`, with no `role`, no `aria-label`, no `aria-labelledby`, no `<title>` and no text of its own; the stamp word equals `CATALOGS[locale]["state.<state>"]`, and no *other* state's word appears in that row. The declaration is also pinned **as bytes in the component's own JSX** (`<StateIcon ... />` must contain `aria-hidden="true"`) | `tests/workflow-timeline-state-matrix.test.tsx` | EXECUTABLE — 3 locale tests + 1 source pin |
+| W2 | The four rendered icon markups are mutually distinct — asserted once as rendered and once **with the `data-stage-state-icon` token stripped**, so the distinctness is in the drawn shape and not in an attribute no reader can see (Set size 4 both times) | same file | EXECUTABLE |
+| W3 | **Negative case 1 — no future stage claims complete.** Component fidelity: a hostile input order `waiting, refused, complete, active` renders each row's icon token and stamp word *exactly* as given, in all three locales, with no other state word in the row. The component never promotes, sorts or infers a state | same file | EXECUTABLE — 3 tests |
+| W4 | Demo-fixture integrity: in `lib/mock-project.ts` no `complete` stage follows a non-`complete` stage, with non-vacuity guards on both sides so an all-complete or all-active fixture cannot pass it | same file | EXECUTABLE |
+| W5 | **Negative case 2 — refused ≠ failed infrastructure.** The error-ish keys are *discovered* from `messages/en.ts` by key pattern (today `overview.recordError` and `overview.recordErrorLabel`), never enumerated; per locale the refused stamp is not spelled as any of their values, and the rendered refused row contains neither a full error value nor any ≥5-letter word from one. The words come from that locale's own catalog, so French and Arabic are checked in French and Arabic rather than against an English pattern that would match nothing there | same file | EXECUTABLE — 3 tests + 1 discovery non-vacuity |
+| W6 | **No second state→colour definition (D2/N4).** The timeline source carries no `Record<WorkflowState, string>` and no state-hue colour utility (in code or quoted in prose); the four rendered icons share **one** class string whose only colour class is `text-ink-muted` | same file | EXECUTABLE |
+| W7 | No new focusable element and no role/accessible-name change: the list keeps its accessible name and its `listitem` count, and the icon carries no `tabindex` | same file | EXECUTABLE |
+| W8 | **Narrow-width visual check at 375px, `en` and `ar`.** The shared overflow recipe runs first (page must not scroll sideways), then for every demo stage row: one icon, a canonical state token, a stamp word from that locale's catalog, and — after `scrollIntoViewIfNeeded` — the icon, the stamp cell and the stamp each fully inside the viewport in **both** axes. Measured: `en` stamp cell `x 108.0..351.0`, `ar` stamp cell `x 24.0..267.0`, against a 375px viewport; icon `x 108.0..124.0` (en) / `251.0..267.0` (ar) | `tests-browser/workflow-timeline-narrow.spec.ts`, `tests-browser/overflow-recipe.ts` | EXECUTABLE — 2 tests |
+| W9 | Gate 21 after the new comments and the second `@heroicons/react/24/outline` import: `emitted from a comment only: []`, `emitted with no source anywhere: []`, `raw-palette utilities: []`, `shipped CSS retired tokens/hexes: []` | `tests-browser/hygiene.spec.ts` | EXECUTABLE — part of the 61/61 run |
+| W10 | Zero axe violations at 375px and 1440px in all three locales (dialog closed) and at 375px open; the tab ring is byte-for-byte the one UI-01d recorded; the catalog is still exactly **74 keys × 3 locales** | `tests-browser/rendered-axe.spec.ts`, `tests-browser/tab-order.spec.ts`, `tests/i18n-catalog.test.ts` | EXECUTABLE |
+| W11 | The 30 % expansion gate still holds **with the icons in place**: no sideways scroll in any locale at either width and no truncation | `playwright.long-strings.config.ts` + `tests-long-strings/long-strings.spec.ts` | EXECUTABLE — 10/10, ratios `en 1.7167` / `fr 1.3884` / `ar 1.3409` |
+| W12 | Committed screenshots regenerated against the icon change (**7 of 10 changed**; see 7.4) | `tests-browser/screenshots.spec.ts` | EXECUTABLE — all ten rewritten and verified as PNG |
+
+Gate 1 in §1 still stands unchanged: `lib/mock-project.ts` never uses `refused`,
+which is why W1/W3/W5 drive the component directly by prop, and why the `refused`
+row on screen comes from the presentation fixture rather than from the demo
+record.
+
+### 7.2 Measured totals
+
+- `npm run typecheck`: exit 0.
+- `npm test`: **195 passed / 195**, 12 files (was 179/11 before UI-03: +16 tests,
+  +1 file — the whole of `tests/workflow-timeline-state-matrix.test.tsx`).
+- `npm run build`: exit 0, 5 prerendered outputs — `/_not-found`, `/[locale]`
+  (the route definition), and `/en`, `/fr`, `/ar`.
+- `npm run test:browser`: **61 passed / 61**, 11 files (was 59/10: +2 tests,
+  +1 file — the two narrow-width checks in
+  `tests-browser/workflow-timeline-narrow.spec.ts`).
+- Long-strings suite: **10 passed / 10**.
+- Gate 21 detail from the same run: `emitted class selectors: 150, used: 143`,
+  the 7 unused being exactly the `COLLATERAL_EMITTED` prose allow-list
+  (`collapse`, `contents`, `ordinal`, `rounded`, `shadow`, `table`, `visible`),
+  `allow-listed but no longer emitted: []`,
+  `emitted with no source anywhere: []`, `emitted from a comment only: []`.
+
+**Mutation checks — the guards were made to fail before they were believed.**
+Re-executed for repair-cycle-1 (F2) against the *current* bytes of
+`tests/workflow-timeline-state-matrix.test.tsx`, SHA-256
+`66C96A746476FA3E4DFF996015EB4093F81CB030CD04575BEA2F88DDD7FC57F3`, which holds
+**16 executed tests** (10 source `it(` blocks, three of them inside a
+three-locale loop; 7 singletons + 3×3 = 16). Command for every run, from
+`apps/research-ui/`:
+`npx vitest run tests/workflow-timeline-state-matrix.test.tsx`. Between runs the
+component was mutated, then restored from a copy taken before the first
+mutation.
+
+| # | Mutation | Verbatim vitest summary | Exit | What it proved |
+| --- | --- | --- | --- | --- |
+| a | delete `aria-hidden="true"` from the `<StateIcon>` JSX | `❯ tests/workflow-timeline-state-matrix.test.tsx (16 tests \| 1 failed) 407ms` → `Test Files  1 failed (1)` → `Tests  1 failed \| 15 passed (16)` (`Start at  21:49:59`), failing test `pins the icon's props in our own JSX, not only in the library default (A1)` at `:256` | 1 | The prop is load-bearing in the suite: `@heroicons/react` 2.2.0 ships `"aria-hidden": "true"` as its own svg default, so a DOM-only assertion stays green with the prop deleted — hence the source pin |
+| — | restore from the pre-mutation copy | `FINAL COMPONENT SHA-256 = 12B42053D31A566BDD6493E4FDE2474BC1F8D2B6B6C5D696EC6E744B7D586498` … `IDENTICAL: yes` | 0 | byte-identity with the pre-mutation file |
+| c | `refused: NoSymbolIcon` → `refused: ClockIcon` in `stateIcon` | `❯ tests/workflow-timeline-state-matrix.test.tsx (16 tests \| 1 failed) 558ms` → `Test Files  1 failed (1)` → `Tests  1 failed \| 15 passed (16)` (`Start at  21:50:20`), failing test `renders four mutually distinct icon markups`, `AssertionError: expected 3 to be 4` at `:181` | 1 | The stripped-markup distinctness claim is real: two states would have been drawn identically, and only a `data-<token>` no reader can see would have separated them |
+| — | restore from the pre-mutation copy | `FINAL COMPONENT SHA-256 = 12B42053D31A566BDD6493E4FDE2474BC1F8D2B6B6C5D696EC6E744B7D586498` … `IDENTICAL: yes` | 0 | byte-identity with the pre-mutation file |
+| e | clean run, no mutation | `Test Files  1 passed (1)` → `Tests  16 passed (16)` (`Start at  21:50:44`) | 0 | the restored file is green |
+
+Why the numbers changed at repair-cycle-1: this section previously recorded
+`16 passed`, `1 failed / 15 passed` and `1 failed / 14 passed`, which implies
+suite sizes of 16, 16 and 15 for one file. The first of those runs happened
+**before** the source-pin test existed, when the file held 15 tests — it was
+miscopied as 16, and the third run was against that same 15-test suite. All
+three runs above were re-executed against the current 16-test file, so every
+suite size here is 16 and each number is quoted from the run that produced it.
+
+Component byte-identity: SHA-256 `12B42053D31A566BDD6493E4FDE2474BC1F8D2B6B6C5D696EC6E744B7D586498`
+before the first mutation, after each of the two restores, and after the last;
+the full battery was re-run against the restored file.
+
+### 7.3 Existing assertions this packet deliberately changed
+
+**None.** Every pre-existing test file is byte-identical after this packet —
+`tests/workflow-timeline.test.tsx`, `tests/status-badge.test.tsx`,
+`tests/i18n-catalog.test.ts`, `tests/home-page.test.tsx` and
+`tests-browser/tab-order.spec.ts` were read, not edited. The measurement that
+moved is recorded here rather than hidden inside a diff:
+
+| Was | Now | Why |
+| --- | --- | --- |
+| `ALL_STATES_STAGES` held 4 stages; tests iterating it saw 4 | 5 stages; the same generic assertions see 5 | the fixture's own doc-comment claimed it exercised "every `WorkflowState`, including `refused`" while listing none — repaired (A5), so the assertion's *input* changed, not its claim |
+| Route screenshots: 7 of 10 PNGs | same 10 files, 7 rewritten | the overview-bearing captures gain the icon column; regeneration is `screenshots.spec.ts`'s job, not a hand edit |
+
+### 7.4 Design notes and scope
+
+- **Icon set, and the D-I18N-09 record.** `complete → CheckCircleIcon`,
+  `active → ArrowPathIcon`, `waiting → ClockIcon`, `refused → NoSymbolIcon`, all
+  from `@heroicons/react/24/outline` (already a pinned dependency; `package.json`
+  and `package-lock.json` untouched). **All four are chosen as direction-neutral
+  and none is mirrored** — no `rtl:scale-x-*`, no transform of any kind.
+  `ArrowPathIcon` is however arrow-like, and that is D-I18N-09's named trigger:
+  "If a future genuinely directional icon (chevron, arrow) appears, mirroring is
+  an explicit per-icon decision recorded in the packet that adds it." That
+  decision is made here, and it is *not* to mirror — the glyph draws a cycle (a
+  path traversed repeatedly), not a directional arrow. `AGENT_WORK_PACKETS.md` is
+  not an editable path for this packet, so the record lives in
+  `docs/UI-03_CONTEXT_CAPSULE.md` §"Design decisions" and in this row.
+- **One neutral tone, not a second palette (D2).** All four icons render the
+  identical class string, whose only colour class is `text-ink-muted`. The icon
+  channel is shape; `components/status-badge.tsx` remains the application's
+  **only** definition of state colour, and W6 asserts that from both ends (the
+  source bytes and the rendered class list). The stamp keeps its dot, its hue
+  and its word: the icon accompanies the assertion (P3), it never replaces it,
+  and `VISUAL_DIRECTION.md` §5's dot anatomy and §9's M3 claim are untouched.
+- **Refused-fixture repair (A5).** `ALL_STATES_STAGES` gained a fifth row
+  (`fixture-e`, `refused`) so its doc-comment became true. The row is
+  presentation prose only: no DOI, identifier, refusal code or verdict, the
+  sequence's states only ever degrade along it, and the file's disclaimer stays
+  honest (the stage's state is the step's own condition, not a decision about any
+  record).
+- **Scope notes.** (a) `uv run python scripts/select_test_gate.py --path
+  apps/research-ui/components/workflow-timeline.tsx --stage inner` exits 2 with
+  "no task selected" — the E3 manifest maps no task to UI paths, so the governing
+  gate for this packet is its own Gate line plus the commands in
+  `docs/UI-03_CONTEXT_CAPSULE.md` §Validation, not a `test_gate_manifest.json`
+  row. (b) No new strings, no new i18n keys, no route change and no API: the four
+  `state.*` words already exist in `en`/`fr`/`ar`. (c) `components/status-badge.tsx`
+  and `lib/contracts.ts` were read only.
+- **`refused` at 375px — an explicit limit of A6.** The route renders
+  `lib/mock-project.ts`, which is byte-frozen and never uses `refused`, so the
+  narrow-width gate measures the six demo rows (`complete`×4, `active`,
+  `waiting`). The `refused` row travels the same grid cell and the same markup
+  path, and its icon and stamp are asserted per locale in W1/W5; what is *not*
+  claimed is a 375px pixel measurement of a refused row, because producing one
+  would require editing a byte-pinned fixture.
+- **Screenshots: 7 changed, 3 did not.** Rewritten: `375-overview.png`,
+  `375-overview-fr.png`, `375-overview-ar.png`, `375-mobile-ar.png`,
+  `1440-overview.png`, `1440-overview-ar.png`, `1440-skiplink-focused.png` —
+  every capture whose frame contains the workflow section. Unchanged:
+  `1440-evidence-trail.png` (scoped to the evidence section),
+  `375-skiplink-focused.png` and `375-mobile-nav-open.png` (375px frames taken
+  at the top of the page, where the workflow is below the fold).
+- **Doc gap, flagged not repaired.** `apps/research-ui/AGENTS.md` rule 1 and the
+  packet document's small-agent prompt both point at
+  `docs/architecture/research_ui/README.md`, which **does not exist** (the tree
+  holds `AGENT_WORK_PACKETS.md`, `GATES.md`, `I18N.md`, `UI-01C_WORK_PACKET.md`,
+  `UI-01D_WORK_PACKET.md`, `UI-02_CONTEXT_CAPSULE.md`, `VISUAL_DIRECTION.md`).
+  Creating it is outside this packet's allowed paths, so it is open documentation
+  debt, recorded here and in the UI-03 capsule.
+
+### 7.5 Not closed by this packet
+
+- **Human visual review of the regenerated screenshots is NOT VERIFIED** — the
+  same standing condition as `I18N.md` §9 / §5.6: automated assertions cover
+  presence, position and non-clipping, not whether a shape reads well at 11px.
+  The four icons should be eyeballed in `375-overview.png` and
+  `375-overview-ar.png` by a reviewer with an image-capable pass.
+- H1–H5 (unreviewed demonstration translations) carry over unchanged; this
+  packet added no catalog text at all.
+- The refused-row 375px measurement described in §7.4 stays open until a fixture
+  that may carry `refused` on the route exists.
+
+### 7.6 Acceptance map (A1–A9)
+
+The packet's acceptance criteria, each with the code and the executable check
+that carries it. Line numbers are from this working tree.
+
+| A | Criterion | Verdict | Evidence (file:line) | Executable check |
+| --- | --- | --- | --- | --- |
+| A1 | Icon rendered per stage exactly as designed: `aria-hidden`, `data-stage-state-icon` = the state token, one neutral class token, no new focusable element; `StatusBadge` and the count logic unchanged | **PASS** | `components/workflow-timeline.tsx:67-72` (shape map), `:123-128` (icon as first child of the stamp cell); `tests/workflow-timeline-state-matrix.test.tsx:124`, `:227`, `:244`; `tests/workflow-timeline.test.tsx` and `tests/status-badge.test.tsx` byte-identical (absent from `git status`) | `npm test` → 195/195; mutation: deleting the prop now fails at `:244` |
+| A2 | Stamp word = `CATALOGS[locale]["state.<state>"]` for every state × locale, present and unchanged; existing assertions still hold | **PASS** | `tests/workflow-timeline-state-matrix.test.tsx:124` (word + no-other-state-word, en/fr/ar), `:262`; catalogs untouched | `npm test` → 195/195 |
+| A3 | Negative case 1: **no claim that a future stage is complete.** (a) the component renders the state it is given under a hostile order; (b) the demo fixture never marks a stage complete after one stopped being complete | **PASS** | (a) `:262` order `waiting, refused, complete, active` × 3 locales; (b) `:293` with non-vacuity guards on both sides | `npm test` |
+| A4 | Negative case 2: **`refused` is distinct from failed infrastructure** — no error/failure wording in the rendered refused row, checked per locale from the locale's own catalog, with a non-vacuity guard on key discovery | **PASS** | `:312` (discovery, today `overview.recordError`/`overview.recordErrorLabel`), `:322` (×3 locales) | `npm test` |
+| A5 | The presentation fixture actually carries a `refused` stage so A4 can render one (its doc-comment claimed to) | **PASS** | `tests/fixtures/presentation-fixture.ts:17`, `:32` (`fixture-e`); sequence still monotone | `npm test` |
+| A6 | Narrow-width visual check: at 375px (`en`, `ar`) every rendered stage row shows its icon and stamp fully inside the viewport | **PASS** | `tests-browser/workflow-timeline-narrow.spec.ts:53`; measured boxes in §7.1 W8 (`en` stamp cell `108.0..351.0`, `ar` `24.0..267.0` vs 375px) | `npm run test:browser` → 61/61 |
+| A7 | Only the PNGs that actually changed are modified | **PASS** | 7 of 10 in `git status`: `375-overview{,-fr,-ar}.png`, `375-mobile-ar.png`, `1440-overview{,-ar}.png`, `1440-skiplink-focused.png`; the other 3 byte-identical | `git status --short` |
+| A8 | `docs/GATES.md` §7 and `docs/UI-03_CONTEXT_CAPSULE.md` record the measured gates, totals, changed assertions, design decisions (incl. the D-I18N-09 icon record) and open items | **PASS** | `docs/GATES.md:1561` ff.; `docs/UI-03_CONTEXT_CAPSULE.md` (Task, Boundary, Design decisions, Repair delta) | read-back above |
+| A9 | Nothing else moves: catalog still 74 keys × 3 locales, tab ring unchanged, zero axe violations, no forbidden path touched | **PASS** | `tests/i18n-catalog.test.ts` (in 195/195), `tests-browser/tab-order.spec.ts` (in 61/61), axe specs (in 61/61), `git status --short` scope check in §7.4 | `npm test`, `npm run test:browser`, `git status --short` |
+
+Packet-level negative cases map to A3 and A4; the packet's Gate line
+("state matrix test and narrow-width visual check") maps to A1–A5 plus A6.
