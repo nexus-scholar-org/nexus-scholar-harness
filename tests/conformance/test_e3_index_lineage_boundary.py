@@ -46,6 +46,10 @@ Harness-live ledger rows (each names its handoff class and its exact test):
         resolves vendored (``test_e3_neg_048_...``; mirrors E2-NEG-037).
     ``E3-NEG-049`` (C-08 / §6.2 step 3) -- a post-acceptance protocol mutation
         breaks generation agreement and refuses (``test_e3_neg_049_...``).
+    ``E3-NEG-039`` (C-07 / §6.2 step 7) -- the adapter re-checks the required
+        parent type at publication: a type diverged after checks 1-6 refuses
+        ``REQUIRED_PARENT_TYPE_MISSING`` with zero publication
+        (``test_e3_neg_039_...``).
     ``E3-POS-007`` (§6.2 / E3-007, harness scope) -- at each harness failure
         point the run proves zero publication: no store, no registry mutation,
         no success event (``test_e3_pos_007_...``).
@@ -66,9 +70,6 @@ and then skips, so none of them can pass vacuously):
         kit's proof (``cross-document collision``); the harness mints nothing.
     ``E3-NEG-035`` (C-13) -- unusable-extraction refusal is kit T-50
         (``EXTRACTED_TEXT_UNUSABLE``); the harness producer refusal is E2-era.
-    ``E3-NEG-039`` (C-07) -- the required-parent-type gate fires at publish
-        through the frozen acceptance (``contracts/acceptance.py:399``); Stage 6
-        inherits the accepted manifest without re-checking it.
     ``E3-NEG-050`` (C-11) -- index-time staleness has no Stage 6 check
         (``EXTRACTED_CONTENT_CHANGED`` is kit T-50); publish-time staleness is
         the producer's ``STALE_EXTRACTED_BODY`` (e2e Major 5).
@@ -1264,6 +1265,218 @@ def test_e3_pos_008_acceptance_event_carries_the_full_section_66_field_set(
 
 
 # --------------------------------------------------------------------------- #
+# E3-NEG-039 -- publication-time required-parent-type re-check (C-07, live)
+# --------------------------------------------------------------------------- #
+
+
+def test_e3_neg_039_publication_time_parent_type_is_rechecked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E3-NEG-039 (C-07): the adapter re-checks the required parent type at publication.
+
+    Construction (faithful publication-time divergence, not degenerate
+    scaffolding): the candidate is built against the accepted
+    ``document_manifest`` parent ``X`` and is valid at checks 1-6. Artifact
+    ids are content hashes, so the same ``artifact_id`` cannot honestly name
+    two types at once; the divergence is therefore a time-of-check /
+    time-of-use change: inside check 6 (the typed backend read) the spy
+    rewrites the frozen registry file on disk so the *same* ``artifact_id``
+    now yields a known non-required Contract entry (``corpus_snapshot`` --
+    known, so C-03 passes, but not the required ``document_manifest``, so
+    C-07 must fail). Check 7 then re-loads the registry from disk and must
+    refuse ``(7, REQUIRED_PARENT_TYPE_MISSING)`` with zero publication. The
+    refusal is owned by step 7 (not load-time step 3) because checks 1-6
+    already passed -- proven by the check-6 spy having run and by the same
+    payload succeeding once the registry is restored.
+
+    Covers R39-RECHECK (passes 1-6, then step-7 refusal, re-check proven),
+    R39-REFUSE (typed refusal, no exception leak), R39-NORECORD (absent then
+    byte-identical previous, journal unchanged, no success event, intent
+    retained), and R39-LIVE (happy-path still green).
+    """
+
+    import copy
+
+    import scholar_harness.index_acceptance as adapter_module
+    from scholar_harness.index_acceptance import (
+        ACCEPTED_RELPATH,
+        accept_index_candidate,
+    )
+
+    built = _adapter_live_candidate(tmp_path, monkeypatch)
+    workspace = built["workspace"]
+    payload = copy.deepcopy(built["payload"])
+    parent_id = str(payload["parent_artifact_ref"]["artifact_id"])
+    registry_path = workspace / "audit" / "artifact_registry.json"
+    registry_before = registry_path.read_bytes()
+    journal_before = _journal(workspace)
+    assert not (workspace / ACCEPTED_RELPATH).exists()
+    intent_rel = "rag/index/RUN-e3/commit-intent.json"
+    (workspace / intent_rel).parent.mkdir(parents=True, exist_ok=True)
+    (workspace / intent_rel).write_text(
+        json.dumps({"run_id": FIXED_RUN_ID}), encoding="utf-8"
+    )
+
+    real_verify = adapter_module.verify_backend
+    verify_calls: list[Any] = []
+
+    def _diverging_verify(manifest: Any, reader: Any) -> Any:
+        result = real_verify(manifest, reader)
+        verify_calls.append(result)
+        raw = json.loads(registry_path.read_text(encoding="utf-8"))
+        raw["artifacts"][parent_id]["artifact_type"] = "corpus_snapshot"
+        registry_path.write_text(json.dumps(raw, indent=2), encoding="utf-8")
+        return result
+
+    monkeypatch.setattr(adapter_module, "verify_backend", _diverging_verify)
+
+    # Phase 1 (absent previous): diverged at publication -> step-7 refusal.
+    refused = accept_index_candidate(
+        workspace,
+        copy.deepcopy(payload),
+        run_id=FIXED_RUN_ID,
+        manifest_path="rag/index/RUN-e3/manifest.json",
+        reader=built["reader"],
+        intent_path=intent_rel,
+        accepted_at="2026-09-28T00:00:00Z",
+    )
+    assert refused.accepted is False
+    assert (refused.failing_step, refused.code) == (7, "REQUIRED_PARENT_TYPE_MISSING")
+    # Owned by step 7, not load-time step 3: check 6 ran, so checks 1-6 passed.
+    assert len(verify_calls) == 1
+    assert refused.failing_step == 7
+    # Zero publication: no record, intent retained, journal unchanged, no event.
+    assert not (workspace / ACCEPTED_RELPATH).exists()
+    assert (workspace / intent_rel).is_file()
+    assert _journal(workspace) == journal_before
+    assert [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"] == []
+    diverged_bytes = registry_path.read_bytes()
+    assert diverged_bytes != registry_before
+
+    # Phase 2 (same payload, registry restored): succeeds, proving the
+    # candidate was valid at 1-6 and the re-check was the sole cause.
+    registry_path.write_bytes(registry_before)
+    monkeypatch.setattr(adapter_module, "verify_backend", real_verify)
+    accepted = accept_index_candidate(
+        workspace,
+        copy.deepcopy(payload),
+        run_id=FIXED_RUN_ID,
+        manifest_path="rag/index/RUN-e3/manifest.json",
+        reader=built["reader"],
+        intent_path=intent_rel,
+        accepted_at="2026-09-28T00:00:00Z",
+    )
+    assert accepted.accepted is True, (accepted.failing_step, accepted.code)
+    assert not (workspace / intent_rel).exists()
+    before_bytes = (workspace / ACCEPTED_RELPATH).read_bytes()
+    journal_after_success = _journal(workspace)
+    assert (
+        len([e for e in journal_after_success if e["action"] == "RAG_INDEX_BUILT"]) == 1
+    )
+
+    # Phase 3 (previous present): a second distinct candidate diverged at
+    # publication refuses at 7 with the previous record byte-identical.
+    from scholar_harness.orchestrator import ResearchOrchestrator
+    from scholar_rag.index_service import IndexServiceRequest, _build_candidate_manifest
+    from scholar_rag.index_verifier import VisibleRow
+
+    orch = ResearchOrchestrator(workspace)
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    second_run = "RUN-" + "b3" * 16
+    base_request = orch._build_index_service_request(
+        chroma_dir=tmp_path / "chroma-unused-2",
+        parent_view=parent_view,
+        run_id=second_run,
+        created_at="2026-09-28T00:00:00Z",
+        producer_commit=FIXED_PRODUCER_COMMIT,
+        producer_version=FIXED_PRODUCER_VERSION,
+    )
+    altered_config = dict(base_request.chunker_configuration)
+    altered_config["max_chunk_chars"] = 800
+    request2 = IndexServiceRequest(
+        **{
+            **base_request.model_dump(mode="python"),
+            "chunker_configuration": altered_config,
+            "run_id": second_run,
+            "created_at": "2026-09-28T00:00:00Z",
+        }
+    )
+    manifest2 = _build_candidate_manifest(
+        request2, docs_path=workspace / "extracted", workspace_root=workspace
+    )
+    assert manifest2.manifest_id != built["manifest"].manifest_id
+    rows2 = [
+        VisibleRow(
+            row_key=f"{second_run}#{chunk.chunk_id}",
+            chunk_id=chunk.chunk_id,
+            document_id=chunk.document_id,
+            study_id=chunk.study_id,
+            embedding_dimension=manifest2.embedder.dimension,
+            stored_text=None,
+        )
+        for chunk in manifest2.visible_chunks
+    ]
+
+    class _Reader2:
+        def __init__(self, rows: Any, space: str) -> None:
+            self._rows = list(rows)
+            self._space = space
+
+        def visible_ids(self) -> list[str]:
+            return sorted(r.chunk_id for r in self._rows)
+
+        def visible_count(self) -> int:
+            return len(self._rows)
+
+        def visible_rows(self) -> list[Any]:
+            return list(self._rows)
+
+        def read_collection_metadata(self) -> dict[str, Any]:
+            return {"hnsw:space": self._space}
+
+    reader2 = _Reader2(rows2, manifest2.backend.hnsw_space)
+    intent2_rel = "rag/index/RUN-b3/commit-intent.json"
+    (workspace / intent2_rel).parent.mkdir(parents=True, exist_ok=True)
+    (workspace / intent2_rel).write_text(
+        json.dumps({"run_id": second_run}), encoding="utf-8"
+    )
+    verify_calls2: list[Any] = []
+
+    def _diverging_verify2(manifest: Any, reader: Any) -> Any:
+        result = real_verify(manifest, reader)
+        verify_calls2.append(result)
+        raw = json.loads(registry_path.read_text(encoding="utf-8"))
+        raw["artifacts"][parent_id]["artifact_type"] = "corpus_snapshot"
+        registry_path.write_text(json.dumps(raw, indent=2), encoding="utf-8")
+        return result
+
+    monkeypatch.setattr(adapter_module, "verify_backend", _diverging_verify2)
+    refused2 = accept_index_candidate(
+        workspace,
+        manifest2.canonical_payload(),
+        run_id=second_run,
+        manifest_path="rag/index/RUN-b3/manifest.json",
+        reader=reader2,
+        intent_path=intent2_rel,
+        accepted_at="2026-09-29T00:00:00Z",
+    )
+    assert refused2.accepted is False
+    assert (refused2.failing_step, refused2.code) == (7, "REQUIRED_PARENT_TYPE_MISSING")
+    assert len(verify_calls2) == 1
+    assert (workspace / ACCEPTED_RELPATH).read_bytes() == before_bytes
+    assert (workspace / intent2_rel).is_file()
+    assert _journal(workspace) == journal_after_success
+    assert [
+        e
+        for e in _journal(workspace)
+        if e["action"] == "RAG_INDEX_BUILT"
+        and e["status"] == OperationStatus.SUCCESS.value
+    ] != []
+    registry_path.write_bytes(registry_before)
+
+
+# --------------------------------------------------------------------------- #
 # MISSING -- explicitly not covered here; the marker checks its reason is true
 # --------------------------------------------------------------------------- #
 
@@ -1332,14 +1545,6 @@ MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
         "EXTRACTED_TEXT_UNUSABLE",
         True,
         "kit-owned T-50 usability refusal; the harness producer refusal is E2-era, not E3",
-    ),
-    (
-        "E3-NEG-039",
-        "§10.2 C-07 / §6.2 step 3",
-        REPO_ROOT / "src/scholar_harness/contracts/acceptance.py",
-        "REQUIRED_PARENT_TYPE_MISSING",
-        True,
-        "publish-time frozen-gate check; Stage 6 inherits the accepted manifest without re-checking inputs",
     ),
     (
         "E3-NEG-050",
@@ -1627,7 +1832,7 @@ LEDGER_INDEX: dict[str, str] = {
     "E3-NEG-036": "test_e3_neg_036_no_similarity_as_entailment_language",
     "E3-NEG-037": "test_e3_neg_037_acceptance_event_has_no_incomplete_or_leaking_field",
     "E3-NEG-038": "test_e3_neg_038_frozen_registries_reject_the_index_manifest_sidecar",
-    "E3-NEG-039": "MISSING (publish-time frozen-gate check)",
+    "E3-NEG-039": "test_e3_neg_039_publication_time_parent_type_is_rechecked",
     "E3-NEG-048": "test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored",
     "E3-NEG-049": "test_e3_neg_049_protocol_mutation_breaks_generation_agreement",
     "E3-NEG-050": "MISSING (kit-owned staleness code)",
@@ -1681,4 +1886,4 @@ def test_e3_ledger_index_covers_every_required_id() -> None:
         for ledger_id, owner in LEDGER_INDEX.items()
         if owner.startswith("MISSING")
     }, "every MISSING table row must match the index, and vice versa"
-    assert len(MISSING) == 12
+    assert len(MISSING) == 11
