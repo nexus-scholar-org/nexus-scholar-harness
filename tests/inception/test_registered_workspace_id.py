@@ -701,7 +701,13 @@ def test_stage6_audit_event_reports_the_real_outcome(tmp_path, monkeypatch):
 
 
 def test_stage6_audit_event_records_a_real_run_as_success(tmp_path, monkeypatch):
-    """The control for the test above: a genuine run does log SUCCESS."""
+    """The control for the test above: a genuine run does log SUCCESS.
+
+    Stage 6 publishes through the E3 acceptance adapter (handoff §6.6), so the
+    ledger line is the canonical accepted-record event -- not the legacy
+    continuity line with ``metrics.indexed_files``. Emitting the legacy
+    absolute-path line alongside would violate §6.6-never and §6.5.
+    """
     ws = _workspace(tmp_path)
     _accept_chain(ws)
     orch = ResearchOrchestrator(ws)
@@ -717,8 +723,58 @@ def test_stage6_audit_event_records_a_real_run_as_success(tmp_path, monkeypatch)
         if line.strip()
     ]
     rag_events = [e for e in events if e.get("action") == "RAG_INDEX_BUILT"]
-    assert rag_events[0]["status"] == "SUCCESS"
-    assert rag_events[0]["metrics"]["indexed_files"] == 1
+    assert len(rag_events) == 1
+    event = rag_events[0]
+    assert event["status"] == "SUCCESS"
+    params = event["parameters"]
+    # §6.6 field rows: identity, parent ref, manifest ref, fingerprints, counts.
+    assert params["workspace_id"] == _manifest(ws)["registered_workspace_id"]
+    assert isinstance(params["run_id"], str) and params["run_id"].startswith("RUN-")
+    registry = json.loads(
+        (ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
+    )
+    assert params["parent_artifact_id"] == "ART-documents-alpha"
+    assert (
+        params["parent_artifact_sha256"]
+        == registry["artifacts"]["ART-documents-alpha"]["sha256"]
+    )
+    assert isinstance(params["manifest_id"], str) and params["manifest_id"].startswith(
+        "IDX-"
+    )
+    assert params["manifest_path"].endswith(".json")
+    assert params["artifact_checksum"].startswith("sha256:")
+    for field in (
+        "index_fingerprint",
+        "chunk_set_fingerprint",
+        "configuration_fingerprint",
+        "production_fingerprint",
+    ):
+        assert params[field].startswith("sha256:"), field
+    assert params["protocol_fingerprint"] == PROTOCOL_FP
+    assert params["corpus_fingerprint"].startswith("sha256:")
+    assert params["counts"]["accepted_documents"] >= 1
+    assert isinstance(params["counts"]["rejected_documents"], int)
+    assert isinstance(params["counts"]["visible_chunks"], int)
+    assert params["rejected_documents"] == []
+    assert params["embedding_identity"] == {
+        "provider": "sentence-transformers",
+        "model": "all-MiniLM-L6-v2",
+        "dimension": 384,
+        "distance_metric": "cosine",
+    }
+    assert params["configuration"]["max_chunk_chars"] == 1200
+    assert "failing_step" not in params and "code" not in params
+    # Canonical metrics travel with the accepted counts, not the legacy key.
+    assert event["metrics"]["accepted_documents"] >= 1
+    assert "indexed_files" not in event["metrics"]
+    # §6.6-never: no absolute path, db_path, secret, or environment value.
+    blob = json.dumps(event, sort_keys=True)
+    lowered = blob.lower()
+    assert "chroma_db" not in blob and "db_path" not in blob
+    assert str(tmp_path) not in blob
+    assert "/tmp/" not in blob and "C:\\" not in blob and "C:/" not in blob
+    assert "sk-" not in blob and "ghp_" not in blob and "bearer" not in lowered
+    assert "os.environ" not in blob and "getenv" not in lowered
 
 
 def test_stage6_refuses_an_unusable_registry_rather_than_coercing_it(tmp_path):
