@@ -17,11 +17,15 @@ import {
   evidenceKindKey,
   navKey,
   stateKey,
+  countKey,
+  phaseKey,
+  phaseDescriptionKey,
   translateParts,
 } from "@/i18n";
 import en, { type MessageKey } from "@/messages/en";
 import { CATALOGS } from "@/messages";
 import type { EvidenceNode, WorkflowState } from "@/lib/contracts";
+import type { OverviewCountField, ProjectOverviewPhase } from "@/lib/project-state";
 
 /**
  * Catalog integrity (packet UI-01d, N1-N8).
@@ -34,10 +38,13 @@ import type { EvidenceNode, WorkflowState } from "@/lib/contracts";
  * the failure that a build should never ship.
  */
 describe("catalog parity", () => {
-  it("ships exactly the 42 keys the packet inventories, in every locale", () => {
+  it("ships exactly the keys the packets inventory, in every locale", () => {
+    // 42 keys at UI-01d, +32 in packet UI-02's state model = 74. The number is
+    // asserted rather than trusted; `messages/en.ts`'s header states the same
+    // figure, and `docs/I18N.md` §3 repeats it.
     const expected = Object.keys(en).sort();
 
-    expect(expected).toHaveLength(42);
+    expect(expected).toHaveLength(74);
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
     }
@@ -227,7 +234,7 @@ describe("translate", () => {
   it("returns the catalog value, with no key and no leftover placeholder", () => {
     for (const locale of SUPPORTED_LOCALES) {
       for (const key of Object.keys(en) as MessageKey[]) {
-        const rendered = translate(locale, key, { event: "x", number: "1", requested: "de", available: "a" });
+        const rendered = translate(locale, key, { event: "x", number: "1", requested: "de", available: "a", destination: "Screening" });
         expect(rendered, `${locale} / ${key}`).not.toContain(key);
         expect(rendered, `${locale} / ${key}`).not.toMatch(/\{[a-zA-Z]/);
         expect(rendered.trim(), `${locale} / ${key}`).not.toBe("");
@@ -320,6 +327,80 @@ describe("controlled vocabulary keys", () => {
     for (const state of ["complete", "active", "waiting", "refused"] as WorkflowState[]) {
       const key = stateKey(state);
       expect(CATALOGS.en[key]).toBe(state);
+    }
+  });
+});
+
+describe("state-model vocabulary (packet UI-02)", () => {
+  const PHASES: ProjectOverviewPhase[] = [
+    "empty",
+    "setup",
+    "search",
+    "screening",
+    "extraction",
+    "indexing",
+    "refusal",
+    "degraded",
+    "ready",
+  ];
+  const COUNTS: OverviewCountField[] = [
+    "recordsDiscovered",
+    "studiesIncluded",
+    "decisionsPending",
+    "documentsExtracted",
+    "chunksIndexed",
+  ];
+  const ARRIVAL_LABELS = ["overview.recordLoadingLabel", "overview.recordErrorLabel"] as const;
+
+  it("maps every phase and every statistic to a key that exists in every catalog", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const phase of PHASES) {
+        expect(CATALOGS[locale][phaseKey(phase)], `${locale} / ${phase}`).toBeTruthy();
+        expect(
+          CATALOGS[locale][phaseDescriptionKey(phase)],
+          `${locale} / ${phase} description`,
+        ).toBeTruthy();
+      }
+      for (const field of COUNTS) {
+        expect(CATALOGS[locale][countKey(field)], `${locale} / ${field}`).toBeTruthy();
+      }
+    }
+  });
+
+  it("throws UnmappedTokenError for a phase or a statistic nobody declared", () => {
+    // The phase token set is the presentation contract of `lib/project-state.ts`;
+    // a token with no label is a decision nobody made, and it must not render as
+    // a raw token on screen.
+    expect(() => phaseKey("declined")).toThrow(UnmappedTokenError);
+    expect(() => phaseDescriptionKey("paused")).toThrow(UnmappedTokenError);
+    expect(() => countKey("recordsRead")).toThrow(UnmappedTokenError);
+  });
+
+  it("keeps all nine phase words distinct in every locale, and apart from the arrival words", () => {
+    // The stamp is text first (GATES §3.7): two phases sharing a word, or a
+    // phase colliding with the record-arrival stamps, would make the
+    // "distinguishable without colour" claim in
+    // `components/project-state-record.tsx` false rather than merely weak.
+    for (const locale of SUPPORTED_LOCALES) {
+      const phases = PHASES.map((phase) => CATALOGS[locale][phaseKey(phase)]);
+      expect(new Set(phases).size, locale).toBe(PHASES.length);
+
+      const arrivals = ARRIVAL_LABELS.map((key) => CATALOGS[locale][key]);
+      expect(new Set(arrivals).size, locale).toBe(arrivals.length);
+      for (const arrival of arrivals) {
+        expect(phases, `${locale} / ${arrival}`).not.toContain(arrival);
+      }
+    }
+  });
+
+  it("keeps the five statistic labels distinct in every locale, and apart from 'unknown'", () => {
+    // The value column is read against its row label; two rows claiming the
+    // same statistic would make the unknown-versus-zero cell ambiguous, and a
+    // label equal to the unknown word would defeat the negative case itself.
+    for (const locale of SUPPORTED_LOCALES) {
+      const labels = COUNTS.map((field) => CATALOGS[locale][countKey(field)]);
+      expect(new Set(labels).size, locale).toBe(COUNTS.length);
+      expect(labels, locale).not.toContain(CATALOGS[locale]["counts.unknown"]);
     }
   });
 });

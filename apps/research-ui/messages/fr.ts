@@ -77,6 +77,53 @@ const fr: Record<MessageKey, string> = {
   "notFound.unsupportedLocale":
     'La locale « {requested} » n\'est pas disponible. Locales disponibles : {available}.',
   "notFound.backToDefault": "Revenir à la vue d'ensemble en anglais",
+
+  // ---- Modèle d'état du projet (paquet UI-02) : 32 clés ----
+  "overview.stateHeading": "Étape actuelle",
+  "overview.stateLede":
+    "Où en est ce projet et les statistiques que comporte le dossier. Une statistique absente du dossier s'affiche comme inconnue, jamais comme zéro.",
+  "overview.recordLoadingLabel": "Chargement",
+  "overview.recordLoading":
+    "Le dossier du projet n'est pas encore parvenu. Rien n'est déduit pendant qu'il est en attente.",
+  "overview.recordErrorLabel": "Indisponible",
+  "overview.recordError":
+    "Le dossier de la vue d'ensemble n'a pas pu être chargé. Il s'agit d'une lecture échouée, non d'une décision refusée.",
+  "overview.nextDestination": "Poursuivre dans {destination}.",
+  "phase.empty": "Aucun projet",
+  "phase.empty.description":
+    "Aucun projet n'a encore été créé : ni corpus, ni décisions, ni preuves à montrer.",
+  "phase.setup": "Préparation",
+  "phase.setup.description":
+    "Le protocole et ses critères sont en cours de rédaction. Le travail commence quand le protocole est scellé.",
+  "phase.search": "Recherche",
+  "phase.search.description":
+    "Les notices sont découvertes et dédoublonnées avant toute sélection.",
+  "phase.screening": "Sélection",
+  "phase.screening.description":
+    "Les décisions d'inclusion et d'exclusion attendent une personne qui doit les prendre. Rien n'est décidé automatiquement.",
+  "phase.extraction": "Extraction des études",
+  "phase.extraction.description":
+    "Les études retenues sont en cours d'extraction, et chaque passage extrait conserve son chemin vers sa source.",
+  "phase.indexing": "Indexation",
+  "phase.indexing.description":
+    "Les passages extraits sont indexés pour qu'une synthèse ultérieure puisse les retrouver avec leur filiation intacte.",
+  "phase.refusal": "Refusée",
+  "phase.refusal.description":
+    "Une étape a été refusée par l'autorité qui l'exécute : aucun résultat partiel ne prend sa place.",
+  "phase.degraded": "Dégradée",
+  "phase.degraded.description":
+    "Une partie du dossier est indisponible. Ce que le dossier ne contient pas s'affiche comme inconnu, sans estimation.",
+  "phase.ready": "Prête",
+  "phase.ready.description":
+    "La sélection, le texte intégral et l'extraction ont produit les études retenues. Le rapport guidé n'a pas commencé.",
+  "counts.heading": "Statistiques du corpus",
+  "counts.recordsDiscovered": "Notices découvertes",
+  "counts.studiesIncluded": "Études retenues",
+  "counts.decisionsPending": "Décisions en attente d'une personne",
+  "counts.documentsExtracted": "Documents extraits",
+  "counts.chunksIndexed": "Passages indexés",
+  "counts.unknown": "inconnu",
+
   "brand.productName": "Nexus Scholar",
 };
 

@@ -1,4 +1,5 @@
 import type { EvidenceNode, WorkflowState } from "../lib/contracts";
+import type { OverviewCountField, ProjectOverviewPhase } from "../lib/project-state";
 import { CATALOGS, type MessageKey } from "../messages";
 import { inflate } from "./long-strings";
 import type { Locale } from "./locales";
@@ -94,6 +95,46 @@ const EVIDENCE_KIND_KEYS: Readonly<Record<EvidenceNode["kind"], MessageKey>> = {
   decision: "evidenceKind.decision",
 };
 
+/**
+ * The nine project-overview phases (packet UI-02), label and description kept
+ * as two tables rather than one key built by string concatenation, because a
+ * component must never assemble a `MessageKey` at runtime: a phase whose label
+ * exists but whose description does not would then fail only in the locales
+ * that lost the description, instead of failing to compile here.
+ */
+const PHASE_KEYS: Readonly<Record<ProjectOverviewPhase, MessageKey>> = {
+  empty: "phase.empty",
+  setup: "phase.setup",
+  search: "phase.search",
+  screening: "phase.screening",
+  extraction: "phase.extraction",
+  indexing: "phase.indexing",
+  refusal: "phase.refusal",
+  degraded: "phase.degraded",
+  ready: "phase.ready",
+};
+
+const PHASE_DESCRIPTION_KEYS: Readonly<Record<ProjectOverviewPhase, MessageKey>> = {
+  empty: "phase.empty.description",
+  setup: "phase.setup.description",
+  search: "phase.search.description",
+  screening: "phase.screening.description",
+  extraction: "phase.extraction.description",
+  indexing: "phase.indexing.description",
+  refusal: "phase.refusal.description",
+  degraded: "phase.degraded.description",
+  ready: "phase.ready.description",
+};
+
+/** The five corpus statistics, each with its own catalog label. */
+const COUNT_KEYS: Readonly<Record<OverviewCountField, MessageKey>> = {
+  recordsDiscovered: "counts.recordsDiscovered",
+  studiesIncluded: "counts.studiesIncluded",
+  decisionsPending: "counts.decisionsPending",
+  documentsExtracted: "counts.documentsExtracted",
+  chunksIndexed: "counts.chunksIndexed",
+};
+
 function lookup<T extends string>(
   table: Readonly<Record<T, MessageKey>>,
   token: string,
@@ -119,6 +160,33 @@ export function stateKey(state: WorkflowState): MessageKey {
 /** The catalog key for an `EvidenceNode.kind`, the canonical token preserved as data. */
 export function evidenceKindKey(kind: EvidenceNode["kind"]): MessageKey {
   return lookup(EVIDENCE_KIND_KEYS, kind, "evidenceKind");
+}
+
+/**
+ * The catalog key for a `ProjectOverviewPhase` (packet UI-02).
+ *
+ * Same contract as {@link stateKey}: the phase token stays the data, only the
+ * word a reader sees is translated, and a token with no key throws
+ * {@link UnmappedTokenError} rather than rendering something invented.
+ */
+export function phaseKey(phase: string): MessageKey {
+  return lookup(PHASE_KEYS, phase, "phase");
+}
+
+/** The catalog key for the one-sentence explanation of a phase. */
+export function phaseDescriptionKey(phase: string): MessageKey {
+  return lookup(PHASE_DESCRIPTION_KEYS, phase, "phase");
+}
+
+/**
+ * The catalog key for one corpus statistic's label (packet UI-02).
+ *
+ * The *value* is never looked up here: a count is a fixture number formatted by
+ * `Intl`, or it is absent and renders `counts.unknown`. This maps only the
+ * label that sits beside it.
+ */
+export function countKey(field: string): MessageKey {
+  return lookup(COUNT_KEYS, field, "counts");
 }
 
 /** Matches a `{name}` hole. Names are dotted-safe so keys can be reused. */

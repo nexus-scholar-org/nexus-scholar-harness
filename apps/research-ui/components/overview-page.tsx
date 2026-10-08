@@ -1,7 +1,9 @@
 import { translate, translateParts, type Locale, type MessagePart } from "@/i18n";
 import { demoEvidence, demoProject } from "@/lib/mock-project";
+import { demoOverviewState } from "@/lib/mock-project-states";
 
 import { EvidenceChain } from "./evidence-chain";
+import { ProjectStateRecord } from "./project-state-record";
 import { WorkflowTimeline } from "./workflow-timeline";
 
 /**
@@ -56,6 +58,14 @@ function TranslatedSentence({ parts }: Readonly<{ parts: MessagePart[] }>) {
  * Nothing was removed: the research question, the six fixture stages with their
  * labels, descriptions, states and counts, the claim-to-source trail and the
  * explanatory statement are all still present.
+ *
+ * **Packet UI-02 added one section** between the masthead and the workflow
+ * record: the current stage (the project-overview state model) and the five
+ * corpus statistics, driven by `demoOverviewState` from
+ * `lib/mock-project-states.ts`. It is fixture-backed presentation only — the
+ * route still claims no live backend — and it adds no focusable element and no
+ * heading below level 2, so the tab stops and the stage-heading assertions the
+ * route already carries are untouched.
  */
 export function OverviewPage({ locale }: Readonly<{ locale: Locale }>) {
   return (
@@ -88,6 +98,11 @@ export function OverviewPage({ locale }: Readonly<{ locale: Locale }>) {
             </p>
           </div>
         </section>
+
+        {/* ---- the current stage, and what the record carries (packet UI-02) */}
+        <div className="mt-14">
+          <ProjectStateRecord locale={locale} state={demoOverviewState} />
+        </div>
 
         {/* ---- the workflow record ----------------------------------------- */}
         <section className="mt-14" aria-labelledby="workflow-title">

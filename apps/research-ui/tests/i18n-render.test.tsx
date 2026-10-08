@@ -394,7 +394,11 @@ describe("translated numerals", () => {
     expect(formatNumber("ar", 143)).toBe(new Intl.NumberFormat("ar-EG").format(143));
 
     renderDocument("ar");
-    expect(screen.getByText(formatNumber("ar", 143))).toBeInTheDocument();
+    // Two surfaces now show the same corpus figure — the workflow timeline's
+    // stage 1 count and the current-stage record's "records discovered" row —
+    // so the claim is that the document renders the Arabic-Indic form at least
+    // once, not that exactly one node holds it.
+    expect(screen.getAllByText(formatNumber("ar", 143)).length).toBeGreaterThan(0);
   });
 
   it("uses grouping off, so a count never wraps mid-number", () => {

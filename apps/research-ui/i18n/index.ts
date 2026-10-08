@@ -37,9 +37,12 @@ export {
 export {
   MissingMessageError,
   UnmappedTokenError,
+  countKey,
   evidenceKindKey,
   navKey,
   placeholdersOf,
+  phaseDescriptionKey,
+  phaseKey,
   stateKey,
   translate,
   translateParts,
