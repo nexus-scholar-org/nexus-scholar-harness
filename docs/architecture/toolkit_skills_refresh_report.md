@@ -94,3 +94,10 @@ All claims below were verified against these vendored implementations, not memor
 ## Next gate
 
 Scoped factual review → repair-delta verification only → fork PR (no merge, no pin change, no HCM work).
+
+### Repair delta (review P2 ×3)
+
+- RAG+PDF E3 adapter EXISTS (`src/scholar_harness/index_acceptance.py` `accept_index_candidate`, `index-acceptance-v1` → `rag/index/accepted.json` + `RAG_INDEX_BUILT`); kit `SUCCESS` ≠ acceptance; ledger `MISSING == ()`; Stage 6 via `index_accepted_documents` → typed `index_workspace`.
+- RAG index example: workspace-relative `extracted/` + `run-reports/rag-index.jsonl` + explicit `--db-path`; note `<ws>`-prefix doubling.
+- Chain flags: `--direction backward --direction forward` (repeat flag).
+- Deferred (kit-owned, NOT fixed here): `tools/scholar-search-kit/src/scholar_search/cli.py:384` docstring repeats `-d backward forward`; belongs to `nexus-scholar-org/scholar-search-kit`.

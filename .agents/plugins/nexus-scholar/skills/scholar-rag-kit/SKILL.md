@@ -32,13 +32,15 @@ Read the ref for the task at hand; do not load all three by default.
 
 ```bash
 # Typed index: 1 positional + 10 required options, none minted or discovered
-uv run scholar-rag index <ws>/extracted/ \
+uv run scholar-rag index extracted/ \
   --parent-view <ws>/parent-view.json \
-  --journal <ws>/run-reports/rag-index.jsonl \
+  --journal run-reports/rag-index.jsonl \
   --workspace-root <ws> \
+  --db-path <ws>/chroma_db \
   --run-id <RUN-...> --created-at <rfc3339> \
   --producer-version <version> --producer-commit <40-hex> \
   --embedder-provider <provider> --embedder-model <model> --embedder-dimension <int>
+# note: docs/journal refs are workspace-relative (bound against --workspace-root; an <ws>-prefixed pair with a relative <ws> doubles); store path is stated explicitly via --db-path.
 # exits: 0 SUCCESS / 2 REFUSED / 3 PARTIAL / 4 FAILED (index_service.py:223)
 
 # Hybrid retrieval with sectional slicing and graph boost
@@ -81,7 +83,7 @@ synthesis = GroundedSynthesisEngine(retriever=retriever).synthesize("...", rq_id
 - **Identity is recorded-artifact-only.** Chunk ids are content-derived `CHK-` identities minted by `mint_chunk_id` (`chunker.py:121`) from limbs read from `base_metadata` only — no fallback to frontmatter, filename, DOI, title, CWD, or `project.json` (`chunker.py:18-28`, identity reader `chunker.py:592`). A missing limb is a typed refusal, never a degraded id. The chunker option set is closed (`chunker.py:83`); `min_chunk_chars` is the honored micro-chunk merge threshold (`chunker.py:531`).
 - **Parent lineage decides eligibility.** A document is indexed because the accepted parent named it; `docs_path` only scopes which files the run may read. The run refuses on disagreement — it never silently skips or invents Methodology/Results/Limitations.
 - **Refusal, not silent defaults.** Missing `--journal`, identity limbs, or parent `documents` → `REFUSED` (exit 2) with a closed-vocabulary code. Provider failure is never an empty successful result. `--workspace-id` was removed from `index` (it survives only on `query`).
-- **Authoritative vs candidate.** The typed run publishes an `IndexManifest` v1 sidecar (`index_manifest.py:130`), commits through the R1–R7 replacement protocol (`replacement.py:1385`, intent `replacement.py:638`) with live-set proof via `verify_backend` (`index_verifier.py:563`), and appends its own run report (`RAG_INDEX_RUN_BUILT` / `RAG_INDEX_RUN_REJECTED`, `index_service.py:209`) to the **explicit** journal destination — never to the canonical adapter ledger `audit/journal.jsonl` (refused, G-9). The §6.6 accepted-record event belongs to the future `index-acceptance-v1` adapter, not to this kit run.
+- **Authoritative vs candidate.** The typed run publishes an `IndexManifest` v1 sidecar (`index_manifest.py:130`), commits through the R1–R7 replacement protocol (`replacement.py:1385`, intent `replacement.py:638`) with live-set proof via `verify_backend` (`index_verifier.py:563`), and appends its own run report (`RAG_INDEX_RUN_BUILT` / `RAG_INDEX_RUN_REJECTED`, `index_service.py:209`) to the **explicit** journal destination — never to the canonical adapter ledger `audit/journal.jsonl` (refused, G-9). The §6.6 accepted-record event belongs to the harness `index-acceptance-v1` adapter (`src/scholar_harness/index_acceptance.py` `accept_index_candidate`, schema `index-acceptance-v1`), which publishes `rag/index/accepted.json` + the canonical `RAG_INDEX_BUILT` §6.6 event — a kit `SUCCESS` (sidecar + `RAG_INDEX_RUN_BUILT` run report) is still not acceptance.
 - **Similarity is not entailment.** `entailment_score` with `VERIFIED (≥0.85)` / `AMBIGUOUS (≥0.50)` / `UNSUPPORTED` is embedding-cosine scaled to [0,1] with a lexical-overlap fallback (`synthesis.py:112`; status words `models.py:207`). No synthesis claim verifies semantic entailment, and RAG `claims.json` carries no `evidence_quote`/`claim_id` (see retrieval ref).
 - **Legacy is superseded, not current.** `ScholarIndexer.index_markdown/index_directory` upsert (`indexer.py:84,280`, `collection.upsert` at `indexer.py:126`) is the path Stage 6 no longer uses (harness stub `orchestrator.py:58`; Stage 6 calls `index_workspace`, `orchestrator.py:1425`). Never present it as the typed path; `matrix` (no-`--protocol` fallback) and `stats` still drive it — that is stated in the retrieval ref, not a recommendation.
 - **MCP has no indexing parity.** `nexus_rag_index` is **declared unsupported** (capability `rag_indexing`, `mcp_supported: false`, owner `nexus-scholar-org/scholar-rag-kit`, `capabilities.py:56`): every call returns `operation="rag_index"`, `status="FAILED"`, zero I/O, one non-retryable `UNSUPPORTED_CAPABILITY` error (`server.py:826`). Use the `scholar-rag index` CLI or `scholar_rag.index_service` API. This narrows nothing else: `nexus_rag_query` / `nexus_rag_synthesize` / `nexus_matrix_extract` remain available (see MCP ref).
@@ -89,5 +91,5 @@ synthesis = GroundedSynthesisEngine(retriever=retriever).synthesize("...", rq_id
 ## Versions and status
 
 - Shipped package `0.1.0`; golden `producer.version 0.2.0` is the producing-kit version stamped inside the frozen golden manifest bytes, not the installed version.
-- Status: E3 in progress. Live harness rows (incl. `E3-POS-005` golden parity) proven; 14 ledger rows stay honestly `MISSING` upstream of adapter/parity work. Do not claim acceptance semantics this kit does not publish.
+- Status: E3 in progress. Live harness rows (incl. `E3-POS-005` golden parity) proven; ledger completeness `MISSING == ()` (`tests/conformance/test_e3_index_lineage_boundary.py:2079,:2355`). Do not claim acceptance semantics this kit does not publish.
 - Auxiliary only (never the publication path): `NumpyBackend` (in-memory test backend), `LLMExtractor`/`PIIRedactor` and the `scholar-rag extract` command (Gemini `gemini-pro` extraction with heuristic fallback + PII redaction), and `gemini` embedding (`text-embedding-004`, 768-d). Details in refs; `index` has **no** `--api-key` flag.

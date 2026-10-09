@@ -64,12 +64,14 @@ empty success. Unexpected exceptions become `FAILED`/`INTERNAL_ERROR`.
 ## Authoritative vs candidate (read carefully)
 
 This run's sidecar + run report are the kit's own publication claim. The
-§6.6 **accepted-record** event belongs to the future `index-acceptance-v1`
-adapter and is `MISSING` upstream of that work — a `SUCCESS` here is not an
-acceptance verdict. E3 status: live harness rows including `E3-POS-005`
-golden parity are proven; 14 ledger rows stay honestly `MISSING` upstream
-of adapter/parity work (eligibility, hash-stale, containment, uniqueness,
-usability, staleness, publish-time, adapter-future, MCP-parity, CI-wheel).
+§6.6 **accepted-record** event belongs to the harness `index-acceptance-v1`
+adapter (`src/scholar_harness/index_acceptance.py` `accept_index_candidate`,
+schema `index-acceptance-v1`), which publishes `rag/index/accepted.json` +
+the canonical `RAG_INDEX_BUILT` §6.6 event — a `SUCCESS` here (sidecar +
+`RAG_INDEX_RUN_BUILT` run report) is not an acceptance verdict. E3 status:
+live harness rows including `E3-POS-005` golden parity are proven; ledger
+completeness is `MISSING == ()`
+(`tests/conformance/test_e3_index_lineage_boundary.py:2079,:2355`).
 
 ## Python API (same service)
 

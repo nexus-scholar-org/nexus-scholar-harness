@@ -42,8 +42,12 @@ the boundary is a Packet E3 §9.1 change, not a local tweak.
 - Legacy paths: `RAG_QUERY_RETRIEVED` (retriever), `SYNTHESIS_GENERATED`
   (synthesis), `MATRIX_EXTRACTED` (matrix runs).
 - Harness continuity / §6.6 accepted-record events are **not** this kit's
-  to emit (the accepted-record event belongs to the future
-  `index-acceptance-v1` adapter).
+  to emit (the accepted-record event belongs to the harness
+  `index-acceptance-v1` adapter — `src/scholar_harness/index_acceptance.py`
+  `accept_index_candidate`, schema `index-acceptance-v1`, publishing
+  `rag/index/accepted.json` + canonical `RAG_INDEX_BUILT` §6.6 event; kit
+  `SUCCESS` with sidecar + `RAG_INDEX_RUN_BUILT` run report is still not
+  acceptance).
 
 ## Legacy vs current (say exactly this)
 

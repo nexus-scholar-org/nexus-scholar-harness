@@ -163,8 +163,10 @@ the registry entry, the published path, the rejection record, and idempotency.
   `literature/extraction_publications/<ART-…>.json` with per-document source kind/hash,
   extraction method, and the registered parent. It is **not** the kit's
   `pdf-extraction-manifest-v1` sidecar and is never presented as one.
-- **Indexing is an observation, not a claim.** `extract index` hands *accepted*
-  documents to `ScholarIndexer` and records what actually happened; indexing zero
+- **Indexing is an observation, not a claim.** `extract index` delegates via
+  `index_accepted_documents` (`src/scholar_harness/extraction_producer.py:1648`)
+  to orchestrator Stage 6 typed `index_workspace`
+  (`src/scholar_harness/orchestrator.py:1425`) and records what actually happened; indexing zero
   documents is `FAILED`, and Stage 6 re-reads the accepted manifest rather than the
   provenance record. It also refuses with `DOCUMENT_MANIFEST_NOT_ACCEPTED` **before**
   constructing Stage 6, so a workspace that has never published gets no

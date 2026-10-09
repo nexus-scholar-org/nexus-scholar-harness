@@ -43,7 +43,7 @@ uv run scholar-search screen \
 uv run scholar-search snowball W2741809807 --provider openalex --direction forward --output citing.json
 uv run scholar-search snowball W2741809807 --provider openalex --direction backward --output references.json
 # Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
-uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward forward --output chain.json --edges-output chain_edges.json
+uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward --direction forward --output chain.json --edges-output chain_edges.json
 
 # 6. Export for Reference Managers (export takes INPUT + OUTPUT positionals — no --output flag)
 uv run scholar-search export results.json results.ris --format ris
