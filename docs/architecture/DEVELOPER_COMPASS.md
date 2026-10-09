@@ -247,7 +247,8 @@ replace this acquisition-specific packet.
 `6050e0c99cdddb0f2c1ce7e0c62458a58eab5ce7`, full-SHA pins, generated
 metapackage pins, and E1-NEG-030/044/047 conformance agree. See
 `docs/architecture/wp01_packet_e1_completion_report.md`. E2 subsequently
-closed at `0fb665558e0808d66348476eda2c927439a96be1`; E3 is next.
+closed at `0fb665558e0808d66348476eda2c927439a96be1`; E3/E4 now have
+qualified closure records (see current position above).
 
 ### Packet E2 — extracted-text boundary
 
@@ -264,7 +265,8 @@ content status, and failure reason remain recorded in the kit-owned sidecar.
 `0430ee40c491edbb055af4ab068637275aada476`, agent kit
 `deebfad995ba88bbd748be9beddd1aa2b8a51264`, bounded harness acceptance
 adapter, full-SHA pins, generated metapackage pins, and E2 conformance agree.
-See `docs/architecture/wp01_packet_e2_completion_report.md`. E3 is next.
+See `docs/architecture/wp01_packet_e2_completion_report.md`; E3/E4 status is
+recorded in the current position above.
 
 ### Packet E3 — chunk and index boundary
 
