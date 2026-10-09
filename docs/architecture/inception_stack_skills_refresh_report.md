@@ -59,4 +59,11 @@ All examples below were verified against committed source before editing (live `
 
 ## Next gate
 
+### Maintainer review delta
+
+Blocked executable batch recommendations with prominent D1 warnings in the
+workspace skill and performance reference; retained examples as reference-only.
+Clarified that compilation/logging is not Contract v1 acceptance in inception.
+Runtime code remains unchanged; mirrors regenerated from canonical documents.
+
 Scoped factual review → repair-delta verification only → fork PR (no merge, no pin change, no HCM work).

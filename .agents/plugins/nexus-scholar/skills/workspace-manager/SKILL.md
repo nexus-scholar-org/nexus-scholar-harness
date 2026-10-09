@@ -5,6 +5,15 @@ description: Central orchestration agent for research data routing and project s
 
 # `workspace-manager` Skill Instructions
 
+**Operational warning (D1): do not execute the batch examples below.** The
+current `batch_log.py:72` passes unsupported `refresh_index=` to
+`log_project_event` (`log_event.py:159-169`), so it cannot append the promised
+events. Its CLI flags are not evidence of working execution. Until a separate
+runtime repair lands, use serial `log_event.py` calls or the documented
+`log_project_event` signature. Check the actual journal rows; an exit code alone
+does not establish publication. Batch examples are reference-only, not workflow
+instructions. No concurrency guarantee is made here.
+
 You are the central project orchestration agent for the Nexus Scholar Suite. Your job is to isolate literature, PDFs, extractions, and synthesis files into dedicated project directories under `workspaces/<project-slug>/` rather than polluting tool folders or the workspace root.
 
 ## Core Responsibilities

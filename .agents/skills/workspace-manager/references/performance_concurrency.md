@@ -1,5 +1,11 @@
 # Performance & Concurrency for workspace-manager
 
+**Blocked batch path (D1):** do not run the batch example below. At the current
+source, `batch_log.py:72` supplies an unsupported `refresh_index` keyword to
+`log_project_event` (`log_event.py:159-169`). Use serial single-event calls until
+the separately owned runtime defect is repaired. Batch throughput and refresh
+suppression are proposals, not verified behavior.
+
 CLI-first throughput guidance. All commands below are verified flag-for-flag
 via `--help` (inspection-only); nothing here writes a workspace, calls a
 provider, or launches a server.
@@ -8,8 +14,8 @@ provider, or launches a server.
 
 Logging one event per process regenerates `INDEX.md` on every event
 (`log_project_event` always calls `refresh_index_md`: log_event.py:218-219).
-Prefer one `batch_log.py` run over N `log_event.py` runs for multi-step
-pipelines (search → dedup → verify → screen):
+A future repaired batch writer could reduce process overhead for multi-step
+pipelines (search → dedup → verify → screen). Reference-only example:
 
 ```bash
 # events.jsonl = one event object per line:

@@ -86,7 +86,7 @@ Merge semantics: your tables merge **onto the shipped default**, field-wise, and
 
 ### Stage 5 — Selection & refinement (chat, human decision)
 
-The user picks a direction (or steers). You may propose a refined single-sentence topic based on the anchor DOIs, but **the user chooses** the `direction` label. Record `concept` (the direction's concept) as the seed at the top of the core-concept list. Helper output is a ranked **proposal**, the user pick is a **candidate** — neither is an accepted artifact until Stage 6 compiles and logs it.
+The user picks a direction (or steers). You may propose a refined single-sentence topic based on the anchor DOIs, but **the user chooses** the `direction` label. Record `concept` (the direction's concept) as the seed at the top of the core-concept list. Helper output is a ranked **proposal**, the user pick is a **candidate**. Compilation and logging record outputs; they do not confer Contract v1 acceptance, which requires the owning acceptance gate.
 
 ### Stage 6 — Remaining interview + emission
 
