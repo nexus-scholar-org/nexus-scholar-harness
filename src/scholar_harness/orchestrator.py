@@ -1286,6 +1286,28 @@ class ResearchOrchestrator:
 
         # Build parent_view from accepted document_manifest
         parent_view = self._build_parent_view()
+        if parent_view is not None:
+            from scholar_harness.extraction_producer import (
+                PublicationRefused,
+                validate_extraction_currentness,
+            )
+
+            try:
+                validate_extraction_currentness(
+                    self.workspace_dir, parent_view["artifact_id"]
+                )
+            except PublicationRefused as exc:
+                self._log_audit_event(
+                    action="RAG_INDEX_REJECTED",
+                    agent="scholar-harness",
+                    description="Stage 6 refused stale extraction provenance",
+                    status="FAILED",
+                    inputs=[str(parent_view["artifact_id"])],
+                    outputs=[],
+                    parameters={"code": exc.code},
+                    metrics={"documents": 0},
+                )
+                return {"status": "FAILED", "code": exc.code, "documents": 0}, None
         if parent_view is None:
             # No accepted manifest -> refuse before touching any backend
             self._log_audit_event(

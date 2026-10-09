@@ -1,0 +1,66 @@
+{
+  "expected": {
+    "chunk_set_fingerprint": "sha256:1c30cb31d923a197c16dc520a7325fd3097c8b1a8e98f8070763a6d4800fbd70",
+    "configuration_fingerprint": "sha256:dbf6ace5a8081ebc4aa22100f5d63f4c268d2c0c3531cf9e33050d69428601e0",
+    "corpus_fingerprint": "sha256:89ff7b3cbdda29dea52dbef5ad0470f9497d7b7787527a025a2f7d26c668fd51",
+    "counts": {
+      "accepted_documents": 2,
+      "rejected_documents": 0,
+      "visible_chunks": 2
+    },
+    "document_ids": [
+      "DOC-2c3da8a5fceeb91b4e844133707fc789",
+      "DOC-56f43720ac84d18f6e7b14e7621a63e4"
+    ],
+    "e2_artifact_id": "ART-6c1a06d96760ed1f294e8542c74ae45b",
+    "e2_artifact_ids": [
+      "ART-6c1a06d96760ed1f294e8542c74ae45b"
+    ],
+    "index_fingerprint": "sha256:cea46b97e099fb51028d710237da885ab5028a0426e710fefcdff6fc6b7994db",
+    "manifest_id": "IDX-b222929e3ef8e706b1d5dc6666e71aaf",
+    "parent_artifact_ref": {
+      "artifact_id": "ART-6c1a06d96760ed1f294e8542c74ae45b",
+      "artifact_type": "document_manifest",
+      "sha256": "sha256:4e8cf6cd78838924fe5b0a39f177b7fecddb5f21990bf3475281a83d1ccd971e"
+    },
+    "production_fingerprint": "sha256:ab19b161fe5c7a58349412cb1f261b13116810b24d95eebbf035734f34854c7f",
+    "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+    "study_ids": [
+      "STU-430807e348c653a3f2cd3348b7dafe4f",
+      "STU-badf99063e8cc8b1e0fadc35f10e2586"
+    ],
+    "visible_count": 2,
+    "visible_ids": [
+      "CHK-1717bee187820772dafffc9a303f6a9d",
+      "CHK-87510f7becaf9f7d6fa2f5f305d2abec"
+    ],
+    "workspace_id": "WSP-0123456789abcdef0123456789abcdef"
+  },
+  "files": {
+    "artifacts/corpus_snapshot/ART-corpus-07b092215e7ce462d5a476be99fd145c.json": "sha256:e8794b80894c954466a7238c1075b9278a1c6ca2229ee650cc70cd5dc031fd21",
+    "artifacts/document_manifest/ART-6c1a06d96760ed1f294e8542c74ae45b.json": "sha256:17e6e6944dc08885dc10ff7ef0df77d617fced65826ceb600991041c827d4da8",
+    "artifacts/screening_batch/ART-057cef81b0788610cfc921db91ca70d4.json": "sha256:1d60f106c2e6fd09ce1538cac2abf9825a3c38667a8bb8ae8ffe884f575ef625",
+    "artifacts/screening_decisions/ART-282b232aeaceacc890d3975b52cd2843.json": "sha256:b7f031f1e8bc2ec4b489010d7a79a9417b511b73dcf2ce6838e9a88257bd9dd6",
+    "audit/artifact_registry.json": "sha256:fc178f95c7430e8d3e813b85452eed3894772ba8b341c82db0238f6ac5fa9901",
+    "extracted/STU-430807e348c653a3f2cd3348b7dafe4f.md": "sha256:cda870072a7c12be48eb553679b72c02e223a1ba8f4b2a8273de9cfce03f2016",
+    "extracted/STU-badf99063e8cc8b1e0fadc35f10e2586.md": "sha256:bd98d2cce2d1373e56bd5a6594ff18ee191d7f053f9a6b017d361620f7091fc3",
+    "literature/conflicts.json": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "literature/excluded.json": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "literature/included.json": "sha256:cfae5dc77874e2b4b44813e479345cf8b4c6fe282972bfb8d5fc353732d8bc73",
+    "literature/prisma_report.json": "sha256:f59b05d58a3302632066e3086ba258568177443bbf15c5cb2e9fe9e40a078e5d",
+    "literature/prisma_screening_report.md": "sha256:51e28dacf808702e567d07dab78f07ba8fda78a0a10afafe6d3df545fc483f99",
+    "literature/screening/MANIFEST.json": "sha256:1745360461f6ca2d4f5fd9fd4b5f7a56a6a050a46f8e213dc0e0cdee4cd10769",
+    "literature/screening/batch_001.json": "sha256:2a1ba06d8d37c7c05d02f65ff7046eb36e0696fc1ef47b6814de5ebb8d06a1ea",
+    "literature/screening/batch_001_decisions.json": "sha256:0e577d7e3bf66acf3b60de3d68e9dfc133a7f99db38fc47269a125905c585da3",
+    "literature/screening/legacy/batch_001_decisions.json": "sha256:0e577d7e3bf66acf3b60de3d68e9dfc133a7f99db38fc47269a125905c585da3",
+    "literature/verified.json": "sha256:e368ae92bd25e7817d920275fe9e1453b9b4877fa01bb4dbaa484e34492eb462",
+    "pdfs/STU-430807e348c653a3f2cd3348b7dafe4f.pdf": "sha256:12cb78566234f02b95af00edfb304d5c40498c2dd33cbfc4d0fcc49d4301563e",
+    "pdfs/STU-badf99063e8cc8b1e0fadc35f10e2586.pdf": "sha256:6b3afff29ebb7eefde0fb2b38457ed69e2f53e2596173393cc0ec41309bf131f",
+    "protocol.json": "sha256:77c825ac7fcb3bf15c020da3e7330c2b28807e1a35301ba3f34a882403e250de",
+    "rag/backend_snapshot.json": "sha256:18e9c6ec7fd47d51632e334550fb4c8d3169139f81a4e8c73dcbe4a5c345bc88",
+    "rag/index/RUN-bdab310b09843591ef8660456be1e3f3/IDX-b222929e3ef8e706b1d5dc6666e71aaf.json": "sha256:0d947b851f89346a9ae642fa302531fec4b6f290d27c8542b25d6ddf40573ec6",
+    "rag/index/accepted.json": "sha256:e5696de651883797e16e0a6b9694db2ab67d13ed90b53bf4a335c7923319174e"
+  },
+  "note": "E4 sealed-fixture seal (harness-owned test helper, not authoritative evidence). Files map relative POSIX paths to sha256 digests; expected carries the normal-run identities/outcomes the control test replays.",
+  "seal_version": "e4-seal-v1"
+}

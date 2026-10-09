@@ -1,0 +1,67 @@
+{
+  "batch_index": 1,
+  "total_batches": 1,
+  "batch_size": 2,
+  "status": "PENDING",
+  "artifact_id": "ART-057cef81b0788610cfc921db91ca70d4",
+  "binding": {
+    "screening_run_id": "RUN-9d93aed015c5e22ff055f3cc57617402",
+    "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+    "corpus_fingerprint": "sha256:89ff7b3cbdda29dea52dbef5ad0470f9497d7b7787527a025a2f7d26c668fd51",
+    "criteria_renderer_version": "scholar-protocol-criteria-v1",
+    "dedup_configuration_hash": "sha256:d135e20e171ba4a502256d15c60bcbef0beee5bdfcbcaeb3015d6620dc309253",
+    "preparation_run_id": "RUN-9d93aed015c5e22ff055f3cc57617402"
+  },
+  "protocol": {
+    "title": "Protocol Identity Conformance Baseline",
+    "research_questions": [
+      {
+        "id": "RQ1",
+        "required_evidence_type": "Empirical serialization output",
+        "synthesis_type": "Comparative Matrix",
+        "target_facet": "determinism",
+        "text": "How do JSON formatting variations affect canonical protocol identity?"
+      }
+    ],
+    "screening_criteria": {
+      "exclusion": [
+        {
+          "criterion": "Non-canonical or malformed protocol documents",
+          "id": "EXC-01",
+          "maps_to_rqs": [],
+          "reason_category": "INVALID_FORMAT"
+        }
+      ],
+      "inclusion": [
+        {
+          "criterion": "Formal research protocols declaring explicit research questions",
+          "id": "INC-01",
+          "maps_to_rqs": [
+            "RQ1"
+          ],
+          "reason_category": null
+        }
+      ],
+      "two_tier_screening": true
+    }
+  },
+  "papers": [
+    {
+      "workspace_id": "STU-430807e348c653a3f2cd3348b7dafe4f",
+      "title": "Contract bound extraction alpha",
+      "year": null,
+      "abstract": "No abstract available.",
+      "venue": null,
+      "doi": null
+    },
+    {
+      "workspace_id": "STU-badf99063e8cc8b1e0fadc35f10e2586",
+      "title": "Contract bound extraction beta",
+      "year": null,
+      "abstract": "No abstract available.",
+      "venue": null,
+      "doi": null
+    }
+  ],
+  "agent_instructions": "# PRISMA 2020 Screening — Batch 1/1\n\nYou are performing a systematic literature review screening step.\nEvaluate EACH paper below against the protocol criteria.\n\n## Research Questions\n- **RQ1**: How do JSON formatting variations affect canonical protocol identity?\n\n## Inclusion Criteria (must match to INCLUDE)\n- **INC-01**: Formal research protocols declaring explicit research questions\n\n## Exclusion Criteria (any match → EXCLUDE)\n- **EXC-01** (INVALID_FORMAT): Non-canonical or malformed protocol documents\n\n## Papers to Screen\n```json\n[\n  {\n    \"workspace_id\": \"STU-430807e348c653a3f2cd3348b7dafe4f\",\n    \"title\": \"Contract bound extraction alpha\",\n    \"year\": null,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": null,\n    \"doi\": null\n  },\n  {\n    \"workspace_id\": \"STU-badf99063e8cc8b1e0fadc35f10e2586\",\n    \"title\": \"Contract bound extraction beta\",\n    \"year\": null,\n    \"abstract\": \"No abstract available.\",\n    \"venue\": null,\n    \"doi\": null\n  }\n]\n```\n\n## Checklist Schema\nFill ONE boolean per criterion per paper. Use `true`/`false`.\n```json\n[\n  {\n    \"criterion_id\": \"INC-01\",\n    \"criterion_type\": \"inclusion\",\n    \"description\": \"Formal research protocols declaring explicit research questions\",\n    \"field_name\": \"inc_01\"\n  },\n  {\n    \"criterion_id\": \"EXC-01\",\n    \"criterion_type\": \"exclusion\",\n    \"description\": \"Non-canonical or malformed protocol documents\",\n    \"field_name\": \"exc_01\"\n  }\n]\n```\n\n## Required Output\nWrite a JSON array (one object per paper, same order). Each object MUST have:\n```json\n[\n  {\n    \"workspace_id\": \"SCI-XXXXXX\",\n    \"inc_01\": false,\n    \"exc_01\": false,\n    \"screening_reasoning\": \"One or two sentences explaining the decision.\"\n  }\n]\n```\nWrite your response to: `literature/screening/batch_001_decisions.json`"
+}

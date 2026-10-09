@@ -1,0 +1,50 @@
+{
+  "artifact_id": "ART-6c1a06d96760ed1f294e8542c74ae45b",
+  "corpus_fingerprint": "sha256:89ff7b3cbdda29dea52dbef5ad0470f9497d7b7787527a025a2f7d26c668fd51",
+  "documents": [
+    {
+      "document_id": "DOC-2c3da8a5fceeb91b4e844133707fc789",
+      "extracted_character_count": 779,
+      "extracted_file_sha256": "sha256:cda870072a7c12be48eb553679b72c02e223a1ba8f4b2a8273de9cfce03f2016",
+      "extracted_path": "extracted/STU-430807e348c653a3f2cd3348b7dafe4f.md",
+      "extracted_sha256": "sha256:8b04dd29ee7934cd9c986744a7ffab8ab8019f7f2be0256ecbe614bde595f7d7",
+      "extraction_engine": "metadata",
+      "extraction_method": "HEURISTIC",
+      "line_endings_normalized": false,
+      "source_hash": "sha256:12cb78566234f02b95af00edfb304d5c40498c2dd33cbfc4d0fcc49d4301563e",
+      "source_kind": "workspace_pdf",
+      "source_locator": "pdfs/STU-430807e348c653a3f2cd3348b7dafe4f.pdf",
+      "study_id": "STU-430807e348c653a3f2cd3348b7dafe4f"
+    },
+    {
+      "document_id": "DOC-56f43720ac84d18f6e7b14e7621a63e4",
+      "extracted_character_count": 779,
+      "extracted_file_sha256": "sha256:bd98d2cce2d1373e56bd5a6594ff18ee191d7f053f9a6b017d361620f7091fc3",
+      "extracted_path": "extracted/STU-badf99063e8cc8b1e0fadc35f10e2586.md",
+      "extracted_sha256": "sha256:8b04dd29ee7934cd9c986744a7ffab8ab8019f7f2be0256ecbe614bde595f7d7",
+      "extraction_engine": "metadata",
+      "extraction_method": "HEURISTIC",
+      "line_endings_normalized": false,
+      "source_hash": "sha256:6b3afff29ebb7eefde0fb2b38457ed69e2f53e2596173393cc0ec41309bf131f",
+      "source_kind": "workspace_pdf",
+      "source_locator": "pdfs/STU-badf99063e8cc8b1e0fadc35f10e2586.pdf",
+      "study_id": "STU-badf99063e8cc8b1e0fadc35f10e2586"
+    }
+  ],
+  "idempotent": false,
+  "note": "Harness-side provenance for an accepted Contract v1 document manifest. This is NOT the PDF kit's pdf-extraction-manifest-v1 sidecar and must not be presented as one.",
+  "parents": [
+    {
+      "artifact_id": "ART-282b232aeaceacc890d3975b52cd2843",
+      "sha256": "sha256:243c5d30ec9272126ecfbb08e52852c1b4d345e8fe213762deb5a4de2c9dfa22"
+    }
+  ],
+  "payload_hash": "sha256:4e8cf6cd78838924fe5b0a39f177b7fecddb5f21990bf3475281a83d1ccd971e",
+  "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+  "published_path": "artifacts/document_manifest/ART-6c1a06d96760ed1f294e8542c74ae45b.json",
+  "record_type": "harness_document_manifest_publication",
+  "record_version": "1.0.0",
+  "run_id": "RUN-9d93aed015c5e22ff055f3cc57617402",
+  "skipped_registry_entries": {},
+  "workspace_id": "WSP-0123456789abcdef0123456789abcdef"
+}
