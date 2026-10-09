@@ -225,7 +225,7 @@ def compute_seal(workspace: Path) -> dict[str, Any]:
                 # the seal still records the sealed one via seal_manifest.json
                 # (the copy under test is compared file-by-file, not by
                 # "exactly one manifest" here).
-                first_id = sorted(manifests)[0]
+                first_id = min(manifests)
                 expected["e2_artifact_ids"] = sorted(manifests)
                 manifest_path = workspace / str(manifests[first_id].get("path", ""))
                 if manifest_path.is_file():
@@ -560,8 +560,9 @@ def build_sealed_fixture(dest: Path) -> dict[str, Any]:
     if not outcome.accepted:
         raise AssertionError(f"sealed E2 not accepted: {outcome.refusal}")
 
-    import scholar_harness.orchestrator as orch_module
     from scholar_rag.embedder import get_embedder as kit_get_embedder
+
+    import scholar_harness.orchestrator as orch_module
 
     mock = kit_get_embedder("mock")
     mock.dimension = 384
@@ -591,7 +592,7 @@ def build_sealed_fixture(dest: Path) -> dict[str, Any]:
         visible_count = int(reader.visible_count())
         try:
             metadata = dict(reader.read_collection_metadata() or {})
-        except Exception:
+        except Exception:  # noqa: BLE001 - typed reader metadata is best-effort; seal records ids/count only
             metadata = {}
     finally:
         shutil.rmtree(build_chroma, ignore_errors=True)

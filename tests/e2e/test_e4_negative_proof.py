@@ -44,7 +44,6 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -119,8 +118,9 @@ def _hermetic(monkeypatch: pytest.MonkeyPatch) -> Any:
 
     monkeypatch.setenv("HF_HUB_OFFLINE", "1")
     monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
-    import scholar_harness.orchestrator as orch_module
     from scholar_rag.embedder import get_embedder as kit_get_embedder
+
+    import scholar_harness.orchestrator as orch_module
 
     mock = kit_get_embedder("mock")
     mock.dimension = 384
@@ -179,8 +179,8 @@ def test_e4_005_public_surfaces_only() -> None:
     ]
     for code in encoded:
         name = _b64.b64decode(code.encode()).decode()
-        assert f".{name}" not in text, f"E4 must not touch private helper"
-        assert f"import {name}" not in text, f"E4 must not import private helper"
+        assert f".{name}" not in text, "E4 must not touch private helper"
+        assert f"import {name}" not in text, "E4 must not import private helper"
     impl_encoded = [
         "ZGVmIG1pbnRfY2h1bmtfaWQ=",
         "ZGVmIHRleHRfZmluZ2VycHJpbnQ=",
@@ -332,14 +332,27 @@ def test_e4_neg_001_pdf_byte_flip_is_not_current(
     """E4-NEG-001: one flipped PDF byte yields new E2 lineage; old E3 not current.
 
     Observable: the changed source produces a NEW ``ART-`` (different
-    ``source_hash``/``document_id``); the follow-up Stage 6 over the now
-    two-manifest generation REFUSES (``VALIDATION_ERROR``: duplicate study
-    across old+new manifests); ``rag/index/accepted.json`` never moves.
+    ``source_hash``/``document_id``); the follow-up Stage 6 returns ``FAILED``
+    with a ``RAG_INDEX_RUN_REJECTED`` run-report and no new manifest (the
+    follow envelope carries no stable E3 code beyond ``FAILED``); the prior
+    ``rag/index/accepted.json`` stays historical for the new chain.
     """
 
     _hermetic(monkeypatch)
     workspace = sealed.copy_sealed_to(tmp_path)
     expected = sealed.check_seal(workspace)["expected"]
+    _, _neg001_payload = _sidecar_payload(workspace)
+    from scholar_rag.index_manifest import IndexManifest
+    from scholar_rag.index_verifier import verify_backend
+
+    assert (
+        verify_backend(
+            IndexManifest.from_payload(_neg001_payload),
+            sealed.make_live_reader(_neg001_payload),
+        ).matches
+        is True
+    )
+    _neg001_before = sealed.make_live_reader(_neg001_payload).visible_ids()
     files_before = _workspace_files(workspace)
     accepted_before = (workspace / ACCEPTED_RELPATH).read_bytes()
     built_success_before = [
@@ -379,24 +392,27 @@ def test_e4_neg_001_pdf_byte_flip_is_not_current(
     ] == built_success_before
 
     follow = index_accepted_documents(workspace, chroma_dir=tmp_path / "chroma-neg001")
+    # No stable E3 code in the follow envelope beyond FAILED (it carries no
+    # code field); the typed refusal lives in the run-report action below.
     assert str(follow.get("status")) == "FAILED", (
         "OWNER nexus-scholar-org/nexus-scholar-harness "
         "src/scholar_harness/orchestrator.py::_run_indexing_stage + "
         "nexus-scholar-org/scholar-rag-kit tools/scholar-rag-kit/src/scholar_rag/index_service.py::index_workspace: "
         f"duplicate-study generation after a PDF change must not index as current: {follow}"
     )
-    envelope_codes: list[str] = []
-    try:  # the kit run report carries the typed refusal when present
-        reports = (
-            (workspace / "run-reports" / "rag-index.jsonl")
-            .read_text(encoding="utf-8")
-            .splitlines()
-        )
-        last = json.loads(reports[-1]) if reports else {}
-        if isinstance(last, dict) and last.get("action") == "RAG_INDEX_RUN_REJECTED":
-            envelope_codes = ["REFUSED"]
-    except (OSError, ValueError):
-        pass
+    reports = (
+        (workspace / "run-reports" / "rag-index.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
+    last = json.loads(reports[-1])
+    assert last.get("action") == "RAG_INDEX_RUN_REJECTED", (
+        "kit run-report must carry the typed refusal for the altered chain"
+    )
+    assert last.get("manifest_id") is None, "failed re-index publishes no new manifest"
+    assert last.get("parent_artifact_id") == expected["e2_artifact_id"], (
+        "run-report parent context must name the sealed E2 lineage"
+    )
     assert (workspace / ACCEPTED_RELPATH).read_bytes() == accepted_before, (
         "E4-003: failed re-index publishes nothing"
     )
@@ -408,7 +424,23 @@ def test_e4_neg_001_pdf_byte_flip_is_not_current(
     assert {
         p.relative_to(workspace).as_posix() for p in _sidecars(workspace)
     } == sidecars_before
-    assert envelope_codes == ["REFUSED"] or str(follow.get("status")) == "FAILED"
+    _, _accepted_after = read_accepted_record(workspace)
+    assert _accepted_after is not None, "accepted record must remain readable"
+    assert (
+        _accepted_after["parent_artifact_ref"]["artifact_id"]
+        == expected["e2_artifact_id"]
+    )
+    assert (
+        _accepted_after["parent_artifact_ref"]["artifact_id"] != second.artifact_id
+    ), "the OLD acceptance is provably historical for the new chain"
+    assert (
+        verify_backend(
+            IndexManifest.from_payload(_neg001_payload),
+            sealed.make_live_reader(_neg001_payload),
+        ).matches
+        is True
+    )
+    assert sealed.make_live_reader(_neg001_payload).visible_ids() == _neg001_before
 
 
 # --------------------------------------------------------------------------- #
@@ -433,6 +465,18 @@ def test_e4_neg_002_extracted_byte_change_refuses(
     sidecars_before = {
         p.relative_to(workspace).as_posix() for p in _sidecars(workspace)
     }
+    _, _neg002_payload = _sidecar_payload(workspace)
+    from scholar_rag.index_manifest import IndexManifest
+    from scholar_rag.index_verifier import verify_backend
+
+    assert (
+        verify_backend(
+            IndexManifest.from_payload(_neg002_payload),
+            sealed.make_live_reader(_neg002_payload),
+        ).matches
+        is True
+    )
+    _neg002_before = sealed.make_live_reader(_neg002_payload).visible_ids()
 
     mds = sorted((workspace / "extracted").glob("*.md"))
     assert len(mds) == 2
@@ -494,6 +538,14 @@ def test_e4_neg_002_extracted_byte_change_refuses(
         "the altered bytes no longer match the sidecar's recorded content hash: "
         "the sealed index is historical, never current, for the altered chain"
     )
+    assert (
+        verify_backend(
+            IndexManifest.from_payload(_neg002_payload),
+            sealed.make_live_reader(_neg002_payload),
+        ).matches
+        is True
+    )
+    assert sealed.make_live_reader(_neg002_payload).visible_ids() == _neg002_before
 
 
 # --------------------------------------------------------------------------- #
@@ -510,6 +562,8 @@ def test_e4_neg_003_chunker_config_change_moves_fingerprints(
     it is effective on every workspace (unlike ``min_chunk_chars``, inert per
     E3 R-7); any other effective key (overlap, heading levels, whitespace,
     sentence pattern, frontmatter stripping) would move the same fingerprints.
+    Harness note: check-5 is compute-verification by design, so the fingerprint
+    move above is the detection — no adapter refusal is expected for a bare config change.
     """
 
     _hermetic(monkeypatch)
@@ -523,6 +577,16 @@ def test_e4_neg_003_chunker_config_change_moves_fingerprints(
     ]
 
     _, payload = _sidecar_payload(workspace)
+    from scholar_rag.index_verifier import IndexManifest as _TypedManifest
+    from scholar_rag.index_verifier import verify_backend as _verify
+
+    assert (
+        _verify(
+            _TypedManifest.from_payload(payload), sealed.make_live_reader(payload)
+        ).matches
+        is True
+    )
+    _neg003_before = sealed.make_live_reader(payload).visible_ids()
     assert payload["chunker"]["configuration"]["max_chunk_chars"] == 1200
     mutated = copy.deepcopy(payload)
     mutated["chunker"]["configuration"]["max_chunk_chars"] = (
@@ -556,11 +620,9 @@ def test_e4_neg_003_chunker_config_change_moves_fingerprints(
     assert _workspace_files(workspace) == files_before, (
         "compute-only proof writes no files"
     )
-    from scholar_rag.index_verifier import IndexManifest as _TypedManifest
-    from scholar_rag.index_verifier import verify_backend as _verify
-
     reader = sealed.make_live_reader(payload)
     assert _verify(_TypedManifest.from_payload(payload), reader).matches is True
+    assert reader.visible_ids() == _neg003_before
 
 
 # --------------------------------------------------------------------------- #
@@ -578,6 +640,8 @@ def test_e4_neg_004_embedding_identity_change_moves_fingerprints(
     model upgrade is the narrowest realistic single-value identity change --
     provider or distance would be coarser, dimension alone would also mismatch
     the stored vectors).
+    Harness note: check-5 is compute-verification by design, so the fingerprint
+    move above is the detection — no adapter refusal is expected for a bare identity change.
     """
 
     _hermetic(monkeypatch)
@@ -591,6 +655,16 @@ def test_e4_neg_004_embedding_identity_change_moves_fingerprints(
     ]
 
     _, payload = _sidecar_payload(workspace)
+    from scholar_rag.index_manifest import IndexManifest as _TypedManifest004
+    from scholar_rag.index_verifier import verify_backend as _verify004
+
+    assert (
+        _verify004(
+            _TypedManifest004.from_payload(payload), sealed.make_live_reader(payload)
+        ).matches
+        is True
+    )
+    _neg004_before = sealed.make_live_reader(payload).visible_ids()
     assert payload["embedder"]["model"] == "all-MiniLM-L6-v2"
     mutated = copy.deepcopy(payload)
     mutated["embedder"]["model"] = "all-MiniLM-L12-v2"  # exactly one identity limb
@@ -614,6 +688,13 @@ def test_e4_neg_004_embedding_identity_change_moves_fingerprints(
         e for e in _rag_built_events(workspace) if e["status"] == "SUCCESS"
     ] == built_success_before
     assert _workspace_files(workspace) == files_before
+    assert (
+        _verify004(
+            _TypedManifest004.from_payload(payload), sealed.make_live_reader(payload)
+        ).matches
+        is True
+    )
+    assert sealed.make_live_reader(payload).visible_ids() == _neg004_before
 
 
 # --------------------------------------------------------------------------- #
@@ -648,6 +729,14 @@ def test_e4_neg_005_protocol_lineage_mismatch_refuses(
     }
 
     sc_path, payload = _sidecar_payload(workspace)
+    from scholar_rag.index_manifest import IndexManifest as _M005
+    from scholar_rag.index_verifier import verify_backend as _V005
+
+    assert (
+        _V005(_M005.from_payload(payload), sealed.make_live_reader(payload)).matches
+        is True
+    )
+    _neg005_before = sealed.make_live_reader(payload).visible_ids()
     mutated = copy.deepcopy(payload)
     old_fp = str(mutated["protocol_fingerprint"])
     assert old_fp.startswith("sha256:")
@@ -692,6 +781,11 @@ def test_e4_neg_005_protocol_lineage_mismatch_refuses(
     assert current == files_before, (
         "the attempted accept must write no files (mutation was in-memory only)"
     )
+    assert (
+        _V005(_M005.from_payload(payload), sealed.make_live_reader(payload)).matches
+        is True
+    )
+    assert sealed.make_live_reader(payload).visible_ids() == _neg005_before
 
 
 # --------------------------------------------------------------------------- #
