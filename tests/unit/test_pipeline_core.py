@@ -288,3 +288,109 @@ def test_save_read_fingerprint_stable(tmp_path):
     reloaded = shim._load_spec(tmp_path, "my_review")
     assert reloaded.fingerprint == GOLDEN_FINGERPRINT
     assert core._fingerprint(reloaded) == GOLDEN_FINGERPRINT
+
+
+# ---------------------------------------------------------------------------
+# HCM-04a — typed refusal for edges referencing unknown nodes (Option B)
+# ---------------------------------------------------------------------------
+# Human-authorized behavior decision (prerequisite to HCM-04 stage
+# extraction): a pipeline graph whose edges reference unknown nodes used to
+# raise an accidental ``KeyError`` out of ``_toposort`` (surfacing as a 500
+# at the console endpoint), even though ``validate_spec`` already records
+# typed unknown-endpoint errors — the crash fired first. ``_toposort`` now
+# skips unknown-endpoint edges (already reported by ``validate_spec``) and
+# runs cycle detection on the known subgraph, so every such spec is a typed
+# validation refusal (422 at the endpoint, ``PipelineError`` in the
+# executor) instead of a crash. Valid specs take byte-identical code paths.
+
+
+def test_hcm04a_dangling_edges_return_typed_errors_without_raising():
+    """HCM-04a: nodes=[] + edges=[[n1,n2]] is typed errors, never KeyError."""
+    spec = core.PipelineSpec.model_validate(
+        {
+            "schema_version": "0.1.0",
+            "id": "dangling",
+            "archetype": "PRISMA_SLR",
+            "name": "Dangling",
+            "workspace_slug": "ws",
+            "settings": {},
+            "nodes": [],
+            "edges": [["n1", "n2"]],
+            "created_by": "test",
+        }
+    )
+    result = core.validate_spec(spec)  # must not raise KeyError
+    assert any("at least one node" in e for e in result["errors"])
+    assert any("unknown source" in e for e in result["errors"])
+    assert any("unknown target" in e for e in result["errors"])
+
+
+def test_hcm04a_unknown_endpoints_plus_cycle_reports_both_classes():
+    """HCM-04a: unknown endpoints do not mask a real cycle on known nodes."""
+    spec = _spec_with(edges=[["n1", "n2"], ["n2", "n1"], ["n1", "ghost"]])
+    result = core.validate_spec(spec)  # must not raise KeyError
+    assert any("unknown target" in e and "ghost" in e for e in result["errors"])
+    assert any("cycle" in e for e in result["errors"])
+    assert result["order"] == []
+
+
+def test_hcm04a_toposort_with_unknown_endpoints_does_not_raise():
+    """HCM-04a: ``_toposort`` skips unknown-endpoint edges on the known subgraph."""
+    order, errors = core._toposort(set(), [["n1", "n2"]])
+    assert (order, errors) == ([], [])
+    order, errors = core._toposort({"n1", "n2"}, [["n1", "ghost"]])
+    assert sorted(order) == ["n1", "n2"] and errors == []
+    _, cycle_errors = core._toposort(
+        {"n1", "n2"}, [["n1", "n2"], ["n2", "n1"], ["n1", "ghost"]]
+    )
+    assert any("cycle" in e for e in cycle_errors)
+
+
+def test_hcm04a_endpoint_post_unknown_endpoints_returns_422(tmp_path):
+    """HCM-04a: POST with unknown-endpoint edges is 422 (not 500)."""
+    import copy
+
+    from fastapi.testclient import TestClient
+
+    from scholar_harness.console import create_app
+
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    client = TestClient(create_app(ws))
+    bad = copy.deepcopy(GOLDEN_SPEC)
+    bad["edges"] = [["n1", "ghost"]]
+    r = client.post("/api/v1/pipelines", json={"spec": bad})
+    assert r.status_code == 422, r.text
+    assert "unknown target" in r.text
+    # Rejected specs persist nothing.
+    assert not (ws / ".harness-console" / "pipelines" / "my_review.json").exists()
+
+
+def test_hcm04a_executor_refuses_unknown_endpoint_spec_without_running(tmp_path):
+    """HCM-04a: the executor refuses unknown-endpoint specs before anything runs."""
+    import copy
+    import json
+    import subprocess
+
+    from scholar_harness.pipeline_executor import PipelineError, execute_file
+
+    ws = tmp_path / "ws"
+    (ws / "literature").mkdir(parents=True)
+    bad = copy.deepcopy(GOLDEN_SPEC)
+    bad["edges"] = [["n1", "ghost"]]
+    spec_file = tmp_path / "pipeline.json"
+    spec_file.write_text(json.dumps(bad, indent=2), encoding="utf-8")
+
+    calls: list[list[str]] = []
+
+    def _forbid(*args: object, **kwargs: object):
+        calls.append([str(a) for a in args])
+        raise AssertionError("subprocess must not run for an invalid spec")
+
+    import unittest.mock as mock
+
+    with mock.patch.object(subprocess, "run", _forbid):
+        with pytest.raises(PipelineError, match="unknown target"):
+            execute_file(spec_file, ws)
+    assert calls == []
+    assert list((ws / "literature").iterdir()) == []

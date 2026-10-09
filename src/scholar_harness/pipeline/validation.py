@@ -49,8 +49,12 @@ def _toposort(node_ids: set[str], edges: list[list[str]]) -> tuple[list[str], li
     indegree = {nid: 0 for nid in node_ids}
     adj: dict[str, list[str]] = {nid: [] for nid in node_ids}
     for src, dst in edges:
-        if dst in indegree:
-            indegree[dst] += 1
+        # HCM-04a (Option B): unknown endpoints are typed validation errors
+        # reported by validate_spec; skip them here so cycle detection runs
+        # on the known subgraph instead of raising KeyError (was: 500).
+        if src not in indegree or dst not in indegree:
+            continue
+        indegree[dst] += 1
         adj[src].append(dst)
     ready = [nid for nid in node_ids if indegree[nid] == 0]
     order: list[str] = []
