@@ -21,7 +21,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ..api.pipelines import BUILTIN_TEMPLATES, PipelineSpec, store_path, validate_spec
+from ...pipeline import PipelineSpec, validate_spec
+from ..api.pipelines import BUILTIN_TEMPLATES, store_path
 from .actions import Action, get_action, render_command
 
 logger = logging.getLogger(__name__)
