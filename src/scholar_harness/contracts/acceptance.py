@@ -13,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from scholar_harness.console.api.audit import log_event
+from scholar_harness.workspace.audit import log_event
 
 from .canonical import canonical_fingerprint, canonical_json_bytes
 from .identifiers import IdentifierKind, validate_identifier
@@ -111,7 +111,9 @@ def _issue(code: str, message: str, **ids: str | None) -> AcceptanceIssue:
     return AcceptanceIssue(code=code, message=bounded, **ids)
 
 
-def _load_payload(payload: Mapping[str, Any] | str | bytes) -> tuple[dict[str, Any], bytes]:
+def _load_payload(
+    payload: Mapping[str, Any] | str | bytes,
+) -> tuple[dict[str, Any], bytes]:
     if isinstance(payload, Mapping):
         raw = dict(payload)
         return raw, canonical_json_bytes(raw)
@@ -183,11 +185,16 @@ def _rejection(
         "rejected_at": datetime.now(UTC).isoformat(),
         "issues": [item.model_dump(mode="json") for item in bounded],
     }
-    relative = PurePosixPath("audit/rejections") / f"{payload_hash.removeprefix('sha256:')}.json"
+    relative = (
+        PurePosixPath("audit/rejections")
+        / f"{payload_hash.removeprefix('sha256:')}.json"
+    )
     path = workspace / relative
     rejection_path: str | None = None
     try:
-        _atomic_write(path, json.dumps(record, indent=2, sort_keys=True).encode("utf-8") + b"\n")
+        _atomic_write(
+            path, json.dumps(record, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        )
         rejection_path = relative.as_posix()
     except OSError:
         pass
@@ -240,7 +247,9 @@ def accept_artifact(
         raw, canonical_payload = _load_payload(payload)
         payload_hash = canonical_fingerprint(raw)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError, TypeError) as exc:
-        encoded = payload if isinstance(payload, bytes) else str(payload).encode("utf-8")
+        encoded = (
+            payload if isinstance(payload, bytes) else str(payload).encode("utf-8")
+        )
         payload_hash = "sha256:" + sha256(encoded).hexdigest()
         return _rejection(
             workspace,
@@ -251,8 +260,12 @@ def accept_artifact(
             actor=actor,
         )
 
-    artifact_id = raw.get("artifact_id") if isinstance(raw.get("artifact_id"), str) else None
-    artifact_type = raw.get("artifact_type") if isinstance(raw.get("artifact_type"), str) else None
+    artifact_id = (
+        raw.get("artifact_id") if isinstance(raw.get("artifact_id"), str) else None
+    )
+    artifact_type = (
+        raw.get("artifact_type") if isinstance(raw.get("artifact_type"), str) else None
+    )
     model = _ARTIFACT_MODELS.get(artifact_type or "")
     if model is None:
         return _rejection(
@@ -260,7 +273,12 @@ def accept_artifact(
             payload_hash=payload_hash,
             artifact_id=artifact_id,
             artifact_type=artifact_type,
-            issues=[_issue("UNSUPPORTED_ARTIFACT_TYPE", f"unsupported artifact_type {artifact_type!r}")],
+            issues=[
+                _issue(
+                    "UNSUPPORTED_ARTIFACT_TYPE",
+                    f"unsupported artifact_type {artifact_type!r}",
+                )
+            ],
             actor=actor,
         )
 
@@ -288,8 +306,16 @@ def accept_artifact(
     issues: list[AcceptanceIssue] = []
     for field, expected_value, actual in (
         ("workspace_id", expected.workspace_id, artifact.workspace_id),
-        ("protocol_fingerprint", expected.protocol_fingerprint, artifact.protocol_fingerprint),
-        ("corpus_fingerprint", expected.corpus_fingerprint, artifact.corpus_fingerprint),
+        (
+            "protocol_fingerprint",
+            expected.protocol_fingerprint,
+            artifact.protocol_fingerprint,
+        ),
+        (
+            "corpus_fingerprint",
+            expected.corpus_fingerprint,
+            artifact.corpus_fingerprint,
+        ),
     ):
         if actual != expected_value:
             issues.append(
@@ -304,7 +330,9 @@ def accept_artifact(
     try:
         registry = _read_registry(workspace)
     except (OSError, json.JSONDecodeError, ValidationError) as exc:
-        issues.append(_issue("REGISTRY_INVALID", str(exc), artifact_id=artifact.artifact_id))
+        issues.append(
+            _issue("REGISTRY_INVALID", str(exc), artifact_id=artifact.artifact_id)
+        )
         registry = ArtifactRegistry()
 
     entries = registry.artifacts
@@ -433,7 +461,9 @@ def accept_artifact(
                         related_id=parent_batch.artifact_id,
                     )
                 )
-            candidate_ids = {candidate.study_id for candidate in parent_batch.data.candidates}
+            candidate_ids = {
+                candidate.study_id for candidate in parent_batch.data.candidates
+            }
             for decision in artifact.data.decisions:
                 if decision.study_id not in candidate_ids:
                     issues.append(
@@ -498,7 +528,11 @@ def accept_artifact(
             idempotent=True,
         )
 
-    relative = PurePosixPath("artifacts") / artifact.artifact_type / f"{artifact.artifact_id}.json"
+    relative = (
+        PurePosixPath("artifacts")
+        / artifact.artifact_type
+        / f"{artifact.artifact_id}.json"
+    )
     destination = workspace / relative
     if destination.exists():
         return _rejection(
@@ -525,7 +559,9 @@ def accept_artifact(
         producer=artifact.producer,
     )
     registry_bytes = (
-        json.dumps(registry.model_dump(mode="json"), indent=2, sort_keys=True).encode("utf-8")
+        json.dumps(registry.model_dump(mode="json"), indent=2, sort_keys=True).encode(
+            "utf-8"
+        )
         + b"\n"
     )
     artifact_temp: Path | None = None
@@ -563,7 +599,11 @@ def accept_artifact(
             payload_hash=payload_hash,
             artifact_id=artifact.artifact_id,
             artifact_type=artifact.artifact_type,
-            issues=[_issue("ATOMIC_COMMIT_FAILED", str(exc), artifact_id=artifact.artifact_id)],
+            issues=[
+                _issue(
+                    "ATOMIC_COMMIT_FAILED", str(exc), artifact_id=artifact.artifact_id
+                )
+            ],
             actor=actor,
         )
     finally:

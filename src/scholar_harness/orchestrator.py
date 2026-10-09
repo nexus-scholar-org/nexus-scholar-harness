@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import importlib.util
 import json
 import logging
 import os
@@ -48,10 +47,8 @@ from scholar_search.verifier import DocumentVerifier
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
 from .contracts.models import ArtifactReference, DocumentManifestArtifact
-from .inception.genesis import (
-    RegisteredWorkspaceIdentityMissingError,
-    validate_registered_workspace_id,
-)
+from .workspace.errors import RegisteredWorkspaceIdentityMissingError
+from .workspace.identity import validate_registered_workspace_id
 
 
 # Backward compatibility for tests that monkeypatch ScholarIndexer
@@ -504,41 +501,14 @@ class ResearchOrchestrator:
     def _refresh_index_md_atomic(self) -> bool:
         """Regenerate INDEX.md using the workspace-manager's canonical renderer.
 
-        project.json is written atomically (temp + os.replace) by sync_state; the
-        INDEX.md renderer writes in place, so we snapshot the previous file first
-        and restore it if the render raises or leaves an empty result. This keeps
-        sync_state failure-safe without re-implementing the catalog renderer.
+        Thin adapter over :func:`workspace.audit.refresh_index_atomic`, which
+        preserves the atomic backup/restore discipline (snapshot previous file,
+        restore when the render raises or leaves an empty result). Appends no
+        journal row.
         """
-        scripts_dir = (
-            Path(__file__).resolve().parent.parent.parent
-            / ".agents"
-            / "skills"
-            / "workspace-manager"
-            / "scripts"
-        )
-        module_path = scripts_dir / "log_event.py"
-        if not module_path.exists():
-            return False
-        try:
-            spec = importlib.util.spec_from_file_location("_wm_log_event", module_path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
+        from .workspace.audit import refresh_index_atomic
 
-            index_path = self.workspace_dir / "INDEX.md"
-            backup = None
-            if index_path.exists():
-                backup = index_path.read_text(encoding="utf-8")
-
-            module.refresh_index_md(self.workspace_dir)
-
-            rendered = index_path.read_text(encoding="utf-8")
-            if not rendered.strip() or ("Project Index" not in rendered):
-                if backup is not None:
-                    index_path.write_text(backup, encoding="utf-8")
-                return False
-            return True
-        except Exception:
-            return False
+        return refresh_index_atomic(self.workspace_dir)
 
     async def run_pipeline_async(
         self,
@@ -1058,51 +1028,13 @@ class ResearchOrchestrator:
     def recorded_workspace_id(self) -> str:
         """Return the workspace identity recorded in ``project.json``.
 
-        The registered identity is minted once at inception and recorded as
-        ``registered_workspace_id``. This method only records and re-reads it:
-        it never mints, never derives the value from the project slug, and never
-        falls back to one. A workspace scaffolded before registered identities
-        existed has no such field, and indexing under anything other than the
-        recorded id would fabricate identity, so that case fails closed.
-
-        ``sync_state`` merges into an existing manifest rather than rebuilding
-        it, so the recorded id survives ``scholar-harness sync``.
+        Thin adapter over :func:`workspace.identity.require_recorded_identity`:
+        records and re-reads only, never mints, never derives from the slug.
+        Preserves the observed non-object ``AttributeError`` (HCM-01 defect (a)).
         """
-        manifest_path = self.workspace_dir / "project.json"
-        manifest: dict[str, Any] = {}
-        recorded: Any = None
-        if manifest_path.is_file():
-            try:
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError) as exc:
-                raise RegisteredWorkspaceIdentityMissingError(
-                    f"cannot read the recorded workspace identity from "
-                    f"{manifest_path}: {exc}. Repair or re-create project.json "
-                    f"(see: nexus-scholar init <title>, or add "
-                    f'"registered_workspace_id": "WSP-<32 hex>").'
-                ) from exc
-            recorded = manifest.get("registered_workspace_id")
+        from .workspace.identity import require_recorded_identity
 
-        if not isinstance(recorded, str) or not recorded.strip():
-            raise RegisteredWorkspaceIdentityMissingError(
-                f"{manifest_path} records no 'registered_workspace_id'. Stage 6 "
-                f"indexes under the workspace identity minted at inception and "
-                f"will not substitute the project slug "
-                f"({manifest.get('project_id')!r}) or mint a new one. "
-                f"Fix: re-create the workspace so inception records a registered "
-                f"identity (nexus-scholar init <title>), or add "
-                f'"registered_workspace_id": "WSP-<32 hex>" to {manifest_path}.'
-            )
-
-        try:
-            return validate_registered_workspace_id(recorded)
-        except (TypeError, ValueError, RegisteredWorkspaceIdentityMissingError) as exc:
-            raise RegisteredWorkspaceIdentityMissingError(
-                f"{manifest_path} records 'registered_workspace_id' "
-                f"({recorded!r}) which is not a registered workspace identity: "
-                f"{exc}. Fix: replace it with a registered identity of the form "
-                f"WSP-<32 lowercase hex>, or re-create the workspace."
-            ) from exc
+        return require_recorded_identity(self.workspace_dir)
 
     def _build_parent_view(self) -> dict[str, Any] | None:
         """Build the accepted-parent view required by IndexService.
@@ -1629,26 +1561,20 @@ class ResearchOrchestrator:
     ) -> None:
         """Appends an event to audit/journal.jsonl.
 
-        ``status`` is the outcome the caller actually observed, not a constant.
-        A stage that indexed nothing because every document was refused must not
-        write ``SUCCESS``: the ledger is the record of what happened, and a green
-        event over an empty run is how a refusal gets mistaken for progress.
+        Thin adapter over :func:`workspace.audit.append_legacy_event`, preserving
+        the observed ``hex(hash(...))`` event-id scheme, no uppercasing, no
+        manifest/INDEX update. ``status`` is the observed outcome, never a
+        constant (a refused run must not log ``SUCCESS``).
         """
-        audit_file = self.workspace_dir / "audit" / "journal.jsonl"
-        audit_file.parent.mkdir(parents=True, exist_ok=True)
+        from .workspace.audit import append_legacy_event
 
-        event = {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "event_id": f"EVT-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{hex(hash(action + description))[-6:]}",
-            "action": action,
-            "agent_or_tool": agent,
-            "description": description,
-            "parameters": {},
-            "inputs": inputs,
-            "outputs": outputs,
-            "metrics": metrics,
-            "status": status,
-        }
-
-        with open(audit_file, "a", encoding="utf-8") as f:
-            f.write(json.dumps(event) + "\n")
+        append_legacy_event(
+            self.workspace_dir,
+            action,
+            agent,
+            description,
+            inputs,
+            outputs,
+            metrics,
+            status=status,
+        )

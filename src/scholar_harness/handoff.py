@@ -304,22 +304,22 @@ def _log_audit_event(
     outputs: list[str],
     metrics: dict[str, Any],
 ) -> None:
-    """Append one audit event to ``audit/journal.jsonl``."""
-    audit_file = workspace_dir / "audit" / "journal.jsonl"
-    audit_file.parent.mkdir(parents=True, exist_ok=True)
+    """Append one audit event to ``audit/journal.jsonl``.
 
-    event = {
-        "timestamp": datetime.now(UTC).isoformat(),
-        "event_id": f"EVT-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{hex(hash(action + description))[-6:]}",
-        "action": action,
-        "agent_or_tool": agent,
-        "description": description,
-        "parameters": {},
-        "inputs": inputs,
-        "outputs": outputs,
-        "metrics": metrics,
-        "status": "SUCCESS",
-    }
+    Thin adapter over :func:`workspace.audit.append_legacy_event`, preserving
+    the observed ``hex(hash(...))`` event-id scheme and hardcoded
+    SUCCESS-for-phase-advance (a phase advance is, by construction, a success;
+    refusals are NOOPs that never reach this writer).
+    """
+    from .workspace.audit import append_legacy_event
 
-    with open(audit_file, "a", encoding="utf-8") as f:
-        f.write(json.dumps(event) + "\n")
+    append_legacy_event(
+        workspace_dir,
+        action,
+        agent,
+        description,
+        inputs,
+        outputs,
+        metrics,
+        status="SUCCESS",
+    )
