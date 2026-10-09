@@ -13,9 +13,11 @@ You are the research protocol and methodology compiler specialist of the Nexus S
    - Resolves `IntentPacket` specifications against archetype presets (`PRISMA_SLR`, `SCOPING_REVIEW`, `RAPID_EVIDENCE`, `DESIGN_SCIENCE`, `STUDENT_DISSERTATION`).
    - Assigns sequential deterministic identifiers (`RQ1`, `RQ2`, `INC-01`, `EXC-01`).
    - Zero LLM calls and zero network calls during compilation for reproducible builds.
-2. **Canonical Serializer & Fingerprinting (`canonical_fingerprint`)**:
-   - Canonicalizes JSON keys alphabetically with deterministic whitespace.
-   - Computes reproducible SHA-256 checksums ensuring protocol immutability across phases.
+2. **Canonical Serializer & Fingerprinting (`canonical_json` / `canonical_fingerprint`)**:
+   - Serializes in Pydantic declaration order; only `metadata` / `date_range` /
+     `target_candidate_pool_size` nested keys sorted, arrays preserved as authored.
+   - Computes reproducible `sha256:<64hex>` over compact bytes (`separators=(",", ":")`,
+     no trailing newline); formatting alone never changes the fingerprint.
 3. **Criteria Document Renderer (`render_screening_criteria`)**:
    - Translates `protocol.json` into a clean, human-readable `SCREENING_CRITERIA.md` with explicit inclusion/exclusion reason categories.
 4. **Dynamic Extraction Model Builder (`build_extraction_model`)**:
@@ -35,8 +37,9 @@ uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspac
 
 ### 2. Validate Protocol Schema & Fingerprint
 ```bash
-# Validate conformance against protocol.schema.json
+# Validate conformance (structural + cross-field; --strict promotes warnings to errors)
 uv run scholar-protocol validate workspaces/<project-slug>/protocol.json
+uv run scholar-protocol validate workspaces/<project-slug>/protocol.json --strict
 
 # Calculate and display SHA-256 canonical hash
 uv run scholar-protocol fingerprint workspaces/<project-slug>/protocol.json
@@ -137,24 +140,43 @@ ExtractionModel = build_extraction_model(protocol)
 
 ## Verified surface, MCP mapping & knowledge
 
-- **CLI never writes files** — `compile`, `validate`, `fingerprint`, `canon`,
+- **Pinned rev** `4e10f25c25a1b150ce518348d211c7771683a9b7` (`scholar-protocol-kit`
+  vendored at `tools/scholar-protocol-kit/`; canonical repo
+  `nexus-scholar-org/scholar-protocol-kit` owns runtime). Matrix protocol rows are
+  references only.
+- **CLI never writes files** — `compile`, `validate` (+ `--strict`), `fingerprint`, `canon`,
   `render-criteria`, `extraction-schema`, `extraction-prompt` all print to STDOUT; redirect
   to persist. No `-i/-o` flags anywhere.
 - **`validate_protocol` is two-tier**: Pydantic structural validation (always) **plus**
-  cross-field rules (`_check_cross_field`: duplicate IDs, date/pool coherence, RQ refs)
-  that run only when given a **file path**. `validate <protocol.json>` = full check.
-- **Fingerprinting**: `canonical_json` emits declaration-order keys (nested dicts sorted,
-  arrays NOT sorted — reordering an array changes the fingerprint); fingerprint =
-  `sha256:<64hex>`, content-based (formatting won't change it). Match across
-  compile/validate.
-- **MCP tools**: `nexus_protocol_compile` (path or JSON-string; returns
+  cross-field rules (`_check_cross_field` in `validate.py:122`: duplicate RQ/criterion/
+  dimension IDs, RQ refs, date/pool coherence, non-empty languages, plus non-fatal
+  warnings). File mode (`validate_protocol(path)` / `validate <protocol.json>`) = full
+  check; `--strict` promotes warnings to errors (`is_valid_strict`, `cli.py:99-138`).
+- **Fingerprinting**: `canonical_json` emits declaration-order keys (nested `metadata` /
+  `date_range` / `target_candidate_pool_size` keys sorted, arrays NOT sorted — reordering
+  an array changes the fingerprint; `canonical.py:48-88`); fingerprint =
+  `sha256:<64hex>` (`canonical.py:132-146`), content-based (formatting won't change it).
+  Match across compile/validate.
+- **MCP tools** (`server.py:272-379`): `nexus_protocol_compile` (path or JSON-string; returns
   `{status, protocol_id, fingerprint, protocol}` wrapper and does **not persist** — write
-  `protocol.json` yourself), `nexus_protocol_validate` (inline JSON = structural only,
-  file path = full rules; warnings dropped on valid), `nexus_protocol_render_criteria`
-  (path-only, raw markdown). `extraction-schema`/`extraction-prompt`/`canon`/strict have
+  `protocol.json` yourself), `nexus_protocol_validate` (file path **or** inline JSON —
+  **both** run the full structural + cross-field rule set; `VALID` drops warnings,
+  `INVALID`/`ERROR` return JSON strings, never MCP failures), `nexus_protocol_render_criteria`
+  (path-only, raw markdown). `extraction-schema`/`extraction-prompt`/`canon`/`--strict` have
   **no MCP surface** — use the CLI.
 - **Determinism trap**: `created_at` is pinned from `genesis_timestamp` in
-  `compile_protocol`; hand-edited protocols must carry a valid `genesis_timestamp` or the
-  fingerprint changes across runs. Compilation is pure — zero LLM/network.
-- **Integration**: `build_extraction_model` (dynamic Pydantic) feeds matrix extraction in
+  `compile_protocol` (`compiler.py:229`, `intent.py:140-146`); hand-edited protocols must
+  carry an explicit valid `genesis_timestamp` or the fingerprint changes across runs.
+  Compilation is pure — zero LLM/network (`compiler.py:1-7`).
+- **Golden gates & derived schema**: golden `.sha256` fixtures gate serializer/preset/model
+  changes (`compiler.py:16-24`; preset change = non-patch, `presets.py:7-9`); the checked-in
+  `schemas/v1/protocol.schema.json` is derived from `models.py:1-10` and CI-checked
+  (validator never edits it). `matrix-extract` validates only structurally.
+- **Legacy**: a non-canonical or legacy/custom `protocol.json` (missing `$schema`,
+  unparsable, or pre-v1 shape) must be detected and classified explicitly — never silently
+  coerced into the canonical contract.
+- **Routing**: search recall (`golden_seeds` + `scholar-search-kit validate-query`) →
+  `scholar-search-kit` skill; matrix extraction (`build_extraction_model` → `scholar-rag-kit`) →
+  `scholar-rag-kit` skill; MCP front-door (`nexus_*`) → `scholar-agent-kit` skill.
+- **Integration**: `build_extraction_model` (dynamic Pydantic, `extraction.py:17-66`) feeds matrix extraction in
   `scholar-rag-kit`; `nexus_matrix_extract` imports it.

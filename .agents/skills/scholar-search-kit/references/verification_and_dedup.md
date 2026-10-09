@@ -10,8 +10,8 @@ The `DocumentVerifier` validates citations against **Crossref** and **OpenAlex**
 
 ### Verification Workflow
 1. **DOI Verification**: If the document contains a DOI, query Crossref (`/works/{doi}`). If valid, extract normalized canonical metadata.
-2. **Bibliographic Crossref Match**: If no DOI or lookup fails, send the title to Crossref's reference matching endpoint. Compute string similarity (`SequenceMatcher.ratio()`) against the matched candidate; if $\ge 90\%$, mark as verified.
-3. **OpenAlex Candidate Search**: If Crossref fails, search OpenAlex by title (`per-page=1`). If candidate similarity $\ge 90\%$, mark as verified.
+2. **Bibliographic Crossref Match**: If no DOI or lookup fails, send the title to Crossref's reference matching endpoint (`validate_reference` requires relevance `score > 40`). Compute string similarity (`SequenceMatcher.ratio()`) against the matched candidate; if $\ge 90\%$, mark as verified.
+3. **OpenAlex Candidate Search**: If Crossref fails, search OpenAlex by title (`per-page=1`). A match requires ratio $\ge 90\%$ over normalized title keys, or bidirectional title containment with the contained title $\ge 12$ chars (`bidirectional_title_similarity`).
 4. **Failure Case**: If all steps fail, the record is flagged as `Unverified: Record not found in Crossref or OpenAlex`.
 
 ---
@@ -31,9 +31,10 @@ The `Deduplicator` merges duplicate records gathered across disparate providers:
 ### Matching Rules
 1. **Exact Persistent Identifier Match**:
    - Matches if any of `doi`, `arxiv_id`, `pubmed_id`, `openalex_id`, or `s2_id` match exactly.
+   - A conflicting value in the same ID namespace vetoes the merge (`_has_identifier_conflict`) — a title match never overrides contradictory identifier evidence.
 2. **Conservative Normalized Title Match**:
    - Strips non-alphanumeric characters, lowercases, and compares using `SequenceMatcher`.
-   - Threshold: $\ge 97\%$ similarity.
+   - Threshold: $\ge 97\%$ similarity **plus** year tolerance (±1) and first-author surname containment; the fuzzy scan is pruned by title-length (±5%).
 
 ### Metadata Merging Logic (`_merge_metadata`)
 When two documents belong to the same cluster:
@@ -59,7 +60,8 @@ uv run scholar-search dedup raw_combined_papers.json --output deduped.json
 ### Python API
 ```python
 import asyncio
-from scholar_search import DocumentVerifier, Deduplicator, Document, ExternalIds
+from scholar_search import DocumentVerifier, Deduplicator
+from scholar_search.models import Document, ExternalIds   # NOT re-exported at package root
 
 async def main():
     verifier = DocumentVerifier()

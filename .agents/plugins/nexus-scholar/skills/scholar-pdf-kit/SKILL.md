@@ -5,13 +5,13 @@ description: Instructions for using the scholar-pdf-kit Python API and CLI to di
 
 # `scholar-pdf-kit` Skill Instructions
 
-You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit automatically resolves DOIs to legal Open Access PDFs via a multi-source cascade (OpenAlex, Unpaywall, arXiv, bioRxiv), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit automatically resolves DOIs to legal Open Access PDFs via a multi-stage cascade (OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns → optional institutional-proxy rewrite), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
 
 ## Core Capabilities
-1. **Multi-Endpoint Open Access Cascade**: Resolves legal OA full-text across OpenAlex, Unpaywall, bioRxiv/medRxiv, and arXiv direct links.
-2. **Concurrent & Resilient Downloading**: Asynchronous retrieval with exponential backoff and paywall HTML redirect rejection.
-3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; removes corrupted HTML/paywall block pages. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
-4. **Smart Canonical Naming**: Formats filenames as `{year}_{author}_{title}.pdf` and exports structured metadata logs.
+1. **Multi-Stage Open Access Cascade**: Resolves legal OA full-text across OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns (IEEE/Elsevier/Springer/arXiv/MDPI) → optional institutional-proxy rewrite (`auto | subdomain | ezproxy | prefix`).
+2. **Concurrent & Resilient Downloading**: Asynchronous staged retrieval (per-candidate temp file, validated before atomic promotion) with exponential backoff (tenacity: min 2 s, max 10 s, 3 attempts). Paywall/error HTML is rejected post-download by binary-signature validation, never by trusting HTTP success.
+3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; unvalidated bytes are never promoted and staging files are unlinked. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
+4. **Content-Addressed Output Naming**: Discovery `download` and manual `ingest` promote validated bytes to identity-addressed `DOC-<32 hex>.pdf` paths derived from content hash, never from a title, filename, or HTTP success. The `--smart-names` flag is still accepted on the CLI but does not control the final filename in the pinned implementation (see deferred defect D1). Structured metadata logs are exported via `--export json|bibtex`.
 5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `authors`, `year`, `extraction_engine`, `extracted_at`; empty keys are dropped).
 6. **Acquired-Document Boundary (WP01-E1)**: parent-bound, deterministic acquisition of exact PDF bytes for an *accepted* study (discovery download or `USER_PATH` ingest), publishing a `pdf-acquisition-manifest-v1` manifest. **API/CLI only — not available on MCP.**
 7. **Extracted-Text Boundary (WP01-E2)**: parent-bound, deterministic extraction of committed PDF bytes, publishing a `pdf-extraction-manifest-v1` sidecar plus a non-authoritative `document_manifest` Contract v1 candidate. **API/CLI only — not available on MCP.**
@@ -105,11 +105,11 @@ remains as a non-authoritative convenience; **the parent-bound path is `extract-
 > **MCP: `UNSUPPORTED_CAPABILITY`.** PDF extraction is **not** served on the MCP
 > surface. The agent kit declares capability `pdf_extraction` with
 > `mcp_supported=false` and answers with `operation="extract_pdf"`, `status="FAILED"`,
-> `artifacts=[]`, and one non-retryable `UNSUPPORTED_CAPABILITY` error — before any
+> `artifacts=[]`, `warnings=[]`, and one non-retryable `UNSUPPORTED_CAPABILITY` error — before any
 > engine execution, extracted text, sidecar, Contract artifact, or audit I/O. This is a
 > declared unsupported difference, **not** a parity claim. Use the CLI/API above.
-> (`nexus_extract_pdf` still exists as the older, non-authoritative PyMuPDF tool; it is
-> not the parent-bound E2 path.)
+> (`nexus_extract_pdf` still exists as the older, non-authoritative PyMuPDF-default tool with
+> heuristic path-derived metadata; it is not the parent-bound E2 path.)
 
 Conformance: `tests/conformance/test_e2_extraction_boundary.py`.
 
@@ -163,8 +163,10 @@ the registry entry, the published path, the rejection record, and idempotency.
   `literature/extraction_publications/<ART-…>.json` with per-document source kind/hash,
   extraction method, and the registered parent. It is **not** the kit's
   `pdf-extraction-manifest-v1` sidecar and is never presented as one.
-- **Indexing is an observation, not a claim.** `extract index` hands *accepted*
-  documents to `ScholarIndexer` and records what actually happened; indexing zero
+- **Indexing is an observation, not a claim.** `extract index` delegates via
+  `index_accepted_documents` (`src/scholar_harness/extraction_producer.py:1648`)
+  to orchestrator Stage 6 typed `index_workspace`
+  (`src/scholar_harness/orchestrator.py:1425`) and records what actually happened; indexing zero
   documents is `FAILED`, and Stage 6 re-reads the accepted manifest rather than the
   provenance record. It also refuses with `DOCUMENT_MANIFEST_NOT_ACCEPTED` **before**
   constructing Stage 6, so a workspace that has never published gets no
@@ -176,17 +178,22 @@ Acceptance evidence: `tests/e2e/test_extraction_runtime_acceptance.py`.
 
 ## Quick CLI Cheat-Sheet
 
-All commands should be executed via `uv run`:
+All commands should be executed via `uv run`. Route per task:
+discovery download → `references/resolution_and_download.md`; naming/ingest/export →
+`references/naming_and_ingestion.md`; legacy extraction engines → `references/fulltext_extraction.md`;
+end-to-end search→download→extract → `references/pipeline_integration.md`;
+authoritative E1/E2 boundaries → the sections above (not the refs).
 
 ```bash
 # 1. Download by Single DOI
 uv run scholar-pdf download --doi 10.1371/journal.pbio.3000246 --output downloads/
 
-# 2. Bulk Download from Screening Output with Smart Naming
+# 2. Bulk Download from Screening Output
+#    NOTE: validated bytes land content-addressed (DOC-<32hex>.pdf);
+#    --smart-names is accepted but does not rename the final file.
 uv run scholar-pdf download \
   --input workspaces/<project-slug>/literature/included.json \
   --output workspaces/<project-slug>/pdfs/ \
-  --smart-names \
   --export json
 
 # 3. Extract Section-Aware Markdown (legacy raw-path CLI; engines: docling | grobid only)
@@ -199,7 +206,8 @@ uv run scholar-pdf extract \
 #       This legacy command is NOT the parent-bound path — that is `extract-run` (#7).
 
 # 4. Ingest an Existing PDF Manually
-uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/35057062 --smart-names
+uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/35057062
+# NOTE: like download, ingest promotes validated bytes to DOC-<32hex>.pdf.
 
 # 5. Download Through an Institutional Proxy (Cloudflare/WAF bypass)
 #    attempt 3 automatically re-runs OA + direct-PDF candidates through the proxy
@@ -247,11 +255,10 @@ from scholar_pdf.extract import PyMuPDFEngine
 async def main():
     dois = ["10.1371/journal.pbio.3000246", "10.7717/peerj.4375"]
 
-    # 1. Initialize Downloader (add proxy_url/proxy_style to re-run
-    #    failures through an institutional proxy; optional pypdf gate)
+    # 1. Initialize Downloader (add proxy_url/proxy_style to append
+    #    proxied candidates; optional pypdf gate via structural_validation=True)
     downloader = AsyncPDFDownloader(
         output_dir=Path("workspaces/my-project/pdfs"),
-        use_smart_names=True,
         proxy_url="https://www.sndl1.arn.dz",
         proxy_style="subdomain",      # auto | subdomain | ezproxy | prefix
         structural_validation=True,
@@ -280,24 +287,46 @@ if __name__ == "__main__":
 ## Verified surface, MCP mapping & knowledge
 
 - **Cascade**: OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF
-  (IEEE/Springer/arXiv patterns) → optional institutional proxy rewrite.
-- **Validation**: ≥ 10 KB size floor + `%PDF-` within first 1024 bytes + `%%EOF`
-  within final 8 KB; optional pypdf structural gate (`--strict-validate`,
-  encryption-tolerant). Invalid files are auto-deleted.
-- **Frontmatter is only complete via the Python API.** `PyMuPDFEngine.extract_markdown(
+  (IEEE/Elsevier/Springer/arXiv/MDPI patterns) → optional institutional proxy rewrite.
+- **Validation**: ≥ 10 KB size floor + versioned `%PDF-<major>.<minor>` regex
+  within first 1024 bytes + `%%EOF` within final 8 KB; optional pypdf structural
+  gate (`--strict-validate`, encryption-tolerant). Candidates download to staging
+  and only validated bytes are atomically promoted; invalid staging is unlinked.
+- **Frontmatter: legacy vs bound.** `PyMuPDFEngine.extract_markdown(
   pdf, output_dir, metadata=…)` injects `workspace_id`/`doi`/`year`/`authors` from the
-  `metadata` dict. The **MCP `nexus_extract_pdf` drop filter never passes metadata** —
-  extracted files contain only stem-derived `title` + `extraction_engine` +
-  `extracted_at`; their `doi` is silently lost, degrading downstream RAG DOI/enrichment.
-  Re-annotate frontmatter after any MCP extraction.
+  `metadata` dict (legacy 7-key set `workspace_id|doi|title|authors|year|
+  extraction_engine|extracted_at`; empty keys dropped). The **authoritative E2 path**
+  emits the same legacy keys first plus 10 binding keys (`document_id|study_id|
+  source_sha256|acquisition_manifest_id|acquisition_manifest_sha256|
+  extraction_engine_version|extraction_requested_engine|extraction_status|
+  content_status|extracted_sha256`) and requires 12 bound keys on every committed
+  file — see `FRONTMATTER_KEYS` / `REQUIRED_BOUND_KEYS` in
+  `tools/scholar-pdf-kit/src/scholar_pdf/frontmatter.py`.
+- **MCP `nexus_extract_pdf` passes heuristic path-derived metadata** (it does not
+  drop it): the tool derives `title` from the filename stem, `doi` via a DOI regex
+  on the stem, and `workspace_id` via an `SCI-` pattern on the path, and forwards
+  them through `metadata=` to PyMuPDF/Docling. It still verifies nothing (no
+  checksum, no acquisition manifest, no parent lineage) and identifies nothing (no
+  `document_id`, no identity-addressed output, no sidecar) — a filename stem is not
+  a title, a regex over a filename is not a verified DOI, and an `SCI-` substring
+  is not a bound workspace. `engine=` routes `grobid` → GrobidEngine (TEI XML, no
+  frontmatter metadata) and `docling` → DoclingEngine (falls back to PyMuPDF with
+  metadata); anything else uses PyMuPDF. Re-verify frontmatter before citing it,
+  and never write MCP output into the authoritative `extracted/<document_id>.md`
+  identity paths.
 - **Env**: `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
   `PROXY_URL`/`PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
-  `ENABLE_PUBLISHER_DIRECT_PATTERNS`.
-- **PyMuPDF is imported as `fitz`**; `pyyaml` is an undeclared transitive dep.
-- **"Success" ≠ content**: extraction writes a stub marker line on parse failure; always
-  spot-check extracted markdown non-empty.
+  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (pydantic-settings names; the `Settings` fields
+  are lowercase equivalents in `tools/scholar-pdf-kit/src/scholar_pdf/config.py`).
+- **PyMuPDF is imported as `fitz`** (function-local, like all heavy engine imports).
+  `pyyaml` and `pypdf` are **declared** dependencies; `docling` ships only with the
+  `[extract]` extra and `scholar-search-kit` only with the `[search]` extra.
+- **"Success" ≠ content**: the legacy extractor writes an `Extracted content from
+  <name>` stub marker line on parse failure; always spot-check extracted markdown
+  for real body text. The authoritative E2 path refuses such stubs explicitly
+  instead of publishing them.
 
 ## Agent Guidelines & Best Practices
 
-- **Paywall Recognition**: Not all academic literature is Open Access. If resolution reports `was_oa=False`, clearly inform the user that no legal Open Access copy is available. Do not attempt to bypass commercial paywalls with web scrapers.
+- **Paywall Recognition**: Not all academic literature is Open Access. If resolution reports no legal OA copy (`success=False` with `access_status=UNRESOLVED`, legacy `was_oa=False`), clearly inform the user that no legal Open Access copy is available. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
 - **Frontmatter Preservation**: Always ensure extracted markdown contains YAML frontmatter (`workspace_id`, `doi`, `title`, `year`) before handing off to `scholar-rag-kit` for chunking and vector indexing.
