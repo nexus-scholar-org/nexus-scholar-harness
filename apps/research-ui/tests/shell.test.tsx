@@ -239,16 +239,19 @@ describe("application shell (UI-01)", () => {
   });
 
   it("offers exactly the links that exist, in every locale", () => {
-    // The only five links on the route: the skip link, the one route that
-    // exists, and the three locale links. Anything else would be a dead-route
-    // fiction or a locale link outside the header.
+    // The only six links on the route: the skip link, the two routes that
+    // exist since packet UI-04 (overview and screening), and the three locale
+    // links. Anything else would be a dead-route fiction or a locale link
+    // outside the header.
     //
-    // The rendered Overview href is `/${locale}`, computed at render, while
-    // `PRIMARY_NAV_ITEMS[0].href` stays the frozen sentinel `"/"` — see the
-    // frozen-field table in `UI-01D_WORK_PACKET.md` §4.1. Asserting all three
-    // locales here is what stops the sentinel from shipping as a bare root link
-    // that silently drops the reader's language. The array stays exhaustive, so
-    // an unexpected href still fails.
+    // The rendered Overview href is `/${locale}` and the rendered Screening href
+    // is `/${locale}/screening`, both computed at render from the item's
+    // declared suffix, while `PRIMARY_NAV_ITEMS[0].href` stays the frozen
+    // sentinel `"/"` — see the frozen-field table in `UI-01D_WORK_PACKET.md`
+    // §4.1. Asserting all three locales here is what stops the sentinel from
+    // shipping as a bare root link that silently drops the reader's language,
+    // and stops a future route from gaining a `href` without appearing here.
+    // The array stays exhaustive, so an unexpected href still fails.
     for (const locale of SUPPORTED_LOCALES) {
       renderRoute(locale);
 
@@ -258,6 +261,7 @@ describe("application shell (UI-01)", () => {
       expect(hrefs).toEqual([
         `#${MAIN_CONTENT_ID}`,
         `/${locale}`,
+        `/${locale}/screening`,
         ...SUPPORTED_LOCALES.map((code) => `/${code}`),
       ]);
 

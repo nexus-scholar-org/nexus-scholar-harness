@@ -125,6 +125,31 @@ const fr: Record<MessageKey, string> = {
   "counts.unknown": "inconnu",
 
   "brand.productName": "Nexus Scholar",
+
+  // ---- Espace de sélection (paquet UI-04) : 19 clés ----
+  "screening.eyebrow": "Revue d'un enregistrement",
+  "screening.heading": "Évaluer un enregistrement d'étude",
+  "screening.lede":
+    "Lisez la citation et le résumé ci-dessous selon les critères scellés, puis inscrivez votre décision. Rien n'est décidé automatiquement.",
+  "screening.recordHeading": "Enregistrement d'étude",
+  "screening.citationLabel": "Référence bibliographique",
+  "screening.abstractLabel": "Résumé",
+  "screening.criteriaHeading": "Critères de sélection",
+  "screening.criteriaLede":
+    "Les critères auxquels cet enregistrement est soumis, tels que le protocole les déclare.",
+  "screening.decisionHeading": "Inscrire une décision",
+  "screening.decisionLegend": "Choix de décision",
+  "screening.decision.include": "Inclure",
+  "screening.decision.exclude": "Exclure",
+  "screening.decision.unclear": "Incertain",
+  "screening.reasonLabel": "Motif",
+  "screening.reasonHint": "Obligatoire lorsque l'enregistrement est exclu.",
+  "screening.reasonRequired": "Indiquez un motif avant d'exclure cet enregistrement.",
+  "screening.submit": "Inscrire la décision",
+  "screening.submitDisabledExplanation":
+    "L'inscription est désactivée : cette démonstration n'a pas d'API de décision, aucune décision n'est envoyée, enregistrée ni comptée.",
+  "screening.noPersistence":
+    "Rien sur cette page n'est écrit dans un espace de travail, dans un fichier ni dans ce navigateur.",
 };
 
 export default fr;

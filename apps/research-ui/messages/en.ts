@@ -1,7 +1,7 @@
 /**
  * The English catalog — structural source of truth (D-I18N-03).
  *
- * This file defines the 74 keys that `fr.ts` and `ar.ts` must mirror exactly
+ * This file defines the 93 keys that `fr.ts` and `ar.ts` must mirror exactly
  * (compile-time via `Record<MessageKey, string>` and runtime via
  * `tests/i18n-catalog.test.ts`). A key added, removed, or misspelled here
  * cascades as a `tsc` error in the translations and a test failure in the
@@ -10,8 +10,11 @@
  *
  * 42 of those keys predate packet UI-02; UI-02 added the 32 marked below
  * (current stage, record arrival, nine phases with descriptions, and the corpus
- * statistics). The count is asserted, not trusted: the parity test fails on any
- * drift, and its expected number is the number this comment claims.
+ * statistics); packet UI-04 added the 19 `screening.*` keys at the end
+ * (record citation and abstract labels, criteria panel, decision choices, the
+ * reason field, and the disabled-submit explanation). The count is asserted,
+ * not trusted: the parity test fails on any drift, and its expected number is
+ * the number this comment claims.
  *
  * Values are the product's chrome wording — no authoritative content, no
  * fixture data, no interpolated values. The only identical string across all
@@ -143,6 +146,35 @@ export const en = {
 
   // Brand (identical in all three catalogs — D-I18N-02, §4.2)
   "brand.productName": "Nexus Scholar",
+
+  // ---- Screening workspace (packet UI-04): 19 keys ----
+  // The screen's own chrome: masthead, record labels, criteria panel, and the
+  // decision form. No key here interpolates a value, and none of them states a
+  // decision — the include/exclude/unclear words are the reader's choices, and
+  // the last three strings are the honesty of the disabled submit control.
+  "screening.eyebrow": "Record screening",
+  "screening.heading": "Screen one study record",
+  "screening.lede":
+    "Read the citation and abstract below against the sealed criteria, then record your decision. Nothing is decided automatically.",
+  "screening.recordHeading": "Study record",
+  "screening.citationLabel": "Citation",
+  "screening.abstractLabel": "Abstract",
+  "screening.criteriaHeading": "Screening criteria",
+  "screening.criteriaLede":
+    "The criteria this record is screened against, as the protocol declares them.",
+  "screening.decisionHeading": "Record a decision",
+  "screening.decisionLegend": "Decision",
+  "screening.decision.include": "Include",
+  "screening.decision.exclude": "Exclude",
+  "screening.decision.unclear": "Unclear",
+  "screening.reasonLabel": "Reason",
+  "screening.reasonHint": "Required when the record is excluded.",
+  "screening.reasonRequired": "Give a reason before excluding this record.",
+  "screening.submit": "Record decision",
+  "screening.submitDisabledExplanation":
+    "Recording is disabled: this demonstration has no decision API, so no decision is sent, saved, or counted.",
+  "screening.noPersistence":
+    "Nothing on this page is written to a workspace, a file, or this browser.",
 } as const;
 
 export type MessageKey = keyof typeof en;

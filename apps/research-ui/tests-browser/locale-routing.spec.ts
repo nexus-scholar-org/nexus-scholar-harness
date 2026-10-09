@@ -78,29 +78,73 @@ test.describe("locale routing", () => {
 
   test("N15: no locale logs a hydration mismatch", async ({ page }) => {
     for (const locale of SUPPORTED_LOCALES) {
-      const problems: string[] = [];
-      const console_ = (message: { type: () => string; text: () => string }) => {
-        if (message.type() !== "error" && message.type() !== "warning") return;
-        if (/hydrat|did not match|Text content does not match/i.test(message.text())) {
-          problems.push(`console.${message.type()}: ${message.text()}`);
-        }
-      };
-      const pageError = (error: Error) => {
-        if (/hydrat|did not match/i.test(error.message)) {
-          problems.push(`pageerror: ${error.message}`);
-        }
-      };
-      page.on("console", console_);
-      page.on("pageerror", pageError);
+      // Both shipped routes, not just the overview: packet UI-04 made the
+      // shell a client component that reads `usePathname()` to derive the
+      // current nav surface, and a pathname-dependent render is exactly where
+      // a server/client mismatch would appear if the derivation disagreed
+      // between the prerendered HTML and the first client render.
+      for (const path of ["", "/screening"] as const) {
+        const problems: string[] = [];
+        const console_ = (message: { type: () => string; text: () => string }) => {
+          if (message.type() !== "error" && message.type() !== "warning") return;
+          if (/hydrat|did not match|Text content does not match/i.test(message.text())) {
+            problems.push(`console.${message.type()}: ${message.text()}`);
+          }
+        };
+        const pageError = (error: Error) => {
+          if (/hydrat|did not match/i.test(error.message)) {
+            problems.push(`pageerror: ${error.message}`);
+          }
+        };
+        page.on("console", console_);
+        page.on("pageerror", pageError);
 
-      await page.goto(`/${locale}`);
-      await page.waitForLoadState("networkidle");
-      page.off("console", console_);
-      page.off("pageerror", pageError);
+        await page.goto(`/${locale}${path}`);
+        await page.waitForLoadState("networkidle");
+        page.off("console", console_);
+        page.off("pageerror", pageError);
 
-      report(`/${locale} hydration problems = ${problems.length}`);
-      expect(problems, `/${locale} reported a hydration mismatch`).toEqual([]);
+        report(`/${locale}${path} hydration problems = ${problems.length}`);
+        expect(problems, `/${locale}${path} reported a hydration mismatch`).toEqual([]);
+      }
     }
+  });
+
+  test("UI-04: the screening route answers raw in every locale, and /de/screening is the catalog's 404", async ({
+    page,
+    request,
+  }) => {
+    // Raw responses, same reasoning as AC-1 above: `<html lang dir>` must be
+    // right in the bytes the server sends, before React runs. A route that
+    // only got its language after hydration would pass a DOM assertion and
+    // fail every reader who never executes the bundle.
+    for (const locale of SUPPORTED_LOCALES) {
+      const response = await request.get(`/${locale}/screening`);
+      expect(response.status(), `/${locale}/screening must be 200`).toBe(200);
+
+      const html = await response.text();
+      const tag = /<html[^>]*>/.exec(html)?.[0] ?? "";
+      const metadata = LOCALE_METADATA[locale];
+      report(`/${locale}/screening raw <html> = ${tag}`);
+      expect(tag).toContain(`lang="${metadata.lang}"`);
+      expect(tag).toContain(`dir="${metadata.dir}"`);
+
+      // Refresh keeps the same document (AC-1's second half, for the new route).
+      await page.goto(`/${locale}/screening`);
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await expect(page.locator("html")).toHaveAttribute("lang", metadata.lang);
+      await expect(page.locator("html")).toHaveAttribute("dir", metadata.dir);
+      await expect(page.locator("h1")).toHaveCount(1);
+    }
+
+    // An unsupported segment under the new route is the same refusal the
+    // overview gives: 404, in the shell, with the catalog's English sentence —
+    // never a half-rendered screening page in a language the app does not ship.
+    const refused = await request.get("/de/screening");
+    expect(refused.status(), "/de/screening must be 404").toBe(404);
+    await page.goto("/de/screening");
+    await expect(page.locator("h1")).toHaveText(CATALOGS.en["notFound.heading"]);
   });
 
   test("N20: the 404 is a valid page — one h1, one main, and the shell's landmarks", async ({

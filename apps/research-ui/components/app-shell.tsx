@@ -1,10 +1,14 @@
+"use client";
+
 import type { ReactNode } from "react";
+
+import { usePathname } from "next/navigation";
 
 import { translate, type Locale } from "@/i18n";
 
 import { LocaleSwitcher } from "./locale-switcher";
 import { MobileNav } from "./mobile-nav";
-import { PrimaryNav } from "./primary-nav";
+import { PrimaryNav, currentItemIdFromPathname } from "./primary-nav";
 
 /**
  * The id the skip link targets.
@@ -53,6 +57,24 @@ export const MAIN_CONTENT_ID = "main-content";
  * `LocaleDocument` and is not repeated here; nothing in this file declares a
  * direction.
  *
+ * **Client boundary (packet UI-04).** This file became a client component for
+ * exactly one reason: packet UI-04 added a second route, so "which nav surface
+ * is current" can no longer be a constant. The shell reads the pathname with
+ * `usePathname()` once, derives `currentItemId` from it with
+ * `currentItemIdFromPathname` (exported from `primary-nav.tsx`, which stays a
+ * plain module so server components can still import `PRIMARY_NAV_ITEMS` as a
+ * value), and hands that id to both nav presentations. Three consequences are
+ * worth stating rather than discovering:
+ *
+ * - the derivation uses the router's own pathname, which the server render and
+ *   the first client render see identically (it is seeded from the RSC payload),
+ *   so there is nothing to mismatch at hydration;
+ * - `tests/shell.test.tsx` and the other in-process suites already mock
+ *   `next/navigation`, so they keep rendering the real shell unchanged;
+ * - `MAIN_CONTENT_ID` still lives here and is still imported only by that test
+ *   file, never by a server component — a server import of this module would
+ *   receive a client reference proxy for it rather than the string.
+ *
  * The `LocaleSwitcher` is the **last** item in the header, after `MobileNav`
  * (D-I18N-11). That position is load-bearing and not aesthetic: it keeps the
  * measured focus-indicator counts in `tests-browser/responsive-nav.spec.ts` and
@@ -67,6 +89,9 @@ export function AppShell({
   locale,
   children,
 }: Readonly<{ locale: Locale; children: ReactNode }>) {
+  const pathname = usePathname();
+  const currentItemId = currentItemIdFromPathname(pathname, locale);
+
   return (
     <>
       <a className="skip-link" href={`#${MAIN_CONTENT_ID}`}>
@@ -103,14 +128,16 @@ export function AppShell({
             <span className="self-center border border-warning/50 px-2.5 py-1 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-warning rtl:tracking-normal rtl:text-[0.75rem]">
               {translate(locale, "safety.demoDataLabel")}
             </span>
-            <PrimaryNav locale={locale} />
+            <PrimaryNav locale={locale} currentItemId={currentItemId} />
           </div>
-          <MobileNav locale={locale} />
+          <MobileNav locale={locale} currentItemId={currentItemId} />
           {/*
-            Last, and at every width. The label arrives as a prop because this
-            switcher is a client component and must not pull a catalog into the
-            client bundle; the three link texts are locale metadata, not
-            messages, and come from inside the switcher.
+            Last, and at every width. The label arrives as a prop so this
+            switcher's own module stays catalog-free: the three link texts are
+            locale metadata, not messages, and come from inside the switcher.
+            (The shell as a whole is a client component since packet UI-04 — see
+            the note above — so the prop is a module boundary, not a bundle
+            claim.)
           */}
           <LocaleSwitcher
             locale={locale}

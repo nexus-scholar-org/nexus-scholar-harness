@@ -216,61 +216,79 @@ const EXPECTED_CLOSED_INCOMPLETE: readonly string[] = [];
 const EXPECTED_DIALOG_OPEN_INCOMPLETE: readonly string[] = ["aria-hidden-focus(2)"];
 
 test.describe("axe-core on rendered CSS", () => {
+  /*
+   * Every shipped route, not just the overview (packet UI-04 added the second).
+   * The screening workspace is where the application's first `input`, `textarea`
+   * and always-`disabled` button render, and where a `<fieldset>`/`<legend>`
+   * group appears — precisely the controls whose labels, group naming and
+   * disabled-state exposure axe checks differently from a link. The overview
+   * runs keep their titles (`en/375px`, not `en//375px`) because the empty
+   * suffix keeps them byte-identical to what the report already records.
+   */
+  const ROUTES = [
+    { suffix: "", title: "" },
+    { suffix: "/screening", title: "/screening" },
+  ] as const;
+
   for (const locale of SUPPORTED_LOCALES) {
-    for (const [name, viewport] of [
-      ["375px", MOBILE_VIEWPORT],
-      ["1440px", DESKTOP_VIEWPORT],
-    ] as const) {
-      test(`${locale}/${name}: zero real violations on the rendered page`, async ({ page }) => {
-        await page.setViewportSize(viewport);
-        await page.goto(`/${locale}`);
-        // Settle fonts/layout so contrast is measured against final computed
-        // styles rather than an in-flight paint.
-        await page.waitForLoadState("networkidle");
+    for (const route of ROUTES) {
+      for (const [name, viewport] of [
+        ["375px", MOBILE_VIEWPORT],
+        ["1440px", DESKTOP_VIEWPORT],
+      ] as const) {
+        test(`${locale}${route.title}/${name}: zero real violations on the rendered page`, async ({
+          page,
+        }) => {
+          await page.setViewportSize(viewport);
+          await page.goto(`/${locale}${route.suffix}`);
+          // Settle fonts/layout so contrast is measured against final computed
+          // styles rather than an in-flight paint.
+          await page.waitForLoadState("networkidle");
 
-        const outcome = await runAxe(page);
-        report(`${locale}/${name} axe: ${summarise(outcome)}`);
+          const outcome = await runAxe(page);
+          report(`${locale}${route.title}/${name} axe: ${summarise(outcome)}`);
 
-        // Any impact, not just critical/serious: this is the same bar gate 18
-        // sets for the document-scope jsdom run. A `color-contrast` failure here is
-        // a real WCAG failure on rendered CSS and is left red, not allow-listed.
-        expect(
-          outcome.violations,
-          `${locale}/${name}: axe reported real violations on the rendered page`,
-        ).toEqual([]);
+          // Any impact, not just critical/serious: this is the same bar gate 18
+          // sets for the document-scope jsdom run. A `color-contrast` failure here is
+          // a real WCAG failure on rendered CSS and is left red, not allow-listed.
+          expect(
+            outcome.violations,
+            `${locale}${route.title}/${name}: axe reported real violations on the rendered page`,
+          ).toEqual([]);
 
-        /*
-         * A6: the `incomplete` ledger is asserted, not merely printed.
-         *
-         * This is the assertion that stands between the contrast gate and vacuity.
-         * `color-contrast` is separately required to be a decided *pass*, but that
-         * check is about one rule id; this one is about the whole incomplete set.
-         * An undecidable contrast node — a gradient, an overlap, a translucent
-         * backdrop showing through — would land here rather than in `violations`,
-         * and without this assertion it would only ever be read in a log.
-         *
-         * With the dialog closed, nothing is undecidable on this page, so the
-         * expectation is empty at BOTH viewports.
-         */
-        expect(
-          incompleteSummary(outcome),
-          `${locale}/${name}: axe reported an "incomplete" (needs review) result. Nothing may be undecidable with the dialog closed; an incomplete is not a pass.`,
-        ).toEqual([...EXPECTED_CLOSED_INCOMPLETE]);
+          /*
+           * A6: the `incomplete` ledger is asserted, not merely printed.
+           *
+           * This is the assertion that stands between the contrast gate and vacuity.
+           * `color-contrast` is separately required to be a decided *pass*, but that
+           * check is about one rule id; this one is about the whole incomplete set.
+           * An undecidable contrast node — a gradient, an overlap, a translucent
+           * backdrop showing through — would land here rather than in `violations`,
+           * and without this assertion it would only ever be read in a log.
+           *
+           * With the dialog closed, nothing is undecidable on either route, so the
+           * expectation is empty at BOTH viewports.
+           */
+          expect(
+            incompleteSummary(outcome),
+            `${locale}${route.title}/${name}: axe reported an "incomplete" (needs review) result. Nothing may be undecidable with the dialog closed; an incomplete is not a pass.`,
+          ).toEqual([...EXPECTED_CLOSED_INCOMPLETE]);
 
-        // Non-vacuity: `color-contrast` must be *decided*, not merely attempted.
-        // Requiring it in `passes` specifically is deliberate — see the note in
-        // this file's docstring. `incomplete` is not accepted here: per the three
-        // outcomes above it is not a pass, and accepting it would let a silent
-        // `passes` -> `incomplete` regression leave this run green while the empty
-        // `violations` array above went vacuous. A real contrast failure is
-        // already caught by that `toEqual([])`, so this assertion adds
-        // non-vacuity only, and it fails loudly if any node becomes genuinely
-        // undecidable rather than quietly tolerating it.
-        expect(
-          outcome.passes,
-          `${locale}/${name}: ${AXE_CONTRAST_RULE_ID} is not in axe's passing rule set, so the empty violations array is meaningless (an undecidable contrast is reported under "incomplete", not here)`,
-        ).toContain(AXE_CONTRAST_RULE_ID);
-      });
+          // Non-vacuity: `color-contrast` must be *decided*, not merely attempted.
+          // Requiring it in `passes` specifically is deliberate — see the note in
+          // this file's docstring. `incomplete` is not accepted here: per the three
+          // outcomes above it is not a pass, and accepting it would let a silent
+          // `passes` -> `incomplete` regression leave this run green while the empty
+          // `violations` array above went vacuous. A real contrast failure is
+          // already caught by that `toEqual([])`, so this assertion adds
+          // non-vacuity only, and it fails loudly if any node becomes genuinely
+          // undecidable rather than quietly tolerating it.
+          expect(
+            outcome.passes,
+            `${locale}${route.title}/${name}: ${AXE_CONTRAST_RULE_ID} is not in axe's passing rule set, so the empty violations array is meaningless (an undecidable contrast is reported under "incomplete", not here)`,
+          ).toContain(AXE_CONTRAST_RULE_ID);
+        });
+      }
     }
   }
 

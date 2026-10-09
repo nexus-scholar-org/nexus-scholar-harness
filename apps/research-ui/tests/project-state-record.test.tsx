@@ -91,6 +91,24 @@ function renderRecord(state: Parameters<typeof ProjectStateRecord>[0]["state"], 
   return render(<ProjectStateRecord locale={locale} state={state} />);
 }
 
+/**
+ * The phase stamp, as an element: the phase word paired with its status dot.
+ *
+ * Scoped on purpose. Since packet UI-04 the continuation link can render the
+ * *same* word as the phase — the `screening` fixture both is in screening and
+ * continues into screening, and in `en`/`fr` both catalog values are the string
+ * "Screening" — so an unscoped text query finds two elements and reports a
+ * duplicate where the claim under test is presence in the stamp. The dot is the
+ * stamp's structural signature: the destination tag and the statistic rows
+ * carry none.
+ */
+function phaseStampOf(section: HTMLElement): HTMLElement | null {
+  const dot = section.querySelector('span[aria-hidden="true"]');
+  // The dot is itself a `span`, so `closest` would return it; the stamp is its
+  // parent, and that is the element pairing the dot with the phase word.
+  return (dot?.parentElement ?? null) as HTMLElement | null;
+}
+
 describe("record arrival", () => {
   for (const locale of SUPPORTED_LOCALES) {
     it(`renders a pending read as pending, with no project state at all (${locale})`, () => {
@@ -143,7 +161,9 @@ describe("ready record — state matrix", () => {
         renderRecord(state, locale);
         const section = sectionOf(locale);
 
-        expect(within(section).getByText(phaseText(state.phase, locale)), state.phase).toBeInTheDocument();
+        expect(phaseStampOf(section)?.textContent, state.phase).toBe(
+          phaseText(state.phase, locale),
+        );
         expect(
           within(section).getByText(CATALOGS[locale][phaseDescriptionKey(state.phase)]),
           state.phase,
@@ -320,9 +340,13 @@ describe("fixture prose stays byte for byte", () => {
   });
 });
 
-describe("the continuation surface is named, never linked", () => {
+describe("the continuation surface is honest about its route", () => {
   for (const locale of SUPPORTED_LOCALES) {
-    it(`renders the destination as translated text plus the availability tag (${locale})`, () => {
+    it(`links the destination only once a route exists (${locale})`, () => {
+      // `search` continues into `screening`, which packet UI-04 routed. The
+      // sentence is still the catalog's sentence, word for word — only the
+      // destination word became a link, and the availability tag that said
+      // "not yet available" is gone, because the claim would now be false.
       renderRecord(overviewStateFixtures["search"], locale);
       const section = sectionOf(locale);
 
@@ -330,12 +354,33 @@ describe("the continuation surface is named, never linked", () => {
       expect(section.textContent).toContain(
         translate(locale, "overview.nextDestination", { destination }),
       );
+
+      const link = within(section).getByRole("link", { name: destination });
+      expect(link).toHaveAttribute("href", `/${locale}/screening`);
+      expect(within(section).queryByText(CATALOGS[locale]["nav.unavailable"])).toBeNull();
+
+      // The link is the only focusable thing the continuation adds: the record
+      // still offers no button, no field, no tab stop of its own.
+      expect(section.querySelectorAll("a")).toHaveLength(1);
+      expect(
+        section.querySelectorAll("button, input, select, textarea, [tabindex]"),
+      ).toHaveLength(0);
+      cleanup();
+    });
+
+    it(`stamps a destination whose route does not exist, never linking it (${locale})`, () => {
+      // `extraction` continues into `evidence` — packets UI-05's surface, still
+      // routeless — so the original contract stands unchanged for it: text
+      // plus the visible annotation, zero focusables, zero anchors.
+      renderRecord(overviewStateFixtures["extraction"], locale);
+      const section = sectionOf(locale);
+
+      const destination = translate(locale, navKey("evidence"));
+      expect(section.textContent).toContain(
+        translate(locale, "overview.nextDestination", { destination }),
+      );
       expect(within(section).getByText(CATALOGS[locale]["nav.unavailable"])).toBeInTheDocument();
 
-      // No route exists yet for screening/evidence/audit, so the record must
-      // offer no link and no focusable element at all: a destination the
-      // keyboard can reach but the router cannot serve is the dead link the
-      // shell's navigation gate forbids.
       expect(section.querySelectorAll("a")).toHaveLength(0);
       expect(
         section.querySelectorAll("button, input, select, textarea, [tabindex]"),

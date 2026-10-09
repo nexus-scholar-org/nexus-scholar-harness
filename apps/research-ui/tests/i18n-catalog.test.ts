@@ -39,12 +39,13 @@ import type { OverviewCountField, ProjectOverviewPhase } from "@/lib/project-sta
  */
 describe("catalog parity", () => {
   it("ships exactly the keys the packets inventory, in every locale", () => {
-    // 42 keys at UI-01d, +32 in packet UI-02's state model = 74. The number is
-    // asserted rather than trusted; `messages/en.ts`'s header states the same
-    // figure, and `docs/I18N.md` §3 repeats it.
+    // 42 keys at UI-01d, +32 in packet UI-02's state model = 74, +19 in packet
+    // UI-04's screening workspace = 93. The number is asserted rather than
+    // trusted; `messages/en.ts`'s header states the same figure, and
+    // `docs/I18N.md` §3 repeats it.
     const expected = Object.keys(en).sort();
 
-    expect(expected).toHaveLength(74);
+    expect(expected).toHaveLength(93);
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
     }

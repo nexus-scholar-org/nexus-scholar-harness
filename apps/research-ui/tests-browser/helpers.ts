@@ -136,13 +136,20 @@ export function describeStop(stop: FocusStop | null): string {
  * English one. So the helper **throws** unless the served document really declares
  * the locale it was asked for — the failure is loud, at the point of the mistake,
  * instead of a green assertion somewhere downstream.
+ *
+ * `subpath` (packet UI-04) selects a route *within* the locale — `"/screening"`
+ * for the screening workspace — instead of the locale root. It is a suffix of
+ * the same `/${locale}` document, never a bare path: the ring's labels are
+ * locale-dependent, so a route measured without its locale would be measuring
+ * the wrong language, which is the very defect the `lang` guard exists to catch.
  */
 export async function measureTabRing(
   page: Page,
   presses = 8,
   locale = "en",
+  subpath = "",
 ): Promise<FocusStop[]> {
-  await page.goto(`/${locale}`);
+  await page.goto(`/${locale}${subpath}`);
   const declared = await page.evaluate(() => document.documentElement.lang);
   if (declared !== locale) {
     throw new Error(

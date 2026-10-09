@@ -110,6 +110,31 @@ const ar: Record<MessageKey, string> = {
   "counts.unknown": "مجهول",
 
   "brand.productName": "Nexus Scholar",
+
+  // ---- مساحة فرز السجلات (حزمة UI-04): 19 مفتاحًا ----
+  "screening.eyebrow": "فرز السجلات",
+  "screening.heading": "فرز سجل دراسة واحد",
+  "screening.lede":
+    "اقرأ الاستشهاد والملخص أدناه وفق المعايير المختومة، ثم سجّل قرارك. لا يُتخذ أي قرار تلقائيًا.",
+  "screening.recordHeading": "سجل الدراسة",
+  "screening.citationLabel": "الاستشهاد المرجعي",
+  "screening.abstractLabel": "الملخص",
+  "screening.criteriaHeading": "معايير الفرز",
+  "screening.criteriaLede":
+    "المعايير التي يُفرز هذا السجل وفقها، كما يعلنها البروتوكول.",
+  "screening.decisionHeading": "تسجيل قرار",
+  "screening.decisionLegend": "القرار",
+  "screening.decision.include": "إدراج",
+  "screening.decision.exclude": "استبعاد",
+  "screening.decision.unclear": "غير محسوم",
+  "screening.reasonLabel": "السبب",
+  "screening.reasonHint": "مطلوب عند استبعاد السجل.",
+  "screening.reasonRequired": "اذكر سببًا قبل استبعاد هذا السجل.",
+  "screening.submit": "تسجيل القرار",
+  "screening.submitDisabledExplanation":
+    "التسجيل معطّل: هذا العرض التوضيحي لا يملك واجهة برمجية للقرارات، فلا يُرسَل أي قرار ولا يُحفظ ولا يُحتسب.",
+  "screening.noPersistence":
+    "لا يُكتب شيء في هذه الصفحة إلى مساحة عمل ولا إلى ملف ولا إلى هذا المتصفح.",
 };
 
 export default ar;

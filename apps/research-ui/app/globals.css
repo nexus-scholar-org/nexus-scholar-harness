@@ -194,13 +194,22 @@ body {
 }
 
 /*
- * One application focus ring for every link and button.
+ * One application focus ring for every link, button, and form control.
  *
  * UI-00b measured that the skip link carried a real application ring while the
  * primary-nav link and the mobile disclosure trigger had no focus rule of their
  * own and fell back to the user-agent default (`1px auto`, which varies with
  * platform settings). Restating the ring per component is how the two
  * presentations would drift again, so the treatment is declared once, here.
+ *
+ * Packet UI-04 added the first `input` and `textarea` elements to the
+ * application (the screening radios and reason field), and extended the same
+ * selector to them rather than giving the form its own ring — the reason the
+ * rule exists at all is that per-component restatements drift, and a form whose
+ * focus indicator disagrees with the nav's would be a second dialect of the
+ * same contract. The user agent draws something for a focused radio, but its
+ * geometry and colour are platform-specific, which is exactly the variance this
+ * rule was written to remove.
  *
  * It uses `var(--color-focus)` — the same token, and the same value, as
  * `.skip-link:focus` below — and the same 2px geometry, so the skip link is not
@@ -216,7 +225,9 @@ body {
  * is 2px, matching the skip link.
  */
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
