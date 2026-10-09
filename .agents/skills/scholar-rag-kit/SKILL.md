@@ -91,5 +91,5 @@ synthesis = GroundedSynthesisEngine(retriever=retriever).synthesize("...", rq_id
 ## Versions and status
 
 - Shipped package `0.1.0`; golden `producer.version 0.2.0` is the producing-kit version stamped inside the frozen golden manifest bytes, not the installed version.
-- Status: E3 in progress. Live harness rows (incl. `E3-POS-005` golden parity) proven; ledger completeness `MISSING == ()` (`tests/conformance/test_e3_index_lineage_boundary.py:2079,:2355`). Do not claim acceptance semantics this kit does not publish.
+- Status: E3 adopted (qualified closure with recorded debt; see docs/architecture/wp01_packet_e3_completion_report.md and docs/architecture/e3_residual_repair.md). Live harness rows (incl. `E3-POS-005` golden parity) proven; ledger completeness `MISSING == ()` (`tests/conformance/test_e3_index_lineage_boundary.py:2079,:2355`). Do not claim acceptance semantics this kit does not publish.
 - Auxiliary only (never the publication path): `NumpyBackend` (in-memory test backend), `LLMExtractor`/`PIIRedactor` and the `scholar-rag extract` command (Gemini `gemini-pro` extraction with heuristic fallback + PII redaction), and `gemini` embedding (`text-embedding-004`, 768-d). Details in refs; `index` has **no** `--api-key` flag.
