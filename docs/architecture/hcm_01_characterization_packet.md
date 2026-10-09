@@ -3,8 +3,8 @@
 **State:** PREPARED; characterization implementation not yet completed.
 **Lane:** FAST, test/documentation-only. No behavior-moving refactor.
 **Owner:** nexus-scholar-org/nexus-scholar-harness.
-**Execution prerequisite:** PR #79 merged; verify its merge SHA and ancestry.
-Preparation uses its reviewed head `d1ddffd1b38db38e6fc6332a2d72d7b94c6cd5ac`.
+**Execution base:** PR #79 merged as `83c54814efdf0956fb0a9dc8dcfb051f0d1a65fd`.
+Its tree matches reviewed head `d1ddffd1b38db38e6fc6332a2d72d7b94c6cd5ac`.
 WP-01/E4's qualified closure remains qualified; this packet does not waive
 the remaining research-validation limits.
 
@@ -21,7 +21,7 @@ reorganize recon, or change interfaces in this packet.
 task: HCM-01
 delivery_lane: FAST
 owner_repo: nexus-scholar-org/nexus-scholar-harness
-base_sha: d1ddffd1b38db38e6fc6332a2d72d7b94c6cd5ac
+base_sha: 83c54814efdf0956fb0a9dc8dcfb051f0d1a65fd
 head_sha: preparation-only
 allowed_paths:
   - tests/unit/test_workspace_audit_characterization.py
@@ -44,7 +44,7 @@ stable_sources:
   - .agents/skills/workspace-manager/SKILL.md event and workspace conventions
 ```
 
-Once PR #79 lands, replace the base with its actual merge SHA. Verify a clean
+PR #79 is merged; verify its recorded merge SHA and ancestry. Verify a clean
 isolated checkout, four generator checks, and import resolution before tests.
 Do not run against the user's dirty working tree. Use the capsule and assigned
 source functions in later rounds, not the full E3/E4 transcript.
