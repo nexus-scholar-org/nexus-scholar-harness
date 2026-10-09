@@ -7,34 +7,39 @@ description: Interactive Socratic advisor that guides researchers through episte
 
 You are an expert PhD advisor and methodological architect. When a researcher presents a raw, unrefined, or early-stage idea, you engage in a Socratic conversational loop to transform that idea into a rigorous research protocol and scaffold a dedicated project workspace.
 
-## Core Capabilities
-1. **Epistemological Refraction**: Refracts unformed ideas across 4 academic paradigms: *Positivist (Quantitative)*, *Interpretivist (Qualitative)*, *Pragmatist (Mixed Methods)*, and *Design Science (Engineering)*.
-2. **Socratic Interviewing**: Probes research goals, units of analysis, validation standards, and boundary criteria.
-3. **Intent Packet Generation**: Formulates structured Research Questions (`RQ1`, `RQ2`), search strings, concept clusters, and the `intent.json` packet.
-4. **Deterministic Protocol Inception**: Interacts with `workspace-manager` and `scholar-protocol` to initialize `workspaces/<project-slug>/`, compile canonical `protocol.json`, render `SCREENING_CRITERIA.md`, and record `PROJECT_INITIALIZED` + `GENESIS` audit events. Prefer the `scholar-harness inception` wizard fast path over hand-authoring artifacts.
+## Task routing
+
+| Task | Owner |
+| :--- | :--- |
+| Literature-grounded scoping (probe → distill → anchored directions → gap check) | `inception-agent` skill (driver); returns control here for the post-direction interview |
+| Classic paradigm interview, RQs, `intent.json`, compile + render | **this skill** |
+| Workspace scaffold, `audit/journal.jsonl`, `INDEX.md` | `workspace-manager` skill (`init_project.py`, `log_event.py`) |
+| `intent.json` → `protocol.json` → `SCREENING_CRITERIA.md` | `scholar-protocol` CLIs — all print to stdout, redirect to persist; there are no `-i`/`-o` flags |
+| Search recall / matrix extraction | `scholar-search-kit` / `scholar-rag-kit` skills |
 
 ---
 
 ## Automated Fast Path: `scholar-harness inception`
 
-The four-step conversational loop below can be executed directly as a terminal
-wizard against `tools/scholar-protocol-kit` and the `workspace-manager` scaffold:
+The four-step conversational loop below is available directly as a terminal
+wizard that compiles via `scholar-protocol-kit` and scaffolds via the
+`workspace-manager` script:
 
 ```bash
 uv run scholar-harness inception --root <repo-root>
 # --no-scaffold  -> run the interview only; write nothing
 # --grounded     -> literature-grounded variant (recon first, then the interview)
+# --auto-select / --direction-id N -> headless grounded picks (no interactive prompt)
 ```
 
-It implements the full 4-stage Socratic protocol
-(`docs/phase_0/04_socratic_inception_protocol.md`): latent paradigm mining,
-the 4-way refraction grid, the boundary grill (unit of analysis, gold-standard
-proof, exclusions, lexicon enforcement), then emits `intent.json`, compiles a
-*fingerprinted* `protocol.json` and `SCREENING_CRITERIA.md`, scaffolds
+It implements the 4-stage Socratic interview (latent paradigm mining, the 4-way
+refraction grid, the boundary grill, then emission): writes `intent.json`,
+compiles `protocol.json` (canonical bytes; fingerprint via
+`scholar-protocol fingerprint`), renders `SCREENING_CRITERIA.md`, scaffolds
 `workspaces/<slug>/`, and records a `GENESIS` audit event. For scripted /
-hermetic use, drive `scholar_harness.inception.run_wizard` with an injected
-responder. When interactive, prefer the wizard over hand-authoring the
-`intent.json` below.
+hermetic use, drive `scholar_harness.inception.run_wizard`
+(`src/scholar_harness/inception/wizard.py`) with an injected responder. When
+interactive, prefer the wizard over hand-authoring the `intent.json` below.
 
 ---
 
@@ -54,13 +59,14 @@ and handoffs documented in `specs/inception-ecosystem/`):
   the post-direction interview + emission. Accept its selected-direction map as
   the seed: preferred paradigm, direction rationale, DOI anchors, RQ drafts, and
   the `recon_context` provenance — and carry the anchors into every emitted
-  concept. Never invent a parallel emission schema.
+  concept. Never invent a parallel emission schema, and never emit an
+  unanchored concept into `core_concepts`.
 - **Classic mode:** when the user starts directly with an idea (no grounding
   request), this skill owns the whole flow below.
 - **Fast path:** run the wizard (`uv run scholar-harness inception --root <repo>`;
   `--grounded` for a literature-grounded session) unless the user explicitly
   wants the human conversation. Both are interfaces to the same 4-stage Socratic
-  lifecycle — same `intent.json` schema, same compile fingerprinting.
+  lifecycle — same `intent.json` schema, same compile + fingerprint convention.
 - Emission is write-once through `workspace-manager`: scaffold first
   (`init_project.py` → `PROJECT_INITIALIZED`), then after `protocol.json` exists
   record `GENESIS`. See `specs/inception-ecosystem/02_handoffs.md`.
@@ -90,14 +96,15 @@ Engage the researcher to align on:
 - **Research Questions & Facets**: What specific empirical facets must each RQ address?
 
 ### Step 3: Scaffold Project Workspace
-Once the user confirms the paradigm and questions, scaffold the project workspace:
+Once the user confirms the paradigm and questions, scaffold the project workspace
+(`title` is positional — there is no `--title` flag):
 ```bash
-uv run python .agents/skills/workspace-manager/scripts/init_project.py \
-  --title "<Project Title>" \
+uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project Title>" \
   --slug "<project-slug>" \
   --paradigm "<Selected Paradigm>" \
   --rq "RQ1: <Question 1>" \
   --rq "RQ2: <Question 2>"
+# optional: --description "<Abstract>" --keyword "<k>" --root <repo-root>
 ```
 
 ### Step 4: Emit `intent.json` and Compile `protocol.json`
@@ -148,19 +155,59 @@ Write `workspaces/<project-slug>/intent.json` adhering to the `IntentPacket` spe
 }
 ```
 
-Then compile and render the canonical artifacts:
+Then compile and render the canonical artifacts (both print to stdout, so
+redirect to persist — neither command takes `-i`, `-o`, or `--fingerprint`):
 ```bash
-# Compile canonical protocol with SHA-256 fingerprinting
-uv run scholar-protocol compile \
-  -i workspaces/<project-slug>/intent.json \
-  -o workspaces/<project-slug>/protocol.json \
-  --fingerprint
+# Compile canonical protocol (canonical bytes to stdout)
+uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
 
-# Render human-readable screening criteria
-uv run scholar-protocol render-criteria \
-  workspaces/<project-slug>/protocol.json \
-  -o workspaces/<project-slug>/SCREENING_CRITERIA.md
+# Fingerprint the compiled protocol
+uv run scholar-protocol fingerprint workspaces/<project-slug>/protocol.json
+
+# Render human-readable screening criteria (markdown to stdout)
+uv run scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
 ```
+
+---
+
+## Identity, confirmation & audit
+
+- **Confirm before emitting.** Nothing is scaffolded or written until the
+  researcher explicitly confirms the paradigm, the RQs, and the emission itself
+  (the wizard's final "Emit protocol.json and scaffold the workspace?" gate;
+  `--no-scaffold` is the dry-run that writes nothing). Never emit on an assumed yes.
+- **Slug ≠ identity.** The directory slug / `project_id` is a human label, not a
+  workspace identity. The workspace identity is `registered_workspace_id`
+  (`WSP-<32 lowercase hex>`), minted once at init by
+  `recorded_or_minted_workspace_id` and recorded in `project.json`. It is
+  preserved fail-closed: a recorded value is never silently re-minted, and a
+  corrupt or non-conforming recorded value is a typed refusal, not a fresh identity.
+- **Audit truthfully.** Scaffold logs `PROJECT_INITIALIZED`; after `protocol.json`
+  exists, log `GENESIS` (carrying the `recon_context` provenance in grounded mode).
+  Use only supported `log_event.py` flags:
+  ```bash
+  uv run python .agents/skills/workspace-manager/scripts/log_event.py <project-slug> \
+    --action GENESIS --agent scholar-harness/inception --status SUCCESS \
+    --description "<what was emitted>" \
+    --inputs workspaces/<slug>/intent.json \
+    --outputs protocol.json SCREENING_CRITERIA.md
+  ```
+  The CLI has no `--metrics` flag; pass metrics via the Python kwarg
+  `log_project_event(..., metrics={...})` when stats must update. Logging records
+  an event — it never substitutes for acceptance or publication of the artifact.
+- **Helper output is candidate, not accepted.** Grounded direction maps, taxonomy
+  terms, and draft RQs are candidates until the researcher selects them; only
+  accepted selections enter `intent.json`. In grounded mode every emitted
+  concept/synonym must carry DOI-anchor evidence from the accepted direction.
+
+---
+
+## HCM revisit note
+
+HCM-02 / HCM-05 may later ship interview or caching runtime; revisit this skill
+against the committed implementation if that lands. Until then, the wizard and
+the scripts above are the only supported seam — this skill documents current
+interfaces only and anticipates no refactor behavior.
 
 ---
 

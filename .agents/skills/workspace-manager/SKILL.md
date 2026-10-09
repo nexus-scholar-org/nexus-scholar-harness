@@ -5,6 +5,15 @@ description: Central orchestration agent for research data routing and project s
 
 # `workspace-manager` Skill Instructions
 
+**Operational warning (D1): do not execute the batch examples below.** The
+current `batch_log.py:72` passes unsupported `refresh_index=` to
+`log_project_event` (`log_event.py:159-169`), so it cannot append the promised
+events. Its CLI flags are not evidence of working execution. Until a separate
+runtime repair lands, use serial `log_event.py` calls or the documented
+`log_project_event` signature. Check the actual journal rows; an exit code alone
+does not establish publication. Batch examples are reference-only, not workflow
+instructions. No concurrency guarantee is made here.
+
 You are the central project orchestration agent for the Nexus Scholar Suite. Your job is to isolate literature, PDFs, extractions, and synthesis files into dedicated project directories under `workspaces/<project-slug>/` rather than polluting tool folders or the workspace root.
 
 ## Core Responsibilities
@@ -20,14 +29,20 @@ You are the central project orchestration agent for the Nexus Scholar Suite. You
 
 ### Initialize a Project
 ```bash
-# Scaffold a new research project with automated INDEX.md
+# Scaffold a new research project with automated INDEX.md.
+# `title` is positional (init_project.py:184); --slug/--paradigm/--rq verified below.
 uv run python .agents/skills/workspace-manager/scripts/init_project.py \
-  --title "Multispectral Weed Segmentation in Agriculture" \
+  "Multispectral Weed Segmentation in Agriculture" \
   --slug multispectral-weeds \
   --paradigm "Design Science" \
   --rq "RQ1: What CNN architecture maximizes..." \
   --rq "RQ2: How does band selection affect..."
 ```
+Verified flags (`init_project.py --help`): `title` (positional), `--slug/-s`,
+`--description/-d`, `--paradigm/-p`, `--rq` (repeatable), `--keyword/-k`
+(repeatable), `--root` (default `.`). Scaffold creates `project.json`,
+`synthesis/literature_review.md`, `audit/journal.jsonl` (`PROJECT_INITIALIZED`)
+and `INDEX.md`; the remaining layout below appears via later pipeline stages.
 
 ### Log Events (Single & Batch)
 ```bash
@@ -99,9 +114,16 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py <project-slu
   --action DISCOVERY_SEARCH \
   --agent scholar-search-kit \
   --description "Federated search across 5 query clusters" \
+  --inputs workspaces/<PROJECT>/protocol.json \
   --outputs workspaces/<PROJECT>/literature/raw_search.json \
-  --metrics discovered_papers=127
+  --status SUCCESS
 ```
+`log_event.py` has no `--metrics` CLI flag (verified `log_event.py --help`:
+positional `project`, required `--action`, `--agent`, `--description`,
+`--inputs/--outputs` (`nargs *`), `--status`). To record quantitative outcomes,
+put `"metrics"` in a `batch_log.py` events-file line or call
+`log_project_event(..., metrics={...})` in Python (log_event.py:167); only keys
+already present in `project.json` `stats` are merged (log_event.py:209-212).
 
 ### Batch & Programmatic Logging (CLI-first)
 
@@ -129,21 +151,26 @@ plus a bounded inline summary (direction, anchors, cache key, confidence). See
 ## Agent Integration Guidelines & Best Practices
 
 - **Project Resolution**: At the start of a multi-step workflow, detect or prompt for the active project; inspect state before writing with `query_project.py --stats`.
-- **Batch Logging for Performance**: When running multi-step pipelines (search → dedup → verify → screen), use `batch_log.py` with an `--events-file` to write the journal once and refresh INDEX.md once (not N times).
-- **Genesis Provenance**: on protocol compile, log `GENESIS`; for grounded inception, write the full provenance sidecar `audit/recon_context.json` and a bounded inline summary (schema: `specs/inception-ecosystem/02_handoffs.md` §2.2; implementation: `src/scholar_harness/inception.py::log_genesis`).
-- **Metric Aggregation**: Always update `stats` with quantitative outcomes (papers discovered, verified, downloaded, extracted, etc.). The INDEX.md uses these for the summary table.
-- **Event Schema**: Follow the standard event schema:
-  ```json
-  {
-    "timestamp": "2026-08-30T19:27:18.546691+00:00",
-    "event_id": "EVT-20260830192718-f98507",
-    "action": "DISCOVERY_SEARCH",
-    "agent_or_tool": "scholar-search-kit",
-    "description": "Multi-provider federated query",
-    "parameters": {},
-    "inputs": [],
-    "outputs": ["literature/raw_search.json"],
-    "metrics": {"discovered_papers": 127},
-    "status": "SUCCESS"
-  }
-  ```
+- **Batch Logging for Performance**: When running multi-step pipelines (search → dedup → verify → screen), use `batch_log.py` with an `--events-file` to append N rows with one INDEX.md refresh. Verified flags (`batch_log.py --help`): positional `project`, required `--events-file`, `--refresh-index` (default True) / `--no-refresh-index`. Each line carries `action`, `agent`, `description`, `inputs`, `outputs`, `parameters`, `metrics`, `status` (see `references/audit_trace_spec.md` §2; loader: batch_log.py:82-108).
+- **Query flags** (verified `query_project.py --help`): positional `project`, `--stats`, `--events` with `--action` / `--agent` / `--limit` (default 20), `--audit-export <file>`.
+- **Genesis Provenance**: on protocol compile, log `GENESIS`; for grounded inception, write the full provenance sidecar `audit/recon_context.json` and a bounded inline summary (schema: `specs/inception-ecosystem/02_handoffs.md` §2.2; implementation: `src/scholar_harness/inception/genesis.py::log_genesis`).
+- **Metric Aggregation**: record quantitative outcomes via the events-file `"metrics"` object or the Python `metrics=` kwarg — never via a `--metrics` CLI flag (it does not exist). The INDEX.md summary table reads `project.json` `stats`.
+- **Event Schema**: follow `references/audit_trace_spec.md` §2 (field-for-field the `log_project_event` record: log_event.py:185-196). Do not duplicate the schema here.
+
+## Boundaries (preserve)
+
+- **Confirmation before emission.** Nothing is scaffolded or emitted without explicit user confirmation: the inception-agent Stage 6 human gate and the methodology-copilot pre-write check own that gate (`specs/inception-ecosystem/02_handoffs.md` §2.1 rule 1). Workspace-manager only runs the scaffold + audit writes the driver requests after confirmation, with scaffold values taken from the finalized `intent.json`.
+- **Slug is a label, not an identity.** `project_id` is the human slug (directory name, `INDEX.md` label, `intent.json` `project_slug`). `registered_workspace_id` (`WSP-` + 32 lowercase hex, minted once at init from the OS CSPRNG and recorded in `project.json`) is the Contract v1 workspace identity stated by every artifact under the workspace. Never substitute one for the other; a workspace without a recorded id is pre-registration and fails closed (see `references/project_schema.md` §1.1; implementation: init_project.py:38-107).
+- **Truthful append-only audit.** All writes go through `log_event.py` / `batch_log.py`; never hand-append to `journal.jsonl`. Every event carries timestamp, `event_id`, action, agent/tool, description, parameters, inputs, outputs, metrics, status.
+- **Helpers vs candidates vs acceptance.** Helper scripts are conveniences, candidate outputs (raw search, deduped sets, unverified claims) are working state, and only the owning stage's acceptance step confers accepted status. Logging an event records provenance — it does not publish or accept a scientific claim or Contract v1 artifact.
+- **Stack routing.** Interviews, paradigm choice, and `intent.json`/`protocol.json` emission belong to methodology-copilot conventions; grounded recon and direction selection belong to inception-agent; exact kit CLI flags belong to the `scholar-*-kit` skills. This skill routes there instead of duplicating volatile commands (see `references/tool_routing_matrix.md` for workspace-relative paths only).
+
+## References
+
+- `references/project_schema.md` — `project.json` identity + manifest.
+- `references/audit_trace_spec.md` — journal schema, INDEX.md format.
+- `references/tool_routing_matrix.md` — workspace-relative tool paths.
+- `references/performance_concurrency.md` — batch-first throughput within committed flags.
+- `specs/inception-ecosystem/01_skill_boundaries.md`, `02_handoffs.md` — stack ownership + emission chain.
+
+> HCM-02/05 revisit note: human-capability-model refinements are out of scope for this refresh. This doc documents only the committed helper behavior above and does not anticipate HCM refactor behavior; revisit after the HCM packet lands.

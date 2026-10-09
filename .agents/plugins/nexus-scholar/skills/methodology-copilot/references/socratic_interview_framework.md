@@ -20,10 +20,10 @@ sequenceDiagram
     A->>R: Questions on unit of analysis, scope & metrics
     R->>A: Clarifications & boundaries
     Note over A: Phase 3: Protocol & Criteria Synthesis
-    A->>R: Formulates RQs, search terms & criteria.md
+    A->>R: Formulates RQs, search terms & SCREENING_CRITERIA.md
     R->>A: Approves protocol
     Note over A: Phase 4: Project Scaffolding
-    A->>W: Calls init_project script & writes criteria.md
+    A->>W: Calls init_project script, compiles protocol.json & renders SCREENING_CRITERIA.md
 ```
 
 ---
@@ -48,11 +48,17 @@ Once the researcher selects a paradigm, probe on 3 core dimensions:
 Generate a clean research bundle comprising:
 - **Research Questions**: 2 to 4 structured, numbered questions (`RQ1`, `RQ2`, `RQ3`).
 - **Target Keywords & Boolean Queries**: Formatted for `scholar-search-kit`.
-- **Inclusion & Exclusion Criteria (`criteria.md`)**: Formatted for systematic screening.
+- **Inclusion & Exclusion Criteria (`SCREENING_CRITERIA.md`)**: Rendered deterministically from `protocol.json` via `scholar-protocol render-criteria` (stdout redirect); never hand-written.
 
 ### Phase 4: Automated Scaffolding
-Invoke the `init_project.py` script from `workspace-manager`:
+Invoke the `init_project.py` script from `workspace-manager` (`title` is positional):
 ```bash
 uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project Title>" --slug <project-slug> --description "<Abstract>" --rq "<RQ1>" --rq "<RQ2>" --keyword "<k1>" --keyword "<k2>"
 ```
-And write `criteria.md` directly into `workspaces/<project-slug>/literature/criteria.md`.
+Only after the researcher explicitly confirms the RQs and the emission itself,
+compile and render the canonical artifacts (both print to stdout, so redirect
+to persist — neither takes `-i`, `-o`, or `--fingerprint`):
+```bash
+uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
+uv run scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+```

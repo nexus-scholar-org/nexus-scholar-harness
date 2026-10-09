@@ -1,6 +1,10 @@
 # Toolkit Path Routing Matrix
 
-When operating on an active project (e.g. `workspaces/<P>/`), all Nexus Scholar tools MUST strictly route their inputs and outputs according to this matrix.
+When operating on an active project (e.g. `workspaces/<P>/`), all Nexus Scholar tools MUST strictly route their inputs and outputs inside `workspaces/<P>/`.
+
+This matrix states **workspace-relative paths only**. Exact kit CLI flags live
+in the owning `scholar-*-kit` skills and are not duplicated here (no volatile
+duplication); verify flags there before running.
 
 ---
 
@@ -15,8 +19,8 @@ When operating on an active project (e.g. `workspaces/<P>/`), all Nexus Scholar 
 | **5. PDF Download** | `scholar-pdf-kit` | `workspaces/<P>/literature/verified.json` | `workspaces/<P>/pdfs/*.pdf` | `uv run scholar-pdf download --input workspaces/<P>/literature/verified.json --output workspaces/<P>/pdfs/ --smart-names --export json` |
 | **6. Manual PDF Ingest** | `scholar-pdf-kit` | Local PDF + DOI | `workspaces/<P>/pdfs/*.pdf` | `uv run scholar-pdf ingest <file.pdf> --doi <doi> --output workspaces/<P>/pdfs/ --smart-names` |
 | **7. Fulltext Extraction** | `scholar-pdf-kit` | `workspaces/<P>/pdfs/` | `workspaces/<P>/extracted/*.md` | `uv run scholar-pdf extract workspaces/<P>/pdfs/ --output workspaces/<P>/extracted/ --engine docling` |
-| **8. Bibliographic Export** | `scholar-search-kit` | `workspaces/<P>/literature/verified.json` | `workspaces/<P>/exports/references.bib` | `uv run scholar-search export workspaces/<P>/literature/verified.json workspaces/<P>/exports/references.csv --format csv` |
-| **9. Graph & RAG Indexing** | `scholar-rag-kit` / MCP | `workspaces/<P>/extracted/` | `workspaces/<P>/vector_store/` | `nexus_rag_index(workspace_dir="workspaces/<P>")` |
+| **8. Bibliographic Export** | `scholar-search-kit` | `workspaces/<P>/literature/verified.json` | `workspaces/<P>/exports/` (e.g. `references.csv`) | `scholar-search export` → `workspaces/<P>/exports/` (flags: see scholar-search-kit skill) |
+| **9. Graph & RAG Indexing** | `scholar-rag-kit` | `workspaces/<P>/extracted/` | index under `workspaces/<P>/` (see scholar-rag-kit skill) | `scholar-rag index` → workspace index (flags: see scholar-rag-kit skill; RAG indexing is not available via MCP) |
 
 ---
 

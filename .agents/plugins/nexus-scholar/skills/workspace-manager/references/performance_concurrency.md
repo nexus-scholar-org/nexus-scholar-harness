@@ -1,215 +1,86 @@
 # Performance & Concurrency for workspace-manager
 
-## Batch Event Logging (High-Throughput)
+**Blocked batch path (D1):** do not run the batch example below. At the current
+source, `batch_log.py:72` supplies an unsupported `refresh_index` keyword to
+`log_project_event` (`log_event.py:159-169`). Use serial single-event calls until
+the separately owned runtime defect is repaired. Batch throughput and refresh
+suppression are proposals, not verified behavior.
 
-### Problem: Naive Single-Event Logging
+CLI-first throughput guidance. All commands below are verified flag-for-flag
+via `--help` (inspection-only); nothing here writes a workspace, calls a
+provider, or launches a server.
 
-Logging one event at a time regenerates INDEX.md each time:
+## Batch Event Logging (fewer processes, one refresh intent)
 
-```python
-for result in search_results:
-    log_event("DISCOVERY_SEARCH", outputs=[result])
-    # ⚠️ INDEX.md regenerated 127 times for 127 papers
-```
-
-**Performance**: 127 papers × 0.5s per INDEX refresh = ~63 seconds ⚠️
-
-### Solution: Batch Event Logging
-
-Accumulate events and write journal + refresh INDEX once:
-
-```python
-from workspace_manager import EventBatch
-
-batch = EventBatch()
-batch.add_event("DISCOVERY_SEARCH", "scholar-search-kit", "Found 127 papers", 
-                outputs=["literature/raw_search.json"], metrics={"discovered_papers": 127})
-batch.add_event("DEDUPLICATION", "scholar-search-kit", "Reduced to 89 unique", 
-                outputs=["literature/deduped.json"], metrics={"unique_papers": 89})
-batch.add_event("VERIFICATION", "scholar-search-kit", "Hydrated 87 with DOIs", 
-                outputs=["literature/verified.json"], metrics={"verified_papers": 87})
-
-# Single journal append + single INDEX.md refresh
-pm.batch_log_events(batch)
-```
-
-**Performance**: ~1 second total (regardless of event count) ✅
-
-**Speedup**: 63x faster (63s → 1s)
-
-### CLI Usage
+Logging one event per process regenerates `INDEX.md` on every event
+(`log_project_event` always calls `refresh_index_md`: log_event.py:218-219).
+A future repaired batch writer could reduce process overhead for multi-step
+pipelines (search → dedup → verify → screen). Reference-only example:
 
 ```bash
-# Create events.jsonl with pipeline results
-cat > events.jsonl << EOF
-{"action": "DISCOVERY_SEARCH", "agent": "scholar-search-kit", "description": "Multi-provider search", "outputs": ["literature/raw_search.json"], "metrics": {"discovered_papers": 127}}
-{"action": "DEDUPLICATION", "agent": "scholar-search-kit", "description": "Fuzzy dedup", "outputs": ["literature/deduped.json"], "metrics": {"unique_papers": 89}}
-{"action": "VERIFICATION", "agent": "scholar-search-kit", "description": "Crossref + hydration", "outputs": ["literature/verified.json"], "metrics": {"verified_papers": 87}}
-EOF
-
-# Batch log in one operation
+# events.jsonl = one event object per line:
+# {"action": "...", "agent": "...", "description": "...",
+#  "inputs": [...], "outputs": [...], "parameters": {...},
+#  "metrics": {...}, "status": "SUCCESS"}
 uv run python .agents/skills/workspace-manager/scripts/batch_log.py my-project --events-file events.jsonl
 ```
 
-## Concurrent Project Operations
+Verified flags (`batch_log.py --help`): positional `project`, required
+`--events-file`, `--refresh-index` (default True) / `--no-refresh-index`.
+The events-file object keys map to `EventBatch.add_event` /
+`load_events_from_jsonl` (batch_log.py:19-108): `action`, `agent`,
+`description`, `inputs`, `outputs`, `parameters`, `metrics`, `status`.
 
-### Multi-Project Workflows
+Single events stay on `log_event.py` (verified `log_event.py --help`:
+positional `project`, required `--action`, `--agent`, `--description`,
+`--inputs/--outputs` (`nargs *`), `--status`). There is no `--metrics`,
+`--profile`, or `--defer-index-refresh` CLI flag — do not use them.
 
-If you're managing multiple projects simultaneously (e.g., portfolio evaluation):
+## What not to use
 
-```python
-import asyncio
-from workspace_manager import ProjectManager
+- There is **no** importable `workspace_manager` module and **no**
+  `ProjectManager` class. All writes go through the CLI scripts above; never
+  hand-append to `journal.jsonl`.
+- There are **no** `scripts/index_audit.py` or `scripts/archive_audit.py`
+  helpers in the committed tree — do not document or invoke them.
+- `log_project_event` takes no `refresh_index` parameter
+  (log_event.py:159-169). Refresh control exists only as the `batch_log.py`
+  CLI contract (`--refresh-index` / `--no-refresh-index`); programmatic
+  refresh suppression is a deferred defect, not a documented feature (see the
+  task return, not this doc).
+- `query_project.py` helpers (`get_project_stats`, `get_research_questions`,
+  `get_events`, `export_audit_trail`, `resolve_project_dir`) are plain
+  uncached file reads (query_project.py:11-135). This doc makes no cache-TTL,
+  timing, or speedup claim.
 
-async def process_all_projects(project_slugs):
-    """Process multiple projects concurrently."""
-    
-    # Create managers (non-blocking)
-    managers = [ProjectManager(slug) for slug in project_slugs]
-    
-    # Log events to all projects in parallel
-    async def log_to_project(pm, event_dict):
-        return await pm.log_event(**event_dict)
-    
-    tasks = [
-        log_to_project(pm, {"action": "STAGE_1", "description": "..."})
-        for pm in managers
-    ]
-    results = await asyncio.gather(*tasks)
-    return results
-```
+## Query Performance (read-only)
 
-**Concurrency Limit**: Tested up to 20 concurrent projects (file I/O bound). Beyond that, use chunking:
+Reads never touch the journal for writing. Verified flags
+(`query_project.py --help`): positional `project`, `--stats`, `--events` with
+`--action` / `--agent` / `--limit` (default 20), `--audit-export <file>`.
 
-```python
-MAX_CONCURRENT = 10
-for i in range(0, len(all_slugs), MAX_CONCURRENT):
-    chunk = all_slugs[i : i + MAX_CONCURRENT]
-    await process_all_projects(chunk)
-    await asyncio.sleep(0.5)  # Brief pause between batches
-```
-
-## INDEX.md Caching & Refresh Strategy
-
-### Problem: Expensive INDEX.md Regeneration
-
-INDEX.md is regenerated from scratch on every event:
-1. Read `project.json`
-2. Scan all subdirectories
-3. Format markdown table
-4. Write file
-
-**Cost**: ~200-500ms per refresh (varies by file count in project)
-
-### Solution: Incremental Refresh
-
-Option 1: **Skip refresh for transient events** (internal logging):
-```python
-# Skip INDEX.md refresh for intermediate steps
-await pm.log_event(..., refresh_index=False)  # Faster
-
-# Refresh only at pipeline milestones
-await pm.log_event(..., refresh_index=True)   # Full refresh
-```
-
-Option 2: **Batch refresh** (refresh once per pipeline):
-```python
-batch = EventBatch(defer_index_refresh=True)
-batch.add_event(...)
-batch.add_event(...)
-batch.add_event(...)
-
-# Refresh INDEX.md once
-await pm.batch_log_events(batch, refresh_index=True)
-```
-
-**Performance**:
-- 100 events with per-event refresh: ~50 seconds
-- 100 events with batch deferred refresh: ~1.5 seconds → **33x faster**
-
-## Query Performance (Read-Only)
-
-### Fast Queries (Cached)
-
-```python
-# These are cached and return instantly (<1ms):
-stats = await pm.get_stats()  # Cached for 10s
-rqs = await pm.get_research_questions()  # Cached for 30s
-```
-
-**Cache TTL**:
-- `stats`: 10 seconds (refreshed on event log)
-- `rqs`: 30 seconds (static unless project updated)
-- `audit_trail`: 5 minutes (for large projects with 1000+ events)
-
-### Slow Queries (Full Scan)
-
-```python
-# These scan audit/journal.jsonl:
-events = await pm.get_events(action="DISCOVERY_SEARCH", limit=100)  # ~100ms
-events_filtered = await pm.get_events(agent="scholar-pdf-kit")       # ~150ms for 1000+ events
-```
-
-**Optimization**: Index `journal.jsonl` for large projects:
 ```bash
-# Create searchable index (one-time)
-uv run python .agents/skills/workspace-manager/scripts/index_audit.py my-project
-
-# Queries then use indexed search (10-20x faster)
-events = await pm.get_events(action="PDF_DOWNLOAD", limit=1000)  # ~5ms (indexed)
+uv run python .agents/skills/workspace-manager/scripts/query_project.py my-project --stats
+uv run python .agents/skills/workspace-manager/scripts/query_project.py my-project --events --limit 10
+uv run python .agents/skills/workspace-manager/scripts/query_project.py my-project --audit-export audit_trail.json
 ```
+
+Filter semantics are literal substring comparisons in `get_events`
+(query_project.py:58-62): `action` matches case-insensitively on the event
+`action`, `agent` matches case-insensitively on `agent_or_tool`. Newest-first
+is the default (`reverse=True`); `--limit` truncates after reversal.
 
 ## Project State Size & Scalability
 
-| Metric | Typical | Max Tested |
-|--------|---------|-----------|
-| `project.json` | <1KB | N/A |
-| `INDEX.md` | 2-5KB | 10KB (500 files) |
-| `journal.jsonl` | 50KB (100 events) | 2MB (10,000 events) |
-| **Per-project overhead** | ~100KB | ~5MB |
-| **Concurrent projects** | Up to 20 | Tested up to 50 (with chunking) |
+Order-of-magnitude guidance only (not a measured guarantee):
 
-### Large Project Maintenance
+| Artifact | Typical |
+|----------|---------|
+| `project.json` | <1KB |
+| `INDEX.md` | 2-5KB (grows with the committed `key_files` catalog + `reports/*.md` scan) |
+| `journal.jsonl` | ~0.5KB per event |
 
-For projects with 10,000+ audit events:
-
-```bash
-# Periodically archive old events (monthly)
-uv run python .agents/skills/workspace-manager/scripts/archive_audit.py my-project --before 2026-01-01 --output audit_archive_2026-01.jsonl
-
-# Index for fast queries
-uv run python .agents/skills/workspace-manager/scripts/index_audit.py my-project
-```
-
-## Recommended Configuration by Scale
-
-| Project Size | Events/Year | Batch Size | INDEX Refresh | Concurrency |
-|--------------|------------|-----------|---------------|------------|
-| Small (1 paper) | ~10 | 5 | Per-event | Sequential |
-| Medium (50 papers) | ~50 | 10 | Per-stage | 2-3 projects |
-| Large (500 papers) | ~200 | 50 | Per-pipeline | 5-10 projects |
-| XL (5000 papers) | ~1000 | 100 | Hourly aggregate | 10+ projects (chunked) |
-
-## Profiling & Debugging
-
-Enable timing output:
-
-```bash
-uv run python .agents/skills/workspace-manager/scripts/log_event.py my-project \
-  --action DISCOVERY_SEARCH \
-  --profile
-```
-
-**Output**:
-```
-Event Logging Timings:
-  Parse input: 2ms
-  Write journal: 12ms
-  Read project.json: 5ms
-  Scan subdirectories: 45ms
-  Generate INDEX.md: 120ms
-  Write INDEX.md: 8ms
-  Total: 192ms
-```
-
-Use `--defer-index-refresh` to skip the slowest step (45-120ms) when not needed.
+For large journals, prefer fewer, well-described batch events over one event
+per paper, and use `--action` / `--agent` / `--limit` to bound reads. No
+archive/index helper exists in the committed scripts; retention policy is out
+of scope for this refresh (HCM revisit note in `SKILL.md` applies).

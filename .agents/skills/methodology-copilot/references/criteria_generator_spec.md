@@ -1,12 +1,19 @@
-# Inclusion & Exclusion Criteria Specification (`criteria.md`)
+# Inclusion & Exclusion Criteria Specification (`SCREENING_CRITERIA.md`)
 
-When transitioning from the methodology interview to the literature screening phase, the Copilot produces a `criteria.md` file inside `workspaces/<project-slug>/literature/criteria.md`.
+When transitioning from the methodology interview to the literature screening phase, the Copilot produces the canonical `workspaces/<project-slug>/SCREENING_CRITERIA.md` — rendered deterministically from `protocol.json`, never hand-written:
+
+```bash
+uv run scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+```
+
+Do not hand-author `literature/criteria.md`; that path is legacy and is produced
+neither by the wizard nor by the renderer.
 
 ---
 
-## 1. Structure of `criteria.md`
+## 1. Structure of `SCREENING_CRITERIA.md`
 
-The file must follow standard systematic review reporting rules (compatible with PRISMA):
+The rendered file follows standard systematic review reporting rules (compatible with PRISMA). The excerpt below illustrates the renderer's output conventions — do not hand-author this file:
 
 ```markdown
 # Systematic Literature Screening Criteria
