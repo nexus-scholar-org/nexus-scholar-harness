@@ -134,27 +134,80 @@ def test_no_console_pipeline_import_outside_console():
 
 
 def test_core_imports_stay_neutral():
-    """Core modules import stdlib/pydantic only: no transport, no kits."""
+    """Core stays kit/transport-free; stages call kits, never transport.
+
+    HCM-04b repair per roadmap §3.3 (higher authority than the HCM-03 pin):
+    the neutral core {__init__, models, validation, fingerprint} still
+    imports stdlib/pydantic only — no kits, no transport (verbatim HCM-03
+    strength) — while roadmap-mandated stage modules (discovery.py and any
+    future pipeline/<stage>.py) may call kit APIs (scholar_*) plus core /
+    stdlib / pydantic but must import no console transport.
+    """
     src = _harness_src()
     core_dir = src / "pipeline"
-    assert sorted(p.name for p in core_dir.glob("*.py")) == [
+    CORE_NEUTRAL = [
         "__init__.py",
         "fingerprint.py",
         "models.py",
         "validation.py",
     ]
+    names = sorted(p.name for p in core_dir.glob("*.py"))
+    # (pin) Core enumeration preserved: all four neutral files are present;
+    # extra pipeline/<stage>.py files fall under the stage (b) rule below.
+    assert sorted(n for n in names if n in set(CORE_NEUTRAL)) == CORE_NEUTRAL
+    stage_names = sorted(n for n in names if n not in set(CORE_NEUTRAL))
+    assert "discovery.py" in stage_names
+
+    def _core_violation(stmt: str) -> bool:
+        low = stmt.lower()
+        return (
+            "console" in low
+            or "fastapi" in low
+            or "scholar_" in low
+            or "uvicorn" in low
+        )
+
+    def _stage_violation(stmt: str) -> bool:
+        low = stmt.lower()
+        return "console" in low or "fastapi" in low or "uvicorn" in low
+
+    def _has_kit_import(stmts: list[str]) -> bool:
+        return any(
+            "scholar_" in s.lower() and "scholar_harness" not in s.lower()
+            for s in stmts
+        )
+
     bad: list[str] = []
     for path in sorted(core_dir.glob("*.py")):
+        if path.name not in set(CORE_NEUTRAL):
+            continue
         for stmt in _import_lines(path):
-            low = stmt.lower()
-            if (
-                "console" in low
-                or "fastapi" in low
-                or "scholar_" in low
-                or "uvicorn" in low
-            ):
+            if _core_violation(stmt):
                 bad.append(f"{path.name}: {stmt.strip()}")
     assert bad == []
+
+    stage_bad: list[str] = []
+    for path in sorted(core_dir.glob("*.py")):
+        if path.name in set(CORE_NEUTRAL):
+            continue
+        stmts = _import_lines(path)
+        for stmt in stmts:
+            if _stage_violation(stmt):
+                stage_bad.append(f"{path.name}: {stmt.strip()}")
+        if not _has_kit_import(stmts):
+            stage_bad.append(f"{path.name}: missing required scholar_* kit import")
+    assert stage_bad == []
+
+    # Non-vacuity self-proof: both halves flag synthetic violations.
+    assert _core_violation("from scholar_search.engine import SearchEngine")
+    assert not _core_violation("from pydantic import BaseModel")
+    assert _stage_violation(
+        "from scholar_harness.console.api.pipelines import PipelineSpec"
+    )
+    assert _stage_violation("import fastapi")
+    assert not _stage_violation("from scholar_search.engine import SearchEngine")
+    assert _has_kit_import(["from scholar_search.engine import SearchEngine"])
+    assert not _has_kit_import(["import scholar_harness.orchestrator"])
 
 
 def test_golden_validate_fingerprint_toposort():
