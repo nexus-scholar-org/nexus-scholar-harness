@@ -767,6 +767,30 @@ def accept_index_candidate(
             )
 
         # -- check 7: atomic publication (the only writer) --------------------
+        # E3-NEG-039 (C-07): publication-time re-confirmation of the required
+        # parent type. Check 3 validated the type at load; this re-loads the
+        # parent entry from the frozen registry immediately before any write
+        # and re-asserts artifact_type == document_manifest. A parent that no
+        # longer satisfies the required type refuses here with zero
+        # publication (no record, no event, no intent removal). The frozen
+        # registry read is reused verbatim; no acceptance logic is duplicated.
+        try:
+            _publish_registry = _load_registry(workspace)
+        except _Refusal as exc:
+            raise _Refusal(
+                7, exc.code, f"parent re-check at publication: {exc.detail}"
+            ) from exc
+        _publish_entry = _publish_registry.artifacts.get(parent_id)
+        if _publish_entry is None:
+            raise _Refusal(
+                7, "NOT_FOUND", f"parent {parent_id} not in registry at publication"
+            )
+        if str(_publish_entry.artifact_type) != _REQUIRED_PARENT_TYPE:
+            raise _Refusal(
+                7,
+                "REQUIRED_PARENT_TYPE_MISSING",
+                "parent is not a document_manifest at publication",
+            )
         accepted_path = workspace / ACCEPTED_RELPATH
         previous_bytes, previous_record = _previous_bytes, _previous_record
 
