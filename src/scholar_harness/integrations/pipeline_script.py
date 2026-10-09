@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..console.api.pipelines import PipelineSpec, _fingerprint
+from ..pipeline import PipelineSpec, _fingerprint
 from ..pipeline_executor import _toposort, build_command, resolve_args
 
 SHELL_MSG = "uv run scholar-harness run --pipeline"

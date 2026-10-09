@@ -36,7 +36,7 @@ from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
 
-from .console.api.pipelines import (
+from .pipeline import (
     _TEMPLATE_RE,
     PipelineNode,
     PipelineSpec,
