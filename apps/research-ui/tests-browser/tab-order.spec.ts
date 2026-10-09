@@ -97,7 +97,7 @@ test.describe("rendered tab order", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   });
 
-  test("1440px: the mobile disclosure is display:none, so the ring is [skip, Overview, three locales]", async ({
+  test("1440px: the mobile disclosure is display:none, so the ring is [skip, Overview, Screening, three locales]", async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
@@ -106,13 +106,16 @@ test.describe("rendered tab order", () => {
     const order = ring.map(describeStop);
     report(`1440px/en tab ring = ${JSON.stringify(order)}`);
 
-    // Only `Overview` is a link in the primary nav: the other three destinations
-    // are deliberately non-interactive "not yet available" spans, so the fourth
-    // stop is the selector's first language link. The mobile disclosure is
-    // `display: none` at this width and therefore absent from the ring entirely.
+    // Two of the four nav entries are links since packet UI-04 routed the
+    // screening surface; `Evidence` and `Audit` are still deliberately
+    // non-interactive "not yet available" spans, so the next stop after
+    // `Screening` is the selector's first language link. The mobile disclosure
+    // is `display: none` at this width and therefore absent from the ring
+    // entirely.
     expect(order).toEqual([
       `a:${CATALOGS.en["a11y.skipToMain"]}`,
       `a:${CATALOGS.en["nav.overview"]}`,
+      `a:${CATALOGS.en["nav.screening"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
     ]);
     expect(ring.some((stop) => stop.inMobileDisclosure)).toBe(false);
@@ -131,8 +134,59 @@ test.describe("rendered tab order", () => {
     expect(order).toEqual([
       `a:${CATALOGS.ar["a11y.skipToMain"]}`,
       `a:${CATALOGS.ar["nav.overview"]}`,
+      `a:${CATALOGS.ar["nav.screening"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
     ]);
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  });
+});
+
+test.describe("rendered tab order — the screening workspace", () => {
+  // Two stops live in the form rather than the header: the radio group is ONE
+  // stop (Chromium enters the group at the first radio when nothing is checked
+  // and Tab leaves it again — arrows move within the group), and the disabled
+  // submit is not a stop at all, because `disabled` removes an element from the
+  // focus order. That is asserted rather than assumed: `presses` runs past the
+  // expected list, so a submit button that became focusable would show up as an
+  // extra stop and fail the equality instead of hiding past the press limit.
+  const RADIO = "input:screening-decision-include";
+  const REASON = "textarea:screening-reason";
+
+  test("1440px/en: [skip, Overview, Screening, three locales, include radio, reason field]", async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP_VIEWPORT);
+
+    const ring = await measureTabRing(page, 10, "en", "/screening");
+    const order = ring.map((stop) => (stop.focusId === "" ? describeStop(stop) : `${stop.tag}:${stop.focusId}`));
+    report(`1440px/en/screening tab ring = ${JSON.stringify(ring.map(describeStop))}`);
+
+    expect(order).toEqual([
+      `a:${CATALOGS.en["a11y.skipToMain"]}`,
+      `a:${CATALOGS.en["nav.overview"]}`,
+      `a:${CATALOGS.en["nav.screening"]}`,
+      ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      RADIO,
+      REASON,
+    ]);
+    await expect(page.locator(PRIMARY_NAV)).toBeVisible();
+  });
+
+  test("375px/ar: the narrow ring drops the primary nav, in RTL chrome", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+
+    const ring = await measureTabRing(page, 10, "ar", "/screening");
+    const order = ring.map((stop) => (stop.focusId === "" ? describeStop(stop) : `${stop.tag}:${stop.focusId}`));
+    report(`375px/ar/screening tab ring = ${JSON.stringify(ring.map(describeStop))}`);
+
+    expect(order).toEqual([
+      `a:${CATALOGS.ar["a11y.skipToMain"]}`,
+      `button:${CATALOGS.ar["a11y.openMainNavigation"]}`,
+      ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      RADIO,
+      REASON,
+    ]);
+    expect(ring.some((stop) => stop.inPrimaryNav)).toBe(false);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   });
 });

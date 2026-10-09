@@ -70,20 +70,46 @@ test("N14: activating `ar` from `/fr` lands on `/ar` in Arabic, with no 404", as
   });
 
   test("N14: every link is the same path in another locale", async ({ page }) => {
-    // `/fr` is the only shipped document, so the remainder is empty here; the
-    // computation is exercised directly for the deeper case so the rule is
-    // pinned rather than merely true by accident.
-    await page.goto("/fr");
+    // `/fr/screening` is the deeper shipped document since packet UI-04, so the
+    // rule is asserted on the real route rather than only computed below: the
+    // rendered hrefs must be the other locales' *same* path, and the current
+    // one must still be marked.
+    await page.goto("/fr/screening");
     const hrefs = await page.locator(SELECTOR_LINKS).evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute("href")),
     );
-    expect(hrefs).toEqual(["/en", "/fr", "/ar"]);
+    expect(hrefs).toEqual(["/en/screening", "/fr/screening", "/ar/screening"]);
+    await expect(page.locator(`${SELECTOR_LINKS}[href="/fr/screening"]`)).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
 
+    // The computation stays pinned for the paths a reader has not been given a
+    // link to yet, so the rule holds for the surfaces the next packets ship.
     expect(swapLocale("/fr", "ar")).toBe("/ar");
     expect(swapLocale("/fr/evidence", "ar")).toBe("/ar/evidence");
     expect(swapLocale("/fr/evidence/", "en")).toBe("/en/evidence/");
     expect(swapLocale("/fr/evidence?tab=chain", "ar")).toBe("/ar/evidence?tab=chain");
     expect(swapLocale("/", "ar")).toBe("/ar");
+  });
+
+  test("N14: activating `ar` from `/fr/screening` lands on `/ar/screening`, not the overview", async ({
+    page,
+  }) => {
+    // The negative half of "switching preserves the equivalent route": a
+    // selector that always sent the reader to the locale root would still pass
+    // every assertion in the `/fr` tests above, because there the root *is* the
+    // route. Only the second shipped route can catch that.
+    await page.goto("/fr/screening");
+
+    await page.locator(`${SELECTOR_LINKS}[href="/ar/screening"]`).click();
+    await page.waitForURL("**/ar/screening");
+
+    expect(new URL(page.url()).pathname).toBe("/ar/screening");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(page.locator("h1")).toHaveText(CATALOGS.ar["screening.heading"]);
+    report(`switched fr/screening -> ar/screening: ${page.url()}`);
   });
 
   test("N13: the locale is the URL, not a cookie or a storage key", async ({

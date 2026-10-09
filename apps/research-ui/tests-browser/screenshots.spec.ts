@@ -21,8 +21,8 @@ import {
  * assertions are on the rendered DOM *and* on the bytes on disk, so a 0-byte
  * file or a renamed text file fails instead of passing quietly.
  *
- * All ten files are produced here rather than borrowed from another spec, so the
- * set does not depend on test-file execution order. The one overlap is
+ * All thirteen files are produced here rather than borrowed from another spec,
+ * so the set does not depend on test-file execution order. The one overlap is
  * `375-mobile-nav-open.png`, which `responsive-nav.spec.ts` also writes from
  * inside its focus-trap test; this file remains the owner and the byte checks
  * live here. That overlap is pre-existing and is recorded rather than changed,
@@ -34,6 +34,13 @@ import {
  * mirrored skip-link offset or an Arabic line breaking in the wrong place are all
  * invisible in `375-overview.png`. Each one is a real capture of the same
  * document in another locale, at the widths the layout actually has to work at.
+ *
+ * The three screening captures (packet UI-04) follow the same rule for the new
+ * workspace: the decision form at both widths in `en`, plus `ar` at 375px where
+ * the mirrored fieldset, the marginal ordinals and the Arabic numerals all have
+ * to hold together. They are full-page captures like the other route shots, so
+ * the reader can judge the whole composition — masthead, record, criteria,
+ * decision — rather than a cropped control.
  */
 
 const MIN_PNG_BYTES = 5_000;
@@ -208,5 +215,52 @@ test.describe("committed screenshots", () => {
       scale: "css",
     });
     await assertRealCapture("375-mobile-ar.png");
+  });
+
+  // ---- the screening workspace (packet UI-04) ------------------------------
+  test("375-screening.png", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/en/screening");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("h1")).toBeVisible();
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "375-screening.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("375-screening.png");
+  });
+
+  test("1440-screening.png", async ({ page }) => {
+    await page.setViewportSize(DESKTOP_VIEWPORT);
+    await page.goto("/en/screening");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("h1")).toBeVisible();
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "1440-screening.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("1440-screening.png");
+  });
+
+  test("375-screening-ar.png", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.goto("/ar/screening");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(page.locator("h1")).toBeVisible();
+    await page.screenshot({
+      path: join(SCREENSHOT_DIR, "375-screening-ar.png"),
+      fullPage: true,
+      animations: "disabled",
+      caret: "hide",
+      scale: "css",
+    });
+    await assertRealCapture("375-screening-ar.png");
   });
 });

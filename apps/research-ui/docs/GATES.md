@@ -477,8 +477,14 @@ Still open:
       captures of a deliberately composed screen, which is exactly the input a
       visual-regression gate needs; nothing still compares two runs against each
       other, so a future visual regression would not be caught automatically.
-- [ ] **A second route.** §4.3, unchanged by UI-00b. Still only `/`, so the
+- [x] **A second route.** §4.3, unchanged by UI-00b. Still only `/`, so the
       layout-owned `main` is tested but not yet *exercised twice*.
+      **Closed by UI-04 (§8): the second route `/[locale]/screening` shipped,
+      prerendered as `/en|fr|ar/screening` (§8.2), so the shell-owned `<main
+      id="main-content">` (`components/app-shell.tsx:153`) is now exercised on
+      both routes. The "Still only `/`" claim above was true through UI-03 and
+      is superseded by §8; the item is kept here marked closed rather than
+      deleted.**
 - [ ] **Cross-browser rendering.** Chromium only. Firefox and WebKit are not
       installed and were not run, so no gate here may be read as
       engine-independent.
@@ -1283,7 +1289,7 @@ Rows that could not be executed are marked, not omitted.
 
 | # | Gate | Covered by | Status |
 |---|------|-----------|--------|
-| I1 | Catalog parity: `fr` and `ar` carry **exactly** the same keys as `en`, no extras, no gaps — **74 keys since packet UI-02; the "41" this row originally stated was already stale against its own 42-key assertion** (there is no catalog digest; the SHA-256 pins in this test cover the four byte-frozen files only, see I2) | `tests/i18n-catalog.test.ts` | UI-01d snapshot - 10 files / 140 tests pass; **superseded for current totals by §6 U2 and §6.2** |
+| I1 | Catalog parity: `fr` and `ar` carry **exactly** the same keys as `en`, no extras, no gaps — **74 keys since packet UI-02; the "41" this row originally stated was already stale against its own 42-key assertion** (there is no catalog digest; the SHA-256 pins in this test cover the four byte-frozen files only, see I2) | `tests/i18n-catalog.test.ts` | UI-01d snapshot - 10 files / 140 tests pass; **superseded for current totals by §6 U2, §6.2 and §8** |
 | I2 | Byte pins hold: `lib/mock-project.ts`, `lib/contracts.ts`, `package.json`, `package-lock.json` | `tests/i18n-catalog.test.ts` | EXECUTABLE - all four SHA-256 verified on the working tree |
 | I3 | `translate()` refuses an unknown key and an empty interpolation result; no raw-key fallback | `tests/i18n-render.test.tsx` | EXECUTABLE |
 | I4 | `<html lang dir>` is correct per locale **before hydration** | `tests-browser/locale-routing.spec.ts` (AC-2), `tests/shell.test.tsx` | EXECUTABLE - for supported locales; raw 404 lacks `lang`/`dir` (see §5.4) |
@@ -1504,13 +1510,13 @@ this working tree.
 | # | Gate | Covered by | Status |
 |---|------|-----------|--------|
 | U1 | The state model is a discriminated union: a phase is reachable only when `record === "ready"`, so no component can render a project state it never received | `lib/project-state.ts` + `npm run typecheck` | EXECUTABLE - `tsc --noEmit` exit 0 |
-| U2 | Eleven fixtures (2 arrival + 9 phases); the nine phase words are pairwise distinct per locale and apart from the arrival words; the five statistic labels are distinct and apart from "unknown"; `phaseKey`/`countKey`/`phaseDescriptionKey` throw `UnmappedTokenError` for an undeclared token; catalog parity now at **74 keys × 3 locales** | `tests/project-state-record.test.tsx`, `tests/i18n-catalog.test.ts` | EXECUTABLE - 31 + 37 tests pass |
+| U2 | Eleven fixtures (2 arrival + 9 phases); the nine phase words are pairwise distinct per locale and apart from the arrival words; the five statistic labels are distinct and apart from "unknown"; `phaseKey`/`countKey`/`phaseDescriptionKey` throw `UnmappedTokenError` for an undeclared token; catalog parity now at **74 keys × 3 locales** **Superseded by UI-04 §8 (S12): parity now stands at 93 keys × 3 locales; the 74-key figure is the count at the close of UI-02, kept here as that packet's run record** | `tests/project-state-record.test.tsx`, `tests/i18n-catalog.test.ts` | EXECUTABLE - 31 + 37 tests pass |
 | U3 | Every fixture renders all five statistic rows; an absent field reads the translated `counts.unknown` and never `0`; every fixture count is one of the frozen corpus numbers (143/18) | `tests/project-state-record.test.tsx` | EXECUTABLE |
 | U4 | A failed read renders neither a phase word nor the refusal word and no counts; a pending read the same; the refusal fixture renders the refusal word plus its `<bdi>`-isolated note, byte-identical in all three locales | `tests/project-state-record.test.tsx` | EXECUTABLE - per locale |
-| U5 | The continuation surface renders translated text plus the "not yet available" tag, with **zero** links and zero focusable elements in the section; the section is one named region at heading level 2, adds no `listitem`, and the route's 6-stage + 5-evidence list counts and level-3 stage headings are unchanged | `tests/project-state-record.test.tsx`, `tests/home-page.test.tsx` | EXECUTABLE |
+| U5 | The continuation surface renders translated text plus the "not yet available" tag, with **zero** links and zero focusable elements in the section; the section is one named region at heading level 2, adds no `listitem`, and the route's 6-stage + 5-evidence list counts and level-3 stage headings are unchanged **Superseded by UI-04 §8: a routable destination now renders as a real link, so "zero links" no longer holds for the screening fixture — `tests/project-state-record.test.tsx:345` asserts the link when the route exists and `:371` keeps the zero-anchor/zero-focusable claim for unroutable destinations; the region/counts half of this row is unchanged** | `tests/project-state-record.test.tsx`, `tests/home-page.test.tsx` | EXECUTABLE |
 | U6 | Translation boundary: every rendered sentence outside `<bdi>` in `fr`/`ar` still comes from that locale's catalog (the substituted destination sentence is matched with its hole as a wildcard) | `tests/i18n-render.test.tsx` | EXECUTABLE - fr/ar scans return `[]` |
 | U7 | Token discipline (gate 21) after the new files: no dangling token, no raw palette utility in source or shipped CSS, `emitted from a comment only: []` | `tests-browser/hygiene.spec.ts` | EXECUTABLE - part of the 59/59 run |
-| U8 | Rendered axe zero real violations in `en`/`fr`/`ar` at 375px and 1440px, dialog open and closed; no horizontal overflow; no unbreakable token; tab ring unchanged at both widths | `tests-browser/rendered-axe.spec.ts`, `overflow.spec.ts`, `tab-order.spec.ts` | EXECUTABLE |
+| U8 | Rendered axe zero real violations in `en`/`fr`/`ar` at 375px and 1440px, dialog open and closed; no horizontal overflow; no unbreakable token; tab ring unchanged at both widths **Superseded by UI-04 §8 (S6): the 1440px overview ring gained the Screening link stop (one more stop than this run measured), the workspace added its own measured rings at 1440px/en and 375px/ar, and "unchanged at both widths" is this packet's state only** | `tests-browser/rendered-axe.spec.ts`, `overflow.spec.ts`, `tab-order.spec.ts` | EXECUTABLE |
 | U9 | The 30 % expansion gate still holds **with the 32 new strings inflated**: no sideways scroll in any locale at either width, no truncation instead of wrapping | `playwright.long-strings.config.ts` + `tests-long-strings/long-strings.spec.ts` | EXECUTABLE - 10/10, ratios `en 1.7167` / `fr 1.3884` / `ar 1.3409` |
 | U10 | Committed screenshots regenerated against the new section (8 of 10 changed; the evidence-trail and mobile-dialog shots are unaffected) | `tests-browser/screenshots.spec.ts` | EXECUTABLE - all ten rewritten and verified as PNG |
 
@@ -1523,7 +1529,7 @@ by the word and by the absence of any phase/count, both asserted per locale in
 `tests/project-state-record.test.tsx`; the hue marks severity only, and this row is
 what makes that choice evidence rather than accident.
 
-### 6.2 Measured totals
+### 6.2 Measured totals (at the close of UI-02 — current totals are §8.2)
 
 - `npm run typecheck`: exit 0.
 - `npm test`: **179 passed / 179**, 11 files (was 144/10 before UI-02: +35 tests,
@@ -1582,7 +1588,7 @@ packet's design decisions, stable-input list and repair-delta table live in
 | W7 | No new focusable element and no role/accessible-name change: the list keeps its accessible name and its `listitem` count, and the icon carries no `tabindex` | same file | EXECUTABLE |
 | W8 | **Narrow-width visual check at 375px, `en` and `ar`.** The shared overflow recipe runs first (page must not scroll sideways), then for every demo stage row: one icon, a canonical state token, a stamp word from that locale's catalog, and — after `scrollIntoViewIfNeeded` — the icon, the stamp cell and the stamp each fully inside the viewport in **both** axes. Measured: `en` stamp cell `x 108.0..351.0`, `ar` stamp cell `x 24.0..267.0`, against a 375px viewport; icon `x 108.0..124.0` (en) / `251.0..267.0` (ar) | `tests-browser/workflow-timeline-narrow.spec.ts`, `tests-browser/overflow-recipe.ts` | EXECUTABLE — 2 tests |
 | W9 | Gate 21 after the new comments and the second `@heroicons/react/24/outline` import: `emitted from a comment only: []`, `emitted with no source anywhere: []`, `raw-palette utilities: []`, `shipped CSS retired tokens/hexes: []` | `tests-browser/hygiene.spec.ts` | EXECUTABLE — part of the 61/61 run |
-| W10 | Zero axe violations at 375px and 1440px in all three locales (dialog closed) and at 375px open; the tab ring is byte-for-byte the one UI-01d recorded; the catalog is still exactly **74 keys × 3 locales** | `tests-browser/rendered-axe.spec.ts`, `tests-browser/tab-order.spec.ts`, `tests/i18n-catalog.test.ts` | EXECUTABLE |
+| W10 | Zero axe violations at 375px and 1440px in all three locales (dialog closed) and at 375px open; the tab ring is byte-for-byte the one UI-01d recorded; the catalog is still exactly **74 keys × 3 locales** **Superseded by UI-04 §8 (two claims): (a) the 1440px overview tab ring gained the Screening link stop (S6 and §8.3 record the stop-list change), and (b) catalog parity now stands at 93 keys × 3 locales (S12). Both claims were true at the close of UI-03, which is the tree this row's axe evidence describes** | `tests-browser/rendered-axe.spec.ts`, `tests-browser/tab-order.spec.ts`, `tests/i18n-catalog.test.ts` | EXECUTABLE |
 | W11 | The 30 % expansion gate still holds **with the icons in place**: no sideways scroll in any locale at either width and no truncation | `playwright.long-strings.config.ts` + `tests-long-strings/long-strings.spec.ts` | EXECUTABLE — 10/10, ratios `en 1.7167` / `fr 1.3884` / `ar 1.3409` |
 | W12 | Committed screenshots regenerated against the icon change (**7 of 10 changed**; see 7.4) | `tests-browser/screenshots.spec.ts` | EXECUTABLE — all ten rewritten and verified as PNG |
 
@@ -1591,7 +1597,7 @@ which is why W1/W3/W5 drive the component directly by prop, and why the `refused
 row on screen comes from the presentation fixture rather than from the demo
 record.
 
-### 7.2 Measured totals
+### 7.2 Measured totals (at the close of UI-03 — current totals are §8.2)
 
 - `npm run typecheck`: exit 0.
 - `npm test`: **195 passed / 195**, 12 files (was 179/11 before UI-03: +16 tests,
@@ -1736,7 +1742,196 @@ that carries it. Line numbers are from this working tree.
 | A6 | Narrow-width visual check: at 375px (`en`, `ar`) every rendered stage row shows its icon and stamp fully inside the viewport | **PASS** | `tests-browser/workflow-timeline-narrow.spec.ts:53`; measured boxes in §7.1 W8 (`en` stamp cell `108.0..351.0`, `ar` `24.0..267.0` vs 375px) | `npm run test:browser` → 61/61 |
 | A7 | Only the PNGs that actually changed are modified | **PASS** | 7 of 10 in `git status`: `375-overview{,-fr,-ar}.png`, `375-mobile-ar.png`, `1440-overview{,-ar}.png`, `1440-skiplink-focused.png`; the other 3 byte-identical | `git status --short` |
 | A8 | `docs/GATES.md` §7 and `docs/UI-03_CONTEXT_CAPSULE.md` record the measured gates, totals, changed assertions, design decisions (incl. the D-I18N-09 icon record) and open items | **PASS** | `docs/GATES.md:1561` ff.; `docs/UI-03_CONTEXT_CAPSULE.md` (Task, Boundary, Design decisions, Repair delta) | read-back above |
-| A9 | Nothing else moves: catalog still 74 keys × 3 locales, tab ring unchanged, zero axe violations, no forbidden path touched | **PASS** | `tests/i18n-catalog.test.ts` (in 195/195), `tests-browser/tab-order.spec.ts` (in 61/61), axe specs (in 61/61), `git status --short` scope check in §7.4 | `npm test`, `npm run test:browser`, `git status --short` |
+| A9 | Nothing else moves: catalog still 74 keys × 3 locales, tab ring unchanged, zero axe violations, no forbidden path touched | **PASS** **Superseded by UI-04 §8: catalog parity now stands at 93 keys × 3 locales (S12) and the 1440px overview ring carries the Screening stop (S6); this PASS was earned against the UI-03 tree, exactly as its `195/195` and `61/61` evidence below shows** | `tests/i18n-catalog.test.ts` (in 195/195), `tests-browser/tab-order.spec.ts` (in 61/61), axe specs (in 61/61), `git status --short` scope check in §7.4 | `npm test`, `npm run test:browser`, `git status --short` |
 
 Packet-level negative cases map to A3 and A4; the packet's Gate line
 ("state matrix test and narrow-width visual check") maps to A1–A5 plus A6.
+
+## 8. Packet UI-04 - the screening workspace
+
+This section records what packet UI-04 made executable. The packet's deliverable
+was "Study citation, abstract, criteria panel, decision choices, reason field,
+and explicit disabled-submit explanation until the API exists"; its negative
+cases were "no write to `workspaces/`; no decision persisted in local storage;
+no automatic inclusion presented as a human decision"; its gate was a
+"keyboard-only flow, validation states, and disabled mutation test". Everything
+below was produced by a command in this directory on this working tree. The
+packet's design decisions, scope-extension reasons and stable-input list live in
+`docs/UI-04_CONTEXT_CAPSULE.md`.
+
+### 8.1 Executable gates added by UI-04
+
+| # | Gate | Covered by | Status |
+|---|------|-----------|--------|
+| S1 | **Route and composition.** `/[locale]/screening` is prerendered for `en`/`fr`/`ar` and refuses other locales via `isSupportedLocale` -> `notFound()`; the page is h1 -> h2 only with no second `<main>`; the record is a `<dl>`; all fixture text (citation, abstract, every criterion) sits inside `<bdi>`; marginal ordinals are bare `formatNumber` output; the lede/eyebrow/labels come from the catalog in all three locales | `app/[locale]/screening/page.tsx`, `components/screening-page.tsx`, `tests/screening-form.test.tsx` (workspace block), `npm run build` | EXECUTABLE - route table in 8.2; test block green in 216/216 |
+| S2 | **Decision choices, none preselected.** Three distinct catalogued choices rendered as one radio group inside `<fieldset>`/`<legend>`; no radio `checked` in the initial render **and none after hydration in a real browser**, in all three locales | `components/screening-form.tsx:19-25`, `tests/screening-form.test.tsx:77`, `tests-browser/screening.spec.ts:76` | EXECUTABLE - 3 in-process + 3 browser tests; mutation B below |
+| S3 | **Validation states.** The hint under the reason field is always visible; the required message appears only for `exclude` with an empty reason, disappears on input, reappears on clear, and withdraws on any other decision; `aria-describedby` toggles between hint and hint+required; the message carries no `aria-live`, `aria-atomic` or `role` | `components/screening-form.tsx:70`, `:131-141`, `tests/screening-form.test.tsx:128`, `tests-browser/screening.spec.ts:100` | EXECUTABLE - in-process and browser |
+| S4 | **Disabled mutation test (the packet's own gate).** The submit button is `disabled` in every state with `screening.submitDisabledExplanation` and `screening.noPersistence` as visible text; `fireEvent.submit` does not submit in jsdom, and a real `requestSubmit()` in the browser leaves the URL unchanged, `localStorage`/`sessionStorage`/`document.cookie` empty, and makes no non-GET request; the base Playwright fixture independently fails the run on any non-localhost origin | `components/screening-form.tsx:153-163`, `tests/screening-form.test.tsx:143`, `tests-browser/screening.spec.ts:139` | EXECUTABLE - browser-forced; mutation A below |
+| S5 | **Navigation honesty.** The rendered document holds **exactly six anchors** — the skip link, the two routes that exist (overview, screening), and the three locale roots — asserted exhaustively per locale so any unexpected href fails; the header's two nav landmarks together render **seven entries** (five links + the two route-less stamps), and every primary-landmark entry without a declared route is annotated text, never a link; the screening href is `/en\|fr\|ar/screening`; `aria-current="page"` is derived from the real pathname (`usePathname` + `currentItemIdFromPathname`, no default); and clicking the nav entry lands on the workspace with `aria-current` moved | `tests/shell.test.tsx:241-284` — the exhaustive 6-anchor array (`:261-266`) and the never-a-link stamps assertion (`:274-280`, non-vacuity at `:230`); the 4-entry primary + 3-entry locale landmark arithmetic verified from the prerendered `en.html` (4+3 recount output pasted directly below this table as **S5 recount**); `components/primary-nav.tsx:51`, `:117`, `:147`, `:164`; `components/app-shell.tsx:92-93`, `:131`, `:133`; `tests-browser/screening.spec.ts:40` | EXECUTABLE - mutation C below; `npx vitest run tests/shell.test.tsx` → 20/20 |
+| S6 | **Keyboard-only flow (the packet's gate), measured in a browser.** At 1440px/en and 375px/ar the rendered tab ring on `/screening` is skip link -> 5 nav/locale entries -> browser chrome -> the radio group as **one** stop (Chromium enters the group at the first radio when none is checked) -> reason textarea; the submit button is `disabled` and therefore correctly absent from the ring; overview gains exactly one stop (the screening link) | `tests-browser/tab-order.spec.ts:144-180`, `tests-browser/helpers.ts:146` (`measureTabRing` subpath parameter) | EXECUTABLE - both screens green in 82/82 |
+| S7 | **Locale routing for the new path.** `/en|fr|ar/screening` answer raw with `<html lang dir>` before hydration; `/de/screening` is the catalog's 404; N15 console/hydration loop now covers both shipped routes; N14 pins the locale-switch hrefs to `/en|fr|ar/screening` from `/fr` and the click-through lands on `/ar/screening` with the ar heading | `tests-browser/locale-routing.spec.ts:81`, `:113`; `tests-browser/locale-switch.spec.ts:73-112` | EXECUTABLE - part of 82/82 |
+| S8 | **Rendered axe across both documents.** Dialog-closed axe now runs over the suffix set `["", "/screening"]` x 3 locales x 2 viewports, with `color-contrast` still required in `passes` and the closed-incomplete expectation unchanged | `tests-browser/rendered-axe.spec.ts:228` | EXECUTABLE - part of 82/82 |
+| S9 | **Gate 21 with the new sources, one incident included.** A first draft of the form's textarea comment named the bare focus utility, Tailwind harvested it from the `.tsx` comment, and `hygiene.spec.ts` failed with `commentOnly: ["ring"]` - a live demonstration that the guard bites; the prose was de-tokenised and the final run reports `emitted class selectors: 156, used: 149`, collateral exactly `["collapse","contents","ordinal","rounded","shadow","table","visible"]`, `allow-listed but no longer emitted: []`, `emitted with no source anywhere: []`, `emitted from a comment only: []` | `tests-browser/hygiene.spec.ts` | EXECUTABLE - 4/4, quoted numbers from the post-restore run |
+| S10 | **Screenshots.** The capture set is now 13 files: 5 rewritten (the nav item reaches `1440-overview{,-ar}`, `1440-skiplink-focused`, `375-mobile-ar`, `375-mobile-nav-open`), 3 new (`375-screening`, `375-screening-ar`, `1440-screening`), 5 byte-identical (the 375px overview captures and siblings whose mobile header did not change) | `tests-browser/screenshots.spec.ts`, `git status --short` | EXECUTABLE - all 13 produced in 82/82 |
+| S11 | **30 % expansion across both documents.** AC-9P now proves `/screening` serves its lede at least 1.30x longer in every locale (measured: `en 1.3413`, `fr 1.3481`, `ar 1.3226`); the AC-9 overflow loop and the no-truncation loop both run over the route set `["", "/screening"]` at both viewports | `tests-long-strings/long-strings.spec.ts:163`, `:180` | EXECUTABLE - 19/19 |
+| S12 | **Catalog parity at 93 x 3.** Nineteen `screening.*` keys added to all three catalogs with identical key sets, no English leaking into `fr`/`ar` (`decisionLegend` fr is "Choix de decision", `citationLabel` fr is "Reference bibliographique", per I18N.md's normalisation rule), no Latin digits or Latin words in `ar` beyond the brand; the fixture row in I18N.md now names `lib/mock-screening.ts`, which is deliberately **not** byte-frozen - its honesty is property-tested instead (no verdict fields, no identifiers) | `tests/i18n-catalog.test.ts:48`, `docs/I18N.md` §3 | EXECUTABLE - in 216/216 |
+
+**S5 recount — prerendered `en.html` (re-run for repair-cycle-2, F6).** Command,
+from the repo root in PowerShell: read
+`apps/research-ui/.next/server/app/en.html` as text, then `[regex]::Matches` for
+`<nav\b[^>]*>.*?</nav>` (`Singleline`), extracting each block's `aria-label` and
+counting its `<li\b` and `<a\b[^>]*href="` occurrences, plus every
+`<a\b[^>]*href="([^"]*)"` document-wide. Verbatim output of that command:
+
+```
+=== S5 recount of prerendered en.html (re-run for repair-cycle-2) ===
+file: C:\Users\mouadh\Documents\nexus-scholar-harness\apps\research-ui\.next\server\app\en.html
+bytes: 50929  mtime: 10/09/2026 02:04:14
+nav landmarks found: 2
+  landmark [Primary]: entries(li)=4  anchors=2
+  landmark [Language]: entries(li)=3  anchors=3
+entries total: 7  =  links 5 + route-less stamps 2
+document a[href] total: 6
+hrefs: #main-content, /en, /en/screening, /en, /fr, /ar
+mobile panel nav present: False
+exit: 0
+```
+
+Arithmetic: 4 + 3 = 7 entries = 5 links + 2 route-less stamps, and exactly 6
+document anchors; the static document carries no mobile-panel nav (it opens
+client-side only).
+
+### 8.2 Measured totals
+
+- `npm run typecheck`: exit 0.
+- `npm test`: **216 passed / 216**, 13 files (was 195/12 before UI-04: +21 tests,
+  +1 file - the 18 tests of `tests/screening-form.test.tsx`, plus the
+  destination-continuation rework in `tests/project-state-record.test.tsx`
+  31 -> 34: the single old text-plus-tag test was replaced by a 3-locale routable
+  test (`:345`) and a 3-locale never-link test (`:371`), -1 +3 +1 = +3).
+- `npm run build`: exit 0, 9 prerendered outputs - `/_not-found`,
+  `/[locale]` (`/en`, `/fr`, `/ar`) and the new `/[locale]/screening`
+  (`/en/screening`, `/fr/screening`, `/ar/screening`).
+- `npm run test:browser`: **82 passed / 82** (was 61: +8
+  `tests-browser/screening.spec.ts` (new file), +6 axe route dimension, +3
+  screenshot captures, +2 tab-order screening screens, +1 locale-routing raw-200
+  test, +1 locale-switch click test).
+- Long-strings suite: **19 passed / 19** (was 10: +3 screening AC-9P, +6
+  overflow route dimension).
+- `uv run ruff check scripts/` (repo root): `All checks passed!`, exit 0.
+- Gate 21 detail quoted in S9 above, from the run after the mutation batteries
+  restored every file byte-for-byte (SHA-256 verified, 8.6).
+
+**Mutation checks - the guards were made to fail before they were believed.**
+Each mutation ran against the current bytes; before the battery the two files
+that would be touched were copied to a temp directory, and after each mutation
+the file was restored from that copy and the SHA-256 re-checked. Command for
+every run, from `apps/research-ui/`: `npx vitest run <files>`.
+
+| # | Mutation | Verbatim vitest summary | Exit | What it proved |
+| --- | --- | --- | --- | --- |
+| a | delete the `disabled` attribute from the submit button (`components/screening-form.tsx`) | `tests/screening-form.test.tsx (18 tests \| 2 failed) 2145ms` -> `Test Files  1 failed \| 1 passed (2)` -> `Tests  2 failed \| 24 passed (26)`, failing: "never submits, never persists, and says so in visible text" and "renders the decision form as part of the screen" | 1 | the disabled-mutation gate is load-bearing: an enabled button fails the suite, so S4 cannot pass vacuously |
+| b | preselect `include` (`useState<Decision \| null>(null)` -> `("include")`) | `tests/screening-form.test.tsx (18 tests \| 3 failed) 3525ms` -> `Tests  3 failed \| 15 passed (18)`, failing: "offers three distinguishable choices, none preselected (en/fr/ar)" | 1 | no automatic inclusion can be presented as a human decision without all three locale tests failing (packet negative case 3) |
+| c | remove `href: "/screening"` from the nav table (`components/primary-nav.tsx`) | `tests/keyboard-traversal.test.tsx (8 tests \| 3 failed)` + `tests/shell.test.tsx (20 tests \| 1 failed)` -> `Test Files  2 failed (2)` -> `Tests  4 failed \| 24 passed (28)`, failing: the three "skip link first, then the navigation, then the locale selector" tests and "offers exactly the links that exist, in every locale" | 1 | the href declaration and the seven-stop ring are both enforced; a route silently dropping out of the nav is caught twice |
+| d | clean run, no mutation | `Test Files  13 passed (13)` -> `Tests  216 passed (216)` (`Duration 21.87s`) | 0 | the restored tree is green |
+
+Component byte-identity after the battery: `components/screening-form.tsx`
+SHA-256 `54D56D2DFA510B017157245B1BC7BD984C3B38D83779610AC422F8F154739BF1`
+(before mutation a, after both restores) and `components/primary-nav.tsx`
+SHA-256 `4B5F187C7E2E40D6804A0BCF370EBF495A797F5E03A6F83BE190742F8488E86D`
+(before mutation c, after restore), each equal to its pre-mutation copy.
+
+### 8.3 Existing assertions this packet deliberately changed
+
+| Was | Now | Why |
+| --- | --- | --- |
+| `tests/shell.test.tsx` expected **5** hrefs per locale (the pre-UI-04 array: skip link `#${MAIN_CONTENT_ID}`, `/${locale}`, and the three locale roots — the HEAD comment read "The only five links") | **6** — `/${locale}/screening` inserted after the overview, and the test's own comment now reads "The only six links" (`:242`) | the screening route exists; the assertion *is* the declaration of which routes ship. (Document-wide **anchors** = 6; this is a different metric from the 7-entry jsdom **tab-stop** list in the row below, which also counts the mobile trigger) |
+| `tests/keyboard-traversal.test.tsx` `expectedTabStops` had 6 nav/locale entries ("six") | 7 entries including `a:${CATALOGS[locale]["nav.screening"]}` ("seven"), both the stop list and the two prose comments updated | same reason; a new link without a stop would fail the rendered-ring equality at `:182` |
+| `tests/i18n-catalog.test.ts` asserted 74 keys | 93, with the provenance comment (`42 + 32 UI-02 + 19 UI-04`) | nineteen `screening.*` keys joined all three catalogs |
+| `tests/project-state-record.test.tsx` had one "destination as translated text plus availability" test and asserted the phase stamp via `dot.closest("span")` | split into `links the destination only once a route exists` (3 locales, `:345`) and `stamps a destination whose route does not exist, never linking it` (3 locales, `:371`); the stamp anchor moved to a `phaseStampOf` helper using `dot.parentElement` | the continuation surface changed behaviour (screening is now a real link), so one mixed assertion could not stay honest; and `closest("span")` on a `<span>` returns the dot itself - the helper repairs the anchor, not the claim |
+| `tests-browser/tab-order.spec.ts` overview rings had 6 nav stops and no workspace screen | overview rings gained `a:...[nav.screening]`, plus a new `rendered tab order - the screening workspace` describe (1440/en and 375/ar, `presses = 10`) | the keyboard-only flow gate for the new route |
+| `tests-browser/screenshots.spec.ts` captured 10 files | 13 (the three screening captures added; titles/docs updated) | the packet's deliverable must be visible to a human reviewer |
+| `tests-long-strings/long-strings.spec.ts` AC-9/AC-9P loops covered `/` only | route dimension `["", "/screening"]`; `measureInflation` gained a `path` parameter | the expansion precondition must be proven for the second document, not inferred from the first |
+| `app/globals.css` focus-ring rule covered `a`, `button` | extended to `input:focus-visible, textarea:focus-visible` (`:227-230`) with an explanatory comment | the workspace adds the first form controls; the extension is scoped to the one shared rule rather than per-component utilities (see 8.4 and the hygiene constraint) |
+
+### 8.4 Scope extensions and deliberate non-edits
+
+UI-04 has no explicit allowed-paths list in the packet (Scope line: "fixture-backed
+screening page only"), so the boundary followed AGENTS.md's one-screen rule. The
+extensions beyond the new files, and their reasons, are recorded here and in
+`docs/UI-04_CONTEXT_CAPSULE.md` §Boundary:
+
+- `components/app-shell.tsx` gained `"use client"` + `usePathname` (reason:
+  `aria-current` must derive from the real pathname; the LocaleSwitcher comment
+  that claimed a module boundary was corrected because it was wrong on its face).
+- `components/primary-nav.tsx` gained the screening `href`, `renderedHref` and
+  `currentItemIdFromPathname` (reason: an existing route must not be presented
+  as unavailable, and `aria-current` needs a pathname-derived id with no
+  silent default).
+- `components/mobile-nav.tsx` and `components/project-state-record.tsx` follow
+  from the same declaration (`currentItemId` is required, not defaulted;
+  `NextDestination` links only when `item.href !== undefined`).
+- `app/globals.css` focus-ring scope (above).
+- **Not edited on purpose:** `lib/project-state.ts` is byte-frozen, so two of
+  its comments are now stale debt - "rendered as text, not a link" (the
+  continuation IS a link since this packet) and the `OverviewDestination` doc's
+  "None of them has a route yet - never as a link". Repairing prose inside a
+  frozen file is an architecture decision, not a packet edit; both are recorded
+  as open debt rather than silently fixed.
+- `lib/mock-screening.ts` is a new fixture, deliberately carrying no verdict,
+  no decision, no identifiers and no acceptance result; it is property-tested
+  (`tests/screening-form.test.tsx` fixture block) rather than byte-pinned.
+
+### 8.5 Packet negative cases, each mapped
+
+- **No write to `workspaces/`** - `rg 'node:fs|writeFile|readFile|workspaces/|journal'`
+  over `apps/research-ui/{app,components,lib}` returns no match (exit 1); the
+  form has no persistence path at all (S4), and the app-level rule is in
+  `apps/research-ui/AGENTS.md`.
+- **No decision persisted in local storage** - S4's browser test leaves
+  `localStorage`, `sessionStorage` and `document.cookie` empty after a forced
+  submit, and `rg 'localStorage|sessionStorage|fetch\('` over the three new
+  source files returns no match (exit 1); locale storage emptiness stays with
+  N13/N14 in `locale-switch.spec.ts`.
+- **No automatic inclusion presented as a human decision** - S2 (nothing
+  preselected, in-process and after hydration) plus mutation b: any default
+  fails three locale tests, and the disabled submit cannot record anything.
+
+### 8.6 Not closed by this packet
+
+- **Human visual review of the 8 changed/new PNGs is `NOT_VERIFIED`** - the same
+  standing condition as I18N.md A9 / §5.6: automated assertions cover presence,
+  position, overflow and non-truncation, not whether the form reads well. The
+  three `*-screening*.png` captures and the five rewritten captures need an
+  image-capable reviewer.
+- **Fluent-language review of the 19 new `fr`/`ar` strings is `NOT_VERIFIED`**
+  (I18N.md §9 covers this class; these strings join H1-H5 as demonstration
+  translations).
+- **The decision API.** The packet says "until the API exists": the capability
+  this screen needs and does not invent is a separately reviewed
+  screening-decision command (packet UI-07's one command), plus the
+  `lib/api-client.ts` boundary that no packet has approved yet. The screen says
+  so in visible text rather than pretending otherwise.
+- Carried-over debt: the `docs/architecture/research_ui/README.md` doc gap and
+  the `select_test_gate.py` no-task gap (§7.4) still apply; both remain outside
+  this packet's allowed paths.
+
+### 8.7 Acceptance map (A1-A9)
+
+Line numbers are from this working tree.
+
+| A | Criterion | Verdict | Evidence (file:line) | Executable check |
+| --- | --- | --- | --- | --- |
+| A1 | Deliverable: citation, abstract, criteria panel, decision choices, reason field, and an explicit disabled-submit explanation, fixture-backed | **PASS** | `components/screening-page.tsx:54-123` (record `dl`, criteria `ol`, decision section), `components/screening-form.tsx:77-163`, `lib/mock-screening.ts`, `app/[locale]/screening/page.tsx` | `npm test` -> 216/216; `npm run build` -> 3 screening routes prerendered |
+| A2 | Fixture honesty: no invented identifiers/verdicts/acceptance results, and the `Demonstration data` label stays visible on this route | **PASS** | `lib/mock-screening.ts` (property-tested in `tests/screening-form.test.tsx` fixture block); `tests-browser/screening.spec.ts:65` (marker visible) | `npm test`, `npm run test:browser` |
+| A3 | Gate 1 - keyboard-only flow: the workspace is reachable and traversable by keyboard, with the radio group as one stop and the disabled button absent from the ring | **PASS** | `tests-browser/tab-order.spec.ts:144-180` (both measured screens), `tests/keyboard-traversal.test.tsx:44-52` (7 stops) | `npm run test:browser` -> 82/82; `npm test` |
+| A4 | Gate 2 - validation states: hint always, requirement only for exclude+empty, `aria-describedby` toggling, no live-region announcement | **PASS** | `components/screening-form.tsx:70`, `:131-141`; `tests/screening-form.test.tsx:128`; `tests-browser/screening.spec.ts:100` (attribute tuple `ariaLive/ariaAtomic/role = null`) | `npm test`, `npm run test:browser` |
+| A5 | Gate 3 - disabled mutation test: submit never enables, never navigates, never writes storage, makes no request | **PASS** | `components/screening-form.tsx:153`; `tests/screening-form.test.tsx:143`; `tests-browser/screening.spec.ts:139`; mutation a in 8.2 (`2 failed \| 24 passed (26)`, exit 1) | `npm test`, `npm run test:browser`; mutation a |
+| A6 | Negative case: no write to `workspaces/` and no decision in local storage | **PASS** | 8.5 scans (both `rg` exit 1); S4 empty-storage assertions after forced `requestSubmit()` | `rg` scans + `npm run test:browser` |
+| A7 | Negative case: no automatic inclusion presented as a human decision | **PASS** | S2 preselection tests ×3 locales (jsdom + browser); mutation b (`3 failed \| 15 passed (18)`, exit 1) | `npm test`; mutation b |
+| A8 | Nav/destination honesty behaves end-to-end: seven nav elements, `/screening` href, pathname-derived `aria-current`, and the overview continuation links only because the route exists | **PASS** | `components/primary-nav.tsx:51`, `:117`, `:147`, `:164`; `components/app-shell.tsx:92-93`; `tests/shell.test.tsx:241`; `tests/project-state-record.test.tsx:345`, `:371`; `tests-browser/screening.spec.ts:40` | `npm test` (incl. mutation c: `4 failed \| 24 passed (28)`), `npm run test:browser` |
+| A9 | Nothing else moves: forbidden paths untouched (`lib/contracts.ts`, `lib/mock-project*.ts`, `lib/project-state.ts`, `package*.json`, `docs/VISUAL_DIRECTION.md`, `.opencode/`), catalog parity at 93 x 3, hygiene 4/4, ruff clean, docs record everything | **PASS** | `git status --short` (only the files listed in the capsule boundary; `.opencode/agent/reviewer.md` pre-existing and untouched); `tests/i18n-catalog.test.ts:48`; hygiene numbers in S9; `docs/I18N.md` §3 row; this section + `docs/UI-04_CONTEXT_CAPSULE.md` | `npm test`, `npx playwright test tests-browser/hygiene.spec.ts`, `uv run ruff check scripts/`, `git status --short` |
+
+Packet-level negative cases map to A6 and A7; the packet's Gate line
+("keyboard-only flow, validation states, and disabled mutation test") maps to
+A3, A4 and A5.

@@ -64,24 +64,32 @@ interface InflationReading {
 }
 
 /**
- * Fetch `/<locale>`'s response body and measure one catalogued sentence inside it.
+ * Fetch a locale route's response body and measure one catalogued sentence inside it.
  *
  * The sentence is located by its *source* text, then the run is read to the next
  * tag boundary and un-escaped: inflation appends, so the source is a prefix of the
  * served run by construction. That is an assumption worth stating rather than
  * hiding, because a rewrite-in-place implementation of `inflate()` would make this
  * measurement meaningless — and it would fail loudly here, which is the point.
+ *
+ * `path` (packet UI-04) selects the route *within* the locale — `"/screening"`
+ * for the screening workspace — so the precondition can be proved for the new
+ * document too, not just inferred from the overview's behaviour.
  */
 async function measureInflation(
   request: import("@playwright/test").APIRequestContext,
   locale: Locale,
   key: MessageKey,
+  path = "",
 ): Promise<InflationReading> {
   const source = CATALOGS[locale][key];
   expect(source, `${locale}/${key} must exist in the catalog`).toBeTruthy();
 
-  const response = await request.get(`/${locale}`);
-  expect(response.status(), `/${locale} must serve on the long-strings server`).toBe(200);
+  const response = await request.get(`/${locale}${path}`);
+  expect(
+    response.status(),
+    `/${locale}${path} must serve on the long-strings server`,
+  ).toBe(200);
   const html = await response.text();
 
   const escaped = escapeForHtmlText(source);
@@ -152,22 +160,44 @@ test.describe("30 % long-string expansion (AC-9P precondition, then AC-9)", () =
   });
 
   for (const locale of ["en", "fr", "ar"] as const) {
-    for (const [name, viewport] of [
-      ["375px", MOBILE_VIEWPORT],
-      ["1440px", DESKTOP_VIEWPORT],
-    ] as const) {
-      test(`AC-9: ${name}/${locale} does not scroll sideways with the strings inflated`, async ({
-        page,
-      }) => {
-        await page.setViewportSize(viewport);
-        await page.goto(`/${locale}`);
+    test(`AC-9P: /${locale}/screening serves its lede at least 30 % longer than the catalog source`, async ({
+      request,
+    }) => {
+      // The screening workspace is a second served document with its own
+      // catalogued prose (packet UI-04). Proving the precondition on the
+      // overview does not prove it here: a route that shipped without the
+      // `NEXT_PUBLIC` inlining, or whose prose bypassed `translate`, would
+      // leave the AC-9 overflow loop below measuring an un-inflated page and
+      // reporting it as evidence about inflated text.
+      const reading = await measureInflation(request, locale, "screening.lede", "/screening");
+      reportInflation(reading);
 
-        // The same recipe the browser suite runs, imported rather than copied —
-        // see `tests-browser/overflow-recipe.ts`.
-        const measured = await measureOverflow(page);
-        report(`long-strings ${name}/${locale}: ${JSON.stringify(measured)}`);
-        expectNoSidewaysScroll(measured, `long-strings ${name}/${locale}`);
-      });
+      expect(reading.servedLength).toBeGreaterThan(reading.sourceLength);
+      expect(reading.ratio).toBeGreaterThanOrEqual(1.3);
+    });
+  }
+
+  const ROUTES = ["", "/screening"] as const;
+
+  for (const locale of ["en", "fr", "ar"] as const) {
+    for (const path of ROUTES) {
+      for (const [name, viewport] of [
+        ["375px", MOBILE_VIEWPORT],
+        ["1440px", DESKTOP_VIEWPORT],
+      ] as const) {
+        test(`AC-9: ${name}/${locale}${path} does not scroll sideways with the strings inflated`, async ({
+          page,
+        }) => {
+          await page.setViewportSize(viewport);
+          await page.goto(`/${locale}${path}`);
+
+          // The same recipe the browser suite runs, imported rather than copied —
+          // see `tests-browser/overflow-recipe.ts`.
+          const measured = await measureOverflow(page);
+          report(`long-strings ${name}/${locale}${path}: ${JSON.stringify(measured)}`);
+          expectNoSidewaysScroll(measured, `long-strings ${name}/${locale}${path}`);
+        });
+      }
     }
   }
 
@@ -188,28 +218,30 @@ test.describe("30 % long-string expansion (AC-9P precondition, then AC-9)", () =
     // wrapped. `line-clamp` is reported alongside it because `-webkit-line-clamp`
     // truncates by line count without touching `text-overflow`.
     for (const locale of ["en", "fr", "ar"] as const) {
-      await page.setViewportSize(MOBILE_VIEWPORT);
-      await page.goto(`/${locale}`);
+      for (const path of ROUTES) {
+        await page.setViewportSize(MOBILE_VIEWPORT);
+        await page.goto(`/${locale}${path}`);
 
-      const truncated = await page.evaluate(() => {
-        const offenders: string[] = [];
-        for (const node of Array.from(document.querySelectorAll("body *"))) {
-          if ((node.textContent ?? "").trim() === "") continue;
-          const style = getComputedStyle(node);
-          const lineClamped =
-            style.webkitLineClamp !== "none" && Number(style.webkitLineClamp) > 0;
-          if (style.textOverflow === "ellipsis" || lineClamped) {
-            offenders.push(
-              `${node.tagName.toLowerCase()}: text-overflow=${style.textOverflow}` +
-                ` line-clamp=${style.webkitLineClamp} "${(node.textContent ?? "").slice(0, 40)}"`,
-            );
+        const truncated = await page.evaluate(() => {
+          const offenders: string[] = [];
+          for (const node of Array.from(document.querySelectorAll("body *"))) {
+            if ((node.textContent ?? "").trim() === "") continue;
+            const style = getComputedStyle(node);
+            const lineClamped =
+              style.webkitLineClamp !== "none" && Number(style.webkitLineClamp) > 0;
+            if (style.textOverflow === "ellipsis" || lineClamped) {
+              offenders.push(
+                `${node.tagName.toLowerCase()}: text-overflow=${style.textOverflow}` +
+                  ` line-clamp=${style.webkitLineClamp} "${(node.textContent ?? "").slice(0, 40)}"`,
+              );
+            }
           }
-        }
-        return offenders;
-      });
-      report(`long-strings ${locale} truncating elements = ${JSON.stringify(truncated)}`);
+          return offenders;
+        });
+        report(`long-strings ${locale}${path} truncating elements = ${JSON.stringify(truncated)}`);
 
-      expect(truncated).toEqual([]);
+        expect(truncated).toEqual([]);
+      }
     }
   });
 });

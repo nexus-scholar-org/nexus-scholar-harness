@@ -56,10 +56,10 @@ export const MOBILE_NAV_PANEL_ID = "mobile-primary-nav";
  */
 export function MobileNav({
   locale,
-  currentItemId = "overview",
+  currentItemId,
 }: {
   locale: Locale;
-  currentItemId?: string;
+  currentItemId: string | undefined;
 }) {
   const [open, setOpen] = useState(false);
 

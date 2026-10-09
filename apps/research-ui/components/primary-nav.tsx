@@ -20,27 +20,35 @@ export interface PrimaryNavItem {
 /**
  * The surfaces that actually exist as packets, and nothing beyond them.
  *
- * `overview` is the only route in the application today (`/`, and since packet
- * UI-01d the locale-prefixed `/en`, `/fr`, `/ar`). `screening`, `evidence` and
- * `audit` are packets UI-04, UI-05 and UI-06; they carry no `href` on purpose so
- * the navigation cannot present a dead route as a working link.
+ * `overview` has always carried a route (`/`, and since packet UI-01d the
+ * locale-prefixed `/en`, `/fr`, `/ar`), and packet **UI-04 added the second
+ * one**: `screening` now resolves to `/${locale}/screening`, so it carries an
+ * `href` too and is rendered as a real link. `evidence` and `audit` are packets
+ * UI-05 and UI-06; they still carry no `href` on purpose so the navigation
+ * cannot present a dead route as a working link.
  *
- * Every field here is **frozen** by packet UI-01c, and packet UI-01d keeps it
- * frozen. Two consequences are worth stating because they look like violations:
+ * The `href` field is the "which route exists" declaration, and it is what
+ * `tests/shell.test.tsx` uses to pick the no-route entries (its *absence* on
+ * `evidence` and `audit`). It stays a root-relative suffix rather than a fully
+ * rendered URL: the rendered href is computed at render time from the locale,
+ * below, and asserted for all three locales so a sentinel or a bare root link
+ * can never reach the document. Every field here remains a declared surface —
+ * a route that does not exist may not gain an `href` without its packet.
+ *
+ * Two fields are frozen in *meaning* by packets UI-01c/UI-01d even as UI-04
+ * grew the table:
  *
  * - `label` is the English source string, and it is not what gets rendered. The
  *   rendered label is `translate(locale, navKey(item.id))`, whose English value
  *   is byte-identical to `label` — asserted by `tests/i18n-catalog.test.ts`, so
  *   the pin cannot rot into a difference.
- * - `href` stays the sentinel `"/"` rather than becoming `"/en"`. It is the
- *   "which route exists" declaration, and `tests/shell.test.tsx` uses its
- *   *absence* on the other three entries to pick the no-route ones. The rendered
- *   href is computed at render time from the locale, below, and asserted for all
- *   three locales so the sentinel can never surface as a bare root link.
+ * - `href` never holds a locale. `renderedHref` below prefixes whatever suffix
+ *   is declared here, and `tests/shell.test.tsx` asserts the rendered value in
+ *   every locale.
  */
 export const PRIMARY_NAV_ITEMS: readonly PrimaryNavItem[] = [
   { id: "overview", label: "Overview", href: "/" },
-  { id: "screening", label: "Screening" },
+  { id: "screening", label: "Screening", href: "/screening" },
   { id: "evidence", label: "Evidence" },
   { id: "audit", label: "Audit" },
 ];
@@ -96,7 +104,7 @@ export function PrimaryNavList({
   locale,
 }: {
   variant: "inline" | "stacked";
-  currentItemId: string;
+  currentItemId: string | undefined;
   locale: Locale;
 }) {
   return (
@@ -105,7 +113,7 @@ export function PrimaryNavList({
         <li key={item.id}>
           {item.href ? (
             <Link
-              href={renderedHref(locale)}
+              href={renderedHref(locale, item)}
               aria-current={item.id === currentItemId ? "page" : undefined}
               className={AVAILABLE_ITEM_CLASS}
             >
@@ -128,23 +136,46 @@ export function PrimaryNavList({
 /**
  * The href a nav entry renders with.
  *
- * Computed from the locale, never read from `item.href`: the frozen constant
- * carries the sentinel root, and a rendered link to `/` from `/ar` would drop the
- * reader's language without saying so. Only the overview exists, so the target is
- * the locale root — but the decision is derived here, in one place, so the day a
- * second route lands there is a single site to change.
+ * Derived from the locale and the declared suffix, never read verbatim from
+ * `item.href`: the declaration carries the root sentinel `"/"` for the overview
+ * and the path suffix `"/screening"` for the screening workspace, and a rendered
+ * link to `/` from `/ar` would drop the reader's language without saying so.
+ * The decision is in one place, so a third route landing later is a single site
+ * to change, and `tests/shell.test.tsx` asserts the rendered value for all three
+ * locales.
  */
-function renderedHref(locale: Locale): string {
-  return `/${locale}`;
+export function renderedHref(locale: Locale, item: PrimaryNavItem): string {
+  return item.href === "/" ? `/${locale}` : `/${locale}${item.href ?? ""}`;
+}
+
+/**
+ * Which nav surface the current pathname is on, for `aria-current`.
+ *
+ * Packet UI-04 introduced a second route, which means "which link is current"
+ * can no longer be a default: the shell derives it from the URL instead of
+ * assuming the overview. The comparison is against `renderedHref`'s own output —
+ * the same function that produced the link — so a pathname that matches how a
+ * link was built is the only way to earn `aria-current`, and an unknown path
+ * yields `undefined` (no current surface) rather than a guessed one.
+ *
+ * A trailing slash is stripped first, because the router may report `/en/` for
+ * the same document the link calls `/en`.
+ */
+export function currentItemIdFromPathname(pathname: string, locale: Locale): string | undefined {
+  const path =
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  return PRIMARY_NAV_ITEMS.find(
+    (item) => item.href !== undefined && renderedHref(locale, item) === path,
+  )?.id;
 }
 
 /** Desktop/narrow-screen primary navigation landmark. */
 export function PrimaryNav({
   locale,
-  currentItemId = "overview",
+  currentItemId,
 }: {
   locale: Locale;
-  currentItemId?: string;
+  currentItemId: string | undefined;
 }) {
   return (
     <nav

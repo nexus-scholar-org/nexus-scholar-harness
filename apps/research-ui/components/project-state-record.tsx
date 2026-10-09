@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import type {
   OverviewCountField,
+  OverviewDestination,
   ProjectOverviewReady,
   ProjectOverviewState,
 } from "@/lib/project-state";
@@ -11,8 +14,11 @@ import {
   phaseDescriptionKey,
   phaseKey,
   translate,
+  translateParts,
   type Locale,
 } from "@/i18n";
+
+import { PRIMARY_NAV_ITEMS, renderedHref } from "./primary-nav";
 
 /**
  * The current-stage record (packet UI-02).
@@ -43,10 +49,15 @@ import {
  * screen reader, and in a translation. The dot inside each stamp is
  * `aria-hidden`, so the stamp's accessible name is exactly the word.
  *
- * **No route is promised.** When a fixture names a continuation surface the
- * record renders its translated label as text plus the "not yet available"
- * annotation — never a link, because screening/evidence/audit have no route
- * yet and a dead link is precisely what the shell's navigation gate forbids.
+ * **A route is promised only when it exists.** When a fixture names a
+ * continuation surface, the record looks that id up in `PRIMARY_NAV_ITEMS`: if
+ * the navigation declares a route for it (today: `screening`, since packet
+ * UI-04), the destination is a real link and the availability tag is dropped;
+ * if it does not (today: `evidence` and `audit`), the record renders the
+ * translated label as text plus the "not yet available" annotation — never a
+ * link, because a link to a route that does not exist is exactly what the
+ * shell's navigation gate forbids. The lookup is the navigation's own table, so
+ * the two can never disagree about which surfaces are routable.
  *
  * Layout uses logical properties only (leading/trailing, not left/right), so
  * the record mirrors intact under `dir="rtl"` — enforced by
@@ -176,14 +187,7 @@ function ReadyRecord({
             <bdi>{state.note}</bdi>
           </p>
         ) : null}
-        {state.next ? (
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm leading-6 text-ink">
-            {translate(locale, "overview.nextDestination", {
-              destination: translate(locale, navKey(state.next)),
-            })}
-            <span className={TAG_SHAPE}>{translate(locale, "nav.unavailable")}</span>
-          </p>
-        ) : null}
+        {state.next ? <NextDestination locale={locale} next={state.next} /> : null}
       </div>
 
       <div className="min-w-0 self-start">
@@ -220,5 +224,62 @@ function ReadyRecord({
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * The continuation surface the fixture names (packet UI-04).
+ *
+ * Two renderings, decided by one lookup into `PRIMARY_NAV_ITEMS` — the same
+ * table the header navigation reads, so the record and the navigation cannot
+ * disagree about which surfaces have a route:
+ *
+ * - **Routable (`screening` since UI-04).** The destination word is the link.
+ *   The sentence itself comes from `translateParts`, so the catalog decides
+ *   word order and the link covers exactly the `{destination}` hole — never a
+ *   substring search over rendered text, and never the whole sentence made
+ *   clickable, which would make "Continue in" part of the target. The hole is
+ *   `isolated` by contract, so it stays `<bdi>`-wrapped inside the link; it is
+ *   chrome rather than fixture text, but the isolation rule is cheaper to keep
+ *   unconditionally than to remember a case analysis for.
+ * - **Not routable (`evidence`, `audit`).** Translated label as text plus the
+ *   visible "not yet available" stamp: a keyboard-reachable destination the
+ *   router cannot serve is the dead link the navigation gate forbids, and the
+ *   annotation is real text so the honesty is available to sighted readers too.
+ */
+function NextDestination({
+  locale,
+  next,
+}: Readonly<{ locale: Locale; next: OverviewDestination }>) {
+  const item = PRIMARY_NAV_ITEMS.find((candidate) => candidate.id === next);
+  const destination = translate(locale, navKey(next));
+
+  if (item?.href !== undefined) {
+    const href = renderedHref(locale, item);
+    const parts = translateParts(locale, "overview.nextDestination", { destination });
+    return (
+      <p className="mt-3 text-sm leading-6 text-ink">
+        {parts.map((part, index) =>
+          part.kind === "text" ? (
+            <span key={index}>{part.value}</span>
+          ) : (
+            <Link
+              key={index}
+              href={href}
+              className="font-medium text-evidence underline decoration-2 underline-offset-4"
+            >
+              <bdi>{part.value}</bdi>
+            </Link>
+          ),
+        )}
+      </p>
+    );
+  }
+
+  return (
+    <p className="mt-3 flex flex-wrap items-center gap-2 text-sm leading-6 text-ink">
+      {translate(locale, "overview.nextDestination", { destination })}
+      <span className={TAG_SHAPE}>{translate(locale, "nav.unavailable")}</span>
+    </p>
   );
 }

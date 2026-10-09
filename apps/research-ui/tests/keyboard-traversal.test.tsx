@@ -45,6 +45,11 @@ function expectedTabStops(locale: Locale): string[] {
   return [
     `a:${CATALOGS[locale]["a11y.skipToMain"]}`,
     `a:${CATALOGS[locale]["nav.overview"]}`,
+    // Packet UI-04 routed the screening surface, so its nav entry is a real
+    // link now — the tripwire is supposed to go red when that happens, and
+    // this line is where it was converted back to green. `nav.evidence` and
+    // `nav.audit` still contribute no stop; they are text, not anchors.
+    `a:${CATALOGS[locale]["nav.screening"]}`,
     `button:${CATALOGS[locale]["a11y.openMainNavigation"]}`,
     ...SUPPORTED_LOCALES.map((code) => `a:${LOCALE_METADATA[code].endonym}`),
   ];
@@ -123,19 +128,23 @@ describe("keyboard traversal", () => {
       // UI-01 did — the skip link and the primary navigation are now the route's
       // only tab stops, and the assertion below is a positive, ordered statement
       // about them instead of an absence. UI-01d added the locale selector, so the
-      // ordered list grows by three links and is now asserted per locale: the
+      // ordered list grows by three links and is asserted per locale: the
       // tripwire is only a tripwire if a new tab stop turns it red, in *every*
       // locale, not just the English one the labels happen to be pinned from.
+      // UI-04 then routed the screening surface, turning its nav entry into a
+      // link — the tripwire went red exactly as designed, and the ordered list
+      // gained that one stop (see `expectedTabStops`).
       //
       // The order asserted below is the **union of tab stops across viewport
       // widths, in DOM order** — not a per-viewport tab ring. No single real
       // viewport produces all of them: `primary-nav.tsx` is `hidden lg:block` and
       // `mobile-nav.tsx` is `lg:hidden`, and `display: none` removes an element
       // from the focus order. At 375px the real order is
-      // [skip, trigger, English, Français, العربية] (the `Overview` link is not a
-      // tab stop); at >=1024px it is [skip, Overview, English, Français,
-      // العربية] (the trigger is not a tab stop). jsdom applies no stylesheet, so
-      // it reports all six at once. See `GATES.md` §3.
+      // [skip, trigger, English, Français, العربية] (the `Overview` and
+      // `Screening` links are not tab stops); at >=1024px it is [skip, Overview,
+      // Screening, English, Français, العربية] (the trigger is not a tab stop).
+      // jsdom applies no stylesheet, so it reports all seven at once. See
+      // `GATES.md` §3.
       //
       // This union is deliberately the assertion: it is the converted tripwire, so
       // any new tab stop a later packet introduces turns it red, and narrowing it
