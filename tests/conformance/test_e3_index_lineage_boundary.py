@@ -153,7 +153,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 KIT_GOLDEN_TEST = (
     REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_manifest.py"
 )
-KIT_RAG_PIN = "f108fa897147f4c837760c81b558d1b82a044fdf"
+KIT_RAG_PIN = "15a7a5a50a0394ed87b9b8b3c153081e10ec36ad"
 
 #: The harness-side frozen copy. A fixture, not a live view: parity with the
 #: kit bytes is asserted in E3-POS-005, so either side drifting fails here.

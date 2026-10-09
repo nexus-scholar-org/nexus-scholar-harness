@@ -3,7 +3,7 @@
 - **Packet:** E3 — Stable Chunks and Index Lineage Boundary (in progress)
 - **Base:** `fcc2467335a5f72f6b0dcfdca11579bd49f64478` (PR #60, harness E3 identity-limbs adoption)
 - **Related closure:** E2 runtime-acceptance — PR #63 (merged `193209d`) publishing extraction through the frozen acceptance gate
-- **Canonical kit pin:** `f108fa897147f4c837760c81b558d1b82a044fdf` (scholar-rag-kit PR #12)
+- **Canonical kit pin:** `15a7a5a50a0394ed87b9b8b3c153081e10ec36ad` (scholar-rag-kit PR #13)
 
 ## Current state
 
