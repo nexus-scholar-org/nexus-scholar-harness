@@ -6,6 +6,10 @@ Each research project inside `workspaces/<project-slug>/` contains a canonical `
 
 ## 1. `project.json` Specification
 
+`init_project.py` writes exactly this manifest shape (init_project.py:133-152);
+extended keys from older drafts (`authors`, `search_criteria`) are not written
+by the committed script and must not be treated as present:
+
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -16,12 +20,7 @@ Each research project inside `workspaces/<project-slug>/` contains a canonical `
   "created_at": "2026-08-28T18:00:00Z",
   "updated_at": "2026-08-28T18:00:00Z",
   "status": "active",
-  "authors": [
-    {
-      "name": "Lead Researcher",
-      "email": "researcher@university.edu"
-    }
-  ],
+  "paradigm": "Design Science",
   "research_questions": [
     "RQ1: What are the primary mathematical formulations for linear attention complexity?",
     "RQ2: How do sparse attention mechanisms compare in hardware memory efficiency?"
@@ -32,12 +31,6 @@ Each research project inside `workspaces/<project-slug>/` contains a canonical `
     "sparse attention",
     "linear complexity"
   ],
-  "search_criteria": {
-    "year_min": 2017,
-    "year_max": 2026,
-    "languages": ["en"],
-    "primary_providers": ["openalex", "arxiv", "semanticscholar"]
-  },
   "stats": {
     "discovered_papers": 0,
     "verified_papers": 0,
@@ -79,23 +72,29 @@ Rules:
 
 ```text
 workspaces/<project-slug>/
+├── INDEX.md                # Master human-readable index (via log_event.py refresh)
+├── intent.json             # Socratic LLM intent packet (methodology-copilot)
+├── protocol.json           # Canonical deterministic research protocol contract
+├── SCREENING_CRITERIA.md   # Rendered inclusion/exclusion criteria document
 ├── project.json            # Central project manifest (above)
-├── literature/             # Raw queries, deduplicated corpora, and verification audits
+├── audit/
+│   ├── journal.jsonl       # Immutable, append-only JSONL event ledger
+│   └── recon_context.json  # GENESIS provenance sidecar (grounded inception only)
+├── literature/             # Raw queries, deduplicated corpora, verification audits
 │   ├── raw_search.json     # Initial multi-provider search dump
 │   ├── deduped.json        # Deduplicated cluster representations
 │   └── verified.json       # Crossref/OpenAlex verified records with hydrated abstracts
-├── pdfs/                   # Binary Open Access PDFs
-│   ├── download_summary.json # Resolution statuses and local file mappings
-│   └── *.pdf               # Formatted as {year}_{author}_{title}.pdf
-├── extracted/              # Full-text extracts
-│   ├── *.md                # Clean Markdown produced via Docling
-│   └── *.tei.xml           # Structured TEI XML produced via Grobid
+├── pdfs/                   # Binary Open Access PDFs (+ download_summary.json)
+├── extracted/              # Full-text Markdown extracts with YAML frontmatter
 ├── synthesis/              # Synthesized literature review artifacts
-│   ├── literature_review.md # Structured review narrative
-│   ├── comparative_table.md # Cross-paper comparison matrices
-│   └── evidence_matrix.csv  # Extracted findings mapped to Research Questions
-└── exports/                # Exported citation bundles
-    ├── references.bib      # Compiled BibTeX bibliography
-    ├── library.ris         # RIS export for Zotero/Mendeley
-    └── summary.csv         # Spreadsheet review export
+│   └── literature_review.md # Scaffolded review template (init_project.py:158-163)
+├── exports/                # Exported citation bundles
+└── phase4/                 # Verify-kit outputs (trust consensus, RoB/COI, retraction)
 ```
+
+`init_project.py` scaffolds `audit/`, `literature/`, `pdfs/`, `extracted/`,
+`synthesis/`, `exports/` (init_project.py:128) plus `project.json`,
+`synthesis/literature_review.md`, `audit/journal.jsonl`, and `INDEX.md`.
+`intent.json`, `protocol.json`, `SCREENING_CRITERIA.md`, screening/phase4
+artifacts, and PDF/extraction payloads arrive via the owning stages — never
+hand-authored to satisfy this diagram.

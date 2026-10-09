@@ -56,14 +56,14 @@ The file must strictly follow the schema for `scholar_protocol.intent.IntentPack
 ```
 
 ## 2. Post-Generation Pipeline
-After generating `workspaces/<project-slug>/intent.json`, invoke the compiler and renderer:
+After generating `workspaces/<project-slug>/intent.json`, compile and render
+(both print to stdout, so redirect to persist — neither takes `-i`, `-o`, or
+`--fingerprint`; fingerprint a compiled protocol with the separate
+`fingerprint` command):
 ```bash
-uv run scholar-protocol compile \
-  -i workspaces/<project-slug>/intent.json \
-  -o workspaces/<project-slug>/protocol.json \
-  --fingerprint
+uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
 
-uv run scholar-protocol render-criteria \
-  workspaces/<project-slug>/protocol.json \
-  -o workspaces/<project-slug>/SCREENING_CRITERIA.md
+uv run scholar-protocol fingerprint workspaces/<project-slug>/protocol.json
+
+uv run scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
 ```
