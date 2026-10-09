@@ -63,7 +63,8 @@ uv run scholar-search chain W2741809807 --depth 2 --year-min 2015 --year-max 202
 
 ```python
 import asyncio
-from scholar_search import SearchEngine, Query
+from scholar_search import SearchEngine
+from scholar_search.models import Query   # Query/Document live in scholar_search.models, NOT the package root
 from scholar_search.providers import OpenAlexProvider, ArxivProvider, SemanticScholarProvider
 
 async def main():

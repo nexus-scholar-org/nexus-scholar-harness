@@ -12,7 +12,7 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 2. **Citation Snowballing**: Traces forward citing papers and backward reference graphs.
 3. **Verification & Abstract Hydration**: Verifies citation authenticity against Crossref/OpenAlex to detect hallucinations, strips JATS XML markup (`<jats:p>`), and hydrates rich abstracts.
 4. **Smart 2-Tier Deduplication**: Merges duplicate records by persistent IDs (DOI, arXiv, PMID, OpenAlex) and fuzzy title similarity ($\ge 97\%$) with author/year validation, assigning canonical `workspace_id: SCI-XXXXXX` identifiers.
-5. **Systematic Screening Engine**: Evaluates candidate title/abstract relevance against `protocol.json.screening_criteria`, generating `included.json`, `excluded.json`, `conflicts.json`, and markdown PRISMA 2020 flow diagrams.
+5. **Systematic Screening Engine**: Evaluates candidate title/abstract relevance against `protocol.json.screening_criteria`, generating `included.json`, `excluded.json`, `conflicts.json`, `prisma_report.json`, and markdown PRISMA 2020 flow diagrams.
 6. **Standardized Export**: Exports normalized collections to JSON, JSONL, or CSV for direct handoff to `scholar-pdf-kit`, `scholar-graph-kit`, and `scholar-rag-kit`.
 
 ---
@@ -27,7 +27,8 @@ uv run scholar-search search --protocol workspaces/<project-slug>/protocol.json 
 uv run scholar-search search "transformer attention mechanism" --limit 30 --output results.json
 
 # 2. 2-Tier Deduplication & Canonical Workspace ID Assignment
-uv run scholar-search dedup raw_search.json --output deduped.json --format csv
+# (dedup takes a positional input file and only --output/--format — no --export/--csv-output)
+uv run scholar-search dedup raw_search.json --output deduped.json
 
 # 3. Verify Authenticity & Hydrate Rich Abstracts
 uv run scholar-search verify deduped.json --output verified.json --enrich
@@ -44,20 +45,18 @@ uv run scholar-search snowball W2741809807 --provider openalex --direction backw
 # Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
 uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward forward --output chain.json --edges-output chain_edges.json
 
-# 6. RIS Export for Reference Managers
-uv run scholar-search export --format ris --output results.ris
+# 6. Export for Reference Managers (export takes INPUT + OUTPUT positionals — no --output flag)
+uv run scholar-search export results.json results.ris --format ris
 
-# 7. Export to CSV
-uv run scholar-search export --format csv --output results.csv
+# 7. Export to CSV / JSONL
+uv run scholar-search export results.json results.csv --format csv
+uv run scholar-search export results.json results.jsonl --format jsonl
 
-# 8. Export to JSONL
-uv run scholar-search export --format jsonl --output results.jsonl
-
-# 9. Compare Screening Runs
+# 8. Compare Screening Runs
 uv run scholar-search screen-compare run_a.json run_b.json
 uv run scholar-search screen-compare run_a.json run_b.json -o report.md
 
-# 10. Validate Search Query Recall
+# 9. Validate Search Query Recall
 uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
 uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
 ```
@@ -67,8 +66,11 @@ uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o 
 Export documents to RIS (Tagged) format for Rayyan/Covidence/EndNote/Zotero:
 
 ```bash
-scholar-search export --format ris --output results.ris
+scholar-search export results.json results.ris --format ris
 ```
+
+`export` takes `<input_file> <output_file>` positionals plus `--format` — it has
+no `--output` flag. Do not invent one.
 
 **Field Mappings:**
 - TY: JOUR (journal), CONF (conference), GEN (generic)
@@ -141,7 +143,22 @@ async def main():
     query, providers = compile_protocol_search(Path("workspaces/my-project/protocol.json"))
 
     # 2. Federated Search Across Academic Providers (Async)
-    engine = SearchEngine(providers=providers)
+    # NOTE: compile_protocol_search returns provider NAME strings, but
+    # SearchEngine needs provider INSTANCES — resolve names to instances
+    # (see references/providers.md) or omit providers for the default suite.
+    from scholar_search.providers import (
+        ArxivProvider, BiorxivProvider, CrossrefProvider,
+        OpenAlexProvider, PubMedProvider, SemanticScholarProvider,
+    )
+    _PROVIDER_CTORS = {
+        "openalex": OpenAlexProvider, "semanticscholar": SemanticScholarProvider,
+        "crossref": CrossrefProvider, "arxiv": ArxivProvider,
+        "pubmed": PubMedProvider, "biorxiv": BiorxivProvider,
+    }
+    engine = SearchEngine(
+        providers=[_PROVIDER_CTORS[n]() for n in providers if n in _PROVIDER_CTORS]
+        or None
+    )
     documents = await engine.search_all(query, dedup=False)
     await engine.close()
 
@@ -170,9 +187,15 @@ if __name__ == "__main__":
   CLI search default is **5** (no bioRxiv); `compile_protocol_search` default DBs =
   openalex, semanticscholar, crossref, arxiv. `search` CLI has no single-top-K — it
   queries all providers and dedups.
-- **Dedup**: PID tier → exact-normalized-title → fuzzy title ≥ 0.97 + year ±1 +
-  first-author containment; assigns `SCI-%06d` canonical ids via
-  `Deduplicator.deduplicate(docs) -> list[DocumentCluster]`.
+- **Dedup**: PID tier (doi/arxiv/pubmed/openalex/s2) → exact-normalized-title →
+  fuzzy title ≥ 0.97 + year ±1 + first-author containment; a conflicting
+  persistent ID in the same namespace vetoes any title match; assigns `SCI-%06d`
+  canonical ids via `Deduplicator.deduplicate(docs) -> list[DocumentCluster]`
+  (representative elected by completeness score + provider weight).
+- **Verifier thresholds**: match = SequenceMatcher ratio ≥ 0.90 over normalized
+  title keys, or bidirectional title containment with the contained title ≥ 12
+  chars (`bidirectional_title_similarity`); Crossref `validate_reference` further
+  requires relevance `score > 40`.
 - **Rate limits / env**: OpenAlex 10/s, Crossref 5/s, Semantic Scholar 1/s, PubMed 3/s,
   arXiv/bioRxiv 1/s; Scopus/WebOfScience unsupported. Set `SCHOLAR_MAILTO` (polite pool),
   `SCHOLAR_OPENALEX_KEY`, `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`. Client = httpx + hishel,
@@ -183,16 +206,44 @@ if __name__ == "__main__":
   list means "no network".
 - **Snowball sandbox**: caps depth 5 / max 500 / 2000 docs; CLI `chain` defaults
   depth 1 / 200 / 500 backward.
-- **MCP tools**: `nexus_discover` (hardcodes OpenAlex/Semantic Scholar/Crossref/arXiv —
-  no PubMed/bioRxiv — `dedup=True` forced, writes `.cache/mcp/discover_<slug>_<ts>.json`
-  CWD-relative → pass/expect absolute workspace paths), `nexus_dedup` (JSON only),
-  `nexus_screen` (in-process heuristic screening; `conflicts.json`/`prisma_report.json`
-  are computed but **never written**), `nexus_screen_reconcile` (expects
-  `batch_NNN_decisions*.json` files keyed by screener id from the file stem).
-- **LLM screening** (`LLMBatchScreener`) needs `GEMINI_API_KEY`.
+- **MCP tools** (subset of the full CLI/API surface — no full provider parity):
+  `nexus_discover(query, limit=10, start_year=2020)` hardcodes 4 providers only
+  (OpenAlex/Semantic Scholar/Crossref/arXiv — no PubMed/bioRxiv), forces
+  `dedup=True`, and writes `.cache/mcp/discover_<slug>_<ts>.json` resolved via
+  `_resolve_path` (`NEXUS_MCP_WORKSPACE` else repo root) → pass absolute
+  workspace paths; `nexus_dedup` reads JSON only (`JSONImporter`) and writes
+  JSON; `nexus_screen` runs in-process **heuristic** screening and persists all
+  five artifacts (`included.json`, `excluded.json`, `conflicts.json`,
+  `prisma_report.json`, `prisma_screening_report.md`); `nexus_screen_llm` is the
+  LLM variant (checklist prompt per protocol criteria, heuristic fallback per
+  batch on API failure); `nexus_screen_reconcile` accepts either a
+  screener-id → `{workspace_id: INCLUDE|EXCLUDE}` JSON map or a directory of
+  `batch_*_decisions*.json` files (screener key derived from the file stem),
+  plus an optional adjudication map — strict-majority voting with Fleiss' Kappa.
+- **LLM screening** (`LLMBatchScreener`) needs `GEMINI_API_KEY` (default model
+  `gemini-2.0-flash`, batch size 20).
+- **Screening is two tracks — do not conflate them.** The harness's authoritative
+  PRISMA track is the **agent-in-the-loop** file handoff (`agent_screen.py
+  prepare` chunks candidates into `literature/screening/batch_NNN.json`; an
+  agent writes `batch_NNN_decisions.json`; `collect` assembles the final
+  `included/excluded` + PRISMA report). The CLI `screen` / MCP `nexus_screen`
+  heuristic (and `nexus_screen_llm`) is a fast deterministic pre-filter, not a
+  substitute for agent review.
+- **Identity**: `workspace_id` (`SCI-%06d`) is a dedup-run-local canonical id,
+  not a stable cross-run study identity. Corpus-level lineage lives in
+  `scholar_search.identity` (`CorpusSnapshotIdentity`, `build_corpus_snapshot_artifact`).
+
+## Task routing → references/
+
+| Task | Read first |
+| :--- | :--- |
+| Provider choice, keys, polite-pool, rate limits | `references/providers.md` |
+| Query syntax, protocol search, snowball/chain | `references/search_and_snowballing.md` |
+| Verify/hydrate, dedup tiers, representative election | `references/verification_and_dedup.md` |
+| Import/export formats, PDF-handoff shape | `references/io_and_pipeline.md` |
 
 ## Agent Guidelines & Best Practices
 
 - **Protocol Conformance**: Always use `--protocol` when working within a project workspace to ensure search keywords, date bounds, and languages match the frozen research protocol.
-- **Screening Transparency**: When screening candidates, always check `literature/prisma_screening_report.md` and log `SCREENING_COMPLETED` events to `audit/journal.jsonl`.
-- **Handoff to PDF & Graph Kit**: Pass `literature/included.json` directly to `scholar-pdf download` and `scholar-graph build`.
+- **Screening Transparency**: Heuristic `screen` output is candidate triage only. Authoritative inclusion requires the agent `prepare`/`collect` handoff; always check `literature/prisma_screening_report.md` and log `SCREENING_COMPLETED` events to `audit/journal.jsonl`.
+- **Handoff to PDF & Graph Kit**: Pass `literature/included.json` directly to the `scholar-pdf-kit` downloader and `scholar-graph` builder (see those skills for exact commands).

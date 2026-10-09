@@ -10,8 +10,8 @@ This guide details supported file formats, importers, exporters, and downstream 
 | :--- | :--- | :--- | :--- |
 | **JSON** | `JSONImporter` | `Exporter.json(...)` | Standard JSON array of serialized `Document` objects. Primary format for downstream handoffs. |
 | **JSONL** | `JSONLImporter` | `Exporter.jsonl(...)` | Line-delimited JSON. Best for streaming and large collections. |
-| **RIS** | `RISImporter` | — | Standard citation export format from Zotero, Mendeley, EndNote, Google Scholar. |
-| **CSV** | — | `Exporter.csv(...)` | Tabular export containing `title`, `year`, `provider`, `doi`, `arxiv_id`, `pubmed_id`, `venue`, `citations_count`. |
+| **RIS** | `RISImporter` | `Exporter.ris(...)` | Standard citation export format from Zotero, Mendeley, EndNote, Google Scholar. |
+| **CSV** | — | `Exporter.csv(...)` | Tabular export containing `workspace_id`, `title`, `year`, `provider`, `doi`, `arxiv_id`, `pubmed_id`, `openalex_id`, `venue`, `citations_count`. |
 
 ---
 
@@ -39,14 +39,16 @@ uv run scholar-search import zotero_export.ris --verify --enrich --output verifi
 uv run scholar-search search "retrieval augmented generation" --limit 20 --output literature.json
 
 # Step 2: Bulk download Open Access PDFs using scholar-pdf-kit
-uv run scholar-pdf --input literature.json --output downloaded_pdfs/
+# (hand literature/included.json to the downloader — see the scholar-pdf-kit skill for exact flags)
+uv run scholar-pdf download --input literature/included.json --output downloaded_pdfs/
 ```
 
 ### Programmatic Python Pipeline Handoff
 
 ```python
 from pathlib import Path
-from scholar_search import Exporter, Document
+from scholar_search import Exporter
+from scholar_search.models import Document   # Document lives in scholar_search.models, NOT the package root
 
 def save_for_pdf_kit(documents: list[Document], destination: Path) -> Path:
     """Exports Document instances to clean JSON consumable by AsyncPDFDownloader."""
