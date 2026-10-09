@@ -53,6 +53,13 @@ Harness-live ledger rows (each names its handoff class and its exact test):
     ``E3-POS-007`` (§6.2 / E3-007, harness scope) -- at each harness failure
         point the run proves zero publication: no store, no registry mutation,
         no success event (``test_e3_pos_007_...``).
+    ``E3-POS-012`` (RAG-019) -- LIVE: the declared-dependency half is
+        ``test_e3_pos_012_declared_imports_are_proof_bound`` below plus the CI
+        Smoke-step E3 import probe green in PR #75 run 37896825642 (all six
+        lint-and-test jobs green: ubuntu/windows/macos x 3.11/3.12, each running
+        the Smoke step WITH the E3 import probe; probe asserts
+        INDEX_SERVICE_OUTCOMES + ACCEPTANCE_SCHEMA_VERSION + chromadb/torch
+        absent; step has no continue-on-error so green jobs entail probe green).
 
 Kit-side-only and adapter-future IDs, **explicitly MISSING, never re-proven**
 (the ``MISSING`` table below; each marker checks that its reason is still true
@@ -80,8 +87,6 @@ and then skips, so none of them can pass vacuously):
     ``E3-POS-009`` (§9 / RAG-014) -- T-100 has not landed: the agent-kit MCP
         surface still declares ``workspace_id: str = None``
         (``server.py:830``); no parity is claimed here.
-    ``E3-POS-012`` (RAG-019) -- the clean-wheel ``--help`` smoke is a CI/RELEASE
-        gate; this file owns only the declared-dependency half (E3-NEG-048).
 
 Diagnostic case (``test_e3_diagnostic_real_chroma_...``)
     The one real-Chroma reproducer the blocked kit task requires: a real
@@ -1503,17 +1508,22 @@ def test_e3_neg_039_publication_time_parent_type_is_rechecked(
 
 
 # --------------------------------------------------------------------------- #
-# T-136 proof-bound rows as repaired by R1 (E3-012): 7 proof-bound + 4 MISSING
+# T-136 proof-bound rows as repaired by R1 and closed by the CI wheel smoke
+# (E3-012): 7 proof-bound + 1 wheel-live (POS-012) + 3 MISSING
 # --------------------------------------------------------------------------- #
 #
 # T-136 closed 11 MISSING rows as proof-bound. R1 restores honesty: E3-NEG-021,
 # E3-NEG-022, E3-NEG-050 return to MISSING (blocked-on-kit-behavior-until-proven;
-# the harness venv is stale, clean 15a7a5a is green) and E3-POS-012 returns to
-# open pending the real wheel smoke (the static declared-imports test below
-# stays live as the declared half only). The 7 remaining rows stay proof-bound:
-# the 6 kit IDs with exact-type green executions (009/011/017/030/031/035),
-# plus the POS-009 MCP tripwire. No wheel is built here; no network is touched;
-# every filesystem effect (where any) is confined to pytest's tmp_path.
+# the harness venv is stale, clean 15a7a5a is green). E3-POS-012 is LIVE: the
+# static declared-imports test below is the declared half plus the CI Smoke-step
+# E3 import probe green in PR #75 run 37896825642 (all six lint-and-test jobs
+# green: ubuntu/windows/macos x 3.11/3.12, each running the Smoke step WITH the
+# E3 import probe; probe asserts INDEX_SERVICE_OUTCOMES + ACCEPTANCE_SCHEMA_VERSION
+# + chromadb/torch absent; step has no continue-on-error so green jobs entail probe green).
+# The 7 remaining rows stay proof-bound: the 6 kit IDs with exact-type green
+# executions (009/011/017/030/031/035), plus the POS-009 MCP tripwire. No wheel
+# is built here; no network is touched; every filesystem effect (where any) is
+# confined to pytest's tmp_path.
 # --------------------------------------------------------------------------- #
 
 
@@ -1932,6 +1942,13 @@ def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
       {SUCCESS, PARTIAL, REFUSED, FAILED}`` and ``ACCEPTANCE_SCHEMA_VERSION ==
       index-acceptance-v1``; wheel ``METADATA Requires-Dist`` is exactly the 17
       light deps (no heavy backend), so no undeclared import works by accident.
+
+    Repeatable CI execution POS-012 required (live close-out, not prose):
+    PR #75 run 37896825642 -- all six lint-and-test jobs green (ubuntu-latest
+    3.11/3.12, windows-latest 3.11/3.12, macos-latest 3.11/3.12), each running
+    the Smoke step WITH the E3 import probe added by this branch (probe asserts
+    INDEX_SERVICE_OUTCOMES + ACCEPTANCE_SCHEMA_VERSION + chromadb/torch absent;
+    step has no continue-on-error so green jobs entail probe green).
     """
 
     adapter = REPO_ROOT / "src/scholar_harness/index_acceptance.py"
@@ -2007,15 +2024,17 @@ def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# MISSING -- R1 honesty restoration (4 blocked/open rows)
+# MISSING -- R1 honesty restoration (3 blocked rows; POS-012 is LIVE)
 # --------------------------------------------------------------------------- #
 
-#: R1 restores 4 honest MISSING rows: E3-NEG-021, E3-NEG-022, E3-NEG-050 are
+#: R1 restores 3 honest MISSING rows: E3-NEG-021, E3-NEG-022, E3-NEG-050 are
 #: blocked-on-kit-behavior-until-proven (harness venv resolves scholar_rag to
-#: stale 033191e while the pin is 15a7a5a; clean 15a7a5a is green), and
-#: E3-POS-012 is open pending the real packaged-wheel smoke (the static
-#: declared-imports test above stays live as the declared half only; the
-#: runtime half is the CI smoke added in this packet). The remaining 25 IDs are
+#: stale 033191e while the pin is 15a7a5a; clean 15a7a5a is green). E3-POS-012
+#: is LIVE via the static declared-imports test above plus the CI Smoke-step E3
+#: import probe green in PR #75 run 37896825642 (all six lint-and-test jobs
+#: green: ubuntu/windows/macos x 3.11/3.12, each running the Smoke step WITH
+#: the E3 import probe; step has no continue-on-error so green jobs entail
+#: probe green). The remaining 26 IDs are
 #: harness-live or proof-bound. Do not re-close a blocked row with a loosened
 #: tripwire; close it only with an exact-type green execution.
 MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
@@ -2042,14 +2061,6 @@ MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
         "EXTRACTED_CONTENT_CHANGED",
         True,
         "blocked-on-kit-behavior-until-proven (R1): T-90 050[2 params] is SUCCESS/exit 0 under stale 033191e vs PARTIAL/exit 3 at pinned 15a7a5a (clean green); no Stage 6 check",
-    ),
-    (
-        "E3-POS-012",
-        "§10.1 E3-POS-012",
-        REPO_ROOT / "tests/conformance/test_nexus_scholar_pins.py",
-        "nexus_scholar_pins",
-        True,
-        "open pending the real packaged-wheel E3 import probe (R1 CI smoke); the static declared-imports test above is the declared half only",
     ),
 )
 
@@ -2099,20 +2110,22 @@ def test_e3_missing_ids_are_explicitly_not_covered_here(
 
 
 def test_e3_no_bare_missing_ids_remain() -> None:
-    """R1 honesty: exactly the 4 blocked/open rows remain MISSING.
+    """R1 honesty: exactly the 3 blocked rows remain MISSING.
 
-    E3-NEG-021, E3-NEG-022, E3-NEG-050 are blocked-on-kit-behavior-until-proven
-    and E3-POS-012 is open pending the real wheel smoke. No other bare row may
-    be re-added without failing the ledger-index invariant below.
+    E3-NEG-021, E3-NEG-022, E3-NEG-050 are blocked-on-kit-behavior-until-proven;
+    E3-POS-012 is LIVE via the static declared-imports test plus the CI Smoke-step
+    E3 import probe green in PR #75 run 37896825642 (all six lint-and-test jobs
+    green: ubuntu/windows/macos x 3.11/3.12; step has no continue-on-error so
+    green jobs entail probe green). No other bare row may be re-added
+    without failing the ledger-index invariant below.
     """
 
     assert {row[0] for row in MISSING} == {
         "E3-NEG-021",
         "E3-NEG-022",
         "E3-NEG-050",
-        "E3-POS-012",
     }
-    assert len(MISSING) == 4
+    assert len(MISSING) == 3
 
 
 # --------------------------------------------------------------------------- #
@@ -2309,9 +2322,11 @@ def test_e3_diagnostic_real_chroma_index_workspace_reproducer(
 
 #: Landed here so the ledger-ID -> test mapping survives refactors that move
 #: the tests above. Every one of the 29 required IDs names exactly one owner.
-#: R1: 25 live/proof-bound, 4 honest MISSING (021/022/050 blocked, POS-012 open
-#: pending the wheel smoke; the static declared-imports test stays live as the
-#: declared half only and does not close POS-012).
+#: R1 + POS-012 close-out: 26 live/proof-bound, 3 honest MISSING (021/022/050
+#: blocked-on-kit-behavior-until-proven; E3-POS-012 is LIVE via the static
+#: declared-imports test plus the CI Smoke-step E3 import probe green in PR #75
+#: run 37896825642 (all six lint-and-test jobs green; step has no
+#: continue-on-error so green jobs entail probe green)).
 LEDGER_INDEX: dict[str, str] = {
     "E3-NEG-009": "test_e3_neg_009_kit_document_eligibility_join_is_proof_bound",
     "E3-NEG-010": "test_e3_neg_010_request_limbs_inherit_recorded_identity",
@@ -2342,7 +2357,7 @@ LEDGER_INDEX: dict[str, str] = {
     "E3-POS-007": "test_e3_pos_007_refusal_proves_zero_publication",
     "E3-POS-008": "test_e3_pos_008_acceptance_event_carries_the_full_section_66_field_set",
     "E3-POS-009": "test_e3_pos_009_mcp_boundary_tripwire_is_proof_bound",
-    "E3-POS-012": "MISSING (open pending the real wheel smoke; static declared-imports test is the declared half only)",
+    "E3-POS-012": "test_e3_pos_012_declared_imports_are_proof_bound + CI Smoke-step E3 import probe green in PR #75 run 37896825642 (all six lint-and-test jobs green: ubuntu/windows/macos x 3.11/3.12, each running the Smoke step WITH the E3 import probe; probe asserts INDEX_SERVICE_OUTCOMES + ACCEPTANCE_SCHEMA_VERSION + chromadb/torch absent; step has no continue-on-error so green jobs entail probe green)",
 }
 
 
@@ -2387,8 +2402,8 @@ def test_e3_ledger_index_covers_every_required_id() -> None:
         for ledger_id, owner in LEDGER_INDEX.items()
         if owner.startswith("MISSING")
     }, "every MISSING table row must match the index, and vice versa"
-    assert len(MISSING) == 4, (
-        f"R1 honesty: 4 MISSING expected (021/022/050 blocked, POS-012 open), "
+    assert len(MISSING) == 3, (
+        f"R1 honesty: 3 MISSING expected (021/022/050 blocked; POS-012 live), "
         f"got {len(MISSING)}: {sorted(missing_ids)}"
     )
     assert {
@@ -2397,5 +2412,4 @@ def test_e3_ledger_index_covers_every_required_id() -> None:
         "E3-NEG-021",
         "E3-NEG-022",
         "E3-NEG-050",
-        "E3-POS-012",
     }
