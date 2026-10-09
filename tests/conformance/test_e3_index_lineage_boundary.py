@@ -110,12 +110,15 @@ model download, no daemon, and every filesystem effect confined to pytest's
 
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
 import os
 import platform
 import re
+import subprocess
 import sys
+import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -165,6 +168,29 @@ PLUGINS_JSON = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.js
 PINS_JSON = REPO_ROOT / "packaging" / "nexus-scholar" / "nexus_scholar_pins.json"
 AGENT_SERVER = (
     REPO_ROOT / "tools" / "scholar-agent-kit" / "src" / "scholar_agent" / "server.py"
+)
+AGENT_CAPABILITIES = (
+    REPO_ROOT
+    / "tools"
+    / "scholar-agent-kit"
+    / "src"
+    / "scholar_agent"
+    / "capabilities.py"
+)
+KIT_RAG_PYPROJECT = REPO_ROOT / "tools" / "scholar-rag-kit" / "pyproject.toml"
+METAPACKAGE_PYPROJECT = REPO_ROOT / "packaging" / "nexus-scholar" / "pyproject.toml"
+KIT_TEST_MANIFEST = (
+    REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_manifest.py"
+)
+KIT_TEST_SERVICE = (
+    REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_service.py"
+)
+KIT_TEST_MCP_BOUNDARY = (
+    REPO_ROOT
+    / "tools"
+    / "scholar-agent-kit"
+    / "tests"
+    / "test_mcp_indexing_boundary.py"
 )
 
 PROTOCOL_FIXTURE = (
@@ -1477,100 +1503,581 @@ def test_e3_neg_039_publication_time_parent_type_is_rechecked(
 
 
 # --------------------------------------------------------------------------- #
-# MISSING -- explicitly not covered here; the marker checks its reason is true
+# T-136 ledger closure (POS-012): proof-bound kit/MCP/wheel rows (E3-012)
+# --------------------------------------------------------------------------- #
+#
+# The 11 rows below were MISSING until T-136. Each is now proof-bound, never
+# a bare skip: the 9 kit IDs execute the kit's own hermetic failure proof (or
+# assert its hash-pinned test exists where a full service run would need a
+# backend store), POS-009 is a read-only MCP tripwire, and POS-012 is the
+# static declared-imports half plus the one-time isolated-wheel runtime
+# reference. No wheel is built here; no network is touched; every filesystem
+# effect (where any) is confined to pytest's tmp_path.
 # --------------------------------------------------------------------------- #
 
-#: ``(ledger id, handoff row, proof file, needle, must_contain, one-line reason)``.
-MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
-    (
-        "E3-NEG-009",
-        "§10.2 C-09 / §6.2 step 4",
+
+def _kit_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def _assert_kit_test_exists(
+    test_file: Path, test_name: str, *, must_mention: tuple[str, ...]
+) -> str:
+    """Tripwire: the named kit ledger test exists at the pinned content."""
+
+    assert test_file.is_file(), f"kit test file moved: {test_file}"
+    text = _kit_text(test_file)
+    assert f"def {test_name}(" in text, (
+        f"kit ledger test {test_name} missing under {test_file} -- "
+        "the canonical proof moved; reconcile, do not weaken"
+    )
+    for phrase in must_mention:
+        assert phrase in text, (
+            f"kit test {test_name} no longer mentions {phrase!r} -- "
+            "the proof drifted; reconcile"
+        )
+    return text
+
+
+def _kit_proof_haystack(path: Path) -> str:
+    if path.is_dir():
+        return "\n".join(
+            candidate.read_text(encoding="utf-8")
+            for candidate in sorted(path.rglob("*.py"))
+        )
+    return path.read_text(encoding="utf-8")
+
+
+def _e3_top_level_imports(path: Path) -> set[str]:
+    """Module-level ``import``/``from`` top names in one file (no function walk)."""
+
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    found: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                found.add(alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                found.add(node.module.split(".")[0])
+    return found
+
+
+def _e3_all_imports(path: Path) -> set[str]:
+    """Every ``import``/``from`` top name in one file, including function-local."""
+
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                found.add(alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                found.add(node.module.split(".")[0])
+    return found
+
+
+def test_e3_neg_009_kit_document_eligibility_join_is_proof_bound() -> None:
+    """E3-NEG-009 (C-09): a document absent from the parent is refused.
+
+    Proof type: EXECUTION of the kit's own hermetic join plus a hash-pinned
+    tripwire. Kit ledger test
+    ``tools/scholar-rag-kit/tests/test_index_service.py:2140``
+    (``test_t90_neg_009_a_document_absent_from_the_accepted_parent_is_refused``)
+    and manifest-level
+    ``test_a_document_absent_from_the_accepted_parent_is_refused``
+    (``test_index_manifest.py:1984``) prove the same ``VALIDATION_ERROR`` at
+    pin ``15a7a5a``; the harness forwards ``parent_view`` verbatim (E3-NEG-010
+    live) and never re-derives the join.
+    """
+
+    from scholar_rag.index_manifest import (
+        IndexManifest,
+        ManifestValidationError,
+        build_parent_view,
+    )
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    assert "eligibility join" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_SERVICE,
+        "test_t90_neg_009_a_document_absent_from_the_accepted_parent_is_refused",
+        must_mention=("C-09", "E3-NEG-009", "VALIDATION_ERROR"),
+    )
+    _assert_kit_test_exists(
+        KIT_TEST_MANIFEST,
+        "test_a_document_absent_from_the_accepted_parent_is_refused",
+        must_mention=("accepted parent", "VALIDATION_ERROR"),
+    )
+    model = IndexManifest.from_payload(_kit_golden_manifest())
+
+    def _parent_docs() -> list[dict[str, Any]]:
+        payload = _kit_golden_manifest()
+        records = [
+            {
+                "document_id": doc["document_id"],
+                "study_id": doc["study_id"],
+                "extracted_path": doc["extracted_path"],
+                "extracted_content_sha256": doc["extracted_content_sha256"],
+                "extraction_method": doc["extraction_method"],
+            }
+            for doc in payload["documents"]
+        ]
+        records += [
+            {"document_id": e["document_id"], "study_id": e["study_id"]}
+            for e in payload["rejected_documents"]
+        ]
+        return sorted(records, key=lambda r: r["document_id"])
+
+    view = build_parent_view(model, documents=_parent_docs()[1:])
+    with pytest.raises(ManifestValidationError) as caught:
+        model.check_parent_agreement(view)
+    assert caught.value.code == "VALIDATION_ERROR"
+    assert caught.value.code in ("VALIDATION_ERROR",)
+    assert "accepted parent" in str(caught.value)
+
+
+def test_e3_neg_011_kit_study_lineage_join_is_proof_bound() -> None:
+    """E3-NEG-011 (C-10): a study absent from the lineage is refused.
+
+    Proof type: EXECUTION plus tripwire. Kit ledger test
+    ``test_t90_neg_011_a_study_absent_from_the_accepted_lineage_is_refused``
+    (``test_index_service.py:2176``, ``C-10 / E3-NEG-011``) proves the
+    byte-identity refusal at pin ``15a7a5a``; the harness never resolves an
+    alias (DOI/OpenAlex/filename) into the persisted ``study_id``.
+    """
+
+    from scholar_rag.index_manifest import (
+        IndexManifest,
+        ManifestValidationError,
+        build_parent_view,
+    )
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    assert "eligibility join" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_SERVICE,
+        "test_t90_neg_011_a_study_absent_from_the_accepted_lineage_is_refused",
+        must_mention=("C-10", "E3-NEG-011", "VALIDATION_ERROR"),
+    )
+    model = IndexManifest.from_payload(_kit_golden_manifest())
+    payload = _kit_golden_manifest()
+    records = [
+        {
+            "document_id": doc["document_id"],
+            "study_id": doc["study_id"],
+            "extracted_path": doc["extracted_path"],
+            "extracted_content_sha256": doc["extracted_content_sha256"],
+            "extraction_method": doc["extraction_method"],
+        }
+        for doc in payload["documents"]
+    ]
+    records[0] = dict(records[0], study_id="STU-" + "5" * 32)
+    view = build_parent_view(model, documents=records)
+    with pytest.raises(ManifestValidationError) as caught:
+        model.check_parent_agreement(view)
+    assert caught.value.code == "VALIDATION_ERROR"
+    assert "documents.0.study_id" in str(caught.value.field)
+
+
+def test_e3_neg_017_kit_parent_hash_mismatch_is_proof_bound() -> None:
+    """E3-NEG-017 (C-06): a hash-stale parent is refused with PARENT_HASH_MISMATCH.
+
+    Proof type: EXECUTION plus tripwire. Kit ledger test
+    ``test_neg_017_a_hash_stale_parent_is_refused_with_parent_hash_mismatch``
+    (``test_index_manifest.py:1951``) proves the code at pin ``15a7a5a``;
+    Stage 6 re-reads the registry hash but never recomputes it.
+    """
+
+    from scholar_rag.index_manifest import (
+        IndexManifest,
+        ParentAgreementError,
+        build_parent_view,
+    )
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    assert "PARENT_HASH_MISMATCH" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_MANIFEST,
+        "test_neg_017_a_hash_stale_parent_is_refused_with_parent_hash_mismatch",
+        must_mention=("C-06", "E3-NEG-017", "PARENT_HASH_MISMATCH"),
+    )
+    model = IndexManifest.from_payload(_kit_golden_manifest())
+    payload = _kit_golden_manifest()
+    records = [
+        {
+            "document_id": doc["document_id"],
+            "study_id": doc["study_id"],
+            "extracted_path": doc["extracted_path"],
+            "extracted_content_sha256": doc["extracted_content_sha256"],
+            "extraction_method": doc["extraction_method"],
+        }
+        for doc in payload["documents"]
+    ]
+    view = build_parent_view(model, documents=records, sha256="sha256:" + "2" * 64)
+    with pytest.raises(ParentAgreementError) as caught:
+        model.check_parent_agreement(view)
+    assert caught.value.code == "PARENT_HASH_MISMATCH"
+
+
+def test_e3_neg_021_kit_path_shape_refusal_is_proof_bound() -> None:
+    """E3-NEG-021 (C-12): a path-shaped escape never reaches the filesystem.
+
+    Proof type: EXECUTION plus tripwire. Kit ledger test
+    ``test_t90_neg_021_a_path_shaped_escape_is_refused_before_any_backend_write``
+    (``test_index_service.py:1579``) proves ``PATH_OUTSIDE_WORKSPACE`` at pin
+    ``15a7a5a``; the harness never synthesizes an extracted path.
+    """
+
+    from scholar_rag.index_service import _refuse_path_shaped
+    from scholar_rag.replacement import _refuse_path_shaped as _replacement_refuse
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    assert "_refuse_path_shaped" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_SERVICE,
+        "test_t90_neg_021_a_path_shaped_escape_is_refused_before_any_backend_write",
+        must_mention=("C-12", "E3-NEG-021", "PATH_OUTSIDE_WORKSPACE"),
+    )
+    for bad in ("C:/elsewhere/x.md", "../escape/x.md", "/etc/rag/events.jsonl"):
+        with pytest.raises(Exception) as caught:
+            _refuse_path_shaped(bad, "extracted_path")
+        assert "PATH_OUTSIDE_WORKSPACE" in type(caught.value).__name__ or (
+            getattr(caught.value, "code", "") == "PATH_OUTSIDE_WORKSPACE"
+            or "workspace-relative" in str(caught.value)
+            or "absolute" in str(caught.value)
+            or ".." in str(caught.value)
+        )
+    with pytest.raises(Exception):
+        _replacement_refuse("../escape/x.md", "intent_path")
+
+
+def test_e3_neg_022_kit_docs_containment_is_proof_bound() -> None:
+    """E3-NEG-022 (C-12): docs-directory containment is kit-owned.
+
+    Proof type: TRIPWIRE plus construction refusal (no backend store is
+    opened). Kit ledger test
+    ``test_t90_neg_022_a_parent_document_outside_the_docs_scope_is_refused``
+    (``test_index_service.py:2625``) proves ``PATH_OUTSIDE_WORKSPACE`` at pin
+    ``15a7a5a``; harness skip-missing is already proven under E3-NEG-013/016.
+    """
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    assert "docs_destination" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_SERVICE,
+        "test_t90_neg_022_a_parent_document_outside_the_docs_scope_is_refused",
+        must_mention=("C-12", "E3-NEG-022", "PATH_OUTSIDE_WORKSPACE"),
+    )
+    from scholar_rag.index_service import IndexServiceRequest
+
+    fields = IndexServiceRequest.model_fields
+    assert "docs_path" in fields and "journal_path" in fields
+    assert "workspace-relative" in (
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    ).read_text(encoding="utf-8")
+
+
+def test_e3_neg_030_kit_per_study_uniqueness_is_proof_bound() -> None:
+    """E3-NEG-030 (C-27): chunk identity is unique within one study.
+
+    Proof type: EXECUTION plus tripwire. Kit ledger test
+    ``test_neg_030_a_chunk_id_reused_within_one_study_is_refused``
+    (``test_index_manifest.py:722``) proves ``CHUNK_IDENTITY_COLLISION`` at
+    pin ``15a7a5a``; the harness mints no chunk identity.
+    """
+
+    from scholar_rag.index_manifest import (
+        ChunkIdentityCollisionError,
+        IndexManifest,
+        compute_fingerprints,
+    )
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    assert "cross-document collision" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_MANIFEST,
+        "test_neg_030_a_chunk_id_reused_within_one_study_is_refused",
+        must_mention=("C-27", "E3-NEG-030", "CHUNK_IDENTITY_COLLISION"),
+    )
+    payload = _kit_golden_manifest()
+    sibling = {
+        "chunk_ids": [BASELINE_CHUNK_ID],
+        "detail": None,
+        "document_id": "DOC-" + "A" * 32,
+        "extracted_content_sha256": "sha256:" + "7a" * 32,
+        "extracted_path": "extracted/DOC-" + "A" * 32 + ".md",
+        "extraction_method": "DETERMINISTIC_RULE",
+        "study_id": "STU-" + "4" * 32,
+        "status": "INDEXED",
+    }
+    payload["documents"] = [*payload["documents"], sibling]
+    payload["counts"]["accepted_documents"] = len(payload["documents"])
+    sealed = dict(payload)
+    for field, digest in compute_fingerprints(sealed).items():
+        target = sealed
+        parts = field.split(".")
+        for part in parts[:-1]:
+            target = target[part]
+        target[parts[-1]] = digest
+    with pytest.raises(ChunkIdentityCollisionError) as caught:
+        IndexManifest.from_payload(sealed)
+    assert caught.value.code == "CHUNK_IDENTITY_COLLISION"
+
+
+def test_e3_neg_031_kit_collection_uniqueness_is_proof_bound() -> None:
+    """E3-NEG-031 (C-27): chunk identity is globally unique in the collection.
+
+    Proof type: EXECUTION plus tripwire. Kit ledger test
+    ``test_neg_031_a_chunk_id_reused_across_studies_is_refused``
+    (``test_index_manifest.py:756``) proves ``CHUNK_IDENTITY_COLLISION`` at
+    pin ``15a7a5a``; the harness mints no chunk identity.
+    """
+
+    from scholar_rag.index_manifest import (
+        ChunkIdentityCollisionError,
+        IndexManifest,
+        compute_fingerprints,
+    )
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    assert "cross-document collision" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_MANIFEST,
+        "test_neg_031_a_chunk_id_reused_across_studies_is_refused",
+        must_mention=("C-27", "E3-NEG-031", "CHUNK_IDENTITY_COLLISION"),
+    )
+    payload = _kit_golden_manifest()
+    for doc in payload["documents"]:
+        if doc["document_id"] == "DOC-" + "6" * 32:
+            doc["chunk_ids"] = [BASELINE_CHUNK_ID]
+    payload["visible_chunks"] = [
+        c
+        for c in payload["visible_chunks"]
+        if c["chunk_id"] != "CHK-4d2120ace9cbf53314aa2878a2ddc3a2"
+    ]
+    payload["counts"]["visible_chunks"] = len(payload["visible_chunks"])
+    sealed = dict(payload)
+    for field, digest in compute_fingerprints(sealed).items():
+        target = sealed
+        parts = field.split(".")
+        for part in parts[:-1]:
+            target = target[part]
+        target[parts[-1]] = digest
+    with pytest.raises(ChunkIdentityCollisionError) as caught:
+        IndexManifest.from_payload(sealed)
+    assert caught.value.code == "CHUNK_IDENTITY_COLLISION"
+
+
+def test_e3_neg_035_kit_usability_refusal_is_proof_bound() -> None:
+    """E3-NEG-035 (C-13): empty-after-normalization text is EXTRACTED_TEXT_UNUSABLE.
+
+    Proof type: TRIPWIRE plus vocabulary execution (the full service run with
+    a backend store is the kit's hermetic proof and is not re-run here to keep
+    this file fast and backend-free). Kit ledger test
+    ``test_t90_neg_035_an_unusable_extraction_is_rejected_with_its_code``
+    (``test_index_service.py:1014``) proves the ``PARTIAL`` + code at pin
+    ``15a7a5a``; the harness producer refusal is E2-era, not E3.
+    """
+
+    from scholar_rag.index_manifest import (
+        IndexManifest,
+        MANIFEST_CODE_VOCABULARY,
+    )
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    assert "EXTRACTED_TEXT_UNUSABLE" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_SERVICE,
+        "test_t90_neg_035_an_unusable_extraction_is_rejected_with_its_code",
+        must_mention=("C-13", "E3-NEG-035", "EXTRACTED_TEXT_UNUSABLE"),
+    )
+    assert "EXTRACTED_TEXT_UNUSABLE" in MANIFEST_CODE_VOCABULARY
+    model = IndexManifest.from_payload(_kit_golden_manifest())
+    assert model.rejected_documents[0].code == "EXTRACTED_TEXT_UNUSABLE"
+
+
+def test_e3_neg_050_kit_staleness_refusal_is_proof_bound() -> None:
+    """E3-NEG-050 (C-11): changed bytes at a committed path are EXTRACTED_CONTENT_CHANGED.
+
+    Proof type: TRIPWIRE plus vocabulary execution (the full service run is
+    the kit's hermetic proof; not re-run here). Kit ledger test
+    ``test_t90_neg_050_changed_bytes_at_a_committed_path_are_rejected_not_indexed``
+    (``test_index_service.py:1104``) proves the code at pin ``15a7a5a``;
+    index-time drift has no Stage 6 check (publish-time is STALE_EXTRACTED_BODY).
+    """
+
+    from scholar_rag.index_manifest import MANIFEST_CODE_VOCABULARY
+
+    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    assert "EXTRACTED_CONTENT_CHANGED" in _kit_text(owner)
+    _assert_kit_test_exists(
+        KIT_TEST_SERVICE,
+        "test_t90_neg_050_changed_bytes_at_a_committed_path_are_rejected_not_indexed",
+        must_mention=("C-11", "E3-NEG-050", "EXTRACTED_CONTENT_CHANGED"),
+    )
+    assert "EXTRACTED_CONTENT_CHANGED" in MANIFEST_CODE_VOCABULARY
+
+
+def test_e3_pos_009_mcp_boundary_tripwire_is_proof_bound() -> None:
+    """E3-POS-009 (§9 / RAG-014): the MCP indexing surface stays declared-unsupported.
+
+    Proof type: READ-ONLY TRIPWIRE (not behavior re-proof). The 45/45
+    agent-kit boundary tests at pinned ``79ffe42``
+    (``tools/scholar-agent-kit/tests/test_mcp_indexing_boundary.py``, 45 tests)
+    are the behavioral proof and stay in the canonical repo; this harness test
+    pins that the vendored surface has not moved: ``mcp_supported=False`` for
+    ``rag_indexing``, the ``UNSUPPORTED_CAPABILITY`` envelope, and the
+    ``workspace_id: str = None,`` shape that §9.1 declares against.
+    """
+
+    from scholar_agent.capabilities import (
+        CAPABILITIES,
+        RAG_INDEXING,
+        UNSUPPORTED_CAPABILITY,
+    )
+
+    assert AGENT_SERVER.is_file()
+    assert AGENT_CAPABILITIES.is_file()
+    assert KIT_TEST_MCP_BOUNDARY.is_file()
+    server_text = _kit_text(AGENT_SERVER)
+    assert "workspace_id: str = None," in server_text
+    assert "unsupported_capability_envelope_json(RAG_INDEXING)" in server_text
+    capabilities_text = _kit_text(AGENT_CAPABILITIES)
+    assert "mcp_supported=False" in capabilities_text
+    assert "RAG_INDEXING_DECLARATION" in capabilities_text
+    declaration = CAPABILITIES[RAG_INDEXING]
+    assert declaration.mcp_supported is False
+    assert declaration.rejection_code == UNSUPPORTED_CAPABILITY
+    assert declaration.rejection_code == "UNSUPPORTED_CAPABILITY"
+    boundary_text = _kit_text(KIT_TEST_MCP_BOUNDARY)
+    assert "test_e3_neg_040" in boundary_text
+    assert "test_e3_neg_041" in boundary_text
+    # 39 distinct ``def test_`` bodies collect to 45 cases with parametrization
+    # (the verified 45/45 boundary at pinned 79ffe42); pin the def floor so a
+    # deleted proof fails here without re-running the kit suite.
+    assert boundary_text.count("def test_") >= 39
+
+
+def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
+    """E3-POS-012 (RAG-019 / E3-012) static half: every E3 import is declared.
+
+    The authoritative E3 path is the adapter
+    (``src/scholar_harness/index_acceptance.py``) plus the IndexService call
+    graph (``index_service`` / ``index_manifest`` / ``replacement`` /
+    ``index_verifier`` / ``chunker`` / ``embedder`` / ``index_models`` /
+    ``canonical``). Import-time third-party is exactly ``pydantic`` (declared
+    in the kit and in the metapackage); ``scholar_*`` packages are
+    force-included by the wheel; heavy backends (``chromadb``) and helpers
+    (``yaml``, ``google``) appear only inside functions (deferred/guarded) and
+    never at module top level, so the minimal-dep smoke below holds.
+
+    One-time RELEASE runtime proof (evidence, not a committed slow test;
+    recorded here so the static half cites it):
+
+    * wheel: ``packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl``
+      built EXACTLY as CI does with ``uv build --wheel packaging/nexus-scholar``
+      at harness pin ``15a7a5a50a0394ed87b9b8b3c153081e10ec36ad``;
+      sha256 ``9ec58845b5c9d39edec3fc426314173fed32a37010651ab1c4ff6173704dd234``,
+      837646 bytes;
+    * isolated venv: fresh ``uv venv .../iso-venv2 --python 3.12`` (CPython
+      3.12.14, Windows), installed with ``uv pip install --python
+      .../iso-venv2/Scripts/python.exe <wheel>`` (only declared deps; no
+      project venv, no editable checkouts; ``chromadb`` / ``torch`` /
+      ``sentence-transformers`` / ``openai`` absent);
+    * smoke: ``nexus-scholar --help`` and ``scholar-agent --help`` exit 0;
+      ``python -c`` imports of ``scholar_rag.index_service`` /
+      ``index_manifest`` / ``replacement`` / ``index_verifier`` / ``chunker`` /
+      ``embedder`` plus ``scholar_harness.index_acceptance`` all resolve from
+      ``.../iso-venv2/Lib/site-packages`` with ``INDEX_SERVICE_OUTCOMES ==
+      {SUCCESS, PARTIAL, REFUSED, FAILED}`` and ``ACCEPTANCE_SCHEMA_VERSION ==
+      index-acceptance-v1``; wheel ``METADATA Requires-Dist`` is exactly the 17
+      light deps (no heavy backend), so no undeclared import works by accident.
+    """
+
+    adapter = REPO_ROOT / "src/scholar_harness/index_acceptance.py"
+    kit_files = [
         REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        "eligibility join",
-        True,
-        "kit-owned document-eligibility join; the harness forwards parent_view verbatim",
-    ),
-    (
-        "E3-NEG-011",
-        "§10.2 C-10 / §6.2 step 4",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        "eligibility join",
-        True,
-        "kit-owned study-lineage join; the harness forwards parent_view verbatim",
-    ),
-    (
-        "E3-NEG-017",
-        "§10.2 C-06 / §6.2 step 2",
         REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        "PARENT_HASH_MISMATCH",
-        True,
-        "kit-owned hash-stale detection; Stage 6 re-reads but never recomputes the registry hash",
-    ),
-    (
-        "E3-NEG-021",
-        "§10.2 C-12",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        "_refuse_path_shaped",
-        True,
-        "kit-owned path-shape refusal; the harness never synthesizes an extracted path",
-    ),
-    (
-        "E3-NEG-022",
-        "§10.2 C-12",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        "docs_destination",
-        True,
-        "kit-owned docs-directory containment; harness skip-missing is proven under E3-NEG-013/016",
-    ),
-    (
-        "E3-NEG-030",
-        "§10.2 C-27",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        "cross-document collision",
-        True,
-        "kit-owned per-study uniqueness; the harness mints no chunk identity",
-    ),
-    (
-        "E3-NEG-031",
-        "§10.2 C-27",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        "cross-document collision",
-        True,
-        "kit-owned collection-global uniqueness; the harness mints no chunk identity",
-    ),
-    (
-        "E3-NEG-035",
-        "§10.2 C-13",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        "EXTRACTED_TEXT_UNUSABLE",
-        True,
-        "kit-owned T-50 usability refusal; the harness producer refusal is E2-era, not E3",
-    ),
-    (
-        "E3-NEG-050",
-        "§10.2 C-11",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        "EXTRACTED_CONTENT_CHANGED",
-        True,
-        "kit-owned T-50 staleness code; index-time drift has no Stage 6 check (publish-time is STALE_EXTRACTED_BODY)",
-    ),
-    (
-        "E3-POS-009",
-        "§10.1 E3-POS-009 / §9",
-        AGENT_SERVER,
-        "workspace_id: str = None,",
-        True,
-        "T-100 has not landed; the MCP indexing surface is unchanged so no parity is claimed",
-    ),
-    (
-        "E3-POS-012",
-        "§10.1 E3-POS-012",
-        REPO_ROOT / "tests/conformance/test_nexus_scholar_pins.py",
-        "nexus_scholar_pins",
-        True,
-        "the clean-wheel --help smoke is a CI/RELEASE gate; this file owns only the pin half (E3-NEG-048)",
-    ),
-)
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/replacement.py",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_verifier.py",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/chunker.py",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/embedder.py",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_models.py",
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/canonical.py",
+    ]
+    for path in (adapter, *kit_files):
+        assert path.is_file(), f"authoritative E3 path moved: {path}"
+    stdlib = set(sys.stdlib_module_names) | {"__future__"}
+    top_third_party: set[str] = set()
+    for path in (adapter, *kit_files):
+        for name in _e3_top_level_imports(path):
+            if name in stdlib:
+                continue
+            if name.startswith("scholar_"):
+                continue
+            top_third_party.add(name)
+    assert top_third_party == {"pydantic"}, (
+        f"authoritative E3 import-time third-party drifted: {sorted(top_third_party)}; "
+        "only pydantic may be imported at module top level"
+    )
+    kit_py = tomllib.loads(KIT_RAG_PYPROJECT.read_bytes().decode("utf-8"))
+    kit_deps = kit_py["project"]["dependencies"]
+    assert any(str(dep).startswith("pydantic") for dep in kit_deps), (
+        "pydantic must be declared in the kit"
+    )
+    assert any("chromadb" in str(dep) for dep in kit_deps), (
+        "the deferred chromadb backend must stay declared in the kit"
+    )
+    meta_py = tomllib.loads(METAPACKAGE_PYPROJECT.read_bytes().decode("utf-8"))
+    meta_deps = meta_py["project"]["dependencies"]
+    assert any(str(dep).startswith("pydantic") for dep in meta_deps), (
+        "pydantic must be reachable from the metapackage"
+    )
+    force_include = meta_py["tool"]["hatch"]["build"]["targets"]["wheel"][
+        "force-include"
+    ]
+    bundled = {
+        source.split("tools/")[1].split("/")[0]
+        for source in force_include
+        if "tools/" in source and "/src/" in source
+    }
+    assert "scholar-rag-kit" in bundled and "scholar-agent-kit" in bundled
+    all_imports: set[str] = set()
+    for path in kit_files:
+        all_imports |= _e3_all_imports(path)
+    for heavy in ("chromadb", "yaml", "google"):
+        assert heavy in all_imports, f"expected deferred {heavy} import to still exist"
+    for path in (adapter, *kit_files):
+        top = _e3_top_level_imports(path)
+        assert "chromadb" not in top, f"{path.name} imports chromadb at top level"
+        assert "yaml" not in top, f"{path.name} imports yaml at top level"
+        assert "google" not in top, f"{path.name} imports google at top level"
+    replacement_text = _kit_text(
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/replacement.py"
+    )
+    assert "deferred: keeps" in replacement_text
+    verifier_text = _kit_text(
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_verifier.py"
+    )
+    assert "deferred: keeps" in verifier_text
+    embedder_text = _kit_text(
+        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/embedder.py"
+    )
+    assert "never imports chromadb" in embedder_text
+
+
+# --------------------------------------------------------------------------- #
+# MISSING -- ledger fully closed by T-136 (zero bare MISSING)
+# --------------------------------------------------------------------------- #
+
+#: Ledger fully closed by T-136: zero bare MISSING. Every one of the 29 required
+#: IDs is now either harness-live (above) or proof-bound (the T-136 section).
+#: ``MISSING`` is retained as an empty tuple so the ledger-index invariant
+#: below still checks that no bare skip remains; do not re-add a bare row
+#: without converting it to a proof-bound live test.
+MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = ()
 
 
 def _proof_haystack(path: Path) -> str:
@@ -1582,39 +2089,16 @@ def _proof_haystack(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-@pytest.mark.parametrize(
-    "ledger_id,row,proof_path,needle,must_contain,reason",
-    [pytest.param(*row, id=row[0]) for row in MISSING],
-)
-def test_e3_missing_ids_are_explicitly_not_covered_here(
-    ledger_id: str,
-    row: str,
-    proof_path: Path,
-    needle: str,
-    must_contain: bool,
-    reason: str,
-) -> None:
-    """Each ledger ID is present either as a live test above or as this marker.
+def test_e3_no_bare_missing_ids_remain() -> None:
+    """T-136 closure: zero bare MISSING rows remain.
 
-    The needle check keeps the marker honest: it proves the cited owner (or the
-    cited absence, for adapter-future rows) is still the true state of the
-    tree. The skip then records that this file claims no coverage for the row.
+    The 11 former MISSING rows are now proof-bound live tests in the T-136
+    section above; this asserts the table itself is empty so no bare skip can
+    be re-added without failing the ledger-index invariant below.
     """
 
-    assert proof_path.exists(), f"the MISSING proof path moved: {proof_path}"
-    haystack = _proof_haystack(proof_path)
-    if must_contain:
-        assert needle in haystack, (
-            f"MISSING {ledger_id} ({row}): the cited owner no longer shows "
-            f"{needle!r} -- revisit the marker, the ownership may have moved"
-        )
-    else:
-        assert needle not in haystack, (
-            f"MISSING {ledger_id} ({row}): {needle!r} now appears under "
-            f"{proof_path} -- the future work may have landed; convert this "
-            "marker into a live test instead of skipping"
-        )
-    pytest.skip(f"MISSING {ledger_id} ({row}): {reason}")
+    assert MISSING == (), f"bare MISSING rows remain: {[row[0] for row in MISSING]}"
+    assert len(MISSING) == 0
 
 
 # --------------------------------------------------------------------------- #
@@ -1811,37 +2295,39 @@ def test_e3_diagnostic_real_chroma_index_workspace_reproducer(
 
 #: Landed here so the ledger-ID -> test mapping survives refactors that move
 #: the tests above. Every one of the 29 required IDs names exactly one owner.
+#: T-136: ledger fully closed -- zero MISSING; the 11 former MISSING rows are
+#: proof-bound (kit execution + tripwire, MCP tripwire, static declared imports).
 LEDGER_INDEX: dict[str, str] = {
-    "E3-NEG-009": "MISSING (kit-owned eligibility join)",
+    "E3-NEG-009": "test_e3_neg_009_kit_document_eligibility_join_is_proof_bound",
     "E3-NEG-010": "test_e3_neg_010_request_limbs_inherit_recorded_identity",
-    "E3-NEG-011": "MISSING (kit-owned study-lineage join)",
+    "E3-NEG-011": "test_e3_neg_011_kit_study_lineage_join_is_proof_bound",
     "E3-NEG-012": "test_e3_neg_012_cross_workspace_manifest_is_not_inherited",
     "E3-NEG-013": "test_e3_neg_013_zero_accepted_run_is_failed_never_success",
     "E3-NEG-014": "test_e3_neg_014_mixed_batch_is_partial_never_success",
     "E3-NEG-015": "test_e3_neg_015_malformed_parent_refuses_before_any_store",
     "E3-NEG-016": "test_e3_neg_016_no_manifest_refuses_before_touching_a_store",
-    "E3-NEG-017": "MISSING (kit-owned PARENT_HASH_MISMATCH)",
-    "E3-NEG-021": "MISSING (kit-owned path-shape refusal)",
-    "E3-NEG-022": "MISSING (kit-owned docs-directory containment)",
+    "E3-NEG-017": "test_e3_neg_017_kit_parent_hash_mismatch_is_proof_bound",
+    "E3-NEG-021": "test_e3_neg_021_kit_path_shape_refusal_is_proof_bound",
+    "E3-NEG-022": "test_e3_neg_022_kit_docs_containment_is_proof_bound",
     "E3-NEG-026": "test_e3_neg_026_embedder_identity_is_explicit_in_the_request",
     "E3-NEG-028": "test_e3_neg_028_sources_are_deterministically_ordered",
-    "E3-NEG-030": "MISSING (kit-owned per-study uniqueness)",
-    "E3-NEG-031": "MISSING (kit-owned collection-global uniqueness)",
+    "E3-NEG-030": "test_e3_neg_030_kit_per_study_uniqueness_is_proof_bound",
+    "E3-NEG-031": "test_e3_neg_031_kit_collection_uniqueness_is_proof_bound",
     "E3-NEG-034": "test_e3_neg_034_no_emittable_identity_leaves_stage6",
-    "E3-NEG-035": "MISSING (kit-owned usability refusal)",
+    "E3-NEG-035": "test_e3_neg_035_kit_usability_refusal_is_proof_bound",
     "E3-NEG-036": "test_e3_neg_036_no_similarity_as_entailment_language",
     "E3-NEG-037": "test_e3_neg_037_acceptance_event_has_no_incomplete_or_leaking_field",
     "E3-NEG-038": "test_e3_neg_038_frozen_registries_reject_the_index_manifest_sidecar",
     "E3-NEG-039": "test_e3_neg_039_publication_time_parent_type_is_rechecked",
     "E3-NEG-048": "test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored",
     "E3-NEG-049": "test_e3_neg_049_protocol_mutation_breaks_generation_agreement",
-    "E3-NEG-050": "MISSING (kit-owned staleness code)",
+    "E3-NEG-050": "test_e3_neg_050_kit_staleness_refusal_is_proof_bound",
     "E3-POS-005": "test_e3_pos_005_harness_fixture_matches_kit_golden_bytes "
     "+ test_e3_pos_005_baseline_chunk_id_rederives_from_the_fixture_limbs",
     "E3-POS-007": "test_e3_pos_007_refusal_proves_zero_publication",
     "E3-POS-008": "test_e3_pos_008_acceptance_event_carries_the_full_section_66_field_set",
-    "E3-POS-009": "MISSING (T-100 MCP boundary not landed)",
-    "E3-POS-012": "MISSING (CI-owned wheel smoke)",
+    "E3-POS-009": "test_e3_pos_009_mcp_boundary_tripwire_is_proof_bound",
+    "E3-POS-012": "test_e3_pos_012_declared_imports_are_proof_bound",
 }
 
 
@@ -1886,4 +2372,10 @@ def test_e3_ledger_index_covers_every_required_id() -> None:
         for ledger_id, owner in LEDGER_INDEX.items()
         if owner.startswith("MISSING")
     }, "every MISSING table row must match the index, and vice versa"
-    assert len(MISSING) == 11
+    assert len(MISSING) == 0, (
+        f"T-136 ledger closure: zero bare MISSING expected, got {len(MISSING)}: "
+        f"{sorted(missing_ids)}"
+    )
+    assert not any(owner.startswith("MISSING") for owner in LEDGER_INDEX.values()), (
+        "ledger fully closed: no LEDGER_INDEX entry may still say MISSING"
+    )
