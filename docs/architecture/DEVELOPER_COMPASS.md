@@ -7,6 +7,13 @@ prevent downstream work from drifting around the scientific contract.
 
 ## 1. Current position
 
+**WP-01 milestone:** `CLOSED_WITH_RESIDUAL_DEBT` following E4 PR #77,
+merged as `cc33c318191635a3d0f4511d353b8534641fde98` on 2026-10-09.
+This is a qualified milestone close-out, not a claim that every original
+proof obligation passes. The accepted scope, measured limits, and carried
+obligations are recorded in
+`docs/architecture/wp01_packet_e4_completion_report.md`.
+
 The trustworthy runtime chain is now:
 
 ```text
@@ -20,7 +27,9 @@ screening batch and decisions (Packet D)
         ↓ exact batch binding + decision lineage
 acquired PDF + accepted extracted text (Packets E1-E2 — adopted)
         ↓ exact document/extraction lineage
-stable chunks and index manifest (Packet E3 — next)
+stable chunks and index manifest (Packet E3 — adopted with recorded debt)
+        ↓ currentness revalidation, including reused indexes
+bounded mutation proof (Packet E4 — merged; qualified closure)
 ```
 
 | Packet | Responsibility | Current state |
@@ -29,7 +38,7 @@ stable chunks and index manifest (Packet E3 — next)
 | B | Corpus snapshot and study identity producer | Adopted |
 | C | Typed acceptance and atomic publication | Reference adopted |
 | D | Bound screening batches and decisions | Adopted |
-| E | PDF/document and RAG boundary adapters | E1-E2 adopted; E3 next |
+| E | PDF/document and RAG boundary adapters | E1-E2 adopted; E3 qualified closure; E4 merged |
 
 Older documents may still describe A, B, or D as blocked. For implementation
 status, this compass and canonical `main` at or after `ca6a77b` take precedence.
@@ -259,6 +268,9 @@ See `docs/architecture/wp01_packet_e2_completion_report.md`. E3 is next.
 
 ### Packet E3 — chunk and index boundary
 
+**Status:** adopted and closed with recorded causes for the three blocked
+harness conformance IDs in `wp01_packet_e3_completion_report.md`.
+
 Mint stable chunk IDs from the accepted document/extraction lineage. Publish an
 index manifest containing the exact extraction parents, chunking configuration,
 embedding model/version, and index fingerprint. Detect and reject stale chunks.
@@ -269,6 +281,11 @@ implementation ordering are recorded in
 `docs/architecture/wp01_packet_e3_readiness_baseline.md`.
 
 ### Packet E4 — negative end-to-end proof
+
+**Status:** bounded implementation and repairs merged in PR #77; qualified
+closure recorded in `wp01_packet_e4_completion_report.md`. Reuse now requires
+fingerprint, extraction, backend, and final parent verification. Synthetic
+source fixtures do not establish a real E1 acquisition mutation proof.
 
 Prove that changed PDF bytes, changed extraction output, changed chunking
 configuration, and stale indexes cannot pass as current artifacts.

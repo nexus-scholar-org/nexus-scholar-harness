@@ -1,6 +1,6 @@
 # WP01 Packet E4 — Adversarial Evidence-Currentness Proof
 
-**Status:** `BLOCKED_E3_COMPLETION`  
+**Status:** `CLOSED_WITH_RESIDUAL_DEBT` (qualified scope; see completion report)
 **Owner:** harness conformance boundary, with remediation routed to the owning
 kit or harness component  
 **Delivery lane:** `RELEASE`  
@@ -8,6 +8,11 @@ kit or harness component
 cannot be accepted or presented as the current evidence index.
 
 ## 1. Why E4 exists
+
+Close-out addendum (2026-10-09): the operator authorized the bounded PR #77
+repairs and qualified milestone closure. The completion report records which
+original obligations remain unproven; the original requirements below are
+preserved and must not be read as universally satisfied by this closure.
 
 E1 establishes an acquired document, E2 establishes accepted extracted text,
 and E3 establishes a lineage-bound index candidate and accepted index record.
