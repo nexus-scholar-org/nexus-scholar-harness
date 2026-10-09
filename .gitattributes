@@ -1,3 +1,5 @@
 # Keep the generated pins snapshot LF-only on every platform so the codegen
 # `--check` byte comparison stays strict and platform-independent.
 packaging/nexus-scholar/nexus_scholar_pins.json text eol=lf
+# E4 sealed fixture: LF-only so the seal over checked-out bytes is identical on Windows and Linux.
+tests/e2e/fixtures/e4_golden/** text eol=lf
