@@ -1,5 +1,9 @@
 # WP01-E3 Completion Report
 
+> Historical close-out snapshot. The installer and three blocked execution
+> rows were subsequently repaired; see [E3 residual repair](e3_residual_repair.md).
+> The original evidence and verdict below are preserved, not retroactively rewritten.
+
 - **Packet:** WP01-E3 — stable chunks and index lineage boundary
 - **Final verdict:** `APPROVE` (blocked-with-cause close-out: 26/29 ledger IDs live, 3 blocked with recorded cause and owner; see ledger table)
 - **Base:** `38c89bc4a54014bdea004831a243a81ab39f0200` (merge of harness PR #74, vendor/pin sync to canonical rag-kit PR #13)

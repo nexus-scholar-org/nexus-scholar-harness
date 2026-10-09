@@ -1181,7 +1181,7 @@ class ResearchOrchestrator:
         created_at: str,
         producer_commit: str,
         producer_version: str,
-    ) -> IndexServiceRequest:
+    ) -> IndexServiceRequest | None:
         """Construct the IndexServiceRequest from recorded workspace state.
 
         Every field is explicit; nothing is inferred or defaulted.
@@ -1230,9 +1230,10 @@ class ResearchOrchestrator:
                 )
             )
 
+        # The closed kit request requires at least one source. Return the
+        # empty-run sentinel before constructing it or opening an embedder.
         if not sources:
-            # Will be refused by IndexService
-            pass
+            return None
 
         # Read embedder configuration from the indexer we'll use
         # We use the mock embedder for hermetic tests; real runs use sentence-transformers
@@ -1371,7 +1372,7 @@ class ResearchOrchestrator:
         )
 
         # Early refusal: no documents to index (all skipped during request building)
-        if not request.sources:
+        if request is None:
             self._log_audit_event(
                 action="RAG_INDEX_REJECTED",
                 agent="scholar-harness",
@@ -1469,13 +1470,16 @@ class ResearchOrchestrator:
 
         # Populate indexed documents from sources
         indexed_docs = []
+        screening_parents = self._accepted_screening_parents()
         for source in request.sources:
             indexed_docs.append(
                 {
                     "document_id": source.request.document_id,
                     "study_id": source.request.study_id,
                     "parent_artifact_id": source.request.parent_artifact_id,
-                    "screening_decision_id": "",  # Not directly available
+                    "screening_decision_id": screening_parents.get(
+                        source.request.study_id, {}
+                    ).get("decision_id", ""),
                     "chunks": "0",  # Would need to query the backend
                 }
             )

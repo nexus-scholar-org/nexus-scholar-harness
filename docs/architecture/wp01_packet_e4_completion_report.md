@@ -83,8 +83,8 @@ claimed to produce identical bytes across runs.
 
 | Obligation | Owner / next bounded action |
 |---|---|
-| E3-NEG-021, 022, 050 remain blocked in the E3 completion ledger. Canonical kit evidence does not replace missing harness execution evidence. | Harness installer: repair editable dependency overwrite, verify imports against the recorded pin, then execute these three rows without loosening expectations. |
-| Local suite's 13 pre-existing failures remain. | Harness test maintenance: reconcile old replacement/backend mocks against the typed service; retain real refusal and no-publication coverage. |
+| E3-NEG-021, 022, 050 were blocked at close-out. | Repaired in [E3 residual repair](e3_residual_repair.md): installer authority, verified editable imports, and exact canonical battery execution in the harness conformance gate. |
+| Local suite's 13 pre-existing failures were recorded at close-out. | Follow-up repairs in [E3 residual repair](e3_residual_repair.md) reconcile the typed mocks and canonical audit assertions, and fix the empty-run refusal guard. |
 | E4-NEG-001 uses synthetic PDF bytes and metadata extraction; no real E1 acquisition service or PDF parser runs in this fixture. Source mutation refusal on a genuine E1-accepted document is not established by this case. | PDF/harness integration proof: a separate genuine acquisition-to-extraction mutation case, with recorded parents and backend observations. |
 | Mutation readers are injected typed readers derived from the manifest, rather than independently persisted live backend snapshots. Positive builds use Chroma, but six-case real-backend mutation coverage is not claimed. | Harness integration proof: independent backend observations if stronger physical-store guarantees are required. |
 | Fixture regeneration is not byte-deterministic. | Fixture maintenance: separate stable content sealing from volatile run metadata if identical regeneration becomes required. |

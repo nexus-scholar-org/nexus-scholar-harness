@@ -7,8 +7,8 @@ Design notes:
 - Uses `uv pip install` (PEP 508 / pip-style), NOT `uv sync`. `uv sync` reads each
   kit's `[tool.uv.sources]`, which contain relative paths that only work inside a
   monorepo checkout. `uv pip` ignores those and installs from the resolution we give it.
-- Kits are installed in dependency order so that `scholar-search-kit` (the base) is
-  present before dependent kits (`bib`, `graph`, `rag`, `agent`) resolve their deps.
+- Third-party dependencies resolve together; managed kits install without dependency
+  resolution, so stale sibling Git refs cannot override the harness registry.
 """
 
 from __future__ import annotations
@@ -17,16 +17,19 @@ import argparse
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 from typing import Any
+from urllib.request import urlopen
 
 
 def _reconfigure_encoding_for_utf8() -> None:
     """Reconfigure stdout/stderr for UTF-8 to support emojis on Windows.
-    
+
     Windows console defaults to cp1252/cp850, which doesn't support emojis.
     This function reconfigures streams to use UTF-8, with fallbacks for
     compatibility with different Python versions and environments.
@@ -88,7 +91,10 @@ INSTALL_ORDER = [
 def load_registry(manifest_path: Path) -> list[dict[str, Any]]:
     """Loads plugin list from JSON registry."""
     if not manifest_path.exists():
-        print(f"❌ Error: Plugin registry manifest not found at {manifest_path}", file=sys.stderr)
+        print(
+            f"❌ Error: Plugin registry manifest not found at {manifest_path}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     with open(manifest_path, "r", encoding="utf-8") as f:
@@ -119,11 +125,13 @@ def resolve_local_path(
     # 1. tools/<plugin_name> inside harness
     # 2. ../<plugin_name> (side-by-side clone)
     # 3. ../../<plugin_name>
-    candidate_paths.extend([
-        repo_root / "tools" / plugin_name,
-        repo_root.parent / plugin_name,
-        repo_root.parent.parent / plugin_name,
-    ])
+    candidate_paths.extend(
+        [
+            repo_root / "tools" / plugin_name,
+            repo_root.parent / plugin_name,
+            repo_root.parent.parent / plugin_name,
+        ]
+    )
 
     for path in candidate_paths:
         if path.exists() and (path / "pyproject.toml").exists():
@@ -157,6 +165,83 @@ def clean_legacy_venvs(repo_root: Path) -> None:
         print("ℹ️ No duplicate .venv folders found.")
 
 
+def dependency_plan(
+    selected: list[dict[str, Any]],
+    registry: list[dict[str, Any]],
+    repo_root: Path,
+    dev_path: Path | None,
+    git_only: bool,
+    local_only: bool = False,
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Resolve managed kit edges from the registry, not stale sibling git refs.
+
+    Third-party requirements retain their version constraints and markers.
+    Managed dependencies inherit requested extras but always use registry pins.
+    """
+    managed = {re.sub(r"[-_.]+", "-", p["name"].lower()): dict(p) for p in registry}
+    pending = list(selected)
+    chosen: dict[str, dict[str, Any]] = {}
+    external: set[str] = set()
+    processed: dict[str, frozenset[str]] = {}
+    while pending:
+        plugin = dict(pending.pop(0))
+        name = re.sub(r"[-_.]+", "-", plugin["name"].lower())
+        extras = set(plugin.get("extras", [])) | set(
+            chosen.get(name, {}).get("extras", [])
+        )
+        plugin["extras"] = sorted(extras)
+        chosen[name] = plugin
+        if name in processed and processed[name] == frozenset(extras):
+            continue
+        processed[name] = frozenset(extras)
+        local = (
+            None
+            if git_only
+            else resolve_local_path(plugin["name"], dev_path, repo_root)
+        )
+        if local is not None:
+            metadata = tomllib.loads(
+                (local / "pyproject.toml").read_text(encoding="utf-8")
+            )
+        else:
+            if local_only:
+                raise ValueError(f"No local dependency metadata for {plugin['name']}")
+            repo = (
+                plugin["repo"].removesuffix(".git").removeprefix("https://github.com/")
+            )
+            if repo == plugin["repo"] or repo.startswith("http"):
+                raise ValueError(
+                    "Remote metadata requires a canonical GitHub repository"
+                )
+            url = f"https://raw.githubusercontent.com/{repo}/{plugin['default_rev']}/pyproject.toml"
+            with urlopen(url, timeout=30) as response:
+                metadata = tomllib.loads(response.read().decode("utf-8"))
+        project = metadata["project"]
+        requirements = list(project.get("dependencies", []))
+        for extra in extras:
+            requirements.extend(project.get("optional-dependencies", {})[extra])
+        for requirement in requirements:
+            match = re.match(r"^([A-Za-z0-9_.-]+)(?:\[([^]]+)\])?", requirement)
+            if match is None:
+                raise ValueError(f"Invalid dependency: {requirement}")
+            dependency = re.sub(r"[-_.]+", "-", match[1].lower())
+            if dependency not in managed:
+                external.add(requirement)
+                continue
+            child = dict(managed[dependency])
+            child["extras"] = sorted(
+                set(child.get("extras", [])) | set((match[2] or "").split(",")) - {""}
+            )
+            pending.append(child)
+    ordered = sorted(
+        chosen.values(),
+        key=lambda p: (
+            INSTALL_ORDER.index(p["name"]) if p["name"] in INSTALL_ORDER else 999
+        ),
+    )
+    return ordered, sorted(external)
+
+
 def install_plugin(
     plugin: dict[str, Any],
     dev_path: Path | None,
@@ -176,9 +261,16 @@ def install_plugin(
 
     local_path = None
     if not git_only:
-        local_path = resolve_local_path(name, custom_dev_path=dev_path, repo_root=repo_root)
+        local_path = resolve_local_path(
+            name, custom_dev_path=dev_path, repo_root=repo_root
+        )
 
-    cmd = ["uv", "pip", "install"]
+    interpreter = (
+        repo_root
+        / ".venv"
+        / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    )
+    cmd = ["uv", "pip", "install", "--python", str(interpreter), "--no-deps"]
     if upgrade:
         cmd.append("--upgrade")
 
@@ -192,7 +284,9 @@ def install_plugin(
             print("  ❌ Skipped: No local clone found and --local-only specified.")
             return False
 
-        print(f"  🌐 Installing from Git repository: {repo_url} (branch/tag: {default_rev})")
+        print(
+            f"  🌐 Installing from Git repository: {repo_url} (branch/tag: {default_rev})"
+        )
         # Format: git+https://github.com/org/repo.git@rev#egg=name[extras]
         git_target = f"git+{repo_url}@{default_rev}"
         if extras:
@@ -205,14 +299,19 @@ def install_plugin(
             print(f"  ✅ Successfully installed {name}")
             return True
         else:
-            print(f"  ❌ Installation failed for {name} (exit code: {res.returncode})", file=sys.stderr)
+            print(
+                f"  ❌ Installation failed for {name} (exit code: {res.returncode})",
+                file=sys.stderr,
+            )
             return False
     except OSError as e:
         print(f"  ❌ Error during install: {e}", file=sys.stderr)
         return False
 
 
-def verify_installation(plugins: list[dict[str, Any]]) -> dict[str, bool]:
+def verify_installation(
+    plugins: list[dict[str, Any]], repo_root: Path
+) -> dict[str, bool]:
     """Runs --help on each console_script to verify functionality."""
     print("\n🔍 Verifying installed plugin console scripts in shared environment...")
     results: dict[str, bool] = {}
@@ -223,7 +322,7 @@ def verify_installation(plugins: list[dict[str, Any]]) -> dict[str, bool]:
         if not script:
             continue
 
-        cmd = ["uv", "run", script, "--help"]
+        cmd = ["uv", "run", "--no-sync", script, "--help"]
         try:
             res = subprocess.run(
                 cmd,
@@ -232,12 +331,15 @@ def verify_installation(plugins: list[dict[str, Any]]) -> dict[str, bool]:
                 encoding="utf-8",
                 errors="replace",
                 check=False,
+                cwd=repo_root,
             )
             if res.returncode == 0:
                 print(f"  ✅ {script:<16} (from {name}) -> OK")
                 results[name] = True
             else:
-                print(f"  ❌ {script:<16} (from {name}) -> FAILED (exit {res.returncode})")
+                print(
+                    f"  ❌ {script:<16} (from {name}) -> FAILED (exit {res.returncode})"
+                )
                 results[name] = False
         except FileNotFoundError:
             print(f"  ❌ {script:<16} (from {name}) -> COMMAND NOT FOUND")
@@ -257,12 +359,14 @@ def main() -> None:
         help=f"Path to plugins.json (default: {DEFAULT_MANIFEST_PATH})",
     )
     parser.add_argument(
-        "--plugin", "-p",
+        "--plugin",
+        "-p",
         type=str,
         help="Install only a specific plugin by name (e.g. scholar-search-kit)",
     )
     parser.add_argument(
-        "--dev-path", "-d",
+        "--dev-path",
+        "-d",
         type=Path,
         help="Directory where kit source repos are located locally",
     )
@@ -277,7 +381,8 @@ def main() -> None:
         help="Only install from local checkouts; do not fetch from Git",
     )
     parser.add_argument(
-        "--upgrade", "-U",
+        "--upgrade",
+        "-U",
         action="store_true",
         help="Upgrade installed packages",
     )
@@ -306,20 +411,33 @@ def main() -> None:
     if args.clean:
         clean_legacy_venvs(repo_root)
 
-    manifest_path = (repo_root / args.manifest) if not args.manifest.is_absolute() else args.manifest
-    plugins = load_registry(manifest_path)
+    manifest_path = (
+        (repo_root / args.manifest)
+        if not args.manifest.is_absolute()
+        else args.manifest
+    )
+    registry = load_registry(manifest_path)
+    plugins = registry
 
     if args.plugin:
         plugins = [
-            p for p in plugins
+            p
+            for p in plugins
             if p["name"] == args.plugin or p.get("console_script") == args.plugin
         ]
         if not plugins:
-            print(f"❌ Plugin '{args.plugin}' not found in registry {manifest_path}", file=sys.stderr)
+            print(
+                f"❌ Plugin '{args.plugin}' not found in registry {manifest_path}",
+                file=sys.stderr,
+            )
             sys.exit(1)
     else:
         # Order plugins by dependency order for reliable resolution.
-        plugins.sort(key=lambda p: INSTALL_ORDER.index(p["name"]) if p["name"] in INSTALL_ORDER else 999)
+        plugins.sort(
+            key=lambda p: (
+                INSTALL_ORDER.index(p["name"]) if p["name"] in INSTALL_ORDER else 999
+            )
+        )
 
     print(f"🚀 Initializing installation of {len(plugins)} Nexus Scholar plugin(s)...")
 
@@ -328,6 +446,27 @@ def main() -> None:
     if not venv_dir.exists():
         print("🔧 Creating shared root virtual environment (.venv)...")
         run_command(["uv", "venv", str(venv_dir)])
+
+    try:
+        plugins, requirements = dependency_plan(
+            plugins,
+            registry,
+            repo_root,
+            args.dev_path,
+            args.git_only,
+            args.local_only,
+        )
+        if requirements:
+            interpreter = venv_dir / (
+                "Scripts/python.exe" if os.name == "nt" else "bin/python"
+            )
+            command = ["uv", "pip", "install", "--python", str(interpreter)]
+            if args.upgrade:
+                command.append("--upgrade")
+            run_command([*command, *requirements])
+    except (OSError, ValueError, KeyError) as exc:
+        print(f"Dependency planning failed: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     success_count = 0
     for p in plugins:
@@ -342,15 +481,22 @@ def main() -> None:
             success_count += 1
 
     print(f"\n📊 Summary: Installed {success_count}/{len(plugins)} plugin(s).")
+    if success_count != len(plugins):
+        sys.exit(1)
 
     if args.verify and success_count > 0:
-        verification = verify_installation(plugins)
+        verification = verify_installation(plugins, repo_root)
         failed = [name for name, ok in verification.items() if not ok]
         if failed:
-            print(f"\n⚠️ The following plugins failed verification: {', '.join(failed)}", file=sys.stderr)
+            print(
+                f"\n⚠️ The following plugins failed verification: {', '.join(failed)}",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
-    print("\n🎉 Harness environment ready! All plugins available via `uv run <command>`.")
+    print(
+        "\n🎉 Harness environment ready! All plugins available via `uv run <command>`."
+    )
 
 
 if __name__ == "__main__":
