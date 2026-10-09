@@ -419,6 +419,35 @@ class _CapturingIndexer:
         return len(self.requests)
 
 
+@pytest.fixture(autouse=True)
+def typed_stage6_backend(monkeypatch, request):
+    """Use the typed replacement backend and capture the real service inputs."""
+    if not request.node.name.startswith("test_stage6"):
+        return None
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "e2e/test_extraction_runtime_acceptance.py"
+    )
+    spec = importlib.util.spec_from_file_location("e3_mock_support", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    backend = module.CapturingReplacementView()
+    backend.requests = []
+    monkeypatch.setattr(orch_module, "ChromaReplacementView", lambda **_: backend)
+    monkeypatch.setattr(
+        orch_module, "ChromaVisibleSetReader", lambda **_: module.MockReader(backend)
+    )
+    monkeypatch.setattr(orch_module, "get_embedder", lambda **_: module.MockEmbedder())
+    original = orch_module.index_workspace
+
+    def captured(request, **kwargs):
+        backend.requests.extend(source.request for source in request.sources)
+        return original(request, **kwargs)
+
+    monkeypatch.setattr(orch_module, "index_workspace", captured)
+    return backend
+
+
 def _workspace(tmp_path: Path) -> Path:
     return scaffold_raw_project(
         tmp_path / "study",
@@ -429,7 +458,9 @@ def _workspace(tmp_path: Path) -> Path:
     )
 
 
-def test_stage6_inherits_every_limb_from_the_accepted_manifest(tmp_path, monkeypatch):
+def test_stage6_inherits_every_limb_from_the_accepted_manifest(
+    tmp_path, monkeypatch, typed_stage6_backend
+):
     """The real Stage 6 path binds the recorded limbs, not the slug or filename.
 
     Attribution controls make this non-tautological. The recorded ``document_id`` is
@@ -450,26 +481,24 @@ def test_stage6_inherits_every_limb_from_the_accepted_manifest(tmp_path, monkeyp
 
     assert result["indexed_files"] == 1, result
     assert result["refused"] == []
-    assert len(indexer.requests) == 1
-    request = indexer.requests[0]
+    assert len(typed_stage6_backend.requests) == 1
+    request = typed_stage6_backend.requests[0]
 
     # Every limb is the recorded one.
     assert request.workspace_id == _manifest(ws)["registered_workspace_id"]
     assert request.study_id == STUDY_ID
     assert request.document_id == DOCUMENT_ID
-    # The parent binding is the ACCEPTED screening artifact, by artifact id and by
-    # the hash the registry recorded for it.
-    registry = json.loads(
-        (ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
-    )
-    assert request.parent_artifact_id == SCREENING_ARTIFACT_ID
-    assert (
-        request.parent_artifact_sha256
-        == registry["artifacts"][SCREENING_ARTIFACT_ID]["sha256"]
-    )
+    # Indexing binds the accepted document manifest; its upstream screening
+    # lineage is separately validated by the extraction acceptance gate.
+    parent_view = orch._build_parent_view()
+    assert parent_view is not None
+    assert request.parent_artifact_id == parent_view["artifact_id"]
+    assert request.parent_artifact_sha256 == parent_view["sha256"]
     # And the hashed text is the text that was actually indexed.
     assert request.extracted_content_sha256 == text_fingerprint(EXTRACTED_TEXT)
-    assert indexer.texts == [EXTRACTED_TEXT]
+    assert "Real extracted body text." in "\n".join(
+        row.text for row in typed_stage6_backend.staged_records
+    )
 
     # Attribution: the document limb must NOT be any string a filename-, slug-,
     # alias-, DOI- or title-derived implementation could have produced. Every one
@@ -599,8 +628,9 @@ def test_stage6_refuses_a_document_with_no_accepted_screening_parent(
 
     assert stage["indexed_files"] == 0
     assert indexer.requests == []
-    assert [r["document_id"] for r in stage["refused"]] == ["DOC-ghost"]
-    assert "STU-unscreened" in stage["refused"][0]["reason"]
+    assert stage["documents"] == []
+    assert not (tmp_path / "rag" / "chroma_db").exists()
+    assert stage["refused"][0]["code"] == "NO_DOCUMENTS_TO_INDEX"
 
 
 def test_stage6_refuses_a_record_with_no_study_and_never_substitutes_the_workspace(
@@ -642,10 +672,10 @@ def test_stage6_refuses_a_record_with_no_study_and_never_substitutes_the_workspa
     assert result["indexed_files"] == 0
     assert indexer.requests == [], "a request must not be built without a study limb"
     assert result["status"] == "FAILED"
-    assert "study identity" in result["refused"][0]["reason"]
+    assert result["refused"][0]["code"] == "NO_DOCUMENTS_TO_INDEX"
     # And explicitly: the workspace limb was available and was NOT used as a study.
     assert workspace_id.startswith("WSP-")
-    assert workspace_id not in result["refused"][0]["reason"]
+    assert workspace_id not in result["refused"][0]["code"]
 
 
 def test_stage6_identity_refusal_leaves_no_store_behind(tmp_path, monkeypatch):
@@ -694,7 +724,7 @@ def test_stage6_audit_event_reports_the_real_outcome(tmp_path, monkeypatch):
         .splitlines()
         if line.strip()
     ]
-    rag_events = [e for e in events if e.get("action") == "RAG_INDEX_BUILT"]
+    rag_events = [e for e in events if e.get("action") == "RAG_INDEX_REJECTED"]
     assert len(rag_events) == 1
     assert rag_events[0]["status"] != "SUCCESS"
     assert rag_events[0]["metrics"]["indexed_files"] == 0

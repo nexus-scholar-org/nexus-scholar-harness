@@ -116,6 +116,7 @@ class CapturingReplacementView:
     the IndexDocumentRequest objects that are built for each source document.
     """
 
+    mode = "marker"
     collection_name = "scholar_docs"
     embedder_kwargs: ClassVar[dict[str, Any]] = {"provider": "mock", "model_name": None}
 
@@ -131,29 +132,19 @@ class CapturingReplacementView:
     def embed_staged(self, run_id: str, embedder: Any) -> None:
         pass
 
-    def staged_rows(self, run_id: str) -> list[dict[str, Any]]:
-        """Return staged rows for the verification to read."""
-        staged_by_id = {r.chunk_id: r for r in self.staged_records}
-        rows = []
-        for chunk_id in self.switched_chunk_ids:
-            record = staged_by_id.get(chunk_id)
-            if record is None:
-                continue
-            from scholar_rag.chunker import text_fingerprint
+    def staged_rows(self, run_id: str) -> list[Any]:
+        """R3 reads staged rows before R5 makes them visible."""
+        from scholar_rag.replacement import StagedRow
 
-            chunk_text_sha256 = text_fingerprint(record.text)
-            rows.append(
-                {
-                    "chunk_id": record.chunk_id,
-                    "document_id": record.document_id,
-                    "study_id": record.study_id,
-                    "row_key": f"{run_id}#{chunk_id}",
-                    "chunk_text_sha256": chunk_text_sha256,
-                    "vector_dimension": 384,
-                    "stored_text": record.text,
-                }
+        return [
+            StagedRow(
+                row_key=f"{run_id}#{record.chunk_id}",
+                chunk_id=record.chunk_id,
+                document_id=record.document_id,
+                embedding_dimension=384,
             )
-        return rows
+            for record in self.staged_records
+        ]
 
     def switch_visibility(self, run_id: str, chunk_ids: list[str], mode: str) -> None:
         self.switched_chunk_ids = chunk_ids
@@ -168,8 +159,8 @@ class CapturingReplacementView:
     def visible_count(self) -> int:
         return len(self.switched_chunk_ids)
 
-    def visible_rows(self) -> list[dict[str, Any]]:
-        """Return VisibleRow dicts matching the switched chunks.
+    def visible_rows(self) -> list[Any]:
+        """Return typed VisibleRows matching the switched chunks.
 
         The verification reads these rows and compares them against the manifest's
         visible_chunks. We build them from the staged CandidateChunk records.
@@ -181,20 +172,17 @@ class CapturingReplacementView:
             record = staged_by_id.get(chunk_id)
             if record is None:
                 continue
-            # Compute text fingerprint
-            from scholar_rag.chunker import text_fingerprint
+            from scholar_rag.index_verifier import VisibleRow
 
-            chunk_text_sha256 = text_fingerprint(record.text)
             rows.append(
-                {
-                    "chunk_id": record.chunk_id,
-                    "document_id": record.document_id,
-                    "study_id": record.study_id,
-                    "row_key": f"{self._last_run_id}#{chunk_id}",
-                    "chunk_text_sha256": chunk_text_sha256,
-                    "vector_dimension": 384,
-                    "stored_text": record.text,
-                }
+                VisibleRow(
+                    chunk_id=record.chunk_id,
+                    document_id=record.document_id,
+                    study_id=record.study_id,
+                    row_key=f"{self._last_run_id}#{chunk_id}",
+                    embedding_dimension=384,
+                    stored_text=record.text,
+                )
             )
         return rows
 
@@ -211,7 +199,7 @@ class MockReader:
     def visible_count(self) -> int:
         return self.backend.visible_count()
 
-    def visible_rows(self) -> list[dict[str, Any]]:
+    def visible_rows(self) -> list[Any]:
         return self.backend.visible_rows()
 
     def read_collection_metadata(self) -> dict[str, Any] | None:
@@ -467,7 +455,7 @@ def test_a1_real_extraction_publishes_one_accepted_manifest_and_indexes_it(
 
     # Stage 6 then indexes the accepted documents, unmodified.
     result = index_accepted_documents(workspace)
-    assert result["status"] == OperationStatus.SUCCESS.value
+    assert result["status"] == OperationStatus.SUCCESS.value, result
     assert result["indexed_files"] == 2
     assert result["refused"] == []
 
@@ -475,14 +463,14 @@ def test_a1_real_extraction_publishes_one_accepted_manifest_and_indexes_it(
     # plausible wrong answers (a filename stem, the human slug, a DOI, a title).
     # The new IndexService builds IndexDocumentRequest objects in sources; verify via result.
     by_document = {doc["document_id"]: doc for doc in result["documents"]}
+    parents = orch_module.ResearchOrchestrator(workspace)._accepted_screening_parents()
     for record in manifest.data.documents:
         doc = by_document[record.document_id]
         assert doc["study_id"] == record.study_id
         # A workspace is not a study.
         assert doc["study_id"] != WORKSPACE_ID
-        assert doc["parent_artifact_id"] in {
-            parent.artifact_id for parent in manifest.inputs
-        }
+        assert doc["parent_artifact_id"] == outcome.artifact_id
+        assert doc["screening_decision_id"] == parents[record.study_id]["decision_id"]
         for derived in (
             record.extracted_path,
             SLUG,
@@ -817,7 +805,7 @@ def test_a3_producer_records_the_indexing_outcome_it_observed(
     events = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
     assert len(events) == 1
     assert events[0]["status"] == OperationStatus.SUCCESS.value
-    assert events[0]["metrics"]["indexed_files"] == 1
+    assert events[0]["metrics"]["accepted_documents"] == 1
 
 
 def test_a3_indexing_nothing_is_failed_never_success(
@@ -834,7 +822,8 @@ def test_a3_indexing_nothing_is_failed_never_success(
 
     assert result["indexed_files"] == 0
     assert result["status"] == OperationStatus.FAILED.value
-    event = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"][-1]
+    assert not [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_BUILT"]
+    event = [e for e in _journal(workspace) if e["action"] == "RAG_INDEX_REJECTED"][-1]
     assert event["status"] == OperationStatus.FAILED.value
 
 

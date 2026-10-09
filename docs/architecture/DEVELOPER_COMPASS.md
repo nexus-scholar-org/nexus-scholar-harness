@@ -270,8 +270,10 @@ recorded in the current position above.
 
 ### Packet E3 — chunk and index boundary
 
-**Status:** adopted and closed with recorded causes for the three blocked
-harness conformance IDs in `wp01_packet_e3_completion_report.md`.
+**Status:** adopted. The three historically blocked harness conformance IDs
+now execute against the pinned kit; installer and obsolete-mock repairs are
+recorded in `e3_residual_repair.md`. The original completion report retains
+its historical qualified verdict.
 
 Mint stable chunk IDs from the accepted document/extraction lineage. Publish an
 index manifest containing the exact extraction parents, chunking configuration,

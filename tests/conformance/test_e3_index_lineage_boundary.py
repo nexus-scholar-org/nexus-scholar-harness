@@ -61,9 +61,9 @@ Harness-live ledger rows (each names its handoff class and its exact test):
         INDEX_SERVICE_OUTCOMES + ACCEPTANCE_SCHEMA_VERSION + chromadb/torch
         absent; step has no continue-on-error so green jobs entail probe green).
 
-Kit-side-only and adapter-future IDs, **explicitly MISSING, never re-proven**
-(the ``MISSING`` table below; each marker checks that its reason is still true
-and then skips, so none of them can pass vacuously):
+Kit-owned IDs are proof-bound to their owner. The former environment-blocked
+021/022/050 rows now execute the pinned kit battery below, including the exact
+refusal types and zero-publication assertions. No ledger ID is skipped:
 
     ``E3-NEG-009`` (C-09), ``E3-NEG-011`` (C-10) -- the eligibility join is the
         kit's proof (``index_service.py`` ``eligibility join``); the harness only
@@ -84,9 +84,8 @@ and then skips, so none of them can pass vacuously):
         event belongs to the ``index-acceptance-v1`` adapter
         (``src/scholar_harness/index_acceptance.py``); the kit journals only its
         own run report (live: ``test_e3_neg_037_...`` / ``test_e3_pos_008_...``).
-    ``E3-POS-009`` (§9 / RAG-014) -- T-100 has not landed: the agent-kit MCP
-        surface still declares ``workspace_id: str = None``
-        (``server.py:830``); no parity is claimed here.
+    ``E3-POS-009`` (§9 / RAG-014) -- the agent-kit declares indexing unsupported
+        over MCP; the harness tripwire preserves that declaration.
 
 Diagnostic case (``test_e3_diagnostic_real_chroma_...``)
     The one real-Chroma reproducer the blocked kit task requires: a real
@@ -694,9 +693,8 @@ def test_e3_neg_013_zero_accepted_run_is_failed_never_success(
 ) -> None:
     """E3-NEG-013 / the ``NO_DOCUMENTS_TO_INDEX`` shape: emptiness is FAILED.
 
-    The empty-sources limb of ``_run_indexing_stage`` is exercised white-box
-    (the typed request constructor itself refuses an empty source list, so no
-    public path reaches the limb with a real request): the harness shape is
+    The recorded-document provider supplies an empty set; real request building
+    must refuse before constructing a kit request or opening an embedder. The shape is
     ``status == FAILED`` with a ``NO_DOCUMENTS_TO_INDEX`` refusal, a FAILED
     ``RAG_INDEX_REJECTED`` event, and no store directory -- and it is never a
     success string and never an empty successful result.
@@ -708,8 +706,8 @@ def test_e3_neg_013_zero_accepted_run_is_failed_never_success(
     orch = ResearchOrchestrator(workspace)
     monkeypatch.setattr(
         ResearchOrchestrator,
-        "_build_index_service_request",
-        lambda self, **_: SimpleNamespace(sources=[]),
+        "_accepted_document_records",
+        lambda self: {},
     )
 
     result, _indexer = orch._run_indexing_stage(target)
@@ -913,7 +911,7 @@ def test_e3_neg_028_sources_are_deterministically_ordered(
 
     Stage 6 sorts documents by ``document_id`` before building sources, so an
     unsorted ``glob`` order cannot observably move a fingerprint. Positional-id
-    reuse itself is the kit's proof and is MISSING below.
+    reuse itself is the kit's proof, not this request-inspection test.
     """
 
     _mock_embedder(monkeypatch)
@@ -1103,8 +1101,8 @@ def test_e3_pos_007_refusal_proves_zero_publication(
         before_registry = (workspace / "audit" / "artifact_registry.json").read_bytes()
         monkeypatch.setattr(
             ResearchOrchestrator,
-            "_build_index_service_request",
-            lambda self, **_: SimpleNamespace(sources=[]),
+            "_accepted_document_records",
+            lambda self: {},
         )
         result, _indexer = ResearchOrchestrator(workspace)._run_indexing_stage(
             tmp_path / "chroma"
@@ -1509,12 +1507,12 @@ def test_e3_neg_039_publication_time_parent_type_is_rechecked(
 
 # --------------------------------------------------------------------------- #
 # T-136 proof-bound rows as repaired by R1 and closed by the CI wheel smoke
-# (E3-012): 7 proof-bound + 1 wheel-live (POS-012) + 3 MISSING
+# (E3-012): kit proof-bound rows plus the wheel-live POS-012
 # --------------------------------------------------------------------------- #
 #
-# T-136 closed 11 MISSING rows as proof-bound. R1 restores honesty: E3-NEG-021,
-# E3-NEG-022, E3-NEG-050 return to MISSING (blocked-on-kit-behavior-until-proven;
-# the harness venv is stale, clean 15a7a5a is green). E3-POS-012 is LIVE: the
+# T-136 R1 correctly blocked 021/022/050 when the environment loaded stale code.
+# The repaired installer and pinned execution battery below close those rows.
+# E3-POS-012 is LIVE: the
 # static declared-imports test below is the declared half plus the CI Smoke-step
 # E3 import probe green in PR #75 run 37896825642 (all six lint-and-test jobs
 # green: ubuntu/windows/macos x 3.11/3.12, each running the Smoke step WITH the
@@ -2024,108 +2022,61 @@ def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# MISSING -- R1 honesty restoration (3 blocked rows; POS-012 is LIVE)
-# --------------------------------------------------------------------------- #
-
-#: R1 restores 3 honest MISSING rows: E3-NEG-021, E3-NEG-022, E3-NEG-050 are
-#: blocked-on-kit-behavior-until-proven (harness venv resolves scholar_rag to
-#: stale 033191e while the pin is 15a7a5a; clean 15a7a5a is green). E3-POS-012
-#: is LIVE via the static declared-imports test above plus the CI Smoke-step E3
-#: import probe green in PR #75 run 37896825642 (all six lint-and-test jobs
-#: green: ubuntu/windows/macos x 3.11/3.12, each running the Smoke step WITH
-#: the E3 import probe; step has no continue-on-error so green jobs entail
-#: probe green). The remaining 26 IDs are
-#: harness-live or proof-bound. Do not re-close a blocked row with a loosened
-#: tripwire; close it only with an exact-type green execution.
-MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = (
-    (
-        "E3-NEG-021",
-        "§10.2 C-12",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        "_refuse_path_shaped",
-        True,
-        "blocked-on-kit-behavior-until-proven (R1): T-90 021[2 params] is VALIDATION_ERROR under stale 033191e vs PATH_OUTSIDE_WORKSPACE at pinned 15a7a5a (clean green); harness never synthesizes a path",
-    ),
-    (
-        "E3-NEG-022",
-        "§10.2 C-12",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        "docs_destination",
-        True,
-        "blocked-on-kit-behavior-until-proven (R1): T-90 022 is VALIDATION_ERROR under stale 033191e vs PATH_OUTSIDE_WORKSPACE at pinned 15a7a5a (clean green)",
-    ),
-    (
-        "E3-NEG-050",
-        "§10.2 C-11",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        "EXTRACTED_CONTENT_CHANGED",
-        True,
-        "blocked-on-kit-behavior-until-proven (R1): T-90 050[2 params] is SUCCESS/exit 0 under stale 033191e vs PARTIAL/exit 3 at pinned 15a7a5a (clean green); no Stage 6 check",
-    ),
-)
 
 
-def _proof_haystack(path: Path) -> str:
-    if path.is_dir():
-        return "\n".join(
-            candidate.read_text(encoding="utf-8")
-            for candidate in sorted(path.rglob("*.py"))
-        )
-    return path.read_text(encoding="utf-8")
+# Closed by executing the canonical battery against the harness-selected code.
+# The previous environment diagnosis is retained above as historical evidence.
+MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = ()
 
 
-@pytest.mark.parametrize(
-    "ledger_id,row,proof_path,needle,must_contain,reason",
-    [pytest.param(*row, id=row[0]) for row in MISSING],
-)
-def test_e3_missing_ids_are_explicitly_not_covered_here(
-    ledger_id: str,
-    row: str,
-    proof_path: Path,
-    needle: str,
-    must_contain: bool,
-    reason: str,
+@pytest.fixture
+def pinned_service_battery(monkeypatch: pytest.MonkeyPatch) -> Any:
+    import scholar_rag.index_service as service
+
+    expected = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    assert Path(service.__file__).resolve() == expected.resolve()
+    path = REPO_ROOT / "tools/scholar-rag-kit/tests/test_index_service.py"
+    spec = importlib.util.spec_from_file_location("e3_pinned_service_battery", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setattr(module.cli, "get_embedder", lambda **_: module.t90_embedder)
+    return module
+
+
+@pytest.mark.parametrize("bad_path", ["/escape/x.md", "../escape/x.md"])
+def test_e3_neg_021_pinned_path_escape_refuses_before_io(
+    tmp_path: Path, pinned_service_battery: Any, bad_path: str
 ) -> None:
-    """Each blocked/open ledger ID is an honest marker, never a vacuous pass.
+    pinned_service_battery.test_t90_neg_021_a_path_shaped_escape_is_refused_before_any_backend_write(
+        tmp_path, None, bad_path, bad_path
+    )
 
-    The needle check keeps the marker honest: it proves the cited owner is
-    still the true state of the tree. The skip then records that this file
-    claims no coverage for the row until the blocked kit behavior is proven.
-    """
 
-    assert proof_path.exists(), f"the MISSING proof path moved: {proof_path}"
-    haystack = _proof_haystack(proof_path)
-    if must_contain:
-        assert needle in haystack, (
-            f"MISSING {ledger_id} ({row}): the cited owner no longer shows "
-            f"{needle!r} -- revisit the marker, the ownership may have moved"
+def test_e3_neg_022_pinned_docs_scope_refuses_before_io(
+    tmp_path: Path, pinned_service_battery: Any
+) -> None:
+    pinned_service_battery.test_t90_neg_022_a_parent_document_outside_the_docs_scope_is_refused(
+        tmp_path
+    )
+
+
+@pytest.mark.parametrize("surface", ["api", "cli"])
+def test_e3_neg_050_pinned_stale_bytes_are_not_indexed(
+    tmp_path: Path, pinned_service_battery: Any, surface: str
+) -> None:
+    if surface == "api":
+        pinned_service_battery.test_t90_neg_050_changed_bytes_at_a_committed_path_are_rejected_not_indexed(
+            tmp_path
         )
     else:
-        assert needle not in haystack, (
-            f"MISSING {ledger_id} ({row}): {needle!r} now appears under "
-            f"{proof_path} -- the future work may have landed; convert this "
-            "marker into a live test instead of skipping"
+        pinned_service_battery.test_t90_neg_050_the_cli_reports_changed_bytes_at_a_committed_path(
+            tmp_path, None
         )
-    pytest.skip(f"MISSING {ledger_id} ({row}): {reason}")
 
 
 def test_e3_no_bare_missing_ids_remain() -> None:
-    """R1 honesty: exactly the 3 blocked rows remain MISSING.
-
-    E3-NEG-021, E3-NEG-022, E3-NEG-050 are blocked-on-kit-behavior-until-proven;
-    E3-POS-012 is LIVE via the static declared-imports test plus the CI Smoke-step
-    E3 import probe green in PR #75 run 37896825642 (all six lint-and-test jobs
-    green: ubuntu/windows/macos x 3.11/3.12; step has no continue-on-error so
-    green jobs entail probe green). No other bare row may be re-added
-    without failing the ledger-index invariant below.
-    """
-
-    assert {row[0] for row in MISSING} == {
-        "E3-NEG-021",
-        "E3-NEG-022",
-        "E3-NEG-050",
-    }
-    assert len(MISSING) == 3
+    assert MISSING == ()
 
 
 # --------------------------------------------------------------------------- #
@@ -2322,8 +2273,7 @@ def test_e3_diagnostic_real_chroma_index_workspace_reproducer(
 
 #: Landed here so the ledger-ID -> test mapping survives refactors that move
 #: the tests above. Every one of the 29 required IDs names exactly one owner.
-#: R1 + POS-012 close-out: 26 live/proof-bound, 3 honest MISSING (021/022/050
-#: blocked-on-kit-behavior-until-proven; E3-POS-012 is LIVE via the static
+#: All 29 rows now have live/proof-bound owners. E3-POS-012 is LIVE via the static
 #: declared-imports test plus the CI Smoke-step E3 import probe green in PR #75
 #: run 37896825642 (all six lint-and-test jobs green; step has no
 #: continue-on-error so green jobs entail probe green)).
@@ -2337,8 +2287,8 @@ LEDGER_INDEX: dict[str, str] = {
     "E3-NEG-015": "test_e3_neg_015_malformed_parent_refuses_before_any_store",
     "E3-NEG-016": "test_e3_neg_016_no_manifest_refuses_before_touching_a_store",
     "E3-NEG-017": "test_e3_neg_017_kit_parent_hash_mismatch_is_proof_bound",
-    "E3-NEG-021": "MISSING (blocked-on-kit-behavior-until-proven)",
-    "E3-NEG-022": "MISSING (blocked-on-kit-behavior-until-proven)",
+    "E3-NEG-021": "test_e3_neg_021_pinned_path_escape_refuses_before_io",
+    "E3-NEG-022": "test_e3_neg_022_pinned_docs_scope_refuses_before_io",
     "E3-NEG-026": "test_e3_neg_026_embedder_identity_is_explicit_in_the_request",
     "E3-NEG-028": "test_e3_neg_028_sources_are_deterministically_ordered",
     "E3-NEG-030": "test_e3_neg_030_kit_per_study_uniqueness_is_proof_bound",
@@ -2351,7 +2301,7 @@ LEDGER_INDEX: dict[str, str] = {
     "E3-NEG-039": "test_e3_neg_039_publication_time_parent_type_is_rechecked",
     "E3-NEG-048": "test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored",
     "E3-NEG-049": "test_e3_neg_049_protocol_mutation_breaks_generation_agreement",
-    "E3-NEG-050": "MISSING (blocked-on-kit-behavior-until-proven)",
+    "E3-NEG-050": "test_e3_neg_050_pinned_stale_bytes_are_not_indexed",
     "E3-POS-005": "test_e3_pos_005_harness_fixture_matches_kit_golden_bytes "
     "+ test_e3_pos_005_baseline_chunk_id_rederives_from_the_fixture_limbs",
     "E3-POS-007": "test_e3_pos_007_refusal_proves_zero_publication",
@@ -2402,14 +2352,7 @@ def test_e3_ledger_index_covers_every_required_id() -> None:
         for ledger_id, owner in LEDGER_INDEX.items()
         if owner.startswith("MISSING")
     }, "every MISSING table row must match the index, and vice versa"
-    assert len(MISSING) == 3, (
-        f"R1 honesty: 3 MISSING expected (021/022/050 blocked; POS-012 live), "
-        f"got {len(MISSING)}: {sorted(missing_ids)}"
-    )
+    assert MISSING == ()
     assert {
         lid for lid, owner in LEDGER_INDEX.items() if owner.startswith("MISSING")
-    } == {
-        "E3-NEG-021",
-        "E3-NEG-022",
-        "E3-NEG-050",
-    }
+    } == set()
