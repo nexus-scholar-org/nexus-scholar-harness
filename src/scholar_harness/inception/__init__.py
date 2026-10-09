@@ -121,9 +121,35 @@ class _InceptionModule(types.ModuleType):
         super().__setattr__(name, value)
         for submod in (genesis, grounded, intent, wizard, display):
             if hasattr(submod, name):
-                setattr(submod, name, value)
+                try:
+                    setattr(submod, name, value)
+                except Exception:
+                    pass
+        # HCM-02: loader ownership moved to workspace.loader, but existing
+        # hermetic tests patch ``inception._bundled_skills_root`` /
+        # ``inception.resolve_*``. Propagate those patches to the neutral
+        # loader so tmp_path bundle fixtures keep working without editing tests.
+        if name in (
+            "_bundled_skills_root",
+            "bundled_skills_root",
+            "resolve_skills_root",
+            "resolve_workspace_manager_scripts",
+            "load_log_module_uncached",
+            "load_index_refresher_uncached",
+        ):
+            try:
+                from scholar_harness.workspace import loader as _neutral_loader
+
+                if hasattr(_neutral_loader, name):
+                    setattr(_neutral_loader, name, value)
+                # ``_bundled_skills_root`` (private) backs the public
+                # ``bundled_skills_root`` in the neutral loader; keep both in sync.
+                if name == "_bundled_skills_root" and hasattr(
+                    _neutral_loader, "bundled_skills_root"
+                ):
+                    setattr(_neutral_loader, "bundled_skills_root", value)
+            except Exception:
+                pass
 
 
 sys.modules[__name__].__class__ = _InceptionModule
-
-

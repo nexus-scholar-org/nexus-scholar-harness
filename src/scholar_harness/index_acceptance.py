@@ -94,7 +94,7 @@ from scholar_rag.index_manifest import (
 from scholar_rag.index_verifier import verify_backend
 from scholar_rag.replacement import ReplacementError
 
-from scholar_harness.console.api.audit import log_event
+from scholar_harness.workspace.audit import log_event
 from scholar_harness.contracts.acceptance import ArtifactRegistry
 from scholar_harness.contracts.canonical import (
     canonical_fingerprint,

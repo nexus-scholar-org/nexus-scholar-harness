@@ -5,9 +5,10 @@ keep the workspace-manager audit contract -- ``audit/journal.jsonl`` appends +
 an ``INDEX.md`` refresh -- without reaching a repo-relative ``scripts/`` path.
 
 The workspace-manager ``log_event.py`` script is located and loaded in-process
-through P7.3's wheel-portable skills resolver (``NEXUS_SKILLS_SRC`` env
-override -> wheel-bundled ``scholar_harness_data/skills`` -> repo
-``.agents/skills``; see :func:`scholar_harness.inception.resolve_skills_root`),
+through the neutral wheel-portable skills resolver
+(:func:`scholar_harness.workspace.loader.resolve_skills_root`:
+``NEXUS_SKILLS_SRC`` env override -> wheel-bundled
+``scholar_harness_data/skills`` -> repo ``.agents/skills``),
 and its canonical event schema / workspace-resolution preconditions are used
 unchanged.  This module is only the CLI surface: ``event``/``batch``
 orchestration + a ``sync-index`` shortcut.
@@ -23,13 +24,19 @@ from typing import Any
 import typer
 from rich.console import Console
 
-from .inception import _load_log_module
+from .workspace.errors import NotWorkspaceError
+from .workspace.loader import load_log_module_uncached
+from .workspace.audit import resolve_workspace as _neutral_resolve_workspace
 
 console = Console()
 
 
-class _NotWorkspaceError(Exception):
-    """Raised when a target cannot be resolved to a Nexus Scholar workspace."""
+class _NotWorkspaceError(NotWorkspaceError):
+    """Raised when a target cannot be resolved to a Nexus Scholar workspace.
+
+    Subclasses the neutral :class:`workspace.errors.NotWorkspaceError` so
+    existing ``except _NotWorkspaceError`` seams keep working after migration.
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -40,42 +47,42 @@ class _NotWorkspaceError(Exception):
 def _resolve_log_module():
     """Load ``workspace-manager/scripts/log_event.py`` in-process.
 
-    Thin wrapper over P7.3's cached :func:`scholar_harness.inception._load_log_module`,
-    which already walks the wheel-portable source roots: ``NEXUS_SKILLS_SRC``
-    env override, the wheel-bundled ``scholar_harness_data/skills`` tree
-    (``uvx --from nexus-scholar`` with no repo checkout), then the repository
-    ``.agents/skills``.  Returns ``None`` when the script is unreachable.
+    Thin adapter over the neutral
+    :func:`workspace.loader.load_log_module_uncached` (same
+    ``NEXUS_SKILLS_SRC``/wheel/repo precedence, CWD-independent, uncached for
+    hermetic fault injection). Returns ``None`` when the script is unreachable.
     """
-    module = _load_log_module()
+    module = load_log_module_uncached()
     if module is None or not (
         hasattr(module, "log_project_event") and hasattr(module, "refresh_index_md")
     ):
         return None
+    # Backward-compat shim (HCM-02): existing wheel-bundle tests assert
+    # ``inception._log_module_ref`` points at the resolved bundle. Publish the
+    # neutral result there (best-effort, no hard dependency for the hot path).
+    try:
+        from . import inception as _inception
+
+        _inception._log_module_ref = module
+        _inception._log_module_tried = True
+    except Exception:
+        pass
     return module
 
 
 def _resolve_workspace(project_path_or_slug: str | Path) -> Path:
-    """Resolve a workspace by path or slug -- mirror of ``log_event.py`` L171-179.
+    """Resolve a workspace by path or slug (strict, no ledger on refusal).
 
-    The script uses the given path directly when it is a directory holding
-    ``project.json``; otherwise it falls back to the CWD-relative
-    ``workspaces/<slug>`` candidate (restricted, as in the script, to an
-    existing directory).  Per the P7.6 contract the slug fallback applies only
-    when the input is *not* an existing directory (a non-workspace dir path is
-    refused rather than silently given an ``audit/`` ledger -- the single
-    deliberate divergence from the script, which would otherwise create one
-    inside any plain dir, and on Windows would re-resolve any absolute path
-    through its naive ``workspaces/<abs>`` join).
+    Thin adapter over :func:`workspace.audit.resolve_workspace`: path-with-
+    ``project.json`` resolves; otherwise the CWD-relative ``workspaces/<slug>``
+    candidate; a plain dir or missing target raises :class:`_NotWorkspaceError`
+    without creating an ``audit/`` ledger (deliberate divergence from the
+    lenient script).
     """
-    path = Path(project_path_or_slug)
-    if path.is_dir():
-        if (path / "project.json").exists():
-            return path
-        raise _NotWorkspaceError(str(project_path_or_slug))
-    candidate = Path("workspaces") / str(project_path_or_slug)
-    if candidate.is_dir():
-        return candidate
-    raise _NotWorkspaceError(str(project_path_or_slug))
+    try:
+        return _neutral_resolve_workspace(project_path_or_slug)
+    except NotWorkspaceError as exc:
+        raise _NotWorkspaceError(str(exc)) from exc
 
 
 def _require_log_module():
@@ -256,7 +263,9 @@ def run_log_batch(workspace: str, events_file: Path) -> None:
         "INDEX.md refreshed"
     )
     if errors or write_failures:
-        console.print(f"[bold yellow]\u26a0  Partial completion -- {summary}[/bold yellow]")
+        console.print(
+            f"[bold yellow]\u26a0  Partial completion -- {summary}[/bold yellow]"
+        )
         raise typer.Exit(1)
     console.print(f"[bold green]\u2705 {summary}[/bold green]")
 

@@ -99,7 +99,7 @@ from scholar_pdf.frontmatter import (
 from scholar_protocol.canonical import canonical_fingerprint as protocol_fingerprint
 from scholar_protocol.models import ResearchProtocol
 
-from scholar_harness.console.api.audit import log_event
+from scholar_harness.workspace.audit import log_event
 from scholar_harness.contracts.acceptance import (
     AcceptanceContext,
     ArtifactRegistry,

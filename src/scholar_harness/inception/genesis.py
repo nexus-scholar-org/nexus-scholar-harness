@@ -32,17 +32,28 @@ from .intent import (
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # ---------------------------------------------------------------------------
-# Skill / workspace-manager source resolution (P7.3)
+# Skill / workspace-manager source resolution (P7.3) -- thin adapters.
 #
-# The distribution wheel bundles the skills tree under
-# ``scholar_harness_data/skills`` (a top-level data dir, never a namespace that
-# could collide with a kit package).  ``nexus-scholar init`` resolves the skill
-# source with the same precedence everywhere: NEXUS_SKILLS_SRC env override ->
-# wheel bundle -> repository ``.agents/skills``.  The workspace-manager
-# ``scripts/`` dir (init_project.py, log_event.py) is located through the same
-# resolver so ``inception`` and ``init`` keep the audit convention in the wheel
-# env, where the repo-relative path does not exist.
+# Neutral ownership lives in :mod:`scholar_harness.workspace.loader`; the names
+# below are retained for backward compatibility (tests and CLI import them from
+# genesis/inception). Precedence everywhere remains: NEXUS_SKILLS_SRC env
+# override -> wheel bundle -> repository ``.agents/skills`` (CWD-independent).
 # ---------------------------------------------------------------------------
+
+# Re-exported for backward compatibility; canonical definitions live in workspace.
+from ..workspace.errors import RegisteredWorkspaceIdentityMissingError  # noqa: F401
+from ..workspace.identity import (  # noqa: F401
+    REGISTERED_WORKSPACE_ID,
+    SHA_LEN,
+    mint_registered_workspace_id,
+    recorded_or_minted_workspace_id,
+    validate_registered_workspace_id,
+)
+from ..workspace.loader import (  # noqa: F401
+    bundled_skills_root as _bundled_skills_root,
+    resolve_skills_root,
+    resolve_workspace_manager_scripts,
+)
 
 SKILL_SOURCE_ENV = "NEXUS_SKILLS_SRC"
 _BUNDLED_SKILLS_PACKAGE = "scholar_harness_data"
@@ -59,82 +70,28 @@ INIT_MARKERS = (
 )
 
 _LOGIMPORT_NAME = "workspace_manager_log_event"
+# Deprecated cache variables retained so existing
+# ``monkeypatch.setattr(inception, "_log_module_ref", ...)`` seams do not error;
+# the neutral loader is uncached (hermetic), so these are no longer consulted.
 _log_module_ref: Any | None = None
 _log_module_tried = False
 
 
-def _bundled_skills_root() -> Path | None:
-    """Locate the skills tree bundled inside the installed distribution wheel."""
-    try:
-        spec = importlib.util.find_spec(_BUNDLED_SKILLS_PACKAGE)
-    except (ImportError, ValueError):
-        return None
-    for location in getattr(spec, "submodule_search_locations", None) or []:
-        candidate = Path(location) / _BUNDLED_SKILLS_REL
-        if candidate.is_dir():
-            return candidate
-    return None
-
-
-def resolve_skills_root() -> Path | None:
-    """Resolve the skills source root (a dir of ``<name>/SKILL.md`` children).
-
-    Precedence (P7.3): ``NEXUS_SKILLS_SRC`` env override, then the skills
-    bundled inside the installed wheel, then the repository checkout's
-    ``.agents/skills``.
-    """
-    env = os.environ.get(SKILL_SOURCE_ENV)
-    if env:
-        candidate = Path(env).expanduser().resolve()
-        if candidate.is_dir():
-            return candidate
-    bundled = _bundled_skills_root()
-    if bundled is not None:
-        return bundled
-    repo = REPO_ROOT / ".agents" / "skills"
-    return repo if repo.is_dir() else None
-
-
-def resolve_workspace_manager_scripts() -> Path | None:
-    """Locate the workspace-manager ``scripts/`` dir (wheel-portable)."""
-    skills = resolve_skills_root()
-    if skills is None:
-        return None
-    candidate = skills / "workspace-manager" / "scripts"
-    return candidate if candidate.is_dir() else None
-
-
 def _load_log_module():
-    """Load ``log_event.py`` (workspace-manager) in-process, cached.
+    """Load ``log_event.py`` (workspace-manager) in-process.
 
-    Mirrors the pattern in ``scholar_harness.console.api.audit`` but resolves
-    the script through the wheel-portable skills resolver and registers the
-    module under a distinct name so a wheel env and the harness console can
-    coexist.
+    Thin adapter over the neutral uncached loader (same precedence). Uncached
+    so ``NEXUS_SKILLS_SRC``/wheel fixtures under ``tmp_path`` are always honored
+    without manual cache clearing. Publishes to the deprecated module globals
+    for backward-compat assertions.
     """
     global _log_module_ref, _log_module_tried
-    if _log_module_tried:
-        return _log_module_ref
+    from ..workspace.loader import load_log_module_uncached
+
+    module = load_log_module_uncached()
+    _log_module_ref = module
     _log_module_tried = True
-    scripts = resolve_workspace_manager_scripts()
-    if scripts is None:
-        return None
-    script = scripts / "log_event.py"
-    if not script.is_file():
-        return None
-    try:
-        spec = importlib.util.spec_from_file_location(_LOGIMPORT_NAME, script)
-        if spec is None or spec.loader is None:
-            return None
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[_LOGIMPORT_NAME] = module
-        spec.loader.exec_module(module)
-        if not hasattr(module, "log_project_event"):
-            return None
-        _log_module_ref = module
-    except (ImportError, OSError, TypeError, ValueError, SyntaxError, AttributeError):
-        _log_module_ref = None
-    return _log_module_ref
+    return module
 
 
 def _log_project_event(
@@ -250,125 +207,11 @@ def scaffold_project(
     return ws_root / "workspaces" / slug
 
 
-def mint_registered_workspace_id() -> str:
-    """Mint the registered workspace identity recorded in ``project.json``.
-
-    The Contract v1 identifier registry admits exactly one registered form for a
-    workspace, ``WSP-<opaque>`` (``IdentifierKind.WORKSPACE``), so a human slug
-    such as ``evidence-synthesis`` is not a workspace identity and every typed
-    surface refuses it. The registered identity is therefore minted here, once, at
-    project initialization and recorded in ``project.json`` as
-    ``registered_workspace_id``; ``project_id`` keeps the human slug.
-
-    The suffix is 32 lowercase hex characters drawn from ``secrets`` (the OS
-    CSPRNG), so two workspaces never collide and the value cannot be guessed from
-    the title. The candidate is validated against the frozen registry before it is
-    returned: a mint that would not validate is a bug, never a value to paper over.
-
-    This is the only mint point for a workspace identity in the harness. Consumers
-    must record and re-read it -- minting at use time would let one workspace
-    present two identities, and deriving one from a slug would fabricate it.
-
-    Mirrored in ``.agents/skills/workspace-manager/scripts/init_project.py``, the
-    other ``project.json`` writer, which runs as a standalone script and so cannot
-    import this package. Both writers are held to the same shape by
-    ``tests/inception/test_registered_workspace_id.py``.
-    """
-    candidate = f"{primary_prefix(IdentifierKind.WORKSPACE)}{secrets.token_hex(16)}"
-    return validate_identifier(IdentifierKind.WORKSPACE, candidate)
-
-
-class RegisteredWorkspaceIdentityMissingError(RuntimeError):
-    """A recorded workspace identity is absent, unusable, or not registered.
-
-    This is the single typed refusal for workspace identity across the harness. It
-    is defined here, beside the mint policy that creates the identity, and is
-    imported by :mod:`scholar_harness.orchestrator`, so a caller can catch one
-    exception type whether the refusal came from creating a workspace or from
-    reading one back. Nothing is ever minted to get past it: a substitute identity
-    would let one workspace present two identities and destroy lineage.
-    """
-
-
-#: Hex characters in the opaque part of a registered workspace identity.
-SHA_LEN = 32
-
-#: The registered workspace identity is exactly ``WSP-`` plus 32 lowercase hex.
-#: Stricter than the registry's prefix check on purpose: the registry admits any
-#: opaque ``WSP-`` limb, but a recorded identity that is not in canonical form is
-#: legacy debt to be classified, not an identity to index under.
-REGISTERED_WORKSPACE_ID = re.compile(rf"^WSP-[0-9a-f]{{{SHA_LEN}}}$")
-
-
-def validate_registered_workspace_id(value: str) -> str:
-    """Return ``value`` if it is a registered workspace identity, else refuse.
-
-    Enforces the canonical ``WSP-`` + 32 lowercase hex form *and* the frozen
-    Contract v1 registry, so the harness never states an identity the typed
-    surfaces would reject.
-    """
-    candidate = value.strip()
-    if not REGISTERED_WORKSPACE_ID.fullmatch(candidate):
-        raise RegisteredWorkspaceIdentityMissingError(
-            f"{value!r} is not a registered workspace identity: the registered "
-            f"form is WSP-<{SHA_LEN} lowercase hex>. Fix: replace the recorded "
-            f"value with a registered identity, or re-create the workspace."
-        )
-    return validate_identifier(IdentifierKind.WORKSPACE, candidate)
-
-
-def recorded_or_minted_workspace_id(ws_dir: Path) -> str:
-    """Resolve a workspace's identity under one fail-closed policy.
-
-    Minting is permitted only when the workspace has no recorded identity to lose:
-    a missing ``project.json``, or a readable manifest without the field. Every
-    other case is a typed refusal rather than a fresh identity, because silently
-    minting over recorded state is silent re-identification -- artifacts already
-    accepted under the old id would no longer share a workspace.
-
-    The policy, identical in both ``project.json`` creators:
-
-    * no manifest / manifest without ``registered_workspace_id`` -> mint;
-    * recorded value that is not ``WSP-<32 hex>`` -> refuse, naming the value;
-    * unreadable, corrupt, or non-object ``project.json`` -> refuse, naming the
-      path and the corruption.
-
-    The workspace-manager copy of this function restates the policy verbatim
-    because that script runs standalone; ``tests/inception/test_registered_workspace_id.py``
-    runs both creators over the same cases so the two cannot drift.
-    """
-    manifest_path = ws_dir / "project.json"
-    if not manifest_path.is_file():
-        return mint_registered_workspace_id()
-
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise RegisteredWorkspaceIdentityMissingError(
-            f"cannot read the recorded workspace identity from {manifest_path}: "
-            f"{exc}. Repair or re-create project.json rather than minting over "
-            f"recorded state (nexus-scholar init <title>)."
-        ) from exc
-    if not isinstance(manifest, dict):
-        raise RegisteredWorkspaceIdentityMissingError(
-            f"cannot read the recorded workspace identity from {manifest_path}: "
-            f"it is not a JSON object. Repair or re-create project.json rather "
-            f"than minting over recorded state."
-        )
-
-    recorded = manifest.get("registered_workspace_id")
-    if recorded is None:
-        # No identity has ever been recorded for this workspace, so there is no
-        # lineage to destroy and minting creates rather than replaces one.
-        return mint_registered_workspace_id()
-    if not isinstance(recorded, str):
-        raise RegisteredWorkspaceIdentityMissingError(
-            f"{manifest_path} records 'registered_workspace_id' as "
-            f"{type(recorded).__name__} ({recorded!r}) rather than a string. "
-            f"Fix: replace it with a registered identity of the form "
-            f"WSP-<{SHA_LEN} lowercase hex>."
-        )
-    return validate_registered_workspace_id(recorded)
+# Identity policy lives in :mod:`scholar_harness.workspace.identity` (imported
+# above and re-exported here for backward compatibility). No duplication here:
+# ``mint_registered_workspace_id``, ``validate_registered_workspace_id``,
+# ``recorded_or_minted_workspace_id``, ``RegisteredWorkspaceIdentityMissingError``,
+# ``SHA_LEN``, and ``REGISTERED_WORKSPACE_ID`` are the neutral definitions.
 
 
 def scaffold_raw_project(
