@@ -563,7 +563,7 @@ def test_e4_neg_003_chunker_config_change_moves_fingerprints(
     E3 R-7); any other effective key (overlap, heading levels, whitespace,
     sentence pattern, frontmatter stripping) would move the same fingerprints.
     Harness note: check-5 is compute-verification by design, so the fingerprint
-    move above is the detection — no adapter refusal is expected for a bare config change.
+    The adapter must also refuse the changed configuration under stale digests.
     """
 
     _hermetic(monkeypatch)
@@ -611,14 +611,26 @@ def test_e4_neg_003_chunker_config_change_moves_fingerprints(
     )
     assert recomputed["index_fingerprint"] != expected["index_fingerprint"]
 
-    # E4-003: fingerprint computation publishes nothing.
+    from scholar_harness.index_acceptance import accept_index_candidate
+
+    sc_path, _ = _sidecar_payload(workspace)
+    decision = accept_index_candidate(
+        workspace,
+        mutated,
+        run_id=payload.get("run_id", ""),
+        manifest_path=sc_path.relative_to(workspace).as_posix(),
+        reader=sealed.make_live_reader(payload),
+    )
+    assert not decision.accepted and decision.failing_step == 5
+
+    # E4-003: stale configuration acceptance publishes nothing.
     assert (workspace / ACCEPTED_RELPATH).read_bytes() == accepted_before
     assert (workspace / "audit" / "journal.jsonl").read_bytes() == journal_before
     assert [
         e for e in _rag_built_events(workspace) if e["status"] == "SUCCESS"
     ] == built_success_before
     assert _workspace_files(workspace) == files_before, (
-        "compute-only proof writes no files"
+        "refused configuration acceptance writes no files"
     )
     reader = sealed.make_live_reader(payload)
     assert _verify(_TypedManifest.from_payload(payload), reader).matches is True
@@ -641,7 +653,7 @@ def test_e4_neg_004_embedding_identity_change_moves_fingerprints(
     provider or distance would be coarser, dimension alone would also mismatch
     the stored vectors).
     Harness note: check-5 is compute-verification by design, so the fingerprint
-    move above is the detection — no adapter refusal is expected for a bare identity change.
+    The adapter must also refuse the changed identity under stale digests.
     """
 
     _hermetic(monkeypatch)
@@ -679,6 +691,18 @@ def test_e4_neg_004_embedding_identity_change_moves_fingerprints(
         "the old backend must never be queried as compatible"
     )
     assert recomputed["index_fingerprint"] != expected["index_fingerprint"]
+
+    from scholar_harness.index_acceptance import accept_index_candidate
+
+    sc_path, _ = _sidecar_payload(workspace)
+    decision = accept_index_candidate(
+        workspace,
+        mutated,
+        run_id=payload.get("run_id", ""),
+        manifest_path=sc_path.relative_to(workspace).as_posix(),
+        reader=sealed.make_live_reader(payload),
+    )
+    assert not decision.accepted and decision.failing_step == 5
 
     assert (workspace / ACCEPTED_RELPATH).read_bytes() == accepted_before, (
         "E4-003: no new acceptance"
@@ -849,7 +873,20 @@ def test_e4_neg_006_missing_backend_chunk_is_inconsistent(
         "the typed report must carry the missing chunk identity"
     )
 
-    # E4-003: verification publishes nothing.
+    from scholar_harness.index_acceptance import accept_index_candidate
+
+    sc_path, _ = _sidecar_payload(workspace)
+    decision = accept_index_candidate(
+        workspace,
+        payload,
+        run_id=payload.get("run_id", ""),
+        manifest_path=sc_path.relative_to(workspace).as_posix(),
+        reader=mutated_reader,
+    )
+    assert not decision.accepted
+    assert decision.code == "BACKEND_STATE_INCONSISTENT"
+
+    # E4-003: refused acceptance publishes nothing.
     assert _workspace_files(workspace) == files_before, (
         "backend mutation was reader-only; every file byte-identical"
     )
@@ -868,7 +905,7 @@ def test_e4_neg_006_missing_backend_chunk_is_inconsistent(
 def test_e4_rebuild_after_input_change_yields_new_lineage(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """E4-004: one added sentence re-indexes to explicit new lineage (not reuse)."""
+    """E4-004: stale text refuses; renewed source/E2 produces new E3 lineage."""
 
     _hermetic(monkeypatch)
     workspace = sealed.copy_sealed_to(tmp_path)
@@ -880,35 +917,45 @@ def test_e4_rebuild_after_input_change_yields_new_lineage(
 
     mds = sorted((workspace / "extracted").glob("*.md"))
     target = mds[0]
+    original = target.read_bytes()
     target.write_text(
         target.read_text(encoding="utf-8")
         + "A legitimate added sentence for rebuild.\n",
         encoding="utf-8",
     )
 
-    rebuilt = index_accepted_documents(
-        workspace, chroma_dir=tmp_path / "chroma-rebuild"
-    )
-    assert str(rebuilt.get("status")) == "SUCCESS", rebuilt
-    acceptance = rebuilt.get("acceptance") or {}
-    assert acceptance.get("accepted") is True and acceptance.get("reused") is False
-    assert acceptance.get("manifest_id") != expected["manifest_id"], (
-        "new bytes => new manifest identity"
-    )
-    assert acceptance.get("index_fingerprint") != expected["index_fingerprint"]
-    assert str(acceptance.get("manifest_id", "")).startswith("IDX-")
+    from scholar_harness.extraction_producer import PublicationRefused
 
-    accepted_after = json.loads((workspace / ACCEPTED_RELPATH).read_bytes())
-    assert accepted_after["manifest_id"] == acceptance["manifest_id"]
-    assert accepted_after["index_fingerprint"] == acceptance["index_fingerprint"]
-    assert (workspace / ACCEPTED_RELPATH).read_bytes() != accepted_before
-    # Both sidecars remain: the sealed one as history, the rebuilt one current.
-    assert len(_sidecars(workspace)) == 2
+    with pytest.raises(PublicationRefused) as refusal:
+        index_accepted_documents(workspace, chroma_dir=tmp_path / "stale-backend")
+    assert refusal.value.code == "STALE_EXTRACTED_BODY"
+    assert not (tmp_path / "stale-backend").exists()
+    assert (workspace / ACCEPTED_RELPATH).read_bytes() == accepted_before
+    from scholar_harness.index_acceptance import accept_index_candidate
+
+    sc_path, payload = _sidecar_payload(workspace)
+    decision = accept_index_candidate(
+        workspace,
+        payload,
+        run_id=payload.get("run_id", ""),
+        manifest_path=sc_path.relative_to(workspace).as_posix(),
+        reader=sealed.make_live_reader(payload),
+    )
+    assert not decision.accepted and decision.failing_step == 4
+    target.write_bytes(original)
+
+    # A new review generation accepts changed source and extracted bytes through
+    # E2 before E3; the old generation remains historical and byte-identical.
+    renewed = tmp_path / "renewed-generation"
+    seal = sealed.build_sealed_fixture(
+        renewed, revision="A legitimate added sentence for rebuild.\n"
+    )
+    assert seal["expected"]["e2_artifact_id"] != expected["e2_artifact_id"]
+    assert seal["expected"]["manifest_id"] != expected["manifest_id"]
+    assert seal["expected"]["index_fingerprint"] != expected["index_fingerprint"]
+    _, raw = read_accepted_record(renewed)
+    assert raw is not None and raw["status"] == "SUCCESS"
+    assert (workspace / ACCEPTED_RELPATH).read_bytes() == accepted_before
     assert {
         p.relative_to(workspace).as_posix() for p in _sidecars(workspace)
-    } > sidecars_before
-    events = _rag_built_events(workspace)
-    assert len([e for e in events if e["status"] == "SUCCESS"]) == 2
-    assert events[-1]["parameters"]["manifest_id"] == acceptance["manifest_id"]
-    _, raw = read_accepted_record(workspace)
-    assert raw is not None and raw["manifest_id"] == acceptance["manifest_id"]
+    } == sidecars_before

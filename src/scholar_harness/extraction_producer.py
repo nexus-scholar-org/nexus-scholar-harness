@@ -1389,6 +1389,34 @@ def _refuse_if_extracted_body_changed(workspace: Path, candidate: Candidate) -> 
     )
 
 
+def validate_extraction_currentness(workspace: Path, artifact_id: str) -> None:
+    """Check recorded E2 file hashes without rebuilding or publishing a candidate."""
+    path = _publication_record_path(workspace, artifact_id)
+    if path is None:
+        return
+    try:
+        recorded = json.loads(path.read_text(encoding="utf-8"))
+        for item in recorded["documents"]:
+            extracted = _resolve_inside(workspace, item["extracted_path"])
+            # Missing files are classified by Stage 6's existing preflight.
+            if not extracted.is_file():
+                continue
+            current = sha256_bytes(extracted.read_bytes())
+            if current != item["extracted_file_sha256"]:
+                raise PublicationRefused(
+                    "STALE_EXTRACTED_BODY",
+                    "Extracted bytes differ from the accepted E2 publication.",
+                    artifact_id=artifact_id,
+                    extracted_path=item["extracted_path"],
+                    published=item["extracted_file_sha256"],
+                    current=current,
+                )
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise PublicationRefused(
+            "PUBLICATION_RECORD_UNREADABLE", "Recorded E2 hashes cannot be verified."
+        ) from exc
+
+
 def _log_publication_event(
     workspace: Path,
     outcome: PublicationOutcome,
@@ -1661,6 +1689,10 @@ def index_accepted_documents(
             corpus_fingerprint=context.corpus_fingerprint,
         )
 
+    # A changed body cannot inherit an earlier E2 acceptance merely because the
+    # frozen manifest's identity fields stayed unchanged.
+    for artifact_id in manifest_ids:
+        validate_extraction_currentness(workspace, artifact_id)
     try:
         result, _indexer = ResearchOrchestrator(workspace)._run_indexing_stage(target)
     except RegisteredWorkspaceIdentityMissingError as exc:

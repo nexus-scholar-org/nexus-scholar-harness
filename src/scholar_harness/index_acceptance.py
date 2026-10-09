@@ -655,9 +655,19 @@ def accept_index_candidate(
                             f"{document_id!r} re-binds extracted_path",
                         )
 
-        # -- idempotency gate (section 7.2, before any backend touch) ----
+        from scholar_harness.extraction_producer import (
+            PublicationRefused,
+            validate_extraction_currentness,
+        )
+
+        try:
+            validate_extraction_currentness(workspace, parent.artifact_id)
+        except PublicationRefused as exc:
+            raise _Refusal(4, "VALIDATION_ERROR", str(exc)) from exc
+
+        # -- idempotency classification (validation still runs below) ----
         # Same manifest_id plus same index_fingerprint is a deterministic
-        # no-op (no write, no event, no backend read). The same manifest_id
+        # no-op after verification (no write, no event). The same manifest_id
         # with a different declared payload is IDEMPOTENCY_CONFLICT, never an
         # overwrite -- checked here (on declared fields) so a conflicting
         # manifest_id is reported as a conflict even when its digests would
@@ -674,7 +684,7 @@ def accept_index_candidate(
                 isinstance(_declared_index_fp, str)
                 and _previous_record.get("index_fingerprint") == _declared_index_fp
             ):
-                return IndexAcceptanceResult(
+                _reuse_result = IndexAcceptanceResult(
                     accepted=True,
                     manifest_id=str(_declared_manifest_id),
                     index_fingerprint=str(_declared_index_fp),
@@ -684,11 +694,12 @@ def accept_index_candidate(
                     accepted_path=ACCEPTED_RELPATH,
                     counts=dict(_previous_record.get("counts") or {}),
                 )
-            raise _Refusal(
-                7,
-                "IDEMPOTENCY_CONFLICT",
-                f"{_declared_manifest_id} already accepted with another payload",
-            )
+            else:
+                raise _Refusal(
+                    7,
+                    "IDEMPOTENCY_CONFLICT",
+                    f"{_declared_manifest_id} already accepted with another payload",
+                )
 
         # -- check 5: recompute every fingerprint, re-derive every chunk -----
         try:
@@ -791,6 +802,14 @@ def accept_index_candidate(
                 "REQUIRED_PARENT_TYPE_MISSING",
                 "parent is not a document_manifest at publication",
             )
+        # Reuse avoids publication only after all currentness checks, including
+        # the final parent re-check, have succeeded.
+        if (
+            _previous_record is not None
+            and _previous_record.get("manifest_id") == manifest_id
+            and _previous_record.get("index_fingerprint") == index_fingerprint
+        ):
+            return _reuse_result
         accepted_path = workspace / ACCEPTED_RELPATH
         previous_bytes, previous_record = _previous_bytes, _previous_record
 

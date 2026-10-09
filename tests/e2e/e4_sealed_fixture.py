@@ -397,7 +397,7 @@ def make_live_reader(
     return _InMemoryReader(rows, space)
 
 
-def build_sealed_fixture(dest: Path) -> dict[str, Any]:
+def build_sealed_fixture(dest: Path, *, revision: str = "") -> dict[str, Any]:
     """Build the sealed E1->E2->E3 workspace at *dest* (public surfaces only).
 
     Hermetic: deterministic mock embedder, ``HF_HUB_OFFLINE`` /
@@ -539,7 +539,11 @@ def build_sealed_fixture(dest: Path) -> dict[str, Any]:
     for record in included:
         stem = _stem_of(record)
         (pdfs / f"{stem}.pdf").write_bytes(
-            PDF_TEMPLATE + stem.encode("utf-8") + b"\n" + PDF_PADDING
+            PDF_TEMPLATE
+            + stem.encode("utf-8")
+            + b"\n"
+            + PDF_PADDING
+            + revision.encode("utf-8")
         )
 
     extracted = workspace / "extracted"
@@ -553,7 +557,7 @@ def build_sealed_fixture(dest: Path) -> dict[str, Any]:
             f'doi: "{(record.get("external_ids") or {}).get("doi", "")}"\n'
             f"title: {json.dumps(record.get('title') or 'Untitled', ensure_ascii=False)}\n"
             'extraction_engine: "metadata"\n'
-            "---\n\n" + USABLE_BODY,
+            "---\n\n" + USABLE_BODY + revision,
         )
 
     outcome = publish_document_manifest(workspace)

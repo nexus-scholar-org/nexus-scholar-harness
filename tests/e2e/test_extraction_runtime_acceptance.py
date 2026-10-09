@@ -2783,8 +2783,8 @@ def test_adapter_replay_is_noop_and_conflict_is_refused(
     before_bytes = (workspace / ACCEPTED_RELPATH).read_bytes()
     journal_before = _adapter_journal(workspace)
 
-    # Same index_fingerprint under the same manifest_id is a no-op even with a
-    # fresh run_id and even when the backend would disagree: no write, no event.
+    # Reuse still verifies the live backend; an unreadable backend refuses
+    # without changing the historical record or emitting a success event.
     class _FailingReader:
         def visible_ids(self) -> Any:
             raise AssertionError("backend must not be touched on a no-op replay")
@@ -2798,12 +2798,23 @@ def test_adapter_replay_is_noop_and_conflict_is_refused(
         def read_collection_metadata(self) -> Any:
             raise AssertionError("backend must not be touched on a no-op replay")
 
-    replayed = accept_index_candidate(
+    refused = accept_index_candidate(
         workspace,
         copy.deepcopy(built["payload"]),
         run_id="RUN-" + "f" * 32,
         manifest_path=_ADAPTER_MANIFEST_RELPATH,
         reader=_FailingReader(),
+    )
+    assert refused.accepted is False
+    assert (workspace / ACCEPTED_RELPATH).read_bytes() == before_bytes
+    assert _adapter_journal(workspace) == journal_before
+
+    replayed = accept_index_candidate(
+        workspace,
+        copy.deepcopy(built["payload"]),
+        run_id="RUN-" + "f" * 32,
+        manifest_path=_ADAPTER_MANIFEST_RELPATH,
+        reader=built["reader"],
         accepted_at="2026-10-01T00:00:00Z",
     )
     assert replayed.accepted is True
