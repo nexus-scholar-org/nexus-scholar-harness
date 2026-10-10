@@ -25,8 +25,6 @@ from scholar_rag.index_service import (
 from scholar_rag.replacement import ChromaReplacementView
 from scholar_rag.index_verifier import ChromaVisibleSetReader
 from scholar_rag.embedder import get_embedder
-from scholar_rag.matrix import MatrixExtractor
-from scholar_rag.retriever import ScholarRetriever
 from scholar_rag.synthesis import GroundedSynthesisEngine
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
@@ -119,6 +117,18 @@ from .pipeline.extraction import (  # noqa: F401
     _study_doi,
     _study_pdf,
     run_extraction,
+)
+
+# HCM-04i: dynamic protocol matrix lives in the neutral pipeline stage
+# (scholar_harness.pipeline.matrix). These re-exports preserve the
+# historical ``orchestrator.ScholarRetriever`` / ``orchestrator.MatrixExtractor``
+# monkeypatch seams -- fidelity and extraction-stage tests patch both from
+# here. Canonical definitions live in the stage module.
+from .pipeline.matrix import (  # noqa: F401
+    MatrixExtractor,
+    MatrixOutcome,
+    ScholarRetriever,
+    run_matrix,
 )
 
 
@@ -675,15 +685,20 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 7: Dynamic Protocol Matrix Extraction
         # -------------------------------------------------------------
-        retriever = ScholarRetriever(
-            db_path=str(chroma_dir),
-            collection_name=indexer.collection_name,
-            embedder_kwargs=indexer.embedder_kwargs,
+        # HCM-04i: delegated to the neutral pipeline stage. run_matrix owns
+        # retriever construction, MatrixExtractor construction, and
+        # extract_all publication; it emits no audit event and writes no
+        # registry state. The retriever binding is carried for Stage 9.
+        matrix_outcome = run_matrix(
+            protocol=protocol,
+            indexer_compat=indexer,
+            chroma_dir=chroma_dir,
+            literature_dir=lit_dir,
         )
-        matrix_extractor = MatrixExtractor(protocol=protocol, retriever=retriever)
-        matrix_rows, csv_path, json_path = matrix_extractor.extract_all(
-            output_dir=lit_dir
-        )
+        # Local bindings retained: the results mapping below reads them;
+        # Stage 9 reuses the carried retriever.
+        matrix_rows = matrix_outcome.rows
+        retriever = matrix_outcome.retriever
         results["stages"]["matrix_rows"] = {"status": "DONE", "rows": len(matrix_rows)}
 
         # -------------------------------------------------------------
