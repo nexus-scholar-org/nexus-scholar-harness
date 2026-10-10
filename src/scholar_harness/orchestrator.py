@@ -617,27 +617,26 @@ class ResearchOrchestrator:
         # The harness agent reads each batch and writes a decisions file.
         # Run `agent_screen.py collect <workspace>` after agent finishes.
         # -------------------------------------------------------------
-        from scholar_harness.agent_screen import cmd_prepare as _prepare_batches
-
-        protocol_data = json.loads(p_path.read_text(encoding="utf-8"))
-        _prepare_batches(self.workspace_dir, batch_size=20, force=True)
-
-        screening_dir = lit_dir / "screening"
-        total_batches = len(
-            [
-                f
-                for f in screening_dir.glob("batch_*.json")
-                if "_decisions" not in f.name
-            ]
+        # HCM-04f: delegated to the neutral pipeline stage.
+        # run_screening_preparation owns the automated preparation (call-time
+        # cmd_prepare, the batch_*.json glob count excluding _decisions, and
+        # the IN PROGRESS prisma report); it emits no decisions/collect/audit.
+        # The included.json collect-gate + PAUSE audit below stay here: they
+        # are the coordinator's handoff gate, not preparation. protocol_data
+        # (base :622) was vestigial -- read but never used downstream -- and
+        # is not carried into the stage; papers_to_screen stays bound here
+        # from the Stage 3 verified_docs.
+        from scholar_harness.pipeline.screening_prepare import (
+            run_screening_preparation,
         )
 
-        (lit_dir / "prisma_screening_report.md").write_text(
-            f"# PRISMA Screening \u2014 IN PROGRESS\n\n"
-            f"{total_batches} batch files prepared in `literature/screening/`.\n\n"
-            f"**Next step**: Ask the agent to screen the batches, then run:\n"
-            f"```\npython src/scholar_harness/agent_screen.py collect {self.workspace_dir}\n```\n",
-            encoding="utf-8",
+        preparation_outcome = run_screening_preparation(
+            workspace_dir=self.workspace_dir, batch_size=20, force=True
         )
+        # Local binding retained: Stage 4 reports this count; Stages 5-9 gate
+        # on the collect handoff below.
+        total_batches = preparation_outcome.total_batches
+
         results["stages"]["screening"] = {
             "status": "PENDING_AGENT_REVIEW",
             "batch_files_prepared": total_batches,
