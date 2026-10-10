@@ -6,7 +6,6 @@ import asyncio
 import json
 import logging
 import os
-from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -30,18 +29,9 @@ from scholar_rag.embedder import get_embedder
 from scholar_rag.matrix import MatrixExtractor
 from scholar_rag.retriever import ScholarRetriever
 from scholar_rag.synthesis import GroundedSynthesisEngine
-from scholar_search.verifier import DocumentVerifier
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
 from .contracts.models import ArtifactReference, DocumentManifestArtifact
-from .verification_identity import (
-    AUDIT_ACTION as _VERIFICATION_AUDIT_ACTION,
-    QUARANTINE_FILENAME as _VERIFICATION_QUARANTINE_FILENAME,
-    VERIFICATION_IDENTITY_AMBIGUOUS_DOI,
-    VERIFICATION_IDENTITY_BRIDGE_MISS,
-    VERIFICATION_IDENTITY_MISSING_DOI,
-    build_doi_bridge,
-)
 from .workspace.errors import RegisteredWorkspaceIdentityMissingError
 from .workspace.identity import validate_registered_workspace_id
 
@@ -101,6 +91,16 @@ from .pipeline.deduplication import (  # noqa: F401
 from .pipeline.hydration import (  # noqa: F401
     HydrationOutcome,
     run_hydration,
+)
+
+# HCM-04e: verification lives in the neutral pipeline stage
+# (scholar_harness.pipeline.verification). This re-export preserves the
+# historical ``orchestrator.DocumentVerifier`` monkeypatch seam honored by the
+# stage. Canonical definitions live in the stage module.
+from .pipeline.verification import (  # noqa: F401
+    DocumentVerifier,
+    VerificationOutcome,
+    run_verification,
 )
 
 
@@ -583,140 +583,31 @@ class ResearchOrchestrator:
 
         # -------------------------------------------------------------
         # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
-        # Preserve a valid verifier-returned workspace_id; restore ONLY via a
-        # DOI bridge to a recorded dedup parent; otherwise refuse with a typed
-        # reason. No SCI- mint, no inference, no downstream publication of the
-        # refused row. Positions use enumerate (never .index equality).
         # -------------------------------------------------------------
-        verifier = DocumentVerifier()
-        verified_docs, audit = await verifier.process_batch(
-            docs_for_verify, verify=True, enrich=True
+        # HCM-04e: delegated to the neutral pipeline stage. run_verification
+        # owns verifier construction, the DOI-bridge preserve/restore/refuse
+        # loop (enumerate, no SCI- mint), verified/quarantine publication,
+        # and the identity-resolved audit event; the identified documents
+        # flow to Stage 4 unchanged.
+        verification_outcome = await run_verification(
+            documents=docs_for_verify,
+            literature_dir=lit_dir,
+            workspace_dir=self.workspace_dir,
         )
-
-        wsid_by_doi, ambiguous_dois = build_doi_bridge(docs_for_verify)
-        identified_docs: list[Any] = []
-        refused_entries: list[dict[str, Any]] = []
-        preserved_n = 0
-        bridge_restored_n = 0
-        for _pos, vd in enumerate(verified_docs):
-            _external_ids = getattr(vd, "external_ids", None)
-            _doi = (
-                getattr(_external_ids, "doi", None)
-                if _external_ids is not None
-                else None
-            )
-            if getattr(vd, "workspace_id", None):
-                preserved_n += 1
-                identified_docs.append(vd)
-                continue
-            if _doi and _doi in wsid_by_doi and _doi not in ambiguous_dois:
-                vd.workspace_id = wsid_by_doi[_doi]
-                bridge_restored_n += 1
-                identified_docs.append(vd)
-                continue
-            if not _doi:
-                _code = VERIFICATION_IDENTITY_MISSING_DOI
-                _reason = "no DOI to bridge to a recorded dedup parent"
-            elif _doi in ambiguous_dois:
-                _code = VERIFICATION_IDENTITY_AMBIGUOUS_DOI
-                _reason = (
-                    f"DOI {_doi!r} maps to multiple dedup parents; bridge is ambiguous"
-                )
-            else:
-                _code = VERIFICATION_IDENTITY_BRIDGE_MISS
-                _reason = f"DOI {_doi!r} has no recorded dedup parent"
-            refused_entries.append(
-                {
-                    "position": _pos,
-                    "code": _code,
-                    "reason": _reason,
-                    "doc": vd,
-                }
-            )
-
-        # Refused rows never enter the authoritative verified.json.
-        verified_docs = identified_docs
-
-        (lit_dir / "verified.json").write_text(
-            json.dumps(
-                [
-                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
-                    for d in verified_docs
-                ],
-                indent=2,
-                default=str,
-            ),
-            encoding="utf-8",
-        )
-        _refusal_counts: dict[str, int] = {}
-        for _entry in refused_entries:
-            _refusal_counts[_entry["code"]] = _refusal_counts.get(_entry["code"], 0) + 1
-        if refused_entries:
-            _verification_status = "PARTIAL" if verified_docs else "FAILED"
-            (lit_dir / _VERIFICATION_QUARANTINE_FILENAME).write_text(
-                json.dumps(
-                    [
-                        {
-                            "position": e["position"],
-                            "code": e["code"],
-                            "reason": e["reason"],
-                            "record": (
-                                asdict(e["doc"])
-                                if hasattr(e["doc"], "__dataclass_fields__")
-                                else e["doc"]
-                            ),
-                        }
-                        for e in refused_entries
-                    ],
-                    indent=2,
-                    default=str,
-                ),
-                encoding="utf-8",
-            )
-        else:
-            _verification_status = "SUCCESS"
-            _stale_quarantine = lit_dir / _VERIFICATION_QUARANTINE_FILENAME
-            if _stale_quarantine.exists():
-                _stale_quarantine.unlink()
+        # Local binding retained: Stage 4 counts these documents.
+        verified_docs = verification_outcome.documents
         results["stages"]["verification"] = {
-            "status": _verification_status,
-            "verified": len(verified_docs),
-            "refused": len(refused_entries),
-            "preserved": preserved_n,
-            "bridge_restored": bridge_restored_n,
-            "refusal_reasons": _refusal_counts,
+            "status": verification_outcome.status,
+            "verified": verification_outcome.verified,
+            "refused": verification_outcome.refused,
+            "preserved": verification_outcome.preserved,
+            "bridge_restored": verification_outcome.bridge_restored,
+            "refusal_reasons": verification_outcome.refusal_reasons,
         }
-        if refused_entries:
+        if verification_outcome.quarantine:
             results["stages"]["verification"]["quarantine"] = (
-                f"literature/{_VERIFICATION_QUARANTINE_FILENAME}"
+                verification_outcome.quarantine
             )
-        self._log_audit_event(
-            action=_VERIFICATION_AUDIT_ACTION,
-            agent="scholar-harness",
-            description=(
-                "Stage 3 verification identity bridge-or-refuse: "
-                f"{preserved_n} preserved, {bridge_restored_n} bridge-restored, "
-                f"{len(refused_entries)} refused"
-            ),
-            inputs=[str(lit_dir / "deduped.json")],
-            outputs=(
-                [str(lit_dir / "verified.json")]
-                + (
-                    [str(lit_dir / _VERIFICATION_QUARANTINE_FILENAME)]
-                    if refused_entries
-                    else []
-                )
-            ),
-            metrics={
-                "preserved": preserved_n,
-                "bridge_restored": bridge_restored_n,
-                "refused": len(refused_entries),
-                "verified": len(verified_docs),
-                "refusal_reasons": _refusal_counts,
-                "status": _verification_status,
-            },
-            status=_verification_status,
-        )
 
         # -------------------------------------------------------------
         # Stage 4: Systematic PRISMA 2020 Screening — Agent-in-the-loop
