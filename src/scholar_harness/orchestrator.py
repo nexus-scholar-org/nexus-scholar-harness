@@ -31,18 +31,6 @@ from scholar_rag.matrix import MatrixExtractor
 from scholar_rag.retriever import ScholarRetriever
 from scholar_rag.synthesis import GroundedSynthesisEngine
 from scholar_search.dedup import Deduplicator
-from scholar_search.engine import SearchEngine
-from scholar_search.protocol_adapter import compile_protocol_search
-from scholar_search.providers import (
-    ArxivProvider,
-    BaseAPIProvider,
-    BiorxivProvider,
-    CrossrefProvider,
-    OpenAlexProvider,
-    PubMedProvider,
-    SearchProvider,
-    SemanticScholarProvider,
-)
 from scholar_search.verifier import DocumentVerifier
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
@@ -78,35 +66,17 @@ class ScholarIndexer:
         return 0
 
 
-_PROVIDER_MAP: dict[str, type[SearchProvider]] = {
-    "openalex": OpenAlexProvider,
-    "semanticscholar": SemanticScholarProvider,
-    "semantic_scholar": SemanticScholarProvider,
-    "crossref": CrossrefProvider,
-    "arxiv": ArxivProvider,
-    "pubmed": PubMedProvider,
-    "biorxiv": BiorxivProvider,
-}
-
-
-def _resolve_providers(providers: list[Any] | None) -> list[SearchProvider] | None:
-    """Resolve provider instances from names (strings) or existing instances."""
-    if not providers:
-        return None
-    instances: list[SearchProvider] = []
-    for p in providers:
-        if isinstance(p, str):
-            key = p.lower().strip().replace("-", "_").replace(" ", "_")
-            cls = _PROVIDER_MAP.get(key)
-            if cls:
-                instances.append(cls())
-            else:
-                logger.warning("Unknown search provider: %s", p)
-        elif isinstance(p, BaseAPIProvider) or hasattr(p, "search"):
-            instances.append(p)
-        else:
-            logger.warning("Unexpected provider item: %r", p)
-    return instances if instances else None
+# HCM-04b: provider resolution and the discovery engine live in the neutral
+# pipeline stage (scholar_harness.pipeline.discovery). These re-exports
+# preserve the historical ``orchestrator._resolve_providers`` seam -- tests
+# import it from here -- and the ``orchestrator.SearchEngine`` monkeypatch
+# seam honored by the stage. Canonical definitions live in the stage module.
+from .pipeline.discovery import (  # noqa: F401
+    _PROVIDER_MAP,
+    _resolve_providers,
+    SearchEngine,
+    run_discovery,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -540,38 +510,18 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 1: Protocol Query Compilation & Search
         # -------------------------------------------------------------
-        query, providers = compile_protocol_search(p_path)
-        if max_search_results:
-            query.max_results = max_search_results
-
-        engine = SearchEngine(providers=_resolve_providers(providers))
-        discovered_docs = await engine.search_all(query, dedup=False)
-        await engine.close()
-
-        # Save both combined raw and first-provider raw for reference
-        (lit_dir / "all_raw_search.json").write_text(
-            json.dumps(
-                [
-                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
-                    for d in discovered_docs
-                ],
-                indent=2,
-                default=str,
-            ),
-            encoding="utf-8",
+        # HCM-04b: delegated to the neutral pipeline stage. run_discovery owns
+        # query compilation, provider resolution, federated search, and
+        # raw-result publication; it emits no audit event and writes no
+        # registry state.
+        discovery_outcome = await run_discovery(
+            protocol_path=p_path,
+            literature_dir=lit_dir,
+            max_search_results=max_search_results,
         )
-        (lit_dir / "raw_search.json").write_text(
-            json.dumps(
-                [
-                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
-                    for d in discovered_docs
-                ],
-                indent=2,
-                default=str,
-            ),
-            encoding="utf-8",
-        )
-        results["stages"]["discovery"] = len(discovered_docs)
+        # Local binding retained: Stage 2 deduplicates these documents.
+        discovered_docs = discovery_outcome.documents
+        results["stages"]["discovery"] = discovery_outcome.count
 
         # -------------------------------------------------------------
         # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
