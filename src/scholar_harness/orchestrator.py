@@ -10,9 +10,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import networkx as nx
-from scholar_graph.builder import CitationGraphBuilder
-from scholar_graph.visualizer import GraphVisualizer
 from scholar_protocol.models import ResearchProtocol
 from scholar_rag.chunker import text_fingerprint
 from scholar_rag.index_models import IndexDocumentRequest
@@ -129,6 +126,19 @@ from .pipeline.matrix import (  # noqa: F401
     MatrixOutcome,
     ScholarRetriever,
     run_matrix,
+)
+
+# HCM-04j: citation knowledge graph lives in the neutral pipeline stage
+# (scholar_harness.pipeline.graph). These re-exports preserve the
+# historical ``orchestrator.CitationGraphBuilder`` /
+# ``orchestrator.GraphVisualizer`` monkeypatch seams -- fidelity,
+# extraction-stage, and matrix-stage tests patch both from here. Canonical
+# definitions live in the stage module.
+from .pipeline.graph import (  # noqa: F401
+    CitationGraphBuilder,
+    GraphOutcome,
+    GraphVisualizer,
+    run_graph,
 )
 
 
@@ -704,26 +714,20 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 8: Citation Knowledge Graph & PageRank
         # -------------------------------------------------------------
-        from scholar_search.http_client import AcademicHttpClient
-
-        graph_builder = CitationGraphBuilder(
-            AcademicHttpClient(name="openalex-graph", rate_limit=10)
+        # HCM-04j: delegated to the neutral pipeline stage. run_graph owns
+        # client construction, DOI collection, build_graph, PageRank, JSON
+        # export, and HTML visualization; it emits no audit event and writes
+        # no registry state. The client lifecycle is unchanged (per call, no
+        # close -- the base never closed the graph client).
+        graph_outcome = await run_graph(
+            included_documents=inc_docs,
+            literature_dir=lit_dir,
         )
-        dois = [d for d in (_study_doi(doc_item) for doc_item in inc_docs) if d]
-        if dois:
-            G = await graph_builder.build_graph(dois)
-        else:
-            # No DOIs to resolve: seed an empty graph so downstream reads stay valid.
-            G = nx.DiGraph()
-        CitationGraphBuilder.compute_pagerank(G)
-        graph_builder.export_json(G, lit_dir / "knowledge_graph.json")
-
-        vis = GraphVisualizer(str(lit_dir / "knowledge_graph.html"))
-        vis.generate_html(G)
+        # Local bindings retained: the results mapping below reads them.
         results["stages"]["graph_nodes"] = {
             "status": "DONE",
-            "nodes": G.number_of_nodes(),
-            "edges": G.number_of_edges(),
+            "nodes": graph_outcome.nodes,
+            "edges": graph_outcome.edges,
         }
 
         # -------------------------------------------------------------
