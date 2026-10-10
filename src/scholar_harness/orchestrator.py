@@ -768,142 +768,41 @@ class ResearchOrchestrator:
         )
 
     def _load_artifact_registry(self) -> ArtifactRegistry | None:
-        """Parse the Contract v1 artifact registry through the frozen model.
+        """Thin delegate to ``pipeline.indexing.load_artifact_registry`` (HCM-04h).
 
-        The registry is the recorded proof of what was accepted, so it is read with
-        the frozen ``ArtifactRegistry`` / ``RegistryEntry`` models rather than
-        hand-parsed: a missing or malformed ``sha256``, an unknown key, or a missing
-        ``accepted_at`` / ``run_id`` / ``producer`` now makes the *registry*
-        unusable instead of being silently coerced to ``""``.
-
-        ``None`` means "nothing may be inherited from the registry": either no
-        registry exists yet, or it does not validate. Callers treat that as an
-        absence and refuse the affected documents, which is the fail-closed
-        direction -- an unparseable registry must not widen what Stage 6 accepts.
+        Preserves the ``orch._load_artifact_registry()`` seam with an identical
+        signature; the canonical implementation lives in the neutral stage.
         """
-        registry_path = self.workspace_dir / "audit" / "artifact_registry.json"
-        if not registry_path.is_file():
-            return None
-        try:
-            return ArtifactRegistry.model_validate_json(
-                registry_path.read_text(encoding="utf-8")
-            )
-        except (OSError, ValueError) as exc:
-            logger.warning(
-                "artifact registry %s is unusable (%s); refusing to inherit "
-                "identity from it",
-                registry_path,
-                exc,
-            )
-            return None
+        from .pipeline.indexing import load_artifact_registry
+
+        return load_artifact_registry(self.workspace_dir)
 
     def _accepted_artifact_payload(self, entry: RegistryEntry) -> Any | None:
-        """Read one accepted artifact's payload, with typed path containment.
+        """Thin delegate to ``pipeline.indexing.accepted_artifact_payload`` (HCM-04h).
 
-        ``RegistryEntry.path`` is workspace-relative, so it is validated with the
-        frozen ``ArtifactReference`` path rule and then re-checked against the
-        resolved workspace root. A registry that points outside the workspace is
-        refused, not followed.
+        Identical signature; canonical implementation lives in the stage.
         """
-        try:
-            ArtifactReference.portable_workspace_path(entry.path)
-        except ValueError:
-            logger.warning("registry entry %r has a non-portable path", entry.path)
-            return None
-        try:
-            resolved = (self.workspace_dir / entry.path).resolve()
-            resolved.relative_to(self.workspace_dir)
-        except (OSError, ValueError):
-            logger.warning("registry entry %r escapes the workspace", entry.path)
-            return None
-        try:
-            return json.loads(resolved.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            return None
+        from .pipeline.indexing import accepted_artifact_payload
+
+        return accepted_artifact_payload(self.workspace_dir, entry)
 
     def _accepted_screening_parents(self) -> dict[str, dict[str, str]]:
-        """Map each included ``study_id`` to the accepted artifact that bound it.
+        """Thin delegate to ``pipeline.indexing.accepted_screening_parents`` (HCM-04h).
 
-        Read-only over the Contract v1 artifact registry that
-        ``agent_screen.py collect`` publishes. An included study's scientific
-        parent is the accepted ``screening_decisions`` artifact carrying its
-        INCLUDE decision; the registry entry supplies that artifact's id and
-        its accepted payload hash, and the artifact payload supplies the
-        decision. Nothing is inferred here: a study with no accepted INCLUDE
-        decision is simply absent from the result, and Stage 6 then refuses it
-        rather than binding it to something that was never accepted.
+        Identical signature; canonical implementation lives in the stage.
         """
-        registry = self._load_artifact_registry()
-        if registry is None:
-            return {}
+        from .pipeline.indexing import accepted_screening_parents
 
-        parents: dict[str, dict[str, str]] = {}
-        for artifact_id, entry in sorted(registry.artifacts.items()):
-            if entry.artifact_type != "screening_decisions":
-                continue
-            payload = self._accepted_artifact_payload(entry)
-            if not isinstance(payload, dict):
-                continue
-            for decision in (payload.get("data") or {}).get("decisions") or []:
-                if str(decision.get("decision") or "").upper() != "INCLUDE":
-                    continue
-                study_id = str(decision.get("study_id") or "").strip()
-                if not study_id:
-                    continue
-                parents[study_id] = {
-                    "parent_artifact_id": artifact_id,
-                    "parent_artifact_sha256": entry.sha256,
-                    "decision_id": str(decision.get("decision_id") or ""),
-                }
-        return parents
+        return accepted_screening_parents(self.workspace_dir)
 
     def _accepted_document_records(self) -> dict[str, dict[str, str]]:
-        """Map each accepted ``document_id`` to its recorded identity and path.
+        """Thin delegate to ``pipeline.indexing.accepted_document_records`` (HCM-04h).
 
-        This is where Stage 6's document and study identity are *inherited* rather
-        than derived. Both limbs come from a ``DocumentRecord`` inside an accepted
-        ``document_manifest`` -- the frozen artifact that records them
-        (``contracts/schemas/v1/document-manifest.schema.json``, which requires
-        ``document_id``, ``study_id``, ``source_hash``, ``content_status``, and
-        ``extraction_method``, and requires an ``extracted_path`` for VALID/PARTIAL
-        content). The registry entry supplies the manifest's artifact id and its
-        accepted payload hash, so the parent binding is the accepted one.
-
-        A document with no accepted manifest record is simply absent, and Stage 6
-        refuses it. Nothing here derives a ``document_id`` from a filename, a
-        title, or a DOI, and ``workspace_id`` is never offered as a study: under
-        Contract v1 a workspace is not a study, and this method has no access to the
-        workspace limb at all.
+        Identical signature; canonical implementation lives in the stage.
         """
-        registry = self._load_artifact_registry()
-        if registry is None:
-            return {}
+        from .pipeline.indexing import accepted_document_records
 
-        records: dict[str, dict[str, str]] = {}
-        for artifact_id, entry in sorted(registry.artifacts.items()):
-            if entry.artifact_type != "document_manifest":
-                continue
-            payload = self._accepted_artifact_payload(entry)
-            if payload is None:
-                continue
-            try:
-                manifest = DocumentManifestArtifact.model_validate(payload)
-            except ValueError as exc:
-                logger.warning(
-                    "accepted document manifest %s is not a valid "
-                    "DocumentManifestArtifact: %s",
-                    artifact_id,
-                    exc,
-                )
-                continue
-            for record in manifest.data.documents:
-                records[record.document_id] = {
-                    "study_id": record.study_id,
-                    "extracted_path": record.extracted_path or "",
-                    "parent_artifact_id": artifact_id,
-                    "parent_artifact_sha256": entry.sha256,
-                }
-        return records
+        return accepted_document_records(self.workspace_dir)
 
     def recorded_workspace_id(self) -> str:
         """Return the workspace identity recorded in ``project.json``.
@@ -917,72 +816,13 @@ class ResearchOrchestrator:
         return require_recorded_identity(self.workspace_dir)
 
     def _build_parent_view(self) -> dict[str, Any] | None:
-        """Build the accepted-parent view required by IndexService.
+        """Thin delegate to ``pipeline.indexing.build_parent_view`` (HCM-04h).
 
-        The parent view is the accepted ``document_manifest`` artifact, which carries
-        the document records (document_id, study_id, extracted_path,
-        extracted_content_sha256) and the parent screening decision reference.
-        This is read from the Contract v1 artifact registry, not derived.
+        Identical signature; canonical implementation lives in the stage.
         """
-        registry = self._load_artifact_registry()
-        if registry is None:
-            return None
+        from .pipeline.indexing import build_parent_view
 
-        # Find the accepted document_manifest in this generation
-        manifests = {}
-        for artifact_id, entry in registry.artifacts.items():
-            if entry.artifact_type != "document_manifest":
-                continue
-            payload = self._accepted_artifact_payload(entry)
-            if payload is None:
-                continue
-            try:
-                manifest = DocumentManifestArtifact.model_validate(payload)
-            except ValueError:
-                continue
-            # Check generation match via workspace_id, protocol_fingerprint, corpus_fingerprint
-            ws_id = self.recorded_workspace_id()
-            if manifest.workspace_id != ws_id:
-                continue
-            # Protocol and corpus fingerprint should match the current generation
-            # (they come from the accepted corpus snapshot)
-            manifests[artifact_id] = manifest
-
-        if not manifests:
-            return None
-
-        # Use the newest accepted manifest (by artifact_id ordering)
-        manifest_id, manifest = sorted(manifests.items())[-1]
-        entry = registry.artifacts[manifest_id]
-
-        # Build parent_view.documents from the manifest's document records
-        # Compute extracted_content_sha256 from the actual extracted file
-        documents = []
-        for record in manifest.data.documents:
-            extracted = record.extracted_path
-            md_path = (self.workspace_dir / extracted) if extracted else None
-            extracted_content_sha256 = ""
-            if md_path is not None and md_path.is_file():
-                text = md_path.read_text(encoding="utf-8")
-                extracted_content_sha256 = text_fingerprint(text)
-            documents.append(
-                {
-                    "document_id": record.document_id,
-                    "study_id": record.study_id,
-                    "extracted_path": record.extracted_path,
-                    "extracted_content_sha256": extracted_content_sha256,
-                }
-            )
-
-        return {
-            "artifact_id": manifest_id,
-            "artifact_type": "document_manifest",
-            "sha256": entry.sha256,
-            "workspace_id": manifest.workspace_id,
-            "protocol_fingerprint": manifest.protocol_fingerprint,
-            "corpus_fingerprint": manifest.corpus_fingerprint,
-            "documents": documents,
-        }
+        return build_parent_view(self.workspace_dir)
 
     def _build_index_service_request(
         self,
@@ -994,440 +834,55 @@ class ResearchOrchestrator:
         producer_commit: str,
         producer_version: str,
     ) -> IndexServiceRequest | None:
-        """Construct the IndexServiceRequest from recorded workspace state.
+        """Thin delegate to ``pipeline.indexing.build_index_service_request`` (HCM-04h).
 
-        Every field is explicit; nothing is inferred or defaulted.
+        Identical signature; forwards this module's (possibly patched)
+        ``get_embedder`` global as the explicit kit collaborator and this
+        instance's (possibly patched) ``_accepted_*`` readers as explicit
+        data collaborators so the ``orch.get_embedder`` and
+        ``orch._accepted_document_records`` monkeypatch seams keep working.
+        Canonical implementation and kit defaults live in the stage.
         """
-        workspace_id = self.recorded_workspace_id()
-        docs_path = self.workspace_dir / "extracted"
+        from .pipeline.indexing import build_index_service_request
 
-        # Gather accepted document records
-        documents = self._accepted_document_records()
-        parents = self._accepted_screening_parents()
-
-        sources: list[IndexedSource] = []
-        for document_id, record in sorted(documents.items()):
-            study_id = record["study_id"].strip()
-            if not study_id:
-                continue
-            extracted = record["extracted_path"]
-            md_path = (self.workspace_dir / extracted) if extracted else None
-            if md_path is None or not md_path.is_file():
-                continue
-            parent = parents.get(study_id)
-            if parent is None:
-                continue
-
-            text = md_path.read_text(encoding="utf-8")
-            # The parent_artifact_id and parent_artifact_sha256 in the IndexDocumentRequest
-            # must match the parent_view (the accepted document_manifest), not the
-            # screening decision. The IndexService validates this match.
-            request = IndexDocumentRequest(
-                workspace_id=workspace_id,
-                study_id=study_id,
-                document_id=document_id,
-                parent_artifact_id=parent_view["artifact_id"],
-                parent_artifact_sha256=parent_view["sha256"],
-                extracted_content_sha256=text_fingerprint(text),
-                backend_provider="chromadb",
-                backend_model=None,
-                collection="scholar_docs",
-            )
-            sources.append(
-                IndexedSource(
-                    request=request,
-                    extracted_text=text,
-                    extracted_path=extracted,
-                    extraction_method="markdown",
-                )
-            )
-
-        # The closed kit request requires at least one source. Return the
-        # empty-run sentinel before constructing it or opening an embedder.
-        if not sources:
-            return None
-
-        # Read embedder configuration from the indexer we'll use
-        # We use the mock embedder for hermetic tests; real runs use sentence-transformers
-        embedder = get_embedder(provider="sentence-transformers")
-        embedder_dim = getattr(embedder, "dimension", 384)
-
-        return IndexServiceRequest(
-            run_id=run_id,
-            created_at=created_at,
-            sources=tuple(sources),
-            parent_view=parent_view,
-            accepted_manifest=None,  # Not used for initial indexing
-            chunker_configuration={
-                "heading_levels": [1, 2, 3],
-                "max_chunk_chars": 1200,
-                "min_chunk_chars": 100,
-                "overlap_chars": 150,
-                "normalize_whitespace": True,
-                "sentence_split_pattern": r"(?<=[.!?])\s+",
-                "strip_frontmatter": True,
-            },
-            backend_type="chromadb",
-            collection_name="scholar_docs",
-            storage_schema_version="1.0.0",
-            hnsw_space="cosine",
-            embedder_provider="sentence-transformers",
-            embedder_model="all-MiniLM-L6-v2",
-            embedder_model_revision=None,
-            embedder_dimension=embedder_dim,
-            embedder_normalize_embeddings=True,
-            embedder_distance_metric="cosine",
-            producer_version=producer_version,
-            producer_commit=producer_commit,
-            journal_path="run-reports/rag-index.jsonl",
-            docs_path="extracted",
-            recovery_probe_run_id=None,
-        )
-
-    def _run_indexing_stage(self, chroma_dir: Path) -> tuple[dict[str, Any], Any]:
-        """Stage 6: index accepted documents via typed IndexService.
-
-        This replaces the legacy ScholarIndexer.index_markdown upsert path with the
-        typed E3 IndexService.index_workspace, enforcing the seven acceptance checks:
-        parent_view gate, manifest exists, chunk identity matches, replacement intent
-        valid, backend verified, audit event published, index record accepted.
-
-        Fail-closed: no partial replacement, no success event if any check fails.
-        """
-        # Validate workspace identity BEFORE any store exists
-        workspace_id = self.recorded_workspace_id()
-
-        # Build parent_view from accepted document_manifest
-        parent_view = self._build_parent_view()
-        if parent_view is not None:
-            from scholar_harness.extraction_producer import (
-                PublicationRefused,
-                validate_extraction_currentness,
-            )
-
-            try:
-                validate_extraction_currentness(
-                    self.workspace_dir, parent_view["artifact_id"]
-                )
-            except PublicationRefused as exc:
-                self._log_audit_event(
-                    action="RAG_INDEX_REJECTED",
-                    agent="scholar-harness",
-                    description="Stage 6 refused stale extraction provenance",
-                    status="FAILED",
-                    inputs=[str(parent_view["artifact_id"])],
-                    outputs=[],
-                    parameters={"code": exc.code},
-                    metrics={"documents": 0},
-                )
-                return {"status": "FAILED", "code": exc.code, "documents": 0}, None
-        if parent_view is None:
-            # No accepted manifest -> refuse before touching any backend
-            self._log_audit_event(
-                action="RAG_INDEX_REJECTED",
-                agent="scholar-harness",
-                description="Stage 6 refused: no accepted document_manifest in this generation",
-                status="FAILED",
-                inputs=[str(self.workspace_dir / "audit" / "artifact_registry.json")],
-                outputs=[],
-                metrics={
-                    "indexed_files": 0,
-                    "total_chunks": 0,
-                    "refused_documents": 0,
-                    "rejection_code": "DOCUMENT_MANIFEST_NOT_ACCEPTED",
-                },
-            )
-
-            # Return a minimal indexer for Stage 7 compatibility even on refusal
-            class MinimalIndexer:
-                collection_name = "scholar_docs"
-                embedder_kwargs = {
-                    "provider": "sentence-transformers",
-                    "model_name": "all-MiniLM-L6-v2",
-                }
-
-                def get_collection_count(self) -> int:
-                    return 0
-
-            return {
-                "status": "FAILED",
-                "indexed_files": 0,
-                "total_chunks": 0,
-                "collection_count": None,
-                "documents": [],
-                "refused": [
-                    {"document_id": "", "reason": "no accepted document_manifest"}
-                ],
-            }, MinimalIndexer()
-
-        # Generate run identity
-        from scholar_harness.contracts.canonical import deterministic_id
-        from scholar_harness.contracts.identifiers import IdentifierKind
-
-        run_id = deterministic_id(
-            IdentifierKind.RUN,
-            workspace_id,
-            {"stage": "indexing", "timestamp": datetime.now(UTC).isoformat()},
-        )
-        created_at = datetime.now(UTC).isoformat()
-        producer_commit = "0" * 40  # Would come from harness commit in real usage
-        producer_version = "1.0.0"
-
-        # Build the IndexServiceRequest
-        request = self._build_index_service_request(
+        return build_index_service_request(
+            workspace_dir=self.workspace_dir,
             chroma_dir=chroma_dir,
             parent_view=parent_view,
             run_id=run_id,
             created_at=created_at,
             producer_commit=producer_commit,
             producer_version=producer_version,
+            get_embedder_fn=get_embedder,
+            documents=self._accepted_document_records(),
+            screening_parents=self._accepted_screening_parents(),
         )
 
-        # Early refusal: no documents to index (all skipped during request building)
-        if request is None:
-            self._log_audit_event(
-                action="RAG_INDEX_REJECTED",
-                agent="scholar-harness",
-                description="Stage 6 refused: no accepted documents have extractable content for indexing",
-                status="FAILED",
-                inputs=[str(self.workspace_dir / "audit" / "artifact_registry.json")],
-                outputs=[],
-                metrics={
-                    "indexed_files": 0,
-                    "total_chunks": 0,
-                    "refused_documents": 0,
-                    "rejection_code": "NO_DOCUMENTS_TO_INDEX",
-                },
-            )
+    def _run_indexing_stage(self, chroma_dir: Path) -> tuple[dict[str, Any], Any]:
+        """Thin delegate to ``pipeline.indexing.run_indexing`` (HCM-04h).
 
-            # Return a minimal indexer for Stage 7 compatibility even on refusal
-            class MinimalIndexer:
-                collection_name = "scholar_docs"
-                embedder_kwargs = {
-                    "provider": "sentence-transformers",
-                    "model_name": "all-MiniLM-L6-v2",
-                }
+        Identical signature; forwards this module's (possibly patched)
+        ``get_embedder`` / ``ChromaReplacementView`` / ``ChromaVisibleSetReader``
+        / ``index_workspace`` globals as explicit kit collaborators and this
+        instance's (possibly patched) ``_build_parent_view`` / ``_accepted_*``
+        readers as explicit data collaborators so all live Stage-6 seams keep
+        working. Canonical implementation and kit defaults live in the stage.
+        The outcome carries ``(result dict, indexer)`` for Stage 7.
+        """
+        from .pipeline.indexing import run_indexing
 
-                def get_collection_count(self) -> int:
-                    return 0
-
-            return {
-                "status": "FAILED",
-                "indexed_files": 0,
-                "total_chunks": 0,
-                "collection_count": None,
-                "documents": [],
-                "refused": [{"document_id": "", "code": "NO_DOCUMENTS_TO_INDEX"}],
-            }, MinimalIndexer()
-
-        # Ensure journal directory exists
-        journal_path = self.workspace_dir / "run-reports"
-        journal_path.mkdir(parents=True, exist_ok=True)
-
-        # Prepare backends and embedder
-        embedder = get_embedder(provider="sentence-transformers")
-        backend = ChromaReplacementView(
-            db_path=str(chroma_dir), collection_name="scholar_docs", embedder=embedder
+        outcome = run_indexing(
+            workspace_dir=self.workspace_dir,
+            chroma_dir=chroma_dir,
+            get_embedder_fn=get_embedder,
+            backend_cls=ChromaReplacementView,
+            reader_cls=ChromaVisibleSetReader,
+            index_workspace_fn=index_workspace,
+            parent_view=self._build_parent_view(),
+            documents=self._accepted_document_records(),
+            screening_parents=self._accepted_screening_parents(),
         )
-        reader = ChromaVisibleSetReader(
-            db_path=str(chroma_dir), collection_name="scholar_docs"
-        )
-
-        # Call IndexService
-        result = index_workspace(
-            request=request,
-            backend=backend,
-            reader=reader,
-            embedder=embedder,
-            workspace_root=self.workspace_dir,
-        )
-
-        # Map IndexServiceResult to our stage result format
-        if result.outcome == "SUCCESS":
-            stage_status = "SUCCESS"
-        elif result.outcome == "PARTIAL":
-            stage_status = "PARTIAL"
-        elif result.outcome == "REFUSED":
-            stage_status = "FAILED"
-        else:  # FAILED
-            stage_status = "FAILED"
-
-        # Build refused list from rejected_documents
-        refused = [
-            {"document_id": r.document_id, "code": r.code}
-            for r in result.rejected_documents
-        ]
-
-        index_res = {
-            "status": stage_status,
-            "indexed_files": result.counts.accepted_documents,
-            "total_chunks": result.counts.visible_chunks,
-            "collection_count": result.counts.visible_chunks
-            if result.counts.accepted_documents > 0
-            else None,
-            "documents": [
-                {
-                    "document_id": r.document_id,
-                    "study_id": r.study_id,
-                    "parent_artifact_id": r.parent_artifact_id,
-                    "screening_decision_id": r.screening_decision_id,
-                    "chunks": str(r.chunks),
-                }
-                for r in result.rejected_documents  # Note: we need accepted documents, not rejected
-            ]
-            if False
-            else [],  # We'll populate from sources
-            "refused": refused,
-        }
-
-        # Populate indexed documents from sources
-        indexed_docs = []
-        screening_parents = self._accepted_screening_parents()
-        for source in request.sources:
-            indexed_docs.append(
-                {
-                    "document_id": source.request.document_id,
-                    "study_id": source.request.study_id,
-                    "parent_artifact_id": source.request.parent_artifact_id,
-                    "screening_decision_id": screening_parents.get(
-                        source.request.study_id, {}
-                    ).get("decision_id", ""),
-                    "chunks": "0",  # Would need to query the backend
-                }
-            )
-        index_res["documents"] = indexed_docs
-
-        # E3 acceptance boundary (T-131, handoff section 6): when the kit
-        # produced a real candidate (a sidecar file plus a verified live set),
-        # the harness adapter decides acceptance and owns the canonical
-        # section 6.6 event. Stubbed IndexService results (conformance
-        # mapping tests) carry no sidecar and keep the legacy event below.
-        _sidecar_rel = getattr(result, "sidecar_path", None)
-        _live_matches = bool(getattr(result, "live_set_matches", False))
-        if _sidecar_rel and _live_matches and result.outcome in ("SUCCESS", "PARTIAL"):
-            try:
-                from scholar_harness.index_acceptance import accept_index_candidate
-
-                _sidecar_abs = self.workspace_dir / str(_sidecar_rel)
-                if _sidecar_abs.is_file():
-                    _candidate = json.loads(_sidecar_abs.read_text(encoding="utf-8"))
-                    _decision = accept_index_candidate(
-                        self.workspace_dir,
-                        _candidate,
-                        run_id=request.run_id,
-                        manifest_path=str(_sidecar_rel),
-                        reader=reader,
-                        intent_path=getattr(result, "intent_path", None),
-                    )
-                    if not _decision.accepted:
-                        # Adapter refusal: zero publication beyond the kit's own
-                        # run report (check 7 never ran). No legacy BUILT line.
-                        _refused_docs = [
-                            {
-                                "document_id": "",
-                                "code": str(_decision.code or "REFUSED"),
-                            }
-                        ]
-                        _failed: dict[str, Any] = {
-                            "status": "FAILED",
-                            "indexed_files": 0,
-                            "total_chunks": 0,
-                            "collection_count": None,
-                            "documents": [],
-                            "refused": _refused_docs,
-                            "acceptance": _decision.as_dict(),
-                        }
-
-                        class MinimalIndexer:
-                            collection_name = "scholar_docs"
-                            embedder_kwargs = {
-                                "provider": "sentence-transformers",
-                                "model_name": "all-MiniLM-L6-v2",
-                            }
-
-                            def get_collection_count(self) -> int:
-                                return 0
-
-                        return _failed, MinimalIndexer()
-                    # Adapter accepted: it already appended the canonical
-                    # RAG_INDEX_BUILT event with the full section 6.6 field
-                    # set, so the legacy continuity line below is skipped to
-                    # avoid a second, incomplete event.
-                    index_res["acceptance"] = _decision.as_dict()
-
-                    class MinimalIndexer:
-                        collection_name = "scholar_docs"
-                        embedder_kwargs = {
-                            "provider": "sentence-transformers",
-                            "model_name": "all-MiniLM-L6-v2",
-                        }
-
-                        def get_collection_count(self) -> int:
-                            return index_res["total_chunks"]
-
-                    return index_res, MinimalIndexer()
-            except Exception as exc:
-                # Fail closed: an unexpected adapter fault is a FAILED run
-                # with the adapter/refusal code, never a legacy BUILT line
-                # (which would carry an absolute chroma_dir and incomplete
-                # metrics). Stubs without sidecar_path/live_set_matches never
-                # enter this branch and keep the legacy mapping below.
-                logger.warning(
-                    "E3 acceptance adapter did not decide; failing closed",
-                    exc_info=True,
-                )
-                _fault_code = str(getattr(exc, "code", None) or "INTERNAL_ERROR")
-
-                class MinimalIndexer:
-                    collection_name = "scholar_docs"
-                    embedder_kwargs = {
-                        "provider": "sentence-transformers",
-                        "model_name": "all-MiniLM-L6-v2",
-                    }
-
-                    def get_collection_count(self) -> int:
-                        return 0
-
-                return {
-                    "status": "FAILED",
-                    "indexed_files": 0,
-                    "total_chunks": 0,
-                    "collection_count": None,
-                    "documents": [],
-                    "refused": [{"document_id": "", "code": _fault_code}],
-                }, MinimalIndexer()
-
-        # Log audit event (the IndexService already journals its run report)
-        # We also log the harness-level RAG_INDEX_BUILT for continuity
-        self._log_audit_event(
-            action="RAG_INDEX_BUILT",
-            agent="scholar-harness",
-            description=(
-                f"Indexed {index_res['indexed_files']} accepted document(s) via IndexService; "
-                f"{len(index_res['refused'])} refused"
-            ),
-            status=index_res["status"],
-            inputs=[str(self.workspace_dir / "audit" / "artifact_registry.json")],
-            outputs=[str(chroma_dir)],
-            metrics={
-                "indexed_files": index_res["indexed_files"],
-                "total_chunks": index_res["total_chunks"],
-                "refused_documents": len(index_res["refused"]),
-            },
-        )
-
-        # Return a minimal indexer-like object for Stage 7 compatibility
-        class MinimalIndexer:
-            collection_name = "scholar_docs"
-            embedder_kwargs = {
-                "provider": "sentence-transformers",
-                "model_name": "all-MiniLM-L6-v2",
-            }
-
-            def get_collection_count(self) -> int:
-                return index_res["total_chunks"]
-
-        return index_res, MinimalIndexer()
+        return outcome.result, outcome.indexer
 
     def _log_audit_event(
         self,
