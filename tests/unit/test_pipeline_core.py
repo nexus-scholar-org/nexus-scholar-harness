@@ -157,6 +157,7 @@ def test_core_imports_stay_neutral():
     assert sorted(n for n in names if n in set(CORE_NEUTRAL)) == CORE_NEUTRAL
     stage_names = sorted(n for n in names if n not in set(CORE_NEUTRAL))
     assert "discovery.py" in stage_names
+    assert "deduplication.py" in stage_names
 
     def _core_violation(stmt: str) -> bool:
         low = stmt.lower()

@@ -30,7 +30,6 @@ from scholar_rag.embedder import get_embedder
 from scholar_rag.matrix import MatrixExtractor
 from scholar_rag.retriever import ScholarRetriever
 from scholar_rag.synthesis import GroundedSynthesisEngine
-from scholar_search.dedup import Deduplicator
 from scholar_search.verifier import DocumentVerifier
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
@@ -76,6 +75,16 @@ from .pipeline.discovery import (  # noqa: F401
     _resolve_providers,
     SearchEngine,
     run_discovery,
+)
+
+# HCM-04c: 2-tier deduplication lives in the neutral pipeline stage
+# (scholar_harness.pipeline.deduplication). This re-export preserves the
+# historical ``orchestrator.Deduplicator`` monkeypatch seam honored by the
+# stage. Canonical definitions live in the stage module.
+from .pipeline.deduplication import (  # noqa: F401
+    DeduplicationOutcome,
+    Deduplicator,
+    run_deduplication,
 )
 
 
@@ -528,25 +537,18 @@ class ResearchOrchestrator:
         # Bug fix: Dedup now runs on ALL discovered_docs combined (not a subset).
         # workspace_ids (SCI-XXXXXX) are assigned by the Deduplicator here.
         # -------------------------------------------------------------
-        deduplicator = Deduplicator()
-        clusters = deduplicator.deduplicate(discovered_docs)
-        unique_docs = [c.representative for c in clusters]
-        dupes_removed = len(discovered_docs) - len(unique_docs)
-
-        (lit_dir / "deduped.json").write_text(
-            json.dumps(
-                [
-                    asdict(d) if hasattr(d, "__dataclass_fields__") else d
-                    for d in unique_docs
-                ],
-                indent=2,
-                default=str,
-            ),
-            encoding="utf-8",
+        # HCM-04c: delegated to the neutral pipeline stage. run_deduplication
+        # owns 2-tier dedup, PID cluster assignment, and deduped publication;
+        # it emits no audit event and writes no registry state.
+        dedup_outcome = run_deduplication(
+            discovered_documents=discovered_docs,
+            literature_dir=lit_dir,
         )
+        # Local binding retained: Stage 2.5 hydrates these documents.
+        unique_docs = dedup_outcome.representatives
         results["stages"]["deduplication"] = {
-            "unique": len(unique_docs),
-            "duplicates_removed": dupes_removed,
+            "unique": dedup_outcome.unique,
+            "duplicates_removed": dedup_outcome.duplicates_removed,
         }
 
         # -------------------------------------------------------------
