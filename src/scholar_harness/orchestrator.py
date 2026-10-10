@@ -87,6 +87,14 @@ from .pipeline.deduplication import (  # noqa: F401
     run_deduplication,
 )
 
+# HCM-04d: abstract hydration lives in the neutral pipeline stage
+# (scholar_harness.pipeline.hydration). The orchestrator delegates Stage 2.5
+# to ``run_hydration``; canonical definitions live in the stage module.
+from .pipeline.hydration import (  # noqa: F401
+    HydrationOutcome,
+    run_hydration,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -554,30 +562,16 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 2.5: Abstract Hydration (backfill missing abstracts)
         # -------------------------------------------------------------
-        from scholar_search.enrichment import AbstractHydrator
-        from scholar_search.http_client import AcademicHttpClient
-
-        client = AcademicHttpClient(name="hydration", rate_limit=10)
-        try:
-            hydrator = AbstractHydrator(client)
-            hydrated_docs, hydration_stats = await hydrator.hydrate_missing_abstracts(
-                unique_docs
-            )
-            logger.info(f"Hydration complete: {hydration_stats}")
-
-            self._log_audit_event(
-                action="ABSTRACT_HYDRATION",
-                agent="scholar-harness",
-                description=f"Hydrated missing abstracts for {len(unique_docs)} documents",
-                inputs=[],
-                outputs=[],
-                metrics=hydration_stats,
-            )
-
-            # Use hydrated docs for verification
-            docs_for_verify = hydrated_docs
-        finally:
-            await client.close()
+        # HCM-04d: delegated to the neutral pipeline stage. run_hydration owns
+        # client construction, missing-abstract backfill, the
+        # ABSTRACT_HYDRATION audit event, and client close; the hydrated
+        # documents flow to Stage 3 unchanged.
+        hydration_outcome = await run_hydration(
+            documents=unique_docs,
+            workspace_dir=self.workspace_dir,
+        )
+        # Local binding retained: Stage 3 verifies these documents.
+        docs_for_verify = hydration_outcome.documents
 
         # -------------------------------------------------------------
         # Stage 3: Verification
