@@ -13,7 +13,6 @@ from typing import Any
 import networkx as nx
 from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
-from scholar_pdf.extract import PyMuPDFEngine
 from scholar_protocol.models import ResearchProtocol
 from scholar_rag.chunker import text_fingerprint
 from scholar_rag.index_models import IndexDocumentRequest
@@ -107,47 +106,20 @@ from .pipeline.verification import (  # noqa: F401
 logger = logging.getLogger(__name__)
 
 
-def _study_doi(doc_item: dict[str, Any]) -> str:
-    return (doc_item.get("external_ids") or {}).get("doi") or doc_item.get("doi") or ""
-
-
-def _extraction_file_stem(doc_item: dict[str, Any]) -> str:
-    """The on-disk filename stem for a document's extracted markdown.
-
-    FILESYSTEM RESOLUTION ONLY. This value names a file under ``extracted/``;
-    it is never an identity. Reading a ``document_id``, ``study_id``, or
-    ``workspace_id`` out of this stem would be inference from a filename, which
-    Contract v1 forbids: identity is stated in a typed request or inherited from
-    an accepted artifact, never derived from a slug. Stage 6 therefore takes
-    both limbs from the accepted ``document_manifest`` (``_accepted_document_records``)
-    and takes its path from the record's own ``extracted_path``.
-
-    The stem still prefers ``workspace_id`` over ``study_id`` because that is how
-    Stage 5 has always named the file; the collision is a filename, not an
-    identity, and it cannot reach a typed request.
-    """
-    idv = doc_item.get("workspace_id") or doc_item.get("study_id") or ""
-    doi = _study_doi(doc_item)
-    return (idv or doi or "doc").replace("/", "_").replace(":", "_")
-
-
-def _study_pdf(pdf_dir: Path, doc_item: dict[str, Any]) -> Path | None:
-    """Locate a harvested PDF for a study, preferring deterministic slugs."""
-    doi = _study_doi(doc_item)
-    slug = _extraction_file_stem(doc_item)
-    candidates = [
-        pdf_dir / f"{slug}.pdf",
-        pdf_dir / f"{doi.replace('/', '_').replace(':', '_')}.pdf",
-    ]
-    for c in candidates:
-        if c.exists():
-            return c
-    if doi:
-        doi_slug = doi.replace("/", "_").replace(":", "_")
-        for p in pdf_dir.glob("*.pdf"):
-            if p.stem.startswith(doi_slug):
-                return p
-    return None
+# HCM-04g: fulltext extraction lives in the neutral pipeline stage
+# (scholar_harness.pipeline.extraction). These re-exports preserve the
+# historical ``orchestrator._extraction_file_stem`` / ``_study_doi`` /
+# ``_study_pdf`` seams -- extraction_producer, fidelity, conformance, and
+# e2e import the helpers from here. Canonical definitions live in the
+# stage module. No engine seam: the stage constructs
+# ``scholar_pdf.extract.PyMuPDFEngine`` directly, exactly as Stage 5 did.
+from .pipeline.extraction import (  # noqa: F401
+    ExtractionOutcome,
+    _extraction_file_stem,
+    _study_doi,
+    _study_pdf,
+    run_extraction,
+)
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -668,55 +640,19 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 5: Fulltext Extraction over included studies (no invented prose)
         # -------------------------------------------------------------
-        extracted_files: list[Path] = []
-        metadata_frontmatter_only: list[str] = []
-        pymupdf = PyMuPDFEngine()
-        for doc_item in inc_docs:
-            slug = _extraction_file_stem(doc_item)
-            md_path = ext_dir / f"{slug}.md"
-            if md_path.exists():
-                extracted_files.append(md_path)
-                continue
-
-            doi = _study_doi(doc_item)
-            metadata = {
-                "workspace_id": doc_item.get("workspace_id", ""),
-                "doi": doi,
-                "title": doc_item.get("title") or "Untitled",
-                "authors": doc_item.get("authors", []),
-                "year": doc_item.get("year"),
-            }
-
-            pdf = _study_pdf(pdf_dir, doc_item)
-            if pdf is not None:
-                try:
-                    extracted_files.append(
-                        pymupdf.extract_markdown(pdf, ext_dir, metadata=metadata)
-                    )
-                    continue
-                except Exception as exc:  # pragma: no cover - depends on PyMuPDF
-                    logger.warning("PyMuPDF extraction failed for %s: %s", slug, exc)
-
-            # Metadata-frontmatter-only document derived from real records; the
-            # abstract is quoted verbatim and no Methodology/Results/Limitations
-            # text is invented.
-            abstract = doc_item.get("abstract") or "No abstract provided."
-            frontmatter = (
-                f"---\n"
-                f'workspace_id: "{metadata["workspace_id"]}"\n'
-                f'doi: "{metadata["doi"]}"\n'
-                f"title: {json.dumps(metadata['title'], ensure_ascii=False)}\n"
-                f"authors: {json.dumps(metadata['authors'], ensure_ascii=False)}\n"
-                f"year: {metadata['year']}\n"
-                f'extraction_engine: "metadata"\n'
-                f"---\n\n"
-            )
-            md_path.write_text(
-                frontmatter + f"## Abstract\n\n{abstract}\n", encoding="utf-8"
-            )
-            metadata_frontmatter_only.append(str(md_path))
-            extracted_files.append(md_path)
-
+        # HCM-04g: delegated to the neutral pipeline stage. run_extraction
+        # owns the existing-file skip, the metadata dict, the PDF locate +
+        # PyMuPDF try/warning-fallthrough, and the verbatim
+        # metadata-frontmatter write; it emits no audit event and writes no
+        # registry state.
+        extraction_outcome = run_extraction(
+            included_documents=inc_docs,
+            pdfs_dir=pdf_dir,
+            extracted_dir=ext_dir,
+        )
+        # Local bindings retained: the results mapping below reads them.
+        extracted_files = extraction_outcome.documents
+        metadata_frontmatter_only = extraction_outcome.metadata_frontmatter_only
         results["stages"]["extraction"] = {
             "status": "DONE",
             "documents": len(extracted_files),
