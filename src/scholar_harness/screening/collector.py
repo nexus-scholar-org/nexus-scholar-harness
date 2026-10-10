@@ -16,6 +16,11 @@ from scholar_harness.contracts.models import (
     ScreeningDecisionValue,
 )
 from scholar_harness.contracts.models import ScreeningDecision as ContractDecision
+from scholar_harness.verification_identity import (
+    VERIFICATION_IDENTITY_BRIDGE_MISS,
+    VERIFICATION_IDENTITY_MISSING_DOI,
+    VerificationIdentityRefused,
+)
 
 from scholar_search.models import Document
 from scholar_search.screening import (
@@ -39,6 +44,7 @@ except ImportError:
     _HAS_CALIBRATION = False
 
 logger = logging.getLogger("agent_screen")
+
 
 def cmd_status(workspace_dir: Path) -> None:
     """Show which batches are pending and which have decisions."""
@@ -78,7 +84,9 @@ def cmd_status(workspace_dir: Path) -> None:
     print(f"Progress: {done}/{total} batches complete.")
     if pending:
         print(f"Pending batches: {pending}")
-        print(f"\nAsk the agent to screen: literature/screening/batch_{pending[0]:03d}.json")
+        print(
+            f"\nAsk the agent to screen: literature/screening/batch_{pending[0]:03d}.json"
+        )
     else:
         print("All batches done! Run: python agent_screen.py collect <workspace>")
 
@@ -86,6 +94,7 @@ def cmd_status(workspace_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 # COLLECT
 # ---------------------------------------------------------------------------
+
 
 def cmd_collect(workspace_dir: Path) -> None:
     """Assemble all decision files into the final screening outputs."""
@@ -102,24 +111,70 @@ def cmd_collect(workspace_dir: Path) -> None:
     raw_verified: list[dict] = json.loads(verified_path.read_text(encoding="utf-8"))
 
     registry_path = workspace_dir / "audit" / "artifact_registry.json"
-    registry = json.loads(registry_path.read_text(encoding="utf-8")) if registry_path.exists() else {"artifacts": {}}
+    registry = (
+        json.loads(registry_path.read_text(encoding="utf-8"))
+        if registry_path.exists()
+        else {"artifacts": {}}
+    )
 
     alias_to_stu = {}
     corpus_env: dict | None = None
-    corpus_items = [(aid, entry) for aid, entry in registry.get("artifacts", {}).items() if entry.get("artifact_type") == "corpus_snapshot"]
+    corpus_items = [
+        (aid, entry)
+        for aid, entry in registry.get("artifacts", {}).items()
+        if entry.get("artifact_type") == "corpus_snapshot"
+    ]
     if corpus_items:
-        _, corpus_entry = max(corpus_items, key=lambda item: item[1].get("accepted_at", ""))
-        corpus_env = json.loads((workspace_dir / corpus_entry["path"]).read_text(encoding="utf-8"))
+        _, corpus_entry = max(
+            corpus_items, key=lambda item: item[1].get("accepted_at", "")
+        )
+        corpus_env = json.loads(
+            (workspace_dir / corpus_entry["path"]).read_text(encoding="utf-8")
+        )
         for study in corpus_env.get("data", {}).get("studies", []):
             stu_id = study["study_id"]
             alias_to_stu[stu_id] = stu_id
             for alias in study.get("alias_ids", []):
                 alias_to_stu[alias] = stu_id
 
-    # Rebuild Document objects
+    # Rebuild Document objects (HCM-04e-1 bridge-or-refuse parity: no
+    # independent mint). A verified row without a workspace_id is an
+    # unresolved identity that Stage 3 must have quarantined, never published.
+    # Minting a positional SCI- here would re-fabricate what Stage 3 refused
+    # in a second, independent position space sharing only the SCI- shape, so
+    # the row is refused fail-closed with a typed reason before any
+    # publication. This mirrors the existing missing-batch and dual-screening
+    # refusals (RuntimeError, no outputs written): a typed exception fits the
+    # CLI-driven shape better than sys.exit(1), which is reserved for usage
+    # errors such as a missing manifest, because the refusal must be
+    # branchable in tests and must never be confused with a CLI usage mistake.
     docs: list[Document] = []
     for i, raw in enumerate(raw_verified):
-        wid = raw.get("workspace_id") or f"SCI-{i+1:06d}"
+        wid = raw.get("workspace_id")
+        if not wid:
+            _eids = raw.get("external_ids") or {}
+            _doi = _eids.get("doi") or raw.get("doi")
+            if not _doi:
+                _code = VERIFICATION_IDENTITY_MISSING_DOI
+                _detail_reason = (
+                    "no workspace_id and no DOI to bridge to a recorded dedup parent"
+                )
+            else:
+                _code = VERIFICATION_IDENTITY_BRIDGE_MISS
+                _detail_reason = (
+                    f"no workspace_id; DOI {_doi!r} has no recorded "
+                    "identity in verified.json"
+                )
+            raise VerificationIdentityRefused(
+                _code,
+                "screening collection blocked: verified record at position "
+                f"{i} has no workspace_id ({_detail_reason}); "
+                "refusing positional mint",
+                position=i,
+                title=raw.get("title"),
+                doi=_doi,
+                reason=_detail_reason,
+            )
         if wid in alias_to_stu:
             wid = alias_to_stu[wid]
             raw["workspace_id"] = wid
@@ -133,7 +188,9 @@ def cmd_collect(workspace_dir: Path) -> None:
     protocol_data = json.loads(protocol_path.read_text(encoding="utf-8"))
 
     # Build doc lookup by workspace_id
-    doc_by_wsid: dict[str, Document] = {d.workspace_id: d for d in docs if d.workspace_id}
+    doc_by_wsid: dict[str, Document] = {
+        d.workspace_id: d for d in docs if d.workspace_id
+    }
 
     # Check if dual-screening and adjudication files are present
     screener2_files = sorted(screening_dir.glob("batch_*_decisions_screener2.json"))
@@ -147,7 +204,8 @@ def cmd_collect(workspace_dir: Path) -> None:
         batch_workspace_id = str(corpus_env["workspace_id"])
         logger.info(
             "Detected dual-screening mode: %d screener2 batch files and %d adjudication group files found.",
-            len(screener2_files), len(adj_files)
+            len(screener2_files),
+            len(adj_files),
         )
 
         def _canonical_wid(entry: dict) -> str:
@@ -204,7 +262,9 @@ def cmd_collect(workspace_dir: Path) -> None:
             logger.error(
                 "Dual screening blocked: batch %d %s decisions failed parent-batch "
                 "membership validation (%s).",
-                batch_idx, label, snippet,
+                batch_idx,
+                label,
+                snippet,
             )
             for name in (
                 f"batch_{batch_idx:03d}_decisions.json",
@@ -259,7 +319,9 @@ def cmd_collect(workspace_dir: Path) -> None:
             except Exception:
                 pass
 
-        def _source_decision(entry: dict, *, label: str, study_id: str) -> ContractDecision:
+        def _source_decision(
+            entry: dict, *, label: str, study_id: str
+        ) -> ContractDecision:
             required = {
                 "decision_id": entry.get("decision_id"),
                 "screener_id": entry.get("screener_id"),
@@ -333,9 +395,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                         "must reference both screener decisions"
                     )
             else:
-                parent_ids = sorted(
-                    [s1_contract.decision_id, s2_contract.decision_id]
-                )
+                parent_ids = sorted([s1_contract.decision_id, s2_contract.decision_id])
                 decided_at = max(s1_contract.decided_at, s2_contract.decided_at)
                 reason = "Consensus of two independently provenance-bound decisions."
                 final_id = deterministic_id(
@@ -405,9 +465,11 @@ def cmd_collect(workspace_dir: Path) -> None:
             if not batch_entry:
                 continue
 
-            batch_env = json.loads((workspace_dir / batch_entry["path"]).read_text(encoding="utf-8"))
+            batch_env = json.loads(
+                (workspace_dir / batch_entry["path"]).read_text(encoding="utf-8")
+            )
             contract_decisions: list[ContractDecision] = []
-            
+
             # Find all papers in this batch
             for paper in batch_data.get("papers", []):
                 wsid = str(paper.get("workspace_id") or paper.get("study_id") or "")
@@ -417,19 +479,22 @@ def cmd_collect(workspace_dir: Path) -> None:
                 # Decision artifacts remain bound to the screening run carried
                 # by their parent batch.
                 run_id = batch_env["run_id"]
-                
+
                 dec_data = ScreeningDecisionsData(
                     binding=batch_env["data"]["binding"],
                     batch_id=batch_env["data"]["batch_id"],
-                    decisions=contract_decisions
+                    decisions=contract_decisions,
                 )
-                
+
                 art_id = deterministic_id(
                     IdentifierKind.ARTIFACT,
                     batch_env["workspace_id"],
-                    {"kind": "screening-decisions-artifact", "batch_id": batch_env["data"]["batch_id"]}
+                    {
+                        "kind": "screening-decisions-artifact",
+                        "batch_id": batch_env["data"]["batch_id"],
+                    },
                 )
-                
+
                 dec_env = {
                     "schema_version": "1.0.0",
                     "artifact_type": "screening_decisions",
@@ -440,7 +505,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     "producer": {
                         "package": "nexus-scholar-harness",
                         "version": "1.0.0",
-                        "commit": _harness_commit()
+                        "commit": _harness_commit(),
                     },
                     "workspace_id": batch_env["workspace_id"],
                     "run_id": run_id,
@@ -449,19 +514,24 @@ def cmd_collect(workspace_dir: Path) -> None:
                     "inputs": [
                         {
                             "artifact_id": batch_env["artifact_id"],
-                            "sha256": batch_entry["sha256"]
+                            "sha256": batch_entry["sha256"],
                         }
                     ],
-                    "data": dec_data.model_dump(mode="json")
+                    "data": dec_data.model_dump(mode="json"),
                 }
-                
+
                 ctx = AcceptanceContext(
                     workspace_id=batch_env["workspace_id"],
                     protocol_fingerprint=batch_env["protocol_fingerprint"],
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
-                
-                res = accept_artifact(workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect_dual")
+
+                res = accept_artifact(
+                    workspace_dir,
+                    dec_env,
+                    expected=ctx,
+                    actor="agent_screen.collect_dual",
+                )
                 if not res.accepted:
                     raise RuntimeError(
                         f"dual screening collection blocked for batch {idx}: {res.issues}"
@@ -482,7 +552,9 @@ def cmd_collect(workspace_dir: Path) -> None:
                 continue
 
             try:
-                raw_decisions, decision_metadata = _load_decision_payload(decisions_file)
+                raw_decisions, decision_metadata = _load_decision_payload(
+                    decisions_file
+                )
             except Exception as exc:
                 logger.error("Batch %d: failed to parse decisions file (%s).", idx, exc)
                 missing_batches.append(idx)
@@ -493,11 +565,17 @@ def cmd_collect(workspace_dir: Path) -> None:
             batch_artifact_id = batch_data.get("artifact_id")
             batch_entry = registry.get("artifacts", {}).get(batch_artifact_id)
             if not batch_entry:
-                logger.error("Batch %d: parent artifact %s not in registry.", idx, batch_artifact_id)
+                logger.error(
+                    "Batch %d: parent artifact %s not in registry.",
+                    idx,
+                    batch_artifact_id,
+                )
                 missing_batches.append(idx)
                 continue
 
-            batch_env = json.loads((workspace_dir / batch_entry["path"]).read_text(encoding="utf-8"))
+            batch_env = json.loads(
+                (workspace_dir / batch_entry["path"]).read_text(encoding="utf-8")
+            )
 
             # Packet D deliverable: reject decisions outside the parent batch.
             # Membership is validated against the *accepted* batch artifact's
@@ -563,18 +641,24 @@ def cmd_collect(workspace_dir: Path) -> None:
                         confidence = float(entry.get("confidence", 0.80))
                     except (TypeError, ValueError):
                         confidence = 0.80
-                        
+
                     sd = ScreeningDecision(
-                            workspace_id=wsid,
-                            decision=decision,
-                            confidence=confidence,
-                            matched_inclusion_criteria=list(entry.get("matched_inclusion_criteria") or []),
-                            violated_exclusion_criteria=list(entry.get("violated_exclusion_criteria") or []),
-                            relevant_rqs=list(entry.get("relevant_rqs") or []),
-                            screening_reasoning=str(entry.get("screening_reasoning", "Agent screened.")),
-                            document_title=doc.title if doc else entry.get("title", ""),
-                            doi=doc.external_ids.doi if doc else None,
-                        )
+                        workspace_id=wsid,
+                        decision=decision,
+                        confidence=confidence,
+                        matched_inclusion_criteria=list(
+                            entry.get("matched_inclusion_criteria") or []
+                        ),
+                        violated_exclusion_criteria=list(
+                            entry.get("violated_exclusion_criteria") or []
+                        ),
+                        relevant_rqs=list(entry.get("relevant_rqs") or []),
+                        screening_reasoning=str(
+                            entry.get("screening_reasoning", "Agent screened.")
+                        ),
+                        document_title=doc.title if doc else entry.get("title", ""),
+                        doi=doc.external_ids.doi if doc else None,
+                    )
 
                 decided_at = str(
                     entry.get("decided_at")
@@ -583,7 +667,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                 )
                 if not decided_at:
                     # F-002: Stable fallback for legacy payloads missing timestamps
-                    decided_at = "1970-01-01T00:00:00+00:00" 
+                    decided_at = "1970-01-01T00:00:00+00:00"
                 screener_id = str(
                     entry.get("screener_id") or decision_metadata["reviewed_by"]
                 )
@@ -626,27 +710,31 @@ def cmd_collect(workspace_dir: Path) -> None:
                 dec_data = ScreeningDecisionsData(
                     binding=batch_env["data"]["binding"],
                     batch_id=batch_env["data"]["batch_id"],
-                    decisions=contract_decisions
+                    decisions=contract_decisions,
                 )
-                
+
                 artifact_id = deterministic_id(
                     IdentifierKind.ARTIFACT,
                     batch_env["workspace_id"],
                     {
                         "kind": "screening-decisions",
                         "batch_id": batch_env["data"]["batch_id"],
-                        "decision_ids": [item.decision_id for item in contract_decisions],
+                        "decision_ids": [
+                            item.decision_id for item in contract_decisions
+                        ],
                     },
                 )
                 dec_env = {
                     "schema_version": "1.0.0",
                     "artifact_type": "screening_decisions",
                     "artifact_id": artifact_id,
-                    "created_at": max(item.decided_at for item in contract_decisions).isoformat(),
+                    "created_at": max(
+                        item.decided_at for item in contract_decisions
+                    ).isoformat(),
                     "producer": {
                         "package": "scholar-harness",
                         "version": "1.0.0",
-                        "commit": _harness_commit()
+                        "commit": _harness_commit(),
                     },
                     "workspace_id": batch_env["workspace_id"],
                     "run_id": run_id,
@@ -655,23 +743,29 @@ def cmd_collect(workspace_dir: Path) -> None:
                     "inputs": [
                         {
                             "artifact_id": batch_env["artifact_id"],
-                            "sha256": batch_entry["sha256"]
+                            "sha256": batch_entry["sha256"],
                         }
                     ],
-                    "data": dec_data.model_dump(mode="json")
+                    "data": dec_data.model_dump(mode="json"),
                 }
-                
+
                 ctx = AcceptanceContext(
                     workspace_id=batch_env["workspace_id"],
                     protocol_fingerprint=batch_env["protocol_fingerprint"],
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
-                
-                res = accept_artifact(workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect")
+
+                res = accept_artifact(
+                    workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect"
+                )
                 if not res.accepted:
-                    logger.error("Failed to accept decisions for batch %d: %s", idx, res.issues)
+                    logger.error(
+                        "Failed to accept decisions for batch %d: %s", idx, res.issues
+                    )
                     # Archive legacy mismatching decisions
-                    decisions_file.rename(decisions_file.with_name(f"{decisions_file.name}.rejected"))
+                    decisions_file.rename(
+                        decisions_file.with_name(f"{decisions_file.name}.rejected")
+                    )
                     missing_batches.append(idx)
                     continue
                 else:
@@ -715,20 +809,24 @@ def cmd_collect(workspace_dir: Path) -> None:
 
     # Partition
     inc_docs, exc_docs, conflicts, report = partition_screening_results(
-        docs, all_decisions,
+        docs,
+        all_decisions,
         total_identified=total_identified,
         duplicates_removed=duplicates_removed,
     )
 
     # Write outputs
     (lit_dir / "included.json").write_text(
-        json.dumps(inc_docs, indent=2, default=str, ensure_ascii=False), encoding="utf-8"
+        json.dumps(inc_docs, indent=2, default=str, ensure_ascii=False),
+        encoding="utf-8",
     )
     (lit_dir / "excluded.json").write_text(
-        json.dumps(exc_docs, indent=2, default=str, ensure_ascii=False), encoding="utf-8"
+        json.dumps(exc_docs, indent=2, default=str, ensure_ascii=False),
+        encoding="utf-8",
     )
     (lit_dir / "conflicts.json").write_text(
-        json.dumps(conflicts, indent=2, default=str, ensure_ascii=False), encoding="utf-8"
+        json.dumps(conflicts, indent=2, default=str, ensure_ascii=False),
+        encoding="utf-8",
     )
     (lit_dir / "prisma_screening_report.md").write_text(
         report.to_markdown(), encoding="utf-8"
@@ -737,7 +835,9 @@ def cmd_collect(workspace_dir: Path) -> None:
         json.dumps(asdict(report), indent=2), encoding="utf-8"
     )
 
-    inc_with_abs = sum(1 for d in inc_docs if d.get("abstract") and len(d.get("abstract", "")) > 30)
+    inc_with_abs = sum(
+        1 for d in inc_docs if d.get("abstract") and len(d.get("abstract", "")) > 30
+    )
     logger.info("=" * 60)
     logger.info("COLLECTION COMPLETE")
     logger.info("  Included:               %d", len(inc_docs))
@@ -753,4 +853,3 @@ def cmd_collect(workspace_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 # CALIBRATION
 # ---------------------------------------------------------------------------
-

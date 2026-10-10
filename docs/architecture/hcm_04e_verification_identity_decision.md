@@ -1,8 +1,8 @@
 # HCM-04e-0 — Stage 3 verification identity fallback: characterization + decision
 
-Status: CHARACTERIZED — AWAITING POLICY DECISION
+Status: IMPLEMENTED POLICY — Option B (bridge-or-refuse) via HCM-04e-1
 
-**Lane:** FAST (characterization / documentation / test-only).
+**Lane (HCM-04e-1):** RELEASE (identity-bearing behavior + publication eligibility).
 **Owner surface:** harness docs + characterization tests only.
 **Base:** `origin/main` `f81a3e56410b4716e7f87e011477feb6c4ccf8cc` (PR #89 merged).
 **Branch:** `cdx/hcm-04e0-verification-identity-characterization` (isolated workdir
@@ -355,3 +355,126 @@ Scope (bounded, one PR):
   inspected for scope creep, permission mismatch, and weakened assertions
   (none — every fallback assertion pins the observed mint, every hazard
   assertion is labeled double vs integration).
+
+## 13. Implementation record (HCM-04e-1 — approved Option B)
+
+Base: `origin/main` `844adcbc282d3bb5fc7f6c23bb6da5f74eda1a6f`
+(HEAD==origin/main at start, clean). Branch:
+`cdx/hcm-04e1-verification-identity-policy`, workdir
+`C:\Users\mouadh\AppData\Local\Temp\codex-hcm-04e1`; primary checkout
+untouched. Lane RELEASE. The implementation is an uncommitted working-tree
+diff on that branch (no commit/push by the coder); HEAD SHA at record time
+equals the base SHA above.
+
+### Before / after
+
+| Site | Before (characterized) | After (Option B) |
+|---|---|---|
+| `orchestrator.py` Stage 3 (~:595-606) | DOI bridge, then positional `SCI-` mint via `.index(vd)` (`O(n^2)`, equality-sensitive, order-dependent) published as ordinary `verified.json` rows with no provenance | Preserve valid `workspace_id`; restore ONLY via DOI bridge to a recorded dedup parent (singleton DOI map, ambiguous DOIs refused); otherwise refuse. Positions use `enumerate`. Refused rows are excluded from `verified.json` and quarantined (below). `results["stages"]["verification"]` is a typed dict `{status, verified, refused, preserved, bridge_restored, refusal_reasons[, quarantine]}` with `SUCCESS` / `PARTIAL` (mixed) / `FAILED` (all refused). `papers_to_screen` counts identified rows only. Verifier-returned title/DOI evidence is preserved verbatim in quarantine (no invented `workspace_id`). |
+| `screening/collector.py` `:119-136` | `wid = raw.get("workspace_id") or f"SCI-{i+1:06d}"` — second independent positional mint over `raw_verified` order | No independent mint. A verified row without `workspace_id` raises typed `VerificationIdentityRefused` before any publication (no `included`/`excluded`/`conflicts`/PRISMA outputs). Alias remapping for identified rows is unchanged; `_rebuild_doc` signature is unchanged. |
+| Observability (VEI-10 gap) | No Stage-3 provenance or audit event | One `VERIFICATION_IDENTITY_RESOLVED` legacy-adapter audit event per run with `{preserved, bridge_restored, refused, verified, refusal_reasons, status}` metrics (codes+counts, no titles) and honest `status` (`SUCCESS`/`PARTIAL`/`FAILED`); quarantine artifact carries per-row `{position, code, reason, record}`. |
+
+### Refusal vocabulary + audit outcome
+
+- Codes (stable, harness-owned): `VERIFICATION_IDENTITY_MISSING_DOI`
+  (no DOI to bridge), `VERIFICATION_IDENTITY_BRIDGE_MISS` (DOI present, no
+  recorded dedup parent — covers changed/unmatched/invalid shapes),
+  `VERIFICATION_IDENTITY_AMBIGUOUS_DOI` (one DOI claimed by several dedup
+  parents; picking one would be inference). Defined in the new tiny module
+  `src/scholar_harness/verification_identity.py` with `build_doi_bridge`
+  (deterministic, order-independent singleton/ambiguous split) and
+  `VerificationIdentityRefused(RuntimeError)` (`code`/`message`/`details`/
+  `as_dict`, mirroring `PublicationRefused`).
+- Why a new module: `OperationStatus` has `PARTIAL` but no refusal code;
+  `PublicationRefused` is extraction scope and would cycle imports;
+  `RegisteredWorkspaceIdentityMissingError` is `WSP-` workspace scope and
+  must not name study rows. A shared stdlib-only module is the smallest
+  location both mint points can import without cycles.
+- Quarantine: `literature/verified_unresolved.json` (name from the Option B
+  decision). Justification: without it, refused rows would be invisible
+  post-hoc (the VEI-10 gap); it is never read as study identity, only as an
+  audit record. Written only when refusals exist; a clean run removes any
+  stale file. Legacy `verified.json` serialization (`asdict`/`indent=2`/
+  `default=str`) is preserved for identified rows.
+- Orchestrator audit uses the established legacy adapter
+  (`_log_audit_event` → `append_legacy_event`); prior journal bytes are
+  preserved and the new row follows the same byte discipline with an
+  observed (never constant) status.
+- Collector refusal is a typed `RuntimeError` subclass, not `sys.exit(1)`:
+  `sys.exit(1)` in this file marks CLI usage errors (missing manifest),
+  while an unidentified row is a data-integrity gate congruent with the
+  existing missing-batch and dual-screening `RuntimeError` refusals
+  (branchable in tests, non-zero CLI exit through the uncaught exception,
+  no outputs written).
+
+### Test counts + mutation probes
+
+- New policy suite `tests/unit/test_verification_identity_policy.py`: 11
+  passed (preserve, bridge, missing-DOI refusal, changed-DOI refusal,
+  ambiguous-safe builder, builder order-independence, mixed PARTIAL with
+  counts, all-refused never-SUCCESS, two collector refusals with
+  no-publication proof, order-independent refusal set).
+- VEI characterization suite: 19 passed after documenting each changed
+  expectation in place (02 status dict; 03a/03b/04/05b/06/09 mint→refusal;
+  10 UNPROVEN→observable). No test deleted; kit-truth, isolation-double,
+  preserved-identity, and downstream-isolation tests are byte-identical.
+- Neighbors: discovery + dedup + hydration + fidelity + pipeline-core: 84
+  passed (combined run with policy + screening-migration); workspace audit
+  characterization + service: 54 passed; E3 lineage selection
+  (`neg_010/neg_012/neg_034/neg_009/neg_011/pos_005/ledger`): 8 passed, 30
+  deselected; e2e extraction-runtime A1 pair (valid verified.json through
+  `cmd_collect`): 2 passed.
+- Generators: baseline / schemas / fixture / pins `--check` all green;
+  `ruff check scripts/` clean; `git diff --check` clean.
+- Mutation probes (4, each restored byte-identical by hash-verified copy):
+  P1 reintroduced an orchestrator mint → quarantine assertion failed as
+  required; P2 restored collector `or f"SCI-{i+1:06d}"` → collector published
+  instead of refusing and the refusal test failed as required; P3 emptied the
+  bridge singletons → happy-path bridge test failed (`FAILED` instead of
+  `SUCCESS`) as required; P4 forced `SUCCESS` for refused runs → both
+  truthfulness tests failed as required. Post-probe hashes equal pre-probe
+  hashes for all three production files.
+
+### Changed paths
+
+- `src/scholar_harness/verification_identity.py` (new, justified above).
+- `src/scholar_harness/orchestrator.py` (Stage-3 region + import + outcome/audit plumbing only).
+- `src/scholar_harness/screening/collector.py` (`:119-136` region + import + refusal plumbing only).
+- `tests/unit/test_verification_identity_policy.py` (new, focused policy proof).
+- `tests/unit/test_verification_identity_characterization.py` (changed expectations documented per test; no deletions).
+- This decision record (status transition + this record).
+
+### No-SCI-fallback proof
+
+- `grep f"SCI-` over `src/scholar_harness` returns no production mint
+  (orchestrator `:598` and collector `:122` formulas removed; the shared
+  module contains no mint). Remaining `SCI-` mentions in the three touched
+  production files are comments naming the removed mint and the Deduplicator
+  as the legitimate `SCI-` producer.
+
+### Limitations (measured, not claimed away)
+
+- Ambiguous-DOI refusal is proven at the bridge-builder level; it is
+  unreachable through the real `Deduplicator` today (one DOI → one cluster),
+  so no pipeline-level ambiguous firing was observed — the rule is
+  defensive.
+- Empty verifier output (zero docs, zero refusals) still reports Stage-3
+  `SUCCESS` with `verified: 0`; only a non-empty all-refused run reports
+  `FAILED`. Empty-output semantics beyond this packet remain with the
+  pipeline owner.
+- Screening `papers_to_screen` counts identified verified rows; screening
+  batches themselves remain corpus-driven per VEI-08c, so a degraded
+  verification run can still prepare corpus batches without verified
+  abstracts.
+- No live-provider behavior was exercised (no network); verifier shapes are
+  controlled doubles plus kit normalization truths.
+
+### Proposed next HCM-04 stage
+
+HCM-04f (or the next HCM-04 slice): migrate the Stage-3 result consumer that
+still reads `verified.json` row counts as plain integers, if any is found
+outside the two mint points, behind the same bridge-or-refuse vocabulary;
+then extract Stage 3 behind the neutral pipeline boundary per the HCM-04
+one-stage-at-a-time discipline, reusing `verification_identity.py` as the
+shared seam. No verifier refactor, no screening/extraction/indexing/matrix/
+graph/synthesis change, no contract/fixture/baseline/pin change.
