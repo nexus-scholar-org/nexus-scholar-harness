@@ -55,6 +55,7 @@ from types import SimpleNamespace
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import synthesis as synth_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
@@ -431,7 +432,8 @@ def test_output_path_encoding_exact(tmp_path, monkeypatch):
 
 def test_stage_9_region_has_no_inline_kit_logic():
     """HCM4K-07: orchestrator delegates; kit logic lives in the stage."""
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     region = source.split("Stage 9: Grounded Evidence Synthesis", 1)[1]
     region = region.split("Stage 10:", 1)[0]
     body = region.split('results["stages"]["synthesis"]', 1)[0]

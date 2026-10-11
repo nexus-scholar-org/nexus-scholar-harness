@@ -43,6 +43,7 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import verification as ver_mod
 from scholar_harness.verification_identity import (
     QUARANTINE_FILENAME,
@@ -918,7 +919,8 @@ def test_stage_has_no_console_transport_import():
 
 
 def test_stage_3_region_has_no_direct_kit_use():
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     stage3 = source.split("Stage 3: Verification", 1)[1]
     stage3 = stage3.split("Stage 4:", 1)[0]
     # No direct construction or bridge/quarantine/audit logic in the region.

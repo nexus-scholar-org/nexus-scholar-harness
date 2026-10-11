@@ -53,6 +53,7 @@ import logging
 from pathlib import Path
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import extraction as ext_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
@@ -583,7 +584,8 @@ def test_stage_emits_no_audit_and_no_registry(tmp_path):
 
 def test_stage_5_region_has_no_inline_extraction_loop():
     """HCM4G-12: orchestrator delegates; the loop lives in the stage."""
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     region = source.split("Stage 5: Fulltext Extraction", 1)[1]
     region = region.split("Stage 6:", 1)[0]
     body = region.split('results["stages"]["extraction"]', 1)[0]

@@ -50,6 +50,7 @@ from types import SimpleNamespace
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import matrix as mat_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
@@ -374,7 +375,8 @@ def test_minimal_indexer_refusal_shapes_bind(tmp_path, monkeypatch):
 
 def test_stage_7_region_has_no_inline_kit_logic():
     """HCM4I-07: orchestrator delegates; kit logic lives in the stage."""
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     region = source.split("Stage 7: Dynamic Protocol Matrix Extraction", 1)[1]
     region = region.split("Stage 8:", 1)[0]
     body = region.split('results["stages"]["matrix_rows"]', 1)[0]

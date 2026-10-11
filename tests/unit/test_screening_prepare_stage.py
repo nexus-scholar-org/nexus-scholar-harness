@@ -52,6 +52,7 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import screening_prepare as prep_mod
 
 
@@ -756,7 +757,9 @@ def test_stage_source_has_no_collect_or_audit_calls():
 
 def test_stage_4_prepare_region_has_no_direct_batcher_use():
     """HCM4F-08: orchestrator delegates; the batcher logic lives in the stage."""
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue (prepare delegation + collect gate + PAUSE) moved to
+    # coordinator.py; the region now lives there (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     region = source.split("Stage 4: Systematic PRISMA 2020 Screening", 1)[1]
     region = region.split("Stage 5:", 1)[0]
     prepare = region.split("Stages 5-9 require", 1)[0]
@@ -770,7 +773,8 @@ def test_stage_4_prepare_region_has_no_direct_batcher_use():
     assert "p_path.read_text" not in prepare
     assert "run_screening_preparation" in prepare
     assert "preparation_outcome" in prepare
-    # The collect gate + PAUSE audit stay orchestrator-side (not moved).
+    # HCM-04l: the collect gate + PAUSE audit live in the coordinator
+    # (moved from the orchestrator); they stay out of the stage module.
     gate = region.split("Stages 5-9 require", 1)[1]
     assert "included.json" in gate
     assert "PIPELINE_RUN_PAUSED_FOR_SCREENING" in gate
