@@ -5,7 +5,7 @@ task: AG-01-authorization-readiness
 delivery_lane: FAST
 owner_repo: nexus-scholar-org/nexus-scholar-harness
 base_sha: d07100f39a94a750bbc858da4cb8638543486762
-head_sha: <recorded-at-commit>
+head_sha: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
 branch: cdx/ag-01-authorization-readiness
 allowed_paths:
   - docs/architecture/ag-01-authorization-readiness.md
@@ -26,16 +26,16 @@ open_findings: [AG-03-authorization-identity-source-unresolved]
 known_baseline_failures: []
 evidence:
   - command: uv run pytest tests/test_ag01_screening_authorization_characterization.py -q
-    commit: <recorded-at-commit>
+    commit: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
     result: PASS (7/7)
   - command: uv run pytest tests/test_screening_migration.py tests/console/test_console_screening.py tests/test_contract_acceptance.py tests/test_contract_artifact_chain.py -q
-    commit: <recorded-at-commit>
+    commit: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
     result: recorded in §8
   - command: uv run python scripts/generate_contract_baseline.py --check (+schemas, fixture, pins)
-    commit: <recorded-at-commit>
+    commit: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
     result: recorded in §8
   - command: uv run ruff check scripts/ + git diff --check
-    commit: <recorded-at-commit>
+    commit: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
     result: recorded in §8
 next_gate: pr (design PR, fork-to-origin, no merge)
 stable_sources:
