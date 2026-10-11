@@ -38,20 +38,20 @@ evidence:
     commit: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
     result: recorded in §8
   - command: uv run pytest tests/test_screening_decision_integrity.py -q
-    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
-    result: PASS (12/12); workflow-integrity (tamper-evidence + fail-closed), not authorization
+    commit: 71ad929248cad81a07df3ca860fc4b9808ba33d0
+    result: PASS (12/12, exit 0; single-q summary "12 passed in 7.24s" -- repo addopts already supply one -q, so a CLI -q behaves as -qq and hides the count line; counts below come from the identical single-q selection); workflow-integrity (tamper-evidence + fail-closed), not authorization
   - command: uv run pytest tests/test_screening_migration.py tests/console/test_console_screening.py tests/test_contract_acceptance.py tests/test_contract_artifact_chain.py -q
-    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
-    result: PASS (36/36: 7 migration + 9 console + 11 acceptance + 9 chain), files unmodified
+    commit: 71ad929248cad81a07df3ca860fc4b9808ba33d0
+    result: PASS (36/36, exit 0; single-q summary "36 passed, 1 warning in 5.85s"; --collect-only 7 migration + 9 console + 11 acceptance + 9 chain), files unmodified
   - command: uv run pytest tests/test_ag01_screening_authorization_characterization.py -q
-    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
-    result: 4/7 PASS, file unmodified; 3 fail-closed by design (coverage-incomplete, duplicate, MAYBE-coercion demonstrations now refuse collection as AG-02 specifies)
+    commit: 71ad929248cad81a07df3ca860fc4b9808ba33d0
+    result: 4 passed + 3 fail-closed by design, file unmodified (exit 1): FAILED test_coverage_incomplete_file_is_accepted_today, test_duplicate_study_entries_are_accepted_today, test_maybe_decision_is_silently_coerced_to_exclude_today (AG-02 now refuses what AG-01 characterized as accepted)
   - command: uv run python scripts/generate_contract_baseline.py --check + generate_contract_schemas.py --check + generate_two_study_contract_fixture.py --check + generate_nexus_scholar_pins.py --check; uv run ruff check scripts/; git diff --check
-    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
-    result: PASS (all green; no contract/schema/fixture/pin drift)
+    commit: 71ad929248cad81a07df3ca860fc4b9808ba33d0
+    result: PASS (all exits 0: baseline "Contract baseline current", pins "[OK] packaging\nexus-scholar\nexus_scholar_pins.json is in sync with plugins.json", ruff "All checks passed!", diff --check clean; no contract/schema/fixture/pin drift)
   - command: uv run pytest -q --tb=no (full harness suite, PR gate, once)
-    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
-    result: 1181 tests, 1178 passed, 6 skipped, 3 failed -- the 3 failures are the AG-01 gap demonstrations above, now refusing collection by AG-02 design; zero other failures
+    commit: 71ad929248cad81a07df3ca860fc4b9808ba33d0
+    result: exit 1 with only the 3 expected AG-01 fail-closed FAILED lines (same -qq count-line suppression as above); identical selection via "uv run pytest --tb=no" gives verbatim "3 failed, 1172 passed, 6 skipped, 2 warnings in 190.63s (0:03:10)"; reconciled 1172+3+6=1181 with no deselected/xfailed/xpassed/errors (supersedes the stale 86a9478 line whose parts 1178+6+3 summed to 1187); zero failures outside the trio
 next_gate: pr (design PR, fork-to-origin, no merge)
 stable_sources:
   - docs/architecture/agent_control_enforcement_map.md@primary-untracked (AG-00 §§2-6; absent from base — see §0)
