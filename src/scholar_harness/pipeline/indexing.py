@@ -539,6 +539,18 @@ def run_indexing(
                 },
                 status="FAILED",
             )
+
+            # Return a minimal indexer for Stage 7 compatibility even on refusal
+            class MinimalIndexer:
+                collection_name = "scholar_docs"
+                embedder_kwargs = {
+                    "provider": "sentence-transformers",
+                    "model_name": "all-MiniLM-L6-v2",
+                }
+
+                def get_collection_count(self) -> int:
+                    return 0
+
             return IndexingOutcome(
                 result={
                     "status": "FAILED",
@@ -554,7 +566,7 @@ def run_indexing(
                         }
                     ],
                 },
-                indexer=None,
+                indexer=MinimalIndexer(),
             )
     if parent_view is None:
         # No accepted manifest -> refuse before touching any backend
