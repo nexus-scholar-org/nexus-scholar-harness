@@ -27,10 +27,20 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from scholar_harness.contracts import AcceptanceContext, accept_artifact
 from scholar_harness.console.api.screening import DecisionsBody
 from scholar_harness.screening.batcher import cmd_prepare
 from scholar_harness.screening.collector import cmd_collect
+from scholar_harness.screening.integrity import (
+    COVERAGE_INCOMPLETE,
+    DUPLICATE_ENTRY,
+    UNRESOLVED_FINALIZE_REFUSED,
+    ScreeningIntegrityRefused,
+    check_exact_coverage,
+    check_no_unresolved_for_finalize,
+)
 from scholar_protocol.canonical import canonical_fingerprint
 from scholar_protocol.models import ResearchProtocol
 from scholar_search.identity import build_corpus_snapshot_artifact
@@ -235,115 +245,196 @@ def test_collect_takes_no_critique_input_and_needs_none(tmp_path: Path) -> None:
 
 
 def test_coverage_incomplete_file_is_accepted_today(tmp_path: Path) -> None:
-    """AG-01 integrity gap (AG-02 target): 1 of 2 candidates still publishes.
+    """AG-01 integrity gap, now fail-closed (AG-02 target met).
 
-    Membership is checked one direction only (entries ⊆ candidates), so a
-    decision file that silently drops a candidate is accepted and the missing
-    study appears in neither partition output.
+    Pre-AG-02 characterization (base 86a9478): this input was accepted —
+    a 1-of-2 decision file published with the missing study in neither
+    partition. Post-AG-02: typed fail-closed refusal COVERAGE_INCOMPLETE.
+    Historical evidence retained; assertion updated to prevent regression
+    to the defect.
     """
     workspace, studies = _workspace(tmp_path, n_docs=2)
     assert len(studies) == 2
     cmd_prepare(workspace, batch_size=20)
     screening = workspace / "literature" / "screening"
-    (screening / "batch_001_decisions.json").write_text(
-        json.dumps(
-            [
-                {
-                    "workspace_id": studies[0]["study_id"],
-                    "decision": "INCLUDE",
-                    "method": "LLM",
-                    "screening_reasoning": "Only the first candidate was screened.",
-                }
-            ]
-        ),
-        encoding="utf-8",
-    )
+    decisions_path = screening / "batch_001_decisions.json"
+    entry = {
+        "workspace_id": studies[0]["study_id"],
+        "decision": "INCLUDE",
+        "method": "LLM",
+        "screening_reasoning": "Only the first candidate was screened.",
+    }
+    decisions_path.write_text(json.dumps([entry]), encoding="utf-8")
 
-    cmd_collect(workspace)
+    with pytest.raises(RuntimeError, match="collection blocked"):
+        cmd_collect(workspace)
 
-    included = json.loads(
-        (workspace / "literature" / "included.json").read_text(encoding="utf-8")
+    journal_path = workspace / "audit" / "journal.jsonl"
+    rows = [
+        json.loads(line)
+        for line in journal_path.read_text(encoding="utf-8").splitlines()
+    ]
+    refused = [
+        row
+        for row in rows
+        if row.get("action") == "SCREENING_COLLECT_REFUSED"
+        and row.get("parameters", {}).get("code") == COVERAGE_INCOMPLETE
+    ]
+    assert refused, "no SCREENING_COLLECT_REFUSED row with code COVERAGE_INCOMPLETE"
+    assert refused[0]["parameters"]["code"] == "COVERAGE_INCOMPLETE"
+    assert not decisions_path.exists()
+    assert decisions_path.with_name(decisions_path.name + ".rejected").is_file()
+    manifest = json.loads((screening / "MANIFEST.json").read_text(encoding="utf-8"))
+    assert (
+        next(b for b in manifest["batches"] if b["batch_index"] == 1)["status"]
+        == "MISSING"
     )
-    excluded = json.loads(
-        (workspace / "literature" / "excluded.json").read_text(encoding="utf-8")
-    )
-    seen = {d.get("workspace_id") for d in included + excluded}
-    assert studies[0]["study_id"] in seen
-    assert studies[1]["study_id"] not in seen
+    for name in (
+        "included.json",
+        "excluded.json",
+        "conflicts.json",
+        "prisma_screening_report.md",
+        "prisma_report.json",
+    ):
+        assert not (workspace / "literature" / name).exists()
+    assert _accepted_screening_decisions(workspace) == []
+    with pytest.raises(ScreeningIntegrityRefused) as excinfo:
+        check_exact_coverage({s["study_id"] for s in studies}, [entry])
+    assert excinfo.value.code == COVERAGE_INCOMPLETE
+    assert excinfo.value.code == "COVERAGE_INCOMPLETE"
 
 
 def test_duplicate_study_entries_are_accepted_today(tmp_path: Path) -> None:
-    """AG-01 integrity gap (AG-02 target): duplicate rows are not rejected.
+    """AG-01 integrity gap, now fail-closed (AG-02 target met).
 
-    Two entries for the same study mint two accepted ``ContractDecision``
-    records instead of failing closed.
+    Pre-AG-02 characterization (base 86a9478): this input was accepted —
+    two entries for the same study minted two accepted ContractDecision
+    records instead of failing closed. Post-AG-02: typed fail-closed
+    refusal DUPLICATE_ENTRY. Historical evidence retained; assertion
+    updated to prevent regression to the defect.
     """
     workspace, studies = _workspace(tmp_path)
     cmd_prepare(workspace, batch_size=20)
     screening = workspace / "literature" / "screening"
-    (screening / "batch_001_decisions.json").write_text(
-        json.dumps(
-            [
-                {
-                    "workspace_id": studies[0]["study_id"],
-                    "decision": "INCLUDE",
-                    "method": "LLM",
-                    "screening_reasoning": "First row for the study.",
-                },
-                {
-                    "workspace_id": studies[0]["study_id"],
-                    "decision": "INCLUDE",
-                    "method": "LLM",
-                    "screening_reasoning": "Second row for the same study.",
-                },
-            ]
-        ),
-        encoding="utf-8",
+    decisions_path = screening / "batch_001_decisions.json"
+    entries = [
+        {
+            "workspace_id": studies[0]["study_id"],
+            "decision": "INCLUDE",
+            "method": "LLM",
+            "screening_reasoning": "First row for the study.",
+        },
+        {
+            "workspace_id": studies[0]["study_id"],
+            "decision": "INCLUDE",
+            "method": "LLM",
+            "screening_reasoning": "Second row for the same study.",
+        },
+    ]
+    decisions_path.write_text(json.dumps(entries), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="collection blocked"):
+        cmd_collect(workspace)
+
+    journal_path = workspace / "audit" / "journal.jsonl"
+    rows = [
+        json.loads(line)
+        for line in journal_path.read_text(encoding="utf-8").splitlines()
+    ]
+    refused = [
+        row
+        for row in rows
+        if row.get("action") == "SCREENING_COLLECT_REFUSED"
+        and row.get("parameters", {}).get("code") == DUPLICATE_ENTRY
+    ]
+    assert refused, "no SCREENING_COLLECT_REFUSED row with code DUPLICATE_ENTRY"
+    assert refused[0]["parameters"]["code"] == "DUPLICATE_ENTRY"
+    assert not decisions_path.exists()
+    assert decisions_path.with_name(decisions_path.name + ".rejected").is_file()
+    manifest = json.loads((screening / "MANIFEST.json").read_text(encoding="utf-8"))
+    assert (
+        next(b for b in manifest["batches"] if b["batch_index"] == 1)["status"]
+        == "MISSING"
     )
-
-    cmd_collect(workspace)
-
-    payloads = _accepted_screening_decisions(workspace)
-    assert len(payloads) == 1
-    decisions = payloads[0]["data"]["decisions"]
-    assert len(decisions) == 2
-    assert {d["study_id"] for d in decisions} == {studies[0]["study_id"]}
+    for name in (
+        "included.json",
+        "excluded.json",
+        "conflicts.json",
+        "prisma_screening_report.md",
+        "prisma_report.json",
+    ):
+        assert not (workspace / "literature" / name).exists()
+    assert _accepted_screening_decisions(workspace) == []
+    with pytest.raises(ScreeningIntegrityRefused) as excinfo:
+        check_exact_coverage({s["study_id"] for s in studies}, entries)
+    assert excinfo.value.code == DUPLICATE_ENTRY
+    assert excinfo.value.code == "DUPLICATE_ENTRY"
 
 
 def test_maybe_decision_is_silently_coerced_to_exclude_today(
     tmp_path: Path,
 ) -> None:
-    """AG-01 fidelity gap (AG-02 target): unresolved MAYBE becomes EXCLUDE.
+    """AG-01 fidelity gap, now fail-closed (AG-02 target met).
 
-    The contract model carries MAYBE, but the single-screener collect path
-    coerces any non-INCLUDE legacy decision to EXCLUDE, so an explicitly
-    unresolved judgment publishes as a terminal exclusion.
+    Pre-AG-02 characterization (base 86a9478): this input was accepted —
+    an explicitly unresolved MAYBE judgment was silently coerced to EXCLUDE
+    and published as a terminal exclusion. Post-AG-02: typed fail-closed
+    refusal UNRESOLVED_FINALIZE_REFUSED. Historical evidence retained;
+    assertion updated to prevent regression to the defect.
     """
     workspace, studies = _workspace(tmp_path)
     cmd_prepare(workspace, batch_size=20)
     screening = workspace / "literature" / "screening"
-    (screening / "batch_001_decisions.json").write_text(
-        json.dumps(
-            [
-                {
-                    "workspace_id": studies[0]["study_id"],
-                    "decision": "MAYBE",
-                    "method": "LLM",
-                    "screening_reasoning": "Cannot tell from the abstract alone.",
-                }
-            ]
-        ),
-        encoding="utf-8",
-    )
+    decisions_path = screening / "batch_001_decisions.json"
+    entry = {
+        "workspace_id": studies[0]["study_id"],
+        "decision": "MAYBE",
+        "method": "LLM",
+        "screening_reasoning": "Cannot tell from the abstract alone.",
+    }
+    decisions_path.write_text(json.dumps([entry]), encoding="utf-8")
 
-    cmd_collect(workspace)
+    with pytest.raises(RuntimeError, match="collection blocked"):
+        cmd_collect(workspace)
 
-    excluded = json.loads(
-        (workspace / "literature" / "excluded.json").read_text(encoding="utf-8")
+    journal_path = workspace / "audit" / "journal.jsonl"
+    rows = [
+        json.loads(line)
+        for line in journal_path.read_text(encoding="utf-8").splitlines()
+    ]
+    refused = [
+        row
+        for row in rows
+        if row.get("action") == "SCREENING_COLLECT_REFUSED"
+        and row.get("parameters", {}).get("code") == UNRESOLVED_FINALIZE_REFUSED
+    ]
+    assert refused, (
+        "no SCREENING_COLLECT_REFUSED row with code UNRESOLVED_FINALIZE_REFUSED"
     )
-    assert [d.get("workspace_id") for d in excluded] == [studies[0]["study_id"]]
-    payloads = _accepted_screening_decisions(workspace)
-    assert payloads[0]["data"]["decisions"][0]["decision"] == "EXCLUDE"
+    assert refused[0]["parameters"]["code"] == "UNRESOLVED_FINALIZE_REFUSED"
+    assert not decisions_path.exists()
+    assert decisions_path.with_name(decisions_path.name + ".rejected").is_file()
+    manifest = json.loads((screening / "MANIFEST.json").read_text(encoding="utf-8"))
+    assert (
+        next(b for b in manifest["batches"] if b["batch_index"] == 1)["status"]
+        == "MISSING"
+    )
+    # The unresolved study appears in neither partition, and no accepted
+    # decision coerces it to EXCLUDE: there are no partitions and no
+    # accepted screening_decisions artifact at all.
+    for name in (
+        "included.json",
+        "excluded.json",
+        "conflicts.json",
+        "prisma_screening_report.md",
+        "prisma_report.json",
+    ):
+        assert not (workspace / "literature" / name).exists()
+    assert _accepted_screening_decisions(workspace) == []
+    with pytest.raises(ScreeningIntegrityRefused) as excinfo:
+        check_no_unresolved_for_finalize([entry])
+    assert excinfo.value.code == UNRESOLVED_FINALIZE_REFUSED
+    assert excinfo.value.code == "UNRESOLVED_FINALIZE_REFUSED"
 
 
 def test_console_decisions_body_accepts_any_reviewed_by_string() -> None:
