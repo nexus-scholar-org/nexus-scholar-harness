@@ -115,6 +115,7 @@ an authoritative artifact.
 | Acceptance and atomic publication | `src/scholar_harness/contracts/acceptance.py` |
 | Packet C behavior | `docs/architecture/wp01_packet_c_reference.md` |
 | Packet E1 implementation-ready handoff | `docs/architecture/wp01_packet_e1_acquired_document_handoff.md` |
+| Screening authorization readiness (AG-01 design; BLOCKED_AUTHORITY_MODEL + AG-02 packet) | `docs/architecture/ag-01-authorization-readiness.md` |
 | Packet E1 completion evidence | `docs/architecture/wp01_packet_e1_completion_report.md` |
 | Historical Packet A–E definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
 | Screening producer | `src/scholar_harness/screening/batcher.py` |
