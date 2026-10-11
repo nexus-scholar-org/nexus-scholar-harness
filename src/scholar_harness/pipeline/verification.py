@@ -49,11 +49,6 @@ from scholar_harness.workspace.audit import append_legacy_event
 logger = logging.getLogger(__name__)
 
 
-# Kit class captured at import time so the legacy orchestrator-namespace seam
-# below can tell a monkeypatched fake apart from the real verifier.
-_REAL_VERIFIER = DocumentVerifier
-
-
 @dataclass
 class VerificationOutcome:
     """Typed outcome of the verification stage.
@@ -72,30 +67,6 @@ class VerificationOutcome:
     bridge_restored: int
     refusal_reasons: dict[str, int]
     quarantine: str | None
-
-
-def _verifier_class() -> type[DocumentVerifier]:
-    """Return the ``DocumentVerifier`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.DocumentVerifier`` with a fake verifier. The
-    orchestrator no longer constructs the verifier itself, so the stage honors
-    an orchestrator-namespace override when it differs from the kit class and
-    otherwise uses this module's own global (which tests may also patch
-    directly). Transitional HCM-04e seam: a later coordinator packet should
-    migrate the fidelity stubs to patch
-    ``scholar_harness.pipeline.verification.DocumentVerifier`` directly and
-    drop the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("DocumentVerifier")
-        if candidate is not None and candidate is not _REAL_VERIFIER:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return DocumentVerifier
 
 
 async def run_verification(
@@ -123,7 +94,7 @@ async def run_verification(
     lit_dir = Path(literature_dir)
     lit_dir.mkdir(parents=True, exist_ok=True)
 
-    verifier = _verifier_class()()
+    verifier = DocumentVerifier()
     verified_docs, audit = await verifier.process_batch(
         documents, verify=True, enrich=True
     )

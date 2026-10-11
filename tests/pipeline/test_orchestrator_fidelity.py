@@ -22,6 +22,12 @@ from types import SimpleNamespace
 import networkx as nx
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import deduplication as dedup_mod
+from scholar_harness.pipeline import discovery as disc_mod
+from scholar_harness.pipeline import graph as graph_mod
+from scholar_harness.pipeline import matrix as mat_mod
+from scholar_harness.pipeline import synthesis as synth_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 # Registered workspace identity this fixture workspace records. Stage 6 states the
 # value recorded in project.json and refuses to index under anything else, so a
@@ -186,15 +192,15 @@ class _FakeVis:
 
 
 def _stub_kit_engines(monkeypatch):
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "Deduplicator", _FakeDedup)
-    monkeypatch.setattr(orch, "DocumentVerifier", _FakeVerifier)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
     monkeypatch.setattr(orch, "ScholarIndexer", _FakeIndexer)
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _FakeMatrix)
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _FakeMatrix)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )

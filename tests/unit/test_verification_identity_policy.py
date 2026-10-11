@@ -34,7 +34,9 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import discovery as disc
 from scholar_harness.pipeline import hydration as hyd_mod
+from scholar_harness.pipeline import verification as ver_mod
 from scholar_harness.verification_identity import (
     QUARANTINE_FILENAME,
     VERIFICATION_IDENTITY_AMBIGUOUS_DOI,
@@ -169,7 +171,7 @@ def _install_fake_engine(monkeypatch, docs):
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
 
 
 def _run_pipeline(ws: Path) -> dict:
@@ -224,7 +226,7 @@ def test_policy_preserves_valid_workspace_id(tmp_path, monkeypatch):
         async def process_batch(self, docs, verify=True, enrich=True):
             return list(docs), []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _PassthroughVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -250,7 +252,7 @@ def test_policy_bridge_restores_via_doi(tmp_path, monkeypatch):
         async def process_batch(self, docs, verify=True, enrich=True):
             return [_fresh_doc_without_workspace(d) for d in docs], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _DroppingVerifierSameDOI)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _DroppingVerifierSameDOI)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -298,7 +300,7 @@ def test_policy_refuses_when_no_doi(tmp_path, monkeypatch):
                 for d in docs
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -351,7 +353,7 @@ def test_policy_refuses_when_verifier_changes_doi(tmp_path, monkeypatch):
                 for i, d in enumerate(docs)
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _ChangingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _ChangingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -457,7 +459,7 @@ def test_policy_mixed_batch_is_partial_with_counts(tmp_path, monkeypatch):
             )
             return [kept, stripped], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _MixedVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _MixedVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -508,7 +510,7 @@ def test_policy_all_refused_is_never_success(tmp_path, monkeypatch):
                 for d in docs
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -756,7 +758,7 @@ def test_policy_refusal_set_is_order_independent(tmp_path, monkeypatch):
             async def process_batch(self, docs, verify=True, enrich=True):
                 return _stripped_in_order(order), []
 
-        monkeypatch.setattr(orch, "DocumentVerifier", _OrderedVerifier)
+        monkeypatch.setattr(ver_mod, "DocumentVerifier", _OrderedVerifier)
         _write_protocol(ws)
         results = _run_pipeline(ws)
         quarantine = json.loads(

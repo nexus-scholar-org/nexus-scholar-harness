@@ -57,12 +57,6 @@ from scholar_rag.retriever import ScholarRetriever
 logger = logging.getLogger(__name__)
 
 
-# Kit classes captured at import time so the legacy orchestrator-namespace
-# seams below can tell a monkeypatched fake apart from the real kit class.
-_REAL_RETRIEVER = ScholarRetriever
-_REAL_MATRIX = MatrixExtractor
-
-
 @dataclass
 class MatrixOutcome:
     """Typed outcome of the matrix stage.
@@ -81,56 +75,6 @@ class MatrixOutcome:
     retriever: Any
 
 
-def _retriever_class() -> type[ScholarRetriever]:
-    """Return the ``ScholarRetriever`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.ScholarRetriever`` with a fake retriever
-    (fidelity ``:193`` and extraction-stage ``:761``). The orchestrator no
-    longer constructs the retriever itself, so the stage honors an
-    orchestrator-namespace override when it differs from the kit class and
-    otherwise uses this module's own global (which tests may also patch
-    directly). Transitional HCM-04i seam: a later stub-migration packet
-    should migrate the fidelity stubs to patch
-    ``scholar_harness.pipeline.matrix.ScholarRetriever`` directly and drop
-    the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("ScholarRetriever")
-        if candidate is not None and candidate is not _REAL_RETRIEVER:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return ScholarRetriever
-
-
-def _matrix_class() -> type[MatrixExtractor]:
-    """Return the ``MatrixExtractor`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.MatrixExtractor`` with a fake extractor
-    (fidelity ``:194`` and extraction-stage ``:762``). The orchestrator no
-    longer constructs the extractor itself, so the stage honors an
-    orchestrator-namespace override when it differs from the kit class and
-    otherwise uses this module's own global (which tests may also patch
-    directly). Transitional HCM-04i seam: a later stub-migration packet
-    should migrate the fidelity stubs to patch
-    ``scholar_harness.pipeline.matrix.MatrixExtractor`` directly and drop
-    the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("MatrixExtractor")
-        if candidate is not None and candidate is not _REAL_MATRIX:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return MatrixExtractor
-
-
 def run_matrix(
     *,
     protocol: Any,
@@ -141,10 +85,9 @@ def run_matrix(
     """Build the retriever, extract the protocol matrix, publish files.
 
     Verbatim move of orchestrator Stage 7 (:678-687): ``ScholarRetriever``
-    via ``_retriever_class()`` with ``db_path=str(chroma_dir)`` plus the
-    ``indexer_compat`` collection/embedder limbs, ``MatrixExtractor`` via
-    ``_matrix_class()`` with ``protocol`` + ``retriever``, then
-    ``extract_all(output_dir=lit_dir)``.
+    with ``db_path=str(chroma_dir)`` plus the ``indexer_compat``
+    collection/embedder limbs, ``MatrixExtractor`` with ``protocol`` +
+    ``retriever``, then ``extract_all(output_dir=lit_dir)``.
 
     Only mechanical parameterization: ``protocol`` / ``indexer_compat`` /
     ``chroma_dir`` / ``literature_dir`` inputs. No logic edits, no renames
@@ -152,12 +95,12 @@ def run_matrix(
     propagates with no fabricated rows and no success mapping.
     """
     lit_dir = Path(literature_dir)
-    retriever = _retriever_class()(
+    retriever = ScholarRetriever(
         db_path=str(chroma_dir),
         collection_name=indexer_compat.collection_name,
         embedder_kwargs=indexer_compat.embedder_kwargs,
     )
-    matrix_extractor = _matrix_class()(protocol=protocol, retriever=retriever)
+    matrix_extractor = MatrixExtractor(protocol=protocol, retriever=retriever)
     matrix_rows, csv_path, json_path = matrix_extractor.extract_all(output_dir=lit_dir)
     return MatrixOutcome(
         rows=matrix_rows,

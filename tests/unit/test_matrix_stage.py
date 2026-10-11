@@ -28,14 +28,11 @@ Negatives (each tmp_path-only, byte-identical restored):
 - NEG-02 binding break (outcome.retriever must be the Matrix-seen object)
 - NEG-03 serialization/order change (row order + csv/json bytes preserved)
 - NEG-04 empty-as-success (kit raise is never mapped to DONE/0 rows)
-- NEG-05 seam bypass (orchestator-namespace patches take effect)
+- NEG-05 seam bypass (pipeline-namespace patches take effect)
 
-Carry-forward debt TD-HCM-TEST-SEAMS x3 untouched
-(``SearchEngine`` / ``Deduplicator`` / ``DocumentVerifier`` shims stay);
-this packet adds two NARROW seams only (``ScholarRetriever`` /
-``MatrixExtractor`` via ``orchestrator.__dict__`` honoring, HCM-04b
-precedent). No broad layer, no other seams. TD-E3-CURRENTNESS-01 and the
-MCP docs failure stay base-proven and untouched.
+HCM-04m removed the transitional seams (tests patch the owning pipeline
+modules directly). TD-E3-CURRENTNESS-01 and the MCP docs failure stay
+base-proven and untouched.
 """
 
 from __future__ import annotations
@@ -51,7 +48,12 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import deduplication as dedup_mod
+from scholar_harness.pipeline import discovery as disc_mod
+from scholar_harness.pipeline import graph as graph_mod
 from scholar_harness.pipeline import matrix as mat_mod
+from scholar_harness.pipeline import synthesis as synth_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
 
@@ -205,9 +207,10 @@ def _clear_seen():
 
 
 def test_shim_identity_all_four_names():
-    """HCM4I-01: orchestrator names ARE the stage objects (move, not copy)."""
-    assert orch.ScholarRetriever is mat_mod.ScholarRetriever
-    assert orch.MatrixExtractor is mat_mod.MatrixExtractor
+    """HCM4I-01: orchestrator keeps the façade names (move, not copy)."""
+    # HCM-04m: patch-only kit re-exports removed.
+    assert not hasattr(orch, "ScholarRetriever")
+    assert not hasattr(orch, "MatrixExtractor")
     assert orch.run_matrix is mat_mod.run_matrix
     assert orch.MatrixOutcome is mat_mod.MatrixOutcome
 
@@ -219,8 +222,6 @@ def test_stage_canonical_kit_classes():
 
     assert mat_mod.ScholarRetriever is _KitRetriever
     assert mat_mod.MatrixExtractor is _KitMatrix
-    assert mat_mod._REAL_RETRIEVER is _KitRetriever
-    assert mat_mod._REAL_MATRIX is _KitMatrix
 
 
 # ---------------------------------------------------------------------------
@@ -231,8 +232,8 @@ def test_stage_canonical_kit_classes():
 def test_construction_parity_db_collection_embedder_and_protocol(tmp_path, monkeypatch):
     """HCM4I-02: verbatim retriever/extractor construction + output_dir."""
     _clear_seen()
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -278,8 +279,8 @@ def test_indexer_compat_limbs_used_verbatim_not_defaults(tmp_path, monkeypatch):
         collection_name = "custom_collection"
         embedder_kwargs = {"provider": "mock", "model_name": "mock-384"}
 
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -307,8 +308,8 @@ def test_indexer_compat_limbs_used_verbatim_not_defaults(tmp_path, monkeypatch):
 def test_stage_emits_no_audit_and_no_registry(tmp_path, monkeypatch):
     """HCM4I-05: Stage 7 emits no audit event and no registry state."""
     _clear_seen()
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -339,8 +340,8 @@ def test_stage_emits_no_audit_and_no_registry(tmp_path, monkeypatch):
 def test_minimal_indexer_refusal_shapes_bind(tmp_path, monkeypatch):
     """HCM4I-06: MinimalIndexer refusal shapes carry collection/embedder limbs."""
     _clear_seen()
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
 
     class MinimalIndexer:
         collection_name = "scholar_docs"
@@ -452,15 +453,47 @@ def test_stage_has_no_console_transport_import():
 
 
 def test_narrow_seams_only_two_orchestrator_fallbacks():
-    """Only ScholarRetriever/MatrixExtractor consult orchestrator.__dict__."""
+    """HCM-04m: no orchestrator fallback remains (SEAM-04/05 removed)."""
     text = Path(mat_mod.__file__).read_text(encoding="utf-8")
-    assert text.count("orchestrator.__dict__.get(") == 2
-    assert '"ScholarRetriever"' in text
-    assert '"MatrixExtractor"' in text
-    assert "_REAL_RETRIEVER" in text
-    assert "_REAL_MATRIX" in text
-    # No broad __dict__ snooping beyond the two narrow resolvers.
-    assert "orchestrator.__dict__" not in text.replace("orchestrator.__dict__.get(", "")
+    assert "orchestrator.__dict__.get(" not in text
+    assert "orchestrator.__dict__" not in text
+    assert "_REAL_RETRIEVER" not in text
+    assert "_REAL_MATRIX" not in text
+    assert "_retriever_class" not in text
+    assert "_matrix_class" not in text
+
+
+def test_transitional_seams_removed(tmp_path, monkeypatch):
+    """HCM-04m tripwire (SEAM-04/05): old patches inert; stage fakes win."""
+
+    assert not hasattr(orch, "ScholarRetriever")
+    assert not hasattr(orch, "MatrixExtractor")
+
+    class _BoomRetriever:
+        def __init__(self, *a, **k):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    class _BoomMatrix:
+        def __init__(self, *a, **k):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    _clear_seen()
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(orch, "ScholarRetriever", _BoomRetriever, raising=False)
+    monkeypatch.setattr(orch, "MatrixExtractor", _BoomMatrix, raising=False)
+
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+    protocol = _load_protocol(ws)
+    outcome = mat_mod.run_matrix(
+        protocol=protocol,
+        indexer_compat=_FakeIndexerCompat(),
+        chroma_dir=ws / "chroma_db",
+        literature_dir=ws / "literature",
+    )
+    assert isinstance(outcome.retriever, _RecorderRetriever)
 
 
 # ---------------------------------------------------------------------------
@@ -542,14 +575,14 @@ def _stub_upstream(monkeypatch):
         def generate_html(self, G):
             Path(self.html_path).write_text("<html></html>", encoding="utf-8")
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "Deduplicator", _FakeDedup)
-    monkeypatch.setattr(orch, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )
@@ -592,19 +625,19 @@ def test_orchestrator_mapping_and_retriever_binding(tmp_path, monkeypatch):
 
 
 def test_orchestrator_stage_resolves_both_patch_sites_unmodified(tmp_path, monkeypatch):
-    """NEG-05: fidelity patch sites work UNMODIFIED through the stage."""
-    # Patch ONLY the orchestrator namespace (exact fidelity :193-194 lines).
+    """NEG-05: pipeline-namespace patch sites work through the stage."""
+    # Patch the owning pipeline namespace (HCM-04m canonical seam).
     _clear_seen()
     SEEN_SYNTH_RETRIEVERS.clear()
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
 
     ws = tmp_path / "ws"
     ws.mkdir()
     _write_protocol(ws)
     protocol = _load_protocol(ws)
 
-    # Direct stage call honors the orchestrator-namespace overrides.
+    # Direct stage call honors the pipeline-namespace overrides.
     outcome = mat_mod.run_matrix(
         protocol=protocol,
         indexer_compat=_FakeIndexerCompat(),
@@ -656,8 +689,8 @@ def test_orchestrator_mapping_matches_direct_stage_bytes(tmp_path, monkeypatch):
     # reproduces the orchestrator's files byte for byte (restore).
     _clear_seen()
     # Re-apply the deterministic fakes for the direct call (cleared above).
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
     direct_lit = tmp_path / "direct-literature"
     direct_chroma = tmp_path / "direct-chroma"
     protocol = _load_protocol(ws)
@@ -701,8 +734,8 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
     _write_protocol(ws)
     protocol = _load_protocol(ws)
 
-    monkeypatch.setattr(orch, "ScholarRetriever", _BoomRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _DeterministicMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _BoomRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _DeterministicMatrix)
     with pytest.raises(RuntimeError, match="retriever boom"):
         mat_mod.run_matrix(
             protocol=protocol,
@@ -713,8 +746,8 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
     # No publication on retriever failure.
     assert not (ws / "literature" / "synthesis_matrix.json").exists()
 
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _BoomMatrix)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _BoomMatrix)
     with pytest.raises(RuntimeError, match="extractor boom"):
         mat_mod.run_matrix(
             protocol=protocol,
@@ -730,7 +763,7 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
         def extract_all(self, output_dir):
             raise RuntimeError("extract_all boom")
 
-    monkeypatch.setattr(orch, "MatrixExtractor", _BoomExtract)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _BoomExtract)
     with pytest.raises(RuntimeError, match="extract_all boom"):
         mat_mod.run_matrix(
             protocol=protocol,

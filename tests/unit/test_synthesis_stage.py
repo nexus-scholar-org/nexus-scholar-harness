@@ -36,11 +36,8 @@ Negatives (each tmp_path-only, byte-identical restored):
 - NEG-06 evidence fabrication/strip (file bytes == engine markdown exactly)
 - NEG-07 byte-identical probe restore (delete + re-run restores bytes)
 
-Carry-forward debt TD-HCM-TEST-SEAMS x3 untouched
-(``SearchEngine`` / ``Deduplicator`` / ``DocumentVerifier`` shims stay);
-this packet adds ONE NARROW seam only (``GroundedSynthesisEngine`` via
-``orchestrator.__dict__`` honoring, HCM-04b precedent). No broad layer,
-no other seams. TD-E3-CURRENTNESS-01 and the MCP docs failure stay
+HCM-04m removed the transitional seams (tests patch the owning pipeline
+modules directly). TD-E3-CURRENTNESS-01 and the MCP docs failure stay
 base-proven and untouched.
 """
 
@@ -56,7 +53,12 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import deduplication as dedup_mod
+from scholar_harness.pipeline import discovery as disc_mod
+from scholar_harness.pipeline import graph as graph_mod
+from scholar_harness.pipeline import matrix as mat_mod
 from scholar_harness.pipeline import synthesis as synth_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
 
@@ -174,8 +176,9 @@ def _clear_seen():
 
 
 def test_shim_identity_all_three_names():
-    """HCM4K-01: orchestrator names ARE the stage objects (move, not copy)."""
-    assert orch.GroundedSynthesisEngine is synth_mod.GroundedSynthesisEngine
+    """HCM4K-01: orchestrator keeps the façade names (move, not copy)."""
+    # HCM-04m: patch-only kit re-export removed.
+    assert not hasattr(orch, "GroundedSynthesisEngine")
     assert orch.run_synthesis is synth_mod.run_synthesis
     assert orch.SynthesisOutcome is synth_mod.SynthesisOutcome
 
@@ -185,7 +188,6 @@ def test_stage_canonical_kit_class():
     from scholar_rag.synthesis import GroundedSynthesisEngine as _KitEngine
 
     assert synth_mod.GroundedSynthesisEngine is _KitEngine
-    assert synth_mod._REAL_ENGINE is _KitEngine
 
 
 # ---------------------------------------------------------------------------
@@ -196,7 +198,7 @@ def test_stage_canonical_kit_class():
 def test_construction_parity_retriever_rq_and_call_shape(tmp_path, monkeypatch):
     """HCM4K-02/03/06: verbatim retriever kw, first-RQ passthrough, sync call."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -236,7 +238,7 @@ def test_construction_parity_retriever_rq_and_call_shape(tmp_path, monkeypatch):
 def test_rq_fallbacks_when_no_research_questions(tmp_path, monkeypatch):
     """HCM4K-03: empty RQs fall back to the base default text/id."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -260,7 +262,7 @@ def test_rq_fallbacks_when_no_research_questions(tmp_path, monkeypatch):
 def test_second_rq_is_never_selected(tmp_path, monkeypatch):
     """NEG-01: an RQ change (second RQ or hardcoded query) fails here."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -295,7 +297,7 @@ def test_engine_binding_is_exact_retriever_keyword(tmp_path, monkeypatch):
             seen_init_kwargs.append(dict(kwargs))
             super().__init__(*args, **kwargs)
 
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _RecorderEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _RecorderEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -315,7 +317,7 @@ def test_engine_binding_is_exact_retriever_keyword(tmp_path, monkeypatch):
 def test_synthesize_kwargs_exact_not_defaults(tmp_path, monkeypatch):
     """NEG-03: synthesize kwargs must stay query/rq_id/section exact."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -340,7 +342,7 @@ def test_synthesize_kwargs_exact_not_defaults(tmp_path, monkeypatch):
 def test_stage_emits_no_audit_and_no_registry(tmp_path, monkeypatch):
     """HCM4K-05: Stage 9 emits no audit event and no registry state."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -378,7 +380,7 @@ def test_file_bytes_equal_engine_markdown_exactly(tmp_path, monkeypatch):
                 entailment_rate=1.0,
             )
 
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _ExactEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _ExactEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -405,7 +407,7 @@ def test_file_bytes_equal_engine_markdown_exactly(tmp_path, monkeypatch):
 def test_output_path_encoding_exact(tmp_path, monkeypatch):
     """NEG-04: path, filename, and utf-8 encoding stay exact."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -509,19 +511,43 @@ def test_stage_has_no_console_transport_import():
 
 
 def test_narrow_seam_only_one_orchestrator_fallback():
-    """Only GroundedSynthesisEngine consults orchestrator.__dict__."""
+    """HCM-04m: no orchestrator fallback remains (SEAM-08 removed)."""
     text = Path(synth_mod.__file__).read_text(encoding="utf-8")
-    assert text.count("orchestrator.__dict__.get(") == 1
-    assert '"GroundedSynthesisEngine"' in text
-    assert "_REAL_ENGINE" in text
-    # No broad __dict__ snooping beyond the narrow resolver.
-    assert "orchestrator.__dict__" not in text.replace("orchestrator.__dict__.get(", "")
+    assert "orchestrator.__dict__.get(" not in text
+    assert "orchestrator.__dict__" not in text
+    assert "_REAL_ENGINE" not in text
+    assert "_engine_class" not in text
+
+
+def test_transitional_seam_removed(tmp_path, monkeypatch):
+    """HCM-04m tripwire (SEAM-08): old patch inert; stage fake wins."""
+
+    assert not hasattr(orch, "GroundedSynthesisEngine")
+
+    class _BoomEngine:
+        def __init__(self, *a, **k):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    _clear_seen()
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _BoomEngine, raising=False)
+
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+    protocol = _load_protocol(ws)
+    outcome = synth_mod.run_synthesis(
+        protocol=protocol,
+        retriever=object(),
+        synthesis_dir=ws / "synthesis",
+    )
+    assert outcome.verified_claims == 2
 
 
 def test_upstream_omission_is_type_error_no_file(tmp_path, monkeypatch):
     """NEG-02: required limbs omitted -> TypeError, no file, no success."""
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -649,14 +675,14 @@ class _FakeSynth:
 def _stub_upstream(monkeypatch):
     _clear_seen()
     SEEN_MATRIX_RETRIEVERS.clear()
-    monkeypatch.setattr(orch, "SearchEngine", _FakeSearchEngine)
-    monkeypatch.setattr(orch, "Deduplicator", _FakeDedup)
-    monkeypatch.setattr(orch, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _FakeMatrix)
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _FakeSearchEngine)
+    monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _FakeMatrix)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )
@@ -711,10 +737,10 @@ def test_orchestrator_mapping_and_retriever_binding(tmp_path, monkeypatch):
 
 
 def test_orchestrator_stage_resolves_patch_site_unmodified(tmp_path, monkeypatch):
-    """NEG-05 seam bypass: orchestrator-namespace patch takes effect."""
+    """NEG-05 seam bypass: pipeline-namespace patch takes effect."""
     _clear_seen()
-    # Patch ONLY the orchestrator namespace (exact fidelity :195 line).
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    # Patch the owning pipeline namespace (HCM-04m canonical seam).
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -774,7 +800,7 @@ def test_orchestrator_mapping_matches_direct_stage_bytes(tmp_path, monkeypatch):
     # reproduces the orchestrator's file byte for byte (restore).
     _clear_seen()
     # Re-apply the deterministic fake for the direct call (cleared above).
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeEngine)
     direct_synth = tmp_path / "direct-synthesis"
     protocol = _load_protocol(ws)
     direct_outcome = synth_mod.run_synthesis(
@@ -787,7 +813,7 @@ def test_orchestrator_mapping_matches_direct_stage_bytes(tmp_path, monkeypatch):
     # orch fake -- both are deterministic, so compare shape, then restore
     # the orch bytes through the direct stage with the orch fake.
     _clear_seen()
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
     restore_dir = tmp_path / "restore-synthesis"
     restore_outcome = synth_mod.run_synthesis(
         protocol=protocol,
@@ -826,7 +852,7 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
         def __init__(self, retriever=None, **kw):
             raise RuntimeError("engine boom")
 
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _BoomEngine)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _BoomEngine)
     with pytest.raises(RuntimeError, match="engine boom"):
         synth_mod.run_synthesis(
             protocol=protocol,
@@ -843,7 +869,7 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
         def synthesize(self, **kw):
             raise RuntimeError("synthesize boom")
 
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _BoomSynthesize)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _BoomSynthesize)
     with pytest.raises(RuntimeError, match="synthesize boom"):
         synth_mod.run_synthesis(
             protocol=protocol,

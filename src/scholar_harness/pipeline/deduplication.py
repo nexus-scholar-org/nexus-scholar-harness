@@ -24,11 +24,6 @@ from scholar_search.dedup import Deduplicator
 logger = logging.getLogger(__name__)
 
 
-# Kit class captured at import time so the legacy orchestrator-namespace seam
-# below can tell a monkeypatched fake apart from the real deduplicator.
-_REAL_DEDUPLICATOR = Deduplicator
-
-
 @dataclass
 class DeduplicationOutcome:
     """Typed outcome of the deduplication stage.
@@ -53,30 +48,6 @@ class DeduplicationOutcome:
         return self.representatives
 
 
-def _deduplicator_class() -> type[Deduplicator]:
-    """Return the ``Deduplicator`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.Deduplicator`` with a fake deduplicator. The
-    orchestrator no longer constructs the deduplicator itself, so the stage
-    honors an orchestrator-namespace override when it differs from the kit
-    class and otherwise uses this module's own global (which tests may also
-    patch directly). Transitional HCM-04c seam: a later packet should migrate
-    the fidelity stubs to patch
-    ``scholar_harness.pipeline.deduplication.Deduplicator`` directly and drop
-    the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("Deduplicator")
-        if candidate is not None and candidate is not _REAL_DEDUPLICATOR:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return Deduplicator
-
-
 def run_deduplication(
     *,
     discovered_documents: list[Any],
@@ -95,7 +66,7 @@ def run_deduplication(
     lit_dir = Path(literature_dir)
     lit_dir.mkdir(parents=True, exist_ok=True)
 
-    deduplicator = _deduplicator_class()()
+    deduplicator = Deduplicator()
     clusters = deduplicator.deduplicate(discovered_documents)
     unique_docs = [c.representative for c in clusters]
     dupes_removed = len(discovered_documents) - len(unique_docs)

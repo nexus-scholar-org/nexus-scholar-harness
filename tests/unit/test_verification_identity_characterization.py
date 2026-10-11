@@ -33,7 +33,9 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import discovery as disc
 from scholar_harness.pipeline import hydration as hyd_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 # ---------------------------------------------------------------------------
 # Helpers (hermetic: tmp_path only, no network)
@@ -180,7 +182,7 @@ def _install_fake_engine(monkeypatch, docs):
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
 
 
 def _run_pipeline(ws: Path) -> dict:
@@ -306,7 +308,7 @@ def test_vei_02_doi_bridge_restores_dedup_workspace_id(tmp_path, monkeypatch):
         async def process_batch(self, docs, verify=True, enrich=True):
             return [_fresh_doc_without_workspace(d) for d in docs], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _DroppingVerifierSameDOI)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _DroppingVerifierSameDOI)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -382,7 +384,7 @@ def test_vei_03a_fallback_fires_when_no_doi_no_workspace_id(tmp_path, monkeypatc
                 )
             return stripped, []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -437,7 +439,7 @@ def test_vei_03b_fallback_fires_when_verifier_changes_doi(tmp_path, monkeypatch)
                 )
             return changed, []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _ChangingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _ChangingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -474,7 +476,7 @@ def test_vei_03c_preserved_workspace_id_never_reaches_fallback(tmp_path, monkeyp
         async def process_batch(self, docs, verify=True, enrich=True):
             return list(docs), []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _PassthroughVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -520,7 +522,7 @@ def test_vei_04_fallback_shape_is_positional_sci(tmp_path, monkeypatch):
                 for d in docs
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -592,7 +594,7 @@ def test_vei_05b_equal_docs_still_mint_sequentially_in_production(
                 Document(title="Identical", year=2024, provider="x", provider_id="p1"),
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _EqualDocsVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _EqualDocsVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -668,7 +670,7 @@ def test_vei_06_fallback_ids_follow_verifier_order_not_study_identity(
             async def process_batch(self, docs, verify=True, enrich=True):
                 return _stripped_in_order(order), []
 
-        monkeypatch.setattr(orch, "DocumentVerifier", _OrderedVerifier)
+        monkeypatch.setattr(ver_mod, "DocumentVerifier", _OrderedVerifier)
         _write_protocol(ws)
         _run_pipeline(ws)
         return json.loads(
@@ -864,7 +866,7 @@ def test_vei_09_verified_json_and_results_mapping_carry_fallback_ids(
                 for d in docs
             ], [{"title": d.title, "verified": False} for d in docs]
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -918,7 +920,7 @@ def test_vei_10_stage3_emits_no_provenance_or_audit_unproven(tmp_path, monkeypat
                 for d in docs
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()

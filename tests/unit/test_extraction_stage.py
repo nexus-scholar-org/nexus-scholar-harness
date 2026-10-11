@@ -35,13 +35,13 @@ Negatives are the mutation halves:
 - NEG-05 suppress-warning -> log-capture test fails
 - NEG-06 byte-divergence -> orchestrator/stage byte-parity probe fails
 
-Carry-forward debt TD-HCM-TEST-SEAMS: the ``SearchEngine`` /
-``Deduplicator`` / ``DocumentVerifier`` orchestrator-namespace shims stay
-(fidelity stubs patch them). This packet adds NO fourth broad seam: the
-class-level ``PyMuPDFEngine.extract_markdown`` patch works regardless of
-import site and fidelity never reaches Stage 5 with a live engine, so no
-``orchestrator.__dict__`` fallback is added (proven by HCM4G-02/C16-style
-static-shape checks below).
+Carry-forward debt TD-HCM-TEST-SEAMS: HCM-04m migrated the
+``SearchEngine`` / ``Deduplicator`` / ``DocumentVerifier`` stubs to patch
+the owning pipeline modules directly. This packet adds NO fourth broad
+seam: the class-level ``PyMuPDFEngine.extract_markdown`` patch works
+regardless of import site and fidelity never reaches Stage 5 with a live
+engine, so no ``orchestrator.__dict__`` fallback is added (proven by
+HCM4G-02/C16-style static-shape checks below).
 """
 
 from __future__ import annotations
@@ -54,7 +54,13 @@ from pathlib import Path
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import deduplication as dedup_mod
+from scholar_harness.pipeline import discovery as disc_mod
 from scholar_harness.pipeline import extraction as ext_mod
+from scholar_harness.pipeline import graph as graph_mod
+from scholar_harness.pipeline import matrix as mat_mod
+from scholar_harness.pipeline import synthesis as synth_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
 
@@ -757,14 +763,14 @@ def _stub_upstream(monkeypatch):
 
             _P(self.html_path).write_text("<html></html>", encoding="utf-8")
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "Deduplicator", _FakeDedup)
-    monkeypatch.setattr(orch, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _FakeMatrix)
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _FakeMatrix)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )

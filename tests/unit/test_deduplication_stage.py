@@ -19,13 +19,9 @@ Mapping to the HCM-04c packet:
 - HCM4C-07 console-import mutation detected (no console transport)
 - HCM4C-08 orchestrator<->stage byte+outcome parity
 - HCM4C-09 kit-raise propagates with no fabricated files/success
-- HCM4C-10 shim + legacy orchestrator-namespace seam preserved
-
-Carry-forward note: the fidelity stubs still patch
-``scholar_harness.orchestrator.Deduplicator`` (legacy seam). A later packet
-should migrate them to patch
-``scholar_harness.pipeline.deduplication.Deduplicator`` directly and drop the
-orchestrator fallback in ``_deduplicator_class``.
+- HCM4C-10 shim preserved; HCM-04m removed the transitional
+  orchestrator-namespace seam (tests patch
+  ``pipeline.deduplication.Deduplicator`` directly).
 """
 
 from __future__ import annotations
@@ -40,6 +36,8 @@ import pytest
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import deduplication as dedup
+from scholar_harness.pipeline import discovery as disc
+from scholar_harness.pipeline import verification as ver_mod
 
 
 def _make_duplicate_docs():
@@ -346,41 +344,50 @@ def test_stage_2_region_has_no_direct_kit_use():
 
 
 # ---------------------------------------------------------------------------
-# HCM4C-10 shim + legacy seam
+# HCM-04m: transitional seam removed (SEAM-02)
 # ---------------------------------------------------------------------------
 
 
 def test_shim_preserves_deduplicator_identity():
-    assert orch.Deduplicator is dedup.Deduplicator
+    # HCM-04m: the patch-only Deduplicator re-export is removed; the
+    # coordinator façade keeps only run/Outcome names.
+    assert not hasattr(orch, "Deduplicator")
     assert orch.run_deduplication is dedup.run_deduplication
     assert orch.DeduplicationOutcome is dedup.DeduplicationOutcome
 
 
-def test_legacy_orchestrator_seam_honored(tmp_path, monkeypatch):
-    """Transitional seam: an orchestrator-namespace fake is honored.
+def test_transitional_seam_removed(tmp_path, monkeypatch):
+    """HCM-04m tripwire (SEAM-02): no sentinel/resolver; old patch inert.
 
-    Carry-forward: migrate fidelity stubs to patch
-    ``pipeline.deduplication.Deduplicator`` directly in a later packet.
+    The stage constructs ``Deduplicator`` directly. An
+    orchestrator-namespace override no longer controls the stage; the
+    pipeline-namespace fake does.
     """
+
+    assert not hasattr(dedup, "_REAL_DEDUPLICATOR")
+    assert not hasattr(dedup, "_deduplicator_class")
+    text = Path(dedup.__file__).read_text(encoding="utf-8")
+    assert "_REAL_DEDUPLICATOR" not in text
+    assert "_deduplicator_class" not in text
+    assert "orchestrator.__dict__" not in text
 
     class _EmptyDedup:
         def deduplicate(self, docs):
             return []
 
-    monkeypatch.setattr(orch, "Deduplicator", _EmptyDedup)
+    class _BoomDedup:
+        def deduplicate(self, docs):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    # Old-target patch no longer controls: stage follows its own global.
+    monkeypatch.setattr(dedup, "Deduplicator", _EmptyDedup)
+    monkeypatch.setattr(orch, "Deduplicator", _BoomDedup, raising=False)
     docs = _make_duplicate_docs()
     outcome = dedup.run_deduplication(
         discovered_documents=docs, literature_dir=tmp_path / "lit"
     )
     assert outcome.unique == 0
     assert outcome.duplicates_removed == 3
-
-    # Direct-module patch also works (future canonical seam).
-    monkeypatch.setattr(dedup, "Deduplicator", _EmptyDedup)
-    outcome2 = dedup.run_deduplication(
-        discovered_documents=docs, literature_dir=tmp_path / "lit2"
-    )
-    assert outcome2.unique == 0
 
 
 # ---------------------------------------------------------------------------
@@ -421,8 +428,8 @@ def test_orchestrator_path_matches_direct_stage_bytes(tmp_path, monkeypatch):
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "DocumentVerifier", _PassthroughVerifier)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
     monkeypatch.setattr(_enrich, "AbstractHydrator", _PassthroughHydrator)
     monkeypatch.setattr(_http, "AcademicHttpClient", _DummyClient)
     _stub_screening_prepare(monkeypatch)
@@ -485,8 +492,8 @@ def test_orchestrator_empty_matches_direct_empty_bytes(tmp_path, monkeypatch):
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _EmptyEngine)
-    monkeypatch.setattr(orch, "DocumentVerifier", _EmptyVerifier)
+    monkeypatch.setattr(disc, "SearchEngine", _EmptyEngine)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _EmptyVerifier)
     monkeypatch.setattr(_enrich, "AbstractHydrator", _PassthroughHydrator)
     monkeypatch.setattr(_http, "AcademicHttpClient", _DummyClient)
     _stub_screening_prepare(monkeypatch)
@@ -551,8 +558,8 @@ def test_orchestrator_kit_failure_propagates_without_success(tmp_path, monkeypat
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "Deduplicator", _FailingDedup)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(dedup, "Deduplicator", _FailingDedup)
     _stub_screening_prepare(monkeypatch)
 
     ws = tmp_path / "ws"

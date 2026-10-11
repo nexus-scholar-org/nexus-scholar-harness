@@ -63,12 +63,6 @@ from .extraction import _study_doi
 logger = logging.getLogger(__name__)
 
 
-# Kit classes captured at import time so the legacy orchestrator-namespace
-# seams below can tell a monkeypatched fake apart from the real kit class.
-_REAL_BUILDER = CitationGraphBuilder
-_REAL_VISUALIZER = GraphVisualizer
-
-
 @dataclass
 class GraphOutcome:
     """Typed outcome of the graph stage.
@@ -86,56 +80,6 @@ class GraphOutcome:
     html_path: Path
 
 
-def _builder_class() -> type[CitationGraphBuilder]:
-    """Return the ``CitationGraphBuilder`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.CitationGraphBuilder`` with a fake builder
-    (fidelity ``:196``, extraction-stage ``:764``, matrix-stage ``:549``).
-    The orchestrator no longer constructs the builder itself, so the stage
-    honors an orchestrator-namespace override when it differs from the kit
-    class and otherwise uses this module's own global (which tests may also
-    patch directly). Transitional HCM-04j seam: a later stub-migration packet
-    should migrate the fidelity stubs to patch
-    ``scholar_harness.pipeline.graph.CitationGraphBuilder`` directly and drop
-    the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("CitationGraphBuilder")
-        if candidate is not None and candidate is not _REAL_BUILDER:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return CitationGraphBuilder
-
-
-def _visualizer_class() -> type[GraphVisualizer]:
-    """Return the ``GraphVisualizer`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.GraphVisualizer`` with a fake visualizer
-    (fidelity ``:197``, extraction-stage ``:765``, matrix-stage ``:550``).
-    The orchestrator no longer constructs the visualizer itself, so the
-    stage honors an orchestrator-namespace override when it differs from
-    the kit class and otherwise uses this module's own global (which tests
-    may also patch directly). Transitional HCM-04j seam: a later
-    stub-migration packet should migrate the fidelity stubs to patch
-    ``scholar_harness.pipeline.graph.GraphVisualizer`` directly and drop
-    the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("GraphVisualizer")
-        if candidate is not None and candidate is not _REAL_VISUALIZER:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return GraphVisualizer
-
-
 async def run_graph(
     *,
     included_documents: list[dict[str, Any]],
@@ -144,13 +88,13 @@ async def run_graph(
     """Build the citation graph, compute PageRank, publish json + html.
 
     Verbatim move of orchestrator Stage 8 (:704-727):
-    ``AcademicHttpClient(name="openalex-graph", rate_limit=10)`` via the
-    resolved ``_builder_class()``, DOI collection via the canonical
+    ``AcademicHttpClient(name="openalex-graph", rate_limit=10)`` via
+    ``CitationGraphBuilder``, DOI collection via the canonical
     ``_study_doi`` with falsy filtering, ``await build_graph(dois)`` or a
     seeded empty ``nx.DiGraph()`` when no DOIs exist, class-level
     ``compute_pagerank(G)``, ``export_json`` to
-    ``literature/knowledge_graph.json``, then the resolved
-    ``_visualizer_class()(str(html_path))`` with ``generate_html(G)``.
+    ``literature/knowledge_graph.json``, then
+    ``GraphVisualizer(str(html_path))`` with ``generate_html(G)``.
 
     Only mechanical parameterization: ``included_documents`` /
     ``literature_dir`` inputs. No logic edits, no renames of
@@ -159,7 +103,7 @@ async def run_graph(
     failure propagates with no fabricated graph and no success mapping.
     """
     lit_dir = Path(literature_dir)
-    builder_cls = _builder_class()
+    builder_cls = CitationGraphBuilder
     graph_builder = builder_cls(
         AcademicHttpClient(name="openalex-graph", rate_limit=10)
     )
@@ -174,7 +118,7 @@ async def run_graph(
     graph_builder.export_json(G, json_path)
 
     html_path = lit_dir / "knowledge_graph.html"
-    vis = _visualizer_class()(str(html_path))
+    vis = GraphVisualizer(str(html_path))
     vis.generate_html(G)
     return GraphOutcome(
         nodes=G.number_of_nodes(),
