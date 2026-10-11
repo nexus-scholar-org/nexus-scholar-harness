@@ -1,6 +1,6 @@
 # TD-E3-CURRENTNESS-01 — stale-currentness `parameters=` TypeError: characterization + decision
 
-Status: CHARACTERIZED — AWAITING POLICY DECISION
+Status: IMPLEMENTED POLICY — OPTION B (typed `STALE_EXTRACTED_BODY` refusal)
 
 **Lane:** FAST (characterization; full suite at most once and only if needed — prefer focused evidence).
 **Owner surface:** characterization tests + decision doc only.
@@ -9,7 +9,17 @@ Status: CHARACTERIZED — AWAITING POLICY DECISION
 **Governing sources (capsule):** AGENTS.md; COMPASS §§3/5/7-9; `contract_v1_baseline.md` (frozen boundary); WP01-E3 readiness (`wp01_packet_e3_readiness_baseline.md`), implementation handoff (`wp01_packet_e3_implementation_handoff.md` §6), completion (`wp01_packet_e3_completion_report.md`); `test_gate_policy.md` (FAST); `agent_context_protocol.md`. Fresh reads: `pipeline/indexing.py` stale block (:515-544), `index_acceptance.py` (:658-666 preflight + adapter), `extraction_producer.validate_extraction_currentness` (:1392) + `index_accepted_documents` (:1648-1700), `contracts` identifiers/acceptance/canonical, E3 conformance + Stage-6 + e2e tests, entry points (CLI `extract index` :415-418, `agent_extract`, coordinator `indexing_fn`), `kits_surface_matrix.md`, rag-kit SKILL.
 **Env first (done before tests):** `install_plugins --local-only` 8/8 (pre-existing `.venv`; verified imports); 4 generators green BEFORE tests (baseline / schemas / fixture / pins `--check`).
 
-No runtime change is implemented in this packet. No indexing/coordinator/orchestrator/adapter/toolkit/pin/packaging/generated/contract-schema/fixture/UI/governance change, no weakening/deselection/xfail/baseline-regen, no mitigation. This document characterizes when the preserved stale-currentness `TypeError` fires and records Options A/B/C + a recommendation, then STOPS for human approval.
+The characterization packet merged as PR #102 without a runtime change. The
+approved follow-up implements Option B only in the harness indexing stage: it
+removes the unsupported `parameters=` argument, writes one truthful
+`RAG_INDEX_REJECTED` event, and returns the existing
+`STALE_EXTRACTED_BODY` refusal shape before any backend or authoritative
+index publication. No toolkit, pin, packaging, generated, contract-schema,
+fixture, UI, or vocabulary change is part of this follow-up.
+
+> Historical evidence below describes the pre-repair behavior observed by the
+> characterization packet. The implementation record in §12 supersedes its
+> former “no runtime change” conclusion; it does not erase the measured cause.
 
 ## 1. Scope and non-goals
 
@@ -114,32 +124,32 @@ Chained proof (HARNESS-INTEGRATION + CONTROLLED-DOUBLE): `test_b1`/`test_b2` ass
 
 | # | Entry path | Verdict (measured) | Evidence |
 |---|---|---|---|
-| (1) | Direct `pipeline.indexing.run_indexing` with controlled stale `parent_view` | REACHABLE — raw `TypeError`, no bytes | HARNESS-INTEGRATION `test_b1_run_indexing_stale_raises_typeerror_with_no_bytes` (controlled stale double + real stage; boom backends prove no construction) |
-| (2) | Coordinator/orchestrator full-pipeline route | REACHABLE-VIA-DELEGATE — same `TypeError` through `orch._run_indexing_stage`; coordinator wiring is verbatim delegate call | HARNESS-INTEGRATION `test_b2_orchestrator_stage_stale_raises_typeerror_with_no_bytes` + SOURCE-TRACE `coordinator.py:107,317` (`indexing_fn(chroma_dir)` with `indexing_fn=self._run_indexing_stage`; no mapping, propagate). Full end-to-end with real discovery→extraction→registry UNPROVEN (would need a real accepted workspace through all 9 stages; not run per FAST lane) |
+| (1) | Direct `pipeline.indexing.run_indexing` with controlled stale `parent_view` | REACHABLE — typed `STALE_EXTRACTED_BODY` refusal; one rejection audit, no publication | HARNESS-INTEGRATION `test_b1_run_indexing_stale_returns_typed_refusal_with_no_publication` (controlled stale double + real stage; boom backends prove no construction) |
+| (2) | Coordinator/orchestrator full-pipeline route | REACHABLE-VIA-DELEGATE — same typed refusal through `orch._run_indexing_stage`; coordinator wiring is verbatim delegate call | HARNESS-INTEGRATION `test_b2_orchestrator_stage_stale_returns_typed_refusal_with_no_publication` + SOURCE-TRACE `coordinator.py:107,317` (`indexing_fn(chroma_dir)` with `indexing_fn=self._run_indexing_stage`; no mapping, propagate). Full end-to-end with real discovery→extraction→registry UNPROVEN (would need a real accepted workspace through all 9 stages; not run per FAST lane) |
 | (3) | CLI `extract index` → `index_accepted_documents` (:1695 BEFORE :1697) | UNREACHABLE for stale via this path — preflight raises typed `STALE_EXTRACTED_BODY` FIRST; orchestrator never entered; no `TypeError` | CONTROLLED-DOUBLE `test_c1_producer_preflight_raises_typed_before_orchestrator` (boom orchestrator proves non-entry) + CONTROLLED-DOUBLE `test_c2_cli_extract_index_maps_typed_to_stage6_refused` (CLI maps to `stage6_refused`, exit 1) |
 | (4) | `agent_extract` same-producer path | UNREACHABLE — shares the one producer function; same typed refusal, exit 1, never `TypeError` | CONTROLLED-DOUBLE `test_c3_agent_extract_maps_typed_to_refusal` + SOURCE-TRACE (both call `index_accepted_documents`; `agent_extract._cmd_index` + `cli._extract_index` source assertions) |
 | (5) | `index_acceptance.py:660-666` preflight context | SEPARATE — stale maps to typed `IndexAcceptanceResult(accepted=False, failing_step=4, code=VALIDATION_ERROR)` with `STALE_EXTRACTED_BODY` in detail; never `TypeError`; zero publication | HARNESS-INTEGRATION + CONTROLLED-DOUBLE `test_c4_index_acceptance_maps_stale_to_step4_validation_error` (minimal registry/parent passing checks 1-3 + controlled stale raise) |
-| (6) | Valid-accepted-stale | REACHABLE via (1)/(2) only; UNREACHABLE via (3)/(4)/(5) (each has earlier typed handling) | `test_b1`/`test_d1`/`test_neg05` (multi-doc still `TypeError`, no PARTIAL) |
+| (6) | Valid-accepted-stale | REACHABLE via (1)/(2) only; UNREACHABLE via (3)/(4)/(5) (each has earlier typed handling) | `test_b1`/`test_d1`/`test_neg05` (multi-doc is one typed refusal, never PARTIAL) |
 | (7) | Missing-manifest | Takes EARLIER path — `parent_view is None` skips stale check; `DOCUMENT_MANIFEST_NOT_ACCEPTED` with one `RAG_INDEX_REJECTED` line; stale validate never called | HARNESS-INTEGRATION `test_d2_missing_manifest_takes_earlier_path_with_one_rejection_line` + `test_neg01_missing_manifest_takes_earlier_path_no_stale` (tracking-validate proves non-entry) |
 | (8) | Missing-source-parent (blank study, no screening parent) | Takes LATER path — skipped in request building → `NO_DOCUMENTS_TO_INDEX`, `FAILED` never `SUCCESS`; workspace limb never reused as study | HARNESS-INTEGRATION `test_d4_blank_study_never_reuses_workspace_limb` |
 | (9) | No-documents | Takes LATER path — `request is None` → `NO_DOCUMENTS_TO_INDEX`, `FAILED` never `SUCCESS`, no backend | HARNESS-INTEGRATION `test_d3_no_documents_is_failed_never_success` |
-| (10) | Mixed-batch-stale / reuse-rebuild | Mixed (2-doc) stale still raw `TypeError`, no PARTIAL publication; replay (rebuild) still `TypeError`, still no bytes (no idempotent reuse reached — exception precedes any reuse check) | HARNESS-INTEGRATION `test_neg05_mixed_batch_stale_still_typeerror_no_partial_publication` + `test_b3_stale_replay_still_typeerror_still_no_bytes` |
+| (10) | Mixed-batch-stale / reuse-rebuild | Mixed (2-doc) stale is one typed refusal, never PARTIAL; replay returns the same refusal and never reaches reuse/publication | HARNESS-INTEGRATION `test_neg05_mixed_batch_stale_is_typed_refusal_not_partial_publication` + `test_b3_stale_replay_returns_same_typed_refusal_without_publication` |
 
 No path is called fixed/safe/compliant/unreachable without the measured proof named above. Path (2) full-pipeline end-to-end remains UNPROVEN beyond the delegate (explicit limit, §8).
 
 ## 5. Consequences (measured bytes/files/backend/journal before+after)
 
-Snapshot discipline: every test records `_snapshot(ws)` before/after (journal bytes/lines, registry bytes, project bytes, chroma/rag/accepted existence, `*.tmp-*` leftovers). Exception path requires byte-identical snapshots.
+Snapshot discipline: every test records `_snapshot(ws)` before/after (journal bytes/lines, registry bytes, project bytes, chroma/rag/accepted existence, `*.tmp-*` leftovers). The stale refusal may append one truthful rejection audit line; authoritative state remains byte-identical.
 
 | Shape | Backend/client built? | Index/replacement started? | Manifest/accepted written? | Audit event? | Journal bytes? | Temp/quarantine/residue? | Result form? | Replay? |
 |---|---|---|---|---|---|---|---|---|
-| Stale via (1)/(2) (TD-05) | No — boom embedder/backend/reader/index would raise `AssertionError`; observed `TypeError` instead (HARNESS-INTEGRATION `test_b1`/`test_b2`/`test_d1`) | No — `rag/` absent, `chroma_db` absent (same tests) | No — `rag/index/accepted.json` absent (same) | None — zero lines (same) | Unchanged — `after == before`, `b""` when seeded empty; seeded line preserved verbatim with no addition (`test_neg04`) | None — `tmp_leftovers == []`, no quarantine (Stage 6 owns none) | Raw `TypeError` (not typed `PublicationRefused`, not mapped dict); `__context__.code == STALE_EXTRACTED_BODY` | Stable — 2nd run same `TypeError`, still no bytes (`test_b3`) |
+| Stale via (1)/(2) (TD-05) | No — boom embedder/backend/reader/index would raise `AssertionError`; none is constructed (`test_b1`/`test_b2`/`test_d1`) | No — `rag/` absent, `chroma_db` absent (same tests) | No — `rag/index/accepted.json` absent (same) | One `RAG_INDEX_REJECTED` with `rejection_code=STALE_EXTRACTED_BODY` | One line appended; any prior journal lines are preserved as prefix (`test_neg04`) | None — `tmp_leftovers == []`, no quarantine (Stage 6 owns none) | Typed failed/refused mapping carrying `STALE_EXTRACTED_BODY` | Stable — 2nd run has same result and one additional truthful rejection line (`test_b3`) |
 | Stale via (3)/(4) preflight | No — boom orchestrator never entered (`test_c1`) | No — `rag/` absent | No | None | Unchanged (`b""`) | None | Typed `PublicationRefused(code=STALE_EXTRACTED_BODY)`; CLI maps to `{"stage6_refused":True,"status":"FAILED",code}` exit 1; agent maps to `{"indexing_refused":...}` exit 1 (`test_c2`/`test_c3`) | N/A (deterministic typed refusal; replay would re-raise same code — UNPROVEN for real registry replay beyond doubles) |
 | Stale via (5) adapter | No backend touch (check 6 never runs — fail-fast at step 4) | No | No — `accepted.json` absent | None — steps 1-6 write no journal line (spec §6.5) | Unchanged (`b""`) | None | Typed `IndexAcceptanceResult(accepted=False, failing_step=4, code=VALIDATION_ERROR, detail contains STALE)` (`test_c4`) | N/A |
 | Missing-manifest (7) | No (boom proves) | No | No | One `RAG_INDEX_REJECTED` `FAILED` with `metrics.rejection_code == DOCUMENT_MANIFEST_NOT_ACCEPTED` | +1 line; prior bytes preserved as prefix (`test_d2`/`test_neg01`) | None | Mapped dict `{"status":"FAILED","indexed_files":0,...,"refused":[{"document_id":"","reason":"no accepted document_manifest"}]}` + `MinimalIndexer(count 0)` | N/A |
 | No-documents (9) / blank-study (8) | No | No | No | One `RAG_INDEX_REJECTED` `FAILED` with `NO_DOCUMENTS_TO_INDEX` | +1 line; prefix preserved | None | Mapped dict `{"status":"FAILED",...,"refused":[{"document_id":"","code":"NO_DOCUMENTS_TO_INDEX"}]}`; `FAILED` never `SUCCESS`; WSP limb absent from payload (`test_d3`/`test_d4`) | N/A |
 
-No no-publication claim is made without the observables above. The stale exception path snapshots are byte-identical (`test_d1` asserts `after == before`; `test_neg04` asserts seeded-line preservation).
+No no-publication claim is made without the observables above. The stale refusal preserves registry, project, Chroma, accepted-index, and temporary-state observables; `test_neg04` additionally proves a prior audit line is preserved as the journal prefix.
 
 ## 6. Contract map (Observed vs Requirement vs Inference vs Recommended-policy)
 
@@ -235,7 +245,7 @@ If answering any of these requires production edits, this packet STOPS and repor
 
 Rationale (evidence-bound): the kit already names this exact cause with a typed, actionable refusal (TD-A4 REAL-KIT + E2 Major 5 + E4-NEG-002); the harness already propagates that exact code typed-first on the CLI/agent paths (`test_c1` CONTROLLED-DOUBLE) and names it in the adapter's step-4 detail (`test_c4`); only the direct branch loses it to a bad keyword (TD-01..TD-03 + `test_b1`/`test_b2` chained-cause proof). Reusing the code closes the report gap with zero new vocabulary, preserves fail-closed publication (§5), and keeps the CLI/adapter contracts unchanged. Option A alone would stop the crash but keep the dead 3-key shape and leave the cause taxonomy split (`STALE_*` at producer vs anonymous at Stage-6). Option C pays version/schema costs for distinction the evidence does not require.
 
-This packet implements nothing. The human approves a direction first.
+The characterization packet implemented nothing. Option B is now approved and recorded in §12.
 
 ### Bounded follow-up outline per option (one PR each, FAST→STANDARD escalation per gate)
 
@@ -267,6 +277,23 @@ This packet implements nothing. The human approves a direction first.
 - WORKSPACE_AUDIT_EVENT: none.
 - Self-review: one-repair-cycle budget used for test fix only (C3 agent-module binding: `prod` vs `agent_module` import seam; no production lines read beyond assigned slices §§2/6; diff inspected for scope creep, permission mismatch, weakened assertions — none; every stale assertion pins the observed `TypeError`, every typed assertion pins the observed code/step).
 
-## 12. No-behavior-change statement
+## 12. Implementation record — approved Option B
 
-This packet changes no behavior. No runtime file was edited; no toolkit, pin, packaging, generated, contract-schema, fixture, UI, or governance file was edited; no test was weakened, deselected, `xfail`ed, or baseline-regenerated; no unrelated docs were touched; no origin push was made. The two new files are characterization evidence (20 tests) and this decision record. The preserved stale-currentness `TypeError` still fires exactly as at the base; the CLI/agent preflight still refuses typed first; the adapter still maps to step-4 `VALIDATION_ERROR`. Any repair, mitigation, vocabulary choice, or observability addition requires the human-approved follow-up packet in §10. Missing observability is reported, never edited into production by this packet.
+The historical characterization is preserved above. The approved follow-up
+changes only the stale branch of `pipeline.indexing.run_indexing`:
+
+- It no longer passes the unsupported `parameters=` keyword to
+  `append_legacy_event`.
+- It records one `RAG_INDEX_REJECTED` event with
+  `rejection_code=STALE_EXTRACTED_BODY`.
+- It returns the established Stage-6 failed/refused shape:
+  `indexed_files=0`, `total_chunks=0`, `collection_count=null`,
+  `documents=[]`, and one refusal carrying the existing typed code.
+- It does not build a backend, start replacement, create an accepted index
+  record, mint vocabulary, or alter CLI/agent preflight or adapter behavior.
+
+The direct audit-writer tests intentionally continue to prove that the
+unsupported keyword raises `TypeError`; they are a guard against reintroducing
+the exact integration mistake. The runtime stale path is separately exercised
+through direct stage, orchestrator delegation, replay, and mixed-batch
+non-publication tests.

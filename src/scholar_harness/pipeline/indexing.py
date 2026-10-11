@@ -521,12 +521,9 @@ def run_indexing(
         try:
             validate_extraction_currentness(ws, parent_view["artifact_id"])
         except PublicationRefused as exc:
-            # PRESERVED LATENT DEFECT (parity-only, not repaired): the base
-            # passes ``parameters={"code": ...}`` to an audit writer that
-            # accepts no such keyword, so both the base
-            # (``_log_audit_event``) and this stage (``append_legacy_event``)
-            # raise ``TypeError`` before any byte is written, with no
-            # publication. The call shape is kept verbatim.
+            # TD-E3-CURRENTNESS-01 Option B: the PDF producer already owns the
+            # actionable stale-body vocabulary. Preserve it as a typed Stage-6
+            # refusal rather than leaking the former audit-writer TypeError.
             append_legacy_event(
                 ws,
                 action="RAG_INDEX_REJECTED",
@@ -534,12 +531,29 @@ def run_indexing(
                 description="Stage 6 refused stale extraction provenance",
                 inputs=[str(parent_view["artifact_id"])],
                 outputs=[],
-                metrics={"documents": 0},
+                metrics={
+                    "indexed_files": 0,
+                    "total_chunks": 0,
+                    "refused_documents": 1,
+                    "rejection_code": exc.code,
+                },
                 status="FAILED",
-                parameters={"code": exc.code},  # type: ignore[call-arg]
             )
             return IndexingOutcome(
-                result={"status": "FAILED", "code": exc.code, "documents": 0},
+                result={
+                    "status": "FAILED",
+                    "indexed_files": 0,
+                    "total_chunks": 0,
+                    "collection_count": None,
+                    "documents": [],
+                    "refused": [
+                        {
+                            "document_id": "",
+                            "code": exc.code,
+                            "reason": str(exc),
+                        }
+                    ],
+                },
                 indexer=None,
             )
     if parent_view is None:

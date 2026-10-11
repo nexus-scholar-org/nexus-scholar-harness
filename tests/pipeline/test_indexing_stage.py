@@ -7,7 +7,7 @@ delegating methods with identical signatures and forwards its own
 Every test is hermetic (``tmp_path`` only, no network; embedder/backend are
 faked) and asserts zero behavior change: verbatim registry readers,
 parent-view, request literals, outcome mapping, audit bytes, MinimalIndexer
-shapes, and the preserved latent ``parameters=`` TypeError.
+shapes, plus the direct audit-writer guard against unsupported ``parameters=``.
 
 Mapping to the HCM-04h packet:
 
@@ -27,7 +27,7 @@ Mapping to the HCM-04h packet:
 - B14 recorded_workspace_id cites require_recorded_identity (message parity)
 - C15 ScholarIndexer vestigial (never constructed by Stage 6, stub kept for patch point)
 - C16 extraction_producer sharing (producer delegates via orchestrator, untouched)
-- C17 stale TypeError preserved (no bytes, no publication, not repaired)
+- C17 audit-writer keyword guard (Stage-6 stale branch must not use it)
 - C18 move-not-duplicate (orchestrator Stage-6 region has no inline logic)
 - C19 transport guard (stage never imports orchestrator)
 
@@ -624,16 +624,16 @@ def test_b11_outcome_mapping(
 
 
 # ---------------------------------------------------------------------------
-# C17 stale TypeError preserved (not repaired)
+# C17 direct audit-writer keyword guard
 # ---------------------------------------------------------------------------
 
 
-def test_c17_stale_currentness_raises_typeerror_with_no_bytes(tmp_path: Path):
+def test_c17_audit_writers_reject_unsupported_parameters_keyword(tmp_path: Path):
     ws = tmp_path / "ws"
     ws.mkdir()
     _record_identity(ws)
     (ws / "audit").mkdir(parents=True, exist_ok=True)
-    # Direct audit-level proof: both writers reject the preserved parameters= shape.
+    # Direct audit-level guard: both writers reject an unsupported keyword.
     from scholar_harness.workspace.audit import append_legacy_event
 
     with pytest.raises(TypeError):
