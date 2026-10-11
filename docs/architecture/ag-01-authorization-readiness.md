@@ -37,6 +37,21 @@ evidence:
   - command: uv run ruff check scripts/ + git diff --check
     commit: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
     result: recorded in §8
+  - command: uv run pytest tests/test_screening_decision_integrity.py -q
+    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
+    result: PASS (12/12); workflow-integrity (tamper-evidence + fail-closed), not authorization
+  - command: uv run pytest tests/test_screening_migration.py tests/console/test_console_screening.py tests/test_contract_acceptance.py tests/test_contract_artifact_chain.py -q
+    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
+    result: PASS (36/36: 7 migration + 9 console + 11 acceptance + 9 chain), files unmodified
+  - command: uv run pytest tests/test_ag01_screening_authorization_characterization.py -q
+    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
+    result: 4/7 PASS, file unmodified; 3 fail-closed by design (coverage-incomplete, duplicate, MAYBE-coercion demonstrations now refuse collection as AG-02 specifies)
+  - command: uv run python scripts/generate_contract_baseline.py --check + generate_contract_schemas.py --check + generate_two_study_contract_fixture.py --check + generate_nexus_scholar_pins.py --check; uv run ruff check scripts/; git diff --check
+    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
+    result: PASS (all green; no contract/schema/fixture/pin drift)
+  - command: uv run pytest -q --tb=no (full harness suite, PR gate, once)
+    commit: 86a9478b26f62de59c1cff9d233d9d6b84449b2b
+    result: 1181 tests, 1178 passed, 6 skipped, 3 failed -- the 3 failures are the AG-01 gap demonstrations above, now refusing collection by AG-02 design; zero other failures
 next_gate: pr (design PR, fork-to-origin, no merge)
 stable_sources:
   - docs/architecture/agent_control_enforcement_map.md@primary-untracked (AG-00 §§2-6; absent from base — see §0)
