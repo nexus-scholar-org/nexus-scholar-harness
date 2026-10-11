@@ -29,6 +29,45 @@ EXPECTED_ACTIONS = 16
 EXPECTED_MCP_TOOLS = 25
 EXPECTED_MIRRORED_SKILLS = 13
 
+# Live-derived 25-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
+# Exact set (not a subset) so an added/removed/renamed tool fails loudly with
+# missing/unexpected lists instead of blessing whatever number prose carries.
+EXPECTED_MCP_TOOL_NAMES = frozenset(
+    {
+        "nexus_bib_clean",
+        "nexus_critique_methodology",
+        "nexus_dedup",
+        "nexus_discover",
+        "nexus_extract_pdf",
+        "nexus_graph_build",
+        "nexus_graph_narrative",
+        "nexus_matrix_extract",
+        "nexus_pdf_acquire",
+        "nexus_pdf_extraction",
+        "nexus_pipeline_run",
+        "nexus_protocol_compile",
+        "nexus_protocol_render_criteria",
+        "nexus_protocol_validate",
+        "nexus_rag_index",
+        "nexus_rag_query",
+        "nexus_rag_synthesize",
+        "nexus_screen",
+        "nexus_screen_llm",
+        "nexus_screen_reconcile",
+        "nexus_verify_claims",
+        "nexus_verify_phase4",
+        "recon_delta",
+        "recon_distill",
+        "recon_probe",
+    }
+)
+
+# Declared-unsupported boundary tools stay registered so the E1/E2/E3 refusals
+# are observable (never missing tools). Subset of EXPECTED_MCP_TOOL_NAMES.
+BOUNDARY_MCP_TOOLS = frozenset(
+    {"nexus_pdf_acquire", "nexus_pdf_extraction", "nexus_rag_index"}
+)
+
 # ``pull-request-gate`` is intentionally not distributed with the plugin bundle
 # (it is a contributor-facing convention, not a research-kit skill).
 SYNC_EXCLUDED = {"pull-request-gate"}
@@ -52,7 +91,17 @@ def test_actions_count_matches_documentation():
 def test_mcp_tool_count_matches_documentation():
     registered = {t.name for t in mcp._tool_manager.list_tools()}
     assert len(registered) == EXPECTED_MCP_TOOLS, (
-        f"expected {EXPECTED_MCP_TOOLS} registered MCP tools, found {len(registered)}"
+        f"expected {EXPECTED_MCP_TOOLS} registered MCP tools, found {len(registered)}: "
+        f"{sorted(registered)}"
+    )
+    missing_boundary = sorted(BOUNDARY_MCP_TOOLS - registered)
+    assert not missing_boundary, (
+        f"declared-unsupported boundary tools missing from the live surface: "
+        f"{missing_boundary}"
+    )
+    assert registered == EXPECTED_MCP_TOOL_NAMES, (
+        f"MCP surface drift: missing={sorted(EXPECTED_MCP_TOOL_NAMES - registered)} "
+        f"unexpected={sorted(registered - EXPECTED_MCP_TOOL_NAMES)}"
     )
 
 

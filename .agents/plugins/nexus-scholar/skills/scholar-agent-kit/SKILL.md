@@ -6,7 +6,7 @@ description: Instructions for using the scholar-agent-kit MCP front-door (25 too
 # `scholar-agent-kit` Skill Instructions
 
 MCP front-door for most Nexus Scholar surfaces — **not** every API/CLI capability.
-25 tools: 22 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 25; parity
+25 tools: 22 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 25 registered tools; parity
 enforced by `tests/conformance/test_mcp_tool_parity.py`). Pinned source:
 `tools/scholar-agent-kit/src/scholar_agent/server.py` (tool list/signatures,
 `_resolve_path`, refusals) + `capabilities.py` (registry) at kit rev
@@ -18,7 +18,7 @@ stays the small-footprint entrypoint.
 
 ```bash
 uv run --directory tools/scholar-agent-kit scholar-agent [--workspace <ws>]
-uv run --directory tools/scholar-agent-kit scholar-agent --help  # lists all 25
+uv run --directory tools/scholar-agent-kit scholar-agent --help  # lists all 25 registered tools
 ```
 
 - Server CWD is `tools/scholar-agent-kit/`; `mcp_config.json` ships no `env`/cwd.
@@ -38,7 +38,7 @@ uv run --directory tools/scholar-agent-kit scholar-agent --help  # lists all 25
 - Known gap: client auto-setup should set `NEXUS_RECON_ROOT` explicitly since
   `mcp_config.json` declares no `env`.
 
-## 2. Tool inventory (25) — signature → return
+## 2. Tool inventory — Exposed MCP Tools (25 total) — signature → return
 
 | # | Tool | Key signature (defaults) | Returns |
 |---|------|--------------------------|---------|
