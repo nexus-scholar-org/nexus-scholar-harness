@@ -53,7 +53,9 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import discovery as disc
 from scholar_harness.pipeline import screening_prepare as prep_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -243,8 +245,8 @@ def _install_upstream_fakes(monkeypatch, docs):
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "DocumentVerifier", _PassthroughVerifier)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
     monkeypatch.setattr(hyd_mod, "AbstractHydrator", _PassthroughHydrator)
     monkeypatch.setattr(hyd_mod, "AcademicHttpClient", _DummyClient)
 

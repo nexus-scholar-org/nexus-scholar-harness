@@ -56,25 +56,23 @@ class ScholarIndexer:
         return 0
 
 
-# HCM-04b: provider resolution and the discovery engine live in the neutral
-# pipeline stage (scholar_harness.pipeline.discovery). These re-exports
-# preserve the historical ``orchestrator._resolve_providers`` seam -- tests
-# import it from here -- and the ``orchestrator.SearchEngine`` monkeypatch
-# seam honored by the stage. Canonical definitions live in the stage module.
+# HCM-04b: provider resolution lives in the neutral pipeline stage
+# (scholar_harness.pipeline.discovery). These re-exports preserve the
+# historical ``orchestrator._resolve_providers`` import path -- tests and
+# callers import it from here. Canonical definitions live in the stage
+# module. Tests patch ``pipeline.discovery.SearchEngine`` directly.
 from .pipeline.discovery import (  # noqa: F401
     _PROVIDER_MAP,
     _resolve_providers,
-    SearchEngine,
     run_discovery,
 )
 
 # HCM-04c: 2-tier deduplication lives in the neutral pipeline stage
-# (scholar_harness.pipeline.deduplication). This re-export preserves the
-# historical ``orchestrator.Deduplicator`` monkeypatch seam honored by the
-# stage. Canonical definitions live in the stage module.
+# (scholar_harness.pipeline.deduplication). Tests patch
+# ``pipeline.deduplication.Deduplicator`` directly. Canonical definitions
+# live in the stage module.
 from .pipeline.deduplication import (  # noqa: F401
     DeduplicationOutcome,
-    Deduplicator,
     run_deduplication,
 )
 
@@ -87,11 +85,10 @@ from .pipeline.hydration import (  # noqa: F401
 )
 
 # HCM-04e: verification lives in the neutral pipeline stage
-# (scholar_harness.pipeline.verification). This re-export preserves the
-# historical ``orchestrator.DocumentVerifier`` monkeypatch seam honored by the
-# stage. Canonical definitions live in the stage module.
+# (scholar_harness.pipeline.verification). Tests patch
+# ``pipeline.verification.DocumentVerifier`` directly. Canonical definitions
+# live in the stage module.
 from .pipeline.verification import (  # noqa: F401
-    DocumentVerifier,
     VerificationOutcome,
     run_verification,
 )
@@ -116,37 +113,28 @@ from .pipeline.extraction import (  # noqa: F401
 )
 
 # HCM-04i: dynamic protocol matrix lives in the neutral pipeline stage
-# (scholar_harness.pipeline.matrix). These re-exports preserve the
-# historical ``orchestrator.ScholarRetriever`` / ``orchestrator.MatrixExtractor``
-# monkeypatch seams -- fidelity and extraction-stage tests patch both from
-# here. Canonical definitions live in the stage module.
+# (scholar_harness.pipeline.matrix). Tests patch
+# ``pipeline.matrix.ScholarRetriever`` / ``pipeline.matrix.MatrixExtractor``
+# directly. Canonical definitions live in the stage module.
 from .pipeline.matrix import (  # noqa: F401
-    MatrixExtractor,
     MatrixOutcome,
-    ScholarRetriever,
     run_matrix,
 )
 
 # HCM-04j: citation knowledge graph lives in the neutral pipeline stage
-# (scholar_harness.pipeline.graph). These re-exports preserve the
-# historical ``orchestrator.CitationGraphBuilder`` /
-# ``orchestrator.GraphVisualizer`` monkeypatch seams -- fidelity,
-# extraction-stage, and matrix-stage tests patch both from here. Canonical
-# definitions live in the stage module.
+# (scholar_harness.pipeline.graph). Tests patch
+# ``pipeline.graph.CitationGraphBuilder`` / ``pipeline.graph.GraphVisualizer``
+# directly. Canonical definitions live in the stage module.
 from .pipeline.graph import (  # noqa: F401
-    CitationGraphBuilder,
     GraphOutcome,
-    GraphVisualizer,
     run_graph,
 )
 
 # HCM-04k: grounded synthesis lives in the neutral pipeline stage
-# (scholar_harness.pipeline.synthesis). These re-exports preserve the
-# historical ``orchestrator.GroundedSynthesisEngine`` monkeypatch seam --
-# fidelity, extraction-stage, matrix-stage, and graph-stage tests patch it
-# from here. Canonical definitions live in the stage module.
+# (scholar_harness.pipeline.synthesis). Tests patch
+# ``pipeline.synthesis.GroundedSynthesisEngine`` directly. Canonical
+# definitions live in the stage module.
 from .pipeline.synthesis import (  # noqa: F401
-    GroundedSynthesisEngine,
     SynthesisOutcome,
     run_synthesis,
 )

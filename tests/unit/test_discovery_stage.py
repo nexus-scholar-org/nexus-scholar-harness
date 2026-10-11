@@ -179,8 +179,8 @@ def test_raw_files_are_byte_identical_and_match_golden(tmp_path, monkeypatch):
 
 def test_orchestrator_path_matches_direct_stage_bytes(tmp_path, monkeypatch):
     # Legacy seam: the orchestrator delegates, and the stage honors the
-    # orchestrator-namespace fake engine.
-    monkeypatch.setattr(orch, "SearchEngine", _EmptyEngine)
+    # pipeline-namespace fake engine.
+    monkeypatch.setattr(disc, "SearchEngine", _EmptyEngine)
     _stub_screening_prepare(monkeypatch)
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -363,7 +363,7 @@ def test_mock_mode_signature_and_behavior_unchanged(tmp_path, monkeypatch):
     assert sig.parameters["mock_mode"].default is False
 
     # mock_mode is accepted but unused: identical outcomes either way.
-    monkeypatch.setattr(orch, "SearchEngine", _EmptyEngine)
+    monkeypatch.setattr(disc, "SearchEngine", _EmptyEngine)
     _stub_screening_prepare(monkeypatch)
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -378,3 +378,30 @@ def test_mock_mode_signature_and_behavior_unchanged(tmp_path, monkeypatch):
     )
     assert flagged["stages"]["discovery"] == 0
     assert (ws / "literature" / "raw_search.json").read_bytes() == first
+
+
+def test_transitional_seam_removed(tmp_path, monkeypatch):
+    """HCM-04m tripwire (SEAM-01): no sentinel/resolver; old patch inert."""
+
+    assert not hasattr(disc, "_REAL_SEARCH_ENGINE")
+    assert not hasattr(disc, "_search_engine_class")
+    text = Path(disc.__file__).read_text(encoding="utf-8")
+    assert "_REAL_SEARCH_ENGINE" not in text
+    assert "_search_engine_class" not in text
+    assert "orchestrator.__dict__" not in text
+    assert not hasattr(orch, "SearchEngine")
+
+    class _BoomEngine:
+        def __init__(self, *a, **k):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    monkeypatch.setattr(disc, "SearchEngine", _EmptyEngine)
+    monkeypatch.setattr(orch, "SearchEngine", _BoomEngine, raising=False)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    proto = _write_protocol(ws)
+
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=ws / "lit")
+    )
+    assert outcome.count == 0

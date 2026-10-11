@@ -22,15 +22,11 @@ Mapping to the HCM-04e packet:
 - HCM4E-08 no-SCI-mint proof + stale-quarantine removal + empty input
 - HCM4E-09 orchestrator<->stage parity (mapping, papers_to_screen, bytes,
   quarantine evidence, audit order+payload)
-- HCM4E-10 shim + legacy orchestrator-namespace seam + region guards
+- HCM4E-10 shim + region guards; HCM-04m removed the transitional
+  orchestrator-namespace seam (tests patch
+  ``pipeline.verification.DocumentVerifier`` directly)
 - HCM4E-11 exceptions propagate (verifier raise, audit raise)
 - HCM4E-12 negatives (mint/bridge/quarantine source guards)
-
-Carry-forward note: the fidelity stubs still patch
-``scholar_harness.orchestrator.DocumentVerifier`` (legacy seam). A later
-coordinator packet should migrate them to patch
-``scholar_harness.pipeline.verification.DocumentVerifier`` directly and drop
-the orchestrator fallback in ``_verifier_class``.
 """
 
 from __future__ import annotations
@@ -44,6 +40,7 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import discovery as disc
 from scholar_harness.pipeline import verification as ver_mod
 from scholar_harness.verification_identity import (
     QUARANTINE_FILENAME,
@@ -221,7 +218,7 @@ def _install_fake_engine(monkeypatch, docs):
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
 
 
 def _run_stage(docs, lit, ws):
@@ -681,7 +678,7 @@ def test_orchestrator_mapping_and_papers_to_screen_follow_outcome(
             )
             return [kept, stripped], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _MixedVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _MixedVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -710,7 +707,7 @@ def test_orchestrator_verified_bytes_match_golden_and_direct_stage(
         async def process_batch(self, docs, verify=True, enrich=True):
             return [_fresh_doc_without_workspace(d) for d in docs], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _DroppingVerifierSameDOI)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _DroppingVerifierSameDOI)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -758,7 +755,7 @@ def test_quarantine_evidence_unchanged_between_paths(tmp_path, monkeypatch):
                 for d in docs
             ], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _StrippingVerifier)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _StrippingVerifier)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -803,7 +800,7 @@ def test_audit_order_and_payload_preserved(tmp_path, monkeypatch):
         async def process_batch(self, docs, verify=True, enrich=True):
             return [_fresh_doc_without_workspace(d) for d in docs], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _DroppingVerifierSameDOI)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _DroppingVerifierSameDOI)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -848,24 +845,33 @@ def test_audit_order_and_payload_preserved(tmp_path, monkeypatch):
 
 
 def test_shim_preserves_verification_identity():
-    assert orch.DocumentVerifier is ver_mod.DocumentVerifier
+    # HCM-04m: the patch-only DocumentVerifier re-export is removed.
+    assert not hasattr(orch, "DocumentVerifier")
     assert orch.run_verification is ver_mod.run_verification
     assert orch.VerificationOutcome is ver_mod.VerificationOutcome
 
 
-def test_legacy_orchestrator_seam_honored(tmp_path, monkeypatch):
-    """Transitional seam: an orchestrator-namespace fake is honored by the stage.
+def test_transitional_seam_removed(tmp_path, monkeypatch):
+    """HCM-04m tripwire (SEAM-03): no sentinel/resolver; old patch inert."""
 
-    Carry-forward: migrate fidelity stubs to patch
-    ``pipeline.verification.DocumentVerifier`` directly in a later coordinator
-    packet.
-    """
+    assert not hasattr(ver_mod, "_REAL_VERIFIER")
+    assert not hasattr(ver_mod, "_verifier_class")
+    text = Path(ver_mod.__file__).read_text(encoding="utf-8")
+    assert "_REAL_VERIFIER" not in text
+    assert "_verifier_class" not in text
+    assert "orchestrator.__dict__" not in text
+    assert not hasattr(orch, "DocumentVerifier")
 
     class _EmptyVerifier:
         async def process_batch(self, docs, verify=True, enrich=True):
             return [], []
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _EmptyVerifier)
+    class _BoomVerifier:
+        async def process_batch(self, docs, verify=True, enrich=True):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _EmptyVerifier)
+    monkeypatch.setattr(orch, "DocumentVerifier", _BoomVerifier, raising=False)
     ws = tmp_path / "ws"
     lit = ws / "literature"
 
@@ -873,20 +879,6 @@ def test_legacy_orchestrator_seam_honored(tmp_path, monkeypatch):
 
     assert outcome.verified == 0 and outcome.refused == 0
     assert outcome.status == "SUCCESS"
-
-    # Direct-module patch also works (future canonical seam): reset the legacy
-    # override first so the stage falls through to its own global.
-    monkeypatch.setattr(orch, "DocumentVerifier", ver_mod._REAL_VERIFIER)
-
-    class _PassthroughVerifier:
-        async def process_batch(self, docs, verify=True, enrich=True):
-            return list(docs), []
-
-    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
-    outcome2 = _run_stage(
-        _deduped_docs(_make_two_distinct_docs()), tmp_path / "lit2", tmp_path / "ws2"
-    )
-    assert outcome2.verified == 2
 
 
 def test_stage_has_no_console_transport_import():
@@ -983,8 +975,8 @@ def test_orchestrator_verifier_failure_propagates_without_success(
         async def close(self):
             pass
 
-    monkeypatch.setattr(orch, "DocumentVerifier", _FailingVerifier)
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _FailingVerifier)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
     _install_passthrough_hydration(monkeypatch)
     _stub_screening_prepare(monkeypatch)
 

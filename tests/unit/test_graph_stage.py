@@ -33,18 +33,13 @@ Negatives (each tmp_path-only, byte-identical restored):
 - NEG-02 builder-arg change (client kwargs must stay name/rate_limit exact)
 - NEG-03 output path/serialization/order change (paths + bytes + node order)
 - NEG-04 failure-into-success (raise is never mapped to DONE/0)
-- NEG-05 seam bypass (orchestrator-namespace patches take effect)
+- NEG-05 seam bypass (pipeline-namespace patches take effect)
 - NEG-06 byte-identical probe restore (direct stage restores orch bytes)
 
-Carry-forward debt TD-HCM-TEST-SEAMS x3 untouched
-(``SearchEngine`` / ``Deduplicator`` / ``DocumentVerifier`` shims stay);
-this packet adds two NARROW seams only (``CitationGraphBuilder`` /
-``GraphVisualizer`` via ``orchestrator.__dict__`` honoring, HCM-04i
-matrix precedent). networkx is imported directly (no ``orch.nx`` patch
-exists anywhere); ``AcademicHttpClient`` is imported at the stage top
-(hydration precedent; fakes take the client opaquely). No broad layer, no
-other seams. TD-E3-CURRENTNESS-01 and the MCP docs failure stay
-base-proven and untouched.
+HCM-04m removed the transitional seams (tests patch the owning pipeline
+modules directly). networkx is imported directly; ``AcademicHttpClient``
+is imported at the stage top. TD-E3-CURRENTNESS-01 and the MCP docs
+failure stay base-proven and untouched.
 """
 
 from __future__ import annotations
@@ -60,8 +55,13 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import deduplication as dedup_mod
+from scholar_harness.pipeline import discovery as disc_mod
 from scholar_harness.pipeline import extraction as ext_mod
 from scholar_harness.pipeline import graph as graph_mod
+from scholar_harness.pipeline import matrix as mat_mod
+from scholar_harness.pipeline import synthesis as synth_mod
+from scholar_harness.pipeline import verification as ver_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
 
@@ -196,9 +196,10 @@ def _clear_seen():
 
 
 def test_shim_identity_all_four_names():
-    """HCM4J-01: orchestrator names ARE the stage objects (move, not copy)."""
-    assert orch.CitationGraphBuilder is graph_mod.CitationGraphBuilder
-    assert orch.GraphVisualizer is graph_mod.GraphVisualizer
+    """HCM4J-01: orchestrator keeps the façade names (move, not copy)."""
+    # HCM-04m: patch-only kit re-exports removed.
+    assert not hasattr(orch, "CitationGraphBuilder")
+    assert not hasattr(orch, "GraphVisualizer")
     assert orch.run_graph is graph_mod.run_graph
     assert orch.GraphOutcome is graph_mod.GraphOutcome
 
@@ -212,8 +213,6 @@ def test_stage_canonical_kit_classes():
     assert graph_mod.CitationGraphBuilder is _KitBuilder
     assert graph_mod.GraphVisualizer is _KitVis
     assert graph_mod.AcademicHttpClient is _KitClient
-    assert graph_mod._REAL_BUILDER is _KitBuilder
-    assert graph_mod._REAL_VISUALIZER is _KitVis
 
 
 # ---------------------------------------------------------------------------
@@ -238,8 +237,8 @@ def test_study_doi_imported_from_canonical_home():
 def test_construction_parity_client_dois_build_pagerank_export(tmp_path, monkeypatch):
     """HCM4J-02: verbatim client/builder/build/pagerank/export/visualizer."""
     _clear_seen()
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
 
     seen_client_kwargs: list[dict] = []
 
@@ -280,8 +279,8 @@ def test_construction_parity_client_dois_build_pagerank_export(tmp_path, monkeyp
 def test_invalid_rows_filtered_never_reach_build_graph(tmp_path, monkeypatch):
     """NEG-01: DOI-less / falsy-DOI rows are filtered, never built."""
     _clear_seen()
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
 
     docs = [
         {"workspace_id": "SCI-000001", "external_ids": {"doi": "10.1000/aaa"}},
@@ -305,8 +304,8 @@ def test_invalid_rows_filtered_never_reach_build_graph(tmp_path, monkeypatch):
 def test_client_kwargs_exact_not_defaults(tmp_path, monkeypatch):
     """NEG-02: a builder-arg change (name/rate_limit) fails here."""
     _clear_seen()
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
 
     seen: list[dict] = []
 
@@ -341,8 +340,8 @@ def test_stage_never_closes_graph_client():
 def test_empty_dois_seed_empty_graph_with_truthful_zero_counts(tmp_path, monkeypatch):
     """HCM4J-05: no DOIs -> seeded empty graph, 0/0, files still written."""
     _clear_seen()
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
 
     docs = [
         {"workspace_id": "SCI-000001", "title": "No DOI study"},
@@ -371,8 +370,8 @@ def test_empty_dois_seed_empty_graph_with_truthful_zero_counts(tmp_path, monkeyp
 def test_stage_emits_no_audit_and_no_registry(tmp_path, monkeypatch):
     """HCM4J-04: Stage 8 emits no audit event and no registry state."""
     _clear_seen()
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -476,19 +475,46 @@ def test_stage_has_no_console_transport_import():
 
 
 def test_narrow_seams_only_two_orchestrator_fallbacks():
-    """Only CitationGraphBuilder/GraphVisualizer consult orchestrator.__dict__."""
+    """HCM-04m: no orchestrator fallback remains (SEAM-06/07 removed)."""
     text = Path(graph_mod.__file__).read_text(encoding="utf-8")
-    assert text.count("orchestrator.__dict__.get(") == 2
-    assert '"CitationGraphBuilder"' in text
-    assert '"GraphVisualizer"' in text
-    assert "_REAL_BUILDER" in text
-    assert "_REAL_VISUALIZER" in text
-    # No broad __dict__ snooping beyond the two narrow resolvers.
-    assert "orchestrator.__dict__" not in text.replace("orchestrator.__dict__.get(", "")
+    assert "orchestrator.__dict__.get(" not in text
+    assert "orchestrator.__dict__" not in text
+    assert "_REAL_BUILDER" not in text
+    assert "_REAL_VISUALIZER" not in text
+    assert "_builder_class" not in text
+    assert "_visualizer_class" not in text
     # networkx and the HTTP client take no orchestrator seam (no patch exists).
     assert text.count("import networkx") == 1
     assert "AcademicHttpClient" in text
     assert '"AcademicHttpClient"' not in text
+
+
+def test_transitional_seams_removed(tmp_path, monkeypatch):
+    """HCM-04m tripwire (SEAM-06/07): old patches inert; stage fakes win."""
+
+    assert not hasattr(orch, "CitationGraphBuilder")
+    assert not hasattr(orch, "GraphVisualizer")
+
+    class _BoomBuilder:
+        def __init__(self, *a, **k):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    class _BoomVis:
+        def __init__(self, *a, **k):
+            raise AssertionError("orchestrator-namespace fake must be inert")
+
+    _clear_seen()
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(orch, "CitationGraphBuilder", _BoomBuilder, raising=False)
+    monkeypatch.setattr(orch, "GraphVisualizer", _BoomVis, raising=False)
+
+    lit = tmp_path / "literature"
+    lit.mkdir(parents=True)
+    outcome = asyncio.run(
+        graph_mod.run_graph(included_documents=[], literature_dir=lit)
+    )
+    assert outcome.nodes == 0 and outcome.edges == 0
 
 
 # ---------------------------------------------------------------------------
@@ -548,14 +574,14 @@ class _FakeSynth:
 
 def _stub_upstream(monkeypatch):
     _clear_seen()
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "Deduplicator", _FakeDedup)
-    monkeypatch.setattr(orch, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(orch, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(orch, "MatrixExtractor", _FakeMatrix)
-    monkeypatch.setattr(orch, "GroundedSynthesisEngine", _FakeSynth)
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
+    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
+    monkeypatch.setattr(mat_mod, "MatrixExtractor", _FakeMatrix)
+    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )
@@ -608,11 +634,11 @@ def test_orchestrator_delegation_maps_done_counts(tmp_path, monkeypatch):
 
 
 def test_orchestrator_patch_sites_work_unmodified_through_stage(tmp_path, monkeypatch):
-    """NEG-05: fidelity patch sites work UNMODIFIED through the stage."""
+    """NEG-05: pipeline-namespace patch sites work through the stage."""
     _clear_seen()
-    # Patch ONLY the orchestrator namespace (exact fidelity :196-197 lines).
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    # Patch the owning pipeline namespace (HCM-04m canonical seam).
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
 
     lit = tmp_path / "literature"
     outcome = asyncio.run(
@@ -658,8 +684,8 @@ def test_orchestrator_mapping_matches_direct_stage_bytes(tmp_path, monkeypatch):
     # reproduces the orchestrator's files byte for byte (restore).
     _clear_seen()
     # Re-apply the fakes for the direct call (cleared above).
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     direct_lit = tmp_path / "direct-literature"
     direct_outcome = asyncio.run(
         graph_mod.run_graph(
@@ -707,8 +733,8 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
         def __init__(self, client):
             raise RuntimeError("builder boom")
 
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _BoomBuilder)
-    monkeypatch.setattr(orch, "GraphVisualizer", _FakeVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _BoomBuilder)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     with pytest.raises(RuntimeError, match="builder boom"):
         asyncio.run(
             graph_mod.run_graph(
@@ -733,7 +759,7 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
         def export_json(self, G, path):
             raise AssertionError("must not export after build failure")
 
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _BoomBuild)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _BoomBuild)
     with pytest.raises(RuntimeError, match="build_graph boom"):
         asyncio.run(
             graph_mod.run_graph(
@@ -748,8 +774,8 @@ def test_kit_raise_propagates_no_fabricated_done(tmp_path, monkeypatch):
         def generate_html(self, G):
             raise RuntimeError("visualizer boom")
 
-    monkeypatch.setattr(orch, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(orch, "GraphVisualizer", _BoomVis)
+    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
+    monkeypatch.setattr(graph_mod, "GraphVisualizer", _BoomVis)
     with pytest.raises(RuntimeError, match="visualizer boom"):
         asyncio.run(
             graph_mod.run_graph(

@@ -40,7 +40,9 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import discovery as disc
 from scholar_harness.pipeline import hydration
+from scholar_harness.pipeline import verification as ver_mod
 
 
 def _make_docs_missing_abstracts():
@@ -274,8 +276,8 @@ def test_hydrated_documents_flow_to_stage_3_verifier(tmp_path, monkeypatch):
             seen_verify.append(list(docs))
             return list(docs), []
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "DocumentVerifier", _PassthroughVerifier)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
     _stub_screening_prepare(monkeypatch)
 
     ws = tmp_path / "ws"
@@ -522,8 +524,8 @@ def test_orchestrator_path_matches_direct_stage_outcome(tmp_path, monkeypatch):
         async def process_batch(self, docs, verify=True, enrich=True):
             return list(docs), []
 
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
-    monkeypatch.setattr(orch, "DocumentVerifier", _PassthroughVerifier)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
     _stub_screening_prepare(monkeypatch)
 
     ws = tmp_path / "ws"
@@ -624,7 +626,7 @@ def test_orchestrator_hydration_failure_propagates_without_success(
 
     monkeypatch.setattr(hydration, "AbstractHydrator", _FailingHydrator)
     monkeypatch.setattr(hydration, "AcademicHttpClient", _DummyClient)
-    monkeypatch.setattr(orch, "SearchEngine", _FakeEngine)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
     _stub_screening_prepare(monkeypatch)
 
     ws = tmp_path / "ws"

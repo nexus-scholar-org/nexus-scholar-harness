@@ -58,11 +58,6 @@ from scholar_rag.synthesis import GroundedSynthesisEngine
 logger = logging.getLogger(__name__)
 
 
-# Kit class captured at import time so the legacy orchestrator-namespace
-# seam below can tell a monkeypatched fake apart from the real kit class.
-_REAL_ENGINE = GroundedSynthesisEngine
-
-
 @dataclass
 class SynthesisOutcome:
     """Typed outcome of the synthesis stage.
@@ -81,32 +76,6 @@ class SynthesisOutcome:
     review_path: Path
 
 
-def _engine_class() -> type[GroundedSynthesisEngine]:
-    """Return the ``GroundedSynthesisEngine`` class honoring the legacy test seam.
-
-    Hermetic orchestrator tests monkeypatch
-    ``scholar_harness.orchestrator.GroundedSynthesisEngine`` with a fake
-    engine (fidelity ``:195``, extraction-stage ``:763``,
-    matrix-stage ``:548``, graph-stage ``:554``). The orchestrator no
-    longer constructs the engine itself, so the stage honors an
-    orchestrator-namespace override when it differs from the kit class
-    and otherwise uses this module's own global (which tests may also
-    patch directly). Transitional HCM-04k seam: a later stub-migration
-    packet should migrate the fidelity stubs to patch
-    ``scholar_harness.pipeline.synthesis.GroundedSynthesisEngine``
-    directly and drop the orchestrator fallback.
-    """
-    try:
-        import scholar_harness.orchestrator as _orchestrator
-
-        candidate = _orchestrator.__dict__.get("GroundedSynthesisEngine")
-        if candidate is not None and candidate is not _REAL_ENGINE:
-            return candidate
-    except ImportError:  # pragma: no cover - orchestrator is always importable
-        pass
-    return GroundedSynthesisEngine
-
-
 def run_synthesis(
     *,
     protocol: Any,
@@ -115,8 +84,8 @@ def run_synthesis(
 ) -> SynthesisOutcome:
     """Run grounded synthesis for the first research question, publish review.
 
-    Verbatim move of orchestrator Stage 9 (:736-757): engine via
-    ``_engine_class()`` with ``retriever=retriever``, first-RQ selection
+    Verbatim move of orchestrator Stage 9 (:736-757): engine with
+    ``retriever=retriever``, first-RQ selection
     with the ``"What are the primary empirical findings?"`` / ``"RQ1"``
     fallbacks, synchronous ``synthesize(query=rq_text, rq_id=rq_id,
     section_category="results_empirical")``, then the identical
@@ -134,7 +103,7 @@ def run_synthesis(
     # the review write). No behavior change when it exists.
     synth_dir.mkdir(parents=True, exist_ok=True)
 
-    engine = _engine_class()(retriever=retriever)
+    engine = GroundedSynthesisEngine(retriever=retriever)
     first_rq = protocol.research_questions[0] if protocol.research_questions else None
     rq_text = first_rq.text if first_rq else "What are the primary empirical findings?"
     rq_id = first_rq.id if first_rq else "RQ1"
