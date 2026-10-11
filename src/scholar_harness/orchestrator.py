@@ -22,7 +22,6 @@ from scholar_rag.index_service import (
 from scholar_rag.replacement import ChromaReplacementView
 from scholar_rag.index_verifier import ChromaVisibleSetReader
 from scholar_rag.embedder import get_embedder
-from scholar_rag.synthesis import GroundedSynthesisEngine
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
 from .contracts.models import ArtifactReference, DocumentManifestArtifact
@@ -139,6 +138,17 @@ from .pipeline.graph import (  # noqa: F401
     GraphOutcome,
     GraphVisualizer,
     run_graph,
+)
+
+# HCM-04k: grounded synthesis lives in the neutral pipeline stage
+# (scholar_harness.pipeline.synthesis). These re-exports preserve the
+# historical ``orchestrator.GroundedSynthesisEngine`` monkeypatch seam --
+# fidelity, extraction-stage, matrix-stage, and graph-stage tests patch it
+# from here. Canonical definitions live in the stage module.
+from .pipeline.synthesis import (  # noqa: F401
+    GroundedSynthesisEngine,
+    SynthesisOutcome,
+    run_synthesis,
 )
 
 
@@ -733,27 +743,22 @@ class ResearchOrchestrator:
         # -------------------------------------------------------------
         # Stage 9: Grounded Evidence Synthesis & Entailment
         # -------------------------------------------------------------
-        engine = GroundedSynthesisEngine(retriever=retriever)
-        first_rq = (
-            protocol.research_questions[0] if protocol.research_questions else None
+        # HCM-04k: delegated to the neutral pipeline stage. run_synthesis
+        # owns engine construction, first-RQ selection with fallbacks, the
+        # synchronous synthesize call, and literature_review.md publication;
+        # it emits no audit event and writes no registry state.
+        synthesis_outcome = run_synthesis(
+            protocol=protocol,
+            retriever=retriever,
+            synthesis_dir=synth_dir,
         )
-        rq_text = (
-            first_rq.text if first_rq else "What are the primary empirical findings?"
-        )
-        rq_id = first_rq.id if first_rq else "RQ1"
-
-        synthesis_result = engine.synthesize(
-            query=rq_text,
-            rq_id=rq_id,
-            section_category="results_empirical",
-        )
-
-        synth_file = synth_dir / "literature_review.md"
-        synth_file.write_text(synthesis_result.synthesis_markdown, encoding="utf-8")
+        # Local bindings retained: the results mapping below reads them;
+        # Stage 10 reads the synth_file path.
+        synth_file = synthesis_outcome.review_path
         results["stages"]["synthesis"] = {
-            "verified_claims": synthesis_result.verified_claims_count,
-            "total_claims": len(synthesis_result.claims),
-            "entailment_rate": synthesis_result.entailment_rate,
+            "verified_claims": synthesis_outcome.verified_claims,
+            "total_claims": synthesis_outcome.total_claims,
+            "entailment_rate": synthesis_outcome.entailment_rate,
         }
 
         # -------------------------------------------------------------
