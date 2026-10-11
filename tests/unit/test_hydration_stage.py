@@ -39,6 +39,7 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import hydration
 
 
@@ -482,7 +483,8 @@ def test_stage_has_no_console_transport_import():
 
 
 def test_stage_2_5_region_has_no_direct_kit_use():
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     stage = source.split("Stage 2.5: Abstract Hydration", 1)[1]
     stage = stage.split("Stage 3:", 1)[0]
     # No direct construction or direct hydrate call in the region.

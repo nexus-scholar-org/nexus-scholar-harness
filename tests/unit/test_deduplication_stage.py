@@ -38,6 +38,7 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import deduplication as dedup
 
 
@@ -334,7 +335,8 @@ def test_stage_has_no_console_transport_import():
 
 
 def test_stage_2_region_has_no_direct_kit_use():
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     stage2 = source.split("Stage 2: 2-Tier Deduplication", 1)[1]
     stage2 = stage2.split("Stage 2.5:", 1)[0]
     # No direct construction or direct deduplicate call in the region.

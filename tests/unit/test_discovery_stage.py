@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import discovery as disc
 
 
@@ -292,7 +293,9 @@ def test_stage_emits_no_audit_event_and_no_registry_writes(tmp_path, monkeypatch
 
 
 def test_stage_1_region_has_no_direct_kit_use():
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to the neutral coordinator; the region now lives
+    # in coordinator.py (orchestrator delegates). Same no-inline-kit guard.
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     stage1 = source.split("Stage 1: Protocol Query Compilation & Search", 1)[1]
     stage1 = stage1.split("Stage 2:", 1)[0]
     assert "SearchEngine" not in stage1

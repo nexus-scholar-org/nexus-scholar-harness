@@ -59,6 +59,7 @@ import networkx as nx
 import pytest
 
 from scholar_harness import orchestrator as orch
+from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import extraction as ext_mod
 from scholar_harness.pipeline import graph as graph_mod
 
@@ -395,7 +396,8 @@ def test_stage_emits_no_audit_and_no_registry(tmp_path, monkeypatch):
 
 def test_stage_8_region_has_no_inline_kit_logic():
     """HCM4J-07: orchestrator delegates; kit logic lives in the stage."""
-    source = Path(orch.__file__).read_text(encoding="utf-8")
+    # HCM-04l: glue moved to coordinator.py (orchestrator delegates).
+    source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     region = source.split("Stage 8: Citation Knowledge Graph", 1)[1]
     region = region.split("Stage 9:", 1)[0]
     body = region.split('results["stages"]["graph_nodes"]', 1)[0]
