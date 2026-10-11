@@ -1,6 +1,9 @@
-"""TD-E3-CURRENTNESS-01 characterization: stale-currentness `parameters=` TypeError.
+"""TD-E3-CURRENTNESS-01: Option-B typed stale-currentness refusal.
 
-Status: CHARACTERIZATION ONLY. No runtime change, no repair, no mitigation.
+The merged characterization proved the former ``parameters=`` call leaked a
+raw TypeError. This repair keeps the direct audit-writer guard tests, but proves
+the Stage-6 stale branch now returns the established typed refusal without
+backend or authoritative publication.
 
 Target (base `origin/main` `dab85b4`):
   `src/scholar_harness/pipeline/indexing.py:530-539` calls
@@ -20,12 +23,13 @@ Packet mapping (entry paths 1-10, all classified by EXECUTION below):
 
 Matrices:
   A: mechanism (bad-keyword, not missing-param/shape; harness owner, not kit)
-  B: direct stale reachability + replay stability (paths 1-2, shape 6)
+  B: direct stale typed-refusal + replay stability (paths 1-2, shape 6)
   C: earlier-path / unreachable classification (paths 3-5)
   D: consequence snapshots for spec shapes (6-10)
   NEG: five hermetic negatives incl. missing-manifest-takes-earlier-path,
-       each with before/after snapshot; stale path asserts byte-identical
-       (no publication); refusal paths assert exactly-one-line delta with
+       each with before/after snapshot; stale path asserts no authoritative
+       publication and exactly-one refusal audit line; refusal paths assert
+       exactly-one-line delta with
        prior bytes preserved; every negative restores no residue outside tmp.
 
 Labels: REAL-KIT / HARNESS-INTEGRATION / CONTROLLED-DOUBLE / SOURCE-TRACE /
@@ -185,8 +189,8 @@ def test_a2_orchestrator_adapter_rejects_parameters_keyword(tmp_path: Path):
     assert after["journal_bytes"] == before["journal_bytes"] == b""
 
 
-def test_a3_neither_writer_signature_accepts_parameters():
-    """A3 (SOURCE-TRACE): both signatures lack `parameters` (not missing-param)."""
+def test_a3_stale_branch_does_not_pass_unsupported_parameters_keyword():
+    """A3 (SOURCE-TRACE): writers reject the keyword and Stage 6 does not use it."""
     from scholar_harness.workspace.audit import append_legacy_event
 
     assert "parameters" not in inspect.signature(append_legacy_event).parameters
@@ -194,10 +198,10 @@ def test_a3_neither_writer_signature_accepts_parameters():
         "parameters"
         not in inspect.signature(ResearchOrchestrator._log_audit_event).parameters
     )
-    # The stale call site carries the explicit ignore marker (preserved defect).
     src = Path(idx_mod.__file__).read_text(encoding="utf-8")
-    assert 'parameters={"code": exc.code}' in src
-    assert "# type: ignore[call-arg]" in src
+    assert 'parameters={"code": exc.code}' not in src
+    assert "# type: ignore[call-arg]" not in src
+    assert '"rejection_code": exc.code' in src
 
 
 def test_a4_kit_validate_raises_typed_stale_for_changed_body(tmp_path: Path):
@@ -251,14 +255,14 @@ def test_a4_kit_validate_raises_typed_stale_for_changed_body(tmp_path: Path):
 # ---------------------------------------------------------------------------
 
 
-def test_b1_run_indexing_stale_raises_typeerror_with_no_bytes(
+def test_b1_run_indexing_stale_returns_typed_refusal_with_no_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """B1 (HARNESS-INTEGRATION + CONTROLLED-DOUBLE stale): direct path REACHABLE.
 
     Controlled double: real `run_indexing` + monkeypatched kit stale raise.
-    Asserts raw TypeError (not typed/mapped), chained from STALE, with
-    before/after snapshots byte-identical and no backend/chroma/accepted.
+    Asserts the existing typed stale code, one truthful rejection audit line,
+    and no backend/chroma/accepted publication.
     """
     import scholar_harness.extraction_producer as prod
 
@@ -269,23 +273,30 @@ def test_b1_run_indexing_stale_raises_typeerror_with_no_bytes(
     monkeypatch.setattr(prod, "validate_extraction_currentness", _stale_raise)
     before = _snapshot(ws)
     chroma_dir = ws / "rag" / "chroma_db"
-    with pytest.raises(TypeError) as caught:
-        idx_mod.run_indexing(
-            workspace_dir=ws,
-            chroma_dir=chroma_dir,
-            get_embedder_fn=_boom_backend,
-            backend_cls=_boom_backend,
-            reader_cls=_boom_backend,
-            index_workspace_fn=_boom_backend,
-            parent_view=_fake_parent_view(),
-        )
-    assert "unexpected keyword argument 'parameters'" in str(caught.value)
-    # Chained cause is the kit's typed stale refusal (mechanism proof).
-    assert type(caught.value.__context__).__name__ == "PublicationRefused"
-    assert getattr(caught.value.__context__, "code", None) == "STALE_EXTRACTED_BODY"
+    out = idx_mod.run_indexing(
+        workspace_dir=ws,
+        chroma_dir=chroma_dir,
+        get_embedder_fn=_boom_backend,
+        backend_cls=_boom_backend,
+        reader_cls=_boom_backend,
+        index_workspace_fn=_boom_backend,
+        parent_view=_fake_parent_view(),
+    )
+    assert out.result["status"] == "FAILED"
+    assert out.result["refused"] == [
+        {
+            "document_id": "",
+            "code": "STALE_EXTRACTED_BODY",
+            "reason": "STALE_EXTRACTED_BODY: Extracted bytes differ from the accepted E2 publication (controlled double).",
+        }
+    ]
     after = _snapshot(ws)
-    assert after["journal_bytes"] == before["journal_bytes"] == b""
-    assert after["journal_lines"] == []
+    assert len(after["journal_lines"]) == len(before["journal_lines"]) + 1
+    assert after["journal_lines"][-1]["action"] == "RAG_INDEX_REJECTED"
+    assert (
+        after["journal_lines"][-1]["metrics"]["rejection_code"]
+        == "STALE_EXTRACTED_BODY"
+    )
     assert after["chroma_exists"] is False
     assert after["rag_exists"] is False
     assert after["accepted_exists"] is False
@@ -293,14 +304,14 @@ def test_b1_run_indexing_stale_raises_typeerror_with_no_bytes(
     assert after["registry_bytes"] == before["registry_bytes"]
 
 
-def test_b2_orchestrator_stage_stale_raises_typeerror_with_no_bytes(
+def test_b2_orchestrator_stage_stale_returns_typed_refusal_with_no_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """B2 (HARNESS-INTEGRATION): orchestrator delegate path REACHABLE (same shape).
 
     Patches the orchestrator's data seam to supply the controlled stale
-    parent_view plus the kit stale raise; asserts the same raw TypeError and
-    the same no-publication observables. Covers entry path (2) via the thin
+    parent_view plus the kit stale raise; asserts the same typed refusal and
+    no-publication observables. Covers entry path (2) via the thin
     delegate `orch._run_indexing_stage` (coordinator calls this same fn).
     """
     import scholar_harness.extraction_producer as prod
@@ -317,20 +328,19 @@ def test_b2_orchestrator_stage_stale_raises_typeerror_with_no_bytes(
     monkeypatch.setattr(orch_module, "get_embedder", _boom_backend)
     monkeypatch.setattr(orch_module, "index_workspace", _boom_backend)
     before = _snapshot(ws)
-    with pytest.raises(TypeError) as caught:
-        o._run_indexing_stage(tmp_path / "chroma-orch")
-    assert "unexpected keyword argument 'parameters'" in str(caught.value)
-    assert getattr(caught.value.__context__, "code", None) == "STALE_EXTRACTED_BODY"
+    out, _ = o._run_indexing_stage(tmp_path / "chroma-orch")
+    assert out["status"] == "FAILED"
+    assert out["refused"][0]["code"] == "STALE_EXTRACTED_BODY"
     after = _snapshot(ws)
-    assert after["journal_bytes"] == before["journal_bytes"] == b""
+    assert len(after["journal_lines"]) == len(before["journal_lines"]) + 1
     assert not (tmp_path / "chroma-orch").exists()
     assert after["accepted_exists"] is False
 
 
-def test_b3_stale_replay_still_typeerror_still_no_bytes(
+def test_b3_stale_replay_returns_same_typed_refusal_without_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """B3 (HARNESS-INTEGRATION): replay stability — two runs, same TypeError."""
+    """B3 (HARNESS-INTEGRATION): replay stability — two typed refusals."""
     import scholar_harness.extraction_producer as prod
 
     ws = tmp_path / "ws"
@@ -339,8 +349,9 @@ def test_b3_stale_replay_still_typeerror_still_no_bytes(
     (ws / "audit").mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(prod, "validate_extraction_currentness", _stale_raise)
     before = _snapshot(ws)
+    outcomes = []
     for _ in range(2):
-        with pytest.raises(TypeError, match="unexpected keyword argument"):
+        outcomes.append(
             idx_mod.run_indexing(
                 workspace_dir=ws,
                 chroma_dir=ws / "rag" / "chroma_db",
@@ -349,9 +360,12 @@ def test_b3_stale_replay_still_typeerror_still_no_bytes(
                 reader_cls=_boom_backend,
                 index_workspace_fn=_boom_backend,
                 parent_view=_fake_parent_view(),
-            )
+            ).result
+        )
+    assert outcomes[0] == outcomes[1]
+    assert outcomes[0]["refused"][0]["code"] == "STALE_EXTRACTED_BODY"
     after = _snapshot(ws)
-    assert after["journal_bytes"] == before["journal_bytes"] == b""
+    assert len(after["journal_lines"]) == len(before["journal_lines"]) + 2
     assert after["chroma_exists"] is False
 
 
@@ -588,7 +602,7 @@ def test_c4_index_acceptance_maps_stale_to_step4_validation_error(
 # ---------------------------------------------------------------------------
 
 
-def test_d1_stale_consequence_table_is_no_publication_no_audit(
+def test_d1_stale_consequence_table_is_typed_refusal_without_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """D1: full consequence row for valid-accepted-stale (shape 6, path 1)."""
@@ -600,32 +614,42 @@ def test_d1_stale_consequence_table_is_no_publication_no_audit(
     (ws / "audit").mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(prod, "validate_extraction_currentness", _stale_raise)
     before = _snapshot(ws)
-    with pytest.raises(TypeError):
-        idx_mod.run_indexing(
-            workspace_dir=ws,
-            chroma_dir=ws / "rag" / "chroma_db",
-            get_embedder_fn=_boom_backend,
-            backend_cls=_boom_backend,
-            reader_cls=_boom_backend,
-            index_workspace_fn=_boom_backend,
-            parent_view=_fake_parent_view(
-                documents=[
-                    {
-                        "document_id": "DOC-001",
-                        "study_id": "STU-001",
-                        "extracted_path": "extracted/DOC-001.md",
-                        "extracted_content_sha256": "sha256:" + "9" * 64,
-                    }
-                ]
-            ),
-        )
+    out = idx_mod.run_indexing(
+        workspace_dir=ws,
+        chroma_dir=ws / "rag" / "chroma_db",
+        get_embedder_fn=_boom_backend,
+        backend_cls=_boom_backend,
+        reader_cls=_boom_backend,
+        index_workspace_fn=_boom_backend,
+        parent_view=_fake_parent_view(
+            documents=[
+                {
+                    "document_id": "DOC-001",
+                    "study_id": "STU-001",
+                    "extracted_path": "extracted/DOC-001.md",
+                    "extracted_content_sha256": "sha256:" + "9" * 64,
+                }
+            ]
+        ),
+    )
     after = _snapshot(ws)
     # backend/client constructed? No (boom would have raised AssertionError).
     # index/replacement started? No chroma/rag. manifest/accepted? No.
-    # audit event? None. journal bytes? Unchanged. residue? None.
-    # result? Raw TypeError (not typed PublicationRefused, not mapped dict).
-    assert after == before
-    assert after["journal_bytes"] == b""
+    # One truthful rejection audit is allowed; all authoritative state is unchanged.
+    assert out.result["status"] == "FAILED"
+    assert out.result["refused"][0]["code"] == "STALE_EXTRACTED_BODY"
+    assert after["registry_bytes"] == before["registry_bytes"]
+    assert after["project_bytes"] == before["project_bytes"]
+    assert after["chroma_exists"] is False
+    assert after["rag_exists"] is False
+    assert after["accepted_exists"] is False
+    assert after["tmp_leftovers"] == []
+    assert len(after["journal_lines"]) == len(before["journal_lines"]) + 1
+    assert after["journal_lines"][-1]["action"] == "RAG_INDEX_REJECTED"
+    assert (
+        after["journal_lines"][-1]["metrics"]["rejection_code"]
+        == "STALE_EXTRACTED_BODY"
+    )
 
 
 def test_d2_missing_manifest_takes_earlier_path_with_one_rejection_line(
@@ -817,17 +841,17 @@ def test_neg03_refused_run_never_touches_backend(
     assert len(after["journal_lines"]) == len(before["journal_lines"]) + 1
 
 
-def test_neg04_stale_exception_path_writes_no_bytes_restores_identical(
+def test_neg04_stale_refusal_preserves_prior_journal_and_writes_one_rejection(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """NEG-04: stale exception path snapshot is byte-identical (no publication)."""
+    """NEG-04: stale refusal preserves prior journal and has no publication."""
     import scholar_harness.extraction_producer as prod
 
     ws = tmp_path / "ws"
     ws.mkdir()
     _record_identity(ws)
     (ws / "audit").mkdir(parents=True, exist_ok=True)
-    # Seed one unrelated journal line to prove prefix preservation (still none new).
+    # Seed one unrelated journal line to prove prefix preservation.
     from scholar_harness.workspace.audit import append_legacy_event
 
     append_legacy_event(
@@ -842,26 +866,29 @@ def test_neg04_stale_exception_path_writes_no_bytes_restores_identical(
     )
     monkeypatch.setattr(prod, "validate_extraction_currentness", _stale_raise)
     before = _snapshot(ws)
-    with pytest.raises(TypeError, match="unexpected keyword argument"):
-        idx_mod.run_indexing(
-            workspace_dir=ws,
-            chroma_dir=ws / "rag" / "chroma_db",
-            get_embedder_fn=_boom_backend,
-            backend_cls=_boom_backend,
-            reader_cls=_boom_backend,
-            index_workspace_fn=_boom_backend,
-            parent_view=_fake_parent_view(),
-        )
+    out = idx_mod.run_indexing(
+        workspace_dir=ws,
+        chroma_dir=ws / "rag" / "chroma_db",
+        get_embedder_fn=_boom_backend,
+        backend_cls=_boom_backend,
+        reader_cls=_boom_backend,
+        index_workspace_fn=_boom_backend,
+        parent_view=_fake_parent_view(),
+    )
     after = _snapshot(ws)
-    assert after["journal_bytes"] == before["journal_bytes"]
-    assert after["journal_lines"] == before["journal_lines"]
+    assert out.result["refused"][0]["code"] == "STALE_EXTRACTED_BODY"
+    assert after["journal_lines"][:-1] == before["journal_lines"]
+    assert after["journal_lines"][-1]["action"] == "RAG_INDEX_REJECTED"
+    assert after["registry_bytes"] == before["registry_bytes"]
+    assert after["accepted_exists"] is False
+    assert after["chroma_exists"] is False
     assert after["tmp_leftovers"] == []
 
 
-def test_neg05_mixed_batch_stale_still_typeerror_no_partial_publication(
+def test_neg05_mixed_batch_stale_is_typed_refusal_not_partial_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """NEG-05 (shape 10): multi-doc stale parent still TypeError, no PARTIAL."""
+    """NEG-05 (shape 10): multi-doc stale parent is one typed refusal."""
     import scholar_harness.extraction_producer as prod
 
     ws = tmp_path / "ws"
@@ -870,31 +897,36 @@ def test_neg05_mixed_batch_stale_still_typeerror_no_partial_publication(
     (ws / "audit").mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(prod, "validate_extraction_currentness", _stale_raise)
     before = _snapshot(ws)
-    with pytest.raises(TypeError, match="unexpected keyword argument"):
-        idx_mod.run_indexing(
-            workspace_dir=ws,
-            chroma_dir=ws / "rag" / "chroma_db",
-            get_embedder_fn=_boom_backend,
-            backend_cls=_boom_backend,
-            reader_cls=_boom_backend,
-            index_workspace_fn=_boom_backend,
-            parent_view=_fake_parent_view(
-                documents=[
-                    {
-                        "document_id": "DOC-001",
-                        "study_id": "STU-001",
-                        "extracted_path": "extracted/DOC-001.md",
-                        "extracted_content_sha256": "sha256:" + "1" * 64,
-                    },
-                    {
-                        "document_id": "DOC-002",
-                        "study_id": "STU-002",
-                        "extracted_path": "extracted/DOC-002.md",
-                        "extracted_content_sha256": "sha256:" + "2" * 64,
-                    },
-                ]
-            ),
-        )
+    out = idx_mod.run_indexing(
+        workspace_dir=ws,
+        chroma_dir=ws / "rag" / "chroma_db",
+        get_embedder_fn=_boom_backend,
+        backend_cls=_boom_backend,
+        reader_cls=_boom_backend,
+        index_workspace_fn=_boom_backend,
+        parent_view=_fake_parent_view(
+            documents=[
+                {
+                    "document_id": "DOC-001",
+                    "study_id": "STU-001",
+                    "extracted_path": "extracted/DOC-001.md",
+                    "extracted_content_sha256": "sha256:" + "1" * 64,
+                },
+                {
+                    "document_id": "DOC-002",
+                    "study_id": "STU-002",
+                    "extracted_path": "extracted/DOC-002.md",
+                    "extracted_content_sha256": "sha256:" + "2" * 64,
+                },
+            ]
+        ),
+    )
     after = _snapshot(ws)
-    assert after["journal_bytes"] == before["journal_bytes"] == b""
+    assert out.result["status"] == "FAILED"
+    assert out.result["refused"][0]["code"] == "STALE_EXTRACTED_BODY"
+    assert len(after["journal_lines"]) == len(before["journal_lines"]) + 1
+    assert (
+        after["journal_lines"][-1]["metrics"]["rejection_code"]
+        == "STALE_EXTRACTED_BODY"
+    )
     assert after["accepted_exists"] is False
