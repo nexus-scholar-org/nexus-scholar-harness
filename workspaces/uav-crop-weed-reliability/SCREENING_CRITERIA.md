@@ -6,7 +6,7 @@
 **Paradigm**: Pragmatist / Mixed Methods
 
 ## Context & Rationale
-**Unit of Analysis**: Primary empirical UAV crop-weed mapping studies and dataset/benchmark reports; linked versions form one study/report family.
+**Unit of Analysis**: Linked study/report families, with separate evaluation-setting rows for each materially distinct dataset/split/shift/target-data-use condition; repeated seeds are grouped within a setting.
 
 Descriptive evidence mapping combines structured counts with qualitative comparison of evaluation designs; it does not estimate pooled causal effects or assume generalization from reported accuracy.
 
@@ -39,7 +39,7 @@ Descriptive evidence mapping combines structured counts with qualitative compari
 **Serves**: RQ1, RQ2, RQ3, RQ4
 
 ### INC-02
-**Criterion**: Primary empirical method study or dataset/benchmark report with sufficient accessible methods to chart the task and acquisition/evaluation design; journal, conference, and substantive preprint reports are eligible.
+**Criterion**: Primary empirical method study or dataset/benchmark report describing a UAV crop/weed mapping method, experiment, or annotated dataset. Journal, conference, and substantive preprint reports are eligible. Missing evaluation details are charted as not reported; inaccessible full text remains pending retrieval rather than excluded.
 **Serves**: RQ1, RQ2, RQ3, RQ4
 
 ### INC-03
@@ -59,7 +59,7 @@ Descriptive evidence mapping combines structured counts with qualitative compari
 **Serves**: RQ1, RQ2, RQ3, RQ4
 
 ### EXC-03
-**Criterion**: Review, editorial, commentary, protocol-only report or abstract-only record lacking a substantive primary methods report; retain useful reviews as background.
+**Criterion**: Confirmed review, editorial, commentary, protocol-only report, or abstract-only publication with no associated substantive primary report. An incomplete search-provider abstract or failure to retrieve full text is not this exclusion; retain useful reviews as background.
 **Rejection Reason Code**: `WRONG_REPORT_TYPE`
 **Serves**: RQ1, RQ2, RQ3, RQ4
 
