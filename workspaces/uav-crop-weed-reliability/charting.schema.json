@@ -1,0 +1,521 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UAV charting sidecar v0.2 (draft; not a Contract artifact type)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_version",
+    "protocol_fingerprint",
+    "studies",
+    "evaluations"
+  ],
+  "properties": {
+    "profile_version": {
+      "const": "0.2"
+    },
+    "protocol_fingerprint": {
+      "const": "sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451"
+    },
+    "studies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "study_id",
+          "cells"
+        ],
+        "properties": {
+          "study_id": {
+            "type": "string",
+            "pattern": "^STU-.+"
+          },
+          "cells": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "task",
+              "method_family",
+              "report_type",
+              "report_family",
+              "dataset_provenance",
+              "crop_context",
+              "open_science"
+            ],
+            "properties": {
+              "task": {
+                "$ref": "#/$defs/task"
+              },
+              "method_family": {
+                "$ref": "#/$defs/method_family"
+              },
+              "report_type": {
+                "$ref": "#/$defs/report_type"
+              },
+              "report_family": {
+                "$ref": "#/$defs/cell"
+              },
+              "dataset_provenance": {
+                "$ref": "#/$defs/cell"
+              },
+              "crop_context": {
+                "$ref": "#/$defs/cell"
+              },
+              "open_science": {
+                "$ref": "#/$defs/cell"
+              }
+            }
+          }
+        }
+      }
+    },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "study_id",
+          "cells",
+          "evaluation_key"
+        ],
+        "properties": {
+          "study_id": {
+            "type": "string",
+            "pattern": "^STU-.+"
+          },
+          "cells": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "split_unit",
+              "shift_axes",
+              "temporal_design",
+              "target_data_use",
+              "uncertainty_evaluation",
+              "stress_origin",
+              "sensor_awareness",
+              "setting_definition",
+              "sensor_bands",
+              "group_counts",
+              "metrics_and_controls",
+              "transfer_result",
+              "seeds_and_intervals",
+              "limitations"
+            ],
+            "properties": {
+              "split_unit": {
+                "$ref": "#/$defs/split_unit"
+              },
+              "shift_axes": {
+                "$ref": "#/$defs/shift_axes"
+              },
+              "temporal_design": {
+                "$ref": "#/$defs/temporal_design"
+              },
+              "target_data_use": {
+                "$ref": "#/$defs/target_data_use"
+              },
+              "uncertainty_evaluation": {
+                "$ref": "#/$defs/uncertainty_evaluation"
+              },
+              "stress_origin": {
+                "$ref": "#/$defs/stress_origin"
+              },
+              "sensor_awareness": {
+                "$ref": "#/$defs/sensor_awareness"
+              },
+              "setting_definition": {
+                "$ref": "#/$defs/cell"
+              },
+              "sensor_bands": {
+                "$ref": "#/$defs/cell"
+              },
+              "group_counts": {
+                "$ref": "#/$defs/cell"
+              },
+              "metrics_and_controls": {
+                "$ref": "#/$defs/cell"
+              },
+              "transfer_result": {
+                "$ref": "#/$defs/cell"
+              },
+              "seeds_and_intervals": {
+                "$ref": "#/$defs/cell"
+              },
+              "limitations": {
+                "$ref": "#/$defs/cell"
+              }
+            }
+          },
+          "evaluation_key": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "source_sha256",
+        "locator",
+        "quote"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "pattern": "^DOC-.+"
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "value",
+        "evidence",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "reported",
+            "not_reported",
+            "unavailable",
+            "conflicting",
+            "not_applicable"
+          ]
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "reported"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "not_reported",
+                  "unavailable",
+                  "not_applicable"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "note": {
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "conflicting"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "evidence": {
+                "minItems": 2
+              },
+              "note": {
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "task": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "detection",
+                "semantic_segmentation",
+                "instance_segmentation",
+                "spatial_mapping",
+                "multiple",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "method_family": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "deep_learning",
+                "other_machine_learning",
+                "object_based",
+                "rule_based",
+                "mixed",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "report_type": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "journal",
+                "conference",
+                "preprint",
+                "dataset_report",
+                "mixed",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "split_unit": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "pixel",
+                "patch_or_tile",
+                "image",
+                "orthomosaic",
+                "plot",
+                "field",
+                "flight",
+                "date",
+                "season",
+                "site",
+                "sensor",
+                "multiple",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "shift_axes": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "none",
+                "spectral_degradation",
+                "sensor",
+                "field",
+                "site",
+                "date",
+                "season",
+                "growth_stage",
+                "class_prior",
+                "combined",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "temporal_design": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "single_date",
+                "multiple_dates_no_heldout",
+                "sequence_modeling_no_heldout",
+                "heldout_date",
+                "heldout_season",
+                "sequence_modeling_with_heldout",
+                "multiple",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "target_data_use": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "none",
+                "unlabeled_adaptation",
+                "labeled_finetuning",
+                "target_training",
+                "target_validation_selection",
+                "multiple",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "uncertainty_evaluation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "none",
+                "estimated_only",
+                "calibration_evaluated",
+                "selective_prediction_evaluated",
+                "calibration_and_selective_prediction",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "stress_origin": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "none",
+                "synthetic",
+                "observed",
+                "both",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "sensor_awareness": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "value": {
+              "enum": [
+                "none",
+                "band_availability",
+                "sensor_or_band_metadata",
+                "learned_band_fusion",
+                "multiple",
+                null
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

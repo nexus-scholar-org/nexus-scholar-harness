@@ -1,4 +1,4 @@
-# Screening guidance for provisional protocol v0.1
+# Screening guidance for provisional protocol v0.2
 
 Read the frozen version of protocol.json and assigned source records before any
 future screening run. This version is not frozen and no run is authorized here.
@@ -21,3 +21,12 @@ future screening run. This version is not frozen and no run is authorized here.
   Preserve original recommendations and overrides. Do not invoke collect on a
   calibration draft or bypass AG-02 refusals. The current console's two-value
   input is not permission to convert uncertainty to EXCLUDE.
+
+## Eligibility edge cases
+
+RGB-only and non-learning mapping studies may qualify. Weak random-tile splits,
+absent calibration and incomplete methods do not create a quality exclusion.
+Unavailable full text is pending; an abstract-only publication exclusion needs
+verified report type and lack of an associated substantive report. Unknown date,
+language or task scope is pending rather than inferred. Reused datasets are not
+duplicate studies; preprint/publication versions of one study form a report family.

@@ -1,4 +1,4 @@
-# Provisional scoping-review protocol v0.1
+# Provisional scoping-review protocol v0.2
 
 ## Purpose and question
 
@@ -8,7 +8,9 @@ The scientific objective is a descriptive evidence map. The engineering objectiv
 is an AG screening pilot; these have separate success criteria and evidence.
 
 **Population/unit:** primary empirical crop/weed mapping studies and dataset or
-benchmark reports, with report versions linked into study families.
+benchmark reports, with report versions linked into study families and evaluation
+settings charted separately. Include learning and non-learning mapping methods;
+method family is a charting variable, not an unstated eligibility restriction.
 **Concept:** reliability/generalization evaluation, including negative and absent
 evidence; it is not necessary for every paper to use that terminology.
 **Context:** UAV imagery in agricultural field settings, including orchards.
@@ -27,6 +29,8 @@ input is charted rather than mandatory, allowing RGB comparison studies.
 - Publication window: 2020 through the actual final search date in 2026. No
   search date is claimed yet. Recompile before execution if the window changes.
   Earlier foundational sources are background unless eligibility is amended.
+  This recent-window scope answers current practice, not the historical origin
+  of UAV mapping; verify recall/overlap and reconsider the boundary during calibration.
 - English full text is the initial operational language assumption; language
   coverage and its bias require researcher confirmation before freeze.
 - Journal, conference, and substantive preprint reports are eligible and tagged.
@@ -48,11 +52,19 @@ Use title/abstract screening then full-text eligibility with criterion-specific
 reasons. Missing or ambiguous information advances to full-text/pending review;
 it never becomes an inferred exclusion. Link decisions to the exact source and
 protocol version. Resolve duplicate reports before counting distinct studies.
-Confirm a second human reviewer or explicitly document the limitation before
-making independent-review claims. A model acting twice is not two human reviewers.
+Before formal screening, record two independent human reviewers and their
+adjudication procedure, or explicitly amend the protocol to a single-reviewer
+procedure with its limitation. No second reviewer is claimed assigned today.
+A model acting twice is not two human reviewers. Missing acquisition/evaluation
+details are charted; missing full text remains pending retrieval. Exclude
+abstract-only publication only after verifying that no substantive report exists.
 
-Chart the 13 dimensions in protocol.json. Each substantive value needs a source
-locator and quotation or a clear derivation with its inputs. Distinguish not
+The 13 dimensions in protocol.json produce preliminary narrative notes. Use
+[CHARTING_CODEBOOK.md](CHARTING_CODEBOOK.md) and [charting.schema.json](charting.schema.json)
+for reviewable study/evaluation rows. Required cells permit explicit unknown
+states. Each substantive value needs a source locator and quotation, and a
+derivation note when interpretation is required. Structural validation alone
+does not establish source acceptance, quote matching, or entailment. Distinguish not
 reported, unavailable, conflicting, not applicable and measured zero.
 Record field/date/sensor independence, target-domain data use, direct versus
 adapted transfer, clean versus stressed performance, class-level metrics, and

@@ -1,11 +1,20 @@
 {
-  "checked_at": "2026-10-12T14:14:16.164042+00:00",
-  "protocol_fingerprint": "sha256:c73e82e815381ad2e5694eb702b97b518980d6097b35c855b8df9f2f11de34ca",
+  "checked_at": "2026-10-12T22:07:35.754030+00:00",
+  "protocol_revision": "0.2",
+  "protocol_fingerprint": "sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451",
+  "prior_protocol_fingerprint": "sha256:c73e82e815381ad2e5694eb702b97b518980d6097b35c855b8df9f2f11de34ca",
   "structural_and_cross_field_strict": "PASS",
   "findings": [],
   "recompile_identical_bytes": true,
+  "charting_schema_structural": "PASS",
+  "synthetic_positive_cases": 3,
+  "synthetic_negative_cases_refused": 6,
+  "limitations": [
+    "No source entailment, relational, runtime publication or real literature validation claimed.",
+    "Golden-seed and reviewer calibration pending."
+  ],
   "semantic_status": "PROVISIONAL_NOT_FROZEN",
   "search_executed": false,
-  "source_version": "0a701c786b9a610606722a6c44d70fcddd4c58cb",
-  "registered_workspace_id": "WSP-566ff575c42597910fcb7d5c23d8ca83"
+  "source_version": "608dced90a2d55fb2c3e80375554865322f97b33",
+  "charting_schema_sha256": "sha256:9bdd93099341309b947862a8a5b10bc9219a413144232cd23e624d2269abae0e"
 }
