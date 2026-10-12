@@ -11,7 +11,7 @@ E3’s identity-limbs boundary is operational. Stage 6 refuses indexing when no 
 
 ## What remains (specification-first)
 
-Per `docs/architecture/wp01_packet_e3_implementation_handoff.md` (Status: `SPECIFICATION`) and `specs/deep-audit-remediation-2026-09-17/05_rag_kit_spec.md:54–74` (RAG-001–RAG-021), the full E3 definition of done requires:
+Per `docs/architecture/wp01/wp01_packet_e3_implementation_handoff.md` (Status: `SPECIFICATION`) and `specs/deep-audit-remediation-2026-09-17/05_rag_kit_spec.md:54–74` (RAG-001–RAG-021), the full E3 definition of done requires:
 
 - Index manifest v1 sidecar (deterministic, content-addressed chunk identities; limbs+chunk identity separation)
 - Replacement/recovery semantics and currentness rules
@@ -32,5 +32,5 @@ Per `docs/architecture/wp01_packet_e3_implementation_handoff.md` (Status: `SPECI
 ## Next work
 Complete the remaining E3 acceptance-adapter and ledger work as specified in
 the E3 handoff. E4 now has an implementation-ready definition at
-`docs/architecture/wp01_packet_e4_negative_proof_handoff.md`, but remains
+`docs/architecture/wp01/wp01_packet_e4_negative_proof_handoff.md`, but remains
 blocked until E3 has an approved completion report.

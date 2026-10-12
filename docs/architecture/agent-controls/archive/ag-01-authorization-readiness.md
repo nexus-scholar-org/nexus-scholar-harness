@@ -3,12 +3,12 @@
 > Current routing (2026-10-12): AG-02 merged in PR #106 at `0a701c7`;
 > its local release evidence records 1175 passed and 6 skipped, with nine
 > successful PR checks. The researcher has selected the protected publisher
-> model. Continue with [AG-03A](ag-03a-protected-publisher-feasibility.md);
+> model. Continue with [AG-03A](../ag-03a-protected-publisher-feasibility.md);
 > authority **enforcement** remains unproven. Packet-era status and observations
 > below are historical. Technically accepted decision artifacts retain their
 > Contract v1 meaning; human authorization is not attested. The AG direction
 > documents are included in this planning branch, superseding the historical
-> primary-untracked routing note. See [current plan](agent_controls_plan.md).
+> primary-untracked routing note. See [current plan](../agent_controls_plan.md).
 
 ```yaml
 task: AG-01-authorization-readiness
@@ -18,9 +18,9 @@ base_sha: d07100f39a94a750bbc858da4cb8638543486762
 head_sha: 53b5e9878b9de86ab334a2549cb0b9c80c0e518d
 branch: cdx/ag-01-authorization-readiness
 allowed_paths:
-  - docs/architecture/ag-01-authorization-readiness.md
+  - docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md
   - tests/test_ag01_screening_authorization_characterization.py
-  - docs/architecture/ag-02-screening-decision-integrity-packet.md
+  - docs/architecture/agent-controls/archive/ag-02-screening-decision-integrity-packet.md
   - docs/architecture/DEVELOPER_COMPASS.md (docs-only link row, no semantic change)
 immutable_boundaries:
   - docs/architecture/contract_v1_baseline.json (never regenerate to bless drift)
@@ -64,12 +64,12 @@ evidence:
     result: exit 0, verbatim "1175 passed, 6 skipped, 2 warnings in 244.64s (0:04:04)"; reconciled 1175+6=1181 with no failed/errors/deselected/xfailed/xpassed (supersedes the 71ad929 "3 failed, 1172 passed, 6 skipped" line whose parts 1172+3+6 also summed to 1181; the 3 now pass: 1172+3=1175); zero failures
 next_gate: pr (design PR, fork-to-origin, no merge)
 stable_sources:
-  - docs/architecture/agent_control_enforcement_map.md@primary-untracked (AG-00 §§2-6; absent from base — see §0)
-  - docs/architecture/agent_controls_decision.md@primary-untracked (see §0)
-  - docs/architecture/agent_controls_plan.md@primary-untracked (see §0)
+  - docs/architecture/agent-controls/archive/agent_control_enforcement_map.md@primary-untracked (AG-00 §§2-6; absent from base — see §0)
+  - docs/architecture/agent-controls/agent_controls_decision.md@primary-untracked (see §0)
+  - docs/architecture/agent-controls/agent_controls_plan.md@primary-untracked (see §0)
   - docs/architecture/DEVELOPER_COMPASS.md@d07100f (§1 WP-01 CLOSED_WITH_RESIDUAL_DEBT, §§2-3, §5, §7)
   - docs/architecture/agent_context_protocol.md@d07100f (capsule above)
-  - docs/architecture/harness_core_modularity_roadmap.md@d07100f (§§1-7; has no §8 at base — see §0)
+  - docs/architecture/harness-core-modularity/harness_core_modularity_roadmap.md@d07100f (§§1-7; has no §8 at base — see §0)
   - src/scholar_harness/screening/batcher.py@d07100f (full read)
   - src/scholar_harness/screening/collector.py@d07100f (full read)
   - src/scholar_harness/screening/report.py@d07100f (full read)
@@ -100,9 +100,9 @@ Four governing inputs exist **only as uncommitted untracked files** in the
 primary checkout (`d04f76f`) and are **absent from the canonical base**
 `d07100f` used for this worktree:
 
-- `docs/architecture/agent_control_enforcement_map.md` (AG-00, base `1c4255e`)
-- `docs/architecture/agent_controls_decision.md`
-- `docs/architecture/agent_controls_plan.md`
+- `docs/architecture/agent-controls/archive/agent_control_enforcement_map.md` (AG-00, base `1c4255e`)
+- `docs/architecture/agent-controls/agent_controls_decision.md`
+- `docs/architecture/agent-controls/agent_controls_plan.md`
 - `docs/architecture/inception_recon_scientific_review.md`
 
 They were read once from the primary-checkout paths (read-only; the primary
@@ -351,7 +351,7 @@ scientific decision.
 A real, testable mechanism **does** exist for workflow-integrity, because
 `cmd_collect` is a single harness-controlled funnel that can refuse loudly
 instead of publishing silently. The bounded packet
-`docs/architecture/ag-02-screening-decision-integrity-packet.md` implements
+`docs/architecture/agent-controls/archive/ag-02-screening-decision-integrity-packet.md` implements
 **only**: immutable batch binding, decision-file content hashing, exact
 coverage, duplicate rejection, unresolved-refusal, and typed stale/replay
 refusal — with explicit non-claims (no identity, no approval, no

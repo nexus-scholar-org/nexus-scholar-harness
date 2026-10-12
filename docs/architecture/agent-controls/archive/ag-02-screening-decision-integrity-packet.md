@@ -3,12 +3,12 @@
 > Current routing (2026-10-12): AG-02 merged in PR #106 at `0a701c7`;
 > its local release evidence records 1175 passed and 6 skipped, with nine
 > successful PR checks. The researcher has selected the protected publisher
-> model. Continue with [AG-03A](ag-03a-protected-publisher-feasibility.md);
+> model. Continue with [AG-03A](../ag-03a-protected-publisher-feasibility.md);
 > authority **enforcement** remains unproven. Packet-era status and observations
 > below are historical. Technically accepted decision artifacts retain their
 > Contract v1 meaning; human authorization is not attested. The AG direction
 > documents are included in this planning branch, superseding the historical
-> primary-untracked routing note. See [current plan](agent_controls_plan.md).
+> primary-untracked routing note. See [current plan](../agent_controls_plan.md).
 
 ```yaml
 task: AG-02-screening-decision-integrity
@@ -22,7 +22,7 @@ allowed_paths:
   - src/scholar_harness/screening/integrity.py (new; pure gate functions + typed refusal codes)
   - src/scholar_harness/console/api/screening.py (only if draft/finalize labeling needs it; no new auth)
   - tests/test_screening_decision_integrity.py (new)
-  - docs/architecture/ag-01-authorization-readiness.md (capsule evidence update only)
+  - docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md (capsule evidence update only)
 immutable_boundaries:
   - docs/architecture/contract_v1_baseline.json (never regenerate to bless drift)
   - src/scholar_harness/contracts/** (frozen ContractDecision/ScreeningDecisionsData unchanged)
@@ -37,7 +37,7 @@ known_baseline_failures: []
 evidence: []
 next_gate: inner
 stable_sources:
-  - docs/architecture/ag-01-authorization-readiness.md@d07100f+ (§§2-5, row-level evidence)
+  - docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md@d07100f+ (§§2-5, row-level evidence)
   - src/scholar_harness/screening/collector.py@d07100f (single path :540-796)
   - src/scholar_harness/screening/batcher.py@d07100f (:165-183 provenance fallbacks)
   - src/scholar_harness/console/api/screening.py@d07100f (:88-141 writer)

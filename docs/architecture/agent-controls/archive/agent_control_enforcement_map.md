@@ -14,7 +14,7 @@ base_sha: 1c4255e
 head_sha: 1c4255e
 branch: main
 allowed_paths:
-  - docs/architecture/agent_control_enforcement_map.md
+  - docs/architecture/agent-controls/archive/agent_control_enforcement_map.md
 immutable_boundaries:
   - docs/architecture/contract_v1_baseline.json (do not regenerate)
   - src/scholar_harness/contracts/** (read-only for this task)
@@ -251,7 +251,7 @@ architecture decision).**
 - **Owner paths.** `src/scholar_harness/screening/collector.py`,
   `src/scholar_harness/console/api/screening.py` (only if the authorization is
   writable via console), `tests/test_screening_authorization.py` (new),
-  `docs/architecture/agent_control_enforcement_map.md` (this map, for the
+  `docs/architecture/agent-controls/archive/agent_control_enforcement_map.md` (this map, for the
   decision record). **No toolkit repository affected** — the boundary is
   harness-owned; no `tools/` change, no `plugins.json` pin change, no
   `nexus_scholar_pins.json` regeneration (established from the inspected code:

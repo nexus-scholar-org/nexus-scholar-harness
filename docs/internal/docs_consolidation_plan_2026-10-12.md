@@ -1,7 +1,8 @@
 # Docs & Specs Consolidation Plan (2026-10-12)
 
-**Status:** IN PROGRESS. Phases 1–2 executed 2026-10-12 (see §9 Execution log).
-Phases 3–4 (moves + indexes) and phase 5 (contract-locked repairs) remain.
+**Status:** PHASES 1–4 EXECUTED 2026-10-12 (see §9 Execution log). Phase 5
+(contract-locked `.opencode` broken-link repairs) remains deferred — it requires
+contract-baseline regeneration and an explicit version decision.
 
 **Owner intent.** The `docs/` and `specs/` trees have accumulated stale
 historical text and a newcomer finds them overwhelming. The active work is the
@@ -278,3 +279,49 @@ and the PyPI URL were re-verified directly on 2026-10-12 before phase 1.
 
 Net effect: `docs/` loses 26 files of dead material with zero reference breakage;
 everything removed is recoverable from git history.
+
+### 2026-10-12 — phases 3–4 (branch `docs/consolidation-phase-3-moves`)
+
+**Phase 3 — grouping + moves (done).**
+
+- **AG track** → `docs/architecture/agent-controls/`: `agent_controls_plan.md`,
+  `agent_controls_decision.md`, `ag-03a-protected-publisher-feasibility.md`;
+  `archive/`: `ag-01`, `ag-02`, `agent_control_enforcement_map.md`,
+  `agent_layer_reassessment_2026-10-12.md`.
+- **HCM track** → `docs/architecture/harness-core-modularity/`:
+  `harness_core_modularity_roadmap.md`,
+  `hcm_05_mcp_recon_adapter_characterization.md`; `archive/`: `hcm_01`,
+  `hcm_04e`.
+- **WP-01 delivery archive** → `docs/architecture/wp01/`: the E1–E4 packet set,
+  `wp01_e3_adoption_status.md`, `e3_residual_repair.md`.
+- **ADRs** → `docs/architecture/decisions/`: `td_e3_currentness_decision.md`.
+- **Legacy archive** → `docs/internal/architecture/`: `phase_0/`,
+  `phase_5/` (blueprint: README/BLUEPRINT/PLAN/COMPONENTS; `SPECS.md` stayed
+  live at `docs/architecture/phase_5/`), `phase_6/`, `v1_analysis/`
+  (was `v1_specification/`), `v2_planning_spec.md`,
+  `tooling-refresh/` (the two zero-ref refresh reports).
+- **Four entrypoint READMEs created**: `agent-controls/`, `harness-core-modularity/`,
+  `wp01/`, `decisions/`.
+- **Link repair**: automated resolver fixed 10 files' relative links and 33
+  files' literal path strings; the E2 conformance test's runtime path constant
+  (`tests/conformance/test_e2_extraction_boundary.py`) updated to the new
+  `architecture/wp01/` location; two legacy-archive depth errors fixed manually.
+  Verified: **0 broken links touching moved files** (the 57 remaining broken
+  links are pre-existing `specs/deep-audit` cross-refs).
+
+**Phase 4 — indexes (done).** `docs/architecture/README.md` rewritten (Active
+work / Governance / lifecycle map / folders / archive) and `docs/README.md`
+rewritten (Start here / Current program / System architecture / Reference /
+Archive / Specifications).
+
+**Deviations, deliberate:**
+- `tools/**` and `workspaces/**` path strings were rewritten by the automated
+  pass and then **reverted**: editing `tools/<kit>/` would trip the toolkit
+  ownership gate (kit repo + pin + vendored-sync), and workspace files are out
+  of scope. The stale doc paths inside kit docstrings/tests are recorded
+  follow-up debt for the owning kit repos.
+- `UPCOMING_WORK.md` keeps its name (not renamed to `ROADMAP.md`) to avoid a
+  link cascade; it is re-pointed from the new index.
+- `inception_recon_scientific_review.md` stays in the architecture root: it is
+  a live review cited by the AG set, not an archive record.
+

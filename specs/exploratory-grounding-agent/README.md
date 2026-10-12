@@ -3,15 +3,15 @@
 > **Status:** Complete / historical — M0.1–M0.7 implemented and verified; agent tasks all closed (see `10_task_list.md`)
 > **Date:** 2026-09-11 (folder created 2026-09-12)
 > **Authors:** Nexus Scholar Architecture Team
-> **Supersedes:** the former single-file `docs/architecture/phase_0/06_exploratory_grounding_agent.md` (removed at the 2026-09-11 cleanup; see `docs/internal/COMMIT_SNAPSHOTS.md`)
-> **Extends:** `docs/architecture/phase_0/04_socratic_inception_protocol.md`
+> **Supersedes:** the former single-file `docs/internal/architecture/phase_0/06_exploratory_grounding_agent.md` (removed at the 2026-09-11 cleanup; see `docs/internal/COMMIT_SNAPSHOTS.md`)
+> **Extends:** `docs/internal/architecture/phase_0/04_socratic_inception_protocol.md`
 > **Related decision:** Contribution gate enforced by `.agents/skills/pull-request-gate/SKILL.md` (fork + PR workflow).
 
 ---
 
 ## What this folder is
 
-The single-file proposal `docs/architecture/phase_0/06_exploratory_grounding_agent.md` has been replaced by this folder of detailed, interdependent specs. The folder is the canonical home for the **Grounded Exploratory Inception Agent**: a sandboxed literature-reconnaissance layer that runs *before* protocol freezing, distills the empirically prevailing taxonomy of a research niche, and returns grounded, citation-backed research directions.
+The single-file proposal `docs/internal/architecture/phase_0/06_exploratory_grounding_agent.md` has been replaced by this folder of detailed, interdependent specs. The folder is the canonical home for the **Grounded Exploratory Inception Agent**: a sandboxed literature-reconnaissance layer that runs *before* protocol freezing, distills the empirically prevailing taxonomy of a research niche, and returns grounded, citation-backed research directions.
 
 ## Document map
 

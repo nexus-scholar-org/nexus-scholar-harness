@@ -1,6 +1,6 @@
 """Bounded WP01-E2 harness adapter for the PDF kit's extraction candidate.
 
-Packet E2 (``docs/architecture/wp01_packet_e2_extracted_text_handoff.md`` §8.3)
+Packet E2 (``docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md`` §8.3)
 allocates exactly one harness-side surface for extraction acceptance: a bounded
 adapter under ``src/scholar_harness/`` that "invokes the PDF kit, parses its
 candidate as the frozen ``DocumentManifestArtifact``, calls ``accept_artifact``,

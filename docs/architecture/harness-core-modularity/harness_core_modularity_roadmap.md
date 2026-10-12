@@ -135,12 +135,12 @@ while the scientific contract remains the single governing boundary.
 
 ## 8. Agent-control handoff (updated 2026-10-12)
 
-[AG-01 readiness](ag-01-authorization-readiness.md) and AG-02 integrity are
+[AG-01 readiness](../agent-controls/archive/ag-01-authorization-readiness.md) and AG-02 integrity are
 merged. The researcher approved the protected publisher/restricted worker;
-[AG-03A feasibility](ag-03a-protected-publisher-feasibility.md) is next under
-the [current plan](agent_controls_plan.md). Keep its implementation separate
+[AG-03A feasibility](../agent-controls/ag-03a-protected-publisher-feasibility.md) is next under
+the [current plan](../agent-controls/agent_controls_plan.md). Keep its implementation separate
 from HCM refactors. HCM-05 unit-2 completion, canonical-kit sync and conditional
 HCM-06 disposition belong in the HCM close-out record; do not infer completion
 from unit 1. Refresh status at handoff. Research preparation in the
-[UAV workspace](../../workspaces/uav-crop-weed-reliability/README.md) can proceed
+[UAV workspace](../../../workspaces/uav-crop-weed-reliability/README.md) can proceed
 without claiming that either HCM or enforced human authorization is complete.

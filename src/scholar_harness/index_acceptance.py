@@ -1,6 +1,6 @@
 """Harness-owned E3 index-acceptance adapter (T-131, handoff section 6).
 
-Packet E3 (``docs/architecture/wp01_packet_e3_implementation_handoff.md`` section 6)
+Packet E3 (``docs/architecture/wp01/wp01_packet_e3_implementation_handoff.md`` section 6)
 splits indexing into two jobs: the ``scholar-rag-kit`` produces a **candidate**
 (``IndexService`` ``T-90`` over ``T-50`` sidecar construction, ``T-60``
 replacement ``R1``-``R7``, ``T-80`` backend verification), and this harness

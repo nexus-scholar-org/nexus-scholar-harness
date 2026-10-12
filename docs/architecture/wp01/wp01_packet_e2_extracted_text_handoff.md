@@ -2,7 +2,7 @@
 
 - **Status:** `COMPLETE` — closed on canonical harness main at
   `0fb665558e0808d66348476eda2c927439a96be1`; see
-  `docs/architecture/wp01_packet_e2_completion_report.md`
+  `docs/architecture/wp01/wp01_packet_e2_completion_report.md`
 - **Architecture owner:** Harness Contract v1
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-pdf-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit` (declaration/rejection adapter only)
@@ -39,7 +39,7 @@ Contract v1 baseline and is intentionally **not** edited. This handoff—not the
 historical adapter-stub wording, and not the E1 acquisition wording—is
 authoritative for E2 extraction, its provenance, and its surface boundaries.
 E1's own handoff already fixed the E2 boundary language at §4.6 of
-`docs/architecture/wp01_packet_e1_acquired_document_handoff.md`; this document
+`docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md`; this document
 allocates it, names the identifiers, and makes every row checkable.
 
 ### 1.1 Frozen-contract boundary (no schema change)
@@ -126,7 +126,7 @@ document identity, §7.1).
 
 ### 1.2 Normative PDF requirement allocation (E2 rows)
 
-E1's allocation table (`docs/architecture/wp01_packet_e1_acquired_document_handoff.md:64-82`)
+E1's allocation table (`docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md:64-82`)
 closed PDF-001..007 and PDF-013..017 and deferred PDF-008..012 to E2/E3. This
 table is the **E2 half of that deferral**. E2 owns the extraction semantics of
 each row; where a row's remainder is a chunking/indexing concern, the chunk
@@ -142,7 +142,7 @@ half is explicitly E3 and E2 must say so rather than absorb it.
 
 ### 1.3 E1 boundary language E2 must honour verbatim
 
-From `docs/architecture/wp01_packet_e1_acquired_document_handoff.md`:
+From `docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md`:
 
 - E2 consumes these **committed** fields from the accepted E1 manifest and
   preserves the manifest reference: `document_id`, `study_id`, `source_sha256`,
@@ -165,7 +165,7 @@ From `docs/architecture/wp01_packet_e1_acquired_document_handoff.md`:
   completion claim covers only its allocated rows (line 840), and E1's tests may
   not claim PDF-008..012 (lines 841-847, 999-1000).
 
-From `docs/architecture/wp01_packet_e1_completion_report.md`:
+From `docs/architecture/wp01/wp01_packet_e1_completion_report.md`:
 
 - "WP01-E2 must verify this manifest and the source bytes before it emits
   Contract v1 `DocumentManifestArtifact` records with truthful extraction
@@ -535,7 +535,7 @@ outcome.
 ### 5.2 Deferred-requirement coverage (the PDF-008..PDF-012 close-out)
 
 E1 claimed no coverage of these rows
-(`docs/architecture/wp01_packet_e1_acquired_document_handoff.md:841-847,999-1000`);
+(`docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md:841-847,999-1000`);
 this table is where they become E2's to answer.
 
 | Requirement | Owning repository | E2 acceptance row | Required test IDs |
@@ -570,7 +570,7 @@ A committed per-item domain status, distinct from the Contract v1
   `content_status` is `NEEDS_OCR` and a detection reason is mandatory.
 - `EXTRACTION_FAILED`: the engine chain produced no usable text. This is the
   status E1 explicitly reserved for E2
-  (`docs/architecture/wp01_packet_e1_acquired_document_handoff.md:179`); E1 never
+  (`docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md:179`); E1 never
   fabricates it.
 - `CANCELLED`: the caller cancelled before commit.
 - `FAILED`: an internal, filesystem, or commit failure prevented commit.
@@ -1417,4 +1417,4 @@ claim MCP semantic parity.
 6. **Pre-existing maintenance items remain open** and are not E2's to fix:
    the agent-kit protocol-validation baseline and non-hermetic RAG tests, the
    agent-kit `.gitignore`, and upstream docstring hygiene recorded in
-   `docs/architecture/wp01_packet_e1_completion_report.md:167-170`.
+   `docs/architecture/wp01/wp01_packet_e1_completion_report.md:167-170`.

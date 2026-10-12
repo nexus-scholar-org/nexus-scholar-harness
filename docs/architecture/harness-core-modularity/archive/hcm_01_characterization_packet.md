@@ -25,7 +25,7 @@ base_sha: 83c54814efdf0956fb0a9dc8dcfb051f0d1a65fd
 head_sha: preparation-only
 allowed_paths:
   - tests/unit/test_workspace_audit_characterization.py
-  - docs/architecture/hcm_01_characterization_packet.md
+  - docs/architecture/harness-core-modularity/archive/hcm_01_characterization_packet.md
 immutable_boundaries:
   - all production source and workspace-manager scripts
   - Contract v1, generated schemas/fixtures/baseline
@@ -38,7 +38,7 @@ evidence:
   - PR79 head full suite 795 passed / 6 platform skips; CI 9/9 SUCCESS
 next_gate: inner
 stable_sources:
-  - docs/architecture/harness_core_modularity_roadmap.md sections 3-6
+  - docs/architecture/harness-core-modularity/harness_core_modularity_roadmap.md sections 3-6
   - docs/architecture/DEVELOPER_COMPASS.md sections 3, 5, 7-9
   - docs/architecture/test_gate_policy.md delivery lanes and evidence reuse
   - .agents/skills/workspace-manager/SKILL.md event and workspace conventions

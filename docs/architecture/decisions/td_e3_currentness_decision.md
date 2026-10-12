@@ -267,7 +267,7 @@ The characterization packet implemented nothing. Option B is now approved and re
 
 **Forbidden-path proof:**
 
-- `git status --short` shows ONLY the two allowed new paths: `tests/unit/test_td_e3_currentness_characterization.py` and `docs/architecture/td_e3_currentness_decision.md` (this file).
+- `git status --short` shows ONLY the two allowed new paths: `tests/unit/test_td_e3_currentness_characterization.py` and `docs/architecture/decisions/td_e3_currentness_decision.md` (this file).
 - No `src/**`, `tools/**`, pins/packaging/locks, schemas/fixtures/baseline, UI, workspace/audit, or primary-checkout changes. Verified via `git diff --name-only` (two files) + `git diff --check` (clean).
 - Toolkit sync: none (no `tools/` touched). Workspace audit event: none (workspace mutations forbidden; all fixtures under `tmp_path`).
 

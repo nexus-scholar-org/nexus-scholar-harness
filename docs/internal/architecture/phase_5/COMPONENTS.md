@@ -8,7 +8,7 @@
 
 ## 1. Selected Components & Taxonomy Mapping
 
-The table below catalogs the official Tailwind Plus components selected for each Phase 5 screen defined in [`SPECS.md`](./SPECS.md) §9:
+The table below catalogs the official Tailwind Plus components selected for each Phase 5 screen defined in [`SPECS.md`](../../../architecture/phase_5/SPECS.md) §9:
 
 | Screen / Area | Tailwind Plus Component | UUID / Slug | Catalog Category | Purpose in Harness Console |
 | :-- | :-- | :-- | :-- | :-- |

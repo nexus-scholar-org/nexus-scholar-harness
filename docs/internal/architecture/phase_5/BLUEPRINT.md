@@ -1,6 +1,6 @@
 # Phase 5 — Blueprint: The Harness Console
 
-> **Status:** Planning | **Version:** 1.0.0 | Companion docs: [`README.md`](./README.md) · [`PLAN.md`](./PLAN.md) · [`SPECS.md`](./SPECS.md)
+> **Status:** Planning | **Version:** 1.0.0 | Companion docs: [`README.md`](./README.md) · [`PLAN.md`](./PLAN.md) · [`SPECS.md`](../../../architecture/phase_5/SPECS.md)
 
 ## 1. Architecture in one diagram
 
