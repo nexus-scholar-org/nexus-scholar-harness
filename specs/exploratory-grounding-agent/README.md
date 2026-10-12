@@ -1,56 +1,82 @@
-# Exploratory Grounding Agent — Specification
+# Grounded Exploratory Inception — current specification
 
-> **Status:** Complete / historical — M0.1–M0.7 implemented and verified; agent tasks all closed (see `10_task_list.md`)
-> **Date:** 2026-09-11 (folder created 2026-09-12)
-> **Authors:** Nexus Scholar Architecture Team
-> **Supersedes:** the former single-file `06_exploratory_grounding_agent.md` proposal (removed at the 2026-09-11 cleanup; see `docs/internal/COMMIT_SNAPSHOTS.md`)
-> **Extends:** the Socratic inception wizard (`scholar_harness.inception`)
-> **Related decision:** Contribution gate enforced by `.agents/skills/pull-request-gate/SKILL.md` (fork + PR workflow).
+> **Status:** Implemented and current. The recon subsystem lives in
+> `src/scholar_harness/recon/`; the inception wizard in `src/scholar_harness/inception/`.
+> The former milestone/proposal documents were removed in the 2026-10-12
+> consolidation; the surviving detail files are listed below.
 
----
+## What it is
 
-## What this folder is
+A sandboxed literature-reconnaissance layer that runs **before** protocol
+freezing. It probes the live literature, distills the empirically prevailing
+taxonomy of a niche, and returns grounded, citation-backed research directions,
+so a researcher arriving with fuzzy curiosity is not forced to invent search
+synonyms, benchmarks, or gaps from parametric memory alone.
 
-The former single-file proposal of this specification has been replaced by this folder of detailed, interdependent specs. The folder is the canonical home for the **Grounded Exploratory Inception Agent**: a sandboxed literature-reconnaissance layer that runs *before* protocol freezing, distills the empirically prevailing taxonomy of a research niche, and returns grounded, citation-backed research directions.
+## Lifecycle (5 steps, all before any `workspaces/` scaffold exists)
 
-## Document map
+1. **Intent clarification** (human-in-the-loop): narrow curiosity into probe-able
+   axes and an ordered list of **semantic probe queries** (not boolean strings).
+2. **Empirical surface scan** (deterministic + search-computed): fire the probes
+   (OpenAlex-first provider order via the search kit); **cap the working pool at
+   10–25 abstract records**; **abstract-only** — no full-text extraction (that is
+   Phase 2); keep pool content within ~15k tokens per probe.
+3. **Micro-extraction / distillation**: the harness distiller derives the
+   prevailing terminology, benchmark datasets, metrics, sub-schools (`schools`),
+   and topics from the pool.
+4. **Direction proposal**: 2–3 grounded, structured directions, each anchored to
+   real citations, validated by the researcher.
+5. **Persistence**: exploratory state is written to the isolated recon cache
+   (below) and never to `workspaces/`.
+
+## Cache-root rules (CWD-independent, never in `workspaces/`)
+
+- Recon state lives under the **canonical cache root**: `NEXUS_RECON_ROOT` if
+  set, else `<repo>/.cache/inception_recon`. It is gitignored (`.gitignore`).
+- The root is resolved CWD-independently so the interactive CLI wizard and the
+  MCP server (launched `--directory tools/scholar-agent-kit`) share **one** cache.
+- Cache is per-session scratch: pruned on success or by age. Detail and schema:
+  [`04_memory_and_cache.md`](./04_memory_and_cache.md).
+
+## Tool boundaries
+
+| Step | Tool |
+|---|---|
+| 2 probe | `recon_probe` (`semantic=` opt-in); fallback `nexus_discover` + `nexus_dedup` |
+| 3 distill | `recon_distill` (emits micro-taxonomy/metrics/datasets, plus topics/schools) |
+| 4 directions | `recon_delta` (thin schools → thin topics) + researcher validation |
+
+Tool replies return **paths and previews**, not prose bodies — the JSON artifacts
+are on disk and machine-continuable. Recon does **not** extract full text.
+Contracts: [`09_mcp_integration.md`](./09_mcp_integration.md),
+[`14_agent_loops.md`](./14_agent_loops.md) (autonomous-loop operating contract
+and the two required MCP seams: lexicon bootstrap, saturation).
+
+## Evaluation gates
+
+| Gate | Value | State |
+|---|---|---|
+| **Anchor Provenance Rate (APR)** | 100% — hard invariant | **Enforced** (M0.3); every protocol concept has ≥1 pool DOI |
+| **QEI** (Query Echo Index) | target ≤ 0.3 — *advisory* | A lexical dispersion index; it **inverts on well-scoped semantic seeds**, so it never rejects a pool that the purity gate calls `coherent` |
+| **Pool admission** (`recon/gates.py`) | surfaced as `pool` / `purity` on the `recon_distill` reply | Implemented; thresholds are module constants; the wizard prints an advisory line and never aborts — the human stays the gate |
+| **Saturation label** | `scant` \| `sparse` \| `dense` per followup | Reporting target; validation seam is the unconstrained corpus count |
+
+The full framework (dimensions, ReconBench, prioritised gates) is in
+[`13_evaluation.md`](./13_evaluation.md).
+
+## Surviving detail documents
 
 | Spec | Scope |
 | :--- | :--- |
-| [`01_problem_definition.md`](./01_problem_definition.md) | The "cold inception" problem: why fuzzy curiosity cannot be fed straight into a frozen protocol, and the proposed reconnaissance-loop solution. |
-| [`02_architecture.md`](./02_architecture.md) | System architecture: components, sequence diagram, and cache/workspace separation. |
-| [`03_lifecycle.md`](./03_lifecycle.md) | The 5-step reconnaissance & grounding lifecycle in detail. |
-| [`04_memory_and_cache.md`](./04_memory_and_cache.md) | Two-tier storage architecture, hierarchical cache keys, session schema, invalidation rules. |
-| [`05_tool_contracts.md`](./05_tool_contracts.md) | Harness subsystem roles — **verified against the real kit APIs** (no invented methods). |
-| [`06_deployment_options.md`](./06_deployment_options.md) | Implementation options: CLI wizard, autonomous agent/MCP, harness web console. |
-| [`07_walkthrough.md`](./07_walkthrough.md) | Concrete end-to-end walkthrough (LLM unit-test generation for legacy COBOL/Fortran). |
-| [`08_milestones.md`](./08_milestones.md) | The M0.x implementation milestones, each with a **Definition-of-Done (DoD)** gate. |
-| [`09_mcp_integration.md`](./09_mcp_integration.md) | The Nexus MCP surface (`nexus_*` tools) that an agent uses to drive grounded inception. |
-| [`10_task_list.md`](./10_task_list.md) | **Implementation checklist** (T0.x … T6.x + QA + PR gates) mirroring M0.1–M0.6 — the single source of truth the dev-loop agents tick off. |
-| [`11_honest_review.md`](./11_honest_review.md) | Post-M0.1…M0.5 honest retrospective (& priorities P1–P3). |
-| [`12_semantic_grounding.md`](./12_semantic_grounding.md) | **M0.6** — semantic search modes (OpenAlex `search.semantic`) + classifier-grounded Topics taxonomy (anchored `topics` layer, thin-topic adaptive triggers). |
-| [`13_evaluation.md`](./13_evaluation.md) | Evaluation framework — 4 measurable dimensions (epistemic integrity, recon signal, downstream yield, autonomous navigation), ReconBench corpus/runner, prioritized gates (M0.7). |
-| [`14_agent_loops.md`](./14_agent_loops.md) | Autonomous agent operating contract — 5 loops (dual-mode discovery, lexicon bootstrap, Pareto scoring, anchor-guarded compile, downstream transition) + the 2 required MCP seams (GAP A lexicon, GAP B saturation). |
-| [`15_scientific_publication_plan.md`](./15_scientific_publication_plan.md) | **Scientific Publication Plan & Research Blueprint** — publication strategy, theoretical framing, ReconBench empirical evaluation, mathematical formulas (APR, QEI), target venues, and 6-week roadmap. |
-| [`16_inception_improvements.md`](./16_inception_improvements.md) | **Post-evaluation improvement backlog & status** — prioritized fixes (P1–P6), trial evidence, and per-fix implementation notes (E/F series). |
-| [`evaluation/`](./evaluation/) | Multi-domain trial evidence (`multi_domain_trial*_2026-09-13.json`) used to calibrate the evaluation gates. |
+| [`03_lifecycle.md`](./03_lifecycle.md) | The 5-step lifecycle in detail. |
+| [`04_memory_and_cache.md`](./04_memory_and_cache.md) | Two-tier storage, cache keys, session schema, invalidation. |
+| [`09_mcp_integration.md`](./09_mcp_integration.md) | The MCP surface an agent uses to drive grounded inception. |
+| [`10_task_list.md`](./10_task_list.md) | The historical implementation checklist (closed; cited by the dev-loop agent definitions). |
+| [`13_evaluation.md`](./13_evaluation.md) | Evaluation framework and gates. |
+| [`14_agent_loops.md`](./14_agent_loops.md) | Autonomous agent operating contract (5 loops + 2 MCP seams). |
+| [`16_inception_improvements.md`](./16_inception_improvements.md) | Post-evaluation improvement backlog and per-fix status. |
 
-## Executive summary — the cold inception problem
-
-The current Phase-0 Socratic interview (`scholar_harness.inception` / `methodology-copilot`) transforms raw curiosity into a machine-readable protocol by asking: unit of analysis? gold-standard proof? search concepts & synonyms? out-of-scope?
-
-A user arriving with a **messy, vague, or nascent curiosity** cannot answer these well:
-
-1. **The user does not know what they do not know**: they cannot supply accurate search synonyms, baseline datasets, or gold-standard metrics before surveying the current landscape.
-2. **Pure LLM hallucination risk**: relying only on parametric knowledge produces outdated or imaginary library names, benchmark datasets, and research gaps.
-3. **Premature protocol freezing**: freezing `protocol.json` before verifying literature exists under those terms causes downstream failure (zero Phase-1 hits, or screening thousands of irrelevant papers).
-
-### Proposed solution: empirical reconnaissance loop
-
-Before freezing the protocol, deploy an **autonomous reconnaissance loop** that:
-
-1. Conducts scratch semantic queries against OpenAlex and Semantic Scholar (plus Crossref/arXiv via the search-kit engine).
-2. Rapidly pulls a micro-corpus (**10-25 candidate abstracts + 2-3 Open Access full texts**).
-3. Distills the **empirically prevailing taxonomy**: actual terminology, dominant benchmark datasets, prevailing metrics, distinct sub-schools of thought.
-4. Returns **2-3 grounded, structured research directions** backed by real citations.
-5. Persists exploratory cache and memory in an isolated scratchpad (`.cache/inception_recon/`) without cluttering `workspaces/`.
+Removed in the 2026-10-12 consolidation (recoverable from git history): the
+problem-definition, architecture, tool-contract, deployment-option, walkthrough,
+milestone, honest-review, semantic-grounding and publication-plan documents, and
+the calibration trial JSONs.

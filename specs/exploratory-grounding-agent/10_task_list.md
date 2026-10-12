@@ -1,7 +1,7 @@
 # Exploratory Grounding Agent — Implementation Task List
 
 > **Status:** Live checklist for implementing `specs/exploratory-grounding-agent/`
-> **Milestone spec:** [`08_milestones.md`](./08_milestones.md) (this list mirrors M0.1–M0.6; each task carries its DoD clauses)
+> **Milestone spec:** the former `08_milestones.md` (removed 2026-10-12; this list mirrors M0.1–M0.6, each task carries its DoD clauses)
 > **Dev process:** Orchestrator roles — `coder` (writes code+tests), `tester` (runs verification), `reviewer` (reviews diff against the spec DoD). The orchestrator (opencode **build** agent) dispatches via the Task tool and checks boxes here when the DoD holds.
 > **Git rule:** per the pull-request-gate skill — never push to `origin`; improvements ship via fork + PR. Do NOT commit during a work session unless asked.
 
