@@ -26,12 +26,17 @@ Rules for this module:
   ``TypeError`` (the OBSERVED kit failure mode when the lazy globals are
   ``None``).
 
-Kit-consumption status (HCM-05 characterization verdict): the harness half is
-complete and proven here, but ``tools/scholar-agent-kit/src/scholar_agent/
-server.py`` still uses the dynamic seam.  Any import edit there requires a
-canonical-kit PR (``nexus-scholar-org/scholar-agent-kit``) plus a
-``plugins.json`` ``default_rev`` bump and vendored sync -- see the HCM-05
-arch record.  Until that PR merges, this adapter is *available but unwired*.
+Kit-consumption status (HCM-05 ADOPTED): the vendored
+``tools/scholar-agent-kit/src/scholar_agent/server.py`` now consumes this
+adapter through a plain guarded import -- the dynamic seam
+(``_harness_src`` / ``NEXUS_HARNESS_SRC`` / ``sys.path`` insert / parent-walk
+discovery) is deleted, and the MCP ``recon_*`` tools call the loader first and
+return the documented ``{status: error, ...}`` envelope when this module is
+unavailable.  Canonical kit merge ``50c0b3fbf52fc1a9768b219bc2e894d713eb38af``
+(``nexus-scholar-org/scholar-agent-kit`` PR #5); its
+``plugins.json`` ``default_rev`` and the vendored tree are pinned to that
+commit -- see the HCM-05 arch record for the three-invariant proof and the
+live adapter-path evidence.
 """
 
 from __future__ import annotations
