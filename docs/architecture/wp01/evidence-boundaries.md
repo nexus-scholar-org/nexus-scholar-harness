@@ -18,7 +18,7 @@
 
 | Owner | Responsibility |
 |---|---|
-| **Canonical kit** | Owns the domain implementation and its kit-local sidecar; never imports `scholar_harness`, never writes the Contract registry, never claims its candidate was accepted. |
+| **PDF/RAG boundary kits** (as scoped below) | Owns the domain implementation and its kit-local sidecar; for these boundary producers, never imports `scholar_harness`, never writes the Contract registry, never claims its candidate was accepted. **This is a boundary-producer rule, not an ecosystem-wide prohibition** — HCM-05 deliberately gave the agent kit a dependency on the harness recon adapter. |
 | **Harness** | Sole owner of Contract acceptance and publication: loads the accepted parent through the frozen registry, re-verifies identity/fingerprints, publishes the accepted record and the canonical audit event. Never re-implements kit internals. |
 | **Agent kit (MCP)** | Declares the authoritative operation **unsupported** on MCP (capability `pdf_extraction`, rejection code `UNSUPPORTED_CAPABILITY`) and rejects it **without I/O**, naming a truthful authoritative alternative. |
 
@@ -26,7 +26,7 @@
 
 ## E1 — acquired-document boundary
 
-**Governing invariants** (normative; preserved from the packet):
+**Implemented invariants (governing authority remains the frozen contract and kit specifications):**
 
 1. `study_id` comes from the accepted screening/corpus lineage; the PDF kit never mints or infers it from DOI, title, filename, URL, or array position.
 2. A path is a location, not document identity.
@@ -69,7 +69,7 @@ collisions are named rather than overwritten.
 
 ## E2 — extracted-text boundary
 
-**Governing invariants** (normative; preserved from the packet):
+**Implemented invariants (governing authority remains the frozen contract and kit specifications):**
 
 1. `document_id` is **reused from the E1 manifest**; the recomputed value must equal it or extraction fails. E2 never mints a second identity rule.
 2. A path is a location, not identity; a filename, DOI, title, or URL is not identity either.
@@ -96,7 +96,7 @@ bound to the extraction (never invented).
 
 ## E3 — stable chunks and index-lineage boundary
 
-**Governing invariants** (normative; preserved from the packet):
+**Implemented invariants (governing authority remains the frozen contract and kit specifications):**
 
 - **G-1 Parent-first.** Nothing is written to a backend before the accepted E2 `document_manifest` is loaded through the frozen registry, its declared `artifact_id`/hash verified, and its workspace/protocol/corpus bindings agreed. Failure ⇒ zero authoritative publication.
 - **G-2 Identity is content, not position.** No chunk identity from filename, title, DOI, section slug, or ordinal alone. Different contents never share a `CHK-`; the same content under the same parent and configuration always does.
@@ -106,7 +106,7 @@ bound to the extraction (never invented).
 - **G-6 Determinism is a property of the projection, not the run.** File enumeration order, backend iteration order, timestamps, run IDs, temporary names, process IDs, absolute paths, and secrets never influence a deterministic fingerprint.
 - **G-7 Truthful status.** A partial success is `PARTIAL`; an empty successful result is not a success; a rejected document is visible with a code, never dropped.
 - **G-8 No fabricated contract.** The sidecar is not a Contract v1 artifact; a lower-case chunk id, an off-grammar citation token, or a similarity labelled `VERIFIED`/`ENTAILED` is a refusal, not a value.
-- **G-9 Kit/harness separation.** The canonical RAG kit never imports `scholar_harness`, never writes the registry, never claims acceptance. The harness adapter calls the kit's typed service and verifies its declared candidate.
+- **G-9 Kit/harness separation (PDF/RAG boundary producers).** For the boundaries in this document, the canonical kit never imports `scholar_harness`, never writes the registry, never claims acceptance. The harness adapter calls the kit's typed service and verifies its declared candidate. This scopes the boundary producers only; it is not an ecosystem-wide import prohibition (see the ownership table).
 - **G-10 Honest evidence.** A green harness suite is not evidence that indexing works; the canonical kit suites are.
 
 **Acceptance chain.** The kit produces the typed, deterministic Index Manifest v1
