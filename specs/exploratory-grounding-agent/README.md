@@ -1,6 +1,6 @@
 # Exploratory Grounding Agent — Specification
 
-> **Status:** Proposal / Architecture Brainstorm
+> **Status:** Complete / historical — M0.1–M0.7 implemented and verified; agent tasks all closed (see `10_task_list.md`)
 > **Date:** 2026-09-11 (folder created 2026-09-12)
 > **Authors:** Nexus Scholar Architecture Team
 > **Supersedes:** the former single-file `docs/architecture/phase_0/06_exploratory_grounding_agent.md` (removed at the 2026-09-11 cleanup; see `docs/internal/COMMIT_SNAPSHOTS.md`)

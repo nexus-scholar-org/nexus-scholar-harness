@@ -1,7 +1,7 @@
 # Docs & Specs Consolidation Plan (2026-10-12)
 
-**Status:** RECORDED, NOT EXECUTED. This is a plan-of-record for a future
-consolidation PR series. No file has been moved, merged, or deleted.
+**Status:** IN PROGRESS. Phases 1–2 executed 2026-10-12 (see §9 Execution log).
+Phases 3–4 (moves + indexes) and phase 5 (contract-locked repairs) remain.
 
 **Owner intent.** The `docs/` and `specs/` trees have accumulated stale
 historical text and a newcomer finds them overwhelming. The active work is the
@@ -67,7 +67,10 @@ Recoverable from git history if ever needed.
 - `docs/architecture/v2_planning/` — **7 files** (abandoned direction).
   *Optional:* retain only `v2_architecture_spec.md` for decision provenance.
 - `docs/architecture/phase_0/05_cycle_a_contract_first.md` — superseded by
-  Contract v1 / WP-00.
+  Contract v1 / WP-00. **Correction (verified 2026-10-12):** the file is linked
+  from `docs/architecture/phase_0/README.md:56`, so "zero refs" was wrong —
+  deleting it requires dropping/updating that README row in the same change
+  (or deleting it together with the `phase_0/` archive move in phase 3).
 - `docs/architecture/e3_rag_chroma_recovery_capsule.md` — orphan; superseded by
   `e3_residual_repair.md`.
 - `specs/archive/phase_f_specialized_agents/handoff_spec.md` — near-identical
@@ -234,4 +237,44 @@ file: last-commit date (`git log -1 --format=%cs`), inbound references
 (`rg -l` for relative path ∪ basename across `src/ tests/ scripts/ .agents/
 .opencode/ .github/ packaging/` and other docs/specs), and a tracked/untracked
 check. Constraints in §2 were confirmed against the actual scripts and tests,
-not inferred.
+not inferred. The §3.1 zero-ref claim, the E2 test path, the manifest reader,
+and the PyPI URL were re-verified directly on 2026-10-12 before phase 1.
+
+---
+
+## 9. Execution log
+
+### 2026-10-12 — phases 1–2 (branch `docs/consolidation-phase-1-repairs`)
+
+**Phase 1 — zero-risk repairs (done):**
+- `AGENTS.md`: stale "Active milestone: Phase 7" replaced with the current
+  program (WP + HCM/AG/UI); Phase 7 recorded as shipped.
+- `docs/architecture/research_ui/README.md`: **created** (cited by UI-01C/UI-01D
+  but absent from every git revision — the predecessor was untracked and is
+  unrecoverable; the new file says so and points at `I18N.md` for the i18n
+  policy).
+- `docs/architecture/inception_recon_scientific_review.md`: **committed**
+  (previously untracked).
+- Stale headers fixed: `specs/exploratory-grounding-agent/README.md`
+  (Proposal → Complete/historical),
+  `specs/deep-audit-remediation-2026-09-17/README.md` (1.0.0-draft → normative
+  baseline), `docs/architecture/hcm_01_characterization_packet.md`
+  (PREPARED → COMPLETED).
+- `docs/UPCOMING_WORK.md`: P7.9 marked `[x]` (metapackage live on PyPI; the
+  phase-7 README already said SHIPPED).
+
+**Phase 2 — deletions (done, 26 files):** `temp_analysis_archive/` (16),
+`v2_planning/{v2_roadmap.md, v2_brainstorming_conversation.md, options/}` (5),
+`e3_rag_chroma_recovery_capsule.md`, `specs/archive/phase_f_specialized_agents/{handoff_spec.md, schemas.py}`,
+`docs/internal/review_prompts/review_prompt_inception_sweep.md`.
+
+**Deviations from §3.1, deliberate (conservative):**
+- `v2_planning/v2_architecture_spec.md` **retained** (the one V2 artifact with
+  decision-provenance value; §7 open decision).
+- `phase_0/05_cycle_a_contract_first.md` **retained**: this plan's own §3.1
+  mistakenly claimed zero refs; it is linked from
+  `docs/architecture/phase_0/README.md:56`. It will be removed together with the
+  `phase_0/` archive move in phase 3, where the README row is repointed.
+
+Net effect: `docs/` loses 26 files of dead material with zero reference breakage;
+everything removed is recoverable from git history.
