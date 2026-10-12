@@ -707,3 +707,138 @@ def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
         # Env unset: P4 default, repo-anchored and CWD-independent (absolute,
         # under the checkout), NOT the old CWD-relative fallback.
         assert server.RECON_CACHE_ROOT == (_repo_root() / ".cache" / "inception_recon")
+
+
+# ---------------------------------------------------------------------------
+# HCM-05 unit 3 (adoption): the vendored MCP server drives recon ONLY through
+# scholar_harness.recon.adapter (canonical scholar-agent-kit@50c0b3f), with
+# zero dynamic discovery.  All hermetic (tmp cache roots + fake search_fn).
+# ---------------------------------------------------------------------------
+
+
+def test_adopted_server_binds_the_real_harness_adapter(tmp_path, monkeypatch):
+    """U1 [ADOPTED-KIT, live]: the bound adapter IS scholar_harness.recon.adapter."""
+    import scholar_harness.recon.adapter as adopted
+    from scholar_harness.recon import canonical_recon_root
+
+    server._ensure_harness_recon_loaded()
+    assert server._recon_adapter is adopted
+    assert server.DomainLexicon is not None
+    # Adapter resolution agrees with the canonical root (no env override here).
+    assert adopted.resolve_cache_root() == canonical_recon_root()
+    # The test fixture isolation wins for writes: hermetic tmp root, live binding.
+    assert server.RECON_CACHE_ROOT == tmp_path / ".cache" / "inception_recon"
+    # The retired discovery helper is gone; the legacy override is unread.
+    assert not hasattr(server, "_harness_src")
+    assert not hasattr(server, "_HARNESS_SRC")
+    assert not hasattr(server, "ReconEngine")
+
+
+def test_adopted_server_source_has_zero_discovery_mechanisms():
+    """U2 [ADOPTED-KIT, source-trace]: no dynamic import machinery in prod source."""
+    import inspect as _inspect
+
+    src = _inspect.getsource(server)
+    for forbidden in (
+        "_harness_src",
+        "_HARNESS_SRC",
+        "NEXUS_HARNESS_SRC",
+        "sys.path",
+        "sys.path.insert",
+        "find_spec",
+        "importlib.util",
+        "import sys",
+    ):
+        assert forbidden not in src
+    loader_src = _inspect.getsource(server._ensure_harness_recon_loaded)
+    assert "from scholar_harness.recon import adapter as _recon_adapter" in loader_src
+    for tool_fn in (server.recon_probe, server.recon_distill, server.recon_delta):
+        tool_src = _inspect.getsource(tool_fn)
+        assert "_ensure_harness_recon_loaded()" in tool_src
+        assert "_recon_adapter is None" in tool_src
+    assert "_recon_adapter.make_engine(" in _inspect.getsource(server.recon_probe)
+    assert "_recon_adapter.distill_terms(" in _inspect.getsource(server.recon_distill)
+    assert "_recon_adapter.run_followups(" in _inspect.getsource(server.recon_delta)
+
+
+def test_adopted_unavailable_adapter_returns_typed_envelopes(tmp_path, monkeypatch):
+    """U3 [ADOPTED-KIT, live]: adapter missing -> structured errors, no TypeError.
+
+    Even with RECON_CACHE_ROOT=None the adapter guard precedes any path use,
+    so all three tools answer {status: error, cache_key: None} naming the
+    adapter instead of raising.
+    """
+    import sys as _sys
+
+    saved = {
+        "adapter": server._recon_adapter,
+        "lexicon": server.DomainLexicon,
+        "cache_root": server.RECON_CACHE_ROOT,
+        "search_fn": server.RECON_SEARCH_FN,
+        "loaded": server._harness_recon_loaded,
+    }
+    try:
+        for name in (
+            "scholar_harness",
+            "scholar_harness.recon",
+            "scholar_harness.recon.adapter",
+            "scholar_harness.recon.lexicon",
+        ):
+            monkeypatch.setitem(_sys.modules, name, None)
+        server._recon_adapter = None
+        server.DomainLexicon = None
+        server.RECON_CACHE_ROOT = None
+        server._harness_recon_loaded = False
+        for raw in (
+            server.recon_probe(topic="anything"),
+            server.recon_distill(session_id="rec_abc123"),
+            server.recon_delta(session_id="rec_abc123"),
+        ):
+            try:
+                payload = json.loads(raw)
+            except TypeError:
+                raise AssertionError("tool raised TypeError instead of envelope")
+            assert payload["status"] == "error"
+            assert payload["cache_key"] is None
+            assert "harness recon adapter unavailable" in payload["message"]
+    finally:
+        server._recon_adapter = saved["adapter"]
+        server.DomainLexicon = saved["lexicon"]
+        server.RECON_CACHE_ROOT = saved["cache_root"]
+        server.RECON_SEARCH_FN = saved["search_fn"]
+        server._harness_recon_loaded = saved["loaded"]
+
+
+def test_adopted_year_window_honesty_defaults_diverge_explicit_parity(
+    tmp_path, monkeypatch
+):
+    """U4 [ADOPTED-KIT, live]: MCP start_year=2020 default != engine 2000 default.
+
+    Parity requires an explicit shared window (2020 here): the engine probe
+    with year_min=2020 and the MCP probe (default start_year=2020) share the
+    cache address, while the engine default (2000) does not.  No claim is made
+    that defaults match -- they observably do not.
+    """
+    import asyncio as _asyncio
+
+    from scholar_harness.recon import ReconEngine
+
+    topic = "adapter year window honesty"
+    root = tmp_path / ".cache" / "inception_recon"
+    engine = ReconEngine(cache_root=root, search_fn=_topic_search_fn)
+    explicit_path, _n = _asyncio.run(engine.probe(topic, year_min=2020))
+    explicit_key = json.loads(explicit_path.read_text(encoding="utf-8"))["cache_key"]
+    default_path, _n = _asyncio.run(
+        ReconEngine(cache_root=root, search_fn=_topic_search_fn).probe(topic)
+    )
+    default_key = json.loads(default_path.read_text(encoding="utf-8"))["cache_key"]
+    assert default_key != explicit_key  # engine default is 2000, not 2020
+
+    # The MCP probe defaults to start_year=2020, so the same topic lands on
+    # the explicit-2020 address (engine cache hit: pool file already on disk).
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", _topic_search_fn)
+    mcp_probe = json.loads(server.recon_probe(topic=topic))
+    assert mcp_probe["status"] == "probe_ok"
+    assert mcp_probe["cache_key"] == explicit_key
+    assert Path(mcp_probe["pool_path"]).is_file()

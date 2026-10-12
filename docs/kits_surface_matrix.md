@@ -424,10 +424,19 @@ Declared facts (all harness-enforced by
     are the PDF kit's `scholar_pdf.extraction.PDFExtractionService` API and
     `scholar-pdf extract-run` CLI. See the *WP01-E2 extracted-text boundary* section
     below.
-- **Harness adapter:** `_harness_src()` walks up for `src/scholar_harness/recon/__init__.py`,
-  honors `NEXUS_HARNESS_SRC`, injects into `sys.path` at import; `RECON_CACHE_ROOT =
-  canonical_recon_root()` (= `NEXUS_RECON_ROOT` or `<repo>/.cache/inception_recon`);
-  `RECON_SEARCH_FN = None` test seam threaded into every `ReconEngine(search_fn=…)`.
+- **Harness adapter (HCM-05 adopted, canonical kit `50c0b3f`):** the `recon_*`
+  tools drive ONLY `scholar_harness.recon.adapter v1.0` (`make_engine` /
+  `distill_terms` / `merge_lexicon` / `default_lexicon` / `pool_gate` /
+  `topic_gate` / `run_followups`) bound by `_ensure_harness_recon_loaded()`
+  via a plain guarded import -- zero discovery (`_harness_src`,
+  `NEXUS_HARNESS_SRC`, `sys.path` mutation, `find_spec` all absent).
+  `RECON_CACHE_ROOT` resolves via `_recon_adapter.resolve_cache_root()`
+  (= `NEXUS_RECON_ROOT` or `<repo>/.cache/inception_recon`);
+  `RECON_SEARCH_FN = None` test seam threaded read-only into `make_engine`
+  (probe + delta) and `run_followups` (delta). Adapter-unavailable answers
+  the typed `{status: error, cache_key: None}` envelope, never `TypeError`.
+  Year-window honesty: MCP `start_year` defaults to 2020, engine/adapter to
+  2000 -- parity needs an explicit shared window.
 - **Return conventions:** machine JSON = protocol + reconcile + verify + recon tools;
   prose strings (success "Error:" prefixes) = the rest.
 - **`nexus_verify_claims`** wraps `VerbatimClaimVerifier(threshold=0.90)` (verify kit),
@@ -474,15 +483,15 @@ Declared facts (all harness-enforced by
 scholar-search-kit ──http_client──► scholar-pdf-kit        (AcademicHttpClient)
                 ├──http_client──► scholar-bib-kit          (resolver)
                 ├──http_client──► scholar-graph-kit        (mandatory ctor arg)
-                ├──SearchEngine─► scholar-agent-kit/recon  (ReconEngine.search_fn)
-                │                 scholar_harness.recon
+                ├──SearchEngine─► scholar-agent-kit/recon  (adapter make_engine search_fn)
+                │                 scholar_harness.recon.adapter
 scholar-bib-kit ────────────────► (rag declares, unused in code)
 scholar-protocol-kit ──build_extraction_model──► scholar-rag-kit (matrix, UNDECLARED dep)
 scholar-protocol-kit ──────────► scholar-agent-kit (compile/validate/render)
 scholar-rag-kit ────────────────► scholar-agent-kit (index/query/synthesize/matrix)
 scholar-graph-kit ──graph.json──► scholar-rag-kit (CLI --graph consumption, workflow-level)
 scholar-verify-kit ─verbatim────► scholar-agent-kit (nexus_verify_claims, UNDECLARED dep)
-scholar-agent-kit ──sys.path──► scholar_harness.recon (harness adapter, NEXUS_HARNESS_SRC)
+scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (guarded, no sys.path)
 ```
 
 ## Env vars & versions
@@ -493,7 +502,7 @@ scholar-agent-kit ──sys.path──► scholar_harness.recon (harness adapter
 | Cache | `SCHOLAR_CACHE_DIR` (`.cache`, hishel TTL 30d unused) | search |
 | PDF | `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` | pdf |
 | Embedder | `OPENAI_API_KEY` | rag |
-| MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_HARNESS_SRC`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
+| MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
 
 Known pins: protocol `1.0.0`; all other kits `0.1.0` (Phase-7 doc's `>=0.2.0`

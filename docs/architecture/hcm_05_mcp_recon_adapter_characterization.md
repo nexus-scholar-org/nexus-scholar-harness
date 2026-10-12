@@ -1,13 +1,26 @@
-# HCM-05 (unit 1) — MCP recon boundary characterization + harness adapter
+# HCM-05 — MCP recon boundary characterization + harness adapter adoption
 
-**Status:** CHARACTERIZED -- HARNESS HALF IMPLEMENTED; KIT HALF BLOCKED.
-**Lane:** STANDARD (structural transport-boundary work; owning full suite once).
+**Status:** ADOPTED -- HARNESS HALF IMPLEMENTED AND KIT HALF MERGED + VENDORED.
+**Lane:** RELEASE (cross-repo vendored-kit pin + MCP boundary; full harness
+suite once + wheel build + minimal-env `--help` proofs).
 **Owner:** harness (`nexus-scholar-org/nexus-scholar-harness`) for the adapter;
-vendored `scholar-agent-kit` (canonical `nexus-scholar-org/scholar-agent-kit`)
-read-only in this unit.
-**Base:** `origin/main` `d07100f` (HCM-01..04 + TD-Option-B merged).
-**Stop rule:** characterization + explicit adapter interface only. No MCP
-server rewiring (it lives in `tools/`, forbidden), no behavior change.
+canonical kit `nexus-scholar-org/scholar-agent-kit` for the server rewiring
+(merged as kit PR #5, commit `50c0b3fbf52fc1a9768b219bc2e894d713eb38af`).
+**Base:** `origin/main` `86a9478` (PR #104+105 merged).
+**Adoption pin:** `plugins.json` `scholar-agent-kit.default_rev` =
+`50c0b3fbf52fc1a9768b219bc2e894d713eb38af` (40-char full SHA == canonical
+`main` HEAD, verified via `git ls-remote` + temp-clone `git rev-parse HEAD`).
+**Vendored tree proof:** `tools/scholar-agent-kit` staged blob SHAs equal the
+canonical-commit blob SHAs for all 15 synced paths (21 canonical tracked files
+minus 6 generated `src/scholar_agent_kit.egg-info/*`, an exclusion predating
+this sync: old pin `79ffe42` tracked 20 files, vendored 14, same rule).
+Staged delta vs base is exactly the merge diff: `pyproject.toml`,
+`src/scholar_agent/server.py`, `tests/test_standalone_packaging.py` modified +
+`tests/test_mcp_recon_adapter.py` added. `nexus_scholar_pins.json` regenerated
+via `scripts/generate_nexus_scholar_pins.py` (`--check` green).
+**Stop rule:** adoption only. No canonical kit re-edit, no adapter change
+(`src/scholar_harness/recon/adapter.py` immutable), no behavior change beyond
+the merged kit rewiring.
 
 ## 1. Observed interface map (all confirmed by executed tests)
 
@@ -43,44 +56,77 @@ adapter-backed tool maps into `{status: error}` instead of escaping as
 `TypeError`. Imports cleanly standalone; no `sys.path`, no fallback roots,
 no MCP imports, no algorithm duplication.
 
-## 3. Kit-half verdict: BLOCKED_CANONICAL_REPO
+## 3. Kit-half verdict: ADOPTED (canonical PR #5 merged, vendored + pinned)
 
-The harness half is complete, but `tools/scholar-agent-kit/src/scholar_agent/
-server.py` still uses the dynamic seam (`_harness_src` + `sys.path` insert +
-`None`-until-loader globals + `RECON_SEARCH_FN`/`RECON_CACHE_ROOT` snapshot
-globals). Consuming the adapter requires editing that file (e.g. replacing
-the seam with `from scholar_harness.recon.adapter import ...` plus a declared
-harness dependency for the wheel layout), which per the toolkit-sync rule
-belongs to canonical `nexus-scholar-org/scholar-agent-kit` (vendored pin
-`default_rev 79ffe42...`), NOT to a harness PR. Evidence: H01-H03 prove the
-current seam's uncaught-`TypeError` class; D01 proves the loader is dead in
-prod paths; C03 proves the `sys.path` insert is still the only import bridge.
+The former `BLOCKED_CANONICAL_REPO` is resolved. Canonical
+`nexus-scholar-org/scholar-agent-kit` merged PR #5
+(`50c0b3fbf52fc1a9768b219bc2e894d713eb38af`, parent `79ffe42`): the server now
+consumes `scholar_harness.recon.adapter v1.0` with no `_harness_src`/`sys.path`/
+`NEXUS_HARNESS_SRC` discovery. Harness adoption in this unit: `plugins.json`
+pin bump, byte-identical vendored sync (15/15 blob-SHA equality, negative
+controls: truncated-SHA pin fails `test_manifest_default_revs_are_pinned_commits`
++ 4 pins tests; one mutated blob fails the blob proof; both restored and green),
+`nexus_scholar_pins.json` regen.
 
-**Ready bounded canonical-kit packet sketch (not executed here):**
-goal -- server consumes `scholar_harness.recon.adapter v1.0` with no
-`_harness_src`/`sys.path`/`_ensure_harness_recon_loaded`/`RECON_SEARCH_FN`
-snapshot semantics change beyond typed errors; paths -- only
-`src/scholar_agent/server.py` (+ kit tests); behavior -- identical envelopes
-for B03-B05/H04/H05/H07, typed `{status: error}` (no `TypeError` escape) for
-H01-H03/H06; tests -- re-run `tests/mcp/test_mcp_recon.py` (23) plus a
-kit-side port of H01-H03 asserting envelopes; sync -- canonical-kit PR merge,
-`plugins.json` `default_rev` bump to the resulting full SHA, vendored sync,
-`nexus_scholar_pins.json` regen. Until that PR merges, the adapter is
-*available but unwired*.
+**Absent mechanisms (proven, not claimed):** no `_harness_src`/`_HARNESS_SRC`
+attribute or reference, no `NEXUS_HARNESS_SRC` read, no `sys.path` mutation, no
+`find_spec`/`importlib.util`/`import sys`, no per-symbol recon globals
+(`ReconEngine`, `canonical_recon_root`, `distill_pool`, `execute_followups`
+absent as module names AND as call sites in the recon tools). The loader binds
+exactly `_recon_adapter` + `DomainLexicon` via a plain guarded import and
+resolves `RECON_CACHE_ROOT` through `_recon_adapter.resolve_cache_root()`.
+
+**Real-path evidence (live, hermetic, tmp roots + fake search_fn):**
+`tests/mcp/test_mcp_recon.py` (27: 23 unchanged envelopes + U1-U4 adoption
+proofs) and `tests/unit/test_recon_adapter_characterization.py` (41: Parts A/B
+unchanged, C/D/F01/G03/H01-H02 rewritten to the adopted seam). Proven live:
+all 3 tools registered with identical envelopes (B01-B05); bound adapter IS
+`scholar_harness.recon.adapter` (U1/D01); loader called atop every tool
+(D01); cache-identity reuse with a single fake call (existing reuse test);
+same cache key engine-vs-MCP only with an explicit shared window (G04 + U4);
+adapter-unavailable and malformed inputs map into `{status: error,
+cache_key: None}` with no `TypeError` (H01/H02/U3/H07); `RECON_SEARCH_FN` stays
+a read-only test seam (3 read sites, 1 write; F01); no `workspaces/` writes
+(H04 + existing refusal tests).
+
+**Year limitation (honest):** MCP `recon_probe` defaults `start_year=2020`
+while `ReconEngine.probe`/adapter default `year_min=2000`; defaults
+observably diverge (U4 asserts `default_key != explicit_key`). Parity requires
+passing an explicit shared window -- never claimed otherwise.
+
+**No over-claim:** H03 (test-only `RECON_CACHE_ROOT=None` post-load mutation
+still raises `TypeError` outside the envelope) and H06 (`TypeError` raised *by*
+an injected search_fn still escapes the documented
+`(RuntimeError, ValueError, OSError)` catch) are unchanged by adoption and stay
+characterized as designed-in escape paths, not regressions. No
+crash/concurrency claims for session writes; content-addressed artifacts only
+prove same-payload stability.
+
+**Remaining follow-up:** none for HCM-05. The adapter is *wired*; H03/H06
+escape paths are envelope-scope decisions for a future unit, not defects.
+Next task: HCM-06 gating (per mission).
 
 ## 4. Validation evidence
 
-- New: `tests/unit/test_recon_adapter_characterization.py` -- 41 passed.
-- Neighbors: `tests/mcp/test_mcp_recon.py` (23) + `tests/recon/` + `tests/inception/` -- all passed (179 total in one run).
-- Selectors: `select_test_gate.py --task HCM-05` unknown-task (no HCM-05 mapping) -- documented fallback to owning suites used.
-- Generators `--check` (baseline/schemas/fixture/pins) + `ruff check scripts/` + `git diff --check`: all green (see return report for SHAs).
-- Owning full suite (STANDARD lane): once on final candidate --
-  `uv run pytest -q -p no:cacheprovider`: exit 0, 1162 collected,
-  1156 passed + 6 skipped (pre-existing platform skips), 0 failed.
+- Adopted: `tests/unit/test_recon_adapter_characterization.py` -- 41 passed
+  (Parts A/B/E/G04/G05/H03-H07 unchanged; C/D/F01/G03/H01-H02 rewritten to the
+  adopted seam; 10 previously-seam-asserting tests failed pre-rewrite).
+- Adopted: `tests/mcp/test_mcp_recon.py` -- 27 passed (23 pre-existing envelopes
+  green unchanged on the new server + U1-U4 adoption proofs).
+- Selectors: `select_test_gate.py --task HCM-05` unknown-task (no HCM-05 mapping)
+  -- documented fallback to owning suites used (same as unit 1).
+- Generators `--check` (baseline/schemas/fixture/pins) + `ruff check scripts/`
+  + `git diff --check`: all green (see return report for SHAs).
+- Owning full suite (RELEASE lane): once on final candidate --
+  `uv run pytest -q -p no:cacheprovider` (see return report for counts).
 
 ## 5. Debt / limits / next step
 
-- H01-H03/H06 uncaught-`TypeError` paths remain live until the kit-half PR.
-- Engine-vs-MCP year defaults diverge (2000 vs 2020); adapter keeps the engine default -- kit consumer must pass windows explicitly.
-- No crash/concurrency claims for session writes; content-addressed artifacts only prove same-payload stability.
-- **Next:** open the canonical-kit PR per the sketch above (HCM-05 unit 2); then delete the dead loader + discovery seam.
+- H01/H02 adapter-unavailable paths now map into the typed envelope (fixed by
+  adoption). H03/H06 uncaught-`TypeError` paths remain BY DESIGN (test-only
+  global mutation / foreign `TypeError` from an injected double) -- see §3.
+- Engine-vs-MCP year defaults diverge (2000 vs 2020); adapter keeps the engine
+  default -- callers must pass windows explicitly (U4 locks this in).
+- No crash/concurrency claims for session writes; content-addressed artifacts
+  only prove same-payload stability.
+- **Next:** HCM-06 gating. No HCM-05 follow-up remains.

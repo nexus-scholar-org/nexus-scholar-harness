@@ -67,12 +67,14 @@ SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
 # merged canonical commits they are currently vendored from. WP01-E2 Stage 3
 # re-vendored both at their merged E2 commits (the E2 extraction surface and the
 # ``nexus_pdf_extraction`` MCP tool), so these SHAs moved with the trees and the
-# fixtures below moved with them. The commit is duplicated inside each fixture
-# file; the cross-check against plugins.json below is what makes the two facts
-# agree, so neither can drift alone.
+# fixtures below moved with them. HCM-05 unit 3 re-vendored scholar-agent-kit
+# at its merged adapter-wiring commit (kit PR #5); the agent-kit SHA and its
+# fixture moved with that tree by the same rule. The commit is duplicated
+# inside each fixture file; the cross-check against plugins.json below is what
+# makes the two facts agree, so neither can drift alone.
 E1_KITS: tuple[tuple[str, str], ...] = (
     ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
-    ("scholar-agent-kit", "79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92"),
+    ("scholar-agent-kit", "50c0b3fbf52fc1a9768b219bc2e894d713eb38af"),
 )
 
 # The frozen Contract v1 registry keyset. Asserted exactly (not as a subset) so

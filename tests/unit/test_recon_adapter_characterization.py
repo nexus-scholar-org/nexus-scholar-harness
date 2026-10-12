@@ -1,9 +1,10 @@
 """HCM-05 characterization: MCP recon transport boundary + harness adapter.
 
-Executable map of the CURRENT boundary before any rewiring.  Nothing here
-changes kit code, recon behavior, or public semantics.  All fixtures live
-under ``tmp_path`` (never ``workspaces/``); no network (every probe runs
-through an injected fake ``search_fn``).
+Executable map of the ADOPTED boundary (canonical scholar-agent-kit@50c0b3f
+vendored; ``plugins.json`` pin bumped; ``nexus_scholar_pins.json`` regen).
+Nothing here changes kit code, recon behavior, or public semantics.  All
+fixtures live under ``tmp_path`` (never ``workspaces/``); no network (every
+probe runs through an injected fake ``search_fn``).
 
 Evidence labels per test:
 
@@ -13,10 +14,22 @@ Evidence labels per test:
 - OBSERVED-ADAPTER  -- drives the new harness-owned
   ``scholar_harness.recon.adapter`` (harness half of HCM-05).
 - SOURCE-TRACE      -- asserts on shipped source text without executing it.
+- ADOPTED-KIT       -- asserts the post-merge adopted seam: recon tools drive
+  ONLY ``scholar_harness.recon.adapter`` via ``_ensure_harness_recon_loaded``;
+  no ``_harness_src`` / ``NEXUS_HARNESS_SRC`` / ``sys.path`` discovery exists.
 
 The adapter section (Part A) performs NO ``scholar_agent`` import at module
 level and none inside its tests: those tests pass WITHOUT the kit.  Kit
 imports appear only as function-level imports inside Parts B-G tests.
+Adoption notes: Part C now proves ABSENCE of the retired discovery seam;
+Part D proves the loader is CALLED by every production tool (it binds the
+adapter, never mutates ``sys.path``); H01/H02 prove adapter-unavailable maps
+into the typed ``{status: error}`` envelope instead of escaping as
+``TypeError``.  H03 (test-only ``RECON_CACHE_ROOT=None`` post-load mutation)
+and H06 (``TypeError`` raised *by* an injected search_fn) still escape the
+``(RuntimeError, ValueError, OSError)`` envelope by design -- the envelope
+covers adapter/harness failures, not caller-mutated globals or foreign
+``TypeError``s from injected doubles.
 """
 
 from __future__ import annotations
@@ -317,6 +330,49 @@ def _kit_isolated(server, monkeypatch, tmp_path, search_fn=_topic_search_fn):
     return server
 
 
+def _saved_loader_state(server):
+    return {
+        "adapter": server._recon_adapter,
+        "lexicon": server.DomainLexicon,
+        "cache_root": server.RECON_CACHE_ROOT,
+        "search_fn": server.RECON_SEARCH_FN,
+        "loaded": server._harness_recon_loaded,
+    }
+
+
+def _restore_loader_state(server, saved):
+    server._recon_adapter = saved["adapter"]
+    server.DomainLexicon = saved["lexicon"]
+    server.RECON_CACHE_ROOT = saved["cache_root"]
+    server.RECON_SEARCH_FN = saved["search_fn"]
+    server._harness_recon_loaded = saved["loaded"]
+
+
+def _reset_loader_state(server):
+    server._recon_adapter = None
+    server.DomainLexicon = None
+    server.RECON_CACHE_ROOT = None
+    server._harness_recon_loaded = False
+
+
+def _block_harness_imports(monkeypatch):
+    """Force adapter-unavailable regardless of environment.
+
+    Setting the sys.modules entries to None makes any
+    ``from scholar_harness... import ...`` raise ImportError, so the
+    loader returns False and the tools report the typed envelope.
+    """
+    import sys
+
+    for name in (
+        "scholar_harness",
+        "scholar_harness.recon",
+        "scholar_harness.recon.adapter",
+        "scholar_harness.recon.lexicon",
+    ):
+        monkeypatch.setitem(sys.modules, name, None)
+
+
 # ---------------------------------------------------------------------------
 # Part B -- live tool signatures + envelopes (OBSERVED-KIT)
 # ---------------------------------------------------------------------------
@@ -423,79 +479,116 @@ def test_b05_semantic_mode_segments_cache_key(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Part C -- discovery seam enumeration (OBSERVED-KIT, SOURCE-TRACE + runtime)
+# Part C -- discovery-seam ABSENCE (ADOPTED-KIT, SOURCE-TRACE + runtime)
+#
+# Canonical scholar-agent-kit@50c0b3f deleted the dynamic seam: there is no
+# ``_harness_src`` helper, no ``NEXUS_HARNESS_SRC`` read, no ``sys.path``
+# mutation, and no ``find_spec``/parent-walk anywhere in shipped kit source.
 # ---------------------------------------------------------------------------
 
 
-def test_c01_harness_src_env_override_wins_verbatim(monkeypatch):
-    """C01 [OBSERVED-KIT]: NEXUS_HARNESS_SRC overrides discovery verbatim."""
+def test_c01_harness_src_env_override_has_no_effect(monkeypatch):
+    """C01 [ADOPTED-KIT]: the retired NEXUS_HARNESS_SRC override is inert."""
+    import sys
+
     server = _kit_server()
+    assert not hasattr(server, "_harness_src")
     monkeypatch.setenv("NEXUS_HARNESS_SRC", "/tmp/custom-harness-src")
-    assert server._harness_src() == "/tmp/custom-harness-src"
+    before = list(sys.path)
+    server._ensure_harness_recon_loaded()
+    assert list(sys.path) == before
+    assert "/tmp/custom-harness-src" not in sys.path
 
 
-def test_c02_harness_src_never_raises_and_returns_str(monkeypatch):
-    """C02 [OBSERVED-KIT]: the discovery helper MUST NOT raise (lazy-guard)."""
+def test_c02_no_discovery_helper_and_no_path_mutation(monkeypatch):
+    """C02 [ADOPTED-KIT]: no discovery helper exists; loading never mutates path."""
+    import sys
+
     server = _kit_server()
+    assert not hasattr(server, "_harness_src")
+    assert not hasattr(server, "_HARNESS_SRC")
     monkeypatch.delenv("NEXUS_HARNESS_SRC", raising=False)
-    value = server._harness_src()
-    assert isinstance(value, str)
-    # Installed layout: scholar_harness.recon imports normally -> "" (nothing
-    # to inject).  A source checkout would return a ".../src" path instead.
-    assert value == "" or value.endswith("src")
+    before = list(sys.path)
+    assert server._ensure_harness_recon_loaded() is True
+    assert list(sys.path) == before
+    # The adapter is a plain importable binding, not a discovered path.
+    assert server._recon_adapter is not None
 
 
-def test_c03_syspath_insert_only_when_discovery_nonempty():
-    """C03 [OBSERVED-KIT, SOURCE-TRACE]: sys.path insert is discovery-gated."""
+def test_c03_adapter_bound_by_guarded_import_without_syspath_insert():
+    """C03 [ADOPTED-KIT, SOURCE-TRACE]: loader binds the adapter, never sys.path."""
     server = _kit_server()
     src = inspect.getsource(server)
-    assert "_HARNESS_SRC = _harness_src()" in src
-    assert "if _HARNESS_SRC and _HARNESS_SRC not in sys.path:" in src
-    assert "sys.path.insert(0, _HARNESS_SRC)" in src
-    if server._HARNESS_SRC:
-        import sys
+    assert "_harness_src" not in src
+    assert "_HARNESS_SRC" not in src
+    assert "NEXUS_HARNESS_SRC" not in src
+    assert "sys.path" not in src
+    assert "find_spec" not in src
+    assert "import sys" not in src
+    loader_src = inspect.getsource(server._ensure_harness_recon_loaded)
+    assert "from scholar_harness.recon import adapter as _recon_adapter" in loader_src
+    assert (
+        "from scholar_harness.recon.lexicon import DomainLexicon as _DomainLexicon"
+        in loader_src
+    )
 
-        assert server._HARNESS_SRC in sys.path
 
+def test_c04_module_level_adapter_names_start_none():
+    """C04 [ADOPTED-KIT, SOURCE-TRACE]: lazy adapter globals start None.
 
-def test_c04_module_level_recon_names_start_none():
-    """C04 [OBSERVED-KIT, SOURCE-TRACE]: lazy globals start None (dead until load)."""
+    The retired per-symbol globals (``ReconEngine``, ``canonical_recon_root``,
+    ``distill_pool``, ``execute_followups``) are ABSENT; the adopted seam
+    binds exactly ``_recon_adapter`` + ``DomainLexicon`` + ``RECON_CACHE_ROOT``
+    (+ the ``RECON_SEARCH_FN`` injection seam) on first tool call.
+    """
     server = _kit_server()
     src = inspect.getsource(server)
     for name in (
-        "ReconEngine = None",
-        "canonical_recon_root = None",
-        "distill_pool = None",
-        "execute_followups = None",
+        "_recon_adapter = None",
+        "DomainLexicon = None",
         "RECON_CACHE_ROOT = None",
         "RECON_SEARCH_FN = None",
     ):
         assert name in src
+    for retired in (
+        "ReconEngine = None",
+        "canonical_recon_root = None",
+        "distill_pool = None",
+        "execute_followups = None",
+        "ReconEngine(",
+    ):
+        assert retired not in src
 
 
 # ---------------------------------------------------------------------------
-# Part D -- dead loader proof (OBSERVED-KIT, SOURCE-TRACE + runtime)
+# Part D -- loader-called-by-tools proof (ADOPTED-KIT, SOURCE-TRACE + runtime)
+#
+# The adopted loader is LIVE: every recon tool calls it first; it binds the
+# adapter via a plain guarded import and resolves RECON_CACHE_ROOT through
+# the adapter (never a snapshot of individual engine symbols).
 # ---------------------------------------------------------------------------
 
 
-def test_d01_production_tools_never_call_loader():
-    """D01 [OBSERVED-KIT, SOURCE-TRACE]: the lazy binder is dead in prod paths."""
+def test_d01_production_tools_call_loader_first():
+    """D01 [ADOPTED-KIT, SOURCE-TRACE]: the adapter binder runs atop every tool."""
+    import scholar_harness.recon.adapter as adopted
+
     server = _kit_server()
+    assert server._recon_adapter is adopted
     for fn in (server.recon_probe, server.recon_distill, server.recon_delta):
-        assert "_ensure_harness_recon_loaded" not in inspect.getsource(fn)
-    assert "_ensure_harness_recon_loaded" not in inspect.getsource(server.main)
+        assert "_ensure_harness_recon_loaded" in inspect.getsource(fn)
+    assert "_recon_adapter is None" in inspect.getsource(server.recon_probe)
 
 
-def test_d02_cache_root_assigned_only_inside_loader():
-    """D02 [OBSERVED-KIT, SOURCE-TRACE]: RECON_CACHE_ROOT snapshot lives in loader."""
+def test_d02_cache_root_resolved_via_adapter_inside_loader():
+    """D02 [ADOPTED-KIT, SOURCE-TRACE]: RECON_CACHE_ROOT comes from the adapter."""
     server = _kit_server()
     loader_src = inspect.getsource(server._ensure_harness_recon_loaded)
-    assert "RECON_CACHE_ROOT = canonical_recon_root()" in loader_src
+    assert "RECON_CACHE_ROOT = _recon_adapter.resolve_cache_root()" in loader_src
     module_src = inspect.getsource(server)
     assert module_src.count("RECON_CACHE_ROOT = ") >= 2  # None default + loader assign
-    assert "RECON_CACHE_ROOT = canonical_recon_root()" not in module_src.replace(
-        loader_src, ""
-    )
+    assert "RECON_CACHE_ROOT = canonical_recon_root()" not in module_src
+    assert "canonical_recon_root" not in module_src
 
 
 # ---------------------------------------------------------------------------
@@ -542,17 +635,19 @@ def test_e03_main_workspace_flag_sets_recon_root():
 
 
 def test_f01_search_fn_is_test_only_seam():
-    """F01 [OBSERVED-KIT, SOURCE-TRACE]: production only READS the seam.
+    """F01 [ADOPTED-KIT, SOURCE-TRACE]: production only READS the seam.
 
     The single module-level ``RECON_SEARCH_FN = None`` assignment is the only
     write in shipped kit code; every other assignment site is a test file.
+    The adopted server threads it into ``make_engine`` (probe + delta) and
+    ``run_followups`` (delta) -- three read sites, zero writes.
     """
     server = _kit_server()
     src = inspect.getsource(server)
     assert src.count("RECON_SEARCH_FN = None") == 1
     assert src.count("RECON_SEARCH_FN =") == 1
     assert "search_fn=RECON_SEARCH_FN" in src
-    assert src.count("search_fn=RECON_SEARCH_FN") == 2  # probe + delta
+    assert src.count("search_fn=RECON_SEARCH_FN") == 3  # probe + delta x2
 
 
 def test_f02_injected_search_fn_never_touches_network(tmp_path, monkeypatch):
@@ -611,13 +706,22 @@ def test_g02_skill_helper_imports_wizard_directly_without_discovery():
     assert "NEXUS_HARNESS_SRC" not in src
 
 
-def test_g03_mcp_drives_same_engine_symbols():
-    """G03 [OBSERVED-KIT, SOURCE-TRACE]: MCP tools call the same engine fns."""
+def test_g03_mcp_drives_adapter_entry_points():
+    """G03 [ADOPTED-KIT, SOURCE-TRACE]: MCP tools call the adapter, not engine fns."""
     server = _kit_server()
-    assert "ReconEngine(" in inspect.getsource(server.recon_probe)
-    assert "distill_pool(" in inspect.getsource(server.recon_distill)
-    assert "distill_pool(" in inspect.getsource(server.recon_delta)
-    assert "execute_followups(" in inspect.getsource(server.recon_delta)
+    assert "_recon_adapter.make_engine(" in inspect.getsource(server.recon_probe)
+    assert "engine.probe(" in inspect.getsource(server.recon_probe)
+    assert "_recon_adapter.distill_terms(" in inspect.getsource(server.recon_distill)
+    assert "_recon_adapter.merge_lexicon(" in inspect.getsource(server.recon_distill)
+    assert "_recon_adapter.distill_terms(" in inspect.getsource(server.recon_delta)
+    assert "_recon_adapter.run_followups(" in inspect.getsource(server.recon_delta)
+    assert "_recon_adapter.pool_gate(" in inspect.getsource(server.recon_distill)
+    assert "_recon_adapter.topic_gate(" in inspect.getsource(server.recon_distill)
+    for fn in (server.recon_probe, server.recon_distill, server.recon_delta):
+        fn_src = inspect.getsource(fn)
+        assert "ReconEngine(" not in fn_src
+        assert "distill_pool(" not in fn_src
+        assert "execute_followups(" not in fn_src
 
 
 def test_g04_same_query_same_cache_key_across_engine_and_mcp(tmp_path, monkeypatch):
@@ -674,26 +778,54 @@ def test_g05_skill_helper_matches_wizard_directions():
 # ---------------------------------------------------------------------------
 
 
-def test_h01_missing_harness_escapes_envelope_as_typeerror(tmp_path, monkeypatch):
-    """H01 [OBSERVED-KIT]: ReconEngine=None -> uncaught TypeError (not envelope).
+def test_h01_missing_adapter_returns_typed_envelope(tmp_path, monkeypatch):
+    """H01 [ADOPTED-KIT]: adapter unavailable -> typed envelope, never TypeError.
 
-    The documented catch is ``(RuntimeError, ValueError, OSError)``; a
-    ``None(...)`` call raises TypeError OUTSIDE it.  Characterization only --
-    the adapter (A08) converts this class into a typed DependencyError.
+    Adoption fix for the retired failure mode (``ReconEngine=None`` raising
+    uncaught ``TypeError`` outside ``(RuntimeError, ValueError, OSError)``):
+    the tools guard on ``_recon_adapter is None`` FIRST, so even with
+    ``RECON_CACHE_ROOT=None`` no path is touched before the envelope reply.
     """
-    server = _kit_isolated(_kit_server(), monkeypatch, tmp_path)
-    monkeypatch.setattr(server, "ReconEngine", None)
-    with pytest.raises(TypeError):
-        server.recon_probe(topic="anything")
+    server = _kit_server()
+    saved = _saved_loader_state(server)
+    try:
+        _block_harness_imports(monkeypatch)
+        _reset_loader_state(server)
+        monkeypatch.setattr(server, "RECON_SEARCH_FN", _topic_search_fn)
+        try:
+            result = json.loads(server.recon_probe(topic="anything"))
+        except TypeError:
+            raise AssertionError("probe raised TypeError instead of typed envelope")
+        assert result["status"] == "error"
+        assert result["cache_key"] is None
+        assert "harness recon adapter unavailable" in result["message"]
+        assert "scholar_harness.recon.adapter" in result["message"]
+    finally:
+        _restore_loader_state(server, saved)
 
 
-def test_h02_missing_distill_symbol_escapes_envelope(tmp_path, monkeypatch):
-    """H02 [OBSERVED-KIT]: distill_pool=None -> uncaught TypeError on distill."""
-    server = _kit_isolated(_kit_server(), monkeypatch, tmp_path)
-    probe = json.loads(server.recon_probe(topic="edge inference"))
-    monkeypatch.setattr(server, "distill_pool", None)
-    with pytest.raises(TypeError):
-        server.recon_distill(session_id=probe["session_id"])
+def test_h02_missing_adapter_distill_returns_typed_envelope(tmp_path, monkeypatch):
+    """H02 [ADOPTED-KIT]: distill without adapter -> typed envelope, never TypeError."""
+    server = _kit_server()
+    saved = _saved_loader_state(server)
+    try:
+        _block_harness_imports(monkeypatch)
+        _reset_loader_state(server)
+        try:
+            result = json.loads(server.recon_distill(session_id="rec_abc123"))
+        except TypeError:
+            raise AssertionError("distill raised TypeError instead of typed envelope")
+        assert result["status"] == "error"
+        assert result["cache_key"] is None
+        assert "harness recon adapter unavailable" in result["message"]
+        try:
+            delta = json.loads(server.recon_delta(session_id="rec_abc123"))
+        except TypeError:
+            raise AssertionError("delta raised TypeError instead of typed envelope")
+        assert delta["status"] == "error"
+        assert delta["cache_key"] is None
+    finally:
+        _restore_loader_state(server, saved)
 
 
 def test_h03_none_cache_root_escapes_envelope_as_typeerror(tmp_path, monkeypatch):
@@ -703,9 +835,11 @@ def test_h03_none_cache_root_escapes_envelope_as_typeerror(tmp_path, monkeypatch
     NEXUS_RECON_ROOT"): the session helper ``_session_root`` divides the
     snapshot global directly (``RECON_CACHE_ROOT / "sessions"``), so a None
     snapshot raises TypeError OUTSIDE the documented envelope before the
-    engine (which *would* fall back) is ever constructed.  Only the engine
-    half degrades; the session half does not.  The adapter never snapshots:
-    ``resolve_cache_root`` always delegates live (A04/A05).
+    engine (which *would* fall back) is ever constructed.  Adoption keeps this
+    shape: the loader binds a live adapter root on every tool call, so ``None``
+    here is reachable only as a test-only post-load mutation of the module
+    global -- production always carries the adapter-resolved root.  The adapter
+    never snapshots: ``resolve_cache_root`` always delegates live (A04/A05).
     """
     server = _kit_server()
     target = tmp_path / "fallback"

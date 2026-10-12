@@ -198,10 +198,11 @@ GOLDEN_PREFIX = ("corpus_snapshot", "screening_batch", "screening_decisions")
 # commits this packet's harness limb is pinned to. These are the standing record
 # for E2-NEG-037: plugins.json, the vendored fixture, and the generated
 # metapackage pin must all name the same commit (E1's E1-NEG-030 blob-level
-# index/worktree comparison owns the deeper tree check).
+# index/worktree comparison owns the deeper tree check). HCM-05 unit 3 moved
+# the agent-kit record to its merged adapter-wiring commit with the tree.
 E2_KITS: tuple[tuple[str, str], ...] = (
     ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
-    ("scholar-agent-kit", "79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92"),
+    ("scholar-agent-kit", "50c0b3fbf52fc1a9768b219bc2e894d713eb38af"),
 )
 
 # The frozen Contract v1 registry keyset. Asserted exactly (not as a subset) so
