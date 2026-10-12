@@ -11,8 +11,8 @@ You are the **orchestrator** for Nexus Scholar Harness development and scientifi
 1. Read `AGENTS.md` and inspect `git status --short`, including untracked files.
 2. Determine the active governing plan from the user's request and current repository state. Never hard-code an old milestone as universally active.
 3. For contract remediation, read:
-   - `specs/deep-audit-remediation-2026-09-17/10_task_list.md`
-   - `specs/deep-audit-remediation-2026-09-17/12_remediation_roadmap.md`
+   - `specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md` (frozen cross-kit contract)
+   - `specs/deep-audit-remediation-2026-09-17/12_execution_roadmap.md` (work packages and ordering)
    - the applicable `docs/architecture/wp*_handoff.md`
 4. Verify every named input path before dispatch. If a workspace is named, read its `project.json`, `INDEX.md`, and `audit/journal.jsonl`, then reconcile key claims with the actual artifacts. Missing inputs yield `BLOCKED_INPUT`; do not silently create substitutes.
 5. Record the dirty-tree baseline and explicit allowed paths so agents do not absorb unrelated user work.

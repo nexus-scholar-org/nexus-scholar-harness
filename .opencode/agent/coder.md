@@ -24,7 +24,7 @@ You are the **coder** subagent for the Nexus Scholar Harness. Implement only the
 
 ### Contract-first work
 
-For work governed by `specs/deep-audit-remediation-2026-09-17/`, read `10_task_list.md`, `12_remediation_roadmap.md`, and the named work-package handoff. Treat the frozen contract schemas and golden two-study chain as normative.
+For work governed by `specs/deep-audit-remediation-2026-09-17/`, read `10_cross_kit_contracts.md`, `12_execution_roadmap.md`, and the named work-package handoff. Treat the frozen contract schemas and golden two-study chain as normative.
 
 - Do not weaken schemas or fixtures to make tests pass.
 - Preserve canonical identity, contract version, canonical JSON fingerprinting, parent hashes, screening-state semantics, and evidence-axis separation.
