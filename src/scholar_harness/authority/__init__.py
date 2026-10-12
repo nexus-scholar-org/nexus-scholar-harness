@@ -33,6 +33,18 @@ from scholar_harness.authority.binding import (
     record_override,
     verify_approval,
 )
+from scholar_harness.authority.lifecycle import (
+    DERIVED_OUTPUT_SCHEMA,
+    REFUSAL_RECORD_SCHEMA,
+    REVIEW_SNAPSHOT_SCHEMA,
+    DerivedOutputRecord,
+    ReviewSnapshot,
+    bind_derived_output,
+    capture_snapshot,
+    record_refusal,
+    supersede,
+    verify_derived,
+)
 
 __all__ = [
     "APPROVAL_CONTENT_CHANGED",
@@ -55,4 +67,14 @@ __all__ = [
     "promote",
     "record_override",
     "verify_approval",
+    "DERIVED_OUTPUT_SCHEMA",
+    "REFUSAL_RECORD_SCHEMA",
+    "REVIEW_SNAPSHOT_SCHEMA",
+    "DerivedOutputRecord",
+    "ReviewSnapshot",
+    "bind_derived_output",
+    "capture_snapshot",
+    "record_refusal",
+    "supersede",
+    "verify_derived",
 ]
