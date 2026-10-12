@@ -119,8 +119,7 @@ All active specifications and runtime components adhere to the Contract v1 stand
 
 ## 4. Historical Archive
 
-Historical sprint checklists, early draft data contracts, and implementation notes from earlier development cycles are preserved in [`specs/archive/`](./archive/README.md):
-
-- **[`INTER_PHASE_DATA_CONTRACT.md`](./archive/INTER_PHASE_DATA_CONTRACT.md):** Superseded early contract draft (September 2026).
-- **[`phase_0_refactoring/`](./archive/phase_0_refactoring/):** Historical refactoring plan for inception and test directories.
-- **[`phase_a_interoperability/`](./archive/phase_a_interoperability/) through [`phase_f_specialized_agents/`](./archive/phase_f_specialized_agents/):** Implementation sprint checklists for Phases A through F (merged in PR #34 and integrated into toolkits).
+Historic sprint checklists and early draft contracts (Phases A–F, the early
+`INTER_PHASE_DATA_CONTRACT.md`, and the phase-0 refactoring plans) were removed
+in the 2026-10-12 documentation consolidation and are recoverable from git
+history. No historical archive remains under `specs/`.

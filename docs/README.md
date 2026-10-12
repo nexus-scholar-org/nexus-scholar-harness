@@ -45,10 +45,13 @@ lifecycle map (Phases 0–7), the governance set, and the per-track folders.
 
 | Location | Contents |
 | :-- | :-- |
-| [`internal/`](./internal/README.md) | Internal audits, reviewer prompt templates, ecosystem analyses. |
-| [`internal/architecture/`](./internal/architecture/) | Completed pre-build design sets (phase_0, phase_5 blueprint, phase_6) and the superseded `v1_analysis` snapshot. |
-| [`specs/archive/`](../specs/archive/README.md) | Historical sprint checklists (Phases A–F) and early draft contracts. |
+| [`internal/`](./internal/README.md) | The remaining internal record: `COMMIT_SNAPSHOTS.md`, the consolidation plan, one externally-cited analysis. |
 | [`specs/exploratory-grounding-agent/`](../specs/exploratory-grounding-agent/README.md) | Complete/historical inception recon spec (M0.1–M0.7; tasks all closed). |
+
+> Historical audits, ecosystem analyses, pre-build phase design sets (`phase_0`,
+> `phase_5` blueprint, `phase_6`), the `v1_analysis` snapshot, and
+> `specs/archive/` were removed in the 2026-10-12 consolidation; recoverable
+> from git history.
 
 ## 6. Formal specifications
 

@@ -2,7 +2,7 @@
 
 This directory holds the **live** architecture, governance, and per-track design
 records for the Nexus Scholar ecosystem. Completed pre-build design sets and
-superseded analysis live under [`../internal/architecture/`](../internal/architecture/).
+superseded analysis were removed in the 2026-10-12 consolidation (recoverable from git history).
 
 ## Active work — WP program + three tracks
 
@@ -27,13 +27,13 @@ Each track folder carries its own `README.md` entrypoint and, where relevant, an
 
 | Phase | Subsystem | Location / Package | Status | Role & Contract |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 0** | Socratic Inception & Protocol Schema | [`../internal/architecture/phase_0/`](../internal/architecture/phase_0/README.md) | **Implemented** | Interactive methodology interview, 4-way refraction grid, boundary grill, deterministic `protocol.json` compilation. |
+| **Phase 0** | Socratic Inception & Protocol Schema | `scholar_harness.inception` | **Implemented** | Interactive methodology interview, 4-way refraction grid, boundary grill, deterministic `protocol.json` compilation. |
 | **Phase 1** | Federated Literature Discovery | `tools/scholar-search-kit` | **Implemented** | Multi-source academic search (OpenAlex, Crossref, Semantic Scholar, PubMed, arXiv, bioRxiv) and PID deduplication. |
 | **Phase 2** | PRISMA Screening & OA Harvest | `tools/scholar-pdf-kit` | **Implemented** | Agent-in-the-loop screening decisions, open-access PDF harvesting, structured layout/text extraction. |
 | **Phase 3** | Extraction, AST RAG & Knowledge Graphs | `tools/scholar-rag-kit` & `scholar-graph-kit` | **Implemented** | Structural AST chunking, PageRank-boosted hybrid retrieval, citation knowledge network construction. |
 | **Phase 4** | Trust & Verification Layer | `tools/scholar-verify-kit` | **Implemented** | Retraction checking, open-science DAS/CAS scans, COI auditing, risk-of-bias scoring, verbatim claim verification. |
 | **Phase 5** | Harness Console | [`./phase_5/SPECS.md`](./phase_5/SPECS.md) (live spec); blueprint archived | **Design Complete** | Local-first web UI for human-in-the-loop review, DAG execution, conflict adjudication. |
-| **Phase 6** | Scientific Trust Bridge | [`../internal/architecture/phase_6/`](../internal/architecture/phase_6/README.md) | **Implemented** | Cryptographic verification, Creator Mode presets, multi-agent harness bridges. |
+| **Phase 6** | Scientific Trust Bridge | shipped (spec removed) | **Implemented** | Cryptographic verification, Creator Mode presets, multi-agent harness bridges. |
 | **Phase 7** | Bench-Portable Distribution | [`phase_7_distribution/`](./phase_7_distribution/README.md) | **Shipped v1.0.0** | Universal `nexus-scholar` metapackage, zero-friction `uvx` / `pip` installation, portable workspace CLI. |
 
 > **Why are Phases 1–4 not separate documentation folders here?** They are the
@@ -54,10 +54,9 @@ Each track folder carries its own `README.md` entrypoint and, where relevant, an
 
 ## Historical archive
 
-Completed pre-build design and a superseded analysis snapshot live under
-[`../internal/architecture/`](../internal/architecture/) — **historical; do not
-cite as current:** `phase_0/`, `phase_5/` (blueprint), `phase_6/`,
-`v1_analysis/`.
+Removed in the 2026-10-12 consolidation, recoverable from git history: the
+pre-build design sets (`phase_0/`, `phase_5/` blueprint, `phase_6/`) and the
+`v1_analysis/` snapshot.
 
 ---
 
