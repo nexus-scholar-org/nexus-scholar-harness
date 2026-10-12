@@ -1,8 +1,8 @@
 # Docs & Specs Consolidation Plan (2026-10-12)
 
-**Status:** PHASES 1–4 EXECUTED 2026-10-12 (see §9 Execution log). Phase 5
-(contract-locked `.opencode` broken-link repairs) remains deferred — it requires
-contract-baseline regeneration and an explicit version decision.
+**Status:** PHASES 1–4 + the archive purge EXECUTED 2026-10-12 (see §9 Execution
+log). Phase 5 (contract-locked `.opencode` broken-link repairs) remains deferred —
+it requires contract-baseline regeneration and an explicit version decision.
 
 **Owner intent.** The `docs/` and `specs/` trees have accumulated stale
 historical text and a newcomer finds them overwhelming. The active work is the
@@ -324,4 +324,32 @@ Archive / Specifications).
   link cascade; it is re-pointed from the new index.
 - `inception_recon_scientific_review.md` stays in the architecture root: it is
   a live review cited by the AG set, not an archive record.
+
+### 2026-10-12 — archive purge (branch `docs/consolidation-archive-purge`)
+
+Owner authorized deleting the remaining archives and old phases. Removed
+**41 files / ~17,400 lines** (all recoverable from git history):
+
+- `docs/internal/architecture/`: `v1_analysis/` (4), `phase_0/` (6),
+  `phase_5/` blueprint (4), `phase_6/` (1), `v2_planning_spec.md`,
+  `tooling-refresh/` (2).
+- `docs/internal/audits/` (3), `docs/internal/review_prompts/` (1).
+- `docs/internal/ecosystem/`: `NEXUS_ECOSYSTEM_ANALYSIS.md`,
+  `NEXUS_HARNESS_SYNTHESIS.md`, `NEXUS_PHP_ANALYSIS.md`.
+- `specs/archive/` (16 — the executed Phase A–F sprint checklists + early draft
+  contract).
+
+**Retained exception:** `docs/internal/ecosystem/NEXUS_MASTER_SPECIFICATION.md`
+is cited by a kit source comment
+(`tools/scholar-search-kit/src/scholar_search/completeness.py`); deleting it
+would orphan that comment, which can only be fixed in the kit repo.
+
+**Referrers updated:** `docs/README.md` §5, `docs/architecture/README.md`
+(intro + Phase 0/6 rows + historical-archive section), `docs/UPCOMING_WORK.md`
+(4 links), `specs/README.md` §4, `specs/exploratory-grounding-agent/README.md`
++ `01_problem_definition.md`, `docs/internal/README.md`.
+
+Result: `docs/internal/` = `README.md`, `COMMIT_SNAPSHOTS.md`, this plan, and one
+externally-cited analysis; `specs/` = the normative remediation set + the live
+domain series. No historical archive folders remain.
 
