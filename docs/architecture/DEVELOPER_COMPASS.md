@@ -47,6 +47,15 @@ The frozen contract itself remains governed by
 
 ## 2. The non-negotiable mental model
 
+**Agent controls:** AG-01 readiness is delivered and AG-02 single-screener
+integrity merged in PR #106 (`0a701c7`). The researcher approved a protected
+local publisher with restricted scientific worker on 2026-10-12. Next is
+[AG-03A deployment feasibility](ag-03a-protected-publisher-feasibility.md),
+not another AG-01 assessment. Authorization remains unproven until its host
+boundary passes. See the [current plan](agent_controls_plan.md) and
+[UAV provisional pilot](../../workspaces/uav-crop-weed-reliability/README.md).
+HCM close-out remains a separate track; preserve contract and toolkit boundaries.
+
 The harness does not merely pass files between tools. It accepts immutable,
 typed scientific artifacts connected by verifiable lineage.
 
@@ -115,7 +124,7 @@ an authoritative artifact.
 | Acceptance and atomic publication | `src/scholar_harness/contracts/acceptance.py` |
 | Packet C behavior | `docs/architecture/wp01_packet_c_reference.md` |
 | Packet E1 implementation-ready handoff | `docs/architecture/wp01_packet_e1_acquired_document_handoff.md` |
-| Screening authorization readiness (AG-01 design; BLOCKED_AUTHORITY_MODEL + AG-02 packet) | `docs/architecture/ag-01-authorization-readiness.md` |
+| Screening authority history (AG-01); current selected-model handoff is AG-03A | `docs/architecture/ag-01-authorization-readiness.md` |
 | Packet E1 completion evidence | `docs/architecture/wp01_packet_e1_completion_report.md` |
 | Historical Packet A–E definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
 | Screening producer | `src/scholar_harness/screening/batcher.py` |
