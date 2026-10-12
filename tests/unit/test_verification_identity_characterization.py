@@ -20,8 +20,9 @@ Evidence labels used per test:
                          without production edits (STOP condition).
 
 Covers VEI-01..VEI-10. See
-``docs/architecture/harness-core-modularity/archive/hcm_04e_verification_identity_decision.md`` for the
-decision record (Status: CHARACTERIZED -- AWAITING POLICY DECISION).
+``docs/architecture/harness-core-modularity/README.md`` (Completion record) for the
+decision record (Status: IMPLEMENTED POLICY -- Option B, bridge-or-refuse; the
+original packet remains in git history).
 """
 
 from __future__ import annotations

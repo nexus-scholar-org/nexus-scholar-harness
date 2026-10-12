@@ -104,7 +104,7 @@ Register scope: this register lists system-level findings and their owning
 specifications. Per-kit details, line-level evidence, and additional confirmed
 defects (e.g. search exports/lineage, PDF Docling metadata loss, bib resolver
 semantics, graph "Louvain" naming, protocol `golden_seeds`, agent recon anchoring)
-are enumerated in `15_deep_audit_report.md` and the owning kit specifications.
+are enumerated here and in the owning kit specifications.
 Severities assigned here are authoritative over the informal ordering in the
 audit report.
 

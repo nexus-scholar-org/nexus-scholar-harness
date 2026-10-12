@@ -135,7 +135,7 @@ while the scientific contract remains the single governing boundary.
 
 ## 8. Agent-control handoff (updated 2026-10-12)
 
-[AG-01 readiness](../agent-controls/archive/ag-01-authorization-readiness.md) and AG-02 integrity are
+AG-01 readiness and AG-02 integrity (see the AG completion record) are
 merged. The researcher approved the protected publisher/restricted worker;
 [AG-03A feasibility](../agent-controls/ag-03a-protected-publisher-feasibility.md) is next under
 the [current plan](../agent-controls/agent_controls_plan.md). Keep its implementation separate

@@ -5,7 +5,7 @@
 **Owner:** Nexus Scholar Harness
 **Execution plan:** [Post-HCM agent-control plan](agent_controls_plan.md)
 
-**Current assessment:** [Post-AG-02 reassessment](archive/agent_layer_reassessment_2026-10-12.md).
+**Current assessment:** the post-AG-02 reassessment (historical; summarized in this folder's README completion record).
 AG-01 readiness and AG-02 have advanced since this original decision. Preserve
 the decisions below as target invariants; do not interpret them as all implemented.
 The researcher subsequently selected this model in this chat on 2026-10-12.
@@ -14,7 +14,7 @@ the remaining feasibility gate. Approval of the direction is not proof of isolat
 
 ## Context and evidence
 
-[AG-00](archive/agent_control_enforcement_map.md) inspected commit `1c4255e` and
+AG-00 (historical; see the completion record) inspected commit `1c4255e` and
 identified strong technical acceptance/parent controls but no separate
 authorization boundary in the inspected screening collection path. It also
 identified unresolved-to-excluded coercion, incomplete coverage, duplicate

@@ -10,7 +10,7 @@ AG-01 readiness and AG-02 integrity are delivered in merged [PR #106](https://gi
 merge `0a701c786b9a610606722a6c44d70fcddd4c58cb`. Nine PR checks passed.
 The AG-01 evidence ledger records 1175 passed, 6 skipped, zero failed at its
 final candidate. These are dated release records, not a suite rerun claim.
-[AG-00](archive/agent_control_enforcement_map.md) and the [post-AG-02 reassessment](archive/agent_layer_reassessment_2026-10-12.md)
+AG-00 and the post-AG-02 reassessment (both historical; summarized in this folder's README completion record)
 remain historical evidence. This current plan supersedes their next-action text.
 
 The researcher approved the protected local publisher/restricted scientific
@@ -32,12 +32,10 @@ authority mechanism has been proven. The remaining block is
 | AG-05 | Queued | Held-out scientific evaluation after calibration; measured error/correction/time/bias and proceed/revise/stop decision. |
 | AG-06/07 | Deferred | Charting then synthesis require separate evidence-based decisions. |
 
-HCM-05 remains a separate close-out track. Its inspected unit-1 record says the
-harness adapter is complete while canonical-kit consumption is pending. Refresh
-that status at handoff rather than overriding another active task. Finish or
-explicitly defer the kit unit, pins/vendor sync, packaging gates, and conditional
-HCM-06. AG-03A design and research preparation can proceed independently; keep
-runtime diffs separate and refresh owner paths after HCM integration.
+HCM-05 is complete: the harness adapter **and** canonical agent-kit integration
+are adopted (PR #107 merged; kit pins/vendored snapshot synchronized). Next is
+the conditional HCM-06 gating. AG-03A design and research preparation can proceed
+independently; keep runtime diffs separate.
 
 ## Non-negotiable completion criteria
 

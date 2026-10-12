@@ -25,7 +25,7 @@ The governing objective is:
 
 | Document | Owner boundary | Primary concerns |
 |---|---|---|
-| [00_system_scope_and_findings.md](00_system_scope_and_findings.md) | Entire system | Evidence baseline, severity model, invariants, exclusions |
+| [00_system_scope_and_findings.md](00_system_scope_and_findings.md) | Entire system | Evidence baseline, severity model, invariants, exclusions; enumerates the confirmed findings and their owning kit specifications |
 | [01_harness_spec.md](01_harness_spec.md) | `src/scholar_harness` | Orchestration, screening gate, DAG execution, audit, console |
 | [02_search_kit_spec.md](02_search_kit_spec.md) | `scholar-search-kit` | Discovery outcomes, lossless records, transitive dedup, retries |
 | [03_pdf_kit_spec.md](03_pdf_kit_spec.md) | `scholar-pdf-kit` | Download validation, extraction truthfulness, metadata, atomicity |
@@ -40,8 +40,12 @@ The governing objective is:
 | [12_execution_roadmap.md](12_execution_roadmap.md) | Delivery program | Work packages, dependencies, gates, repository ownership |
 | [13_scientific_agent_loop_framework.md](13_scientific_agent_loop_framework.md) | Scientific orchestration | Reusable loop schema, states, safety and audit rules |
 | [14_scientific_agent_loop_catalog.md](14_scientific_agent_loop_catalog.md) | Scientific workflows | Proposed task-oriented compositions of kits and agent capabilities |
-| [15_deep_audit_report.md](15_deep_audit_report.md) | Audit evidence | Consolidated source review, validation evidence, and confirmed findings |
-| [16_publication_strategy.md](16_publication_strategy.md) | Advisory (non-normative) | Scientific-contribution framing, evaluation/benchmark plan, venue strategy, fact-check appendix |
+
+The dated audit report (`15_deep_audit_report.md`) and the advisory publication
+strategy (`16_publication_strategy.md`) were removed in the 2026-10-12
+consolidation; the confirmed findings and their owners live in
+`00_system_scope_and_findings.md` and the kit specifications below, and the raw
+audit remains in git history.
 
 ## Authority and interpretation
 
