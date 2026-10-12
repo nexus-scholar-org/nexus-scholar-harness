@@ -1915,6 +1915,12 @@ extensions beyond the new files, and their reasons, are recorded here and in
 - Carried-over debt: the `docs/architecture/research_ui/README.md` doc gap and
   the `select_test_gate.py` no-task gap (§7.4) still apply; both remain outside
   this packet's allowed paths.
+  **Resolution note (maintenance packet UI-04a):** the *active* pointers to the
+  retired `docs/architecture/research_ui/` README now all target files that
+  exist — see `## Maintenance — UI-04a` at the end of this file for the
+  before/after list and proofs. This historical line and the `:1712` finding
+  above stay as recorded; the `select_test_gate.py` half of the gap is not
+  addressed by UI-04a and remains open.
 
 ### 8.7 Acceptance map (A1-A9)
 
@@ -1935,3 +1941,168 @@ Line numbers are from this working tree.
 Packet-level negative cases map to A6 and A7; the packet's Gate line
 ("keyboard-only flow, validation states, and disabled mutation test") maps to
 A3, A4 and A5.
+
+## Maintenance — UI-04a (docs pointers + test-harness warnings)
+
+Maintenance bookkeeping, deliberately **not** numbered as a packet section so it
+does not consume the §9 slot reserved for UI-05. Branch
+`chore/ui-04a-docs-pointers-test-warnings` off main `38c89bc`; the governance
+move `0fe5315` relocated GATES/I18N/UI-01C/UI-01D/VISUAL_DIRECTION into
+`apps/research-ui/docs/` and added `AGENT_WORK_PACKETS.md`, but never retargeted
+the agent-facing pointers. Two issues, both cleared here.
+
+### Issue 1 — dangling pointer fixes (before → after)
+
+| File:line | Before | After |
+|---|---|---|
+| `apps/research-ui/AGENTS.md:28` (rule 1) | the retired `docs/architecture/research_ui/` README pointer (absent from every git revision) | assigned packet `docs/architecture/research_ui/AGENT_WORK_PACKETS.md`, this directory's `README.md`, the governance set `apps/research-ui/docs/` (`GATES.md`, `VISUAL_DIRECTION.md`, `I18N.md`), capsule rules `docs/architecture/agent_context_protocol.md` |
+| `apps/research-ui/README.md:61` | same retired README pointer | `AGENT_WORK_PACKETS.md` + this directory's `docs/` set + this directory's `AGENTS.md` |
+| `apps/research-ui/README.md:32` | link target `VISUAL_DIRECTION.md` (file lives under `docs/`) | `](docs/VISUAL_DIRECTION.md)` |
+| `apps/research-ui/README.md:23`, `:25` | bare `GATES.md` ×2 | `docs/GATES.md` ×2 |
+| `docs/architecture/research_ui/AGENT_WORK_PACKETS.md:39`, `:153` | `apps/research-ui/GATES.md` (wrong; moved to `docs/`) | `apps/research-ui/docs/GATES.md` |
+| `docs/architecture/research_ui/AGENT_WORK_PACKETS.md:312` (small-agent prompt) | `Read apps/research-ui/AGENTS.md and [the retired research_ui/ README pointer — the rule-1 row above] first.` | `Read apps/research-ui/AGENTS.md, apps/research-ui/README.md, and the governance set under apps/research-ui/docs/ (GATES.md, VISUAL_DIRECTION.md, I18N.md) first.` |
+
+**Judgment on `AGENT_WORK_PACKETS.md:47/:109/:162` — unchanged.** Those three
+lines are deliverable prose, not load-pointers: "1. `VISUAL_DIRECTION.md`
+containing …", "tie each one to `VISUAL_DIRECTION.md`", "1. `I18N.md` records …".
+Each basename is already resolved to its full path in the same document's scope
+lists seven/eleven lines above (`:40` → `apps/research-ui/docs/VISUAL_DIRECTION.md`,
+`:154` → `apps/research-ui/docs/I18N.md`), so no reader following them reaches a
+nonexistent path.
+
+Pointer-closure proofs (after, commands run from the repo root):
+
+```
+$ rg -c 'research_ui[/]README' -g '!node_modules'
+apps\research-ui\docs\UI-04_CONTEXT_CAPSULE.md:1
+apps\research-ui\docs\UI-03_CONTEXT_CAPSULE.md:1
+apps\research-ui\docs\UI-01D_WORK_PACKET.md:4
+apps\research-ui\docs\GATES.md:2
+apps\research-ui\docs\UI-01C_WORK_PACKET.md:4
+exit: 0   # every remaining hit is a frozen historical record (:1712 finding, :1915
+          # debt line, UI-01C/UI-01D conformance records, UI-03/UI-04 capsules)
+
+$ rg -c 'research_ui[/]README' apps/research-ui/AGENTS.md apps/research-ui/README.md docs/architecture/research_ui/AGENT_WORK_PACKETS.md
+(no output)
+exit: 1
+
+$ rg -n 'apps/research-ui/GATES\.md' docs/architecture/research_ui/AGENT_WORK_PACKETS.md
+(no output)
+exit: 1
+
+$ Test-Path  # every retarget target
+Test-Path docs\architecture\research_ui\AGENT_WORK_PACKETS.md = True
+Test-Path apps\research-ui\README.md = True
+Test-Path apps\research-ui\docs\GATES.md = True
+Test-Path apps\research-ui\docs\VISUAL_DIRECTION.md = True
+Test-Path apps\research-ui\docs\I18N.md = True
+Test-Path docs\architecture\agent_context_protocol.md = True
+Test-Path apps\research-ui\AGENTS.md = True
+
+$ git ls-files docs/architecture/research_ui/AGENT_WORK_PACKETS.md
+docs/architecture/research_ui/AGENT_WORK_PACKETS.md
+```
+
+### Issue 2 — the three React test-harness warnings
+
+**Chosen route: (a) structural — no suppression exists anywhere.** The five
+render sites that mount `LocaleDocument` (`tests/i18n-render.test.tsx`
+`renderDocument` + `englishChromeIn`, `tests/home-page.test.tsx` `renderRoute`
++ the locale-loop render, `tests/keyboard-traversal.test.tsx`) now pass
+`{ container: document }` to RTL's `render`. Justification, in code comments at
+each site: React validates a root `<html>` against its **container's** tag —
+`isTagValidWithParent` in `react-dom` accepts `<html>` only as a child of
+`#document` in an implicit root scope (or with no host parent), so RTL's default
+`<div>` container made React log the warning even though
+`resolveSingletonInstance` then maps `<html>`/`<head>`/`<body>` onto the real
+document; a Document is a legal React root container (`isValidContainer` accepts
+nodeType 9) and seeds exactly the `#document` parent context a real layout
+render has. The two i18n-render helpers also call `cleanup()` first because RTL's
+per-render `unmount()` leaves the shared container registered and the next mount
+would otherwise reuse an unmounted root — the file's own `render hygiene` test
+already exercised that unmount→cleanup sequence, so the path was proven safe
+before it was relied on. No assertion, test name, or count moved; route (b) was
+not needed, and `tests/setup.ts` is untouched (negative case 2):
+
+```
+$ rg -n 'console' apps/research-ui/tests/setup.ts
+(no output)
+exit: 1
+$ git status --short -- apps/research-ui/tests/setup.ts apps/research-ui/tests/setup.test.ts
+(no output)
+```
+
+Warning count **before** — `npx vitest run --reporter=verbose 2>&1 |
+Select-String "cannot be a child"`, run on the pre-fix tree (this cycle's
+baseline, verbatim):
+
+```
+In HTML, <html> cannot be a child of <div>.
+In HTML, <html> cannot be a child of <div>.
+In HTML, <html> cannot be a child of <div>.
+count: 3
+```
+
+The orchestrator's verbose reproduction (packet evidence) attributes the three,
+one per file, to: `tests/i18n-render.test.tsx > document attributes > declares
+the locale's own lang and dir on the html element`, `tests/keyboard-traversal.test.tsx
+> keyboard traversal > routes the real locale page through the shell: … (en)`,
+`tests/home-page.test.tsx > locale route demonstration-data guard > shows the
+literal Demonstration data label from the shell (en)` — i.e. each file's first
+`LocaleDocument` mount, matching React's per-file once-only warning dedup.
+
+Warning count **after** — same command:
+
+```
+$ npx vitest run --reporter=verbose 2>&1 | Select-String "cannot be a child"
+(no output)
+warning hits: 0
+```
+
+### Totals after the fix (this cycle, verbatim)
+
+```
+$ npm run typecheck
+typecheck exit: 0
+
+$ npx vitest run --reporter=verbose
+ warning hits: 0
+ Test Files  13 passed (13)
+      Tests  216 passed (216)
+exit: 0
+
+$ npm run build
+exit: 0
+Route (app)
+┌ ○ /_not-found
+├   /[locale]
+│ ├ ● /en
+│ ├ ● /fr
+│ └ ● /ar
+└   /[locale]/screening
+  ├ ● /en/screening
+  ├ ● /fr/screening
+  └ ● /ar/screening
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+```
+
+Totals are unchanged from the UI-04 baseline (216/13, typecheck 0): route (a)
+added no test, so there is no count delta to explain. Assertion-preservation
+proof for the three test files:
+
+```
+$ git diff -U0 -- <the three test files> | rg '^-\s*(expect\(|it\(|describe\()'
+(no output)
+exit: 1
+$ git diff --stat -- <the three test files>
+ apps/research-ui/tests/home-page.test.tsx          | 12 +++++++++-
+ apps/research-ui/tests/i18n-render.test.tsx        | 28 +++++++++++++++++++++++
+ apps/research-ui/tests/keyboard-traversal.test.tsx  | 7 ++++++
+ 3 files changed, 46 insertions(+), 1 deletion(-)
+```
+
+The single deleted line is home-page's one-sentence `renderRoute` doc comment,
+replaced by its expanded justification; every `expect`/`it`/`describe` line
+survives byte-identical (exit 1 above).

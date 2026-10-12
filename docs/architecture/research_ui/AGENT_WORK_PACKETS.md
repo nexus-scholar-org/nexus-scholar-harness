@@ -36,7 +36,7 @@ path from a research claim back through evidence and provenance.
 - `apps/research-ui/components/evidence-chain.tsx`
 - UI tests and browser tests that directly cover those files
 - `apps/research-ui/screenshots/`
-- `apps/research-ui/README.md` and `apps/research-ui/GATES.md`
+- `apps/research-ui/README.md` and `apps/research-ui/docs/GATES.md`
 - `apps/research-ui/docs/VISUAL_DIRECTION.md` (new)
 
 Any additional path requires a written scope-extension reason before editing.
@@ -150,7 +150,7 @@ must be marked as demonstration translations in developer documentation.
 - UI component and browser tests directly covering internationalization
 - `apps/research-ui/package.json` and `package-lock.json` only if the selected
   internationalization library requires them
-- `apps/research-ui/README.md`, `apps/research-ui/GATES.md`, and screenshots
+- `apps/research-ui/README.md`, `apps/research-ui/docs/GATES.md`, and screenshots
 - `apps/research-ui/docs/I18N.md` (new)
 
 Any additional path requires a written scope-extension reason before editing.
@@ -309,7 +309,7 @@ authoritative research artifacts.
 
 ```text
 Work only on packet UI-0N from docs/architecture/research_ui/AGENT_WORK_PACKETS.md.
-Read apps/research-ui/AGENTS.md and docs/architecture/research_ui/README.md first.
+Read apps/research-ui/AGENTS.md, apps/research-ui/README.md, and the governance set under apps/research-ui/docs/ (GATES.md, VISUAL_DIRECTION.md, I18N.md) first.
 Stay inside the packet's allowed paths. Use presentation-only mock data and keep
 the Demonstration data label visible. Do not edit Python, contracts, tools, pins,
 workspaces, audit files, or E3 documents. Do not invent identifiers or acceptance
