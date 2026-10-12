@@ -1,5 +1,15 @@
 # AG-01 — Authorization Boundary for Agent-Assisted Screening Publication: Readiness and Enforceability Design
 
+> Current routing (2026-10-12): AG-02 merged in PR #106 at `0a701c7`;
+> its local release evidence records 1175 passed and 6 skipped, with nine
+> successful PR checks. The researcher has selected the protected publisher
+> model. Continue with [AG-03A](ag-03a-protected-publisher-feasibility.md);
+> authority **enforcement** remains unproven. Packet-era status and observations
+> below are historical. Technically accepted decision artifacts retain their
+> Contract v1 meaning; human authorization is not attested. The AG direction
+> documents are included in this planning branch, superseding the historical
+> primary-untracked routing note. See [current plan](agent_controls_plan.md).
+
 ```yaml
 task: AG-01-authorization-readiness
 delivery_lane: FAST
