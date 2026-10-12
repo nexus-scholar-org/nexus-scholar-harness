@@ -25,7 +25,7 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 
 ## Implementation rules
 
-1. Read `docs/architecture/research_ui/README.md`, the assigned work packet, and the active task context capsule from `docs/architecture/agent_context_protocol.md`.
+1. Read the assigned work packet (`docs/architecture/research_ui/AGENT_WORK_PACKETS.md`), this directory's `README.md`, the governance set under `apps/research-ui/docs/` (`GATES.md`, `VISUAL_DIRECTION.md`, `I18N.md`), and the active task context capsule rules from `docs/architecture/agent_context_protocol.md`.
 2. Work on exactly one screen or cross-cutting UI primitive.
 3. Search Tailwind Plus by capability; adapt only the component needed.
 4. Use semantic HTML, keyboard navigation, visible focus, and text labels in addition to color.

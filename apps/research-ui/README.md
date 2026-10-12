@@ -20,16 +20,16 @@ reviewable. `npm run test` runs the component/unit suite in-process with Vitest
 on jsdom; it needs no server and no browser. `npm run dev` starts the Next.js
 development server for manual inspection and is not used by the test run.
 
-What the test suite does and does not prove is recorded in `GATES.md`. Real
+What the test suite does and does not prove is recorded in `docs/GATES.md`. Real
 browser verification (screenshots, 375px/1440px rendering, axe on rendered CSS)
-runs separately via `npm run test:browser`; `GATES.md` §3 is the authoritative
+runs separately via `npm run test:browser`; `docs/GATES.md` §3 is the authoritative
 record of what it measured and what is still open.
 
 Do not commit `node_modules/` or `.next/`; both are ignored.
 
 ## Visual direction
 
-[`VISUAL_DIRECTION.md`](VISUAL_DIRECTION.md) is the design system of record for
+[`VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md) is the design system of record for
 this application — product character, six named principles, the semantic palette
 roles, the two typeface roles, spacing and radius rules, provenance treatment,
 and use/avoid patterns. Read it before changing anything visual; UI-02 through
@@ -58,4 +58,6 @@ Two constraints that are easy to undo by accident:
 - Keep mock/demo data visibly labelled.
 - Treat rejection and uncertainty as first-class visible states.
 
-See `docs/architecture/research_ui/README.md` and this directory's `AGENTS.md` before implementation.
+See `docs/architecture/research_ui/AGENT_WORK_PACKETS.md`, the governance set under
+this directory's `docs/` (`GATES.md`, `VISUAL_DIRECTION.md`, `I18N.md`), and this
+directory's `AGENTS.md` before implementation.

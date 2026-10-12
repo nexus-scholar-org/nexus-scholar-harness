@@ -28,12 +28,35 @@ vi.mock("next/navigation", () => ({
   usePathname: () => currentPath,
 }));
 
+/**
+ * Mount with `container: document`, not RTL's default `<div>`.
+ *
+ * UI-04a, route (a): React validates a root `<html>` against its **container's**
+ * tag — `isTagValidWithParent` in `react-dom` accepts `<html>` only as a child
+ * of `#document` in an implicit root scope (or with no host parent), so RTL's
+ * default div container emitted `In HTML, <html> cannot be a child of <div>.`
+ * once per file even though React then resolves the `<html>`/`<head>`/`<body>`
+ * singletons onto the real document (the hoisting measured below is real; the
+ * warning is about the container React was asked to mount into). A Document is
+ * a legal React root container (`isValidContainer` accepts nodeType 9), so
+ * mounting there matches what the layout actually does and the warning is gone
+ * without touching one assertion: `document.documentElement` reads and
+ * `document.body` scopes resolve to the same elements as before.
+ */
 function renderDocument(locale: Locale) {
+  // The document container is shared, so reset RTL's bookkeeping first: its
+  // per-render `unmount()` unmounts the root but leaves the container registered,
+  // and the next render would reuse the unmounted root ("Cannot update an
+  // unmounted root"). `cleanup()` drops the stale entry and this mount starts
+  // from a fresh root. (The file's `render hygiene` test already runs that
+  // unmount -> cleanup sequence today, so double-unmount is a proven-safe path.)
+  cleanup();
   currentPath = `/${locale}`;
   return render(
     <LocaleDocument locale={locale}>
       <OverviewPage locale={locale} />
     </LocaleDocument>,
+    { container: document },
   );
 }
 
@@ -108,10 +131,15 @@ afterEach(() => {
  * A sentence matching no pattern is chrome that exists only in English.
  */
 function englishChromeIn(locale: Locale): string[] {
+  // `container: document` for the same reason as `renderDocument` above: this
+  // renders `LocaleDocument`, whose root `<html>` is invalid under RTL's div.
+  // `cleanup()` first for the same bookkeeping reason as well.
+  cleanup();
   render(
     <LocaleDocument locale={locale}>
       <OverviewPage locale={locale} />
     </LocaleDocument>,
+    { container: document },
   );
 
   const copy = renderedBody().cloneNode(true) as HTMLElement;

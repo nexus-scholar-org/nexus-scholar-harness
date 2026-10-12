@@ -16,12 +16,21 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/en",
 }));
 
-/** Renders the real English locale route: document plus overview page. */
+/**
+ * Renders the real English locale route: document plus overview page.
+ *
+ * Mounted with `container: document` (UI-04a route a): `<html>` is only valid
+ * as a child of `#document`, and RTL's default `<div>` container made React log
+ * `In HTML, <html> cannot be a child of <div>.` for every file that renders
+ * `LocaleDocument`. A Document is a legal React root container, the tree still
+ * lands on the real `documentElement`/`document.body`, and no assertion moves.
+ */
 function renderRoute() {
   return render(
     <LocaleDocument locale="en">
       <OverviewPage locale="en" />
     </LocaleDocument>,
+    { container: document },
   );
 }
 
@@ -52,6 +61,7 @@ describe("locale route demonstration-data guard", () => {
         <LocaleDocument locale={locale}>
           <OverviewPage locale={locale} />
         </LocaleDocument>,
+        { container: document },
       );
 
       expect(screen.getByText(CATALOGS[locale]["safety.demoDataLabel"])).toBeInTheDocument();

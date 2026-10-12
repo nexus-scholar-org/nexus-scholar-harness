@@ -165,10 +165,17 @@ describe("keyboard traversal", () => {
       // proves that.
       const user = userEvent.setup();
       currentPath = `/${locale}`;
+      // `container: document` (UI-04a route a): `<html>` is only valid as a
+      // child of `#document`, and RTL's default `<div>` container made React
+      // log `In HTML, <html> cannot be a child of <div>.` for this file. A
+      // Document is a legal React root container; the tree still lands on the
+      // real `document.body` this test already scopes to, and no assertion or
+      // test name changes.
       const { unmount } = render(
         <LocaleDocument locale={locale}>
           <OverviewPage locale={locale} />
         </LocaleDocument>,
+        { container: document },
       );
 
       const focusable = Array.from(document.body.querySelectorAll(FOCUSABLE));
