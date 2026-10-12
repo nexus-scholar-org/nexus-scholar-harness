@@ -14,9 +14,9 @@ AG-00 and the post-AG-02 reassessment (both historical; summarized in this folde
 remain historical evidence. This current plan supersedes their next-action text.
 
 The researcher approved the protected local publisher/restricted scientific
-worker on 2026-10-12 and authorized initializing the UAV protocol. No runtime
-authority mechanism has been proven. The remaining block is
-`BLOCKED_AUTHORITY_ENFORCEMENT`, not an unselected architecture direction.
+worker on 2026-10-12 and authorized initializing the UAV protocol. AG-03A is
+FEASIBILITY_PROVEN for the Windows MIC disposable flow (see the AG-03A packet
+result); POSIX remains unproven and AG-03B/C remain open.
 
 ## Ordered work
 
@@ -25,7 +25,7 @@ authority mechanism has been proven. The remaining block is
 | AG-00 | Assessment retained | Historical code-inspection map preserved. |
 | AG-01 | Readiness delivered | Its unresolved host authority question now routes to AG-03A. |
 | AG-02 | Merged, bounded integrity | Single-screener coverage/duplicates/unresolved/hash/freshness gates; no authority claim. |
-| AG-03A | NEXT; model approved, feasibility unproven | Real deployment proves restricted worker cannot approve, impersonate operator, modify publisher, or overwrite final state. |
+| AG-03A | FEASIBILITY_PROVEN (Windows MIC disposable flow); POSIX unproven | Windows MIC proves the restricted worker cannot approve, impersonate the operator, modify publisher state, or overwrite final output; POSIX arrangement still unproven. Next: AG-03B. |
 | AG-03B | Queued | Same-buffer parse/hash, immutable recommendations, evidence references, reviewer overrides and explicit supersession. |
 | AG-03C | Queued | Shared authorization gate before final acceptance, coherent publication generations, downstream currentness and crash/audit/race/retry proofs. |
 | AG-04 | Queued | One screening worker and minimal review interaction using the proven publisher. |
