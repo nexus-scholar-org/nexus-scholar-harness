@@ -189,7 +189,7 @@ uv run ruff check scripts/ # CI-scoped lint (this is the lint gate)
 ## Documentation
 
 - **Docs index:** [`docs/README.md`](docs/README.md) — roadmap/backlog, Phase-0 design specs, future-phase design sets, operational notes, spec-series pointer.
-- **Architecture & program docs:** [`docs/architecture/`](docs/architecture) — per-track folders (`agent-controls`, `harness-core-modularity`, `wp01`, `research_ui`, `decisions`), the lifecycle map, and the contract set; [`phase_5/SPECS.md`](docs/architecture/phase_5/SPECS.md) (Harness Console `PipelineSpec`), [`phase_7`](docs/architecture/phase_7_distribution) (distribution).
+- **Architecture & program docs:** [`docs/architecture/`](docs/architecture) — per-track folders (`agent-controls`, `harness-core-modularity`, `wp01`, `research_ui`, `decisions`, `console`), the lifecycle map, and the contract set.
 - **Spec series:** [`specs/`](specs/) — [`deep-audit-remediation-2026-09-17/`](specs/deep-audit-remediation-2026-09-17/) (Contract v1 & system roadmap) · [`exploratory-grounding-agent/`](specs/exploratory-grounding-agent/) (literature recon) · [`inception-ecosystem/`](specs/inception-ecosystem/) (skill stack) · [`handoff/`](specs/handoff/) (pipeline state machine)
 - **Kit surfaces:** [`docs/kits_surface_matrix.md`](docs/kits_surface_matrix.md) — agent-facing API/CLI/MCP map of all eight kits, with known-broken tooling and cross-kit contracts.
 - **Roadmap & backlog:** [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)

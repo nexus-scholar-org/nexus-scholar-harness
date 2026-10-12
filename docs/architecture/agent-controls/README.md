@@ -12,14 +12,34 @@ block is `BLOCKED_AUTHORITY_ENFORCEMENT`.
 | [`agent_controls_decision.md`](./agent_controls_decision.md) | Approved architecture decision (target invariants). |
 | [`ag-03a-protected-publisher-feasibility.md`](./ag-03a-protected-publisher-feasibility.md) | **Next packet**: protected local publisher model — approved, feasibility unproven. |
 
-## Archive (dated records, superseded next-actions)
+## Completion record (AG-00 … AG-02)
 
-| Document | Note |
-|---|---|
-| [`archive/ag-01-authorization-readiness.md`](./archive/ag-01-authorization-readiness.md) | Readiness delivered; its unresolved host-authority question routes to AG-03A. |
-| [`archive/ag-02-screening-decision-integrity-packet.md`](./archive/ag-02-screening-decision-integrity-packet.md) | Merged PR #106 closure record (single-screener integrity; no authority claim). |
-| [`archive/agent_control_enforcement_map.md`](./archive/agent_control_enforcement_map.md) | AG-00 code-inspection map (historical evidence). |
-| [`archive/agent_layer_reassessment_2026-10-12.md`](./archive/agent_layer_reassessment_2026-10-12.md) | Post-AG-02 reassessment (historical). |
+Dated packet documents were removed in the 2026-10-12 consolidation; the
+must-survive facts are here and the originals remain in git history.
 
-Do not cite archive entries as current status; the plan supersedes their
-next-action text. Runtime work stays RELEASE-lane with independent review.
+| Packet | Outcome | Evidence |
+|---|---|---|
+| **AG-00** — enforcement map (assessment) | Code-inspection map of every refusal/blocked path, cited by `file:line` at inspected commit `1c4255e`. Retained as evidence, not behaviour tests. | `1c4255e` |
+| **AG-01** — authorization readiness | Delivered. Verdict for AG-03: **`BLOCKED_AUTHORITY_MODEL`** — no authority model was selected or enforced. Evidence ledger recorded (test/doc citations, integrity-only claims). | PR #105 base |
+| **AG-02** — screening decision integrity | **Merged** — single-path, fail-closed integrity gates: exact per-screener coverage, duplicate rejection, unresolved preservation (`MAYBE`/`CONFLICT` are **not** coerced), parent/hash/freshness binding on the decisions collector. | PR #106, merge `0a701c7`; suite 1175 passed / 6 skipped |
+
+**Integrity guarantees introduced by AG-02** (all typed, fail-closed, tested):
+
+- `COVERAGE_INCOMPLETE` — a decision file missing an assigned study is refused, not accepted.
+- `DUPLICATE_ENTRY` — duplicate study decisions are refused.
+- `UNRESOLVED_FINALIZE_REFUSED` — finalising with unresolved `MAYBE`/`CONFLICT` is refused.
+- Parent binding: `prepare` binds the protocol/corpus fingerprint; `collect` re-binds to
+  registry-resolved parents (never the handoff text) and raises before writing on mismatch.
+
+**Unresolved limitations (do not overclaim):**
+
+1. **Authority enforcement is unproven.** AG-02 proves workflow integrity for one
+   screener path — it is not human authorization. Next: AG-03A.
+2. **Tamper-evidence ≠ authorization.** A hash says *which* bytes, never *who* approved;
+   a filesystem-privileged actor can still rewrite the registry and defeat replay detection.
+3. Residual notes carried from AG-01/AG-02: alias canonicalisation and `accepted_at`
+   string ordering; the handoff's embedded protocol summary is unaudited display text.
+
+Do not cite the removed packet files as current status; use this record and
+[`agent_controls_plan.md`](./agent_controls_plan.md).
+

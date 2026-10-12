@@ -1,7 +1,8 @@
 """AG-01 characterization: what the screening handoff enforces today.
 
 Read-only behavioral evidence for
-``docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md``. Every test below
+``docs/architecture/agent-controls/README.md`` (Completion record; the original
+AG-01 packet remains in git history). Every test below
 demonstrates CURRENT harness behavior on synthetic ``tmp_path`` workspaces —
 no real research workspace is touched, no production behavior is changed, and
 no test asserts an authorization property the harness does not have.

@@ -15,7 +15,6 @@ graph TD
     Root --> Grounding["exploratory-grounding-agent/<br/><b>(Grounded Literature Reconnaissance)</b>"]
     Root --> Ecosystem["inception-ecosystem/<br/><b>(Skill Boundaries & Distribution)</b>"]
     Root --> Handoff["handoff/<br/><b>(Agent Handoff State Machine)</b>"]
-    Root --> Archive["archive/<br/><b>(Historical Sprints & Superseded Drafts)</b>"]
 
     DeepAudit --> Contracts["10_cross_kit_contracts.md<br/><i>Frozen Contract v1 Baseline</i>"]
     DeepAudit --> Kits["01..09 Kit Specifications"]
@@ -57,8 +56,6 @@ Translates the comprehensive 2026-09-17 system audit findings into strict, testa
 | [**`12_execution_roadmap.md`**](./deep-audit-remediation-2026-09-17/12_execution_roadmap.md) | Delivery Program | Delivery gates G0..G3, dependency order, work packages WP-00..WP-14 |
 | [`13_scientific_agent_loop_framework.md`](./deep-audit-remediation-2026-09-17/13_scientific_agent_loop_framework.md) | Orchestration Engine | Reusable multi-role loop schema, doer-critic contract, state persistence |
 | [`14_scientific_agent_loop_catalog.md`](./deep-audit-remediation-2026-09-17/14_scientific_agent_loop_catalog.md) | Agent Catalog | Concrete scientific agent workflows (dual-screening, deep extraction, audit) |
-| [`15_deep_audit_report.md`](./deep-audit-remediation-2026-09-17/15_deep_audit_report.md) | Audit Evidence | Consolidated codebase audit findings, severity metrics, and architectural risk |
-| [`16_publication_strategy.md`](./deep-audit-remediation-2026-09-17/16_publication_strategy.md) | Academic Strategy | Empirical benchmark plan, research contribution framing, venue target analysis |
 
 ---
 
@@ -112,8 +109,8 @@ All active specifications and runtime components adhere to the Contract v1 stand
 2. **Standardized Envelopes:**
    - All inter-kit artifacts are serialized using `ArtifactEnvelope` v1, capturing producer metadata, protocol fingerprints, and typed payloads.
    - Operations report status via `OperationOutcome` v1, ensuring partial failures and provider errors remain explicitly structured rather than silently swallowed.
-3. **Audit Ledger Immutability:**
-   - Every state-altering action appends a cryptographically traceable event to `audit/journal.jsonl` within the workspace.
+3. **Audit Ledger Append-Only:**
+   - Every state-altering action appends a timestamped event to `audit/journal.jsonl` within the workspace. The journal is append-only by convention and carries event ids/actors; it is **not** cryptographically protected (no signatures or hash chain) unless a workspace adds them.
 
 ---
 

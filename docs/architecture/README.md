@@ -32,9 +32,9 @@ Each track folder carries its own `README.md` entrypoint and, where relevant, an
 | **Phase 2** | PRISMA Screening & OA Harvest | `tools/scholar-pdf-kit` | **Implemented** | Agent-in-the-loop screening decisions, open-access PDF harvesting, structured layout/text extraction. |
 | **Phase 3** | Extraction, AST RAG & Knowledge Graphs | `tools/scholar-rag-kit` & `scholar-graph-kit` | **Implemented** | Structural AST chunking, PageRank-boosted hybrid retrieval, citation knowledge network construction. |
 | **Phase 4** | Trust & Verification Layer | `tools/scholar-verify-kit` | **Implemented** | Retraction checking, open-science DAS/CAS scans, COI auditing, risk-of-bias scoring, verbatim claim verification. |
-| **Phase 5** | Harness Console | [`./phase_5/SPECS.md`](./phase_5/SPECS.md) (live spec); blueprint archived | **Design Complete** | Local-first web UI for human-in-the-loop review, DAG execution, conflict adjudication. |
-| **Phase 6** | Scientific Trust Bridge | shipped (spec removed) | **Implemented** | Cryptographic verification, Creator Mode presets, multi-agent harness bridges. |
-| **Phase 7** | Bench-Portable Distribution | [`phase_7_distribution/`](./phase_7_distribution/README.md) | **Shipped v1.0.0** | Universal `nexus-scholar` metapackage, zero-friction `uvx` / `pip` installation, portable workspace CLI. |
+| **Phase 5** | Harness Console | [`./console/SPECS.md`](./console/SPECS.md) (live `PipelineSpec` contract) | **Design Complete** | Local-first web UI for human-in-the-loop review, DAG execution, conflict adjudication. |
+| **Phase 6** | Scientific Trust Bridge | `tools/scholar-verify-kit` (+ harness) | **Implemented** | Retraction/trust verification, Creator Mode presets, external multi-agent harness bridges. |
+| **Phase 7** | Bench-Portable Distribution | [User Guide](../nexus_scholar_user_guide.md) (the blueprint was removed) | **Shipped v1.0.0** | Universal `nexus-scholar` metapackage, zero-friction `uvx` / `pip` installation, portable workspace CLI. |
 
 > **Why are Phases 1–4 not separate documentation folders here?** They are the
 > core computational pipeline, packaged as the eight modular kits under `tools/`
@@ -49,8 +49,7 @@ Each track folder carries its own `README.md` entrypoint and, where relevant, an
 | [`research_ui/`](./research_ui/README.md) | UI spec of record (`AGENT_WORK_PACKETS.md`). |
 | [`wp01/`](./wp01/README.md) | WP-01 delivery archive (E1–E4 packets + closure). |
 | [`decisions/`](./decisions/README.md) | Non-contract architecture decisions (ADRs). |
-| [`phase_5/`](./phase_5/SPECS.md) | Live console `PipelineSpec` contract. |
-| [`phase_7_distribution/`](./phase_7_distribution/README.md) | Shipped distribution blueprint and gap-analysis checklist. |
+| [`console/`](./console/SPECS.md) | Live console `PipelineSpec` contract. |
 
 ## Historical archive
 

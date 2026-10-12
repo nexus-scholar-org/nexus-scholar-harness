@@ -124,7 +124,7 @@ an authoritative artifact.
 | Acceptance and atomic publication | `src/scholar_harness/contracts/acceptance.py` |
 | Packet C behavior | `docs/architecture/wp01_packet_c_reference.md` |
 | Packet E1 implementation-ready handoff | `docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md` |
-| Screening authority history (AG-01); current selected-model handoff is AG-03A | `docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md` |
+| Screening authority history (AG-01); current selected-model handoff is AG-03A | `docs/architecture/agent-controls/README.md` (completion record) |
 | Packet E1 completion evidence | `docs/architecture/wp01/wp01_packet_e1_completion_report.md` |
 | Historical Packet A–E definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
 | Screening producer | `src/scholar_harness/screening/batcher.py` |
