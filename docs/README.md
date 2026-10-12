@@ -1,48 +1,56 @@
 # Documentation Index
 
-Authoritative index of the Nexus Scholar Harness documentation, architectural design sets, and technical specifications.
+Authoritative index of the Nexus Scholar Harness documentation. If you are new
+here, read this page first; it tells you which of the two trees (`docs/` for
+system and program documentation, [`specs/`](../specs/README.md) for formal
+specifications) to look in, and which parts are **current** versus **historical**.
 
-## 1. User & Getting Started Guides
+## 1. Start here
 
-| Guide | Description |
+| Document | Description |
 | :-- | :-- |
-| [**User Guide** (`nexus_scholar_user_guide.md`)](./nexus_scholar_user_guide.md) | Comprehensive usage guide: installation (`uvx` / `pip`), workspace initialization, MCP server setup, doctor health-checks, audit logging, and troubleshooting. |
-| [**Project Landing Page** (`README.md`)](../README.md) | Ecosystem overview, four-command quickstart, architecture flow, and package release links. |
+| [**Developer Compass**](./architecture/DEVELOPER_COMPASS.md) | **Developer entrypoint.** Current program status, packet routing, gates, and prohibited shortcuts. |
+| [**User Guide**](./nexus_scholar_user_guide.md) | Installation (`uvx` / `pip`), workspace initialization, MCP setup, `doctor`, audit logging, troubleshooting. |
+| [**Project Landing Page**](../README.md) | Ecosystem overview, four-command quickstart, architecture flow, release links. |
 
-## 2. Technical References & Roadmap
+## 2. Current program — WP + three tracks
 
-| Document | State | Description |
+The active work. Each entry is an entrypoint, not a record.
+
+| Track | Entrypoint | Status |
 | :-- | :-- | :-- |
-| [**Roadmap & Backlog** (`UPCOMING_WORK.md`)](./UPCOMING_WORK.md) | **Live** | Consolidated outstanding work, milestone tracking, and prioritized feature backlog. |
-| [**Kit Surface Matrix** (`kits_surface_matrix.md`)](./kits_surface_matrix.md) | **Active** | Technical API · CLI · MCP reference across all eight scholar kits: tool signatures, flags, behaviors, cross-kit contracts, and environment variables. |
+| **WP — Contract v1 adoption** | [Contract baseline](./architecture/contract_v1_baseline.md), [cross-kit contract](./architecture/cross_kit_contract_v1.md), [WP-01 archive](./architecture/wp01/README.md) | WP-01 delivered (qualified); remaining work packages open. The contract set is **contract-locked**. |
+| **HCM — harness core modularity** | [`harness-core-modularity/README.md`](./architecture/harness-core-modularity/README.md) | Active; HCM-05 close-out, next = HCM-06 gating. |
+| **AG — agent controls** | [`agent-controls/README.md`](./architecture/agent-controls/README.md) | Next packet AG-03A; **authority enforcement unproven**. |
+| **UI — research-ui** | [`research_ui/README.md`](./architecture/research_ui/README.md) + [`apps/research-ui/`](../apps/research-ui/README.md) | UI-04 shipped; UI-05/06 and the `NOT_VERIFIED` items open. |
 
-## 3. Architecture & Phase Design Sets
+Delivery lanes, gate selection, and test policy: [test gate policy](./architecture/test_gate_policy.md).
+Backlog and milestone history: [Roadmap](./UPCOMING_WORK.md).
+Formal specifications for the program: [`specs/deep-audit-remediation-2026-09-17/`](../specs/deep-audit-remediation-2026-09-17/README.md).
 
-See [**`architecture/README.md`**](./architecture/README.md) for the master lifecycle architecture map (Phases 0 through 7).
+## 3. System architecture
 
-| Phase Design Set | Scope | Status |
-| :-- | :-- | :-- |
-| [**Phase 0: Socratic Inception** (`phase_0/`)](./architecture/phase_0/README.md) | Protocol schema specification, Socratic inception interview, and `protocol.json` contract. | **Implemented** |
-| [**Phase 5: Harness Console** (`phase_5/`)](./architecture/phase_5/README.md) | Architecture for the thin, agent-agnostic local-first UI and `PipelineSpec` DAG executor. | **Design Complete** |
-| [**Phase 6: Scientific Trust Bridge** (`phase_6/`)](./architecture/phase_6/README.md) | Verifiable provenance, claim verification, conflict adjudication, and external harness integrations. | **Active / Hardening** |
-| [**Phase 7: Bench-Portable Distribution** (`phase_7_distribution/`)](./architecture/phase_7_distribution/README.md) | Zero-friction portable distribution via `nexus-scholar` umbrella package, universal MCP server, and CLI tools. | **Shipped v1.0.0** (PyPI & GitHub) |
+See [**`architecture/README.md`**](./architecture/README.md) for the master
+lifecycle map (Phases 0–7), the governance set, and the per-track folders.
 
-## 4. Formal Specifications Series
+## 4. Reference
 
-See [**`specs/README.md`**](../specs/README.md) for the master specification architecture and authority hierarchy.
-
-| Specification | Scope |
+| Document | Description |
 | :-- | :-- |
-| [**Contract v1 & Deep-Audit Remediation Program** (`specs/deep-audit-remediation-2026-09-17/`)](../specs/deep-audit-remediation-2026-09-17/README.md) | **Normative Baseline:** Cross-kit Contract v1, work packages WP-00..WP-14, test plan, and scientific agent loop catalog. |
-| [**Grounded Exploratory Inception Agent** (`specs/exploratory-grounding-agent/`)](../specs/exploratory-grounding-agent/README.md) | Pre-protocol exploratory literature reconnaissance, empirical taxonomy distillation, and saturation scoring. |
-| [**Inception Skill Ecosystem** (`specs/inception-ecosystem/`)](../specs/inception-ecosystem/README.md) | Inception skill stack boundaries, handoffs, and skill-tree/plugin-bundle distribution policy. |
-| [**Agent Handoff Protocol** (`specs/handoff/`)](../specs/handoff/README.md) | File-based state machine and supervisor loop advancing workspaces across systematic review phases. |
-| **Domain Agent Skills** (`.agents/skills/<kit>/SKILL.md`) | Verified agent skills (`scholar-search`, `scholar-pdf`, `scholar-rag`, `inception-agent`, `methodology-copilot`, `workspace-manager`, etc.). |
+| [**Kit Surface Matrix**](./kits_surface_matrix.md) | Technical API · CLI · MCP reference across all eight scholar kits (tool signatures, flags, cross-kit contracts, env vars). Read before driving kit CLIs. |
+| [**Commit Snapshots**](./internal/COMMIT_SNAPSHOTS.md) | Historical workspace snapshot markers for restoring previous workspace test data. |
+| [User Guide](./nexus_scholar_user_guide.md) | Also linked under "Start here". |
 
-## 5. Internal Development & Archival Records
+## 5. Archive — historical, do not cite as current
 
-Historical adversarial audits, AI reviewer prompt templates, and ecosystem analyses are organized under [**`internal/`**](./internal/README.md):
-- **[`internal/audits/`](./internal/audits/)**: Internal adversarial review reports and scorecards.
-- **[`internal/review_prompts/`](./internal/review_prompts/)**: Internal reviewer agent prompt templates.
-- **[`internal/ecosystem/`](./internal/ecosystem/)**: Deep-dive architectural analyses across related repositories.
-- **[`internal/COMMIT_SNAPSHOTS.md`](./internal/COMMIT_SNAPSHOTS.md)**: Historical workspace snapshot markers for restoring previous workspace test data.
+| Location | Contents |
+| :-- | :-- |
+| [`internal/`](./internal/README.md) | Internal audits, reviewer prompt templates, ecosystem analyses. |
+| [`internal/architecture/`](./internal/architecture/) | Completed pre-build design sets (phase_0, phase_5 blueprint, phase_6) and the superseded `v1_analysis` snapshot. |
+| [`specs/archive/`](../specs/archive/README.md) | Historical sprint checklists (Phases A–F) and early draft contracts. |
+| [`specs/exploratory-grounding-agent/`](../specs/exploratory-grounding-agent/README.md) | Complete/historical inception recon spec (M0.1–M0.7; tasks all closed). |
+
+## 6. Formal specifications
+
+See [**`specs/README.md`**](../specs/README.md) for the specification hierarchy
+and governing authority (Contract v1, kit specs, execution roadmap, domain series).

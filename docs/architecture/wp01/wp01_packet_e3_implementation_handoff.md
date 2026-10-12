@@ -2,14 +2,14 @@
 
 - **Status:** `SPECIFICATION` — this document authorizes **no** runtime change.
   Runtime coding waits until this handoff is independently reviewed and merged
-  (readiness baseline §11, `docs/architecture/wp01_packet_e3_readiness_baseline.md:241-244`).
+  (readiness baseline §11, `docs/architecture/wp01/wp01_packet_e3_readiness_baseline.md:241-244`).
 - **Architecture owner:** Harness Contract v1
 - **Implementation owner:** canonical `nexus-scholar-org/scholar-rag-kit`
 - **Declared MCP boundary owner:** canonical `nexus-scholar-org/scholar-agent-kit`
   (declaration/rejection adapter only)
 - **Current RAG-kit pin:** `f108fa897147f4c837760c81b558d1b82a044fdf` (merge of canonical PR #12, `fix/e3-identity-limbs-through-chroma-store`; superseded pin `033191eff967abf19023b258539c9a1422c8747f` is pre-fix and is retained here only as that PR's base)
 - **Current agent-kit pin:** `79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92`
-- **Governing readiness baseline:** `docs/architecture/wp01_packet_e3_readiness_baseline.md`
+- **Governing readiness baseline:** `docs/architecture/wp01/wp01_packet_e3_readiness_baseline.md`
 - **Normative requirement source:** `specs/deep-audit-remediation-2026-09-17/05_rag_kit_spec.md:54-74`
   (`RAG-001`…`RAG-021`), `specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md:134`
 - **Citation convention:** every `path/to/file.py:NN` reference in this
@@ -58,8 +58,8 @@ makes evidence-unit identity provable — and the packet that must not make it
    normative requirement source; §1.2 allocates rows to E3 and names the rows
    that stay with later packets. §1.2 never *weakens* a requirement — a
    deferred row is deferred, not deleted.
-5. E1 (`docs/architecture/wp01_packet_e1_acquired_document_handoff.md`) and E2
-   (`docs/architecture/wp01_packet_e2_extracted_text_handoff.md`) are unchanged
+5. E1 (`docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md`) and E2
+   (`docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md`) are unchanged
    and remain authoritative for acquisition and extraction.
 
 ### 1.1 Frozen-contract boundary (no schema change)
@@ -140,7 +140,7 @@ canonical RAG-kit PR (§12 step 2).
 E2 allocated its own boundary and E3 inherits it unchanged:
 
 1. **"No chunking, embedding, indexing, retrieval, or chunk IDs — that is E3"**
-   (`docs/architecture/wp01_packet_e2_extracted_text_handoff.md:269`). E2
+   (`docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md:269`). E2
    therefore owns no chunk, embedder, collection, or `CHK-` behavior, and E3
    claims none of E2's engine/provenance behavior.
 2. **"Chunk-level usefulness scoring is E3"** (E2 `:137`, allocating PDF-008) and
@@ -171,7 +171,7 @@ E2 allocated its own boundary and E3 inherits it unchanged:
    that lacks an accepted E2 `document_manifest` is a refusal, not a default.
 6. **E2's non-scope is inherited**: E3 does not re-litigate extraction
    usefulness thresholds, engine chains, frontmatter binding, or PDF provenance
-   (`docs/architecture/wp01_packet_e2_extracted_text_handoff.md:267-289`).
+   (`docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md:267-289`).
 
 ### 1.4 Indexing behavior at the pinned revisions (pre-fix characterization)
 
@@ -485,7 +485,7 @@ VisibleChunk {
 ```
 
 `IndexDocumentStatus` is a **kit-sidecar per-document** status following the
-E1/E2 per-item convention (`docs/architecture/wp01_packet_e2_extracted_text_handoff.md:557-576`):
+E1/E2 per-item convention (`docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md:557-576`):
 `INDEXED` (staged, embedded, visible), `REUSED` (an exact, parent-bound,
 configuration-bound re-index returned the committed set unchanged), `PARTIAL`
 (indexed, degraded, and therefore carrying a non-empty `detail` that names the
@@ -986,7 +986,7 @@ from scholar_harness.contracts.canonical import (
     canonical_fingerprint as fp, canonical_json_bytes, deterministic_id)
 from scholar_harness.contracts.identifiers import IdentifierKind
 
-doc = pathlib.Path("docs/architecture/wp01_packet_e3_implementation_handoff.md")
+doc = pathlib.Path("docs/architecture/wp01/wp01_packet_e3_implementation_handoff.md")
 blocks = re.findall(r"```json\n(.*?)\n```", doc.read_text(encoding="utf-8"), re.S)
 m = json.loads(next(b for b in blocks if '"manifest_id"' in b))
 raw_input = next(b for b in blocks if '"parent_artifact_id"' in b)

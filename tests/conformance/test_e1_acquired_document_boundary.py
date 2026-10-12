@@ -1,7 +1,7 @@
 """WP01-E1 acquired-document boundary conformance (harness limbs).
 
 Covers the three harness-side acceptance rows of Packet E1 -- Acquired-Document
-Boundary (``docs/architecture/wp01_packet_e1_acquired_document_handoff.md``
+Boundary (``docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md``
 §10.2), each of which is a *harness* obligation rather than a kit obligation:
 
 ``E1-NEG-030`` sync/packaging drift

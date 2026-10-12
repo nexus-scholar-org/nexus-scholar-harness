@@ -866,7 +866,7 @@ Used to calibrate evaluation gates (QEI thresholds, pool sufficiency, topical co
 ### 9.1 Documentation Gaps Identified
 
 1. **Phase 5 Console Implementation Status:**
-   - docs/architecture/phase_5/README.md (line 3) says "Planning" but the audit report (harness_vision_report.md, line 27) notes that serve.py, job_runner.py, ctions.py, and API routers are already implemented. The docs lag the code.
+   - docs/internal/architecture/phase_5/README.md (line 3) says "Planning" but the audit report (harness_vision_report.md, line 27) notes that serve.py, job_runner.py, ctions.py, and API routers are already implemented. The docs lag the code.
 
 2. **Kit-Level Documentation:**
    - Phases 1-4 are documented only in kits_surface_matrix.md. Individual kit READMEs exist in 	ools/*/ but are not indexed in the main docs.

@@ -1,6 +1,6 @@
 """WP01-E2 extracted-text boundary conformance (harness limbs).
 
-Packet E2 (``docs/architecture/wp01_packet_e2_extracted_text_handoff.md`` §10.1.7
+Packet E2 (``docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md`` §10.1.7
 / §14.1) draws a hard line: the *behavioral* proofs of extraction live in the
 canonical ``scholar-pdf-kit`` and ``scholar-agent-kit`` suites, and the harness
 enforces only its own **cross-repository** obligations. A green run of this file
@@ -1554,7 +1554,7 @@ def test_e2_neg_020_e2_does_not_broaden_the_e1_acquisition_declaration() -> None
     The kit now declares three capabilities, because E3-008 adopts the
     declared-unsupported ``rag_indexing`` capability (owner: the canonical
     ``nexus-scholar-org/scholar-rag-kit``; ``mcp_supported: false``; see
-    ``docs/architecture/wp01_packet_e3_implementation_handoff.md``). That third
+    ``docs/architecture/wp01/wp01_packet_e3_implementation_handoff.md``). That third
     entry is a separate E3 declaration for a different domain service, not a
     broadening of ``pdf_acquisition`` or ``pdf_extraction``.
 
@@ -1898,7 +1898,11 @@ SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
 DOC_HANDOFF = (
-    REPO_ROOT / "docs" / "architecture" / "wp01_packet_e2_extracted_text_handoff.md"
+    REPO_ROOT
+    / "docs"
+    / "architecture"
+    / "wp01"
+    / "wp01_packet_e2_extracted_text_handoff.md"
 )
 
 DOC_SKILL_PDF = SKILLS_CANONICAL / "scholar-pdf-kit" / "SKILL.md"

@@ -1,6 +1,6 @@
 """E4 sealed golden fixture builder + seal check (harness-owned test code only).
 
-Packet E4 (``docs/architecture/wp01_packet_e4_negative_proof_handoff.md``) needs
+Packet E4 (``docs/architecture/wp01/wp01_packet_e4_negative_proof_handoff.md``) needs
 one small deterministic fixture workspace that already holds a complete,
 accepted E1 -> E2 -> E3 chain.  Individual mutation tests copy this sealed
 source tree to ``tmp_path``; no test ever mutates the sealed source.

@@ -1,6 +1,6 @@
 # Phase 5 — Specifications (Harness Console)
 
-> **Status:** Planning | **Version:** 1.0.0 (PipelineSpec schema `0.1.0`) | Companion docs: [`README.md`](./README.md) · [`BLUEPRINT.md`](./BLUEPRINT.md) · [`PLAN.md`](./PLAN.md)
+> **Status:** Planning | **Version:** 1.0.0 (PipelineSpec schema `0.1.0`) | Companion docs: [`README.md`](../../internal/architecture/phase_5/README.md) · [`BLUEPRINT.md`](../../internal/architecture/phase_5/BLUEPRINT.md) · [`PLAN.md`](../../internal/architecture/phase_5/PLAN.md)
 
 ## 1. Console package layout (target)
 

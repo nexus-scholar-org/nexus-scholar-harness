@@ -10,7 +10,7 @@ AG-01 readiness and AG-02 integrity are delivered in merged [PR #106](https://gi
 merge `0a701c786b9a610606722a6c44d70fcddd4c58cb`. Nine PR checks passed.
 The AG-01 evidence ledger records 1175 passed, 6 skipped, zero failed at its
 final candidate. These are dated release records, not a suite rerun claim.
-[AG-00](agent_control_enforcement_map.md) and the [post-AG-02 reassessment](agent_layer_reassessment_2026-10-12.md)
+[AG-00](archive/agent_control_enforcement_map.md) and the [post-AG-02 reassessment](archive/agent_layer_reassessment_2026-10-12.md)
 remain historical evidence. This current plan supersedes their next-action text.
 
 The researcher approved the protected local publisher/restricted scientific
@@ -59,7 +59,7 @@ runtime diffs separate and refresh owner paths after HCM integration.
 
 ## Research pilot
 
-The [UAV crop/weed reliability workspace](../../workspaces/uav-crop-weed-reliability/README.md)
+The [UAV crop/weed reliability workspace](../../../workspaces/uav-crop-weed-reliability/README.md)
 is initialized with a provisional compiled protocol, not a searched or screened
 corpus. Scope: UAV crop/weed mapping, charting spectral degradation, sensor
 differences, temporal evaluation, uncertainty, and independent validation units.

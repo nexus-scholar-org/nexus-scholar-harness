@@ -338,7 +338,7 @@ Scope (bounded, one PR):
 
 - `git status --short` shows ONLY the two allowed new paths:
   `tests/unit/test_verification_identity_characterization.py` and
-  `docs/architecture/hcm_04e_verification_identity_decision.md`.
+  `docs/architecture/harness-core-modularity/archive/hcm_04e_verification_identity_decision.md`.
 - No `src/**`, `tools/**`, pins/packaging/locks, schemas/fixtures/baseline,
   UI, workspace/audit, or primary-checkout changes. Verified via
   `git diff --name-only` (two files) + `git diff --check`.

@@ -1,6 +1,6 @@
 # Phase 5 — Plan: Milestones, Scope, Sequencing
 
-> **Status:** Planning | Companion docs: [`README.md`](./README.md) · [`BLUEPRINT.md`](./BLUEPRINT.md) · [`SPECS.md`](./SPECS.md)
+> **Status:** Planning | Companion docs: [`README.md`](./README.md) · [`BLUEPRINT.md`](./BLUEPRINT.md) · [`SPECS.md`](../../../architecture/phase_5/SPECS.md)
 
 ## 1. Guiding principles
 

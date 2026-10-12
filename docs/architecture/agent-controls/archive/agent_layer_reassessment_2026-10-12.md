@@ -2,8 +2,8 @@
 
 > Historical assessment before the researcher's subsequent approval on the same
 > date. The protected publisher/restricted worker is now selected; its enforcement
-> remains unproven. Use [AG-03A](ag-03a-protected-publisher-feasibility.md) and the
-> [current plan](agent_controls_plan.md) for status and next actions. Unselected-model
+> remains unproven. Use [AG-03A](../ag-03a-protected-publisher-feasibility.md) and the
+> [current plan](../agent_controls_plan.md) for status and next actions. Unselected-model
 > and primary-untracked statements below describe the assessment-time state.
 
 **Date:** 2026-10-12
@@ -21,9 +21,9 @@ owner_repo: nexus-scholar-org/nexus-scholar-harness
 base_sha: 0a701c786b9a610606722a6c44d70fcddd4c58cb
 head_sha: 070b448 (primary checkout; not updated)
 allowed_paths:
-  - docs/architecture/agent_layer_reassessment_2026-10-12.md
-  - docs/architecture/agent_controls_plan.md
-  - docs/architecture/agent_controls_decision.md
+  - docs/architecture/agent-controls/archive/agent_layer_reassessment_2026-10-12.md
+  - docs/architecture/agent-controls/agent_controls_plan.md
+  - docs/architecture/agent-controls/agent_controls_decision.md
 immutable_boundaries: [contracts, baseline, tools, primary-Git-state, other-local-edits]
 acceptance_ids: [AG-STATUS-REFRESH, AG-AUTHORITY-PROPOSAL, AG-NEXT-PACKETS]
 open_findings: [authority-model-unselected, plan-not-canonical, runtime-limits-below]
@@ -40,9 +40,9 @@ evidence:
     result: main behind origin/main by eight commits; 14 pre-existing dirty/untracked paths
 next_gate: docs validation; authority decision then bounded feasibility proof
 stable_sources:
-  - docs/architecture/ag-01-authorization-readiness.md@0a701c7
-  - docs/architecture/ag-02-screening-decision-integrity-packet.md@0a701c7
-  - docs/architecture/hcm_05_mcp_recon_adapter_characterization.md@0a701c7
+  - docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md@0a701c7
+  - docs/architecture/agent-controls/archive/ag-02-screening-decision-integrity-packet.md@0a701c7
+  - docs/architecture/harness-core-modularity/hcm_05_mcp_recon_adapter_characterization.md@0a701c7
   - docs/architecture/test_gate_policy.md@070b448
 ```
 
@@ -52,8 +52,8 @@ local release evidence, not a suite rerun here. The nine checks above are PR
 checks, not a claim that a separate merge-commit CI run was inspected.
 
 Immutable source links: [PR #106](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/106),
-[AG-01 ADR](https://github.com/nexus-scholar-org/nexus-scholar-harness/blob/0a701c786b9a610606722a6c44d70fcddd4c58cb/docs/architecture/ag-01-authorization-readiness.md),
-[AG-02 packet](https://github.com/nexus-scholar-org/nexus-scholar-harness/blob/0a701c786b9a610606722a6c44d70fcddd4c58cb/docs/architecture/ag-02-screening-decision-integrity-packet.md).
+[AG-01 ADR](https://github.com/nexus-scholar-org/nexus-scholar-harness/blob/0a701c786b9a610606722a6c44d70fcddd4c58cb/docs/architecture/agent-controls/archive/ag-01-authorization-readiness.md),
+[AG-02 packet](https://github.com/nexus-scholar-org/nexus-scholar-harness/blob/0a701c786b9a610606722a6c44d70fcddd4c58cb/docs/architecture/agent-controls/archive/ag-02-screening-decision-integrity-packet.md).
 Use these until the primary checkout is deliberately integrated; the new
 upstream files do not yet exist in this checkout.
 
