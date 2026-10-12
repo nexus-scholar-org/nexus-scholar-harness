@@ -54,3 +54,48 @@ model or build a bespoke PKI.
 No toolkit changes, generic scheduler, provider selection, research data migration,
 or broad UI work are presumed. If the proof needs public/persisted semantic or kit
 changes, declare those boundaries before implementation and use their release gates.
+
+---
+
+## Result (2026-10-12)
+
+**Verdict: FEASIBILITY_PROVEN for the tested deployment; POSIX unproven.**
+
+**Supported deployment.** Windows Mandatory Integrity Control: the publisher
+store (approval records, policy, executable code, registry, audit, final
+outputs) runs at Medium integrity; the restricted scientific worker runs in a
+Low-integrity process (`S-1-16-4096`). The kernel's default no-write-up policy
+denies the worker every write to publisher state while a Low-labelled inbox
+stays writable. Established without administrator rights and without a
+container runtime. POSIX requires a separately provisioned two-identity
+arrangement that this proof does not implement — NOT proven on POSIX.
+
+**Owner paths.** Adapter: `src/scholar_harness/authority/` (`binding.py` —
+approval binding/verification/promotion; `isolation.py` — MIC provisioning,
+Low-IL spawn, honest `capability_report`). Proof: `tests/authority/`
+(`test_approval_binding.py` 37, `test_disposable_flow.py` 12,
+`test_isolation_windows.py` 15). Harness-only; no toolkit, pin, contract, or
+workspace change.
+
+**Demonstrated path.** Accepted synthetic batch + immutable parents → AG-02
+coverage/unresolved gates → restricted worker submits a recommendation →
+publisher captures the immutable snapshot → operator reviews the exact bytes →
+protected operator action mints a narrowly scoped approval → publisher
+re-verifies approval against snapshot + parents at promotion → disposable final
+output promoted with attributable audit evidence.
+
+**Evidence.** `tests/authority/`: 64 passed, 0 failed, 0 skipped (isolation
+tests executed on Windows, not skipped). Full harness suite: 1243 passed,
+6 pre-existing platform skips, 0 failed. Independent reviewer APPROVE (one
+repair round, 10 findings closed); independent tester PASS. Baseline, schemas,
+fixture, pins `--check` all exit 0; `git diff --check` clean.
+
+**Remaining limitations (for AG-03B/C).** Read-up is permitted (MIC denies
+writes, not reads — secrets must never live in worker-reachable publisher
+files). No guarantee against administrator compromise. No concurrency or
+atomicity claims. Same-bytes-for-parse/hash/display is caller discipline until
+AG-03B's single immutable buffer. Durable refusal audit and publication
+generations belong to AG-03B/C. This verdict applies only to the tested
+deployment and disposable flow; it closes neither AG-03B nor AG-03C and
+establishes no scientific correctness, human attention, critic independence,
+or deployment-wide security.
