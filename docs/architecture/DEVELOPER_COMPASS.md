@@ -12,7 +12,7 @@ merged as `cc33c318191635a3d0f4511d353b8534641fde98` on 2026-10-09.
 This is a qualified milestone close-out, not a claim that every original
 proof obligation passes. The accepted scope, measured limits, and carried
 obligations are recorded in
-`docs/architecture/wp01/wp01_packet_e4_completion_report.md`.
+`docs/architecture/wp01/README.md`.
 
 The trustworthy runtime chain is now:
 
@@ -123,9 +123,9 @@ an authoritative artifact.
 | Canonical hashing | `src/scholar_harness/contracts/canonical.py` |
 | Acceptance and atomic publication | `src/scholar_harness/contracts/acceptance.py` |
 | Packet C behavior | `docs/architecture/wp01_packet_c_reference.md` |
-| Packet E1 implementation-ready handoff | `docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md` |
+| Packet E1 implementation-ready handoff | `docs/architecture/wp01/evidence-boundaries.md` |
 | Screening authority history (AG-01); current selected-model handoff is AG-03A | `docs/architecture/agent-controls/README.md` (completion record) |
-| Packet E1 completion evidence | `docs/architecture/wp01/wp01_packet_e1_completion_report.md` |
+| Packet E1 completion evidence | `docs/architecture/wp01/README.md` |
 | Historical Packet A–E definitions | `docs/architecture/wp01_contract_adoption_handoff.md` |
 | Screening producer | `src/scholar_harness/screening/batcher.py` |
 | Screening collector | `src/scholar_harness/screening/collector.py` |
@@ -245,7 +245,7 @@ legal/OA status, source URL, checksum, media type, and exact corpus parent.
 Do not treat a downloaded path as document identity.
 
 The implementation-ready contract and task packet is
-`docs/architecture/wp01/wp01_packet_e1_acquired_document_handoff.md`. It records the
+`docs/architecture/wp01/evidence-boundaries.md`. It records the
 important frozen-contract boundary: acquisition publishes a PDF-kit-owned
 manifest; E2 emits Contract v1 `DocumentManifestArtifact` only after extraction.
 The older Packet E definition is historical compatibility guidance and does not
@@ -256,7 +256,7 @@ replace this acquisition-specific packet.
 `858911f6b7dd5738de94fa749ffc4c65b6d0b70e`, agent kit
 `6050e0c99cdddb0f2c1ce7e0c62458a58eab5ce7`, full-SHA pins, generated
 metapackage pins, and E1-NEG-030/044/047 conformance agree. See
-`docs/architecture/wp01/wp01_packet_e1_completion_report.md`. E2 subsequently
+`docs/architecture/wp01/README.md`. E2 subsequently
 closed at `0fb665558e0808d66348476eda2c927439a96be1`; E3/E4 now have
 qualified closure records (see current position above).
 
@@ -275,14 +275,14 @@ content status, and failure reason remain recorded in the kit-owned sidecar.
 `0430ee40c491edbb055af4ab068637275aada476`, agent kit
 `deebfad995ba88bbd748be9beddd1aa2b8a51264`, bounded harness acceptance
 adapter, full-SHA pins, generated metapackage pins, and E2 conformance agree.
-See `docs/architecture/wp01/wp01_packet_e2_completion_report.md`; E3/E4 status is
+See `docs/architecture/wp01/README.md`; E3/E4 status is
 recorded in the current position above.
 
 ### Packet E3 — chunk and index boundary
 
 **Status:** adopted. The three historically blocked harness conformance IDs
 now execute against the pinned kit; installer and obsolete-mock repairs are
-recorded in `e3_residual_repair.md`. The original completion report retains
+recorded in `README.md`. The original completion report retains
 its historical qualified verdict.
 
 Mint stable chunk IDs from the accepted document/extraction lineage. Publish an
@@ -292,12 +292,12 @@ The frozen Contract v1 does not contain a chunk/index artifact type; E3 therefor
 uses a kit-owned typed sidecar plus a harness acceptance record and must not
 silently extend the frozen contract. The ratified readiness boundary and
 implementation ordering are recorded in
-`docs/architecture/wp01/wp01_packet_e3_readiness_baseline.md`.
+`docs/architecture/wp01/evidence-boundaries.md`.
 
 ### Packet E4 — negative end-to-end proof
 
 **Status:** bounded implementation and repairs merged in PR #77; qualified
-closure recorded in `wp01_packet_e4_completion_report.md`. Reuse now requires
+closure recorded in `README.md`. Reuse now requires
 fingerprint, extraction, backend, and final parent verification. Synthetic
 source fixtures do not establish a real E1 acquisition mutation proof.
 

@@ -1,6 +1,6 @@
 """WP01-E2 extracted-text boundary conformance (harness limbs).
 
-Packet E2 (``docs/architecture/wp01/wp01_packet_e2_extracted_text_handoff.md`` §10.1.7
+Packet E2 (``docs/architecture/wp01/evidence-boundaries.md`` §10.1.7
 / §14.1) draws a hard line: the *behavioral* proofs of extraction live in the
 canonical ``scholar-pdf-kit`` and ``scholar-agent-kit`` suites, and the harness
 enforces only its own **cross-repository** obligations. A green run of this file
@@ -1554,7 +1554,7 @@ def test_e2_neg_020_e2_does_not_broaden_the_e1_acquisition_declaration() -> None
     The kit now declares three capabilities, because E3-008 adopts the
     declared-unsupported ``rag_indexing`` capability (owner: the canonical
     ``nexus-scholar-org/scholar-rag-kit``; ``mcp_supported: false``; see
-    ``docs/architecture/wp01/wp01_packet_e3_implementation_handoff.md``). That third
+    ``docs/architecture/wp01/evidence-boundaries.md``). That third
     entry is a separate E3 declaration for a different domain service, not a
     broadening of ``pdf_acquisition`` or ``pdf_extraction``.
 
@@ -1897,13 +1897,7 @@ def test_e2_neg_025_cross_workspace_candidate_is_refused_in_both_workspaces(
 SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
-DOC_HANDOFF = (
-    REPO_ROOT
-    / "docs"
-    / "architecture"
-    / "wp01"
-    / "wp01_packet_e2_extracted_text_handoff.md"
-)
+DOC_BOUNDARY = REPO_ROOT / "docs" / "architecture" / "wp01" / "evidence-boundaries.md"
 
 DOC_SKILL_PDF = SKILLS_CANONICAL / "scholar-pdf-kit" / "SKILL.md"
 DOC_SKILL_PDF_MIRROR = SKILLS_MIRROR / "scholar-pdf-kit" / "SKILL.md"
@@ -1915,7 +1909,7 @@ DOC_SKILL_AGENT_MIRROR = SKILLS_MIRROR / "scholar-agent-kit" / "SKILL.md"
 #: two skills (canonical + generated mirror) are what an agent actually reads --
 #: so a boundary that is coded but undocumented fails here.
 BOUNDARY_DOCS = (
-    DOC_HANDOFF,
+    DOC_BOUNDARY,
     SURFACE_MATRIX,
     DOC_SKILL_PDF,
     DOC_SKILL_PDF_MIRROR,
@@ -2019,26 +2013,23 @@ def test_documented_mcp_tool_count_matches_the_live_surface() -> None:
         f"{consumer_note!r}"
     )
 
-    # Handoff row 17, first cell only. The count stays an adjacent
-    # "<N> registered tools" phrase, so it parses without depending on the
-    # explanation that follows it; if that phrasing is ever reworded, the
-    # membership check below fails rather than silently skipping the row.
-    handoff = DOC_HANDOFF.read_text(encoding="utf-8")
-    row_17 = next(line for line in handoff.splitlines() if line.startswith("| 17 |"))
-    cells = row_17.split("|")
-    # | 17 | <finding> | <evidence> | <normative> |  -- cells[0] is empty and
-    # cells[1] is the row number, so the finding is cells[2].
-    assert cells[1].strip() == "17", f"row anchor drifted: {cells[1]!r}"
-    first_cell = cells[2]
-    words = first_cell.split()
+    # Documented surface fact. The count stays an adjacent "<N> registered
+    # tools" phrase in the WP-01 evidence-boundaries reference, so it parses
+    # without depending on the surrounding prose; if that phrasing is reworded,
+    # the check below fails rather than silently skipping.
+    boundary = DOC_BOUNDARY.read_text(encoding="utf-8")
+    surface_line = next(
+        line for line in boundary.splitlines() if "registered tools" in line
+    )
+    words = surface_line.split()
     assert "registered" in words, (
-        f"handoff row 17 no longer states a 'registered tools' count: {first_cell!r}"
+        f"evidence-boundaries no longer states a 'registered tools' count: {surface_line!r}"
     )
     index = words.index("registered")
     documented = words[index - 1]
     assert documented.isdigit(), (
-        f"handoff row 17 count token is not a bare number: {first_cell!r}"
+        f"evidence-boundaries count token is not a bare number: {surface_line!r}"
     )
     assert int(documented) == count, (
-        f"handoff row 17 documents {documented} tools, the live surface has {count}"
+        f"evidence-boundaries documents {documented} tools, the live surface has {count}"
     )

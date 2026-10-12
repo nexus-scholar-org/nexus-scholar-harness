@@ -1,6 +1,6 @@
 """WP01-E3 index-lineage boundary conformance (harness limbs) -- T-140.
 
-Packet E3 (``docs/architecture/wp01/wp01_packet_e3_implementation_handoff.md``) draws
+Packet E3 (``docs/architecture/wp01/evidence-boundaries.md``) draws
 the same hard line Packet E2 drew: the *behavioral* proofs of indexing live in
 the canonical ``scholar-rag-kit`` (and, for the MCP refusal, the future
 ``scholar-agent-kit`` T-100 work), and the harness enforces only its own
