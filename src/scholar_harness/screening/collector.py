@@ -21,6 +21,7 @@ from scholar_harness.verification_identity import (
     VERIFICATION_IDENTITY_MISSING_DOI,
     VerificationIdentityRefused,
 )
+from scholar_harness.workspace.audit import log_event
 
 from scholar_search.models import Document
 from scholar_search.screening import (
@@ -34,6 +35,15 @@ from .batcher import (
     _load_decisions,
     _rebuild_doc,
     _screening_dir,
+)
+from .integrity import (
+    CONTENT_CHANGED,
+    STALE_BINDING,
+    ScreeningIntegrityRefused,
+    bind_batch,
+    check_exact_coverage,
+    check_no_unresolved_for_finalize,
+    decision_file_sha256,
 )
 
 try:
@@ -94,6 +104,131 @@ def cmd_status(workspace_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 # COLLECT
 # ---------------------------------------------------------------------------
+
+
+def _head_batch_artifact(
+    workspace_dir: Path, registry: dict, batch_index: int
+) -> tuple[str, str] | None:
+    """Registry head batch artifact ``(artifact_id, sha256)`` for an index.
+
+    The newest accepted ``screening_batch`` envelope whose data carries this
+    ``batch_index`` (newest by registry ``accepted_at``). Unreadable payloads
+    are skipped. ``None`` when no head can be resolved.
+    """
+    head: tuple[str, str] | None = None
+    head_ts = ""
+    for artifact_id, entry in registry.get("artifacts", {}).items():
+        if entry.get("artifact_type") != "screening_batch":
+            continue
+        try:
+            batch_env = json.loads(
+                (workspace_dir / entry["path"]).read_text(encoding="utf-8")
+            )
+        except (OSError, ValueError, KeyError):
+            continue
+        if batch_env.get("data", {}).get("batch_index") != batch_index:
+            continue
+        accepted_at = str(entry.get("accepted_at", ""))
+        if head is None or accepted_at >= head_ts:
+            head = (str(artifact_id), str(entry.get("sha256", "")))
+            head_ts = accepted_at
+    return head
+
+
+def _prior_decision_acceptance(
+    workspace_dir: Path, registry: dict, batch_index: int
+) -> tuple[str, str, str | None, str] | None:
+    """Newest accepted ``screening_decisions`` bound to a batch index.
+
+    Returns ``(parent_batch_artifact_id, parent_sha256,
+    recorded_decision_file_sha256_or_None, decisions_artifact_id)`` or
+    ``None`` when no prior acceptance exists. The index is read from the
+    accepted parent batch envelope (not the mutable handoff file), so the
+    lookup survives a re-prepare that rewrote the handoff files. Entries
+    whose payloads are unreadable are skipped.
+    """
+    best: tuple[str, str, str | None, str] | None = None
+    best_ts = ""
+    for artifact_id, entry in registry.get("artifacts", {}).items():
+        if entry.get("artifact_type") != "screening_decisions":
+            continue
+        try:
+            env = json.loads(
+                (workspace_dir / entry["path"]).read_text(encoding="utf-8")
+            )
+        except (OSError, ValueError, KeyError):
+            continue
+        inputs = env.get("inputs") or []
+        if not inputs:
+            continue
+        parent_ref = inputs[0]
+        parent_entry = registry.get("artifacts", {}).get(parent_ref.get("artifact_id"))
+        if (
+            parent_entry is None
+            or parent_entry.get("artifact_type") != "screening_batch"
+        ):
+            continue
+        try:
+            batch_env = json.loads(
+                (workspace_dir / parent_entry["path"]).read_text(encoding="utf-8")
+            )
+        except (OSError, ValueError, KeyError):
+            continue
+        if batch_env.get("data", {}).get("batch_index") != batch_index:
+            continue
+        accepted_at = str(entry.get("accepted_at", ""))
+        if best is None or accepted_at >= best_ts:
+            best = (
+                str(parent_ref.get("artifact_id")),
+                str(parent_ref.get("sha256")),
+                env.get("decision_file_sha256"),
+                str(artifact_id),
+            )
+            best_ts = accepted_at
+    return best
+
+
+def _refuse_single_batch(
+    workspace_dir: Path,
+    screening_dir: Path,
+    batch_index: int,
+    decisions_file: Path,
+    refusal: ScreeningIntegrityRefused,
+    missing_batches: list[int],
+) -> None:
+    """Fail-closed refusal: journal row, ``.rejected`` rename, MISSING mark.
+
+    Mirrors the existing membership-gate handling (rename + missing list +
+    the shared fail-closed tail raises): no partition output is written and
+    no ``screening_decisions`` artifact is minted. A journal failure never
+    masks the refusal itself.
+    """
+    try:
+        log_event(
+            workspace_dir,
+            "SCREENING_COLLECT_REFUSED",
+            f"Refused screening batch {batch_index} decision file "
+            f"{decisions_file.name}: {refusal.code}",
+            agent="agent_screen.collect",
+            inputs=[decisions_file.name],
+            outputs=[f"{decisions_file.name}.rejected"],
+            parameters={
+                "batch_index": batch_index,
+                "code": refusal.code,
+                "detail": refusal.message,
+                **refusal.details,
+            },
+            metrics={"batch_index": batch_index},
+            status="FAILED",
+        )
+    except OSError:
+        pass
+    if decisions_file.exists():
+        decisions_file.rename(
+            decisions_file.with_name(f"{decisions_file.name}.rejected")
+        )
+    if batch_index not in missing_batches:
+        missing_batches.append(batch_index)
 
 
 def cmd_collect(workspace_dir: Path) -> None:
@@ -183,6 +318,10 @@ def cmd_collect(workspace_dir: Path) -> None:
     # Collect all decisions
     all_decisions: list[ScreeningDecision] = []
     missing_batches: list[int] = []
+    # AG-02 lineage recorded per batch index on acceptance: decision-file
+    # hash plus the parent binding it was collected against. Merged into
+    # MANIFEST.json rows after the loop (dual path leaves this empty).
+    accepted_lineage: dict[int, dict[str, str]] = {}
 
     protocol_path = workspace_dir / "protocol.json"
     protocol_data = json.loads(protocol_path.read_text(encoding="utf-8"))
@@ -577,6 +716,85 @@ def cmd_collect(workspace_dir: Path) -> None:
                 (workspace_dir / batch_entry["path"]).read_text(encoding="utf-8")
             )
 
+            # AG-02 integrity gates (workflow-integrity only): replay/stale
+            # binding, exact coverage, duplicate rejection, unresolved
+            # refusal. Every gate runs before any ContractDecision is minted
+            # or any state is touched. A refusal renames the file to
+            # .rejected, marks the batch MISSING, and leaves the existing
+            # fail-closed tail to raise: no new publication path.
+            # The gates intentionally ignore method labels, reviewer-name
+            # strings, and confidence scores: identical bytes collect (or
+            # refuse) identically whatever those fields claim.
+            try:
+                file_hash = decision_file_sha256(decisions_file.read_bytes())
+                current_binding = bind_batch(
+                    idx,
+                    {
+                        "artifact_id": batch_artifact_id,
+                        "sha256": batch_entry["sha256"],
+                    },
+                )
+                head = _head_batch_artifact(workspace_dir, registry, idx)
+                if head is not None and tuple(head) != current_binding:
+                    raise ScreeningIntegrityRefused(
+                        STALE_BINDING,
+                        f"batch {idx} decision file is bound to superseded "
+                        f"parent {current_binding[0]}; registry head is "
+                        f"{head[0]}",
+                        batch_index=idx,
+                        bound_parent_artifact_id=current_binding[0],
+                        head_parent_artifact_id=head[0],
+                        decision_file_sha256=file_hash,
+                    )
+                prior = _prior_decision_acceptance(workspace_dir, registry, idx)
+                if prior is not None:
+                    prior_artifact_id, prior_sha, recorded_hash, _ = prior
+                    if (
+                        (prior_artifact_id, prior_sha) != current_binding
+                        and recorded_hash is not None
+                        and recorded_hash == file_hash
+                    ):
+                        raise ScreeningIntegrityRefused(
+                            STALE_BINDING,
+                            f"batch {idx} decision file replays bytes accepted "
+                            f"under superseded parent {prior_artifact_id}; "
+                            f"current parent is {current_binding[0]}",
+                            batch_index=idx,
+                            recorded_parent_artifact_id=prior_artifact_id,
+                            current_parent_artifact_id=current_binding[0],
+                            decision_file_sha256=file_hash,
+                        )
+                    if (
+                        (prior_artifact_id, prior_sha) == current_binding
+                        and recorded_hash is not None
+                        and recorded_hash != file_hash
+                    ):
+                        raise ScreeningIntegrityRefused(
+                            CONTENT_CHANGED,
+                            f"batch {idx} decision file changed since "
+                            f"acceptance (was {recorded_hash}, now "
+                            f"{file_hash})",
+                            batch_index=idx,
+                            previous_decision_file_sha256=recorded_hash,
+                            current_decision_file_sha256=file_hash,
+                        )
+                batch_candidate_ids = {
+                    str(candidate.get("study_id"))
+                    for candidate in batch_env.get("data", {}).get("candidates", [])
+                }
+                check_exact_coverage(batch_candidate_ids, raw_decisions)
+                check_no_unresolved_for_finalize(raw_decisions)
+            except ScreeningIntegrityRefused as refusal:
+                _refuse_single_batch(
+                    workspace_dir,
+                    screening_dir,
+                    idx,
+                    decisions_file,
+                    refusal,
+                    missing_batches,
+                )
+                continue
+
             # Packet D deliverable: reject decisions outside the parent batch.
             # Membership is validated against the *accepted* batch artifact's
             # candidate set (the immutable truth); the batch handoff file is
@@ -585,10 +803,6 @@ def cmd_collect(workspace_dir: Path) -> None:
             # touched, so a spoofed decision never reaches the published
             # ScreeningDecisionsArtifact and never contributes to the legacy
             # partition outputs.
-            batch_candidate_ids = {
-                str(candidate.get("study_id"))
-                for candidate in batch_env.get("data", {}).get("candidates", [])
-            }
             out_of_batch = sorted(
                 {
                     str(entry.get("workspace_id") or entry.get("study_id") or "")
@@ -610,56 +824,93 @@ def cmd_collect(workspace_dir: Path) -> None:
                 missing_batches.append(idx)
                 continue
 
+            # Derive legacy screening outcomes first so checklist-derived rows
+            # pass through the same unresolved gate as legacy decision
+            # strings. No ContractDecision is minted in this phase.
+            derived: list[tuple[dict, str, ScreeningDecision]] = []
+            try:
+                for entry in raw_decisions:
+                    wsid = str(entry.get("workspace_id") or entry.get("study_id") or "")
+                    doc = doc_by_wsid.get(wsid)
+
+                    # Support new checklist format (inc_XX/exc_XX booleans)
+                    # and legacy format (decision + confidence + criteria lists)
+                    has_checklist = any(k.startswith(("inc_", "exc_")) for k in entry)
+                    if has_checklist and _HAS_CALIBRATION:
+                        # Deterministic derivation from boolean checklist
+                        schema = build_checklist_schema(protocol_data)
+                        sd = checklist_to_decision(
+                            workspace_id=wsid,
+                            checklist=entry,
+                            schema=schema,
+                            document_title=doc.title if doc else entry.get("title", ""),
+                            doi=(doc.external_ids.doi if doc else None)
+                            or entry.get("doi"),
+                        )
+                    else:
+                        raw_dec = str(entry.get("decision", "INCLUDE")).upper()
+                        valid = {item.value for item in ScreeningDecisionValue}
+                        if raw_dec not in valid:
+                            raise ValueError(
+                                f"{decisions_file.name}: invalid decision {raw_dec!r}"
+                            )
+                        # AG-02: explicit terminal values only. MAYBE/CONFLICT
+                        # were refused by the finalize gate above, so the
+                        # non-INCLUDE branch below only ever sees EXCLUDE:
+                        # unresolved rows are never silently coerced.
+                        if raw_dec == "INCLUDE":
+                            decision = "INCLUDE"
+                        elif raw_dec == "EXCLUDE":
+                            decision = "EXCLUDE"
+                        else:  # pragma: no cover - refused by the gate above
+                            raise ValueError(
+                                f"{decisions_file.name}: unresolved decision "
+                                f"{raw_dec!r} cannot be finalized"
+                            )
+                        try:
+                            confidence = float(entry.get("confidence", 0.80))
+                        except (TypeError, ValueError):
+                            confidence = 0.80
+
+                        sd = ScreeningDecision(
+                            workspace_id=wsid,
+                            decision=decision,
+                            confidence=confidence,
+                            matched_inclusion_criteria=list(
+                                entry.get("matched_inclusion_criteria") or []
+                            ),
+                            violated_exclusion_criteria=list(
+                                entry.get("violated_exclusion_criteria") or []
+                            ),
+                            relevant_rqs=list(entry.get("relevant_rqs") or []),
+                            screening_reasoning=str(
+                                entry.get("screening_reasoning", "Agent screened.")
+                            ),
+                            document_title=doc.title if doc else entry.get("title", ""),
+                            doi=doc.external_ids.doi if doc else None,
+                        )
+                    derived.append((entry, wsid, sd))
+                check_no_unresolved_for_finalize(
+                    [
+                        {"workspace_id": wsid, "decision": str(item.decision)}
+                        for _, wsid, item in derived
+                    ]
+                )
+            except ScreeningIntegrityRefused as refusal:
+                _refuse_single_batch(
+                    workspace_dir,
+                    screening_dir,
+                    idx,
+                    decisions_file,
+                    refusal,
+                    missing_batches,
+                )
+                continue
+
             contract_decisions = []
             legacy_appends = []
 
-            for entry in raw_decisions:
-                wsid = str(entry.get("workspace_id") or entry.get("study_id") or "")
-                doc = doc_by_wsid.get(wsid)
-
-                # Support new checklist format (inc_XX/exc_XX booleans)
-                # and legacy format (decision + confidence + criteria lists)
-                has_checklist = any(k.startswith(("inc_", "exc_")) for k in entry)
-                if has_checklist and _HAS_CALIBRATION:
-                    # Deterministic derivation from boolean checklist
-                    schema = build_checklist_schema(protocol_data)
-                    sd = checklist_to_decision(
-                        workspace_id=wsid,
-                        checklist=entry,
-                        schema=schema,
-                        document_title=doc.title if doc else entry.get("title", ""),
-                        doi=(doc.external_ids.doi if doc else None) or entry.get("doi"),
-                    )
-                else:
-                    raw_dec = str(entry.get("decision", "INCLUDE")).upper()
-                    if raw_dec not in {item.value for item in ScreeningDecisionValue}:
-                        raise ValueError(
-                            f"{decisions_file.name}: invalid decision {raw_dec!r}"
-                        )
-                    decision = "INCLUDE" if raw_dec == "INCLUDE" else "EXCLUDE"
-                    try:
-                        confidence = float(entry.get("confidence", 0.80))
-                    except (TypeError, ValueError):
-                        confidence = 0.80
-
-                    sd = ScreeningDecision(
-                        workspace_id=wsid,
-                        decision=decision,
-                        confidence=confidence,
-                        matched_inclusion_criteria=list(
-                            entry.get("matched_inclusion_criteria") or []
-                        ),
-                        violated_exclusion_criteria=list(
-                            entry.get("violated_exclusion_criteria") or []
-                        ),
-                        relevant_rqs=list(entry.get("relevant_rqs") or []),
-                        screening_reasoning=str(
-                            entry.get("screening_reasoning", "Agent screened.")
-                        ),
-                        document_title=doc.title if doc else entry.get("title", ""),
-                        doi=doc.external_ids.doi if doc else None,
-                    )
-
+            for entry, wsid, sd in derived:
                 decided_at = str(
                     entry.get("decided_at")
                     or entry.get("timestamp")
@@ -746,6 +997,17 @@ def cmd_collect(workspace_dir: Path) -> None:
                             "sha256": batch_entry["sha256"],
                         }
                     ],
+                    # AG-02 tamper-evidence: the exact decision-file bytes
+                    # this acceptance was collected against. Recorded here
+                    # (envelope lineage, preserved by the contract's
+                    # forward-compatible extra fields -- no contract schema
+                    # change), in the MANIFEST row, and in the journal row
+                    # below. The inputs list cannot carry a raw file hash:
+                    # InputArtifact admits only artifact references whose
+                    # sha must equal the registered artifact sha
+                    # (PARENT_HASH_MISMATCH otherwise), so a file hash is
+                    # recorded alongside -- never as -- an input.
+                    "decision_file_sha256": file_hash,
                     "data": dec_data.model_dump(mode="json"),
                 }
 
@@ -773,13 +1035,56 @@ def cmd_collect(workspace_dir: Path) -> None:
                     archive_dir = screening_dir / "legacy"
                     archive_dir.mkdir(exist_ok=True)
                     shutil.copy2(decisions_file, archive_dir / decisions_file.name)
+                    accepted_lineage[idx] = {
+                        "decision_file_sha256": file_hash,
+                        "decisions_artifact_id": artifact_id,
+                        "batch_artifact_id": current_binding[0],
+                        "batch_sha256": current_binding[1],
+                    }
+                    if not res.idempotent:
+                        try:
+                            log_event(
+                                workspace_dir,
+                                "SCREENING_DECISIONS_RECORDED",
+                                f"Recorded screening decisions for batch {idx} "
+                                f"from {decisions_file.name}",
+                                agent="agent_screen.collect",
+                                inputs=[current_binding[0]],
+                                outputs=[res.published_path]
+                                if res.published_path
+                                else [],
+                                parameters={
+                                    "batch_index": idx,
+                                    "batch_artifact_id": current_binding[0],
+                                    "batch_sha256": current_binding[1],
+                                    "decision_file_sha256": file_hash,
+                                    "decisions_artifact_id": artifact_id,
+                                },
+                                metrics={"decision_count": len(contract_decisions)},
+                                status="SUCCESS",
+                            )
+                        except OSError:
+                            pass
 
     # Update manifest statuses before partition: a rejected or missing batch
     # must leave an accurate machine-readable record even when collection stops.
     for b in manifest["batches"]:
         idx = b["batch_index"]
         decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
-        b["status"] = "DONE" if decisions_file.exists() else "MISSING"
+        lineage = accepted_lineage.get(idx)
+        if decisions_file.exists():
+            b["status"] = "DONE"
+            if lineage is not None:
+                b.update(lineage)
+        else:
+            b["status"] = "MISSING"
+            for key in (
+                "decision_file_sha256",
+                "decisions_artifact_id",
+                "batch_artifact_id",
+                "batch_sha256",
+            ):
+                b.pop(key, None)
     (screening_dir / "MANIFEST.json").write_text(
         json.dumps(manifest, indent=2), encoding="utf-8"
     )
