@@ -1,8 +1,8 @@
 # Nexus Scholar Deep-Audit Remediation Specifications
 
 **Specification set:** `deep-audit-remediation-2026-09-17`  
-**Version:** 1.0.0-draft  
-**Status:** Draft for technical review  
+**Version:** 1.0.0  
+**Status:** Normative baseline — Contract v1 frozen (WP-00 delivered); remaining waves and WP-01 adopters active  
 **Evidence date:** 2026-09-17  
 **Scope:** `src/scholar_harness` and all eight `tools/scholar-*-kit` packages
 

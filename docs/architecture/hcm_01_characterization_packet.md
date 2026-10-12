@@ -1,6 +1,6 @@
 # HCM-01 — workspace and audit characterization
 
-**State:** PREPARED; characterization implementation not yet completed.
+**State:** COMPLETED — characterization executed 2026-10-09 (isolated checkout); results in "HCM-01 characterization results" below.
 **Lane:** FAST, test/documentation-only. No behavior-moving refactor.
 **Owner:** nexus-scholar-org/nexus-scholar-harness.
 **Execution base:** PR #79 merged as `83c54814efdf0956fb0a9dc8dcfb051f0d1a65fd`.

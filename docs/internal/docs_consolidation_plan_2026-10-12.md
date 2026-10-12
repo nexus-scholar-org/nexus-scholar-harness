@@ -67,7 +67,10 @@ Recoverable from git history if ever needed.
 - `docs/architecture/v2_planning/` — **7 files** (abandoned direction).
   *Optional:* retain only `v2_architecture_spec.md` for decision provenance.
 - `docs/architecture/phase_0/05_cycle_a_contract_first.md` — superseded by
-  Contract v1 / WP-00.
+  Contract v1 / WP-00. **Correction (verified 2026-10-12):** the file is linked
+  from `docs/architecture/phase_0/README.md:56`, so "zero refs" was wrong —
+  deleting it requires dropping/updating that README row in the same change
+  (or deleting it together with the `phase_0/` archive move in phase 3).
 - `docs/architecture/e3_rag_chroma_recovery_capsule.md` — orphan; superseded by
   `e3_residual_repair.md`.
 - `specs/archive/phase_f_specialized_agents/handoff_spec.md` — near-identical
