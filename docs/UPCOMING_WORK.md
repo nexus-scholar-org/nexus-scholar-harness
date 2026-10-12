@@ -1,62 +1,25 @@
-# Outstanding Tasks & Roadmap Analysis
+# Backlog — current program
 
-This document aggregates all the outstanding, "undone" work across the Nexus Scholar repository. It supersedes the former `ROADMAP_ASSESSMENT_AND_TASK_LIST.md` (stale phase-status dashboard; deleted 2026-09-13) and the archived `OPEN_SCIENCE_ROADMAP.md`.
+The single routing table for outstanding work. Each track's entrypoint carries
+the detail; this file records only **what is open and what governs it**. The
+former phase-by-phase roadmap (Phases 0–7) and its completed narratives are in
+git history.
 
-## 1. Immediate Architectural Debt (The "Fixes")
-*Derived from the Phase 1-3 Retrospective. These are critical stability improvements.*
+| Track | Current state | Next step | Blocker / dependency | Governing document |
+| :-- | :-- | :-- | :-- | :-- |
+| **WP** — Contract v1 adoption | WP-01 closed with residual debt; A–D producers adopted | Remaining work packages from the execution roadmap | Contract-gated; toolkit changes ship via each kit's canonical repo (fork + PR, pin + vendored sync) | [`wp01/README.md`](./architecture/wp01/README.md) · [`wp01/evidence-boundaries.md`](./architecture/wp01/evidence-boundaries.md) · [`12_execution_roadmap.md`](../specs/deep-audit-remediation-2026-09-17/12_execution_roadmap.md) · [`contract_v1_baseline.md`](./architecture/contract_v1_baseline.md) |
+| **HCM** — harness core modularity | HCM-05 **adopted** (PR #107): harness adapter + canonical agent-kit integration | Record the HCM-06 decision and finish the close-out | HCM-02/03/06 have no packet documents — the roadmap is their only definition | [`harness-core-modularity/README.md`](./architecture/harness-core-modularity/README.md) |
+| **AG** — agent controls | Protected-publisher model **approved**; AG-02 merged (PR #106) | **AG-03A** — protected-publisher enforcement feasibility | `BLOCKED_AUTHORITY_ENFORCEMENT` — the model is selected, enforcement is unproven | [`agent-controls/README.md`](./architecture/agent-controls/README.md) · [`ag-03a-protected-publisher-feasibility.md`](./architecture/agent-controls/ag-03a-protected-publisher-feasibility.md) |
+| **UI** — research-ui | UI-04 shipped; UI-04a maintenance merged (PR #109) | Open UI packets (UI-05 evidence lineage, UI-06) and the unresolved verification gates | Human visual review and the `fr`/`ar` fluent-language review remain `NOT_VERIFIED`; the browser suite has not been re-run since UI-04a | [`research_ui/README.md`](./architecture/research_ui/README.md) · [`apps/research-ui/docs/GATES.md`](../apps/research-ui/docs/GATES.md) |
 
-- ~~[P0] Windows CLI Stability~~ **DONE (commit `58283ac`).**
-- ~~[P0] PDF Retrieval Resilience~~ **DONE:** `scholar-pdf-kit` gained institutional-proxy support and hardened PDF validation. Subdomain-prefix proxy style for SNL (`*.www.sndl1.arn.dz`), EZproxy (`login?url=`), and OpenAthens (`proxy.openathens.net`) via `rewrite_via_proxy(url, proxy_url, style="auto|subdomain|ezproxy|prefix")`, with `is_proxied_url()` guarding against double-proxying; the downloader's attempt-3 cascade re-runs the OA/direct-PDF candidates through the proxy when vanilla attempts hit Cloudflare/WAFs. New `--proxy`, `--proxy-style`, and `--strict-validate` flags on `scholar-pdf download|ingest`. Validation upgraded from a 5-byte check to a binary signature gate: `%PDF-<major>.<minor>` within the first 1024 bytes, `%%EOF` trailer within the last 8 KB, 10 KB size floor, plus optional pypdf structural validation (`validate_pdf_structure()`, encryption-tolerant). Existing failed-download dogfood behaviors (HTML block pages, "Checking your browser", truncated payloads) now reliably rejected.
-- **[P1] State Syncing:** Add a `scholar-harness sync` command to atomically rebuild `project.json` and `INDEX.md` from filesystem state.
-- **[P1] Screener Bias Calibration:** Add a 20-paper pre-flight calibration test and a boolean checklist to `scholar-agent-kit` to prevent wild variations in inclusion rates.
-- **[P1] Discovery Integrity:** Enforce strict bidirectional title similarity when hydrating DOIs to prevent PubMed cross-contamination.
+Cross-track gates and delivery lanes: [`test_gate_policy.md`](./architecture/test_gate_policy.md);
+current routing and prohibited shortcuts: the [Developer Compass](./architecture/DEVELOPER_COMPASS.md).
 
-## 2. Unfinished Roadmap Tasks (The "Features")
-*Phase-by-phase roll-up of the roadmap items.*
+## Not scheduled
 
-### Phase 0: Intent Router
-- [x] **Interactive Inception CLI**: A terminal wizard to conduct the Socratic interview — `uv run scholar-harness inception --root <repo>`. Implements the 4-stage Socratic protocol: latent paradigm mining, 4-way refraction grid, Socratic boundary grill (unit of analysis, gold-standard proof, exclusions, lexicon enforcement), then emits `intent.json`, compiles the fingerprinted `protocol.json` and `SCREENING_CRITERIA.md`, scaffolds `workspaces/<slug>/`, and logs the `GENESIS` audit event. Responder-driven so tests are hermetic and scriptable.
-- [x] **Protocol Generator**: The wizard compiles `protocol.json` directly through the deterministic `scholar-protocol-kit` compiler (no hand-authoring); intent → canonical bytes are reproducible (`sha256:` fingerprint verified by tests).
-- [x] **Playbook Archetypes**: Preset templates selected at runtime from `scholar-protocol-kit`'s `PlaybookType` (`PRISMA_SLR`, `SCOPING_REVIEW`, `RAPID_EVIDENCE`, `DESIGN_SCIENCE`, `STUDENT_DISSERTATION`) with paradigm→playbook recommendations and per-playbook trustworthiness frameworks.
-
-### Phase 1: Discovery & Harvesting
-- [x] **Citation Snowballing**: Backward/forward reference traversal built into `scholar-search-kit` — single-hop `scholar-search snowball <id>` plus multi-hop BFS `scholar-search chain <seed...> --depth N` (deduped frontier, cycle protection, per-node/total caps, year bounds, edge manifest). Live-verified against OpenAlex in both directions.
-
-### Phase 2: Synthesis & Graphs
-- [x] **Consensus Cartographer**: A deterministic, hermetic claim-clustering tool in `scholar-rag-kit` (`uv run scholar-rag consensus claims.json [--rq-id] [--threshold] [--similarity lexical|sentence-transformers] [--output-json] [--output-md]`) that groups extracted synthesis claims into high-consensus vs. active-debate buckets. Jaccard greedy clustering (threshold 0.30) or optional embedding-cosine clustering (`embedder_claim_scorer`, threshold ~0.40; falls back to lexical on embedder errors), polarity-lexicon stance attribution (`POSITIVE`/`NEGATIVE`/`NEUTRAL`, auto-derived from claim text), per-study majority-stance dedup, and verdict rules (`HIGH_CONSENSUS`, `ACTIVE_DEBATE`, `UNRESOLVED`, `PROVISIONAL`). `scholar-rag synthesize --output-claims claims.json` now emits per-claim `study_id`/`stance` for downstream cartography. Semantic path added after dogfooding on `uav-cv-precision-agriculture` showed real-literature paraphrases (max pairwise Jaccard ~0.17) never merge at 0.30.
-
-### Phase 3: Interactive Interfaces
-- [ ] **Jupyter Notebook Suite**: Pre-built templates (`00_research_inception.ipynb`, etc.) that researchers can execute cell-by-cell.
-- [ ] **Zotero Sync**: Two-way web API integration.
-- [ ] **Overleaf / Typst Bridge**: Automated Git-backed export of the final manuscript.
-
-### Phase 4: Trust Layers
-- [x] **Abstracting Phase 4**: Retraction, Open Science, COI, and Risk-of-bias were proven as raw scripts inside the `uav` workspace, then abstracted into the `scholar-verify-kit` (in `tools/scholar-verify-kit/`, CLI `uv run scholar-verify ...`), runnable on *any* workspace. Verified by parity smoke test against the original `uav-cv-precision-agriculture/phase4/` outputs. Dogfooded live in 2026-09: all three offline streams reproduce the legacy 94-study summaries byte-identically, and the fresh online retraction run reports 0 retracted / 0 flagged / 0 errors. The dogfood also caught a real integration bug — `retraction`/`all` hard-coded `literature/screening/included.json` while every other kit uses `literature/included.json` — fixed in the CLI.
-- [x] **Trust-weighted consensus** (`scholar-verify trust-context`): hermetic, deterministic annotator that joints a Consensus Cartographer `synthesis/consensus.json` against the four Phase-4 streams (per-study RoB/COI/retraction/open-science details + cluster aggregates) and grades each cluster `BLOCKED` → `UNVERIFIED` → `WEAK` → `ADEQUATE` → `STRONG` into `phase4/trust_consensus.{json,md}`. Core is the pure function `trust_context.annotate(consensus, phase4)`; only retraction introduces runtime variance. Dogfooded on `uav-cv-precision-agriculture`: 12 clusters → 8 ADEQUATE / 2 WEAK / 2 UNVERIFIED / 0 BLOCKED / 0 STRONG (corpus is mostly `?`-risk with sparse `public+link` open-science, so no STRONG is expected). Supports `--rq-id RQ<n>` scoping: per-RQ claim pools (`synthesis/claims_rq*.json`) attribute each cluster's claims to their originating RQ(s) by exact `(study_id, claim_text)` match, clusters carry `rq_ids` provenance, and scoped reports (`phase4/trust_consensus_RQ1.{json,md}`) include cross-RQ clusters as co-members; un-attributed clusters fall back to the report-level RQ codes. Dogfood verified full coverage (union of six per-RQ scopes = all 12 clusters).
-
-### Phase 5: Collaboration & Empowerment (The UI Platform)
-Phase 5 transitions the toolkit from a CLI engine into a collaborative, UI-driven platform. **Direction decided 2026-09-07:** the primary interface remains agent-agnostic (CLI + MCP + workspace files); Phase 5 adds a thin, local-first **Harness Console** that renders the same files and triggers the same `uv run` commands agents use — deliberately not a thick web app (no DB, no auth, no in-browser chat). Live `PipelineSpec` contract: [`docs/architecture/console/SPECS.md`](./architecture/console/SPECS.md) (the design-set README/BLUEPRINT/PLAN were removed in the 2026-10-12 consolidation).
-- [ ] **Shared Collaborative Workspaces**: Git + append-only audit ledger as the collaboration substrate; no realtime sync engine.
-- [ ] **No-Code Workflow Builder**: `PipelineSpec` DAG editor that emits the same JSON `scholar-harness run --pipeline` consumes; dry-run on samples; exports `uv run` scripts.
-- [ ] **Domain-Specific Playbooks**: 1-click instantiation of PRISMA SLR / scoping review / REA / meta-research `PipelineSpec` archetypes.
-
-### Phase 6: Scientific Trust & External Harness Bridge (DeepSeek Harness / DSH)
-Phase 6 establishes mathematical reliability and anchors the toolkit into modern external multi-agent platforms. Its specification was archived in the 2026-10-12 consolidation (recoverable from git history).
-- [x] **Verbatim Evidence Verifier**: Promoted `VerbatimClaimVerifier` into `scholar-verify-kit` (`scholar_verify.verbatim` & `scholar-verify verbatim-claims` CLI) with dual-pass sliding character-windows (8-char, step 4) and token $n$-grams (6-token, step 3) + Unicode NFKC/hyphenation normalization to certify claims against source documents with $\ge 90\%$ verbatim threshold.
-- [x] **Multi-Screener Adjudication & Fleiss' $\kappa$**: Built into `scholar-search-kit` (`reconcile_multi_screener_decisions`, `calculate_fleiss_kappa`) to handle $n$-rater consensus ($n \ge 3$), majority voting, and deadlock isolation.
-- [x] **FastMCP Protocol Server Exposure**: Exposed `nexus_screen_reconcile` and `nexus_verify_claims` in `scholar-agent-kit` (`scholar_agent.server`), enabling seamless integration into DeepSeek Harness (`dsh`) and OpenCode over standard `stdio`.
-- [x] **Phase 6 Specification**: Created a specification (since archived) detailing the DSH Creator Mode preset, tool access lockdown, and verifiable provenance principles.
-
-### Phase 7: Zero-Friction Distribution — Bench-Portable Nexus Scholar
-Phase 7 makes Nexus Scholar installable anywhere: one `uvx` command, any empty folder, any harness (DeepSeek Harness, Claude Desktop, Cursor, OpenCode, VS Code, terminal), with verifiable provenance in a local `audit/journal.jsonl`. Shipped v1.0.0; the operational commands are in the [User Guide](./nexus_scholar_user_guide.md) (the blueprint was removed in the 2026-10-12 consolidation).
-- [x] **P7.1 `--workspace` rootdir resolution**: `scholar_agent.server.main()` now accepts `--workspace <root>` (`-w`) and `--transport`, resolving relative tool paths onto `NEXUS_MCP_WORKSPACE` and caching under `NEXUS_RECON_ROOT` without process cwd dependence.
-- [x] **P7.2 Repo-root `nexus-scholar` tool-metapackage**: `packaging/nexus-scholar/` builds a source-bundling wheel (`uv build --wheel`) bundling `scholar_harness` + the 8 kit packages behind the `nexus-scholar`/`scholar-agent` entrypoints (runtime-complete only after the P7.7 lazy-imports cut heavy deps); `scripts/generate_nexus_scholar_pins.py` derives a byte-deterministic pins snapshot from `.agents/plugins/nexus-scholar/plugins.json` (the single source of truth), CI-enforced via a `--check` subcommand.
-- [x] **P7.3 `nexus-scholar init <title>`**: reuse the existing `inception` Socratic wizard; scaffold canonical contract layout + `audit/journal.jsonl` + `.env.example` + `.mcp.json` + skill **symlinks** (per-skill `copytree` fallback only when the platform blocks symlinks, reported in the CLI output).
-- [x] **P7.4 `nexus-scholar setup-mcp`**: emits `.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, and writes the Claude Desktop config with an **absolute** workspace path baked in (`${workspaceFolder}` doesn't expand there) + `env:` passthrough block for `SCHOLAR_*`/`NEXUS_*`/provider keys from the workspace `.env`; config root is CWD-independent and hermetic via the `NEXUS_MCP_CONFIG_HOME` override (mirrors `NEXUS_RECON_ROOT`), re-runs are idempotent merge-only (foreign `mcpServers` preserved), `--dry-run` prints the exact write plan, DSH gets printed instructions.
-- [x] **P7.5 `nexus-scholar doctor`**: validate kit importability + pinned `default_rev` (repo `plugins.json`, wheel `nexus_scholar_pins.json` fallback), API-key presence (values always masked `***`; model keys WARN not FAIL), skill resolvability, workspace layout (canonical files + stats staleness). Advisory exit 0 by default; `--exit-code` trips only on FAIL; `--json` machine-readable output.
-- [x] **P7.6 Ship `log_event`/`batch_log`/INDEX-sync as an importable CLI (`nexus-scholar log`)**: standalone workspaces can't reach repo-relative `scripts/` today.
-- [x] **P7.7 Lazy-import rag/graph** so `init`, `setup-mcp`, `search`, `doctor` never load torch/chromadb (keeps the 1-minute claim honest). Both wheel entrypoints now answer `--help` on a minimal-dep env; CI wheel smoke is a hard gate.
-- [x] **P7.8 CI verification** that the blueprinted `uvx` commands run end-to-end in a fresh temp folder.
-- [x] **P7.9 PyPI publication** (metapackage live on PyPI; individual kits deferred). **Metapackage live:** `nexus-scholar` v1.0.0 published to PyPI via Trusted Publishing / OIDC (`publish.yml`), resolving both `nexus-scholar` and `scholar-agent` entrypoints directly via `pip install` and `uvx`. PyPI publication of the 8 standalone kit packages remains deferred until external modular consumers request them.
-
-> **The Phase 7 distribution blueprint was removed in the 2026-10-12 consolidation** — the operational commands (install, `init`, `setup-mcp`, `doctor`, `log`) are documented in the [User Guide](./nexus_scholar_user_guide.md); the completed checklist is in git history.
+Phase-era feature ideas carried over for reference. None is scheduled, and each
+needs a scoped packet before work starts: a Jupyter notebook suite, Zotero
+two-way sync, and an Overleaf/Typst export bridge (Phase-3 era); shared
+collaborative workspaces, a no-code `PipelineSpec` builder, and one-click domain
+playbooks (Phase-5 console era). The live console contract is
+[`console/SPECS.md`](./architecture/console/SPECS.md).
