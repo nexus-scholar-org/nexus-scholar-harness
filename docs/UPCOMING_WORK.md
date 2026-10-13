@@ -3,19 +3,18 @@
 The single routing table for outstanding work. Each track's entrypoint carries
 the detail; this file records only **what is open and what governs it**. The
 former phase-by-phase roadmap (Phases 0–7) and its completed narratives are in
-git history. Snapshot: 2026-10-13, committed baseline `465c386` plus reported
-AG-04 activity. Check live main/PRs before answering current-status questions.
+git history. Snapshot: 2026-10-13, committed baseline `f4b5f60`; AG-04 is merged. Check live main/PRs before answering current-status questions.
 
 Product direction: [individual researcher application](architecture/decisions/individual-researcher-product.md).
-Priority: finish AG-04, validate the interaction, define presentation/action
+Priority: inspect AG-04 against UI-04, reconcile HCM prerequisites, define presentation/action
 boundaries, connect one real screening UI journey, then simplify local startup.
 
 | Track | Current state | Next step | Blocker / dependency | Governing document |
 | :-- | :-- | :-- | :-- | :-- |
 | **WP** — Contract v1 adoption | WP-01 closed with residual debt; A–D producers adopted | Remaining work packages from the execution roadmap | Contract-gated; toolkit changes ship via each kit's canonical repo (fork + PR, pin + vendored sync) | [`wp01/README.md`](./architecture/wp01/README.md) · [`wp01/evidence-boundaries.md`](./architecture/wp01/evidence-boundaries.md) · [`12_execution_roadmap.md`](../specs/deep-audit-remediation-2026-09-17/12_execution_roadmap.md) · [`contract_v1_baseline.md`](./architecture/contract_v1_baseline.md) |
 | **HCM** — harness core modularity | HCM-05 **adopted** (PR #107): harness adapter + canonical agent-kit integration | Record the HCM-06 decision and finish the close-out | HCM-02/03/06 have no packet documents — the roadmap is their only definition | [`harness-core-modularity/README.md`](./architecture/harness-core-modularity/README.md) |
-| **AG** — agent controls | AG-04 merged (PR #130, `28e5c42`): usable worker/review interaction on the protected publisher | **AG-05** — held-out scientific evaluation after calibration | POSIX unproven; model-accuracy/agent-reliability explicitly out of scope | [`agent-controls/README.md`](./architecture/agent-controls/README.md) · [`agent_controls_plan.md`](./architecture/agent-controls/agent_controls_plan.md) |
-| **UI** — research-ui | UI-04 shipped; UI-04a maintenance merged (PR #109) | Open UI packets (UI-05 evidence lineage, UI-06) and the unresolved verification gates | Human visual review and the `fr`/`ar` fluent-language review remain `NOT_VERIFIED`; the browser suite has not been re-run since UI-04a | [`research_ui/README.md`](./architecture/research_ui/README.md) · [`apps/research-ui/docs/GATES.md`](../apps/research-ui/docs/GATES.md) |
+| **AG** — agent controls | AG-04 merged (PR #130, `28e5c42`): usable worker/review interaction on the protected publisher | UI-07/HCM-06 boundary specification; AG-05 conditional | POSIX unproven; scaffold has no model judgments; AG-05 needs real backend and independent labels | [`agent-controls/README.md`](./architecture/agent-controls/README.md) · [`agent_controls_plan.md`](./architecture/agent-controls/agent_controls_plan.md) |
+| **UI** — research-ui | UI-04 shipped; UI-04a maintenance merged (PR #109) | UI-07/HCM-06, separate action boundary, then connected UI-04; UI-05/06 incremental | Human visual review and the `fr`/`ar` fluent-language review remain `NOT_VERIFIED`; the browser suite has not been re-run since UI-04a | [`research_ui/README.md`](./architecture/research_ui/README.md) · [`apps/research-ui/docs/GATES.md`](../apps/research-ui/docs/GATES.md) |
 
 Cross-track gates and delivery lanes: [`test_gate_policy.md`](./architecture/test_gate_policy.md);
 current routing and prohibited shortcuts: the [Developer Compass](./architecture/DEVELOPER_COMPASS.md).
@@ -57,8 +56,8 @@ Its dated defect claims require live verification before task selection.
 | HCM-06 | Conditional/planned | Presentation API; UI-07 request + HCM-02 prerequisite in roadmap |
 | AG-00/01/02 | Historical assessment / delivered controls | AG completion record; AG-02 PR #106 |
 | AG-03A/B/C | Delivered, bounded Windows evidence | AG plan; B PR #121, C PR #125/#126; POSIX unproven |
-| AG-04 | Active, user-reported | Worktree started at `465c386`; deterministic scaffold; reviewer/tester/PR pending |
-| AG-05 | Queued | Independent reference labels and prospective scientific evaluation prerequisites |
+| AG-04 | Merged | PR #130 `28e5c42`, close-out #131 `f4b5f60`; deterministic scaffold, not model accuracy |
+| AG-05 | Conditional | Real screening backend, fresh held-out set, independent labels and authorized prospective design required |
 | AG-06/07 | Deferred | Extraction/synthesis need separate evidence and authority decisions |
 | UI-01–04 / 04a | Delivery recorded | UI-04a PR #109; mock-backed UI does not establish real backend integration |
 | UI-05/06 | Open/planned | Evidence lineage / audit activity; verify live packet/gate ledger |
@@ -66,7 +65,7 @@ Its dated defect claims require live verification before task selection.
 | F1 | Merged | PR #127, `465c386`: documentation gate selection |
 | F2–F5 | Deferred follow-ups | Audit; no broad test-deletion campaign |
 | F6 | KEEP | Public-surface evidence insufficient for replacement |
-| Kit ownership note | Pending documentation PR #128 | Sample shows no demonstrated duplication; kit move deferred |
+| Kit ownership note | Recorded in this documentation candidate | Sample shows no demonstrated duplication; kit move deferred |
 | UAV pilot | Preliminary delivered | PR #123: two preliminary sources, zero accepted charting; formal design/freezing gates remain |
 
 This inventory is a routing aid, not a new packet audit. At close-out, update the

@@ -4,7 +4,7 @@ Entrypoint for the AG track: authorization boundaries for agent-assisted
 screening/publication. AG-03A proved protected-publisher feasibility for the
 Windows MIC disposable flow; AG-03B's review lifecycle merged in PR #121 at
 `fea8f40`; AG-03C delivered shared-gate enforcement with coherent publication
-generations (merged in PR #125 at `2846066`). AG-04 delivered the usable worker/review interaction (merged in PR #130 at `28e5c42`). Next is AG-05. POSIX remains
+generations (merged in PR #125 at `2846066`). AG-04 delivered the usable worker/review interaction (merged in PR #130 at `28e5c42`). Next product work is UI-07/HCM-06 boundary specification and connected screening UI; AG-05 is conditional on a real backend and independent labels. POSIX remains
 unproven.
 
 ## Current

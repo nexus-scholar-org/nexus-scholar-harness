@@ -50,20 +50,23 @@ directions. There is no commitment to build them concurrently.
 
 ## Proposed priorities and decision gates
 
-1. Finish AG-04's bounded review/approval/publication interaction. A deterministic
+1. Inspect the merged AG-04 review/approval/publication interaction against UI-04. A deterministic
    scaffold demonstrates interaction, not an operational LLM or scientific accuracy.
-2. Use that interaction with the researcher to identify friction. Select one
-   supported worker backend and one representative pilot; keep formal accuracy
-   evaluation gated on prospective design and actual reference labels.
+2. Reconcile HCM-02 delivery evidence before dependent work. Use the interaction
+   to identify friction; a real worker backend and scientific evaluation remain
+   distinct from the delivered deterministic scaffolder.
 3. Define the presentation boundary through UI-07 / HCM-06 after their prerequisites
    are reconciled. Read-only presentation is distinct from approval/mutation API.
-4. Connect one real screening UI journey to harness services. Show drafts,
+4. Specify the action boundary separately, then connect one real screening UI
+   journey to harness services. Show drafts,
    unresolved items, source evidence, override history, failures and final state.
    Keep technical provenance inspectable rather than mandatory navigation.
 5. Prove simple local startup and resumability. Choose desktop packaging only if
    installation is a demonstrated obstacle.
-6. Promote the UAV two-paper preliminary pilot through valid provisional lineage
-   where supported; expand extraction/synthesis only after source and role gates.
+6. Add useful UI-05/06 lineage/audit views incrementally. Promote the UAV two-paper
+   preliminary pilot through valid provisional lineage where supported; expand
+   extraction/synthesis only after source and role gates. AG-05 stays conditional
+   on real backend, fresh held-out records and actual independent reference labels.
 
 Select WP repairs by the supported user journey, rechecking dated findings.
 Do not require completion of every historical WP/HCM packet before a bounded

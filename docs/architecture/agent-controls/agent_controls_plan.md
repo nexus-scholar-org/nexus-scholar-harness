@@ -2,7 +2,7 @@
 
 **Updated:** 2026-10-13. **Lane for this planning/protocol PR:** FAST.
 **Decision:** [Approved architecture](agent_controls_decision.md).
-**Next:** AG-05 held-out scientific evaluation after calibration.
+**Next product work:** UI-07/HCM-06 prerequisite reconciliation and boundary specification, then separately reviewed actions and connected UI-04. AG-05 remains conditional on a real screening backend, independent labels and prospective design.
 
 ## Current status and provenance
 
@@ -16,7 +16,7 @@ remain historical evidence. This current plan supersedes their next-action text.
 The researcher approved the protected local publisher/restricted scientific
 worker on 2026-10-12 and authorized initializing the UAV protocol. AG-03A is
 FEASIBILITY_PROVEN for the Windows MIC disposable flow (see the AG-03A packet
-result); POSIX remains unproven. AG-03B merged in [PR #121](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/121) at `fea8f40cd41028d1cf9cd0df20e21aee15af964f`; AG-03C delivered (shared gate, coherent generations, downstream currentness, crash/race/retry proofs on the tested Windows deployment; POSIX unproven). Next is AG-04. AG-04 merged (PR #130 at `28e5c42`): one deterministic CLI worker with researcher review/override/approve/defer on the protected publisher; AG-03C gate and currentness reused untouched.
+result); POSIX remains unproven. AG-03B merged in [PR #121](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/121) at `fea8f40cd41028d1cf9cd0df20e21aee15af964f`; AG-03C delivered (shared gate, coherent generations, downstream currentness, crash/race/retry proofs on the tested Windows deployment; POSIX unproven). AG-04 merged (PR #130 at `28e5c42`): one deterministic CLI worker with researcher review/override/approve/defer on the protected publisher; AG-03C gate and currentness reused untouched.
 
 ## Ordered work
 
@@ -29,7 +29,7 @@ result); POSIX remains unproven. AG-03B merged in [PR #121](https://github.com/n
 | AG-03B | Delivered (PR #121 merged at fea8f40); single-screener review lifecycle on Windows MIC | Immutable snapshot buffer, preserved overrides with supersession links, publisher-constructed operator identity, durable refusal records, derived-output binding; AG-03C (generations, currentness, crash recovery) still open. |
 | AG-03C | Merged (PR #125 at `2846066`); shared gate + coherent generations on Windows MIC | Collect requires staged approval; generation.json commit point; extraction/coordinator/handoff enforce currentness; crash/race/retry/audit-failure proven; POSIX unproven; dated LEGACY migration exception recorded. |
 | AG-04 | Merged (PR #130 at `28e5c42`); CLI worker + review on Windows MIC | Deterministic recommend scaffolds, single-buffer review display, publisher-owned operator identity with Low-IL refusal, preserved overrides, defer/cancel states, CURRENT downstream publication; POSIX unproven. |
-| AG-05 | Queued | Held-out scientific evaluation after calibration; measured error/correction/time/bias and proceed/revise/stop decision. |
+| AG-05 | Conditional; not the immediate product task | Held-out scientific evaluation after calibration; measured error/correction/time/bias and proceed/revise/stop decision. |
 | AG-06/07 | Deferred | Charting then synthesis require separate evidence-based decisions. |
 
 HCM-05 is complete: the harness adapter **and** canonical agent-kit integration
