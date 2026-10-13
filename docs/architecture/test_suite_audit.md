@@ -194,4 +194,19 @@ generated artifacts, packaging or runtime is not automatically exempt. Select
 lightweight checks relevant to the diff, preserve required boundary checks, and
 keep the executable fallback. This addendum changes no policy or selector.
 
+## 12. F1 implementation record — 2026-10-13 (candidate, unmerged)
+
+F1 is implemented on this candidate (worktree at canonical main `ac8f270`):
+selector `scripts/select_test_gate.py` classifies change sets
+(`docs/architecture/test_gate_manifest.json` `docs` section: consumed boundary
+map, locked patterns + drift gates); prose-only selects the light gate
+(`git diff --check`, no suite); consumed docs keep `test_count_freshness.py` /
+`sync_skills_bundle.py --check`; locked docs keep baseline + schemas `--check`;
+executable paths keep mapped/fallback gates; unknown paths take the conservative
+harness full suite; empty selection stays an error; the pull-request-gate skill
+defers to `test_gate_policy.md` via the selector (no mirror exists).
+Evidence: `tests/unit/test_select_test_gate.py` 17/17 green (F1-01..F1-09),
+`select_test_gate.py --check` OK, baseline `--check` current, `ruff` clean.
+F2–F6 remain open and unchanged.
+
 After that bounded cleanup, continue AG-04. F2–F5 remain follow-ups; F6 stays KEEP.
