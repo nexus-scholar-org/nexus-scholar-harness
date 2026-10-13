@@ -194,9 +194,9 @@ generated artifacts, packaging or runtime is not automatically exempt. Select
 lightweight checks relevant to the diff, preserve required boundary checks, and
 keep the executable fallback. This addendum changes no policy or selector.
 
-## 12. F1 implementation record — 2026-10-13 (candidate, unmerged)
+## 12. F1 implementation record — 2026-10-13 (merged PR #127)
 
-F1 is implemented on this candidate (worktree at canonical main `ac8f270`):
+F1 merged in PR #127 at `465c3861e906f47bb7470902b74f5ef63a8a94f4` (implementation baseline `ac8f270`):
 selector `scripts/select_test_gate.py` classifies change sets
 (`docs/architecture/test_gate_manifest.json` `docs` section: consumed boundary
 map, locked patterns + drift gates); prose-only selects the light gate
@@ -210,3 +210,43 @@ Evidence: `tests/unit/test_select_test_gate.py` 17/17 green (F1-01..F1-09),
 F2–F6 remain open and unchanged.
 
 After that bounded cleanup, continue AG-04. F2–F5 remain follow-ups; F6 stays KEEP.
+
+## 13. Kit-test ownership clarification — 2026-10-13
+
+Evidence: user-supplied read-only clarification at `ac8f270`, inspected against
+the vendored kit test snapshots at that revision. This records that review;
+it is not a fresh independent inspection or comparison with newer canonical
+kit repositories. No suite, installation or dependency synchronization was run.
+
+The 54/81 count is a text-reference inventory, not an ownership or dependency
+map. It includes imports, monkeypatch targets, comments and architectural guards;
+it misses indirect, shared-fixture and some CLI dependencies. The other 27 files
+have **no kit reference detected by this scan**, not proven kit independence.
+
+| Sample | Finding | Disposition |
+|---|---|---|
+| `tests/unit/test_http_client.py` | Search-kit retry/backoff behavior; equivalent coverage not found in inspected vendored tests | KEEP; deferred ownership-review candidate, not demonstrated duplication |
+| `tests/unit/test_completeness.py` | Search-kit scoring behavior; merge-preservation tests cover a different outcome | KEEP; deferred ownership-review candidate, not demonstrated duplication |
+| `tests/authority/test_publication_generations.py` | Harness authorization/generation behavior uses valid kit-produced parents | KEEP harness tests and per-test parent/corpus binding |
+| `tests/unit/test_deduplication_stage.py` | Harness plumbing differs from kit algorithm tests | KEEP both integration and algorithm coverage |
+| `tests/unit/test_pipeline_core.py` | Architectural dependency guard, not kit-domain behavior | KEEP guard and its non-vacuity checks |
+
+**No genuine duplication was found in the inspected sample.** This is not a
+suite-wide conclusion. Similar imports or exercised lines do not establish
+equivalent inputs, outcomes and failure modes.
+
+Repeated load/validate/fingerprint setup is a possible small helper extraction;
+per-test corpus bytes and lineage assertions remain deliberate. Do not replace
+valid kit-produced parents with hand-written objects merely to remove dependencies.
+Consolidation is deferred until a concrete maintenance benefit is established.
+
+**Decision approved by the user:** finish F1, then proceed to AG-04. This
+clarification does not expand F1, authorize test deletion, or delay AG-04.
+Later F3 work may map one executable area while retaining unknown-path fallback.
+
+Deferred ownership probe (F3-O1): inspect canonical search-kit tests at a named
+revision. If adopting the HTTP/completeness cases in the kit is useful, retain
+the harness coverage until equivalent kit tests land and pin/vendor state is
+synchronized. Any later slimming must retain harness integration checks and
+include the kit tests in required validation. Kit/pin changes continue to require
+cross-kit checks; moving a test must not remove it from release evidence.
