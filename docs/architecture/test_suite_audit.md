@@ -1,6 +1,10 @@
 # Test Suite Audit (read-only, FAST lane)
 
-Status: audit only. No policy, framework, contract, pin, permission, code, test, or CI change proposed or made.
+Status: audit only. No policy, framework, contract, pin, permission, code, test, or CI change made. Cleanup proposals are unimplemented.
+
+Sections 1–10 retain the original audit baseline. The dated addendum below
+updates completed-task evidence without turning historical observations into
+current-state claims.
 
 - Baseline SHA: `a6eda074f14dcd3c4688ea3f9187b3d4a556b63c` on `main` (`origin/main` in sync).
 - Delivery lane: FAST. No suite run, no install/sync, per packet.
@@ -154,3 +158,40 @@ Prefer redundant-gate elimination over test deletion: a docs-only gate-narrowing
 ## 10. Evidence index
 
 Policy and gates: [test_gate_policy.md](test_gate_policy.md), [test_gate_manifest.json](test_gate_manifest.json), [agent_context_protocol.md](agent_context_protocol.md). Entry and plans: [AGENTS.md](../../AGENTS.md), [DEVELOPER_COMPASS.md](DEVELOPER_COMPASS.md), [agent_controls_plan.md](agent-controls/agent_controls_plan.md). Execution and fixtures: [.github/workflows/ci.yml](../../.github/workflows/ci.yml), [tests/conftest.py](../../tests/conftest.py), `scripts/select_test_gate.py`.
+
+## 11. Post-AG-03C addendum — 2026-10-13
+
+Refresh baseline: committed canonical main `d5e824b85d57bfe61ae7719ad6103baaddd19b1b`.
+The original `a6eda07` audit remains unchanged in scope; this is a documentation
+refresh, not a new test audit or execution measurement.
+
+- AG-03C is now merged: [implementation PR #125](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/125),
+  candidate `db73597`, merge `2846066a6090085e2a8fa57bef0e9e417335f2a9`;
+  [close-out PR #126](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/126),
+  merge `d5e824b85d57bfe61ae7719ad6103baaddd19b1b`.
+- PR #125 records **1313 passed, 6 skipped, 0 failed, 0 errors** for the full
+  suite, and **128 passed** for authority tests, including 43 publication-generation
+  cases. These are reported delivery evidence, not fresh runs by this audit.
+- The orchestrator reports three full-suite measurements. Their individual
+  commands, candidate SHAs and intervening executable changes have not been
+  verified here; no additional redundant-run finding is established.
+- Preserve authorization, coherent-generation, currentness, crash/race/retry
+  and audit-failure protection. The Windows deployment claim remains bounded;
+  POSIX is unproven and tmp+rename is not a filesystem-durability guarantee.
+- The packet explicitly distinguishes true legacy (reported LEGACY_UNVERIFIED,
+  bounded compatibility exception) from downgrade after authorized material
+  (MISMATCHED refusal). The exception's retirement criteria need checking before
+  describing all legacy consumers as protected; no bypass conclusion is made here.
+- Sources: [AG-03C packet](agent-controls/ag-03c-publication-generations.md),
+  the two PR bodies above, [PR #121](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/121)
+  and [PR #122](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/122).
+  The refreshed CI workflow still has two wheel builds and no pytest command.
+
+**First cleanup remains F1.** Reconcile the contribution skill's unconditional
+full-suite instruction with the existing policy's documentation-only reuse rule.
+Classify changed surfaces conservatively: documentation consumed by tests,
+generated artifacts, packaging or runtime is not automatically exempt. Select
+lightweight checks relevant to the diff, preserve required boundary checks, and
+keep the executable fallback. This addendum changes no policy or selector.
+
+After that bounded cleanup, continue AG-04. F2–F5 remain follow-ups; F6 stays KEEP.
