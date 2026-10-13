@@ -1,8 +1,8 @@
 # Agent controls: current execution plan
 
-**Updated:** 2026-10-12. **Lane for this planning/protocol PR:** FAST.
+**Updated:** 2026-10-13. **Lane for this planning/protocol PR:** FAST.
 **Decision:** [Approved architecture](agent_controls_decision.md).
-**Next:** [AG-03A protected-publisher feasibility](ag-03a-protected-publisher-feasibility.md).
+**Next:** AG-03C shared authorization gate and coherent publication generations.
 
 ## Current status and provenance
 
@@ -16,7 +16,7 @@ remain historical evidence. This current plan supersedes their next-action text.
 The researcher approved the protected local publisher/restricted scientific
 worker on 2026-10-12 and authorized initializing the UAV protocol. AG-03A is
 FEASIBILITY_PROVEN for the Windows MIC disposable flow (see the AG-03A packet
-result); POSIX remains unproven and AG-03B/C remain open. AG-03B implementation is complete in review (PR link to be added at PR creation); AG-03C remains open.
+result); POSIX remains unproven. AG-03B merged in [PR #121](https://github.com/nexus-scholar-org/nexus-scholar-harness/pull/121) at `fea8f40cd41028d1cf9cd0df20e21aee15af964f`; AG-03C remains open.
 
 ## Ordered work
 
@@ -26,7 +26,7 @@ result); POSIX remains unproven and AG-03B/C remain open. AG-03B implementation 
 | AG-01 | Readiness delivered | Its unresolved host authority question now routes to AG-03A. |
 | AG-02 | Merged, bounded integrity | Single-screener coverage/duplicates/unresolved/hash/freshness gates; no authority claim. |
 | AG-03A | FEASIBILITY_PROVEN (Windows MIC disposable flow); POSIX unproven | Windows MIC proves the restricted worker cannot approve, impersonate the operator, modify publisher state, or overwrite final output; POSIX arrangement still unproven. Next: AG-03B. |
-| AG-03B | Delivered (pending PR merge); single-screener review lifecycle on Windows MIC | Immutable snapshot buffer, preserved overrides with supersession links, publisher-constructed operator identity, durable refusal records, derived-output binding; AG-03C (generations, currentness, crash recovery) still open. |
+| AG-03B | Delivered (PR #121 merged at fea8f40); single-screener review lifecycle on Windows MIC | Immutable snapshot buffer, preserved overrides with supersession links, publisher-constructed operator identity, durable refusal records, derived-output binding; AG-03C (generations, currentness, crash recovery) still open. |
 | AG-03C | Queued | Shared authorization gate before final acceptance, coherent publication generations, downstream currentness and crash/audit/race/retry proofs. |
 | AG-04 | Queued | One screening worker and minimal review interaction using the proven publisher. |
 | AG-05 | Queued | Held-out scientific evaluation after calibration; measured error/correction/time/bias and proceed/revise/stop decision. |
