@@ -1120,25 +1120,131 @@ def cmd_collect(workspace_dir: Path) -> None:
         duplicates_removed=duplicates_removed,
     )
 
-    # Write outputs
-    (lit_dir / "included.json").write_text(
-        json.dumps(inc_docs, indent=2, default=str, ensure_ascii=False),
-        encoding="utf-8",
+    # AG-03C shared authorization gate (BEGIN)
+    # AG-03C shared authorization gate: the five partition outputs below are
+    # published ONLY through publish_generation, which verifies the staged
+    # approval (literature/screening/publication_approval.json) against the
+    # collected snapshot and binding BEFORE any of the final writes and
+    # renames generation.json LAST as the commit point. On refusal this gate
+    # writes none of the five partition files nor generation.json — not even
+    # partial outputs — and the accepted decision files stay in place so an
+    # operator can stage an approval and re-collect. (AG-02 integrity refusals
+    # already raised above; the per-batch acceptances, MANIFEST status/lineage
+    # rows, registry screening_decisions entries, and legacy/ archive copies
+    # before the partition are review records, not publication, and are
+    # untouched by this gate. No staged approval means APPROVAL_MISSING:
+    # nothing is published, whatever the workspace held before.)
+    from scholar_harness.authority.generations import load_publication_approval
+
+    _staged_approval = load_publication_approval(screening_dir)
+    from datetime import datetime, timezone
+
+    from scholar_harness.authority.generations import (
+        SCREENING_PUBLICATION_POLICY_VERSION,
+        build_publication_snapshot,
+        content_sha256,
+        publication_binding,
+        publication_file_bytes,
+        publish_generation,
+        resolve_publication_scope,
     )
-    (lit_dir / "excluded.json").write_text(
-        json.dumps(exc_docs, indent=2, default=str, ensure_ascii=False),
-        encoding="utf-8",
+
+    _scope = resolve_publication_scope(workspace_dir)
+    # Same serialization as the retired pre-authorization writes (same
+    # json.dumps args, same order), staged through the same write_text call
+    # inside publish_generation: the authorized path is byte-identical to the
+    # legacy path it replaces, including host newline translation.
+    _content = {
+        "included.json": json.dumps(
+            inc_docs, indent=2, default=str, ensure_ascii=False
+        ),
+        "excluded.json": json.dumps(
+            exc_docs, indent=2, default=str, ensure_ascii=False
+        ),
+        "conflicts.json": json.dumps(
+            conflicts, indent=2, default=str, ensure_ascii=False
+        ),
+        "prisma_screening_report.md": report.to_markdown(),
+        "prisma_report.json": json.dumps(asdict(report), indent=2),
+    }
+    _snapshot = build_publication_snapshot(
+        workspace_id=_scope.workspace_id,
+        run_id=_scope.run_id,
+        batch_bindings=[dict(b) for b in _scope.batch_bindings],
+        protocol_fingerprint=_scope.protocol_fingerprint,
+        corpus_fingerprint=_scope.corpus_fingerprint,
+        output_digests={
+            name: content_sha256(publication_file_bytes(text))
+            for name, text in _content.items()
+        },
     )
-    (lit_dir / "conflicts.json").write_text(
-        json.dumps(conflicts, indent=2, default=str, ensure_ascii=False),
-        encoding="utf-8",
+    _binding = publication_binding(
+        workspace_id=_scope.workspace_id,
+        run_id=_scope.run_id,
+        batch_bindings=[dict(b) for b in _scope.batch_bindings],
+        protocol_fingerprint=_scope.protocol_fingerprint,
+        corpus_fingerprint=_scope.corpus_fingerprint,
     )
-    (lit_dir / "prisma_screening_report.md").write_text(
-        report.to_markdown(), encoding="utf-8"
+    _published_at = datetime.now(timezone.utc).isoformat()
+
+    def _audit_publish(event: dict) -> None:
+        log_event(
+            workspace_dir,
+            event["action"],
+            event["description"],
+            agent="agent_screen.collect",
+            inputs=[b["batch_artifact_id"] for b in _scope.batch_bindings],
+            outputs=[
+                f"literature/{name}"
+                for name in (
+                    "included.json",
+                    "excluded.json",
+                    "conflicts.json",
+                    "prisma_screening_report.md",
+                    "prisma_report.json",
+                )
+            ]
+            + ["literature/screening/generation.json"],
+            parameters={
+                "generation_id": event["generation_id"],
+                "generation_fingerprint": event["generation_fingerprint"],
+                "approval_fingerprint": event["approval_fingerprint"],
+                "operator_identity": event["operator_identity"],
+                "supersedes": event["supersedes"],
+            },
+            metrics={"output_count": len(event["output_digests"])},
+            status="SUCCESS",
+        )
+
+    def _audit_refusal(record: dict) -> None:
+        log_event(
+            workspace_dir,
+            "SCREENING_GENERATION_REFUSED",
+            f"Refused screening publication: {record['code']}",
+            agent="agent_screen.collect",
+            inputs=[b["batch_artifact_id"] for b in _scope.batch_bindings],
+            outputs=[],
+            parameters={
+                "code": record["code"],
+                "detail": record["message"],
+                **record["details"],
+            },
+            metrics={},
+            status="FAILED",
+        )
+
+    publish_generation(
+        workspace=workspace_dir,
+        snapshot_bytes=_snapshot,
+        binding=_binding,
+        record=_staged_approval,
+        content=_content,
+        published_at=_published_at,
+        policy_version=SCREENING_PUBLICATION_POLICY_VERSION,
+        audit_append=_audit_publish,
+        refusal_sink=_audit_refusal,
     )
-    (lit_dir / "prisma_report.json").write_text(
-        json.dumps(asdict(report), indent=2), encoding="utf-8"
-    )
+    # AG-03C shared authorization gate (END)
 
     inc_with_abs = sum(
         1 for d in inc_docs if d.get("abstract") and len(d.get("abstract", "")) > 30

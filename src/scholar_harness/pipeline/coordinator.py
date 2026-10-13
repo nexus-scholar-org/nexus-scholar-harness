@@ -276,6 +276,53 @@ async def run_pipeline(
         )
         return results
 
+    # AG-03C currentness gate: stages 5-9 run only on a CURRENT generation; a
+    # stale/mismatched generation (including the MISMATCHED a deleted
+    # generation reports when authorized material survives it) keeps them
+    # SKIPPED/PENDING with an explicit reason naming the status (never a
+    # silent pass, never consumption of a superseded run). A true-legacy
+    # workspace (migration exception 2026-10-13, bounded — see the AG-03C
+    # packet §2/§4: no authorized material ever) proceeds on the legacy file
+    # path exactly as before, but REPORTS the typed LEGACY_UNVERIFIED code
+    # explicitly — never a silent pass.
+    from scholar_harness.authority.generations import (
+        GenerationStatus,
+        require_current_generation,
+    )
+
+    _generation = require_current_generation(ws)
+    if _generation.status is GenerationStatus.LEGACY_UNVERIFIED:
+        logger.warning(
+            "PRISMA outputs are LEGACY_UNVERIFIED (%s); proceeding on the "
+            "pre-authorization file path for compatibility: %s",
+            _generation.code,
+            _generation.message,
+        )
+    elif _generation.status is not GenerationStatus.CURRENT:
+        _generation_reason = (
+            "PRISMA outputs not current for authorized stages: "
+            f"{_generation.status.value} ({_generation.code}); "
+            f"{_generation.message}"
+        )
+        for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+            results["stages"][stage] = {
+                "status": "SKIPPED",
+                "reason": _generation_reason,
+            }
+        results["status"] = "PENDING_AGENT_REVIEW"
+        append_legacy_event(
+            ws,
+            "PIPELINE_RUN_PAUSED_FOR_SCREENING",
+            "scholar-harness",
+            "Pipeline paused: screening publication is not a current "
+            f"authorized generation ({_generation_reason}); re-collect under "
+            "an authorized generation before stages 5-9",
+            [str(p_path)],
+            [str(lit_dir / "screening")],
+            results["stages"],
+        )
+        return results
+
     inc_docs = json.loads(inc_file.read_text(encoding="utf-8"))
 
     # -------------------------------------------------------------

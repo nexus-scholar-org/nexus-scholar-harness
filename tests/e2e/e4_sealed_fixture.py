@@ -174,6 +174,87 @@ def _file_sha256(path: Path) -> str:
     return "sha256:" + digest.hexdigest()
 
 
+class _CapturePublish(Exception):
+    """Test-only sentinel carrying the content a collect would publish."""
+
+
+def _stage_approval_for_collected(workspace: Path, collect_fn: Any) -> None:
+    """Review-then-stage: mint an approval over the just-reviewed outputs.
+
+    AG-03C R1 builder-path helper (suite-local): mirrors
+    ``tests/authority/test_publication_generations.py::_stage_approval_for_collected``.
+    Review content is captured from the production partition path (the
+    capturing collect reaches the gate but never writes), an operator approval
+    is minted over exactly those bytes bound to this build's own scope, and
+    the authorized re-collect verifies it.
+    """
+
+    import scholar_harness.authority.generations as _generations
+    from scholar_harness.authority.binding import OperatorIdentity
+    from scholar_harness.authority.generations import (
+        build_publication_snapshot,
+        content_sha256,
+        mint_publication_approval,
+        publication_binding,
+        publication_file_bytes,
+        resolve_publication_scope,
+        write_publication_approval,
+    )
+
+    real_publish = _generations.publish_generation
+
+    def _capture(**kwargs: Any) -> None:
+        raise _CapturePublish(kwargs["content"])
+
+    outputs: dict | None = None
+    _generations.publish_generation = _capture  # type: ignore[method-assign]
+    try:
+        try:
+            collect_fn(workspace)
+        except _CapturePublish as captured:
+            assert isinstance(captured.args[0], dict)
+            outputs = dict(captured.args[0])
+    finally:
+        _generations.publish_generation = real_publish  # type: ignore[method-assign]
+    if outputs is None:
+        raise AssertionError("capturing collect returned without reaching the gate")
+
+    scope = resolve_publication_scope(workspace)
+    digests = {
+        name: content_sha256(publication_file_bytes(text))
+        for name, text in outputs.items()
+    }
+    snapshot = build_publication_snapshot(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+        output_digests=digests,
+    )
+    binding = publication_binding(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+    )
+    operator = OperatorIdentity(
+        identity="e4-sealed-operator", source="publisher-operator-context"
+    )
+    record = mint_publication_approval(
+        operator=operator,
+        binding=binding,
+        snapshot_bytes=snapshot,
+        approved_at="2026-10-13T12:00:00+00:00",
+    )
+    write_publication_approval(
+        workspace / "literature" / "screening",
+        record,
+        staged_at="2026-10-13T12:00:00+00:00",
+    )
+
+
 def _sealable_files(workspace: Path) -> list[Path]:
     out: list[Path] = []
     for path in sorted(workspace.rglob("*")):
@@ -526,6 +607,12 @@ def build_sealed_fixture(dest: Path, *, revision: str = "") -> dict[str, Any]:
         )
         + "\n",
     )
+    # AG-03C R1 (builder path only): the sealed build authorizes its screening
+    # publication exactly like every other migrated suite — capture the
+    # reviewed bytes, stage an operator approval over this build's own scope,
+    # then collect authorized. The golden seal verification itself is
+    # untouched (seal covers whatever the builder writes, self-consistently).
+    _stage_approval_for_collected(workspace, cmd_collect)
     cmd_collect(workspace)
 
     included = json.loads((literature / "included.json").read_text(encoding="utf-8"))

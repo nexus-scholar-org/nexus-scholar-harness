@@ -20,6 +20,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from scholar_harness.authority.binding import OperatorIdentity
 from scholar_harness.console import create_app
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -171,6 +172,10 @@ def _bootstrap_collect(tmp, n_batches):
     (ws / "literature" / "screening" / "MANIFEST.json").write_text(
         json.dumps(
             {
+                # AG-03C R1: the publication scope resolves from the recorded
+                # run id; the helper's scope is its own RUN-1 (same run id the
+                # registry batch envelopes below are bound to).
+                "screening_run_id": "RUN-1",
                 "total_papers": len(verified),
                 "batch_size": 2,
                 "total_batches": n_batches,
@@ -261,8 +266,92 @@ def _bootstrap_collect(tmp, n_batches):
         art_path.parent.mkdir(parents=True, exist_ok=True)
         art_path.write_bytes(payload_bytes)
         
-    (ws / "audit" / "artifact_registry.json").write_text(json.dumps(registry), encoding="utf-8")
+    (ws / "audit" / "artifact_registry.json").write_text(
+        json.dumps(registry), encoding="utf-8"
+    )
     return ws
+
+
+# ---------------------------------------------------------------------------
+# AG-03C staged-approval helpers (R1 migration, suite-local).
+#
+# Mirror tests/authority/test_publication_generations.py::_stage_approval_for_collected:
+# review content is captured from the production partition path (the capturing
+# collect reaches the gate but never writes), an operator approval is minted
+# over exactly those bytes bound to the helper's own scope (MANIFEST RUN-1),
+# and the authorized re-collect verifies it. No cross-test-file imports.
+# ---------------------------------------------------------------------------
+
+_STAGED_APPROVED_AT = "2026-10-13T12:00:00+00:00"
+_STAGED_OPERATOR = OperatorIdentity(
+    identity="ag03c-operator", source="publisher-operator-context"
+)
+
+
+class _CapturePublish(Exception):
+    """Test-only sentinel carrying the content a collect would publish."""
+
+
+def _stage_approval_for_console_collect(ws, collect_fn) -> None:
+    """Review-then-stage: mint an approval over the just-reviewed outputs."""
+    import scholar_harness.authority.generations as _generations
+    from scholar_harness.authority.generations import (
+        build_publication_snapshot,
+        content_sha256,
+        mint_publication_approval,
+        publication_binding,
+        publication_file_bytes,
+        resolve_publication_scope,
+        write_publication_approval,
+    )
+
+    real_publish = _generations.publish_generation
+
+    def _capture(**kwargs: object) -> None:
+        raise _CapturePublish(kwargs["content"])
+
+    outputs: dict | None = None
+    _generations.publish_generation = _capture  # type: ignore[method-assign]
+    try:
+        try:
+            collect_fn(ws)
+        except _CapturePublish as captured:
+            assert isinstance(captured.args[0], dict)
+            outputs = dict(captured.args[0])
+    finally:
+        _generations.publish_generation = real_publish  # type: ignore[method-assign]
+    if outputs is None:
+        raise AssertionError("capturing collect returned without reaching the gate")
+
+    scope = resolve_publication_scope(ws)
+    digests = {
+        name: content_sha256(publication_file_bytes(text))
+        for name, text in outputs.items()
+    }
+    snapshot = build_publication_snapshot(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+        output_digests=digests,
+    )
+    binding = publication_binding(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+    )
+    record = mint_publication_approval(
+        operator=_STAGED_OPERATOR,
+        binding=binding,
+        snapshot_bytes=snapshot,
+        approved_at=_STAGED_APPROVED_AT,
+    )
+    write_publication_approval(
+        ws / "literature" / "screening", record, staged_at=_STAGED_APPROVED_AT
+    )
 
 
 def test_screening_parity_console_wrapper(tmp_path):
@@ -284,6 +373,9 @@ def test_screening_parity_console_wrapper(tmp_path):
     )
     assert r.status_code == 200
 
+    # AG-03C R1: publication requires a staged operator approval bound to the
+    # helper's own scope (prepare-then-collect sequence via the staged approval).
+    _stage_approval_for_console_collect(ws, agent_screen.cmd_collect)
     agent_screen.cmd_collect(ws)
     included = json.loads((ws / "literature" / "included.json").read_text(encoding="utf-8"))
     excluded = json.loads((ws / "literature" / "excluded.json").read_text(encoding="utf-8"))
@@ -307,6 +399,9 @@ def test_screening_parity_legacy_array(tmp_path):
         ),
         encoding="utf-8",
     )
+    # AG-03C R1: publication requires a staged operator approval bound to the
+    # helper's own scope (prepare-then-collect sequence via the staged approval).
+    _stage_approval_for_console_collect(ws, agent_screen.cmd_collect)
     agent_screen.cmd_collect(ws)
     included = json.loads((ws / "literature" / "included.json").read_text(encoding="utf-8"))
     assert [d["workspace_id"] for d in included] == ["SCI-000001"]

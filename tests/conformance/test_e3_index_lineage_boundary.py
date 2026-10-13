@@ -141,6 +141,7 @@ from scholar_search.identity import build_corpus_snapshot_artifact
 from scholar_search.models import Author, Document, ExternalIds
 
 from scholar_harness import orchestrator as orch_module
+from scholar_harness.authority.binding import OperatorIdentity
 from scholar_harness.contracts.acceptance import AcceptanceContext, accept_artifact
 from scholar_harness.contracts.models import OperationStatus
 from scholar_harness.extraction_producer import (
@@ -297,6 +298,91 @@ def _write_extracted(
     return path
 
 
+# ---------------------------------------------------------------------------
+# AG-03C staged-approval helper (R1 migration, suite-local).
+#
+# Mirrors tests/authority/test_publication_generations.py::_stage_approval_for_collected:
+# review content is captured from the production partition path (the capturing
+# collect reaches the gate but never writes), an operator approval is minted
+# over exactly those bytes, and the authorized re-collect verifies it. Each
+# suite keeps its own copy; no cross-test-file imports.
+# ---------------------------------------------------------------------------
+
+_STAGED_APPROVED_AT = "2026-10-13T12:00:00+00:00"
+_STAGED_OPERATOR = OperatorIdentity(
+    identity="ag03c-operator", source="publisher-operator-context"
+)
+
+
+class _CapturePublish(Exception):
+    """Test-only sentinel carrying the content a collect would publish."""
+
+
+def _review_content(workspace: Path) -> dict[str, str]:
+    """Return the exact partition content the next collect would publish."""
+    import scholar_harness.authority.generations as _generations
+
+    real_publish = _generations.publish_generation
+
+    def _capture(**kwargs: Any) -> None:
+        raise _CapturePublish(kwargs["content"])
+
+    _generations.publish_generation = _capture  # type: ignore[method-assign]
+    try:
+        try:
+            cmd_collect(workspace)
+        except _CapturePublish as captured:
+            assert isinstance(captured.args[0], dict)
+            return dict(captured.args[0])
+    finally:
+        _generations.publish_generation = real_publish  # type: ignore[method-assign]
+    raise AssertionError("capturing collect returned without reaching the gate")
+
+
+def _stage_approval_for_collected(workspace: Path) -> None:
+    """Review-then-stage: mint an approval over the just-reviewed outputs."""
+    from scholar_harness.authority.generations import (
+        build_publication_snapshot,
+        content_sha256,
+        mint_publication_approval,
+        publication_binding,
+        publication_file_bytes,
+        resolve_publication_scope,
+        write_publication_approval,
+    )
+
+    scope = resolve_publication_scope(workspace)
+    outputs = _review_content(workspace)
+    digests = {
+        name: content_sha256(publication_file_bytes(text))
+        for name, text in outputs.items()
+    }
+    snapshot = build_publication_snapshot(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+        output_digests=digests,
+    )
+    binding = publication_binding(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+    )
+    record = mint_publication_approval(
+        operator=_STAGED_OPERATOR,
+        binding=binding,
+        snapshot_bytes=snapshot,
+        approved_at=_STAGED_APPROVED_AT,
+    )
+    write_publication_approval(
+        workspace / "literature" / "screening", record, staged_at=_STAGED_APPROVED_AT
+    )
+
+
 def _build_workspace(tmp_path: Path, *, study_count: int = 1) -> dict[str, Any]:
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -387,6 +473,8 @@ def _build_workspace(tmp_path: Path, *, study_count: int = 1) -> dict[str, Any]:
         ),
         encoding="utf-8",
     )
+    # AG-03C R1: publication requires a staged operator approval.
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
 
     included = json.loads((literature / "included.json").read_text(encoding="utf-8"))

@@ -30,6 +30,7 @@ from pathlib import Path
 
 import pytest
 
+from scholar_harness.authority import AuthorityRefused
 from scholar_harness.contracts import AcceptanceContext, accept_artifact
 from scholar_harness.console.api.screening import DecisionsBody
 from scholar_harness.screening.batcher import cmd_prepare
@@ -138,11 +139,15 @@ def _accepted_screening_decisions(workspace: Path) -> list[dict]:
 def test_forged_reviewed_by_string_is_accepted_as_screener_identity(
     tmp_path: Path,
 ) -> None:
-    """AG-01 negative case: ``reviewed_by`` is a free string, not authority.
+    """AG-01 authorization gap, now fail-closed (AG-03C gate).
 
-    A decision file claiming ``reviewed_by: "professor-x"`` — an actor that
-    was never authenticated anywhere — collects successfully and the forged
-    string is minted verbatim into the accepted ``ContractDecision``.
+    Pre-AG-03C characterization: a decision file claiming
+    ``reviewed_by: "professor-x"`` — an actor never authenticated anywhere —
+    collected successfully and the forged string was minted verbatim into the
+    accepted ``ContractDecision``. Post-AG-03C: publication WITHOUT a staged
+    operator approval REFUSES with ``APPROVAL_MISSING`` and writes no
+    partition output — the old bypass is now the refused case. (Name retained
+    to document the transition.)
     """
     workspace, studies = _workspace(tmp_path)
     cmd_prepare(workspace, batch_size=20)
@@ -166,21 +171,32 @@ def test_forged_reviewed_by_string_is_accepted_as_screener_identity(
         encoding="utf-8",
     )
 
-    cmd_collect(workspace)
-
-    payloads = _accepted_screening_decisions(workspace)
-    assert len(payloads) == 1
-    assert payloads[0]["data"]["decisions"][0]["screener_id"] == "professor-x"
+    with pytest.raises(AuthorityRefused) as excinfo:
+        cmd_collect(workspace)
+    assert excinfo.value.code == "APPROVAL_MISSING"
+    for name in (
+        "included.json",
+        "excluded.json",
+        "conflicts.json",
+        "prisma_screening_report.md",
+        "prisma_report.json",
+    ):
+        assert not (workspace / "literature" / name).exists()
+    assert not (screening / "generation.json").exists()
 
 
 def test_publication_happens_with_no_authorization_record_anywhere(
     tmp_path: Path,
 ) -> None:
-    """AG-01 central gap: ``included.json`` publishes with no approval artifact.
+    """AG-01 central gap, now fail-closed (AG-03C gate).
 
-    After a successful single-screener collect, the legacy partition outputs
-    exist while the registry holds no authorization-typed artifact and no
-    authorization file exists anywhere under the workspace.
+    Pre-AG-03C characterization: after a successful single-screener collect,
+    the legacy partition outputs existed while the registry held no
+    authorization-typed artifact and no authorization file existed anywhere
+    under the workspace. Post-AG-03C: publication WITHOUT a staged operator
+    approval REFUSES with ``APPROVAL_MISSING`` — no partition output is
+    written, so there is nothing unauthorized to consume. (Name retained to
+    document the transition.)
     """
     workspace, studies = _workspace(tmp_path)
     cmd_prepare(workspace, batch_size=20)
@@ -199,9 +215,19 @@ def test_publication_happens_with_no_authorization_record_anywhere(
         encoding="utf-8",
     )
 
-    cmd_collect(workspace)
+    with pytest.raises(AuthorityRefused) as excinfo:
+        cmd_collect(workspace)
+    assert excinfo.value.code == "APPROVAL_MISSING"
 
-    assert (workspace / "literature" / "included.json").is_file()
+    for name in (
+        "included.json",
+        "excluded.json",
+        "conflicts.json",
+        "prisma_screening_report.md",
+        "prisma_report.json",
+    ):
+        assert not (workspace / "literature" / name).exists()
+    assert not (screening / "generation.json").exists()
     registry = json.loads(
         (workspace / "audit" / "artifact_registry.json").read_text(encoding="utf-8")
     )
@@ -213,11 +239,14 @@ def test_publication_happens_with_no_authorization_record_anywhere(
 
 
 def test_collect_takes_no_critique_input_and_needs_none(tmp_path: Path) -> None:
-    """AG-01 declared-only gate: the critic review is not a collect input.
+    """AG-01 declared-only gate, now fail-closed on authorization (AG-03C gate).
 
-    ``cmd_collect`` accepts only ``workspace_dir`` — there is no parameter
-    through which a critique could even be supplied — and collection succeeds
-    while no critique/critic file exists anywhere under the workspace.
+    ``cmd_collect`` accepts only ``workspace_dir`` — there is still no parameter
+    through which a critique could even be supplied — but collection WITHOUT a
+    staged operator approval now REFUSES with ``APPROVAL_MISSING`` instead of
+    succeeding while no critique/critic file exists anywhere under the
+    workspace. The critic review remains not-a-collect-input; authorization is
+    now required. (Name retained to document the transition.)
     """
     assert list(inspect.signature(cmd_collect).parameters) == ["workspace_dir"]
 
@@ -238,9 +267,11 @@ def test_collect_takes_no_critique_input_and_needs_none(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    cmd_collect(workspace)
+    with pytest.raises(AuthorityRefused) as excinfo:
+        cmd_collect(workspace)
+    assert excinfo.value.code == "APPROVAL_MISSING"
 
-    assert (workspace / "literature" / "excluded.json").is_file()
+    assert not (workspace / "literature" / "excluded.json").is_file()
     assert not list(workspace.rglob("*critic*"))
     assert not list(workspace.rglob("*critique*"))
 
