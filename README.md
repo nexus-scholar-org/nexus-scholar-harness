@@ -49,7 +49,7 @@ nexus-scholar setup-mcp --workspace ./my-review --harness all
 
 Installed entrypoints are `nexus-scholar` (workspace/setup commands) and `scholar-agent` (MCP server). An external AI host is optional for CLI use and required when using that host as the agent interface.
 
-See the [v1.0.0 user guide](https://github.com/nexus-scholar-org/nexus-scholar-harness/blob/v1.0.0/docs/nexus_scholar_user_guide.md) for released configuration and troubleshooting, and the [current guide](docs/nexus_scholar_user_guide.md) and [kit surface matrix](docs/kits_surface_matrix.md) for development-source boundaries.
+See the [current user guide](docs/nexus_scholar_user_guide.md) for configuration and troubleshooting, and the [kit surface matrix](docs/kits_surface_matrix.md) for development-source boundaries. Check command help against your installed version; current documentation can describe post-release behavior.
 
 ## The researcher workflow we are building
 
