@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pytest
 
+from scholar_harness.authority.binding import OperatorIdentity
 from scholar_harness.contracts import AcceptanceContext, accept_artifact
 from scholar_harness.screening.batcher import cmd_prepare
 from scholar_harness.screening.collector import cmd_collect
@@ -188,6 +189,92 @@ def _batch_row(workspace: Path, index: int = 1) -> dict:
     return next(b for b in manifest["batches"] if b["batch_index"] == index)
 
 
+# ---------------------------------------------------------------------------
+# AG-03C staged-approval helper (R1 migration, suite-local).
+#
+# Mirrors tests/authority/test_publication_generations.py::_stage_approval_for_collected:
+# review content is captured from the production partition path (the capturing
+# collect reaches the gate but never writes), an operator approval is minted
+# over exactly those bytes, and the authorized re-collect verifies it. Each
+# suite keeps its own copy; no cross-test-file imports.
+# ---------------------------------------------------------------------------
+
+_STAGED_APPROVED_AT = "2026-10-13T12:00:00+00:00"
+_STAGED_OPERATOR = OperatorIdentity(
+    identity="ag03c-operator", source="publisher-operator-context"
+)
+
+
+class _CapturePublish(Exception):
+    """Test-only sentinel carrying the content a collect would publish."""
+
+
+def _review_content(workspace: Path) -> dict[str, str]:
+    """Return the exact partition content the next collect would publish."""
+    import scholar_harness.authority.generations as _generations
+
+    real_publish = _generations.publish_generation
+
+    def _capture(**kwargs: object) -> None:
+        raise _CapturePublish(kwargs["content"])
+
+    _generations.publish_generation = _capture  # type: ignore[method-assign]
+    try:
+        try:
+            cmd_collect(workspace)
+        except _CapturePublish as captured:
+            assert isinstance(captured.args[0], dict)
+            return dict(captured.args[0])
+    finally:
+        _generations.publish_generation = real_publish  # type: ignore[method-assign]
+    raise AssertionError("capturing collect returned without reaching the gate")
+
+
+def _stage_approval_for_collected(workspace: Path):
+    """Review-then-stage: mint an approval over the just-reviewed outputs."""
+    from scholar_harness.authority.generations import (
+        build_publication_snapshot,
+        content_sha256,
+        mint_publication_approval,
+        publication_binding,
+        publication_file_bytes,
+        resolve_publication_scope,
+        write_publication_approval,
+    )
+
+    scope = resolve_publication_scope(workspace)
+    outputs = _review_content(workspace)
+    digests = {
+        name: content_sha256(publication_file_bytes(text))
+        for name, text in outputs.items()
+    }
+    snapshot = build_publication_snapshot(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+        output_digests=digests,
+    )
+    binding = publication_binding(
+        workspace_id=scope.workspace_id,
+        run_id=scope.run_id,
+        batch_bindings=[dict(b) for b in scope.batch_bindings],
+        protocol_fingerprint=scope.protocol_fingerprint,
+        corpus_fingerprint=scope.corpus_fingerprint,
+    )
+    record = mint_publication_approval(
+        operator=_STAGED_OPERATOR,
+        binding=binding,
+        snapshot_bytes=snapshot,
+        approved_at=_STAGED_APPROVED_AT,
+    )
+    write_publication_approval(
+        workspace / "literature" / "screening", record, staged_at=_STAGED_APPROVED_AT
+    )
+    return snapshot, binding, record, outputs
+
+
 def _assert_fail_closed_fresh(workspace: Path, decisions_path: Path, code: str) -> None:
     """Refusal on a fresh workspace: typed code, zero partition outputs."""
     with pytest.raises(RuntimeError, match="collection blocked"):
@@ -288,6 +375,8 @@ def test_no_silent_exclusion_regression(tmp_path: Path) -> None:
             ),
         ],
     )
+    # AG-03C R1: publication requires a staged operator approval.
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
     excluded = json.loads(
         (workspace / "literature" / "excluded.json").read_text(encoding="utf-8")
@@ -305,6 +394,8 @@ def test_decision_hash_recorded_in_lineage_and_journal(tmp_path: Path) -> None:
     decisions_path = _write_decisions(
         workspace, [_entry(s["study_id"]) for s in studies]
     )
+    # AG-03C R1: publication requires a staged operator approval.
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
     expected = "sha256:" + hashlib.sha256(decisions_path.read_bytes()).hexdigest()
     artifacts = _decision_artifacts(workspace)
@@ -328,6 +419,9 @@ def test_changed_bytes_after_acceptance_refuse(tmp_path: Path) -> None:
     decisions_path = _write_decisions(
         workspace, [_entry(s["study_id"]) for s in studies]
     )
+    # AG-03C R1: publication requires a staged operator approval (first collect
+    # only; the second collect must still hit the AG-02 CONTENT_CHANGED gate).
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
     first_hash = "sha256:" + hashlib.sha256(decisions_path.read_bytes()).hexdigest()
     artifacts = _decision_artifacts(workspace)
@@ -377,6 +471,9 @@ def test_identical_recollect_is_idempotent(tmp_path: Path) -> None:
     workspace, studies = _workspace(tmp_path)
     cmd_prepare(workspace, batch_size=20)
     _write_decisions(workspace, [_entry(s["study_id"]) for s in studies])
+    # AG-03C R1: publication requires a staged operator approval; the identical
+    # re-collect then joins the same generation idempotently.
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
     before = _registry(workspace)
     cmd_collect(workspace)
@@ -391,6 +488,9 @@ def test_failed_promotion_leaves_no_consumable_output(tmp_path: Path) -> None:
     workspace, studies = _workspace(tmp_path, tag="ws-changed")
     cmd_prepare(workspace, batch_size=20)
     changed_path = _write_decisions(workspace, [_entry(s["study_id"]) for s in studies])
+    # AG-03C R1: publication requires a staged operator approval (first collects
+    # only; the refusal re-collects must still hit the AG-02 gates first).
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
     before_files = {
         name: (workspace / "literature" / name).read_bytes() for name in PARTITION_FILES
@@ -430,6 +530,7 @@ def test_failed_promotion_leaves_no_consumable_output(tmp_path: Path) -> None:
     stale_path = _write_decisions(
         stale_ws, [_entry(s["study_id"]) for s in stale_studies]
     )
+    _stage_approval_for_collected(stale_ws)
     cmd_collect(stale_ws)
     stale_before_files = {
         name: (stale_ws / "literature" / name).read_bytes() for name in PARTITION_FILES
@@ -527,6 +628,8 @@ def test_dual_path_semantics_unchanged(tmp_path: Path) -> None:
     (screening / "_adjudication_resolved_group_001.json").write_text(
         "[]", encoding="utf-8"
     )
+    # AG-03C R1: publication requires a staged operator approval.
+    _stage_approval_for_collected(workspace)
     cmd_collect(workspace)
     artifacts = _decision_artifacts(workspace)
     assert len(artifacts) == 1
@@ -577,6 +680,10 @@ def test_human_labeled_but_unapproved_file_is_not_privileged(
             ],
             reviewed_by=reviewed_by,
         )
+        # AG-03C R1: publication requires a staged operator approval. The twin
+        # judgments authorize identically, so the authorized outputs stay
+        # byte-identical whatever the HUMAN/LLM label claims.
+        _stage_approval_for_collected(workspace)
         cmd_collect(workspace)
         twins[label] = workspace
     for name in ("included.json", "excluded.json"):
@@ -604,19 +711,54 @@ def test_human_labeled_but_unapproved_file_is_not_privileged(
 
 
 def test_no_authorization_concept_in_new_code() -> None:
-    """AG-C10guard: no approver/authority identifiers; stdlib-only imports."""
+    """AG-C10guard: no approver/authority identifiers; stdlib-only imports.
+
+    AG-03C amendment (2026-10-13, bounded): the AG-03A/B/C program deliberately
+    places the shared authorization gate in the collect tail per the ratified
+    AG-03C packet, so identifiers between the explicitly marked
+    ``AG-03C shared authorization gate (BEGIN)`` / ``(END)`` comment pair in
+    collector.py are declared gate vocabulary, not smuggled authority
+    concepts. The guard's purpose — catching undeclared authority vocabulary —
+    is preserved everywhere else: any approv|authoriz match outside the marked
+    block (or anywhere in integrity.py, which must carry no marked block)
+    still fails unless the line is an explicitly marked non-claim.
+    """
     integrity_src = (SRC_ROOT / "integrity.py").read_text(encoding="utf-8")
     collector_src = (SRC_ROOT / "collector.py").read_text(encoding="utf-8")
+    _BEGIN = "AG-03C shared authorization gate (BEGIN)"
+    _END = "AG-03C shared authorization gate (END)"
     for name, text in (
         ("integrity.py", integrity_src),
         ("collector.py", collector_src),
     ):
+        _inside_gate = False
+        _begins = _ends = 0
         for lineno, line in enumerate(text.splitlines(), start=1):
+            if _BEGIN in line:
+                _begins += 1
+                _inside_gate = True
+                continue
+            if _END in line:
+                _ends += 1
+                _inside_gate = False
+                continue
+            if _inside_gate:
+                continue
             if re.search(r"approv|authoriz", line, re.IGNORECASE):
                 assert "non-claim" in line.lower(), (
                     f"{name}:{lineno} introduces an authority-shaped "
                     f"identifier outside an explicitly marked non-claim: {line!r}"
                 )
+        assert not _inside_gate, f"{name}: unclosed AG-03C gate block"
+        if name == "collector.py":
+            assert (_begins, _ends) == (1, 1), (
+                f"{name}: expected exactly one AG-03C gate block, "
+                f"found BEGIN x{_begins} / END x{_ends}"
+            )
+        else:
+            assert (_begins, _ends) == (0, 0), (
+                f"{name}: no AG-03C gate block belongs here"
+            )
     tree = ast.parse(integrity_src)
     imported: set[str] = set()
     for node in ast.walk(tree):

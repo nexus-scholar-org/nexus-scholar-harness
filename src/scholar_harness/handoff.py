@@ -173,6 +173,32 @@ def detect_completed_phases(workspace_dir: Path) -> set[HandoffPhase]:
             continue
         all_exist = all((workspace_dir / t).is_file() for t in triggers)
         if all_exist:
+            if phase is HandoffPhase.SCREENING:
+                # AG-03C: the SCREENING trigger requires a CURRENT generation
+                # once authorized publication material exists — including the
+                # MISMATCHED a deleted generation reports when that material
+                # survives it, so the trigger stays incomplete until an
+                # authorized re-collect. A true-legacy workspace (migration
+                # exception 2026-10-13, bounded — see the AG-03C packet §2/§4:
+                # no authorized material ever) keeps file-existence tracking
+                # but REPORTS the typed LEGACY_UNVERIFIED code explicitly
+                # (display-only phase state, never an authorization decision).
+                from scholar_harness.authority.generations import (
+                    GenerationStatus,
+                    require_current_generation,
+                )
+
+                _screening_currentness = require_current_generation(workspace_dir)
+                if _screening_currentness.status is GenerationStatus.LEGACY_UNVERIFIED:
+                    logger.warning(
+                        "SCREENING phase state is LEGACY_UNVERIFIED (%s); "
+                        "tracking pre-authorization trigger files for "
+                        "compatibility, not as an authorized generation: %s",
+                        _screening_currentness.code,
+                        _screening_currentness.message,
+                    )
+                elif _screening_currentness.status is not GenerationStatus.CURRENT:
+                    continue
             completed.add(phase)
     return completed
 

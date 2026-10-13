@@ -119,6 +119,10 @@ from scholar_harness.contracts.models import (
     ScreeningDecisionsArtifact,
 )
 from scholar_harness.extraction_adapter import accept_extraction_candidate
+from scholar_harness.authority.generations import (
+    GenerationStatus,
+    require_current_generation,
+)
 from scholar_harness.inception.genesis import (
     RegisteredWorkspaceIdentityMissingError,
     validate_registered_workspace_id,
@@ -1081,6 +1085,32 @@ def _accepted_include_parents(
 
 def _included_records(workspace: Path) -> list[dict[str, Any]]:
     """Read the real ``literature/included.json`` the screening handoff produced."""
+
+    # AG-03C currentness gate: only a CURRENT generation may be consumed as
+    # authorized input — stale, superseded (via presented records), or
+    # mismatched generations refuse with typed codes, including the MISMATCHED
+    # a deleted generation reports when authorized material survives it
+    # (downgrade/tamper can never silently become consumable LEGACY). A
+    # true-legacy workspace (migration exception 2026-10-13, bounded — see the
+    # AG-03C packet §2/§4: no authorized material ever) stays readable for
+    # read/display/golden-fixture compatibility, but the consumption is
+    # REPORTED with the typed LEGACY_UNVERIFIED code — never silent, never
+    # blessed as authorized-current.
+    generation = require_current_generation(workspace)
+    if generation.status is GenerationStatus.LEGACY_UNVERIFIED:
+        logger.warning(
+            "screening publication is LEGACY_UNVERIFIED (%s); reading "
+            "pre-authorization outputs for compatibility, not as authorized "
+            "input: %s",
+            generation.code,
+            generation.message,
+        )
+    elif generation.status is not GenerationStatus.CURRENT:
+        raise PublicationRefused(
+            generation.code or "SCREENING_GENERATION_NOT_CURRENT",
+            generation.message,
+            **generation.details,
+        )
 
     path = _resolve_inside(workspace, _INCLUDED_RELPATH)
     if not path.is_file():
