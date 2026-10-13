@@ -1,8 +1,10 @@
 # Agent controls (AG) track
 
 Entrypoint for the AG track: authorization boundaries for agent-assisted
-screening/publication. **Authority enforcement is not yet proven**; the current
-block is `BLOCKED_AUTHORITY_ENFORCEMENT`.
+screening/publication. AG-03A proved protected-publisher feasibility for the
+Windows MIC disposable flow; AG-03B's review lifecycle merged in PR #121 at
+`fea8f40`. Next is AG-03C production publication enforcement. POSIX remains
+unproven; the disposable feasibility result is not an all-consumer deployment claim.
 
 ## Current
 
@@ -10,7 +12,7 @@ block is `BLOCKED_AUTHORITY_ENFORCEMENT`.
 |---|---|
 | [`agent_controls_plan.md`](./agent_controls_plan.md) | **Current execution plan** (status, ordered work, completion criteria). Supersedes the next-action text of AG-00 and the reassessment. |
 | [`agent_controls_decision.md`](./agent_controls_decision.md) | Approved architecture decision (target invariants). |
-| [`ag-03a-protected-publisher-feasibility.md`](./ag-03a-protected-publisher-feasibility.md) | **Next packet**: protected local publisher model — approved, feasibility unproven. |
+| [`ag-03a-protected-publisher-feasibility.md`](./ag-03a-protected-publisher-feasibility.md) | Completed Windows MIC feasibility packet and its measured limits; POSIX unproven. |
 
 ## Completion record (AG-00 … AG-02)
 
@@ -33,8 +35,10 @@ must-survive facts are here and the originals remain in git history.
 
 **Unresolved limitations (do not overclaim):**
 
-1. **Authority enforcement is unproven.** AG-02 proves workflow integrity for one
-   screener path — it is not human authorization. Next: AG-03A.
+1. **Production publication adoption remains open.** AG-02 proves workflow
+   integrity; AG-03A proves bounded Windows isolation and AG-03B adds the review
+   lifecycle. AG-03C must connect the shared authorization gate, coherent
+   generations, downstream currentness and crash/race/retry handling.
 2. **Tamper-evidence ≠ authorization.** A hash says *which* bytes, never *who* approved;
    a filesystem-privileged actor can still rewrite the registry and defeat replay detection.
 3. Residual notes carried from AG-01/AG-02: alias canonicalisation and `accepted_at`
