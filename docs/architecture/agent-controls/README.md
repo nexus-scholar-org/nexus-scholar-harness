@@ -4,7 +4,7 @@ Entrypoint for the AG track: authorization boundaries for agent-assisted
 screening/publication. AG-03A proved protected-publisher feasibility for the
 Windows MIC disposable flow; AG-03B's review lifecycle merged in PR #121 at
 `fea8f40`; AG-03C delivered shared-gate enforcement with coherent publication
-generations (merged in PR #125 at `2846066`). Next is AG-04. POSIX remains
+generations (merged in PR #125 at `2846066`). AG-04 delivered the usable worker/review interaction (merged in PR #130 at `28e5c42`). Next is AG-05. POSIX remains
 unproven.
 
 ## Current
@@ -28,6 +28,7 @@ must-survive facts are here and the originals remain in git history.
 | **AG-03A** — protected-publisher feasibility | **FEASIBILITY_PROVEN** — Windows MIC (Low-IL worker vs Medium publisher store, no admin, no container); POSIX unproven. | AG-03A packet result |
 | **AG-03B** — review lifecycle | **Merged** — immutable snapshot buffer, preserved overrides with supersession, publisher-constructed identity, durable refusals, derived-output binding. | PR #121, merge `fea8f40` |
 | **AG-03C** — shared gate + coherent generations | **Merged** (PR #125, `2846066`) — collect requires staged approval; generation.json commit point; downstream currentness enforced; crash/race/retry/audit-failure proven on Windows MIC. | PR #125; packet `ag-03c-publication-generations.md` |
+| **AG-04** — screening worker + researcher review | **Merged** (PR #130, `28e5c42`) — CLI recommend/review/approve/defer; no invented judgments; protected operator path; superseding overrides; defer/cancel states. | PR #130; packet `ag-04-screening-worker-review.md` |
 
 **Integrity guarantees introduced by AG-02** (all typed, fail-closed, tested):
 
@@ -48,6 +49,7 @@ must-survive facts are here and the originals remain in git history.
    a filesystem-privileged actor can still rewrite the registry and defeat replay detection.
 3. Residual notes carried from AG-01/AG-02: alias canonicalisation and `accepted_at`
    string ordering; the handoff's embedded protocol summary is unaudited display text.
+4. **Operator-attended pilot scope.** The worker scaffolds unresolved drafts; all judgments are human. No model-accuracy, autonomy, or POSIX claim. Audit emission is wired for real workspaces only (synthetic flows log nothing by design).
 
 Do not cite the removed packet files as current status; use this record and
 [`agent_controls_plan.md`](./agent_controls_plan.md).
