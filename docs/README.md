@@ -15,14 +15,17 @@ specifications) to look in, and which parts are **current** versus **historical*
 
 ## 2. Current program — WP + three tracks
 
-The active work. Each entry is an entrypoint, not a record.
+The active work. Each entry is an entrypoint, not a record. Current packet status
+and next priorities live in the [program tracker](UPCOMING_WORK.md); check live
+main and PRs before presenting its snapshot as current. The selected product
+direction is the [individual researcher application](architecture/decisions/individual-researcher-product.md).
 
-| Track | Entrypoint | Status |
-| :-- | :-- | :-- |
-| **WP — Contract v1 adoption** | [Contract baseline](./architecture/contract_v1_baseline.md), [cross-kit contract](./architecture/cross_kit_contract_v1.md), [WP-01 archive](./architecture/wp01/README.md) | WP-01 delivered (qualified); remaining work packages open. The contract set is **contract-locked**. |
-| **HCM — harness core modularity** | [`harness-core-modularity/README.md`](./architecture/harness-core-modularity/README.md) | Active; HCM-05 close-out, next = HCM-06 gating. |
-| **AG — agent controls** | [`agent-controls/README.md`](./architecture/agent-controls/README.md) | Next packet AG-03A; **authority enforcement unproven**. |
-| **UI — research-ui** | [`research_ui/README.md`](./architecture/research_ui/README.md) + [`apps/research-ui/`](../apps/research-ui/README.md) | UI-04 shipped; UI-05/06 and the `NOT_VERIFIED` items open. |
+| Track | Entrypoint |
+| :-- | :-- |
+| **WP — research correctness and contract adoption** | [Contract baseline](./architecture/contract_v1_baseline.md), [cross-kit contract](./architecture/cross_kit_contract_v1.md), [WP-01 completion](./architecture/wp01/README.md) |
+| **HCM — harness core modularity** | [`harness-core-modularity/README.md`](./architecture/harness-core-modularity/README.md) |
+| **AG — agent controls** | [`agent-controls/README.md`](./architecture/agent-controls/README.md) |
+| **UI — research-ui** | [`research_ui/README.md`](./architecture/research_ui/README.md) + [`apps/research-ui/`](../apps/research-ui/README.md) |
 
 Delivery lanes, gate selection, and test policy: [test gate policy](./architecture/test_gate_policy.md).
 Backlog and milestone history: [Roadmap](./UPCOMING_WORK.md).
