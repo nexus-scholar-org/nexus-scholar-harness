@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -48,6 +49,21 @@ def create_app(workspace: str | Path) -> FastAPI:
     app.state.workspace = ws
     app.state.job_runner = runner
     app.state.job_broadcast = broadcast
+
+    # Loopback-only CORS for the local dev UI (e.g. `next dev` on :3000
+    # fetching this API): browsers treat a different loopback port as
+    # cross-origin, so GET responses must carry ACAO for loopback origins.
+    # This does not widen the Low-worker threat surface — the worker never
+    # needed a browser to reach loopback; only a page already running on
+    # loopback gains read access. Browsers never mutate through this API
+    # (allow_methods GET only; non-browser clients send no Origin and are
+    # unaffected), and cross-origin POST stays preflight-blocked by design.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
 
     app.include_router(workspace_api.router)
     app.include_router(jobs_api.router)

@@ -31,7 +31,9 @@ def _read_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"unparseable JSON: {path.name}") from exc
+        raise HTTPException(
+            status_code=500, detail=f"unparseable JSON: {path.name}"
+        ) from exc
 
 
 def _list_dir(parent: Path, pattern: str, suffix: str | None = None) -> list[str]:
@@ -45,7 +47,12 @@ def _list_dir(parent: Path, pattern: str, suffix: str | None = None) -> list[str
 
 def _safe_join(root: Path, filename: str) -> Path:
     """Join a plain filename under root, rejecting any traversal."""
-    if "/" in filename or "\\" in filename or ".." in filename or filename in ("", ".", ".."):
+    if (
+        "/" in filename
+        or "\\" in filename
+        or ".." in filename
+        or filename in ("", ".", "..")
+    ):
         raise HTTPException(status_code=400, detail=f"invalid file name: {filename}")
     return root / filename
 
@@ -125,7 +132,12 @@ def literature_candidates(request: Request, limit: int = 100, offset: int = 0):
         raise HTTPException(status_code=404, detail="missing file: raw_search.json")
     docs = _read_json(raw)
     total = len(docs)
-    return {"total": total, "offset": offset, "limit": limit, "items": docs[offset : offset + limit]}
+    return {
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "items": docs[offset : offset + limit],
+    }
 
 
 @router.get("/literature/included")
@@ -192,19 +204,27 @@ def screening_batch(request: Request, n: int):
 
 @router.get("/synthesis")
 def synthesis_index(request: Request):
-    return {"count": len(_file_index(_ws(request) / "synthesis", SYNTHESIS_KINDS)), "files": _file_index(_ws(request) / "synthesis", SYNTHESIS_KINDS)}
+    return {
+        "count": len(_file_index(_ws(request) / "synthesis", SYNTHESIS_KINDS)),
+        "files": _file_index(_ws(request) / "synthesis", SYNTHESIS_KINDS),
+    }
 
 
 @router.get("/phase4")
 def phase4_index(request: Request):
-    return {"count": len(_file_index(_ws(request) / "phase4", PHASE4_KINDS)), "files": _file_index(_ws(request) / "phase4", PHASE4_KINDS)}
+    return {
+        "count": len(_file_index(_ws(request) / "phase4", PHASE4_KINDS)),
+        "files": _file_index(_ws(request) / "phase4", PHASE4_KINDS),
+    }
 
 
 @router.get("/synthesis/{filename}")
 def synthesis_file(request: Request, filename: str):
     path = _safe_join(_ws(request) / "synthesis", filename)
     if not path.is_file():
-        raise HTTPException(status_code=404, detail=f"missing file: synthesis/{filename}")
+        raise HTTPException(
+            status_code=404, detail=f"missing file: synthesis/{filename}"
+        )
     return {"filename": filename, "content": path.read_text(encoding="utf-8")}
 
 
@@ -278,10 +298,298 @@ def audit_events(
         events.append(evt)
     # Newest first.
     events = events[::-1]
-    return {"total": len(events), "offset": offset, "limit": limit, "items": events[offset : offset + limit]}
+    return {
+        "total": len(events),
+        "offset": offset,
+        "limit": limit,
+        "items": events[offset : offset + limit],
+    }
 
 
 @router.get("/agents/actions")
 def agent_actions(request: Request):
     ws = _ws(request)
     return actions_payload(workspace=str(ws))
+
+
+# ---------------------------------------------------------------------------
+# UI-07 presentation shapes (HCM-06 read side; GET only, never mutate).
+#
+# These routes serve the read-only presentation shapes of
+# docs/architecture/research_ui/UI-07_PRESENTATION_SPEC.md §§1-6 over the
+# workspace bound at app state. Discipline, per the spec binding rules:
+#
+# * R1/R2 — every reference is resolved server-side from the bound
+#   workspace; query keys that smuggle caller-minted identities are refused
+#   with 422 CALLER_IDENTITY_REFUSED (never bound, never trusted).
+# * R4 — absent prerequisites are explicit `missing` entries with a reason,
+#   never silent nulls or invented values.
+# * R5 — pure reads: no writes, no manifest projection, no INDEX refresh, no
+#   lock acquisition, no recover_partial, no identity minting (consumers call
+#   require_recorded_identity only).
+# * R6 — publication outputs are served ONLY with a CURRENT generation per
+#   authority.generations.require_current_generation (reused, never
+#   rewritten); any other status yields the typed currentness error, no bytes.
+# ---------------------------------------------------------------------------
+
+
+def _ui07_error(
+    status_code: int, code: str, message: str, **details: Any
+) -> HTTPException:
+    """Typed UI-07 refusal: the code is machine-readable, the message human."""
+    return HTTPException(
+        status_code=status_code,
+        detail={"code": code, "message": message, "details": details},
+    )
+
+
+def _ui07_refuse_caller_identity(request: Request) -> None:
+    """Refuse caller-minted identities presented as authority (spec §5/§6(2)).
+
+    The workspace/run/protocol/generation identity comes from the bound
+    workspace only. Any query key naming such an identity is refused with
+    422; the values are ignored, never bound.
+    """
+    hits = sorted(
+        str(key)
+        for key in request.query_params
+        if str(key).lower().replace("-", "").replace("_", "")
+        in {
+            "workspaceid",
+            "registeredworkspaceid",
+            "runid",
+            "screeningrunid",
+            "protocolfingerprint",
+            "corpusfingerprint",
+            "generationid",
+            "artifactid",
+            "batchartifactid",
+            "batchid",
+            "fingerprint",
+        }
+    )
+    if hits:
+        raise _ui07_error(
+            422,
+            "CALLER_IDENTITY_REFUSED",
+            "identity comes from the bound workspace, never the browser; "
+            f"refusing caller-supplied identity parameter(s): {hits}",
+            refused_parameters=hits,
+        )
+
+
+def _ui07_protocol_fingerprint(ws: Path) -> str | None:
+    """Canonical protocol fingerprint, or None when it cannot be resolved.
+
+    Reuses the protocol kit (never reimplemented); any failure yields None
+    so the caller reports an explicit missing entry instead of inventing one.
+    """
+    try:
+        from scholar_protocol.canonical import (
+            canonical_fingerprint as _protocol_fingerprint,
+        )
+        from scholar_protocol.models import ResearchProtocol
+
+        raw = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+        return _protocol_fingerprint(ResearchProtocol.model_validate(raw))
+    except Exception:  # noqa: BLE001 - any failure is "unavailable", never fatal
+        return None
+
+
+def _ui07_sanitize_details(ws: Path, details: dict[str, Any]) -> dict[str, Any]:
+    """Make gate details browser-safe: workspace-relative paths, JSON values."""
+    clean: dict[str, Any] = {}
+    for key, value in details.items():
+        if isinstance(value, str) and (
+            key.endswith("_path") or key == "generation_path"
+        ):
+            try:
+                clean[key] = Path(value).relative_to(ws).as_posix()
+            except ValueError:
+                clean[key] = Path(value).name
+        elif value is None or isinstance(value, (str, int, float, bool)):
+            clean[key] = value
+        elif isinstance(value, (list, dict)):
+            clean[key] = value
+        else:
+            clean[key] = str(value)
+    return clean
+
+
+def _ui07_publication_status(ws: Path) -> dict[str, Any]:
+    """The §3(e) status object, verbatim in every shape that carries it."""
+    from scholar_harness.authority.generations import require_current_generation
+
+    result = require_current_generation(ws)
+    record = result.record
+    generation_id: str | None = None
+    if record is not None:
+        generation_id = record.generation_id
+    elif isinstance(result.details.get("generation_id"), str):
+        generation_id = result.details["generation_id"]
+    return {
+        "shape": "ui07.publication-status-v1",
+        "status": result.status.value,
+        "code": result.code,
+        "generation_id": generation_id,
+        "outputs": dict(record.output_digests) if record is not None else {},
+        "message": result.message,
+        "details": _ui07_sanitize_details(ws, dict(result.details)),
+    }
+
+
+@router.get("/ui/project-summary")
+def ui07_project_summary(request: Request):
+    """§3(a): project summary + workflow readiness (explicit missing, never null-silence)."""
+    _ui07_refuse_caller_identity(request)
+    ws = _ws(request)
+
+    missing: list[dict[str, Any]] = []
+
+    try:
+        from scholar_harness.workspace.identity import require_recorded_identity
+
+        workspace_id: str | None = require_recorded_identity(ws)
+    except Exception:  # noqa: BLE001 - unregistered workspaces report, never mint
+        workspace_id = None
+        missing.append({"file": "project.json", "reason": "IDENTITY_UNREGISTERED"})
+
+    try:
+        project_raw = json.loads((ws / "project.json").read_text(encoding="utf-8"))
+        project_id = (
+            project_raw.get("project_id") if isinstance(project_raw, dict) else None
+        )
+    except Exception:  # noqa: BLE001 - unreadable manifest is explicit, never fatal
+        project_id = None
+    if not isinstance(project_id, str) or not project_id:
+        project_id = ws.name
+        missing.append({"file": "project.json", "reason": "PROJECT_ID_ABSENT"})
+
+    protocol_path = ws / "protocol.json"
+    if protocol_path.is_file():
+        protocol_fp = _ui07_protocol_fingerprint(ws)
+        protocol = {"present": True, "fingerprint": protocol_fp}
+        if protocol_fp is None:
+            missing.append(
+                {"file": "protocol.json", "reason": "PROTOCOL_FINGERPRINT_UNAVAILABLE"}
+            )
+    else:
+        protocol = {"present": False, "fingerprint": None}
+        missing.append({"file": "protocol.json", "reason": "NOT_PREPARED"})
+
+    manifest_path = ws / "literature" / "screening" / "MANIFEST.json"
+    run: dict[str, Any] | None = None
+    batches_resolved = 0
+    batch_total = 0
+    all_batches_resolved = False
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        run_id = (
+            manifest.get("screening_run_id") if isinstance(manifest, dict) else None
+        )
+        rows = manifest.get("batches", []) if isinstance(manifest, dict) else []
+    except Exception:  # noqa: BLE001 - absent/unreadable manifest is explicit
+        run_id = None
+        rows = None
+    if isinstance(run_id, str) and run_id and isinstance(rows, list):
+        batch_total = len(rows)
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            try:
+                idx = int(row.get("batch_index"))
+            except (TypeError, ValueError):
+                continue
+            if (
+                ws / "literature" / "screening" / f"batch_{idx:03d}_decisions.json"
+            ).is_file():
+                batches_resolved += 1
+        run = {
+            "screening_run_id": run_id,
+            "batches": batch_total,
+            "batches_resolved": batches_resolved,
+        }
+        all_batches_resolved = batch_total > 0 and batches_resolved == batch_total
+        if batch_total == 0:
+            missing.append(
+                {"file": "literature/screening/MANIFEST.json", "reason": "NO_BATCHES"}
+            )
+    else:
+        missing.append(
+            {"file": "literature/screening/MANIFEST.json", "reason": "NOT_PREPARED"}
+        )
+
+    publication = _ui07_publication_status(ws)
+    return {
+        "shape": "ui07.project-summary-v1",
+        "workspace_id": workspace_id,
+        "project_id": project_id,
+        "protocol": protocol,
+        "run": run,
+        "readiness": {
+            "screening_prepared": run is not None,
+            "all_batches_resolved": all_batches_resolved,
+            "publication": publication,
+        },
+        "missing": missing,
+    }
+
+
+@router.get("/ui/publication-status")
+def ui07_publication_status(request: Request):
+    """§3(e): honest currentness for the screening publication (pure read)."""
+    _ui07_refuse_caller_identity(request)
+    return _ui07_publication_status(_ws(request))
+
+
+@router.get("/ui/publication/outputs/{name}")
+def ui07_publication_output(request: Request, name: str):
+    """R6: one publication output, served ONLY with a CURRENT generation.
+
+    Anything but CURRENT yields the typed currentness error (409) with the
+    gate's message + details and no file bytes; unknown/traversal names are
+    refused with 400 INVALID_FILE_NAME before currentness is even read.
+    """
+    from scholar_harness.authority.generations import (
+        PUBLICATION_OUTPUTS,
+        require_current_generation,
+    )
+
+    _ui07_refuse_caller_identity(request)
+    if name not in PUBLICATION_OUTPUTS:
+        raise _ui07_error(
+            400,
+            "INVALID_FILE_NAME",
+            f"refusing request naming storage outside the served publication surface: {name!r}",
+            requested=name,
+            served_outputs=sorted(PUBLICATION_OUTPUTS),
+        )
+    ws = _ws(request)
+    result = require_current_generation(ws)
+    if result.status.value != "CURRENT":
+        raise _ui07_error(
+            409,
+            result.code or "GENERATION_STALE",
+            result.message,
+            **_ui07_sanitize_details(ws, dict(result.details)),
+        )
+    path = ws / "literature" / name
+    if not path.is_file():
+        # Unreachable without a concurrent mutation (CURRENT verified the
+        # digest), but fail-closed rather than serving nothing as success.
+        raise _ui07_error(
+            404,
+            "BATCH_MISSING",
+            f"missing file: literature/{name}",
+            file=f"literature/{name}",
+        )
+    try:
+        content = path.read_text(encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001 - unreadable bytes are explicit
+        raise _ui07_error(
+            500,
+            "UNPARSEABLE_JSON",
+            f"cannot read publication output literature/{name} ({exc})",
+            file=f"literature/{name}",
+        ) from exc
+    return {"filename": name, "content": content}

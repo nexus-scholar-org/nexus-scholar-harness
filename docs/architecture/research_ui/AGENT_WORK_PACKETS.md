@@ -295,9 +295,8 @@ authoritative research artifacts.
 
 ## UI-07 — Presentation API specification
 
-**Requested — specification-in-review (no implementation).** This is the first cross-boundary packet.
-Read-only presentation shapes: [`UI-07_PRESENTATION_SPEC.md`](./UI-07_PRESENTATION_SPEC.md);
-minimal separately-reviewed operations: [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md).
+**Implemented — read side delivered (pending PR merge); action API remains a separate packet.** Read-only presentation shapes: [`UI-07_PRESENTATION_SPEC.md`](./UI-07_PRESENTATION_SPEC.md) implemented as 8 read-only GET routes with generation-currentness + loopback CORS and UI-04 live wiring;
+minimal separately-reviewed operations remain in [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md) (not implemented here).
 
 **Scope:** documentation and typed API schemas before Python implementation.
 

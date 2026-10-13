@@ -9,6 +9,7 @@ without behaviour change.
 |---|---|
 | [`harness_core_modularity_roadmap.md`](./harness_core_modularity_roadmap.md) | **Plan/roadmap** for the track (packet order, deferrals, handoff). |
 | [`hcm_05_mcp_recon_adapter_characterization.md`](./hcm_05_mcp_recon_adapter_characterization.md) | Current close-out packet (ADOPTED; next is HCM-06 gating). |
+| HCM-06 read presentation API | Delivered (pending PR merge): 8 read-only GET routes with generation-currentness + loopback CORS; UI-04 live wiring. |
 
 ## Completion record
 
@@ -23,6 +24,6 @@ must-survive facts are here and the originals remain in git history.
 Any policy that mints, refuses, or quarantines identity needs its own packet
 gate before it changes.
 
-HCM-02/03/06 have no packet documents; the roadmap is their only definition.
+HCM-02/03 have no packet documents; the roadmap is their only definition. HCM-06 read API is delivered (pending PR merge); action/mutation API remains a separate packet.
 Runtime work follows the test-gate policy (`docs/architecture/test_gate_policy.md`).
 
