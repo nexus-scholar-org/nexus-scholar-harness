@@ -295,7 +295,9 @@ authoritative research artifacts.
 
 ## UI-07 — Presentation API specification
 
-**Blocked until requested.** This is the first cross-boundary packet.
+**Requested — specification-in-review (no implementation).** This is the first cross-boundary packet.
+Read-only presentation shapes: [`UI-07_PRESENTATION_SPEC.md`](./UI-07_PRESENTATION_SPEC.md);
+minimal separately-reviewed operations: [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md).
 
 **Scope:** documentation and typed API schemas before Python implementation.
 
