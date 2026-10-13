@@ -1,246 +1,115 @@
-# Nexus Scholar Harness
+# Nexus Scholar
 
-> **Agent-native, audited orchestration for systematic literature reviews** — from a single `uvx` command, no source checkout.
-> A thin orchestrator that drives eight external research kits through a unified CLI, workspaces-as-file-contract state, and an append-only audit ledger.
+**A research workspace and toolkit for literature reviews, with source lineage and explicit researcher control over final evidence.**
+
+Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is a CLI/MCP toolkit; the connected researcher application is under development.
 
 [![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/nexus-scholar.svg)](https://pypi.org/project/nexus-scholar/)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](pyproject.toml)
-[![Managed with uv](https://img.shields.io/badge/managed%20with-uv-7841db?logo=astral)](https://docs.astral.sh/uv/)
-[![Kits](https://img.shields.io/badge/8%20research%20kits-galaxy)](tools/)
 [![Release](https://img.shields.io/github/v/release/nexus-scholar-org/nexus-scholar-harness?sort=semver&label=release)](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](pyproject.toml)
 
----
+## What you can use today
 
-## Try it — the released app
+The `nexus-scholar` package bundles the harness, eight scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
 
-The `nexus-scholar` package bundles the harness CLI, all eight research kits,
-and the MCP server. No source checkout needed — install from PyPI with **`pip`**
-or run with **`uv`**.
+| Surface | Available / intended use | Boundary |
+|---|---|---|
+| Released CLI/MCP toolkit | Workspace setup and scientific tool access | Follow the versioned user guide and supported tool surfaces |
+| Development branch (`main`) | Evidence acceptance, screening integrity and protected publication work | May differ from the installed PyPI release; consult packet evidence |
+| Research UI | Screening, overview and workflow demonstrations | Mock-backed scaffold; not a connected production application |
+| Individual researcher application | Direct review of sources and recommendations | Product direction, not a completed desktop app or SaaS |
 
-### Run without installing (zero-friction via `uvx`)
+The latest listed release is [v1.0.0](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.0.0). Later work on `main` is not a claim about that release's behavior.
+
+## Start a workspace
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and inspect the command surface without checking out the repository:
 
 ```sh
 uvx nexus-scholar --help
 ```
 
-### Persistent install (`pip` or `uv tool`)
+For repeated use:
 
 ```sh
-# Via pip:
-pip install nexus-scholar
-
-# Or as an isolated CLI tool with uv:
 uv tool install nexus-scholar
+# Alternative: pip install nexus-scholar
 ```
 
-This installs two executables on your `PATH`:
-- **`nexus-scholar`** — workspace scaffold (`init`), health-check (`doctor`), audit ledger (`log`), MCP config generator (`setup-mcp`).
-- **`scholar-agent`** — universal Model Context Protocol (MCP) server exposing all eight kits as tools to Claude Desktop, Cursor, VS Code, and other agent harnesses.
-
-### Four-command quickstart
+Create a project and inspect its setup:
 
 ```sh
-# 1. Scaffold a workspace (no interactive wizard)
-nexus-scholar init "My Systematic Review" --dir ~/projects/my-review --scaffold-only
-
-# 2. Health-check (exit 0 = all PASS)
-nexus-scholar doctor --workspace ~/projects/my-review --exit-code
-
-# 3. Record first audit event
-nexus-scholar log event ~/projects/my-review --action PROJECT_INITIALIZED --agent me --description "started review"
-
-# 4. Wire MCP server into your AI client
-nexus-scholar setup-mcp --workspace ~/projects/my-review --harness all
+nexus-scholar init "UAV crop and weed mapping" --dir ./my-review --scaffold-only
+nexus-scholar doctor --workspace ./my-review --exit-code
+nexus-scholar setup-mcp --workspace ./my-review --harness all
 ```
 
-> **Full user guide:** [`docs/nexus_scholar_user_guide.md`](docs/nexus_scholar_user_guide.md) — init, setup-mcp, doctor, log, scholar-agent, env vars, troubleshooting.
+`--scaffold-only` creates a starting workspace with a placeholder protocol; it does not approve criteria or run a search. `doctor` reports setup issues. Additional capability dependencies may need configuration. `setup-mcp` generates configuration; follow the host-specific instructions before using it.
 
----
+Installed entrypoints are `nexus-scholar` (workspace/setup commands) and `scholar-agent` (MCP server). An external AI host is optional for CLI use and required when using that host as the agent interface.
 
-## Why this repo exists
+See the [current user guide](docs/nexus_scholar_user_guide.md) for configuration and troubleshooting, and the [kit surface matrix](docs/kits_surface_matrix.md) for development-source boundaries. Check command help against your installed version; current documentation can describe post-release behavior.
 
-The harness is deliberately **thin**: it does not re-implement research logic.
-Instead it orchestrates a family of purpose-built kits — discovery, screening,
-PDF harvesting, extraction, RAG synthesis, citation graphs, protocol
-compilation, and verification — that live under `tools/` and are installed
-**editable** into one shared environment. Everything a researcher or an AI agent
-does on the pipeline is:
+## The researcher workflow we are building
 
-1. **Deterministic and idempotent** — re-runs produce identical artifacts
-   (`protocol.json` carries a SHA-256 fingerprint).
-2. **Audited** — every significant step appends an immutable event to
-   `audit/journal.jsonl`.
-3. **Agent-agnostic** — the same CLI, MCP tools (`scholar-agent-kit`), and
-   workspace files drive opencode, Claude, Copilot, and any other coding agent.
+For a crop/weed review, the intended first complete interaction is:
 
-The pipeline in one flow:
+1. Define the question and explicit inclusion/exclusion criteria.
+2. Retrieve a bounded literature set and inspect search limitations.
+3. Review recommendations alongside their source information.
+4. Save unresolved items or override a recommendation without losing its history.
+5. Explicitly authorize final decisions and publish the current screening result.
+6. Export a screening record with reasons and provenance.
 
-```text
-Socratic Inception ──▶ Federated Discovery ──▶ Dedup & Verify ──▶ PRISMA Screening ──▶ OA Harvest ──▶ Extraction ──▶ RAG Synthesis ──▶ Trust Verification
-(methodology-copilot)     (scholar-search)       (scholar-search)    (agent-in-the-loop)    (scholar-pdf)    (scholar-pdf)    (scholar-rag)      (scholar-verify)
-```
+This is the product target, not an end-to-end released demo. AG-04 is developing the worker/review interaction; real UI integration follows. Full-text charting, synthesis and scientific evaluation have separate readiness requirements.
 
----
+**UI demonstration — mock data:** the existing screening layout illustrates the review direction. It does not demonstrate live data or protected approval.
 
-## The research kits
+![Mock screening interface](apps/research-ui/screenshots/375-screening.png)
 
-| Kit | Purpose | Key CLI |
-| :-- | :-- | :-- |
-| `scholar-protocol-kit` | Compiles, fingerprints, and renders research protocols from `intent.json`. | `scholar-protocol compile -i intent.json -o protocol.json --fingerprint` |
-| `scholar-search-kit` | Federated search (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed, bioRxiv), snowballing, dedup, verify, screening export. | `scholar-search search / dedup / verify / snowball / chain` |
-| `scholar-pdf-kit` | OA discovery, resilient downloading (institutional-proxy aware), `%PDF` integrity validation, Markdown extraction. | `scholar-pdf download / extract / ingest` |
-| `scholar-bib-kit` | BibTeX parse, lint, merge, dedup, resolve missing metadata. | `scholar-bib lint / merge / resolve` |
-| `scholar-rag-kit` | AST chunking, ChromaDB indexing, grounded synthesis with atomic attribution tokens. | `scholar-rag index / query / synthesize / consensus` |
-| `scholar-graph-kit` | Citation/co-citation networks, PageRank, interactive PyVis HTML maps. | `scholar-graph build / pagerank` |
-| `scholar-agent-kit` | MCP server exposing all kits as `nexus_*` tools to AI agents. | `scholar-agent` (MCP entrypoint) |
-| `scholar-verify-kit` | Phase-4 trust streams: retraction status, open-science DAS/CAS, COI audit, risk-of-bias, trust-weighted consensus. | `scholar-verify retraction / coi / ... / trust-context --rq-id` |
+## Evidence and researcher control
 
----
+On the supported development paths, Nexus binds accepted artifacts to their parents and exact content. Screening controls reject incomplete coverage, duplicate decisions and unresolved finalization. Agent-control work separates recommendations, review, approval and publication, with generation/currentness checks for named consumers.
 
-## Developer quick start
+These are bounded engineering guarantees. Protected-publisher evidence is for the tested Windows MIC deployment; POSIX enforcement and hosted multi-user deployment are not established. Agent agreement or a critic PASS is not an independent human reference label. Valid provenance is not proof that a scientific conclusion is correct.
 
-### Requirements
+Project events use an append-only journal, not protection against an administrator rewriting local files. Model outputs and external-provider results are not universally deterministic. Local storage does not imply local inference: configured services may receive research content.
 
-- **Python 3.11+**
-- **[`uv`](https://docs.astral.sh/uv/)** — install: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"` (Windows) or `curl -LsSf https://astral.sh/uv/install.sh | sh` (macOS/Linux)
-- **Git 2.30+**
+See the [AG plan](docs/architecture/agent-controls/agent_controls_plan.md), [evidence boundaries](docs/architecture/wp01/evidence-boundaries.md) and [program tracker](docs/UPCOMING_WORK.md) for scope and residual limitations.
 
-```bash
+## Scientific capabilities and architecture
+
+| Kit | Domain |
+|---|---|
+| Protocol | Compile and validate research intent/protocols |
+| Search | Discovery, deduplication, metadata and screening support |
+| PDF | Full-text acquisition and extraction |
+| Bibliography | BibTeX parsing, cleaning and resolution |
+| RAG | Indexing, retrieval and synthesis capabilities |
+| Graph | Citation networks and graph analysis |
+| Agent | MCP tool interfaces |
+| Verify | Retraction, open-science and methodological trust checks |
+
+Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction/index boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
+
+## Develop and contribute
+
+Read [AGENTS.md](AGENTS.md) and the [Developer Compass](docs/architecture/DEVELOPER_COMPASS.md) before implementation. A source checkout has a separate setup path:
+
+```sh
 git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
-
-# Thin harness deps (typer, rich, dev extras)
 uv sync --extra dev
-
-# Install the eight kits into the shared .venv (editable installs when tools/ checkouts exist;
-# Git-branch fallback declared in .agents/plugins/nexus-scholar/plugins.json)
 uv run python scripts/install_plugins.py
-
-# Scaffold a workspace (or restore one from git history), then check status:
-uv run scholar-harness status --workspace workspaces/<your-project>
 ```
 
-> **Gotcha:** `uv sync` installs only the harness. Kit CLIs become available only after `install_plugins.py` runs — the installer is the source of truth for kit versions.
+`uv sync` installs harness dependencies, not all kits. The installer uses the pinned [plugin manifest](.agents/plugins/nexus-scholar/plugins.json). Kit source changes also belong in their canonical repositories with synchronized pins and vendored content.
 
-### Scaffold a workspace
+Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 
-```bash
-uv run scholar-harness inception --root .          # Socratic wizard → intent.json + fingerprinted protocol.json + SCREENING_CRITERIA.md
-uv run scholar-harness status -w workspaces/<slug> # dashboard-style status table
-uv run scholar-harness sync -w workspaces/<slug>   # rebuild project.json / INDEX.md from filesystem
-```
-
-A canonical workspace is a **file contract**:
-
-```text
-workspaces/<slug>/
-├── protocol.json            # canonical, fingerprinted protocol
-├── intent.json              # inception intent
-├── SCREENING_CRITERIA.md    # rendered PRISMA criteria
-├── INDEX.md                 # master catalog
-├── project.json             # machine-readable state
-├── audit/journal.jsonl      # append-only event ledger
-├── literature/              # candidates, included/excluded, PRISMA report, screening batches
-├── pdfs/                    # harvested OA PDFs (gitignored)
-├── extracted/               # full-text Markdown with YAML frontmatter
-├── synthesis/               # consensus, matrices, literature review
-└── phase4/                  # trust_consensus*, RoB/COI/retraction reports
-```
-
----
-
-## Usage highlights
-
-```bash
-# Federated discovery + dedup
-uv run scholar-search search --query "multispectral weed segmentation" --providers openalex semanticscholar crossref arxiv --year-min 2018 --limit 50 --output workspaces/<slug>/literature/raw_search.json
-uv run scholar-search dedup  --input workspaces/<slug>/literature/raw_search.json --output workspaces/<slug>/literature/deduped.json
-
-# PRISMA screening is an agent-in-the-loop handoff (not an opaque API)
-uv run python src/scholar_harness/agent_screen.py prepare <ws>    # writes literature/screening/batch_NNN.json
-#   ... an agent reads each batch and writes batch_NNN_decisions.json ...
-uv run python src/scholar_harness/agent_screen.py collect <ws>    # assembles included.json / excluded.json / prisma_screening_report.md
-
-# Harvest + extract with optional institutional-proxy rescue
-uv run scholar-pdf download --input workspaces/<slug>/literature/included.json --output workspaces/<slug>/pdfs/ --smart-names --proxy https://www.sndl1.arn.dz --proxy-style subdomain
-uv run scholar-pdf extract  --input workspaces/<slug>/pdfs/ --output workspaces/<slug>/extracted/ --engine pymupdf
-
-# Synthesize, cartograph, verify
-uv run scholar-rag synthesize --ws workspaces/<slug> --output-claims synthesis/claims.json
-uv run scholar-rag consensus   synthesis/claims.json --rq-id RQ1
-uv run scholar-graph build --input workspaces/<slug>/literature/included.json --output literature/knowledge_graph.html
-uv run scholar-verify trust-context --workspace workspaces/<slug> --claims-dir synthesis --rq-id RQ2
-```
-
----
-
-## Quality & testing
-
-```bash
-uv run pytest              # harness suite (391 passed, 5 skipped — imports src/ + kits from tools/*/src via pythonpath)
-uv run ruff check scripts/ # CI-scoped lint (this is the lint gate)
-```
-
-- Hermetic suites live beside each kit (`tools/<kit>/tests/`).
-- CI (`.github/workflows/ci.yml`) runs on `main`/`develop` across `ubuntu/windows/macos` x Python `3.11/3.12`: ruff lint on `scripts/`, plugin-installer syntax, plugin manifest schema validation, and best-effort plugin install.
-
-## Documentation
-
-- **Docs index:** [`docs/README.md`](docs/README.md) — roadmap/backlog, Phase-0 design specs, future-phase design sets, operational notes, spec-series pointer.
-- **Architecture & program docs:** [`docs/architecture/`](docs/architecture) — per-track folders (`agent-controls`, `harness-core-modularity`, `wp01`, `research_ui`, `decisions`, `console`), the lifecycle map, and the contract set.
-- **Spec series:** [`specs/`](specs/) — [`deep-audit-remediation-2026-09-17/`](specs/deep-audit-remediation-2026-09-17/) (Contract v1 & system roadmap) · [`exploratory-grounding-agent/`](specs/exploratory-grounding-agent/) (literature recon) · [`inception-ecosystem/`](specs/inception-ecosystem/) (skill stack) · [`handoff/`](specs/handoff/) (pipeline state machine)
-- **Kit surfaces:** [`docs/kits_surface_matrix.md`](docs/kits_surface_matrix.md) — agent-facing API/CLI/MCP map of all eight kits, with known-broken tooling and cross-kit contracts.
-- **Roadmap & backlog:** [`docs/UPCOMING_WORK.md`](docs/UPCOMING_WORK.md)
-- **Agent workflows:** `.agents/skills/<kit>/SKILL.md` per kit · MCP entrypoint at `.agents/plugins/nexus-scholar/mcp_config.json`
-
-## Repository layout
-
-```text
-nexus-scholar-harness/
-├── .agents/
-│   ├── plugins/nexus-scholar/   # plugin registry (kit versions) + MCP config + skills bundle mirror
-│   └── skills/<kit>/            # per-kit agent skill: SKILL.md + references (canonical source)
-├── src/scholar_harness/         # the thin orchestrator (cli, orchestrator, inception, agent_screen)
-├── scripts/                     # install_plugins.py, sync_skills_bundle.py, lint/validate helpers
-├── tools/<kit>/                 # eight tracked kit packages (editable-installed into .venv)
-├── docs/                        # README.md index, roadmap/backlog, architecture blueprints, commit snapshots
-├── specs/                       # specification series (deep-audit-remediation, exploratory-grounding-agent, inception-ecosystem, handoff)
-├── workspaces/                  # research project workspaces (text/metadata tracked)
-├── pyproject.toml
-└── AGENTS.md                    # agent operational guidance (read me first)
-```
-
-## Contributing
-
-Improvements ship **through the personal fork + a pull request** — never by
-pushing feature branches to `origin` (`nexus-scholar-org/nexus-scholar-harness`
-is the canonical baseline). The fork is `nexus-scholar/nexus-scholar-harness`
-(remote `fork`).
-
-```bash
-git switch -c my-improvement
-# ... changes ...
-uv run pytest
-uv run ruff check scripts/
-git push fork my-improvement
-gh pr create -R nexus-scholar-org/nexus-scholar-harness --base main
-```
-
-A pre-push hook enforces this gate. It is tracked at `scripts/hooks/pre-push`
-and enabled with:
-
-```bash
-git config core.hooksPath scripts/hooks
-```
-
-Full rules: `.agents/skills/pull-request-gate/SKILL.md`.
+Start with the [docs index](docs/README.md), [program tracker](docs/UPCOMING_WORK.md) and [contribution instructions](.agents/skills/pull-request-gate/SKILL.md). For feedback, [open an issue](https://github.com/nexus-scholar-org/nexus-scholar-harness/issues) with your research task, environment and the unclear or failing step.
 
 ## License
 
-MIT. Free for academic and open-source use.
-
----
-
-*Designed for **agent-native**, audited, reproducible literature research — from research question to trust-weighted consensus.*
+MIT, as declared in the [project metadata](pyproject.toml).
