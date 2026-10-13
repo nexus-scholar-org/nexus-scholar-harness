@@ -27,7 +27,7 @@ result); POSIX remains unproven. AG-03B merged in [PR #121](https://github.com/n
 | AG-02 | Merged, bounded integrity | Single-screener coverage/duplicates/unresolved/hash/freshness gates; no authority claim. |
 | AG-03A | FEASIBILITY_PROVEN (Windows MIC disposable flow); POSIX unproven | Windows MIC proves the restricted worker cannot approve, impersonate the operator, modify publisher state, or overwrite final output; POSIX arrangement still unproven. Next: AG-03B. |
 | AG-03B | Delivered (PR #121 merged at fea8f40); single-screener review lifecycle on Windows MIC | Immutable snapshot buffer, preserved overrides with supersession links, publisher-constructed operator identity, durable refusal records, derived-output binding; AG-03C (generations, currentness, crash recovery) still open. |
-| AG-03C | Delivered (pending PR merge); shared gate + coherent generations on Windows MIC | Collect requires staged approval; generation.json commit point; extraction/coordinator/handoff enforce currentness; crash/race/retry/audit-failure proven; POSIX unproven; dated LEGACY migration exception recorded. |
+| AG-03C | Merged (PR #125 at `2846066`); shared gate + coherent generations on Windows MIC | Collect requires staged approval; generation.json commit point; extraction/coordinator/handoff enforce currentness; crash/race/retry/audit-failure proven; POSIX unproven; dated LEGACY migration exception recorded. |
 | AG-04 | Queued | One screening worker and minimal review interaction using the proven publisher. |
 | AG-05 | Queued | Held-out scientific evaluation after calibration; measured error/correction/time/bias and proceed/revise/stop decision. |
 | AG-06/07 | Deferred | Charting then synthesis require separate evidence-based decisions. |
