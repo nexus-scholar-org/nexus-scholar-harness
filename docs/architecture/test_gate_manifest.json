@@ -145,6 +145,34 @@
       "closure": ["uv run pytest -q"]
     }
   },
+  "docs": {
+    "comment": "F1 change-set classification. Consumption, not extension or directory, decides the gate: docs consumed by tests/packaging/generators keep their boundary check; baseline-locked docs keep drift gates; pure prose takes the light gate (common commands only). Unknown non-executable paths fall back conservatively to the harness suite; an empty selection stays an error.",
+    "consumed": {
+      "docs/kits_surface_matrix.md": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
+      ".agents/skills/*/SKILL.md": ["uv run python scripts/sync_skills_bundle.py --check"],
+      ".agents/plugins/nexus-scholar/skills/*/SKILL.md": ["uv run python scripts/sync_skills_bundle.py --check"],
+      "docs/architecture/test_gate_manifest.json": ["uv run python scripts/select_test_gate.py --check"],
+      "docs/architecture/contract_v1_baseline.json": ["uv run python scripts/generate_contract_baseline.py --check"]
+    },
+    "consumed_excluded": ["pull-request-gate"],
+    "locked": [
+      "docs/architecture/contract_v1_baseline.md",
+      "docs/architecture/cross_kit_contract_v1.md",
+      "docs/architecture/wp01_contract_adoption_handoff.md",
+      "docs/architecture/wp01_packet_c_reference.md",
+      "specs/deep-audit-remediation-2026-09-17/10_cross_kit_contracts.md",
+      "specs/deep-audit-remediation-2026-09-17/12_execution_roadmap.md",
+      ".agents/skills/doer-contract/SKILL.md",
+      ".agents/skills/critic-contract/SKILL.md",
+      ".agents/plugins/nexus-scholar/skills/doer-contract/SKILL.md",
+      ".agents/plugins/nexus-scholar/skills/critic-contract/SKILL.md",
+      ".opencode/agent/*.md"
+    ],
+    "locked_commands": [
+      "uv run python scripts/generate_contract_baseline.py --check",
+      "uv run python scripts/generate_contract_schemas.py --check"
+    ]
+  },
   "fallback": {
     "harness": ["uv run pytest -q", "uv run ruff check scripts/"],
     "scholar-rag-kit": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],

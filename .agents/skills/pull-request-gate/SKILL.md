@@ -22,8 +22,11 @@ go through the fork+PR flow) may be pushed directly. Never bypass this gate.
 
 ## Non-negotiable rules
 
-1. **Never push a feature branch to `origin`.** Create the branch, commit, run
-   `uv run pytest` (must pass) and `uv run ruff check scripts/`, then push to
+1. **Never push a feature branch to `origin`.** Create the branch, commit, select
+   the required gate with `uv run python scripts/select_test_gate.py` per
+   `docs/architecture/test_gate_policy.md` (documentation-only changes take the
+   light gate; executable changes keep their mapped or full suite), run the
+   selected commands (must pass) and `uv run ruff check scripts/`, then push to
    `fork` and open a PR to `origin`.
 2. **Never force-push** to `origin`. If a history rewrite is essential, do it
    on the fork, never on the canonical repo.
@@ -37,8 +40,9 @@ go through the fork+PR flow) may be pushed directly. Never bypass this gate.
 # 1. Branch off main
 git switch -c feat/your-improvement main
 
-# 2. Change + verify
-uv run pytest          # must pass
+# 2. Change + verify (gate selected per docs/architecture/test_gate_policy.md)
+uv run python scripts/select_test_gate.py --path <changed-file> --stage inner  # prints required commands
+<run the printed commands>  # must pass (light gate for prose-only, full suite for executable)
 uv run ruff check scripts/
 
 # 3. Commit to the branch
