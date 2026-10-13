@@ -1,0 +1,68 @@
+[
+  {
+    "title": "WeedsGalore: A Multispectral and Multitemporal UAV-Based Dataset for Crop and Weed Segmentation in Agricultural Maize Fields",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.1109/wacv61041.2025.00467",
+    "external_ids": {
+      "doi": "10.1109/wacv61041.2025.00467",
+      "arxiv_id": null,
+      "pubmed_id": null,
+      "openalex_id": "https://openalex.org/W4409263155",
+      "s2_id": null
+    },
+    "abstract": "Weeds are one of the major reasons for crop yield loss but current weeding practices fail to manage weeds in an efficient and targeted manner. Effective weed management is especially important for crops with high worldwide production such as maize, to maximize crop yield for meeting increasing global demands. Advances in near-sensing and computer vision enable the development of new tools for weed management. Specifically, state-of-the-art segmentation models, coupled with novel sensing technologies, can facilitate timely and accurate weeding and monitoring systems. However, learning-based approaches require annotated data and show a lack of generalization to aerial imaging for different crops. We present a novel dataset for semantic and instance segmentation of crops and weeds in agricultural maize fields. The multispectral UAV-based dataset contains images with RGB, red-edge, and nearinfrared bands, a large number of plant instances, dense annotations for maize and four weed classes, and is multitemporal. We provide extensive baseline results for both tasks, including probabilistic methods to quantify prediction uncertainty, improve model calibration, and demonstrate the approach's applicability to out-of-distribution data. The results show the effectiveness of the two additional bands compared to RGB only, and better performance in our target domain than models trained on existing datasets. We hope our dataset advances research on methods and operational systems for fine-grained weed identification, enhancing the robustness and applicability of UAVbased weed management. The dataset and code are available at https://github.com/GFZ/weedsgalore.",
+    "authors": [
+      {
+        "family_name": "Celikkan",
+        "given_name": "Ekin",
+        "orcid": null
+      },
+      {
+        "family_name": "Kunzmann",
+        "given_name": "Timo",
+        "orcid": null
+      },
+      {
+        "family_name": "Yeskaliyev",
+        "given_name": "Yertay",
+        "orcid": null
+      },
+      {
+        "family_name": "Itzerott",
+        "given_name": "Sibylle",
+        "orcid": null
+      },
+      {
+        "family_name": "Klein",
+        "given_name": "Nadja",
+        "orcid": null
+      },
+      {
+        "family_name": "Herold",
+        "given_name": "Martin",
+        "orcid": null
+      }
+    ],
+    "venue": "2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)",
+    "url": "https://doi.org/10.1109/wacv61041.2025.00467",
+    "workspace_id": null,
+    "sources": [
+      {
+        "provider": "crossref",
+        "id": "10.1109/wacv61041.2025.00467"
+      }
+    ],
+    "oa_locations": [],
+    "citations_count": 28,
+    "references_count": 69,
+    "citation_intents": [],
+    "mesh_terms": [],
+    "tldr": null,
+    "topics": null,
+    "query_id": null,
+    "retrieved_at": "2026-10-12 23:00:58.601393+00:00",
+    "cluster_id": null,
+    "raw_data": null
+  }
+]
