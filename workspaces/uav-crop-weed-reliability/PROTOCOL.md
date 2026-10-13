@@ -31,8 +31,10 @@ input is charted rather than mandatory, allowing RGB comparison studies.
   Earlier foundational sources are background unless eligibility is amended.
   This recent-window scope answers current practice, not the historical origin
   of UAV mapping; verify recall/overlap and reconsider the boundary during calibration.
-- English full text is the initial operational language assumption; language
-  coverage and its bias require researcher confirmation before freeze.
+- English full text is selected for this pilot under the user's delegated
+  research instruction; disclose the language-coverage bias. See
+  [calibration decisions](calibration/RESEARCHER_DECISIONS.md). This confirms the
+  existing language boundary without freezing the protocol.
 - Journal, conference, and substantive preprint reports are eligible and tagged.
   Prefer the most complete current report while retaining linked versions and
   discrepant claims; do not double-count preprint/publication versions as studies.

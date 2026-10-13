@@ -1,0 +1,59 @@
+{
+  "checked_at": "2026-10-12T23:33:28.116388+00:00",
+  "actor": "Codex/delegated-senior-research-review",
+  "authority": "User explicitly requested act as me and senior researcher and merge and verify",
+  "query_results": {
+    "Q1": {
+      "records": 25,
+      "hits": {
+        "S1": false,
+        "S2": false,
+        "S3": true,
+        "S4": true,
+        "S5": true
+      },
+      "eligible_positive_hits": 2,
+      "eligible_positive_denominator": 3
+    },
+    "Q2": {
+      "records": 25,
+      "hits": {
+        "S1": true,
+        "S2": false,
+        "S3": true,
+        "S4": true,
+        "S5": true
+      },
+      "eligible_positive_hits": 3,
+      "eligible_positive_denominator": 3
+    }
+  },
+  "charting_schema_errors": [],
+  "charting_states": {
+    "unavailable": 42
+  },
+  "accepted_scientific_artifacts_created": false,
+  "formal_protocol_frozen": false,
+  "source_checks": [
+    {
+      "sentinel": "S3",
+      "url": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2022.927368/full",
+      "scope": "Publisher full-text methods inspected; original research; RGB subset and random 8:2 image split."
+    },
+    {
+      "sentinel": "S4",
+      "url": "https://www.mdpi.com/2072-4292/15/21/5165",
+      "scope": "Publisher indexed article methods inspected; primary empirical study, correcting prior likely-review classification. Direct article requests returned 429."
+    },
+    {
+      "sentinel": "S1",
+      "url": "https://arxiv.org/html/2502.13103v1",
+      "scope": "Versioned full-text preprint inspected; experimental sections and independent OOD field/year/growth-stage setting. Published version must be reconciled before final extraction."
+    },
+    {
+      "sentinel": "S5",
+      "url": "https://www.sciencedirect.com/science/article/pii/S2772375525008871",
+      "scope": "Publisher indexed record reports Volume 13 March 2026; review report type. Online-first date not resolved; full page fetch 403."
+    }
+  ]
+}
