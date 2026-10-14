@@ -295,7 +295,7 @@ authoritative research artifacts.
 
 ## UI-07 — Presentation API specification
 
-**Implemented — read side delivered (pending PR merge); action API remains a separate packet.** Read-only presentation shapes: [`UI-07_PRESENTATION_SPEC.md`](./UI-07_PRESENTATION_SPEC.md) implemented as 8 read-only GET routes with generation-currentness + loopback CORS and UI-04 live wiring;
+**Implemented — read side merged (PR #133); protected action API merged (PR #134, `aa6e2f0`).** Read-only presentation shapes: [`UI-07_PRESENTATION_SPEC.md`](./UI-07_PRESENTATION_SPEC.md) implemented as 8 read-only GET routes with generation-currentness + loopback CORS and UI-04 live wiring;
 minimal separately-reviewed operations remain in [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md) (not implemented here).
 
 **Scope:** documentation and typed API schemas before Python implementation.
