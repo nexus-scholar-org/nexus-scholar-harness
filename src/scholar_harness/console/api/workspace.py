@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -593,3 +594,683 @@ def ui07_publication_output(request: Request, name: str):
             file=f"literature/{name}",
         ) from exc
     return {"filename": name, "content": content}
+
+
+# ---------------------------------------------------------------------------
+# UI-05 evidence lineage (GET only, never mutate).
+#
+# One read-only trace view: given a claim id or a chunk id, the server
+# assembles claim -> chunk(s) -> extracted document -> study -> screening
+# decision from the workspace bound at app state. Every join is resolved
+# here, from recorded Contract v1 artifacts through the frozen models
+# (reused, never rewritten):
+#
+# * claims_ledger       (claims with evidence ids + citation tokens, and the
+#                        evidence itself: quote, locator, document link)
+# * document_manifest   (document records: study link, source hash, status)
+# * corpus_snapshot     (studies: canonical ids, recorded aliases, titles)
+# * screening_decisions (recorded decisions with reasons)
+# * artifact_registry   (which payload is the accepted one per type)
+#
+# Discipline mirrors the UI-07 section above:
+#
+# * R1/R2 — claim_id/chunk_id are selectors resolved against the bound
+#   workspace, never authority; any other caller-minted identity key is
+#   refused with 422 CALLER_IDENTITY_REFUSED (never bound, never trusted).
+# * R4 — a broken link is an explicit typed refusal (a per-leg `refusal`
+#   with a stable code, or an HTTP typed error for entry-level failures),
+#   never a silent null and never an invented value.
+# * R5 — pure read: no writes, no registry mutation, no lock acquisition,
+#   no recover_partial, no identity minting.
+# * R6 — publication-linked traces serve ONLY with a CURRENT generation per
+#   authority.generations.require_current_generation (reused, never
+#   rewritten); any other status yields the typed currentness error, no bytes.
+# * Joins span mixed identity eras (canonical STU- study ids beside legacy
+#   SCI- aliases recorded on the corpus): a study resolves by canonical id
+#   or by a recorded corpus alias only. A title, DOI, or filename never
+#   binds a study; an unresolvable link refuses instead of guessing.
+# * Entailment is never claimed: a verbatim quote is served as a quote, and
+#   the claim verification axes are served exactly as stored (annotations,
+#   never scores).
+# ---------------------------------------------------------------------------
+
+
+#: Frozen citation-token grammar ([rag:v2:workspace:study:chunk]); parsed, never minted.
+_LINEAGE_CHUNK_TOKEN_RE = re.compile(r"\[rag:v2:([^:\]]+):([^:\]]+):([^:\]]+)\]")
+
+
+def _lineage_registry(ws: Path) -> dict[str, Any]:
+    """The recorded artifact registry, or a typed refusal when it cannot be read."""
+    path = ws / "audit" / "artifact_registry.json"
+    if not path.is_file():
+        raise _ui07_error(
+            404,
+            "LINEAGE_NOT_PREPARED",
+            "no accepted Contract v1 artifact registry; no lineage can be assembled",
+            file="audit/artifact_registry.json",
+        )
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - malformed canonical bytes are explicit
+        raise _ui07_error(
+            500,
+            "UNPARSEABLE_JSON",
+            f"unparseable JSON: artifact_registry.json ({exc})",
+            file="artifact_registry.json",
+        ) from exc
+    if not isinstance(payload, dict) or not isinstance(payload.get("artifacts"), dict):
+        raise _ui07_error(
+            500,
+            "LINEAGE_REGISTRY_INVALID",
+            "artifact_registry.json carries no artifacts mapping",
+            file="audit/artifact_registry.json",
+        )
+    return payload
+
+
+def _lineage_newest(registry: dict[str, Any], artifact_type: str) -> dict[str, Any]:
+    """The newest accepted registry entry of one type, or a typed 404.
+
+    Newest means the largest accepted_at string; ISO-8601 stamps order
+    lexicographically, so no clock is read and no timestamp is reformatted.
+    """
+    candidates = [
+        (artifact_id, entry)
+        for artifact_id, entry in registry["artifacts"].items()
+        if isinstance(entry, dict) and entry.get("artifact_type") == artifact_type
+    ]
+    if not candidates:
+        raise _ui07_error(
+            404,
+            "LINEAGE_NOT_PREPARED",
+            f"no accepted {artifact_type} artifact; no lineage can be assembled",
+            artifact_type=artifact_type,
+        )
+
+    def _stamp(item: tuple[str, dict[str, Any]]) -> str:
+        accepted_at = item[1].get("accepted_at")
+        return accepted_at if isinstance(accepted_at, str) else ""
+
+    artifact_id, entry = sorted(candidates, key=_stamp)[-1]
+    return {"artifact_id": artifact_id, **entry}
+
+
+def _lineage_load(
+    ws: Path, entry: dict[str, Any], *, kind: str, invalid_code: str
+) -> dict[str, Any]:
+    """Load one registered payload and check it against its recorded hash.
+
+    A recorded hash that disagrees with the payload on disk is a compromised
+    registry, not a missing file: it refuses instead of serving the bytes.
+    """
+    from scholar_harness.contracts.canonical import canonical_fingerprint
+
+    rel = entry.get("path")
+    if not isinstance(rel, str) or not rel:
+        raise _ui07_error(
+            500,
+            "LINEAGE_REGISTRY_INVALID",
+            f"registry entry {entry.get('artifact_id')!r} carries no path",
+            artifact_type=kind,
+        )
+    path = (ws / rel).resolve() if isinstance(rel, str) else ws
+    try:
+        path.relative_to(ws)
+    except ValueError as exc:
+        raise _ui07_error(
+            500,
+            "LINEAGE_REGISTRY_INVALID",
+            f"registry path {rel!r} resolves outside the workspace",
+            artifact_type=kind,
+        ) from exc
+    if not path.is_file():
+        raise _ui07_error(
+            404,
+            "LINEAGE_NOT_PREPARED",
+            f"registered {kind} payload is absent on disk: {rel}",
+            file=rel,
+        )
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - malformed canonical bytes are explicit
+        raise _ui07_error(
+            500,
+            "UNPARSEABLE_JSON",
+            f"unparseable JSON: {rel} ({exc})",
+            file=rel,
+        ) from exc
+    if not isinstance(payload, dict):
+        raise _ui07_error(
+            500, invalid_code, f"registered {kind} payload is not a JSON object"
+        )
+    recorded = entry.get("sha256")
+    try:
+        actual = canonical_fingerprint(payload)
+    except Exception as exc:  # noqa: BLE001 - an unhashable payload is explicit
+        raise _ui07_error(
+            500, invalid_code, f"registered {kind} payload cannot be hashed ({exc})"
+        ) from exc
+    if not isinstance(recorded, str) or recorded != actual:
+        raise _ui07_error(
+            500,
+            "LINEAGE_REGISTRY_INVALID",
+            f"registered {kind} payload differs from its registry hash",
+            artifact_type=kind,
+        )
+    return payload
+
+
+def _lineage_chunk_ids(token: str) -> tuple[str, str] | None:
+    """Split one citation token into (study segment, chunk segment), or None."""
+    match = _LINEAGE_CHUNK_TOKEN_RE.fullmatch(token.strip())
+    if match is None:
+        return None
+    return match.group(2), match.group(3)
+
+
+@router.get("/ui/lineage")
+def ui05_lineage(
+    request: Request, claim_id: str | None = None, chunk_id: str | None = None
+):
+    """Assemble one evidence lineage trace (claim/chunk -> decision).
+
+    Exactly one of `claim_id`/`chunk_id` selects the trace; both are
+    selectors resolved against the bound workspace, never authority. Every
+    served string comes from a recorded payload validated through its
+    frozen Contract model; every broken link refuses with a stable code.
+    """
+    from scholar_harness.authority.generations import require_current_generation
+    from scholar_harness.contracts.models import (
+        ClaimEvidenceLedger,
+        CorpusSnapshotArtifact,
+        DocumentManifestArtifact,
+        ScreeningDecisionsArtifact,
+    )
+    from scholar_harness.workspace.identity import require_recorded_identity
+
+    _ui07_refuse_caller_identity(request)
+    want_claim = claim_id.strip() if isinstance(claim_id, str) else ""
+    want_chunk = chunk_id.strip() if isinstance(chunk_id, str) else ""
+    if not want_claim and not want_chunk:
+        raise _ui07_error(
+            400,
+            "MISSING_SELECTOR",
+            "a lineage trace needs exactly one selector: claim_id or chunk_id",
+            served_selectors=["claim_id", "chunk_id"],
+        )
+    if want_claim and want_chunk:
+        raise _ui07_error(
+            400,
+            "CONFLICTING_SELECTOR",
+            "a lineage trace takes one selector; claim_id and chunk_id were both given",
+            served_selectors=["claim_id", "chunk_id"],
+        )
+
+    ws = _ws(request)
+    current = require_current_generation(ws)
+    if current.status.value != "CURRENT":
+        raise _ui07_error(
+            409,
+            current.code or "GENERATION_STALE",
+            current.message,
+            **_ui07_sanitize_details(ws, dict(current.details)),
+        )
+    # Scope comes from the authorized generation record itself (verified
+    # CURRENT above), never from a caller value and never minted here. When
+    # the record is absent the recorded workspace identity is the fallback;
+    # an unregistered workspace reports instead of minting.
+    if current.record is not None:
+        scope_workspace = current.record.workspace_id
+    else:  # pragma: no cover - CURRENT always carries its record
+        try:
+            scope_workspace = require_recorded_identity(ws)
+        except Exception as exc:  # noqa: BLE001 - unregistered workspaces report
+            raise _ui07_error(
+                409,
+                "LINEAGE_IDENTITY_UNREGISTERED",
+                "no recorded workspace identity, so lineage scope cannot be "
+                f"confirmed ({exc})",
+            ) from exc
+
+    registry = _lineage_registry(ws)
+    ledger_raw = _lineage_load(
+        ws,
+        _lineage_newest(registry, "claims_ledger"),
+        kind="claims_ledger",
+        invalid_code="LINEAGE_LEDGER_INVALID",
+    )
+    documents_raw = _lineage_load(
+        ws,
+        _lineage_newest(registry, "document_manifest"),
+        kind="document_manifest",
+        invalid_code="LINEAGE_DOCUMENTS_INVALID",
+    )
+    corpus_raw = _lineage_load(
+        ws,
+        _lineage_newest(registry, "corpus_snapshot"),
+        kind="corpus_snapshot",
+        invalid_code="LINEAGE_CORPUS_INVALID",
+    )
+    try:
+        ledger = ClaimEvidenceLedger.model_validate(ledger_raw)
+    except Exception as exc:  # noqa: BLE001 - a ledger that fails its schema is explicit
+        raise _ui07_error(
+            500, "LINEAGE_LEDGER_INVALID", f"claims ledger fails its schema ({exc})"
+        ) from exc
+    try:
+        manifest = DocumentManifestArtifact.model_validate(documents_raw)
+    except Exception as exc:  # noqa: BLE001
+        raise _ui07_error(
+            500,
+            "LINEAGE_DOCUMENTS_INVALID",
+            f"document manifest fails its schema ({exc})",
+        ) from exc
+    try:
+        corpus = CorpusSnapshotArtifact.model_validate(corpus_raw)
+    except Exception as exc:  # noqa: BLE001
+        raise _ui07_error(
+            500, "LINEAGE_CORPUS_INVALID", f"corpus snapshot fails its schema ({exc})"
+        ) from exc
+
+    triples = {
+        ledger.artifact_id: (
+            ledger.workspace_id,
+            ledger.protocol_fingerprint,
+            ledger.corpus_fingerprint,
+        ),
+        manifest.artifact_id: (
+            manifest.workspace_id,
+            manifest.protocol_fingerprint,
+            manifest.corpus_fingerprint,
+        ),
+        corpus.artifact_id: (
+            corpus.workspace_id,
+            corpus.protocol_fingerprint,
+            corpus.corpus_fingerprint,
+        ),
+    }
+    if len(set(triples.values())) != 1:
+        raise _ui07_error(
+            409,
+            "LINEAGE_GENERATION_MISMATCH",
+            "lineage artifacts disagree on workspace/protocol/corpus parents; "
+            "no single trace scope exists",
+            artifact_ids=sorted(triples),
+        )
+    scope_triple = next(iter(triples.values()))
+
+    # Decisions are pooled across every accepted screening_decisions artifact
+    # of the trace scope: decisions are recorded per batch, so newest-only
+    # would drop every batch but the last. Each candidate is hash-checked and
+    # schema-validated like every other join input; only scope-matching ones
+    # join, and an empty scope refuses instead of serving a partial chain.
+    decision_entries = [
+        (artifact_id, entry)
+        for artifact_id, entry in registry["artifacts"].items()
+        if isinstance(entry, dict)
+        and entry.get("artifact_type") == "screening_decisions"
+    ]
+    if not decision_entries:
+        raise _ui07_error(
+            404,
+            "LINEAGE_NOT_PREPARED",
+            "no accepted screening_decisions artifact; no lineage can be assembled",
+            artifact_type="screening_decisions",
+        )
+    pooled: list[Any] = []
+    for artifact_id, entry in sorted(decision_entries):
+        candidate_raw = _lineage_load(
+            ws,
+            {"artifact_id": artifact_id, **entry},
+            kind="screening_decisions",
+            invalid_code="LINEAGE_DECISIONS_INVALID",
+        )
+        try:
+            candidate = ScreeningDecisionsArtifact.model_validate(candidate_raw)
+        except Exception as exc:  # noqa: BLE001
+            raise _ui07_error(
+                500,
+                "LINEAGE_DECISIONS_INVALID",
+                f"screening decisions fail their schema ({exc})",
+            ) from exc
+        if (
+            candidate.workspace_id,
+            candidate.protocol_fingerprint,
+            candidate.corpus_fingerprint,
+        ) == scope_triple:
+            pooled.append(candidate)
+    if not pooled:
+        raise _ui07_error(
+            409,
+            "LINEAGE_GENERATION_MISMATCH",
+            "no accepted screening decisions share the ledger generation; "
+            "no single trace scope exists",
+            artifact_ids=sorted(a for a, _ in decision_entries),
+        )
+    (only_workspace, _, _) = next(iter(triples.values()))
+    if only_workspace != scope_workspace:
+        raise _ui07_error(
+            409,
+            "LINEAGE_GENERATION_MISMATCH",
+            "lineage artifacts belong to a different workspace than the "
+            "authorized generation",
+            record_workspace_id=only_workspace,
+        )
+
+    if want_claim:
+        selected = [c for c in ledger.data.claims if c.claim_id == want_claim]
+        if not selected:
+            raise _ui07_error(
+                404,
+                "CLAIM_MISSING",
+                f"no recorded claim {want_claim!r} in the accepted ledger",
+                claim_id=want_claim,
+            )
+    else:
+        selected = [
+            c
+            for c in ledger.data.claims
+            if any(
+                (_lineage_chunk_ids(t) or ("", ""))[1] == want_chunk
+                for t in c.citation_tokens
+            )
+        ]
+        if not selected:
+            raise _ui07_error(
+                404,
+                "CHUNK_MISSING",
+                f"no recorded claim cites chunk {want_chunk!r}; refusing, never "
+                "inventing a passage",
+                chunk_id=want_chunk,
+            )
+
+    evidence_by_id = {e.evidence_id: e for e in ledger.data.evidence}
+    documents_by_id = {d.document_id: d for d in manifest.data.documents}
+    studies_by_id = {s.study_id: s for s in corpus.data.studies}
+    alias_to_study: dict[str, str] = {}
+    for study in corpus.data.studies:
+        for alias in study.alias_ids:
+            alias_to_study.setdefault(alias, study.study_id)
+
+    def _resolve_study(study_id: str) -> Any | None:
+        if study_id in studies_by_id:
+            return studies_by_id[study_id]
+        aliased = alias_to_study.get(study_id)
+        if aliased is not None:
+            return studies_by_id.get(aliased)
+        return None
+
+    def _resolve_decision(study_id: str) -> Any | None:
+        canonical = study_id
+        if canonical not in studies_by_id:
+            aliased = alias_to_study.get(study_id)
+            if aliased is not None:
+                canonical = aliased
+        matches = [
+            d
+            for artifact in pooled
+            for d in artifact.data.decisions
+            if d.study_id == canonical or alias_to_study.get(d.study_id) == canonical
+        ]
+        matches.sort(key=lambda d: d.decision_id)
+        return matches[0] if matches else None
+
+    claims_out: list[dict[str, Any]] = []
+    complete = True
+    for claim in sorted(selected, key=lambda c: c.claim_id):
+        legs: list[dict[str, Any]] = []
+        for evidence_id in claim.evidence_ids:
+            evidence = evidence_by_id.get(evidence_id)
+            if evidence is None:  # pragma: no cover - the frozen ledger model
+                # already refuses dangling evidence ids, so this leg can only
+                # fire on a payload that bypassed validation; it refuses here
+                # rather than inventing a passage.
+                complete = False
+                legs.append(
+                    {
+                        "evidence": None,
+                        "chunk_ids": [],
+                        "document": None,
+                        "study": None,
+                        "decision": None,
+                        "refusal": {
+                            "code": "MISSING_CHUNK",
+                            "message": (
+                                f"claim {claim.claim_id} lists evidence "
+                                f"{evidence_id!r} absent from the ledger; refusing, "
+                                "never inventing a passage"
+                            ),
+                        },
+                    }
+                )
+                continue
+            leg_chunks = sorted(
+                {
+                    chunk
+                    for token in claim.citation_tokens
+                    if (parsed := _lineage_chunk_ids(token)) is not None
+                    and parsed[0] == evidence.study_id
+                    for chunk in [parsed[1]]
+                }
+            )
+            document = documents_by_id.get(evidence.document_id)
+            if document is None:
+                complete = False
+                legs.append(
+                    {
+                        "evidence": _evidence_out(evidence),
+                        "chunk_ids": leg_chunks,
+                        "document": None,
+                        "study": None,
+                        "decision": None,
+                        "refusal": {
+                            "code": "UNLINKED_DOCUMENT",
+                            "message": (
+                                f"evidence {evidence.evidence_id} names document "
+                                f"{evidence.document_id!r} absent from the accepted "
+                                "document manifest; refusing, never substituting "
+                                "a neighbor document"
+                            ),
+                        },
+                    }
+                )
+                continue
+            if document.study_id != evidence.study_id:
+                complete = False
+                legs.append(
+                    {
+                        "evidence": _evidence_out(evidence),
+                        "chunk_ids": leg_chunks,
+                        "document": _document_out(document),
+                        "study": None,
+                        "decision": None,
+                        "refusal": {
+                            "code": "UNLINKED_DOCUMENT",
+                            "message": (
+                                f"evidence {evidence.evidence_id} names study "
+                                f"{evidence.study_id!r} while its document "
+                                f"{document.document_id} records study "
+                                f"{document.study_id!r}; refusing, never "
+                                "re-binding one study's text to another study"
+                            ),
+                        },
+                    }
+                )
+                continue
+            if document.source_hash != evidence.source_hash:
+                complete = False
+                legs.append(
+                    {
+                        "evidence": _evidence_out(evidence),
+                        "chunk_ids": leg_chunks,
+                        "document": _document_out(document),
+                        "study": None,
+                        "decision": None,
+                        "refusal": {
+                            "code": "UNLINKED_DOCUMENT",
+                            "message": (
+                                f"evidence {evidence.evidence_id} source hash "
+                                "differs from its document's recorded source "
+                                "hash; refusing, never quoting bytes the "
+                                "manifest does not cover"
+                            ),
+                        },
+                    }
+                )
+                continue
+            if document.content_status.value not in ("VALID", "PARTIAL"):
+                complete = False
+                legs.append(
+                    {
+                        "evidence": _evidence_out(evidence),
+                        "chunk_ids": leg_chunks,
+                        "document": _document_out(document),
+                        "study": None,
+                        "decision": None,
+                        "refusal": {
+                            "code": "UNLINKED_DOCUMENT",
+                            "message": (
+                                f"document {document.document_id} content status "
+                                f"is {document.content_status.value}; a passage "
+                                "cannot be quoted from unusable bytes"
+                            ),
+                        },
+                    }
+                )
+                continue
+            study = _resolve_study(document.study_id)
+            if study is None:
+                complete = False
+                legs.append(
+                    {
+                        "evidence": _evidence_out(evidence),
+                        "chunk_ids": leg_chunks,
+                        "document": _document_out(document),
+                        "study": None,
+                        "decision": None,
+                        "refusal": {
+                            "code": "UNKNOWN_STUDY",
+                            "message": (
+                                f"document {document.document_id} names study "
+                                f"{document.study_id!r} absent from the accepted "
+                                "corpus snapshot (canonical ids and recorded "
+                                "aliases checked); refusing, never inferring a "
+                                "study from a title, DOI, or filename"
+                            ),
+                        },
+                    }
+                )
+                continue
+            decision = _resolve_decision(study.study_id)
+            if decision is None:
+                complete = False
+                legs.append(
+                    {
+                        "evidence": _evidence_out(evidence),
+                        "chunk_ids": leg_chunks,
+                        "document": _document_out(document),
+                        "study": _study_out(study),
+                        "decision": None,
+                        "refusal": {
+                            "code": "MISSING_DECISION",
+                            "message": (
+                                f"study {study.study_id} carries no recorded "
+                                "screening decision in the accepted decisions "
+                                "artifact; refusing, never defaulting a decision"
+                            ),
+                        },
+                    }
+                )
+                continue
+            legs.append(
+                {
+                    "evidence": _evidence_out(evidence),
+                    "chunk_ids": leg_chunks,
+                    "document": _document_out(document),
+                    "study": _study_out(study),
+                    "decision": {
+                        "decision_id": decision.decision_id,
+                        "study_id": decision.study_id,
+                        "decision": decision.decision.value,
+                        "reason": decision.reason,
+                        "method": decision.method.value,
+                        "screener_id": decision.screener_id,
+                        "decided_at": decision.decided_at.isoformat(),
+                    },
+                    "refusal": None,
+                }
+            )
+        claim_tokens = sorted(set(claim.citation_tokens))
+        verification = (
+            claim.verification.model_dump(mode="json")
+            if claim.verification is not None
+            else None
+        )
+        claims_out.append(
+            {
+                "claim_id": claim.claim_id,
+                "claim_text": claim.claim_text,
+                "claim_kind": claim.claim_kind,
+                "study_ids": list(claim.study_ids),
+                "evidence_ids": list(claim.evidence_ids),
+                "citation_tokens": claim_tokens,
+                "chunk_ids": sorted(
+                    {
+                        chunk
+                        for token in claim_tokens
+                        if (parsed := _lineage_chunk_ids(token)) is not None
+                        for chunk in [parsed[1]]
+                    }
+                ),
+                "verification": verification,
+                "legs": legs,
+            }
+        )
+    return {
+        "shape": "ui07.lineage-trace-v1",
+        "complete": complete,
+        "selector": (
+            {"claim_id": want_claim} if want_claim else {"chunk_id": want_chunk}
+        ),
+        "claims": claims_out,
+        "publication": _ui07_publication_status(ws),
+        "missing": [],
+    }
+
+
+def _evidence_out(evidence: Any) -> dict[str, Any]:
+    """Serve one evidence record exactly as stored (quote and locator verbatim)."""
+    return {
+        "evidence_id": evidence.evidence_id,
+        "quote": evidence.quote,
+        "locator": evidence.locator,
+        "study_id": evidence.study_id,
+        "document_id": evidence.document_id,
+        "source_hash": evidence.source_hash,
+        "extraction_method": evidence.extraction_method.value,
+    }
+
+
+def _document_out(document: Any) -> dict[str, Any]:
+    """Serve one document record exactly as stored."""
+    return {
+        "document_id": document.document_id,
+        "study_id": document.study_id,
+        "source_hash": document.source_hash,
+        "content_status": document.content_status.value,
+        "extracted_path": document.extracted_path,
+        "extraction_method": document.extraction_method.value,
+    }
+
+
+def _study_out(study: Any) -> dict[str, Any]:
+    """Serve one corpus study exactly as stored (aliases and locators verbatim)."""
+    return {
+        "study_id": study.study_id,
+        "title": study.title,
+        "alias_ids": list(study.alias_ids),
+        "external_ids": {
+            provider: list(values) for provider, values in study.external_ids.items()
+        },
+        "publication_year": study.publication_year,
+    }
