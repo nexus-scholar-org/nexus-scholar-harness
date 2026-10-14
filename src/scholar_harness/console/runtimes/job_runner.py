@@ -36,8 +36,15 @@ LONG_RUNNING_TIMEOUT_S = 12 * 60 * 60
 class Job:
     """Mutable job state shared across the runner and the API."""
 
-    def __init__(self, job_id: str, action_id: str, command: list[str], cwd: Path, timeout_s: int,
-                 pipeline_id: str | None = None):
+    def __init__(
+        self,
+        job_id: str,
+        action_id: str,
+        command: list[str],
+        cwd: Path,
+        timeout_s: int,
+        pipeline_id: str | None = None,
+    ):
         self.job_id = job_id
         self.action_id = action_id
         self.command = command
@@ -120,7 +127,9 @@ class JobRunner:
                     raise ValueError("pipeline_id is required for action 'pipeline'")
                 spec = self._load_pipeline_spec(pipeline_id)
                 pipeline_path = store_path(self.workspace) / f"{pipeline_id}.json"
-                command = render_command(action, workspace=ws, pipeline=str(pipeline_path))
+                command = render_command(
+                    action, workspace=ws, pipeline=str(pipeline_path)
+                )
             else:
                 command = render_command(action, workspace=ws, query=query)
 
@@ -163,13 +172,17 @@ class JobRunner:
         asyncio.create_task(self._run_to_completion(job, proc))
         return job
 
-    async def _run_to_completion(self, job: Job, proc: asyncio.subprocess.Process) -> None:
+    async def _run_to_completion(
+        self, job: Job, proc: asyncio.subprocess.Process
+    ) -> None:
         try:
             chunks: list[bytes] = []
             async for line in proc.stdout:
                 chunks.append(line)
                 if job.state != "cancelled":
-                    self._publish_log(job.job_id, line.decode(errors="replace").rstrip("\r\n"))
+                    self._publish_log(
+                        job.job_id, line.decode(errors="replace").rstrip("\r\n")
+                    )
             try:
                 exit_code = await asyncio.wait_for(proc.wait(), timeout=job.timeout_s)
             except TimeoutError:
@@ -187,39 +200,60 @@ class JobRunner:
             log = self._job_dir(job.job_id) / "stdout.log"
             log.write_bytes(b"".join(chunks))
         except Exception:
-            logger.debug("failed to persist job stdout for %s", job.job_id, exc_info=True)
+            logger.debug(
+                "failed to persist job stdout for %s", job.job_id, exc_info=True
+            )
 
         if job.state != "failed":
             job.state = "success" if exit_code == 0 else "failed"
         job.exit_code = exit_code
         job.finished_at = _utc_now()
 
-        # Journal the result.
-        status = "SUCCESS" if job.state == "success" else ("PARTIAL" if job.state == "cancelled" else "FAILED")
-        event_id = _journal_event(
-            workspace=self.workspace,
-            action_id=job.action_id,
-            description=f"{job.action_id} job {job.job_id} finished with state '{job.state}'",
-            status=status,
-            inputs=[job.action_id],
-            outputs=[job.job_id, f"exit={exit_code}"],
-            metrics={"exit_code": exit_code, "state": job.state},
+        # Journal the result through the shared service. A journal OSError
+        # surfaces per the shared contract; single-flight cleanup still runs.
+        # F-05: the provenance gap is also captured on the job itself so
+        # pollers see error + null id instead of a clean success with a null
+        # id. The operation outcome (state) is unchanged.
+        status = (
+            "SUCCESS"
+            if job.state == "success"
+            else ("PARTIAL" if job.state == "cancelled" else "FAILED")
         )
-        job.journal_event_id = event_id
-
-        async with self._lock:
-            self._active_actions.discard(job.action_id)
-            self._processes.pop(job.job_id, None)
-        self._publish(job)
+        try:
+            job.journal_event_id = _journal_event(
+                workspace=self.workspace,
+                action_id=job.action_id,
+                description=f"{job.action_id} job {job.job_id} finished with state '{job.state}'",
+                status=status,
+                inputs=[job.action_id],
+                outputs=[job.job_id, f"exit={exit_code}"],
+                metrics={"exit_code": exit_code, "state": job.state},
+            )
+        except OSError as exc:
+            job.journal_event_id = None
+            journal_note = f"journal failed: {exc}"
+            job.error = (
+                journal_note if not job.error else f"{job.error}; {journal_note}"
+            )
+            raise
+        finally:
+            async with self._lock:
+                self._active_actions.discard(job.action_id)
+                self._processes.pop(job.job_id, None)
+            self._publish(job)
 
     def _load_pipeline_spec(self, spec_id: str) -> PipelineSpec:
         """Load a saved spec (or the builtin default), requiring a valid DAG."""
         path = store_path(self.workspace) / f"{spec_id}.json"
         if path.is_file():
             try:
-                spec = PipelineSpec.model_validate_json(path.read_text(encoding="utf-8"))
+                spec = PipelineSpec.model_validate_json(
+                    path.read_text(encoding="utf-8")
+                )
             except Exception as exc:
-                raise ValueError(f"unparseable pipeline spec {spec_id!r}: {exc}") from exc
+                raise ValueError(
+                    f"unparseable pipeline spec {spec_id!r}: {exc}"
+                ) from exc
         elif spec_id in BUILTIN_TEMPLATES:
             spec = PipelineSpec.model_validate(BUILTIN_TEMPLATES[spec_id])
         else:
@@ -246,7 +280,11 @@ class JobRunner:
             lines.put_nowait(line)
 
         def runner_fn() -> tuple[str, list[dict[str, Any]] | None, str | None]:
-            from ...pipeline_executor import PipelineCancelled, PipelineError, PipelineExecutor
+            from ...pipeline_executor import (
+                PipelineCancelled,
+                PipelineError,
+                PipelineExecutor,
+            )
 
             try:
                 runner = PipelineExecutor(self.workspace)
@@ -299,7 +337,9 @@ class JobRunner:
             log = self._job_dir(job.job_id) / "stdout.log"
             log.write_text("\n".join(chunks), encoding="utf-8")
         except Exception:
-            logger.debug("failed to persist job stdout for %s", job.job_id, exc_info=True)
+            logger.debug(
+                "failed to persist job stdout for %s", job.job_id, exc_info=True
+            )
 
         if job.node_results:
             try:
@@ -314,31 +354,47 @@ class JobRunner:
                     encoding="utf-8",
                 )
             except Exception:
-                logger.debug("failed to persist pipeline results for %s", job.job_id, exc_info=True)
+                logger.debug(
+                    "failed to persist pipeline results for %s",
+                    job.job_id,
+                    exc_info=True,
+                )
 
-        status = "SUCCESS" if job.state == "success" else ("PARTIAL" if job.state == "cancelled" else "FAILED")
-        node_states = {r["node_id"]: r.get("state") for r in job.node_results}
-        event_id = _journal_event(
-            workspace=self.workspace,
-            action_id=job.action_id,
-            description=f"pipeline {spec.id!r} job {job.job_id} finished with state '{job.state}'",
-            status=status,
-            inputs=[spec.id],
-            outputs=[job.job_id],
-            metrics={
-                "state": job.state,
-                "exit_code": job.exit_code,
-                "nodes": len(job.node_results),
-                "node_states": node_states,
-                "error": job.error,
-            },
+        status = (
+            "SUCCESS"
+            if job.state == "success"
+            else ("PARTIAL" if job.state == "cancelled" else "FAILED")
         )
-        job.journal_event_id = event_id
-
-        async with self._lock:
-            self._active_actions.discard(job.action_id)
-            self._processes.pop(job.job_id, None)
-        self._publish(job)
+        node_states = {r["node_id"]: r.get("state") for r in job.node_results}
+        try:
+            job.journal_event_id = _journal_event(
+                workspace=self.workspace,
+                action_id=job.action_id,
+                description=f"pipeline {spec.id!r} job {job.job_id} finished with state '{job.state}'",
+                status=status,
+                inputs=[spec.id],
+                outputs=[job.job_id],
+                metrics={
+                    "state": job.state,
+                    "exit_code": job.exit_code,
+                    "nodes": len(job.node_results),
+                    "node_states": node_states,
+                    "error": job.error,
+                },
+            )
+        except OSError as exc:
+            # F-05: same provenance-gap capture as the subprocess path.
+            job.journal_event_id = None
+            journal_note = f"journal failed: {exc}"
+            job.error = (
+                journal_note if not job.error else f"{job.error}; {journal_note}"
+            )
+            raise
+        finally:
+            async with self._lock:
+                self._active_actions.discard(job.action_id)
+                self._processes.pop(job.job_id, None)
+            self._publish(job)
 
     def _terminate(self, job: Job, proc: asyncio.subprocess.Process) -> None:
         try:
@@ -378,17 +434,19 @@ class JobRunner:
         job.exit_code = -signal.SIGTERM
         job.finished_at = _utc_now()
         if job.pipeline_id is None:
-            _journal_event(
-                workspace=self.workspace,
-                action_id=job.action_id,
-                description=f"{job.action_id} job {job.job_id} cancelled",
-                status="PARTIAL",
-                inputs=[job.action_id],
-                outputs=[job.job_id],
-            )
-            async with self._lock:
-                self._active_actions.discard(job.action_id)
-                self._processes.pop(job_id, None)
+            try:
+                _journal_event(
+                    workspace=self.workspace,
+                    action_id=job.action_id,
+                    description=f"{job.action_id} job {job.job_id} cancelled",
+                    status="PARTIAL",
+                    inputs=[job.action_id],
+                    outputs=[job.job_id],
+                )
+            finally:
+                async with self._lock:
+                    self._active_actions.discard(job.action_id)
+                    self._processes.pop(job_id, None)
         # Pipeline jobs: the running _run_pipeline finalizer performs the journal
         # write and single-flight cleanup once the DAG notices the cancel.
         self._publish(job)
@@ -415,27 +473,26 @@ def _journal_event(
     outputs: list[str] | None = None,
     metrics: dict[str, Any] | None = None,
 ) -> str:
-    """Append a canonical event to audit/journal.jsonl; return its event_id."""
-    try:
-        audit_dir = workspace / "audit"
-        audit_dir.mkdir(parents=True, exist_ok=True)
-        journal = audit_dir / "journal.jsonl"
-        now = datetime.now(UTC)
-        event_id = f"EVT-{now.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
-        event = {
-            "timestamp": now.isoformat(),
-            "event_id": event_id,
-            "action": action_id.upper(),
-            "agent_or_tool": "scholar-harness-console",
-            "description": description,
-            "parameters": {},
-            "inputs": inputs or [],
-            "outputs": outputs or [],
-            "metrics": metrics or {},
-            "status": status.upper(),
-        }
-        with open(journal, "a", encoding="utf-8") as f:
-            f.write(json.dumps(event, ensure_ascii=False) + "\n")
-        return event_id
-    except Exception:  # noqa: BLE001 - journaling failure must not crash jobs
-        return f"EVT-{uuid.uuid4().hex[:12]}"
+    """Append a canonical event via the shared workspace audit service.
+
+    Thin delegation to :func:`workspace.audit.append_event` (HCM-02): the
+    event-id minting, uppercasing, encoding, manifest projection, and INDEX
+    refresh are the service's, not a hand-rolled copy. A journal ``OSError``
+    propagates per the shared contract (acceptance maps it to
+    ``ATOMIC_COMMIT_FAILED``); it is never swallowed into a synthetic id.
+    Callers keep single-flight cleanup in ``finally`` so a journal failure
+    surfaces without leaking the action slot.
+    """
+    from scholar_harness.workspace.audit import append_event as _shared_append
+
+    event = _shared_append(
+        workspace,
+        action_id,
+        description,
+        agent="scholar-harness-console",
+        inputs=inputs,
+        outputs=outputs,
+        metrics=metrics,
+        status=status,
+    )
+    return str(event["event_id"])

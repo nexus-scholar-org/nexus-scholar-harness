@@ -108,6 +108,8 @@ REVIEW_CHECKLIST_UNSUPPORTED = "REVIEW_CHECKLIST_UNSUPPORTED"
 REVIEW_DUAL_UNSUPPORTED = "REVIEW_DUAL_UNSUPPORTED"
 REVIEW_NOT_PREPARED = "REVIEW_NOT_PREPARED"
 REVIEW_REASON_MISSING = "REVIEW_REASON_MISSING"
+#: --begin takes no staged note: decisions/message would be silently dropped.
+REVIEW_BEGIN_ARGS_REFUSED = "REVIEW_BEGIN_ARGS_REFUSED"
 
 #: Decisions that count as final (anything else refuses as unresolved).
 TERMINAL_DECISIONS = frozenset({"INCLUDE", "EXCLUDE"})
@@ -937,8 +939,45 @@ def cmd_approve(
     batch_index: int,
     decisions_file: str | None = None,
     message: str | None = None,
+    begin: bool = False,
 ) -> None:
-    """CLI entry: approve the reviewed content and stage the publication approval."""
+    """CLI entry: approve the reviewed content and stage the publication approval.
+
+    When ``begin`` is True, stage a single-use pairing challenge via the
+    existing :func:`pairing.begin_pairing` path and print the code exactly
+    once to stdout with its expiry and snapshot fingerprint (the operator
+    compares the fingerprint with the browser view). The code is terminal
+    stdout only: it is never logged, never written to any file, and never
+    appears in exception messages. ``message``/``decisions_file`` are not
+    staged with the challenge (the pairing store is hash-only by contract);
+    the approval note is minted at redeem. Refusals propagate unchanged
+    (Low-IL ``APPROVAL_NOT_OPERATOR``, missing context
+    ``OPERATOR_CONTEXT_MISSING``, unresolved ``APPROVAL_MISSING``).
+    """
+    if begin:
+        # Staged binding must equal operator intent: silently dropping a
+        # supplied note/file would be a bypass-shaped surprise (the operator
+        # would believe the note was staged when it was not), so refuse
+        # before staging anything (no challenge staged, nothing minted).
+        if decisions_file is not None or message is not None:
+            raise ReviewRefused(
+                REVIEW_BEGIN_ARGS_REFUSED,
+                "approve --begin stages the live review snapshot only; "
+                "--decisions-file/--message are not staged with the challenge "
+                "(re-run without --begin to approve with a note/file)",
+                batch_index=batch_index,
+            )
+        from scholar_harness.authority.pairing import begin_pairing
+
+        staged = begin_pairing(Path(workspace_dir), batch_index)
+        print(f"Pairing code for batch {batch_index}: {staged['code']}")
+        print(f"  expires: {staged['expires_at']}")
+        print(f"  snapshot: {staged['snapshot_fingerprint']}")
+        print(
+            "  (single-use; type this code into the browser dialog "
+            "— it is shown only here)"
+        )
+        return
     result = approve_command(
         Path(workspace_dir),
         batch_index,
@@ -969,7 +1008,11 @@ def defer_command(
     A reason of ``CANCELLED`` marks an explicit cancellation. Any staged
     batch or publication approval for this batch is voided (fingerprints are
     preserved in the deferral record), so a deferred batch leaves nothing
-    publishable until a fresh approval is minted.
+    publishable until a fresh approval is minted. The staged pairing
+    challenge is voided alongside (F-01: defer-then-redeem must not mint —
+    the genuine code refuses ``PAIRING_CODE_INVALID/reason=consumed``
+    afterwards and must begin again); the ``pairing_voided`` outcome is
+    recorded beside ``voided_approvals``.
     """
     if not isinstance(reason, str) or not reason.strip():
         raise ReviewRefused(
@@ -1010,6 +1053,13 @@ def defer_command(
             pass
 
     cancelled = reason.strip().upper() == CANCELLED_REASON
+    # F-01: void the staged pairing challenge here (this function owns
+    # staged-state teardown) so CLI defer closes the defer-then-redeem path.
+    # Lazy import: pairing imports this module at load; calling back at
+    # teardown time avoids the cycle.
+    from scholar_harness.authority.pairing import cancel_pairing as _void_pairing
+
+    pairing_voided = bool(_void_pairing(ws, batch_index))
     record = {
         "schema": DEFERRAL_SCHEMA,
         "batch_index": batch_index,
@@ -1017,6 +1067,7 @@ def defer_command(
         "reason": reason.strip(),
         "cancelled": cancelled,
         "voided_approvals": voided,
+        "pairing_voided": pairing_voided,
         "recorded_at": moment,
     }
     out = deferral_path(ws, batch_index)
@@ -1031,3 +1082,4 @@ def cmd_defer(workspace_dir: Path, batch_index: int, reason: str) -> None:
     record = json.loads(out.read_text(encoding="utf-8"))
     state = "cancelled" if record["cancelled"] else "deferred"
     print(f"Batch {batch_index} {state}: {record['reason']} (nothing published)")
+    print(f"  pairing voided: {bool(record.get('pairing_voided', False))}")

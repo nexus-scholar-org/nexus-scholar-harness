@@ -1,25 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formatNumber, translate, type Locale } from "@/i18n";
 import {
   getBatchRows,
   getCriterionRefs,
+  getPairingStatus,
   getProjectSummary,
   getPublicationStatus,
   getScreeningBatches,
   isScreeningApiError,
   normalizeConsoleOrigin,
+  postDeferBatch,
+  postPairingRedeem,
+  postPublishScreening,
   type CriterionRefs,
+  type DeferResult,
+  type PairingStatus,
   type ProjectSummary,
   type PublicationStatus,
+  type PublishResult,
+  type RedeemResult,
   type ScreeningApiError,
   type ScreeningBatches,
   type ScreeningRows,
 } from "@/lib/screening-api";
 import { demoScreeningRecord } from "@/lib/mock-screening";
 
+import { ACTION_CHROME, PairingDialog, type PairingServerError } from "./pairing-dialog";
 import { ScreeningForm } from "./screening-form";
 
 /**
@@ -54,9 +63,12 @@ import { ScreeningForm } from "./screening-form";
  * `?source=live`, the record and criteria sections are replaced by data read
  * from the local console over HTTP through `@/lib/screening-api`. The default
  * stays the demonstration record: no request is sent unless the reader asked
- * for the live source, nothing is written anywhere, and the disabled submit
- * keeps submitting nowhere. The live source is a query opt-in rather than a
- * control so the default tab order gains no stop from it.
+ * for the live source. The live source gains the operator-approval panel
+ * (`ScreeningActions`): redeeming a terminal-staged pairing code, recording a
+ * deferral with a reason, and triggering the gated collect are the only
+ * writes the screen performs, each over loopback and each refused loudly
+ * with the server typed code. The demonstration form itself stays untouched:
+ * its disabled submit keeps submitting nowhere.
  */
 
 /**
@@ -146,6 +158,8 @@ function LiveErrorBody({ locale, error }: { locale: Locale; error: unknown }) {
 
 function LiveReadyBody({
   locale,
+  origin,
+  batchIndex,
   summary,
   batches,
   publication,
@@ -153,6 +167,8 @@ function LiveReadyBody({
   refs,
 }: {
   locale: Locale;
+  origin: string;
+  batchIndex: number;
   summary: ProjectSummary;
   batches: ScreeningBatches;
   publication: PublicationStatus;
@@ -262,7 +278,270 @@ function LiveReadyBody({
           ) : null}
         </dl>
       </details>
+
+      <ScreeningActions locale={locale} origin={origin} batchIndex={batchIndex} />
     </div>
+  );
+}
+
+type PairingPanel =
+  | { status: "loading" }
+  | { status: "error"; error: unknown }
+  | { status: "ready"; pairing: PairingStatus };
+
+function toServerError(error: unknown): PairingServerError {
+  return {
+    code: isScreeningApiError(error) ? error.code : "UNKNOWN_ERROR",
+    message:
+      isScreeningApiError(error) && error.serverMessage
+        ? error.serverMessage
+        : String(error),
+  };
+}
+
+/**
+ * The minimal action wiring for the connected UI-04 journey (packet UI-07).
+ *
+ * Rendered only in live mode, under the read panel, and deliberately heading-
+ * free: the composition owns h1 → h2 and the criteria own the single `ol`, so
+ * this panel adds no heading and no list of its own. It performs the only
+ * writes the screen allows — redeeming a terminal-staged pairing code,
+ * recording a deferral with a reason, triggering the gated collect — and
+ * every refusal arrives as server text in its own element, never invented.
+ * While any action is pending every button is disabled, so a double press
+ * sends one request.
+ */
+function ScreeningActions({
+  locale,
+  origin,
+  batchIndex,
+}: Readonly<{ locale: Locale; origin: string; batchIndex: number }>) {
+  const chrome = ACTION_CHROME[locale];
+  const [panel, setPanel] = useState<PairingPanel>({ status: "loading" });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [redeemPending, setRedeemPending] = useState(false);
+  const [redeemError, setRedeemError] = useState<PairingServerError | null>(null);
+  const [redeemResult, setRedeemResult] = useState<RedeemResult | null>(null);
+  const [reason, setReason] = useState("");
+  const [deferPending, setDeferPending] = useState(false);
+  const [deferResult, setDeferResult] = useState<DeferResult | null>(null);
+  const [deferError, setDeferError] = useState<PairingServerError | null>(null);
+  const [publishPending, setPublishPending] = useState(false);
+  const [publishResult, setPublishResult] = useState<PublishResult | null>(null);
+  const [publishError, setPublishError] = useState<PairingServerError | null>(null);
+  const busy = redeemPending || deferPending || publishPending;
+  // Synchronous single-flight guard: React state lands after paint, so a
+  // second press before the re-render must see the in-flight flag now.
+  const flightRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pairing = await getPairingStatus(origin, batchIndex);
+        if (!cancelled) setPanel({ status: "ready", pairing });
+      } catch (error: unknown) {
+        if (!cancelled) setPanel({ status: "error", error });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [origin, batchIndex]);
+
+  async function refreshPairing() {
+    try {
+      const pairing = await getPairingStatus(origin, batchIndex);
+      setPanel({ status: "ready", pairing });
+    } catch (error: unknown) {
+      setPanel({ status: "error", error });
+    }
+  }
+
+  async function handleRedeem(code: string) {
+    if (flightRef.current) return;
+    flightRef.current = true;
+    setRedeemPending(true);
+    setRedeemError(null);
+    try {
+      const result = await postPairingRedeem(origin, batchIndex, code);
+      setRedeemResult(result);
+      setDialogOpen(false);
+      await refreshPairing();
+    } catch (error: unknown) {
+      setRedeemError(toServerError(error));
+    } finally {
+      flightRef.current = false;
+      setRedeemPending(false);
+    }
+  }
+
+  async function handleDefer() {
+    if (reason.trim() === "") return;
+    if (flightRef.current) return;
+    flightRef.current = true;
+    setDeferPending(true);
+    setDeferError(null);
+    try {
+      const result = await postDeferBatch(origin, batchIndex, reason.trim());
+      setDeferResult(result);
+      await refreshPairing();
+    } catch (error: unknown) {
+      setDeferError(toServerError(error));
+    } finally {
+      flightRef.current = false;
+      setDeferPending(false);
+    }
+  }
+
+  async function handlePublish() {
+    // Single-shot per view: the synchronous flag absorbs a second press
+    // before paint, and the completed result absorbs the late press a real
+    // browser re-dispatches after the pending round trip — the button reads
+    // enabled again once current, so that late click must land here and do
+    // nothing rather than send a second POST. A refused publish leaves the
+    // result empty, so retry after an error still sends.
+    if (publishResult !== null) return;
+    if (flightRef.current) return;
+    flightRef.current = true;
+    setPublishPending(true);
+    setPublishError(null);
+    try {
+      const result = await postPublishScreening(origin);
+      setPublishResult(result);
+    } catch (error: unknown) {
+      setPublishError(toServerError(error));
+    } finally {
+      flightRef.current = false;
+      setPublishPending(false);
+    }
+  }
+
+  const stagedFingerprint =
+    panel.status === "ready" ? panel.pairing.snapshot_fingerprint : null;
+
+  return (
+    <section aria-label={chrome.actionsTitle} className="mt-8 border-t border-rule-strong">
+      <p className="mt-4 font-display text-xl leading-8 text-ink">{chrome.actionsTitle}</p>
+      <p className="mt-1 text-sm leading-6 text-ink-muted">{chrome.actionsLede}</p>
+      {panel.status === "loading" ? (
+        <p role="status" className="mt-3 text-sm leading-6 text-ink-muted">
+          {chrome.loadingLabel}
+        </p>
+      ) : panel.status === "error" ? (
+        <p role="alert" className="mt-3 text-sm leading-6 text-warning">
+          <bdi dir="ltr">{toServerError(panel.error).code}</bdi>
+          {": "}
+          <bdi dir="ltr">{toServerError(panel.error).message}</bdi>
+        </p>
+      ) : (
+        <dl className="mt-3 border-t border-rule-strong">
+          <div className="grid gap-x-6 gap-y-1 border-b border-rule py-4 lg:grid-cols-[9rem_minmax(0,1fr)]">
+            <dt className="text-sm font-medium leading-6 text-ink">{chrome.challengeLabel}</dt>
+            <dd className="min-w-0 text-sm leading-6 text-ink-muted">
+              <bdi>{panel.pairing.state}</bdi>
+              {panel.pairing.snapshot_fingerprint ? (
+                <>
+                  {" · "}
+                  <bdi>{panel.pairing.snapshot_fingerprint}</bdi>
+                </>
+              ) : null}
+            </dd>
+          </div>
+        </dl>
+      )}
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={() => {
+            setRedeemError(null);
+            setDialogOpen(true);
+          }}
+          disabled={busy || panel.status !== "ready" || panel.pairing.state !== "STAGED"}
+          className="inline-flex items-center gap-2 border border-rule-strong bg-leaf px-3 py-2 text-sm font-medium text-ink hover:bg-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-faint"
+        >
+          {chrome.approveButton}
+        </button>
+        <button
+          type="button"
+          onClick={handlePublish}
+          disabled={busy}
+          className="inline-flex items-center gap-2 border border-rule-strong px-3 py-2 text-sm font-medium text-ink hover:bg-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-faint"
+        >
+          {publishPending ? chrome.workingLabel : chrome.publishButton}
+        </button>
+      </div>
+      <div className="mt-3">
+        <label htmlFor="screening-defer-reason" className="block text-sm font-medium text-ink">
+          {chrome.reasonLabel}
+        </label>
+        <input
+          id="screening-defer-reason"
+          type="text"
+          value={reason}
+          onChange={(event) => setReason(event.target.value)}
+          className="mt-2 block w-full border border-rule-strong bg-leaf px-3 py-2 text-sm leading-6 text-ink"
+        />
+        <button
+          type="button"
+          onClick={handleDefer}
+          disabled={busy || reason.trim() === ""}
+          className="mt-2 inline-flex items-center gap-2 border border-rule-strong px-3 py-2 text-sm font-medium text-ink hover:bg-paper disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-faint"
+        >
+          {deferPending ? chrome.workingLabel : chrome.deferButton}
+        </button>
+      </div>
+      {redeemResult ? (
+        <p role="status" className="mt-3 text-sm leading-6 text-ink-muted">
+          <span>{chrome.approvedNote}</span>
+          {" "}
+          <bdi>{redeemResult.approval_fingerprint}</bdi>
+          {" · "}
+          {chrome.requestLabel}
+          {": "}
+          <bdi>{redeemResult.request_id}</bdi>
+        </p>
+      ) : null}
+      {deferResult ? (
+        <p role="status" className="mt-3 text-sm leading-6 text-ink-muted">
+          <span>{chrome.deferredNote}</span>
+          {" "}
+          {chrome.requestLabel}
+          {": "}
+          <bdi>{deferResult.request_id}</bdi>
+        </p>
+      ) : null}
+      {deferError ? (
+        <p role="alert" className="mt-3 text-sm leading-6 text-warning">
+          <bdi dir="ltr">{deferError.code}</bdi>
+          {": "}
+          <bdi dir="ltr">{deferError.message}</bdi>
+        </p>
+      ) : null}
+      {publishResult ? (
+        <p role="status" className="mt-3 text-sm leading-6 text-ink-muted">
+          <span>{chrome.publishedNote}</span>
+          {" "}
+          <bdi>{publishResult.generation_id}</bdi>
+        </p>
+      ) : null}
+      {publishError ? (
+        <p role="alert" className="mt-3 text-sm leading-6 text-warning">
+          <bdi dir="ltr">{publishError.code}</bdi>
+          {": "}
+          <bdi dir="ltr">{publishError.message}</bdi>
+        </p>
+      ) : null}
+      <PairingDialog
+        locale={locale}
+        open={dialogOpen}
+        pending={redeemPending}
+        serverError={redeemError}
+        snapshotFingerprint={stagedFingerprint}
+        onClose={() => setDialogOpen(false)}
+        onSubmit={handleRedeem}
+      />
+    </section>
   );
 }
 
@@ -380,6 +659,8 @@ export function ScreeningPage({ locale }: Readonly<{ locale: Locale }>) {
             ) : (
               <LiveReadyBody
                 locale={locale}
+                origin={live.origin}
+                batchIndex={live.rows.batch_index}
                 summary={live.summary}
                 batches={live.batches}
                 publication={live.publication}

@@ -1152,3 +1152,441 @@ def ui07_audit_feed(
         "limit": limit,
         "items": items[offset : offset + limit],
     }
+
+
+# ---------------------------------------------------------------------------
+# UI-07 protected action API (pairing-code approval; RELEASE lane).
+#
+# Action routes live under `/actions/` — clearly distinct from the `/ui/`
+# read routes above. The five operations of the action spec (§1) map as:
+#
+# * draft capture / override-as-draft — REUSE of the existing
+#   `POST /api/v1/screening/batch/{n}/decisions` route, which writes draft
+#   decision files only. There is deliberately NO `/actions/drafts` route:
+#   a second writer would be a second approval-shaped surface to review, so
+#   the reuse is documented here and pinned by test (unknown route → 404).
+# * approval request — `POST /actions/pairing/redeem` (this section). There
+#   is deliberately NO mint/create pairing route: challenge creation is the
+#   terminal-side `pairing.begin_pairing` act (`approve --begin` semantics)
+#   and no endpoint ever returns a plaintext code (pinned by test).
+# * defer / cancel drafts — `POST /actions/defer` → AG-04 `defer_command`
+#   semantics (reused, never rewritten), plus voiding the staged pairing.
+# * publication trigger — `POST /actions/publish` → the existing gated
+#   `cmd_collect` path in-process (reused, never duplicated).
+# * challenge state — `GET /actions/pairing/status` (safe status only:
+#   state/expiry/snapshot-fingerprint, NEVER code or hash).
+#
+# Every action request takes an optional `request_id` and every action
+# response returns one; journal rows carry it in `parameters`. `request_id`
+# is correlation-only: a client-supplied log/journal trace handle, never
+# identity, never authorization, never a secret. The server never trusts it
+# for auth; redeem idempotency treats it as a stem only — the same stem
+# with different content hashes refuses instead of replaying an earlier
+# success, an absent stem proceeds normally, and a fresh id always mints
+# through the normal consumed/single-use path. Browser-held
+# identity is never trusted: bodies use `extra="ignore"` so caller-minted
+# names/roles/reviewer strings are dropped, and the query guard refuses
+# caller-minted fingerprints. Pairing codes are accepted only with a
+# loopback (or absent, i.e. non-browser) Origin (§3.6); cross-origin browser
+# POSTs additionally stay preflight-blocked by the frozen CORS middleware in
+# `console/serve.py` (GET-only), which this packet does not own — a
+# same-origin route or a CORS follow-up is required before a browser can
+# POST these routes cross-origin (recorded residual, not silently fixed).
+# ---------------------------------------------------------------------------
+
+#: Journal code for an action whose provenance row could not be recorded.
+ACTION_AUDIT_FAILED = "ACTION_AUDIT_FAILED"
+
+
+class RedeemBody(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    batch: int
+    code: str
+    request_id: str | None = None
+
+
+class DeferActionBody(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    batch: int
+    reason: str = ""
+    request_id: str | None = None
+
+
+class PublishActionBody(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    request_id: str | None = None
+
+
+def _action_request_id(value: str | None) -> str:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return f"REQ-{uuid.uuid4().hex[:12]}"
+
+
+def _require_action_origin(request: Request) -> None:
+    """Refuse action requests carrying a non-loopback Origin (spec §3.6).
+
+    Mirrors the loopback shape of the frozen CORS middleware: absent Origin
+    (non-browser clients) passes through, loopback origins pass, anything
+    else refuses with a typed 403 before any state is touched.
+    """
+    import re
+
+    origin = request.headers.get("origin")
+    if origin is None:
+        return
+    if re.match(
+        r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+        origin.strip(),
+        re.IGNORECASE,
+    ):
+        return
+    raise _ui07_error(
+        403,
+        "ACTION_ORIGIN_REFUSED",
+        "refusing action request from a non-loopback origin; pairing codes "
+        "are accepted only over the loopback binding",
+        origin=origin,
+    )
+
+
+def _action_http_error(exc: Exception, request_id: str) -> HTTPException:
+    """Map a typed authority/integrity/worker refusal to a typed HTTP error."""
+    code = str(getattr(exc, "code", None) or "ACTION_FAILED")
+    message = str(getattr(exc, "message", None) or str(exc) or code)
+    try:
+        details = dict(getattr(exc, "details", None) or {})
+    except (TypeError, ValueError):
+        details = {}
+    details.setdefault("request_id", request_id)
+    if code in ("PAIRING_CODE_INVALID",):
+        status = 403
+    elif code in ("APPROVAL_NOT_OPERATOR", "OPERATOR_CONTEXT_MISSING"):
+        status = 403
+    elif code in (
+        "COVERAGE_INCOMPLETE",
+        "DUPLICATE_ENTRY",
+        "UNRESOLVED_FINALIZE_REFUSED",
+        "REVIEW_INVALID_DECISIONS",
+        "REVIEW_CHECKLIST_UNSUPPORTED",
+        "REVIEW_DUAL_UNSUPPORTED",
+        "REVIEW_REASON_MISSING",
+        "REVIEW_NOT_PREPARED",
+    ):
+        status = 422
+    elif code in ("WORKER_BATCH_MISSING", "BATCH_MISSING"):
+        status = 404
+    elif code in ("PROMOTION_AUDIT_FAILED", ACTION_AUDIT_FAILED):
+        status = 500
+    else:
+        # STALE_VIEW, APPROVAL_CONTENT_CHANGED/SCOPE/MISSING, worker parents,
+        # generation lock/currentness: state conflicts, never silent success.
+        status = 409
+    return _ui07_error(status, code, message, **details)
+
+
+def _journal_action(
+    ws: Path,
+    *,
+    action: str,
+    description: str,
+    request_id: str,
+    inputs: list[str] | None = None,
+    outputs: list[str] | None = None,
+    parameters: dict[str, Any] | None = None,
+    metrics: dict[str, Any] | None = None,
+    status: str = "SUCCESS",
+) -> dict[str, Any]:
+    """Journal one action row through the shared service (never any code)."""
+    params = dict(parameters or {})
+    params["request_id"] = request_id
+    return log_event(
+        workspace=ws,
+        action=action,
+        description=description,
+        inputs=inputs or [],
+        outputs=outputs or [],
+        parameters=params,
+        metrics=metrics or {},
+        status=status,
+    )
+
+
+def _snapshot_file(path: Path) -> bytes | None:
+    try:
+        return path.read_bytes() if path.is_file() else None
+    except OSError:
+        return None
+
+
+def _restore_file(path: Path, blob: bytes | None) -> None:
+    try:
+        if blob is None:
+            if path.is_file():
+                path.unlink()
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(blob)
+    except OSError:
+        pass
+
+
+@router.get("/actions/pairing/status")
+def action_pairing_status(
+    request: Request, batch: int = 0, request_id: str | None = None
+) -> dict[str, Any]:
+    """Safe challenge status: state/expiry/fingerprint, NEVER code or hash."""
+    from scholar_harness.authority import pairing as _pairing
+
+    _require_action_origin(request)
+    _ui07_refuse_caller_identity(request)
+    ws = _ui07_ws(request)
+    if not (ws / "literature" / "screening" / f"batch_{batch:03d}.json").is_file():
+        raise _ui07_error(
+            404,
+            "BATCH_MISSING",
+            f"missing file: batch_{batch:03d}.json",
+            file=f"batch_{batch:03d}.json",
+        )
+    payload = _pairing.pairing_status(ws, batch)
+    payload["request_id"] = _action_request_id(request_id)
+    return payload
+
+
+@router.post("/actions/pairing/redeem", status_code=200)
+def action_pairing_redeem(body: RedeemBody, request: Request) -> dict[str, Any]:
+    """Verify a transcribed pairing code; mint the approval via AG-03B."""
+    from scholar_harness.authority import pairing as _pairing
+    from scholar_harness.authority.binding import AuthorityRefused
+    from scholar_harness.authority.review import (
+        ReviewRefused,
+        batch_approval_path,
+        deferral_path,
+        review_path,
+    )
+    from scholar_harness.screening.integrity import ScreeningIntegrityRefused
+    from scholar_harness.screening.worker import WorkerRefused
+    from scholar_harness.verification_identity import VerificationIdentityRefused
+
+    _require_action_origin(request)
+    _ui07_refuse_caller_identity(request)
+    ws = _ui07_ws(request)
+    req = _action_request_id(body.request_id)
+
+    # Fail-closed rollback set: every file the mint may create, replace, or
+    # lift, snapshotted before the mint so a journal failure restores the
+    # pre-request state (the staged challenge bytes included).
+    watched = [
+        review_path(ws, body.batch),
+        batch_approval_path(ws, body.batch),
+        ws / "literature" / "screening" / "publication_approval.json",
+        deferral_path(ws, body.batch),
+        _pairing.pairing_path(ws, body.batch),
+    ]
+    backup = {path: _snapshot_file(path) for path in watched}
+
+    try:
+        result = _pairing.redeem_pairing(
+            ws, body.batch, body.code or "", request_id=req
+        )
+    except (
+        AuthorityRefused,
+        ReviewRefused,
+        ScreeningIntegrityRefused,
+        WorkerRefused,
+        VerificationIdentityRefused,
+    ) as exc:
+        raise _action_http_error(exc, req) from exc
+
+    try:
+        event = _journal_action(
+            ws,
+            action="SCREENING_PAIRING_REDEEMED",
+            description=(
+                f"Redeemed pairing challenge for batch {body.batch} "
+                f"(approval {result['approval_fingerprint']})"
+            ),
+            request_id=req,
+            inputs=[f"batch_{body.batch:03d}.json"],
+            outputs=[f"batch_{body.batch:03d}_approval.json"],
+            parameters={
+                "batch_index": body.batch,
+                "snapshot_fingerprint": result["snapshot_fingerprint"],
+                "approval_fingerprint": result["approval_fingerprint"],
+                "operator_identity": result["operator_identity"],
+                "superseded": result["superseded"],
+            },
+            metrics={"batch_index": body.batch},
+        )
+    except OSError as exc:
+        for path, blob in backup.items():
+            _restore_file(path, blob)
+        raise _ui07_error(
+            500,
+            ACTION_AUDIT_FAILED,
+            "provenance could not be recorded; the approval was rolled back "
+            "and nothing was published",
+            request_id=req,
+        ) from exc
+    return {
+        "shape": "screening-action-redeem-v1",
+        "request_id": req,
+        "journal_event_id": event["event_id"],
+        **result,
+    }
+
+
+@router.post("/actions/defer", status_code=200)
+def action_defer_batch(body: DeferActionBody, request: Request) -> dict[str, Any]:
+    """Defer/cancel with reason (AG-04 semantics) and void the challenge."""
+    from scholar_harness.authority.review import ReviewRefused, defer_command
+
+    _require_action_origin(request)
+    _ui07_refuse_caller_identity(request)
+    ws = _ui07_ws(request)
+    req = _action_request_id(body.request_id)
+    try:
+        out = defer_command(ws, body.batch, reason=body.reason or "")
+    except ReviewRefused as exc:
+        raise _action_http_error(exc, req) from exc
+    # F-01: defer_command owns staged-state teardown and records
+    # pairing_voided in the deferral file. No second cancel here: it would
+    # misreport (already-consumed reads False) and could void a fresh
+    # challenge staged after the deferral.
+    try:
+        record = json.loads(out.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise _ui07_error(
+            500,
+            ACTION_AUDIT_FAILED,
+            f"deferral record unreadable ({exc})",
+            request_id=req,
+        ) from exc
+    pairing_voided = bool(record.get("pairing_voided", False))
+    # The deferral stands even if this row fails: deferring publishes
+    # nothing, so the safe direction needs no rollback — but the failure
+    # still surfaces instead of reporting success.
+    try:
+        event = _journal_action(
+            ws,
+            action="SCREENING_BATCH_DEFERRED",
+            description=(
+                f"Deferred batch {body.batch}: {record.get('reason')} "
+                "(nothing published)"
+            ),
+            request_id=req,
+            inputs=[f"batch_{body.batch:03d}.json"],
+            outputs=[out.name],
+            parameters={
+                "batch_index": body.batch,
+                "reason": record.get("reason"),
+                "cancelled": record.get("cancelled"),
+                "pairing_voided": pairing_voided,
+            },
+            metrics={"batch_index": body.batch},
+        )
+    except OSError as exc:
+        raise _ui07_error(
+            500,
+            ACTION_AUDIT_FAILED,
+            "provenance could not be recorded; the batch stays deferred "
+            "(nothing was published)",
+            request_id=req,
+        ) from exc
+    return {
+        "shape": "screening-action-defer-v1",
+        "request_id": req,
+        "batch_index": body.batch,
+        "deferral_file": out.name,
+        "reason": record.get("reason"),
+        "cancelled": record.get("cancelled"),
+        "pairing_voided": pairing_voided,
+        "journal_event_id": event["event_id"],
+    }
+
+
+@router.post("/actions/publish", status_code=200)
+def action_publish_screening(
+    body: PublishActionBody, request: Request
+) -> dict[str, Any]:
+    """Run the existing gated collect path in-process; the browser never writes."""
+    from scholar_harness.authority.binding import AuthorityRefused
+    from scholar_harness.authority.generations import (
+        GenerationStatus,
+        require_current_generation,
+    )
+    from scholar_harness.screening.collector import cmd_collect
+
+    _require_action_origin(request)
+    _ui07_refuse_caller_identity(request)
+    ws = _ui07_ws(request)
+    req = _action_request_id(body.request_id)
+    try:
+        cmd_collect(ws)
+    except AuthorityRefused as exc:
+        raise _action_http_error(exc, req) from exc
+    except Exception as exc:  # noqa: BLE001 - collect fails closed by design
+        code = str(getattr(exc, "code", None) or "COLLECT_REFUSED")
+        if isinstance(exc, SystemExit):
+            raise _ui07_error(
+                404,
+                "NOT_PREPARED",
+                "workspace has no prepared screening batches",
+                request_id=req,
+            ) from exc
+        raise _ui07_error(
+            409,
+            code,
+            str(exc) or code,
+            request_id=req,
+        ) from exc
+    current = require_current_generation(ws)
+    if current.status is not GenerationStatus.CURRENT or current.record is None:
+        raise _ui07_error(
+            500,
+            ACTION_AUDIT_FAILED,
+            "collect returned without a CURRENT generation; refusing to report success",
+            request_id=req,
+            status=current.status.value,
+        )
+    record = current.record
+    try:
+        event = _journal_action(
+            ws,
+            action="SCREENING_PUBLISH_COMPLETED",
+            description=(
+                f"Published authorized screening generation "
+                f"{record.generation_id} via the action API"
+            ),
+            request_id=req,
+            outputs=["literature/screening/generation.json"],
+            parameters={
+                "generation_id": record.generation_id,
+                "generation_fingerprint": record.fingerprint(),
+                "approval_fingerprint": record.approval_fingerprint,
+            },
+            metrics={"output_count": len(record.output_digests)},
+        )
+    except OSError as exc:
+        # The generation stands (collect already committed it); a retry joins
+        # it idempotently, so surfacing — not swallowing — is the safe move.
+        raise _ui07_error(
+            500,
+            ACTION_AUDIT_FAILED,
+            "generation is CURRENT but its action row could not be recorded; "
+            "retry joins the same generation idempotently",
+            request_id=req,
+            generation_id=record.generation_id,
+        ) from exc
+    return {
+        "shape": "screening-action-publish-v1",
+        "request_id": req,
+        "status": current.status.value,
+        "generation_id": record.generation_id,
+        "generation_fingerprint": record.fingerprint(),
+        "outputs": dict(record.output_digests),
+        "journal_event_id": event["event_id"],
+    }
