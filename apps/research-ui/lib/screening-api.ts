@@ -321,3 +321,196 @@ export function getAuditFeed(
     signal,
   );
 }
+
+/**
+ * Typed action calls over the console action routes (UI-07 action side).
+ *
+ * The GET helpers above stay the only readers. The calls below are the only
+ * writers the screen performs: redeeming a pairing code the operator staged
+ * in their terminal, recording a deferral with a reason, and triggering the
+ * gated collect path. Draft capture reuses the stored-decisions route
+ * through `postDraftDecisions`; no second writer exists.
+ *
+ * The browser keeps a typed code in memory only: these calls accept the code
+ * as an argument and retain nothing afterwards. Nothing here reaches browser
+ * storage, and every refusal arrives as a `ScreeningApiError` carrying the
+ * server typed code.
+ */
+
+export type PairingState = "ABSENT" | "STAGED" | "CONSUMED" | "EXPIRED" | "EXHAUSTED";
+
+export interface PairingStatus {
+  shape: "screening-action-pairing-status-v1";
+  batch_index: number;
+  state: PairingState;
+  expires_at: string | null;
+  snapshot_fingerprint: string | null;
+  attempts_remaining: number | null;
+  request_id: string;
+}
+
+export interface RedeemResult {
+  shape: "screening-action-redeem-v1";
+  request_id: string;
+  journal_event_id: string;
+  batch_index: number;
+  snapshot_fingerprint: string;
+  approval_fingerprint: string;
+  publication_approval_fingerprint: string;
+  operator_identity: string;
+  superseded: boolean;
+}
+
+export interface DeferResult {
+  shape: "screening-action-defer-v1";
+  request_id: string;
+  journal_event_id: string;
+  batch_index: number;
+  deferral_file: string;
+  reason: string;
+  cancelled: boolean;
+  pairing_voided: boolean;
+}
+
+export interface PublishResult {
+  shape: "screening-action-publish-v1";
+  request_id: string;
+  journal_event_id: string;
+  status: "CURRENT";
+  generation_id: string;
+  generation_fingerprint: string;
+  outputs: Record<string, string>;
+}
+
+export interface DraftDecisionInput {
+  workspace_id?: string;
+  study_id?: string;
+  decision: string;
+  confidence?: number | string;
+  screening_reasoning?: string;
+}
+
+export interface DraftResult {
+  batch: number;
+  decisions_written: number;
+  decisions_file: string;
+}
+
+async function postJson<T>(path: string, origin: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${origin}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (error) {
+    throw new ScreeningApiError(
+      "CONSOLE_UNREACHABLE",
+      0,
+      error instanceof Error ? error.message : "the console could not be reached",
+    );
+  }
+  let parsed: unknown = null;
+  try {
+    parsed = await response.json();
+  } catch {
+    throw new ScreeningApiError("MALFORMED_JSON", response.status, "the console answered with bytes outside JSON");
+  }
+  if (!response.ok) {
+    const detail =
+      typeof parsed === "object" && parsed !== null && "detail" in parsed
+        ? (parsed as { detail?: unknown }).detail
+        : null;
+    const code =
+      typeof detail === "object" && detail !== null && "code" in detail
+        ? String((detail as { code?: unknown }).code ?? `HTTP_${response.status}`)
+        : `HTTP_${response.status}`;
+    const serverMessage =
+      typeof detail === "object" && detail !== null && "message" in detail
+        ? String((detail as { message?: unknown }).message ?? response.statusText)
+        : typeof detail === "string"
+          ? detail
+          : response.statusText;
+    const serverDetails =
+      typeof detail === "object" && detail !== null && "details" in detail
+        ? (detail as { details?: unknown }).details
+        : undefined;
+    throw new ScreeningApiError(code, response.status, serverMessage, serverDetails);
+  }
+  return parsed as T;
+}
+
+export function getPairingStatus(
+  origin: string,
+  batchIndex: number,
+  requestId?: string,
+  signal?: AbortSignal,
+): Promise<PairingStatus> {
+  const query = new URLSearchParams();
+  query.set("batch", String(batchIndex));
+  if (requestId !== undefined) query.set("request_id", requestId);
+  return readJson<PairingStatus>(
+    `/api/v1/screening/actions/pairing/status?${query.toString()}`,
+    normalizeConsoleOrigin(origin),
+    signal,
+  );
+}
+
+export function postPairingRedeem(
+  origin: string,
+  batchIndex: number,
+  code: string,
+  options?: { requestId?: string },
+  signal?: AbortSignal,
+): Promise<RedeemResult> {
+  return postJson<RedeemResult>(
+    "/api/v1/screening/actions/pairing/redeem",
+    normalizeConsoleOrigin(origin),
+    { batch: batchIndex, code, request_id: options?.requestId ?? null },
+    signal,
+  );
+}
+
+export function postDraftDecisions(
+  origin: string,
+  batchIndex: number,
+  payload: { decisions: DraftDecisionInput[]; reviewed_by?: string },
+  signal?: AbortSignal,
+): Promise<DraftResult> {
+  return postJson<DraftResult>(
+    `/api/v1/screening/batch/${batchIndex}/decisions`,
+    normalizeConsoleOrigin(origin),
+    { batch: batchIndex, reviewed_by: payload.reviewed_by ?? "console", decisions: payload.decisions },
+    signal,
+  );
+}
+
+export function postDeferBatch(
+  origin: string,
+  batchIndex: number,
+  reason: string,
+  options?: { requestId?: string },
+  signal?: AbortSignal,
+): Promise<DeferResult> {
+  return postJson<DeferResult>(
+    "/api/v1/screening/actions/defer",
+    normalizeConsoleOrigin(origin),
+    { batch: batchIndex, reason, request_id: options?.requestId ?? null },
+    signal,
+  );
+}
+
+export function postPublishScreening(
+  origin: string,
+  options?: { requestId?: string },
+  signal?: AbortSignal,
+): Promise<PublishResult> {
+  return postJson<PublishResult>(
+    "/api/v1/screening/actions/publish",
+    normalizeConsoleOrigin(origin),
+    { request_id: options?.requestId ?? null },
+    signal,
+  );
+}

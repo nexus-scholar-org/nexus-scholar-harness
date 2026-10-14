@@ -129,6 +129,15 @@ def main() -> None:
     p_app.add_argument(
         "--message", default=None, help="Operator note recorded with the review"
     )
+    p_app.add_argument(
+        "--begin",
+        action="store_true",
+        help=(
+            "Stage a single-use pairing challenge for the current review "
+            "snapshot and print the code once (terminal act); no approval "
+            "is minted until the code is redeemed. Takes no code argument."
+        ),
+    )
 
     # defer (AG-04: postpone or cancel publication with a reason)
     p_def = sub.add_parser(
@@ -163,6 +172,7 @@ def main() -> None:
             args.batch,
             decisions_file=args.decisions_file,
             message=args.message,
+            begin=args.begin,
         )
     elif args.command == "defer":
         cmd_defer(workspace_dir, args.batch, args.reason)
