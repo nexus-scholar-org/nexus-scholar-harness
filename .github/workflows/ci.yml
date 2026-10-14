@@ -7,7 +7,32 @@ on:
     branches: [main, develop]
 
 jobs:
+  build-wheel:
+    # F2 single-build: this is the ONLY `uv build --wheel
+    # packaging/nexus-scholar` step per run.  The wheel is pure-Python
+    # `py3-none-any` (platform-independent), so one ubuntu build feeds every
+    # matrix leg below via the shared artifact -- no per-job rebuilds.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Build nexus-scholar metapackage wheel (single shared build)
+        run: uv build --wheel packaging/nexus-scholar
+
+      - name: Upload nexus-scholar wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-scholar-wheel
+          path: packaging/nexus-scholar/dist/*.whl
+          if-no-files-found: error
+
   lint-and-test:
+    needs: build-wheel
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -42,8 +67,11 @@ jobs:
       - name: Enforce nexus-scholar pins freshness
         run: uv run python scripts/generate_nexus_scholar_pins.py --check
 
-      - name: Build nexus-scholar metapackage wheel
-        run: uv build --wheel packaging/nexus-scholar
+      - name: Download nexus-scholar wheel artifact (shared single build)
+        uses: actions/download-artifact@v4
+        with:
+          name: nexus-scholar-wheel
+          path: packaging/nexus-scholar/dist
 
       - name: Smoke nexus-scholar metapackage wheel
         # Hard gate since P7.7 lazy-imports: both entrypoints must load and
@@ -118,6 +146,7 @@ jobs:
           "
 
   wheel-e2e:
+    needs: build-wheel
     # Hard gate since P7.8: the full blueprinted uvx flow must run end-to-end
     # from the metapackage wheel in a fresh temp folder with NO repo tree
     # reachable.  ubuntu + windows both run GitHub bash (shell: bash) so a
@@ -136,8 +165,11 @@ jobs:
         with:
           version: "0.12.5"
 
-      - name: Build nexus-scholar metapackage wheel
-        run: uv build --wheel packaging/nexus-scholar
+      - name: Download nexus-scholar wheel artifact (shared single build)
+        uses: actions/download-artifact@v4
+        with:
+          name: nexus-scholar-wheel
+          path: packaging/nexus-scholar/dist
 
       - name: P7.8 uvx flow end-to-end in a fresh temp folder
         shell: bash
