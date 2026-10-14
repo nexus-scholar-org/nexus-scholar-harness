@@ -323,6 +323,124 @@ export function getAuditFeed(
 }
 
 /**
+ * One evidence lineage trace over the console lineage route (UI-05).
+ *
+ * Given a claim id or a chunk id, the console assembles the recorded claim,
+ * its quoted passages with locators, the extracted documents, the corpus
+ * studies, and the recorded screening decisions with reasons. Every join is
+ * resolved by the console from the workspace bound at app state; the shape
+ * below carries those stored bytes through untouched, with a typed refusal
+ * wherever a link cannot be resolved and the publication standing beside
+ * the trace. Reads only: like every other call in this file, this one sends
+ * a single GET and keeps no state.
+ *
+ * The wording above is chosen to carry no utility-shaped word: this file
+ * sits under `lib/`, which the `@source not` list does not exclude, so a
+ * utility-looking word here would be emitted into the stylesheet with no
+ * source to justify it, and `tests-browser/hygiene.spec.ts` reports that
+ * as unexplained.
+ */
+
+export interface LineageVerification {
+  retrieval: string;
+  lexical_support?: string | null;
+  entailment?: string | null;
+  trust?: string | null;
+  semantic_similarity_score?: number | null;
+  algorithm_version?: string | null;
+  threshold?: number | null;
+}
+
+export interface LineageEvidence {
+  evidence_id: string;
+  quote: string;
+  locator: string;
+  study_id: string;
+  document_id: string;
+  source_hash: string;
+  extraction_method: string;
+}
+
+export interface LineageDocument {
+  document_id: string;
+  study_id: string;
+  source_hash: string;
+  content_status: string;
+  extracted_path: string | null;
+  extraction_method: string;
+}
+
+export interface LineageStudy {
+  study_id: string;
+  title: string;
+  alias_ids: string[];
+  external_ids: Record<string, string[]>;
+  publication_year: number | null;
+}
+
+export interface LineageDecision {
+  decision_id: string;
+  study_id: string;
+  decision: string;
+  reason: string;
+  method: string;
+  screener_id: string;
+  decided_at: string;
+}
+
+export interface LineageRefusal {
+  code: string;
+  message: string;
+}
+
+export interface LineageLeg {
+  evidence: LineageEvidence | null;
+  chunk_ids: string[];
+  document: LineageDocument | null;
+  study: LineageStudy | null;
+  decision: LineageDecision | null;
+  refusal: LineageRefusal | null;
+}
+
+export interface LineageClaim {
+  claim_id: string;
+  claim_text: string;
+  claim_kind: string;
+  study_ids: string[];
+  evidence_ids: string[];
+  citation_tokens: string[];
+  chunk_ids: string[];
+  verification: LineageVerification | null;
+  legs: LineageLeg[];
+}
+
+export interface LineageTrace {
+  shape: "ui07.lineage-trace-v1";
+  complete: boolean;
+  selector: { claim_id: string } | { chunk_id: string };
+  claims: LineageClaim[];
+  publication: PublicationStatus;
+  missing: MissingEntry[];
+}
+
+export type LineageSelector = { claim_id: string } | { chunk_id: string };
+
+export function getLineageTrace(
+  origin: string,
+  selector: LineageSelector,
+  signal?: AbortSignal,
+): Promise<LineageTrace> {
+  const query = new URLSearchParams();
+  if ("claim_id" in selector) query.set("claim_id", selector.claim_id);
+  else query.set("chunk_id", selector.chunk_id);
+  return readJson<LineageTrace>(
+    `/api/v1/ui/lineage?${query.toString()}`,
+    normalizeConsoleOrigin(origin),
+    signal,
+  );
+}
+
+/**
  * Typed action calls over the console action routes (UI-07 action side).
  *
  * The GET helpers above stay the only readers. The calls below are the only
