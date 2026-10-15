@@ -143,6 +143,62 @@
       "checkpoint": ["uv run python scripts/sync_skills_bundle.py --check", "uv run pytest tests/conformance/test_count_freshness.py -q"],
       "pr": ["uv run pytest tests/conformance -q", "uv run ruff check scripts/"],
       "closure": ["uv run pytest -q"]
+    },
+    "T-160": {
+      "repo": "harness",
+      "paths": ["tests/authority/**"],
+      "inner": ["uv run pytest tests/authority -q"],
+      "checkpoint": ["uv run pytest tests/authority -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
+    },
+    "T-170": {
+      "repo": "harness",
+      "paths": ["tests/pipeline/**"],
+      "inner": ["uv run pytest tests/pipeline -q"],
+      "checkpoint": ["uv run pytest tests/pipeline -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
+    },
+    "T-180": {
+      "repo": "harness",
+      "paths": ["tests/unit/**"],
+      "inner": ["uv run pytest tests/unit -q"],
+      "checkpoint": ["uv run pytest tests/unit -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
+    },
+    "T-190": {
+      "repo": "harness",
+      "paths": ["tests/e2e/**"],
+      "inner": ["uv run pytest tests/e2e -q"],
+      "checkpoint": ["uv run pytest tests/e2e -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
+    },
+    "T-200": {
+      "repo": "harness",
+      "paths": ["tests/console/**"],
+      "inner": ["uv run pytest tests/console -q"],
+      "checkpoint": ["uv run pytest tests/console -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
+    },
+    "T-210": {
+      "repo": "harness",
+      "paths": ["tests/mcp/**"],
+      "inner": ["uv run pytest tests/mcp -q"],
+      "checkpoint": ["uv run pytest tests/mcp -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
+    },
+    "T-220": {
+      "repo": "harness",
+      "paths": ["tests/recon/**"],
+      "inner": ["uv run pytest tests/recon -q"],
+      "checkpoint": ["uv run pytest tests/recon -q"],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
     }
   },
   "docs": {
