@@ -14,7 +14,9 @@ SPEC.loader.exec_module(MODULE)
 
 def test_manifest_is_valid_and_covers_every_e3_task() -> None:
     data = MODULE.load_manifest()
-    expected = {f"T-{number}" for number in (*range(10, 100, 10), 95, *range(100, 160, 10))}
+    expected = {
+        f"T-{number}" for number in (*range(10, 100, 10), 95, *range(100, 160, 10))
+    } | {f"T-{number}" for number in range(160, 230, 10)}
     assert set(data["tasks"]) == expected
 
 
@@ -258,3 +260,79 @@ def test_manifest_docs_cover_baseline_locked_non_executable_paths() -> None:
         and not (root / path).is_dir()
     )
     assert uncovered == []
+
+
+def test_t160_authority_path_selects_targeted_gate() -> None:
+    """F3-01: authority area resolves to T-160 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data,
+        tasks=[],
+        paths=["tests/authority/test_review_lifecycle.py"],
+        stage="inner",
+    )
+    assert tasks == ["T-160"]
+    assert "uv run pytest tests/authority -q" in commands
+
+
+def test_t170_pipeline_path_selects_targeted_gate() -> None:
+    """F3-01: pipeline area resolves to T-170 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data,
+        tasks=[],
+        paths=["tests/pipeline/test_pipeline_executor.py"],
+        stage="inner",
+    )
+    assert tasks == ["T-170"]
+    assert "uv run pytest tests/pipeline -q" in commands
+
+
+def test_t180_unit_path_selects_targeted_gate() -> None:
+    """F3-01: unit area resolves to T-180 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data, tasks=[], paths=["tests/unit/test_audit_log.py"], stage="inner"
+    )
+    assert tasks == ["T-180"]
+    assert "uv run pytest tests/unit -q" in commands
+
+
+def test_t190_e2e_path_selects_targeted_gate() -> None:
+    """F3-01: e2e area resolves to T-190 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data, tasks=[], paths=["tests/e2e/test_e2e_search_screen.py"], stage="inner"
+    )
+    assert tasks == ["T-190"]
+    assert "uv run pytest tests/e2e -q" in commands
+
+
+def test_t200_console_path_selects_targeted_gate() -> None:
+    """F3-01: console area resolves to T-200 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data, tasks=[], paths=["tests/console/test_console_jobs.py"], stage="inner"
+    )
+    assert tasks == ["T-200"]
+    assert "uv run pytest tests/console -q" in commands
+
+
+def test_t210_mcp_path_selects_targeted_gate() -> None:
+    """F3-01: mcp area resolves to T-210 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data, tasks=[], paths=["tests/mcp/test_mcp_setup.py"], stage="inner"
+    )
+    assert tasks == ["T-210"]
+    assert "uv run pytest tests/mcp -q" in commands
+
+
+def test_t220_recon_path_selects_targeted_gate() -> None:
+    """F3-01: recon area resolves to T-220 inner gate."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(
+        data, tasks=[], paths=["tests/recon/test_engine.py"], stage="inner"
+    )
+    assert tasks == ["T-220"]
+    assert "uv run pytest tests/recon -q" in commands
