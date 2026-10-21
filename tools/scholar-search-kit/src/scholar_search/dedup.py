@@ -165,6 +165,60 @@ class Deduplicator:
             or (left_ids.s2_id and left_ids.s2_id == right_ids.s2_id)
         )
 
+    _PREPRINT_OR_REPO_DOI_PREFIXES = (
+        "10.1101/",  # bioRxiv / medRxiv
+        "10.48550/arxiv.",  # arXiv DataCite DOI
+        "10.2139/ssrn.",  # SSRN
+        "10.5281/zenodo.",  # Zenodo
+        "10.21203/rs.",  # Research Square
+    )
+
+    _DOI_SCHEME_PREFIXES = (
+        "https://doi.org/",
+        "http://doi.org/",
+        "https://dx.doi.org/",
+        "http://dx.doi.org/",
+        "doi:",
+    )
+
+    @staticmethod
+    def _normalize_doi(value: str | None) -> str:
+        """Normalize a DOI for identity comparison (scheme strip + lowercase).
+
+        The DOI namespace is the one identifier namespace that legitimately
+        arrives in several surface forms (``https://doi.org/10.x/y``,
+        ``doi:10.x/y``, bare ``10.x/y``). Identity comparison must not depend
+        on which surface form a provider happened to emit, so the comparison
+        is done on the normalized bare DOI. ``models.ExternalIds`` already
+        normalizes on construction, but the conflict check must not rely on
+        that: documents can be constructed, mutated or imported from cached
+        JSON without going through that constructor.
+        """
+        if not value:
+            return ""
+        normalized = str(value).strip().lower()
+        for prefix in Deduplicator._DOI_SCHEME_PREFIXES:
+            normalized = normalized.removeprefix(prefix)
+        return normalized.strip()
+
+    @staticmethod
+    def _is_preprint_publisher_pair(left: Document, right: Document) -> bool:
+        """True when the pair is exactly one preprint/repository DOI + one publisher DOI.
+
+        The narrowness condition of the reviewed relaxation: a preprint (or any
+        other repository-hosted record) and its published counterpart carry two
+        DIFFERENT DOIs by construction, because the publisher minted a new DOI
+        for the version of record. That single case is the only case in which
+        two different non-empty DOIs may describe the same work.
+        """
+        d1 = Deduplicator._normalize_doi(left.external_ids.doi)
+        d2 = Deduplicator._normalize_doi(right.external_ids.doi)
+        if not (d1 and d2) or d1 == d2:
+            return False
+        is_d1_pre = d1.startswith(Deduplicator._PREPRINT_OR_REPO_DOI_PREFIXES)
+        is_d2_pre = d2.startswith(Deduplicator._PREPRINT_OR_REPO_DOI_PREFIXES)
+        return bool(is_d1_pre ^ is_d2_pre)
+
     @staticmethod
     def _has_identifier_conflict(left: Document, right: Document) -> bool:
         """Return true when the same persistent-ID namespace disagrees.
@@ -172,21 +226,56 @@ class Deduplicator:
         A lexical match must never override contradictory identifier evidence.
         Missing identifiers remain compatible so DOI/arXiv bridge records can
         still connect otherwise equivalent provider records.
+
+        NARROWNESS CONDITION (reviewed decision, kit PR for packet T-K0):
+        the only tolerated disagreement is the preprint <-> publisher pair,
+        computed ONCE by ``_is_preprint_publisher_pair`` (both DOIs present,
+        different after normalization, and EXACTLY ONE of them a
+        preprint/repository DOI). In that case:
+
+        * the DOI disagreement is expected (the publisher minted a new DOI);
+        * an OpenAlex/S2 id disagreement is expected too, because OpenAlex and
+          Semantic Scholar assign DISTINCT ids to a preprint and to its
+          published version. In every OTHER case a provider-id disagreement
+          blocks the merge, so two records carrying contradictory persistent
+          identifiers are never silently merged.
         """
         left_ids = left.external_ids
         right_ids = right.external_ids
-        pairs = (
-            (left_ids.doi, right_ids.doi),
-            (left_ids.arxiv_id, right_ids.arxiv_id),
-            (left_ids.pubmed_id, right_ids.pubmed_id),
+
+        is_preprint_pair = Deduplicator._is_preprint_publisher_pair(left, right)
+
+        d1 = Deduplicator._normalize_doi(left_ids.doi)
+        d2 = Deduplicator._normalize_doi(right_ids.doi)
+        if d1 and d2 and d1 != d2 and not is_preprint_pair:
+            return True
+
+        # Provider-assigned ids (OpenAlex, Semantic Scholar): a disagreement
+        # blocks the merge unless the pair is the preprint <-> publisher case.
+        for l_val, r_val in (
             (left_ids.openalex_id, right_ids.openalex_id),
             (left_ids.s2_id, right_ids.s2_id),
-        )
-        return any(
-            str(left_value).strip().lower() != str(right_value).strip().lower()
-            for left_value, right_value in pairs
-            if left_value and right_value
-        )
+        ):
+            if (
+                l_val
+                and r_val
+                and str(l_val).strip().lower() != str(r_val).strip().lower()
+                and not is_preprint_pair
+            ):
+                return True
+
+        # arXiv and PubMed are single-version namespaces: strict conflict.
+        for l_val, r_val in (
+            (left_ids.arxiv_id, right_ids.arxiv_id),
+            (left_ids.pubmed_id, right_ids.pubmed_id),
+        ):
+            if (
+                l_val
+                and r_val
+                and str(l_val).strip().lower() != str(r_val).strip().lower()
+            ):
+                return True
+        return False
 
     @staticmethod
     def _fuzzy_match(left: Document, right: Document) -> bool:

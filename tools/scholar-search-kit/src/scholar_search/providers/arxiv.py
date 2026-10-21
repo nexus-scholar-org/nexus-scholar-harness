@@ -11,7 +11,12 @@ from .base import BaseAPIProvider
 class ArxivProvider(BaseAPIProvider):
     """Searches arXiv API (http://export.arxiv.org/api/query)."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        compact_stoplist: tuple[str, ...] | list[str] | None = None,
+        compact_stem_families: dict[str, tuple[str, ...] | list[str]] | None = None,
+    ) -> None:
         # arXiv allows 1 req/sec without API key
         super().__init__(name="arxiv", rate_limit=1.0)
         self.base_url = "https://export.arxiv.org/api/query"
@@ -26,6 +31,25 @@ class ArxivProvider(BaseAPIProvider):
                 QueryField.AUTHOR: "au",
             },
             operator_map={"AND": "AND", "OR": "OR", "NOT": "ANDNOT"},
+        )
+
+        # Domain-neutral compaction knobs. arXiv's Lucene layer does NO
+        # stemming and cannot budget long multi-cluster booleans, so research
+        # layers (protocol/query-translator code, never kit internals) may:
+        #  - pass token "stoplist" entries to exclude bare single-token heads
+        #    that are too generic as standalone `all:` terms for the domain;
+        #  - declare "stem families" {prefix: (expansions, ...)}: whenever any
+        #    kept token starts with the prefix, the un-stemmed morphology
+        #    variants are enumerated into the clause so recall is not lost.
+        # Defaults are EMPTY: with no research config the compact query is the
+        # pure single-token translation with no domain knowledge inside the
+        # kit (genericity rule enforced live 2026-10-17 at the harness layer).
+        self.compact_stoplist: frozenset[str] = frozenset(
+            s.lower() for s in (compact_stoplist or ())
+        )
+        self.compact_stem_families: tuple[tuple[str, tuple[str, ...]], ...] = tuple(
+            (p.lower(), tuple(e.lower() for e in extras))
+            for p, extras in (compact_stem_families or {}).items()
         )
 
     def _parse_xml_entry(
@@ -119,6 +143,56 @@ class ArxivProvider(BaseAPIProvider):
         if ":" not in translated_query:
             translated_query = f'all:"{translated_query}"'
 
+        # arXiv's Atom/Lucene parser degrades recall on long multi-clause
+        # boolean strings, and Lucene does NO stemming — morphology variants
+        # are unreachable unless enumerated. Compact long multi-cluster
+        # queries to the core single-token terms per cluster: single-token
+        # phrases are kept, multi-word phrases are dropped (they exceed
+        # arXiv's practical clause budget). Observed live 2026-10-17: an
+        # earlier compaction revision stripped quote+content together and
+        # was an inert no-op (arXiv ran the full multi-phrase query). Domain
+        # stoplists/stem families arrive ONLY via constructor config from the
+        # research layer; the kit default carries neither.
+        if len(translated_query) > 300 and " AND " in query.text:
+            import re as _re
+
+            compact_clauses = []
+            for clause in query.text.split(" AND "):
+                phrases = _re.findall(r'"([^"]*)"', clause)
+                bare = _re.sub(r'"[^"]*"', " ", clause)
+                tokens = []
+                for p in phrases:
+                    p_toks = _re.findall(r"[a-zA-Z0-9_-]{2,}", p)
+                    if len(p_toks) == 1:
+                        tokens.append(p_toks[0])
+                tokens.extend(_re.findall(r"[a-zA-Z0-9_-]{3,}", bare))
+                seen = set()
+                deduped = []
+                for t in tokens:
+                    tl = t.lower()
+                    if tl in seen:
+                        continue
+                    seen.add(tl)
+                    if t.upper() in ("AND", "OR", "NOT"):
+                        continue
+                    if tl in self.compact_stoplist:
+                        continue
+                    deduped.append(t)
+                # Generic stem-family expansion from research config: when a
+                # kept token falls under a declared stem prefix, enumerate the
+                # morphology variants now, because the Lucene layer will not.
+                for prefix, extras in self.compact_stem_families:
+                    if any(t.lower().startswith(prefix) for t in deduped):
+                        for extra in extras:
+                            if extra not in deduped:
+                                deduped.append(extra)
+                if deduped:
+                    compact_clauses.append(
+                        "(" + " OR ".join(f"all:{t}" for t in deduped[:6]) + ")"
+                    )
+            if compact_clauses:
+                translated_query = " AND ".join(compact_clauses)
+
         params = {
             "search_query": translated_query,
             "start": 0,
@@ -133,7 +207,7 @@ class ArxivProvider(BaseAPIProvider):
         # Parse XML
         if not response.text.strip():
             return
-            
+
         root = ET.fromstring(response.content)
         count = 0
 

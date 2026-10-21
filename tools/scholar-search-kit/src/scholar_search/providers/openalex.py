@@ -54,9 +54,21 @@ class OpenAlexProvider(BaseAPIProvider):
 
         # Parse External IDs
         ids = raw.get("ids", {})
+        raw_pmid = ids.get("pmid") or ""
+        if isinstance(raw_pmid, str) and raw_pmid:
+            # Normalize OpenAlex PMID representations to the bare PMID so all
+            # providers agree on the pubmed_id namespace (observed live
+            # 2026-10-17: URL form `https://pubmed.ncbi.nlm.nih.gov/37608384`
+            # made `_has_identifier_conflict` see a strict conflict against
+            # the PubMed provider's bare `37608384`, annulling the DOI-tier
+            # merge of the same work — the S6 double-rep).
+            m_pmid = re.search(r"(\d+)\s*$", raw_pmid)
+            pmid_normalized = m_pmid.group(1) if m_pmid else raw_pmid.strip()
+        else:
+            pmid_normalized = raw_pmid or None
         external_ids = ExternalIds(
             doi=ids.get("doi"),
-            pubmed_id=ids.get("pmid"),
+            pubmed_id=pmid_normalized,
             openalex_id=ids.get("openalex"),
         )
 
@@ -105,9 +117,7 @@ class OpenAlexProvider(BaseAPIProvider):
             return self._topic_entries(concepts, "openalex_concepts")
         return None
 
-    def _topic_entries(
-        self, entries: list[Any], source: str
-    ) -> list[dict[str, Any]]:
+    def _topic_entries(self, entries: list[Any], source: str) -> list[dict[str, Any]]:
         normalized: list[dict[str, Any]] = []
         for entry in entries:
             if not isinstance(entry, dict):
@@ -163,35 +173,26 @@ class OpenAlexProvider(BaseAPIProvider):
             # Semantic mode (M0.6): raw meaning-matched text, no boolean
             # rewriting, and never combined with the keyword `search=` param.
             params["search.semantic"] = query_text
-        elif " AND " in query_text:
-            clauses = re.split(r"\s+AND\s+", query_text, flags=re.IGNORECASE)
-            selected_terms = []
-            for c in clauses:
-                phrases = re.findall(r'"([^"]+)"', c)
-                if phrases:
-                    selected_terms.append(f'"{phrases[0]}"')
-                else:
-                    words = [
-                        w
-                        for w in re.findall(r"\b[a-zA-Z0-9_-]{3,}\b", c)
-                        if w.upper() not in ("OR", "NOT", "AND")
-                    ]
-                    if words:
-                        selected_terms.append(words[0])
-            params["search"] = " ".join(selected_terms) if selected_terms else query_text
-        elif " OR " in query_text:
-            phrases = re.findall(r'"([^"]+)"', query_text)
-            if phrases:
-                params["search"] = f'"{phrases[0]}"'
-            else:
-                words = [
-                    w
-                    for w in re.findall(r"\b[a-zA-Z0-9_-]{3,}\b", query_text)
-                    if w.upper() not in ("OR", "NOT", "AND")
-                ]
-                params["search"] = words[0] if words else query_text
         elif query_text:
-            params["search"] = query_text
+            # OpenAlex natively supports uppercase AND, OR, NOT and () in search.
+            normalized_q = re.sub(
+                r"\b(and|or|not)\b",
+                lambda m: m.group(1).upper(),
+                query_text,
+                flags=re.IGNORECASE,
+            )
+            if any(op in normalized_q for op in (" AND ", " OR ", " NOT ")):
+                # Boolean queries go to the strict title-and-abstract search
+                # FILTER, not the full-text `search` param: `search` also hits
+                # full text (reference lists, passing mentions), which diluted
+                # top-ranked mega-cited surveys and obscured narrow primary
+                # studies (observed live 2026-10-17). The filter value is
+                # appended to the comma-joined `filter` list — the boolean
+                # text must therefore contain no commas (guaranteed for the
+                # concept-clause queries this provider is used with).
+                filters.append(f"title_and_abstract.search:{normalized_q}")
+            else:
+                params["search"] = normalized_q
 
         if filters and not query.semantic:
             # Semantic mode: OpenAlex `search.semantic` rejects a `filter`
