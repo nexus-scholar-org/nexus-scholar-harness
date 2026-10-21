@@ -21,6 +21,7 @@ Each track folder carries its own `README.md` entrypoint and, where relevant, an
 - [`DEVELOPER_COMPASS.md`](./DEVELOPER_COMPASS.md) — developer entrypoint and current program status.
 - [`agent_context_protocol.md`](./agent_context_protocol.md) — agent task-context capsules.
 - [`test_gate_policy.md`](./test_gate_policy.md) — delivery lanes; [`test_gate_manifest.json`](./test_gate_manifest.json) is read by `scripts/select_test_gate.py`.
+- [`context_efficiency_policy.md`](./context_efficiency_policy.md) — context-efficiency policy: implemented controls, rejected external claims, adopt/reject decisions; drift-checked by `scripts/check_context_policy.py`.
 - **Contract-locked set** (hashed by `scripts/generate_contract_baseline.py`; moving or editing any of these requires contract-baseline regeneration + a version decision): [`contract_v1_baseline.md`](./contract_v1_baseline.md) + [`contract_v1_baseline.json`](./contract_v1_baseline.json), [`cross_kit_contract_v1.md`](./cross_kit_contract_v1.md), [`wp01_contract_adoption_handoff.md`](./wp01_contract_adoption_handoff.md), [`wp01_packet_c_reference.md`](./wp01_packet_c_reference.md).
 
 ## Lifecycle architecture map (Phases 0–7)
