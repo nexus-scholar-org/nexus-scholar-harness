@@ -1,0 +1,23 @@
+{
+  "screener_id": "A1",
+  "batch_id": "batch_0001",
+  "criteria_sha256": "aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888",
+  "decisions": [
+    {
+      "decision_id": "SCR-000001",
+      "screener_id": "A1",
+      "method": "LLM",
+      "decided_at": "2026-01-01T00:00:00Z",
+      "reason": "matches the frozen criteria",
+      "parent_decision_ids": []
+    },
+    {
+      "decision_id": "SCR-000002",
+      "screener_id": "A1",
+      "method": "LLM",
+      "decided_at": "2026-01-01T00:00:00Z",
+      "reason": "outside the frozen criteria",
+      "parent_decision_ids": []
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "batch": 1,
+  "decisions": [
+    {
+      "screening_id": "REC-000001",
+      "decision": "INCLUDE",
+      "reason_code": "CODE_ONE",
+      "confidence": 0.9,
+      "one_line_support": "matches the stated inclusion signal"
+    },
+    {
+      "screening_id": "REC-000002",
+      "decision": "EXCLUDE",
+      "reason_code": "CODE_TWO",
+      "confidence": 0.8,
+      "one_line_support": "outside the stated scope"
+    }
+  ]
+}
