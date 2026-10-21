@@ -42,6 +42,7 @@ lifecycle map (Phases 0–7), the governance set, and the per-track folders.
 | :-- | :-- |
 | [**Kit Surface Matrix**](./kits_surface_matrix.md) | Technical API · CLI · MCP reference across all eight scholar kits (tool signatures, flags, cross-kit contracts, env vars). Read before driving kit CLIs. |
 | [**Commit Snapshots**](./internal/COMMIT_SNAPSHOTS.md) | Historical workspace snapshot markers for restoring previous workspace test data. |
+| [**Harvest Calibration Lessons**](./lessons/2026-10-17_uav_harvest_calibration_lessons.md) | Lessons learned from the UAV multi-provider harvest (v0.2 pilot + v0.3), mapped to a proposed kit/harness development backlog (K1–K6, H1–H6). Evidence-anchored; proposals are not commitments. |
 | [User Guide](./nexus_scholar_user_guide.md) | Also linked under "Start here". |
 
 ## 5. Archive — historical, do not cite as current
