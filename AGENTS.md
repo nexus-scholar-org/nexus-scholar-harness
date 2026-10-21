@@ -39,6 +39,8 @@ A thin **orchestrator** ("harness") for systematic literature reviews. The actua
 
 ## Kit domain skills
 Each domain has an SKILL.md under `.agents/skills/<kit>/SKILL.md` (scholar-search-kit, scholar-pdf-kit, scholar-bib-kit, scholar-rag-kit, scholar-graph-kit, scholar-protocol-kit, scholar-agent-kit, scholar-verify-kit, methodology-copilot, workspace-manager, inception-agent). Load the relevant skill before working in that domain — they document the exact CLIs and data formats (e.g. YAML-frontmatter Markdown for extracted fulltext, the audit event schema). The verified API↔CLI↔MCP map, known-broken tooling, and cross-kit contracts live in `docs/kits_surface_matrix.md` (read it before driving kit CLIs/MCP tools). The MCP server entrypoint for the agent kit is `.agents/plugins/nexus-scholar/mcp_config.json`. `inception-agent` runs the Grounded Exploratory Inception Agent interactively in chat, reusing the MCP `recon_*` tools and `.agents/skills/inception-agent/scripts/grounded_directions.py` (imports the real wizard functions for direction parity).
+- **Context efficiency:** `docs/architecture/context_efficiency_policy.md` records this repo's context controls, the external claims that are false here, and the adopt/reject decisions; `uv run python scripts/check_context_policy.py --check` proves it still matches.
+- Scope repository searches to `tools/<kit>/src`, never from the repo root — a nested kit `.venv` floods recursive reads (dated measurement: `docs/architecture/context_efficiency_policy.md`).
 
 ## Autonomous Agent Architecture
 

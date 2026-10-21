@@ -26,6 +26,12 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "ruff>=0.4.0",
+    # starlette's TestClient -- used by the console API tests under
+    # tests/console/ -- requires httpx2. Without it declared here the console
+    # test suite only runs in a venv that happens to have httpx2 already
+    # (it arrives transitively through the agent kit's mcp dependency), so a
+    # clean `uv sync --extra dev` environment could not run them at all.
+    "httpx2>=2.0.0",
 ]
 
 [project.scripts]

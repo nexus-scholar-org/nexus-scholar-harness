@@ -1,0 +1,33 @@
+{
+  "schema_version": "2",
+  "canonical_fields": [
+    "screening_id",
+    "decision",
+    "reason_code",
+    "confidence",
+    "one_line_support"
+  ],
+  "allowed_extras": [
+    "reason",
+    "criterion_refs",
+    "moderation_status",
+    "moderation_redacted"
+  ],
+  "reason_code_aliases": {
+    "exclusion_reason_code": "reason_code",
+    "pending_reason_code": "reason_code",
+    "inclusion_hint": "reason_code",
+    "reason_CODE": "reason_code"
+  },
+  "decision_vocabulary": [
+    "INCLUDE",
+    "EXCLUDE",
+    "PENDING"
+  ],
+  "expected_criteria_sha256_prefix": "",
+  "expected_prompt_sha256_prefix": "",
+  "embedded_reason_code_pattern": "\\b([A-Z][A-Z0-9_]{2,})\\b",
+  "decision_file_pattern": "batch_{n:04d}_decisions_{family}.json",
+  "batch_file_pattern": "batch_{n:04d}.json",
+  "view_file_pattern": "batch_{n:04d}.view.json"
+}

@@ -34,6 +34,7 @@ try:
         cmd_prepare,
     )
     from scholar_harness.screening.collector import cmd_collect, cmd_status
+    from scholar_harness.screening.decision_contract import cmd_validate
     from scholar_harness.screening.report import cmd_calibrate_eval, cmd_calibration
     from scholar_harness.screening.worker import cmd_recommend
     from scholar_harness.authority.review import cmd_approve, cmd_defer, cmd_review
@@ -46,6 +47,7 @@ except ImportError:
         cmd_prepare,
     )
     from .screening.collector import cmd_collect, cmd_status  # type: ignore
+    from .screening.decision_contract import cmd_validate  # type: ignore
     from .screening.report import cmd_calibrate_eval, cmd_calibration  # type: ignore
     from .screening.worker import cmd_recommend  # type: ignore
     from .authority.review import cmd_approve, cmd_defer, cmd_review  # type: ignore
@@ -147,6 +149,41 @@ def main() -> None:
     p_def.add_argument("--batch", type=int, default=1, help="Batch index (default: 1)")
     p_def.add_argument("--reason", required=True, help="Reason for deferral")
 
+    # validate (T-D0D2: read-only decision contract reader / tier report)
+    p_val = sub.add_parser(
+        "validate",
+        help=(
+            "Classify screening decision files against the workspace decision "
+            "contract and write one new report sidecar."
+        ),
+    )
+    p_val.add_argument("workspace", help="Path to workspace directory")
+    p_val.add_argument(
+        "--out",
+        default=None,
+        help=(
+            "Report path (default: literature/screening_reports/"
+            "decision_contract_report.json); refuses to overwrite an existing "
+            "report"
+        ),
+    )
+    p_val.add_argument(
+        "--contract",
+        default=None,
+        help=(
+            "Decision contract configuration path (default: literature/screening/"
+            "decision_contract.json)"
+        ),
+    )
+    p_val.add_argument(
+        "--decisions-dir",
+        default=None,
+        help=(
+            "Workspace-relative directory holding the screening decision files "
+            "(default: literature/screening)"
+        ),
+    )
+
     args = parser.parse_args()
     workspace_dir = Path(args.workspace).resolve()
 
@@ -176,6 +213,13 @@ def main() -> None:
         )
     elif args.command == "defer":
         cmd_defer(workspace_dir, args.batch, args.reason)
+    elif args.command == "validate":
+        cmd_validate(
+            workspace_dir,
+            out=args.out,
+            contract=args.contract,
+            decisions_dir=args.decisions_dir,
+        )
 
 
 if __name__ == "__main__":

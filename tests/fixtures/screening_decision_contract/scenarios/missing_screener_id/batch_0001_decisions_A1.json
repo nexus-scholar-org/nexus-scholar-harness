@@ -1,0 +1,20 @@
+{
+  "batch_id": "batch_0001",
+  "criteria_sha256": "aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888",
+  "decisions": [
+    {
+      "screening_id": "REC-000001",
+      "decision": "INCLUDE",
+      "reason_code": "CODE_ONE",
+      "confidence": 0.9,
+      "one_line_support": "matches the stated inclusion signal"
+    },
+    {
+      "screening_id": "REC-000002",
+      "decision": "EXCLUDE",
+      "reason_code": "CODE_TWO",
+      "confidence": 0.8,
+      "one_line_support": "outside the stated scope"
+    }
+  ]
+}
