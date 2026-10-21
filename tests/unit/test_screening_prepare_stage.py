@@ -831,7 +831,14 @@ def test_audit_suppression_mutation_detected(tmp_path, monkeypatch):
     row = pauses[0]
     assert row["agent_or_tool"] == "scholar-harness"
     assert "screen literature/screening/batch_*.json" in row["description"]
-    assert row["status"] == "SUCCESS"
+    # T-TRUTH-COUNTS-01 / F-2 (journal axis): the PAUSE row's status states
+    # the harvest's success-ness. This run's harvest is EMPTY_RESULT (the
+    # fake engine returns no documents), so the row must not claim an
+    # unqualified SUCCESS -- the old assertion encoded the defect this
+    # task closes. The row's EXISTENCE (the mutation guard this test is
+    # about) is unaffected.
+    assert row["status"] == "EMPTY_RESULT"
+    assert row["status"] != "SUCCESS"
 
 
 # ---------------------------------------------------------------------------

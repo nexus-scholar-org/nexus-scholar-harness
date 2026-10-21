@@ -61,8 +61,25 @@ Preservation notes:
   neutral (no orchestrator import, no cycle).
 - Audit neutrality: this coordinator calls ``append_legacy_event``
   directly (same bytes as the orchestrator adapter) and emits no other
-  events; stage-owned audits (hydration, verification, indexing) stay in
-  their stages. No new events, no rewording.
+  events; stage-owned audits (discovery, hydration, verification, indexing)
+  stay in their stages. No new events, no rewording -- except the
+  ``PIPELINE_RUN_ABORTED`` row written when the discovery harvest FAILED
+  (T-TRUTH-COUNTS-01 fail-closed publication: a failed harvest must not
+  produce a "completed" pipeline row).
+- Discovery status propagation (T-TRUTH-COUNTS-01, D-5): the pipeline
+  status is the **workflow state** only (``SUCCESS`` | ``EMPTY_RESULT`` |
+  ``PENDING_AGENT_REVIEW`` | ``FAILED``); the **discovery outcome** lives on
+  ``results["discovery"]`` and in the ``DISCOVERY_SEARCH`` ledger row. The
+  two axes are never collapsed: a ``FAILED`` harvest aborts the run before
+  any downstream stage, an ``EMPTY_RESULT`` harvest is never reported as
+  ``SUCCESS``, and a ``PARTIAL`` (degraded) harvest never overwrites the
+  waiting state -- it is exposed explicitly through ``results["degraded"]``
+  and ``results["degradation_reason"]``. The coordinator-owned ledger rows
+  carry the harvest's success-ness (never a generic ``SUCCESS`` next to a
+  degraded payload: the journal axis -- a row's status states that row's
+  own outcome). The discovery stage's own ``DISCOVERY_SEARCH`` event is
+  written by the stage itself (through ``workspace.audit``), never by this
+  coordinator.
 - Error propagation unchanged: a stage raise propagates with no
   fabricated mapping and no success claim; an audit raise propagates
   after the files the stage wrote.
@@ -70,8 +87,9 @@ Preservation notes:
 Neutrality: stdlib plus ``scholar-protocol-kit`` only for the protocol
 validation shape and harness stages only for delegation -- no console
 transport, no Contract v1 acceptance beyond what the stages themselves
-publish, no workspace audit beyond the two coordinator-owned legacy rows
-(PAUSE + COMPLETED), no direct scholar-search/rag/pdf/graph kit imports.
+publish, no workspace audit beyond the three coordinator-owned legacy rows
+(PAUSE + COMPLETED + ABORTED), no direct scholar-search/rag/pdf/graph kit
+imports.
 """
 
 from __future__ import annotations
@@ -98,6 +116,128 @@ from .verification import run_verification
 logger = logging.getLogger(__name__)
 
 
+#: The stage-mapping shape each stage has on a *successful* path. The abort
+#: path (a FAILED harvest) keeps the same keys -- with neutral zero values --
+#: so a consumer that reads ``stages.deduplication["unique"]`` or
+#: ``stages.matrix_rows["rows"]`` does not hit a ``KeyError`` on an aborted
+#: run (T-TRUTH-COUNTS-01, F-9). The stage *names* are the successful-path
+#: names too (``matrix_rows`` / ``graph_nodes``), never aliases.
+_ABORTED_STAGE_SHAPES: dict[str, dict[str, Any]] = {
+    "deduplication": {"unique": 0, "duplicates_removed": 0},
+    "verification": {
+        "verified": 0,
+        "refused": 0,
+        "preserved": 0,
+        "bridge_restored": 0,
+        "refusal_reasons": {},
+    },
+    "screening": {"batch_files_prepared": 0, "papers_to_screen": 0},
+    "extraction": {"documents": 0, "metadata_frontmatter_only": []},
+    # The indexing mapping is produced by the injected ``indexing_fn``; its
+    # shape is not known here, so only the skip marker is published.
+    "indexing": {},
+    "matrix_rows": {"rows": 0},
+    "graph_nodes": {"nodes": 0, "edges": 0},
+    "synthesis": {
+        "verified_claims": 0,
+        "total_claims": 0,
+        "entailment_rate": 0.0,
+    },
+}
+
+
+def _apply_discovery_status(
+    results: dict[str, Any], discovery_status: str, discovery_reason: str = ""
+) -> None:
+    """Let the harvest outcome colour the pipeline status (T-TRUTH-COUNTS-01).
+
+    Two orthogonal axes, never collapsed (D-5):
+
+    * ``results["status"]`` is the **workflow state** only: ``SUCCESS``,
+      ``EMPTY_RESULT``, ``PENDING_AGENT_REVIEW`` or ``FAILED``;
+    * the **discovery outcome** (``SUCCESS`` / ``PARTIAL`` /
+      ``EMPTY_RESULT`` / ``FAILED``) lives in ``results["discovery"]`` and in
+      the ``DISCOVERY_SEARCH`` ledger row.
+
+    The consequences:
+
+    * ``FAILED`` -- the pipeline status is ``FAILED`` (never ``SUCCESS``);
+    * ``EMPTY_RESULT`` -- a pipeline that would otherwise report ``SUCCESS``
+      reports ``EMPTY_RESULT`` instead: an empty harvest is never an
+      unqualified success. A pipeline that is *waiting* for the PRISMA
+      handoff keeps its waiting status (it never claimed ``SUCCESS``) and
+      the empty harvest stays visible in ``results["discovery"]``;
+    * ``PARTIAL`` -- a degraded harvest never overwrites the workflow state
+      (doing so would destroy the waiting state). The degradation is exposed
+      explicitly instead: ``results["degraded"]`` is ``True`` and
+      ``results["degradation_reason"]`` names the failing providers.
+
+    A stage double that does not report a status at all is treated as
+    ``SUCCESS`` (the historical outcome contract of this seam).
+    """
+    if discovery_status == "FAILED":
+        results["status"] = "FAILED"
+    elif discovery_status == "PARTIAL":
+        results["degraded"] = True
+        results["degradation_reason"] = discovery_reason
+    elif discovery_status == "EMPTY_RESULT" and results.get("status") == "SUCCESS":
+        results["status"] = "EMPTY_RESULT"
+
+
+def _ledger_status(results: dict[str, Any]) -> str:
+    """The status a coordinator-owned journal row must carry.
+
+    The journal axis: a row's status states the row's own outcome, never a
+    generic ``SUCCESS`` sitting next to a degraded payload. The
+    coordinator-owned rows are about the *run*, so their status states the
+    harvest's success-ness:
+
+    * ``FAILED`` -- the harvest failed (the row is the abort row);
+    * ``PARTIAL`` -- the harvest was degraded: the row must not claim an
+      unqualified success;
+    * ``EMPTY_RESULT`` -- the harvest returned nothing: the row must not
+      claim an unqualified success;
+    * ``SUCCESS`` -- the harvest itself succeeded (the historical status of
+      these rows; the pause itself is stated by the row's action and
+      description, and the workflow state is in the returned mapping).
+
+    ``append_legacy_event`` defaults to ``status="SUCCESS"``; relying on
+    that default is exactly the defect this rule closes.
+    """
+    discovery = results.get("discovery") or {}
+    harvest = str(discovery.get("status", "") or "")
+    if harvest in ("PARTIAL", "EMPTY_RESULT", "FAILED"):
+        return harvest
+    return "SUCCESS"
+
+
+def _pipeline_note(results: dict[str, Any]) -> str:
+    """An explicit note about the harvest provenance and its degradation.
+
+    Appended to the coordinator-owned row descriptions so a provenance gap
+    (a ``DISCOVERY_SEARCH`` row that could not be written) or a degradation
+    is visible in the ledger itself, never only in the returned mapping.
+    """
+    notes: list[str] = []
+    discovery = results.get("discovery") or {}
+    if discovery.get("audit_status") == "NOT_WRITTEN":
+        notes.append(
+            "discovery audit event NOT_WRITTEN: "
+            f"{discovery.get('audit_reason', 'unknown reason')}"
+        )
+    if results.get("degraded"):
+        notes.append(
+            f"degraded discovery harvest: {results.get('degradation_reason', '')}"
+        )
+    if discovery.get("stale_artifacts_present"):
+        notes.append(
+            "stale corpus artifacts of an earlier run were left in place and "
+            "are NOT this run's corpus: "
+            + ", ".join(discovery.get("stale_artifacts") or [])
+        )
+    return ("; " + " | ".join(notes)) if notes else ""
+
+
 async def run_pipeline(
     *,
     workspace_dir: Path | str,
@@ -115,10 +255,11 @@ async def run_pipeline(
 
     Only mechanical parameterization: ``workspace_dir`` / ``protocol_path`` /
     ``max_search_results`` inputs, ``indexing_fn`` for Stage 6, direct
-    ``append_legacy_event`` for the two coordinator audits. ``mock_mode``
-    is accepted-but-unused (signature parity). The screening-preparation
-    import stays function-level at its base position. Kit/stage/audit
-    failure propagates with no fabricated output and no success claim.
+    ``append_legacy_event`` for the three coordinator audits (PAUSE,
+    COMPLETED, ABORTED). ``mock_mode`` is accepted-but-unused (signature
+    parity). The screening-preparation import stays function-level at its
+    base position. Kit/stage/audit failure propagates with no fabricated
+    output and no success claim.
     """
     # mock_mode is accepted-but-unused: identical outcomes either way
     # (signature test test_discovery_stage.py:358). No reference here
@@ -131,7 +272,14 @@ async def run_pipeline(
         raise FileNotFoundError(f"Protocol file not found at {p_path}")
 
     protocol = ResearchProtocol.model_validate_json(p_path.read_text(encoding="utf-8"))
-    results: dict[str, Any] = {"status": "SUCCESS", "stages": {}}
+    results: dict[str, Any] = {
+        "status": "SUCCESS",
+        "stages": {},
+        # D-5: the degradation signal is explicit and always present, so a
+        # consumer never has to guess whether the key exists.
+        "degraded": False,
+        "degradation_reason": "",
+    }
 
     # Setup workspace directories
     lit_dir = ws / "literature"
@@ -149,8 +297,16 @@ async def run_pipeline(
     # -------------------------------------------------------------
     # HCM-04b: delegated to the neutral pipeline stage. run_discovery owns
     # query compilation, provider resolution, federated search, and
-    # raw-result publication; it emits no audit event and writes no
+    # raw-result publication; it publishes exactly one canonical
+    # DISCOVERY_SEARCH audit event (through workspace.audit) and writes no
     # registry state.
+    #
+    # T-TRUTH-COUNTS-01: the pipeline status must reflect the harvest
+    # outcome without collapsing the two axes (D-5). A FAILED harvest
+    # publishes no corpus artifact at all and stops the pipeline here
+    # (fail-closed publication); an EMPTY_RESULT harvest is never reported
+    # as SUCCESS; a PARTIAL (degraded) harvest never overwrites the
+    # workflow state -- it is exposed through results["degraded"].
     discovery_outcome = await run_discovery(
         protocol_path=p_path,
         literature_dir=lit_dir,
@@ -159,6 +315,49 @@ async def run_pipeline(
     # Local binding retained: Stage 2 deduplicates these documents.
     discovered_docs = discovery_outcome.documents
     results["stages"]["discovery"] = discovery_outcome.count
+    discovery_status = getattr(discovery_outcome, "status", None) or "SUCCESS"
+    discovery_reason = getattr(discovery_outcome, "reason", "") or ""
+    results["discovery"] = {
+        "count": discovery_outcome.count,
+        "status": discovery_status,
+        "reason": discovery_reason,
+        "corpus_published": bool(getattr(discovery_outcome, "published", True)),
+        "audit_status": getattr(discovery_outcome, "audit_status", "UNKNOWN"),
+        "audit_reason": getattr(discovery_outcome, "audit_reason", ""),
+        "audit_workspace": getattr(discovery_outcome, "audit_workspace", ""),
+        "stale_artifacts_present": bool(
+            getattr(discovery_outcome, "stale_artifacts_present", False)
+        ),
+        "stale_artifacts": list(
+            getattr(discovery_outcome, "stale_artifacts", ()) or ()
+        ),
+    }
+
+    if discovery_status == "FAILED":
+        # Fail-closed publication: a failed harvest must not produce
+        # authoritative downstream artifacts. The stage-mapping SHAPE is the
+        # successful-path shape (same keys, neutral zero values), so a
+        # consumer never hits a KeyError on an aborted run.
+        reason = f"discovery failed: {discovery_reason}"
+        for stage, shape in _ABORTED_STAGE_SHAPES.items():
+            results["stages"][stage] = {
+                **shape,
+                "status": "SKIPPED",
+                "reason": reason,
+            }
+        results["status"] = "FAILED"
+        append_legacy_event(
+            ws,
+            "PIPELINE_RUN_ABORTED",
+            "scholar-harness",
+            "Pipeline aborted after a failed discovery harvest: "
+            f"{discovery_reason}{_pipeline_note(results)}",
+            [str(p_path)],
+            [],
+            results["stages"],
+            status=_ledger_status(results),
+        )
+        return results
 
     # -------------------------------------------------------------
     # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
@@ -167,7 +366,7 @@ async def run_pipeline(
     # -------------------------------------------------------------
     # HCM-04c: delegated to the neutral pipeline stage. run_deduplication
     # owns 2-tier dedup, PID cluster assignment, and deduped publication;
-    # it emits no audit event and writes no registry state.
+    # it writes no registry state and emits no audit event of its own.
     dedup_outcome = run_deduplication(
         discovered_documents=discovered_docs,
         literature_dir=lit_dir,
@@ -264,15 +463,18 @@ async def run_pipeline(
                 "reason": "PRISMA collect not run yet",
             }
         results["status"] = "PENDING_AGENT_REVIEW"
+        _apply_discovery_status(results, discovery_status, discovery_reason)
         append_legacy_event(
             ws,
             "PIPELINE_RUN_PAUSED_FOR_SCREENING",
             "scholar-harness",
             "Pipeline paused at PRISMA agent-in-the-loop handoff; "
-            "screen literature/screening/batch_*.json then run agent_screen.py collect",
+            "screen literature/screening/batch_*.json then run agent_screen.py collect"
+            f"{_pipeline_note(results)}",
             [str(p_path)],
             [str(lit_dir / "screening")],
             results["stages"],
+            status=_ledger_status(results),
         )
         return results
 
@@ -310,16 +512,19 @@ async def run_pipeline(
                 "reason": _generation_reason,
             }
         results["status"] = "PENDING_AGENT_REVIEW"
+        _apply_discovery_status(results, discovery_status, discovery_reason)
         append_legacy_event(
             ws,
             "PIPELINE_RUN_PAUSED_FOR_SCREENING",
             "scholar-harness",
             "Pipeline paused: screening publication is not a current "
             f"authorized generation ({_generation_reason}); re-collect under "
-            "an authorized generation before stages 5-9",
+            "an authorized generation before stages 5-9"
+            f"{_pipeline_note(results)}",
             [str(p_path)],
             [str(lit_dir / "screening")],
             results["stages"],
+            status=_ledger_status(results),
         )
         return results
 
@@ -426,11 +631,13 @@ async def run_pipeline(
     # -------------------------------------------------------------
     # Stage 10: Append-Only Audit Journal Logging
     # -------------------------------------------------------------
+    _apply_discovery_status(results, discovery_status, discovery_reason)
     append_legacy_event(
         ws,
         "PIPELINE_RUN_COMPLETED",
         "scholar-harness",
-        f"Completed end-to-end research pipeline for '{protocol.metadata.get('title', 'Unknown')}'",
+        f"Completed end-to-end research pipeline for '{protocol.metadata.get('title', 'Unknown')}'"
+        f"{_pipeline_note(results)}",
         [str(p_path)],
         [
             str(synth_file),
@@ -438,6 +645,7 @@ async def run_pipeline(
             str(lit_dir / "knowledge_graph.html"),
         ],
         results["stages"],
+        status=_ledger_status(results),
     )
 
     return results

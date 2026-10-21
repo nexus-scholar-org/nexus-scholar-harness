@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 import typer
@@ -601,6 +602,194 @@ def sync(
     console.print(table)
 
 
+#: The workflow statuses the pipeline publishes
+#: (``SUCCESS`` | ``EMPTY_RESULT`` | ``PENDING_AGENT_REVIEW`` | ``FAILED``).
+#: The CLI headline, panel styling and exit code are derived from these --
+#: never from "the command returned without raising" (T-TRUTH-COUNTS-01,
+#: CLI-CLOSURE). An empty harvest, a degraded harvest and a pipeline waiting
+#: for the PRISMA handoff are NOT successes and must never be announced as
+#: such.
+_PIPELINE_STATUS_PRESENTATION: dict[str, tuple[str, str, str]] = {
+    "SUCCESS": (
+        "✨ Research Pipeline Execution Completed Successfully!",
+        "green",
+        "bold green",
+    ),
+    "EMPTY_RESULT": (
+        "⚠️  Research Pipeline Completed with NO Results Discovered",
+        "yellow",
+        "bold yellow",
+    ),
+    "PENDING_AGENT_REVIEW": (
+        "⏸ Research Pipeline Paused — awaiting PRISMA screening (agent-in-the-loop)",
+        "cyan",
+        "bold cyan",
+    ),
+    "FAILED": (
+        "❌ Research Pipeline FAILED",
+        "red",
+        "bold red",
+    ),
+}
+
+#: Headline used when the harvest was degraded (``results["degraded"]``) but
+#: the workflow state is still ``SUCCESS``: a degraded harvest must never
+#: carry an unqualified success claim.
+_DEGRADED_HEADLINE = "⚠️  Research Pipeline Completed with a DEGRADED discovery harvest"
+
+#: Headline used for a status the CLI does not know: unknown is not success.
+_UNKNOWN_STATUS_HEADLINE = "⚠️  Research Pipeline Completed with an unrecognised status"
+
+
+def _stage_count(stage: object, *keys: str) -> int:
+    """Return an integer stage count from an int, a mapping or ``None``.
+
+    The pipeline publishes a stage either as a plain integer (the discovery
+    count) or as a mapping (``{"unique": 5, "duplicates_removed": 2}`` on the
+    normal path, ``{"unique": 0, "status": "SKIPPED", "reason": ...}`` on the
+    abort path). A mapping is read through ``keys`` in order; a mapping that
+    carries none of them (a skipped stage) yields ``0``.
+
+    The result is always an ``int``: the summary panel never renders a raw
+    mapping or ``None`` to the user.
+    """
+    if isinstance(stage, bool):
+        return 0
+    if isinstance(stage, int):
+        return stage
+    if isinstance(stage, Mapping):
+        for key in keys:
+            raw = stage.get(key)
+            if isinstance(raw, bool):
+                continue
+            if isinstance(raw, int):
+                return raw
+            if isinstance(raw, float):
+                return int(raw)
+            if isinstance(raw, str) and raw.strip().lstrip("-").isdigit():
+                return int(raw.strip())
+        return 0
+    return 0
+
+
+def _stage_note(stage: object) -> str:
+    """Return a short annotation for a skipped stage (``""`` otherwise).
+
+    A skipped stage reports ``0``; the reason is surfaced so the user can see
+    *why* the stage did not run instead of reading a bare zero.
+    """
+    if (
+        isinstance(stage, Mapping)
+        and str(stage.get("status") or "").upper() == "SKIPPED"
+    ):
+        reason = str(stage.get("reason") or "").strip()
+        return f" (SKIPPED: {reason})" if reason else " (SKIPPED)"
+    return ""
+
+
+def _pipeline_summary_panel(results: object) -> tuple[Panel, str]:
+    """Build the pipeline summary panel and return it with the status.
+
+    The second element is the workflow status (``SUCCESS`` |
+    ``EMPTY_RESULT`` | ``PENDING_AGENT_REVIEW`` | ``FAILED``) the panel
+    reports; the caller uses it to decide the exit code. The headline is
+    derived from that status (and from the degradation flag), never from the
+    absence of an exception.
+    """
+    data: Mapping[str, object] = results if isinstance(results, Mapping) else {}
+    stages: Mapping[str, object] = (
+        data.get("stages") if isinstance(data.get("stages"), Mapping) else {}
+    )
+
+    # A missing/empty status is NOT a success: it is an unknown outcome and
+    # must render the unknown-status headline (never "Successfully").
+    raw_status = str(data.get("status") or "UNKNOWN").strip().upper()
+    degraded = bool(data.get("degraded"))
+    degradation_reason = str(data.get("degradation_reason") or "").strip()
+
+    headline, border_style, heading_style = _PIPELINE_STATUS_PRESENTATION.get(
+        raw_status, (_UNKNOWN_STATUS_HEADLINE, "yellow", "bold yellow")
+    )
+    if raw_status == "SUCCESS" and degraded:
+        # A degraded harvest is never an unqualified success.
+        headline = _DEGRADED_HEADLINE
+        border_style = "yellow"
+        heading_style = "bold yellow"
+
+    discovery_stage = stages.get("discovery")
+    screening_stage = stages.get("screening")
+    extraction_stage = stages.get("extraction")
+    synthesis_stage = stages.get("synthesis")
+
+    lines: list[str] = [
+        f"[{heading_style}]{headline}[/{heading_style}]",
+        "",
+        f"[bold]Status: {raw_status}[/bold]",
+    ]
+
+    discovery = data.get("discovery")
+    if isinstance(discovery, Mapping):
+        harvest = str(discovery.get("status") or "").strip().upper()
+        if harvest:
+            harvest_reason = str(discovery.get("reason") or "").strip()
+            suffix = f" ({harvest_reason})" if harvest_reason else ""
+            lines.append(f"Discovery harvest: {harvest}{suffix}")
+
+    if degraded:
+        lines.append(
+            "[bold yellow]⚠ Degraded harvest: "
+            f"{degradation_reason or 'reason not reported'}[/bold yellow]"
+        )
+
+    pending = _stage_count(screening_stage, "papers_to_screen")
+    lines.extend(
+        [
+            "",
+            (
+                f"• Discovered: {_stage_count(discovery_stage, 'count', 'discovered')}"
+                f" papers{_stage_note(discovery_stage)}"
+            ),
+            (
+                f"• Deduplicated: {_stage_count(stages.get('deduplication'), 'unique')}"
+                f" unique{_stage_note(stages.get('deduplication'))}"
+            ),
+            (
+                "• Included (PRISMA): "
+                f"{_stage_count(screening_stage, 'included', 'included_count')}"
+                f"{_stage_note(screening_stage)}"
+            ),
+            (
+                "• Markdown Extracts: "
+                f"{_stage_count(extraction_stage, 'documents', 'extracted')}"
+                f"{_stage_note(extraction_stage)}"
+            ),
+            (
+                f"• Matrix Rows: {_stage_count(stages.get('matrix_rows'), 'rows')}"
+                f"{_stage_note(stages.get('matrix_rows'))}"
+            ),
+            (
+                f"• Graph Nodes: {_stage_count(stages.get('graph_nodes'), 'nodes')}"
+                f"{_stage_note(stages.get('graph_nodes'))}"
+            ),
+            (
+                "• Grounded Claims: "
+                f"{_stage_count(synthesis_stage, 'verified_claims')} / "
+                f"{_stage_count(synthesis_stage, 'total_claims')} verified"
+                f"{_stage_note(synthesis_stage)}"
+            ),
+        ]
+    )
+    if pending:
+        lines.append(f"• Papers awaiting PRISMA screening: {pending}")
+
+    panel = Panel.fit(
+        "\n".join(lines),
+        title="Pipeline Execution Summary",
+        border_style=border_style,
+    )
+    return panel, raw_status
+
+
 @app.command("run")
 def run_pipeline(
     protocol: Path = typer.Option(
@@ -639,20 +828,14 @@ def run_pipeline(
             protocol_path=protocol_path, max_search_results=limit
         )
 
-    console.print(
-        Panel.fit(
-            f"[bold green]✨ Research Pipeline Execution Completed Successfully![/bold green]\n\n"
-            f"• Discovered: {res['stages'].get('discovery', 0)} papers\n"
-            f"• Deduplicated: {res['stages'].get('deduplication', 0)} unique\n"
-            f"• Included (PRISMA): {res['stages'].get('screening', {}).get('included', 0)}\n"
-            f"• Markdown Extracts: {res['stages'].get('extraction', 0)}\n"
-            f"• Matrix Rows: {res['stages'].get('matrix_rows', 0)}\n"
-            f"• Graph Nodes: {res['stages'].get('graph_nodes', 0)}\n"
-            f"• Grounded Claims: {res['stages'].get('synthesis', {}).get('verified_claims', 0)} / {res['stages'].get('synthesis', {}).get('total_claims', 0)} verified",
-            title="Pipeline Execution Summary",
-            border_style="green",
-        )
-    )
+    panel, status = _pipeline_summary_panel(res)
+    console.print(panel)
+
+    if status == "FAILED":
+        # A hard failure is the only non-zero exit: an empty harvest, a
+        # degraded harvest and a pipeline waiting for the PRISMA handoff are
+        # not failures -- but the panel states plainly what happened.
+        raise typer.Exit(code=1)
 
 
 def _run_pipeline_spec(pipeline: Path, workspace: Path, skip: str | None) -> None:

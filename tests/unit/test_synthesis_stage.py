@@ -715,7 +715,11 @@ def test_orchestrator_mapping_and_retriever_binding(tmp_path, monkeypatch):
 
     results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
 
-    assert results["status"] == "SUCCESS"
+    # T-TRUTH-COUNTS-01: the fake engine returns no documents, so the
+    # harvest is EMPTY_RESULT and the pipeline must not claim SUCCESS
+    # ("empty output is not automatically success"). The stage mapping
+    # asserted below is unchanged.
+    assert results["status"] == "EMPTY_RESULT"
     mapping = results["stages"]["synthesis"]
     assert mapping == {
         "verified_claims": 1,

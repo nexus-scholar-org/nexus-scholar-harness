@@ -3,9 +3,10 @@
 Stage 1 (protocol-query compile -> search -> raw-result publication) lives in
 ``scholar_harness.pipeline.discovery``; the orchestrator delegates. Every test
 is hermetic (``tmp_path`` only, faked engine, real protocol compiler) and
-asserts zero behavior change: byte-identical raw files, identical provider
-resolution, preserved overrides/edge cases, no audit or registry writes, and
-unchanged ``mock_mode`` semantics.
+asserts: byte-identical raw files, identical provider resolution, preserved
+overrides/edge cases, exactly one canonical ``DISCOVERY_SEARCH`` audit event
+(T-TRUTH-COUNTS-01), no registry writes, and an honest status (an empty or
+degraded harvest is never reported as ``SUCCESS``).
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import os
 from dataclasses import asdict
 from pathlib import Path
 
@@ -123,6 +125,70 @@ class _FailingEngine(_FakeEngine):
         raise RuntimeError("provider boom")
 
     async def close(self):  # pragma: no cover - close is never reached
+        self.closed = True
+
+
+class _GoodProvider:
+    """A provider that yields documents (like the kit's real providers)."""
+
+    name = "openalex"
+
+    async def search(self, query):
+        for doc in _make_docs():
+            yield doc
+
+
+class _BadProvider:
+    """A provider that raises -- the kit swallows it, the harness must not."""
+
+    name = "crossref"
+
+    async def search(self, query):
+        raise RuntimeError("crossref exploded")
+        yield  # pragma: no cover - unreachable, keeps this an async generator
+
+
+class _MixedEngine:
+    """Mimics the kit's engine: per-provider failures are caught and skipped."""
+
+    def __init__(self, providers=None):
+        self.providers = [_GoodProvider(), _BadProvider()]
+        self.closed = False
+
+    async def search_all(self, query, dedup=False):
+        SEEN_QUERIES.append((query, dedup))
+        results = []
+        for provider in self.providers:
+            try:
+                async for doc in provider.search(query):
+                    results.append(doc)
+            except Exception:  # noqa: BLE001 - the kit's swallow behavior
+                continue
+        return results
+
+    async def close(self):
+        self.closed = True
+
+
+class _AllFailEngine:
+    """Every provider fails: the harvest produced nothing and broke."""
+
+    def __init__(self, providers=None):
+        self.providers = [_BadProvider()]
+        self.closed = False
+
+    async def search_all(self, query, dedup=False):
+        SEEN_QUERIES.append((query, dedup))
+        results = []
+        for provider in self.providers:
+            try:
+                async for doc in provider.search(query):
+                    results.append(doc)
+            except Exception:  # noqa: BLE001 - the kit's swallow behavior
+                continue
+        return results
+
+    async def close(self):
         self.closed = True
 
 
@@ -276,20 +342,241 @@ def test_empty_results_preserve_count_and_files(tmp_path, monkeypatch):
     assert (lit / "all_raw_search.json").read_text(encoding="utf-8") == _golden_text([])
 
 
-def test_stage_emits_no_audit_event_and_no_registry_writes(tmp_path, monkeypatch):
+def test_stage_emits_one_canonical_discovery_event_and_no_registry_writes(
+    tmp_path, monkeypatch
+):
+    """AC-5: the stage publishes exactly one canonical DISCOVERY_SEARCH event.
+
+    The event is written through ``scholar_harness.workspace.audit`` (the sole
+    owner of the append-only journal discipline) -- never by hand-appending a
+    line to ``journal.jsonl``.
+    """
+    calls: list[dict] = []
+    import scholar_harness.pipeline.discovery as disc_mod
+
+    real_append = disc_mod.append_event
+
+    def _spy(workspace, action, description, **kwargs):
+        calls.append({"workspace": workspace, "action": action, **kwargs})
+        return real_append(workspace, action, description, **kwargs)
+
+    monkeypatch.setattr(disc_mod, "append_event", _spy)
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(ws)
+
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature")
+    )
+
+    # The canonical writer was used (no hand-append).
+    assert len(calls) == 1
+    assert calls[0]["action"] == "DISCOVERY_SEARCH"
+
+    journal = ws / "audit" / "journal.jsonl"
+    lines = [
+        line
+        for line in journal.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert len(lines) == 1
+    event = json.loads(lines[0])
+    assert event["action"] == "DISCOVERY_SEARCH"
+    assert event["event_id"].startswith("EVT-")
+    assert event["agent_or_tool"] == "scholar-harness"
+    assert event["inputs"], "the event must name its inputs"
+    assert any("protocol.json" in item for item in event["inputs"])
+    assert any("raw_search.json" in item for item in event["outputs"])
+    assert event["metrics"]["raw_hits"] == outcome.count == 2
+    assert event["status"] == "SUCCESS"
+    # m3: the provenance method is recorded (COMPASS section 3).
+    assert event["parameters"]["method"] == "EXTERNAL_PROVIDER"
+    # The audit outcome is explicit on the outcome object.
+    assert outcome.audit_status == "WRITTEN"
+    assert outcome.audit_workspace
+    assert outcome.audit_reason
+
+    # No registry/acceptance state is written by the stage.
+    assert list(ws.rglob("artifact_registry.json")) == []
+
+
+def test_discovery_status_is_never_success_for_an_empty_result(tmp_path, monkeypatch):
+    """N-7 / AC-6: a zero-result harvest is never reported as SUCCESS."""
+    monkeypatch.setattr(disc, "SearchEngine", _EmptyEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(ws)
+
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature")
+    )
+
+    assert outcome.count == 0
+    assert outcome.status != "SUCCESS"
+    assert outcome.status == "EMPTY_RESULT"
+    assert outcome.reason, "a non-success outcome must carry a reason"
+
+    event = json.loads(
+        [
+            line
+            for line in (ws / "audit" / "journal.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip()
+        ][0]
+    )
+    assert event["status"] != "SUCCESS"
+    assert event["status"] == "EMPTY_RESULT"
+    assert event["metrics"]["raw_hits"] == 0
+
+
+def test_discovery_reports_partial_when_a_provider_fails(tmp_path, monkeypatch):
+    """N-6 / AC-6: a failing provider degrades the run to PARTIAL."""
+    monkeypatch.setattr(disc, "SearchEngine", _MixedEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(ws)
+
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature")
+    )
+
+    assert outcome.count == 2
+    assert outcome.status == "PARTIAL"
+    assert "crossref" in outcome.reason
+    assert outcome.providers_failed == ("crossref",)
+    assert outcome.provider_errors["crossref"]
+
+    event = json.loads(
+        [
+            line
+            for line in (ws / "audit" / "journal.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip()
+        ][0]
+    )
+    assert event["status"] == "PARTIAL"
+    assert event["metrics"]["providers_failed"] == 1
+    assert event["metrics"]["failed_providers"] == ["crossref"]
+    assert event["metrics"]["raw_hits"] == 2
+
+
+def test_discovery_docstring_states_the_actual_provider_behavior():
+    """AC-7: the docstring must not claim the kit propagates provider errors."""
+    source = Path(disc.__file__).read_text(encoding="utf-8")
+    assert "Provider failure propagates" not in source
+    assert "does **not** propagate" in source or "does not propagate" in source
+    assert "swallow" in source.lower()
+    # The module no longer claims to emit no audit event.
+    assert "emits **no** audit event" not in source
+
+
+def test_stage_writes_no_registry_state(tmp_path, monkeypatch):
+    """The stage writes no registry/acceptance state, and a missing owning
+    workspace is an EXPLICIT outcome, never a silent skip (T-TRUTH-COUNTS-01).
+
+    This test proves the intended property (not "no workspace happened to be
+    found"): the outcome states that no audit event was written and why, and
+    no ledger is created anywhere in the tree.
+    """
     monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
     ws = tmp_path / "ws"
     ws.mkdir()
     proto = _write_protocol(ws)
 
-    asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "lit"))
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=ws / "lit")
+    )
 
+    # No registry/acceptance state is ever written by the stage.
+    assert list(ws.rglob("artifact_registry.json")) == []
+    # The missing owning workspace is reported explicitly.
+    assert outcome.audit_status == "NOT_WRITTEN"
+    assert outcome.audit_reason
+    assert outcome.audit_workspace == ""
+    # ... and no ledger was created anywhere (not in the workspace, not next
+    # to the literature directory).
     assert not (ws / "audit").exists()
+    assert not (ws / "lit" / "audit").exists()
     assert not (ws / "literature" / "audit").exists()
-    assert list((ws).rglob("journal.jsonl")) == []
-    assert list((ws).rglob("artifact_registry.json")) == []
+    assert list(ws.rglob("journal.jsonl")) == []
     written = sorted(p.name for p in (ws / "lit").iterdir())
     assert written == ["all_raw_search.json", "raw_search.json"]
+
+
+def test_nested_workspace_never_writes_into_an_unrelated_parents_ledger(
+    tmp_path, monkeypatch
+):
+    """M2: a nested workspace without its own ``project.json`` must not have
+    its discovery row appended to an unrelated parent project's ledger."""
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    (parent / "project.json").write_text(
+        json.dumps({"project_id": "parent", "title": "P", "stats": {}}),
+        encoding="utf-8",
+    )
+    nested = parent / "nested"
+    nested.mkdir()
+    proto = _write_protocol(nested)
+
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=nested / "literature")
+    )
+
+    assert outcome.audit_status == "NOT_WRITTEN"
+    assert outcome.audit_reason
+    # The parent's ledger is untouched: no fabricated history in another
+    # project.
+    parent_journal = parent / "audit" / "journal.jsonl"
+    assert not parent_journal.exists()
+    assert list(parent.rglob("journal.jsonl")) == []
+
+
+def test_failed_harvest_publishes_no_authoritative_corpus_artifact(
+    tmp_path, monkeypatch
+):
+    """M1 / COMPASS section 7: a failed harvest publishes no corpus artifact."""
+    monkeypatch.setattr(disc, "SearchEngine", _AllFailEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(ws)
+    lit = ws / "literature"
+
+    outcome = asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=lit))
+
+    assert outcome.status == "FAILED"
+    assert outcome.count == 0
+    assert outcome.published is False
+    assert not (lit / "raw_search.json").exists()
+    assert not (lit / "all_raw_search.json").exists()
+
+    event = json.loads(
+        [
+            line
+            for line in (ws / "audit" / "journal.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip()
+        ][0]
+    )
+    assert event["status"] == "FAILED"
+    assert event["metrics"]["corpus_published"] is False
+    assert event["outputs"] == []
 
 
 def test_stage_1_region_has_no_direct_kit_use():
@@ -405,3 +692,202 @@ def test_transitional_seam_removed(tmp_path, monkeypatch):
         disc.run_discovery(protocol_path=proto, literature_dir=ws / "lit")
     )
     assert outcome.count == 0
+
+
+# ---------------------------------------------------------------------------
+# T-TRUTH-COUNTS-01 (final narrow repair): owner resolution, stale artifacts,
+# proxy delegation
+# ---------------------------------------------------------------------------
+
+
+def test_relative_literature_dir_still_writes_the_canonical_row(tmp_path, monkeypatch):
+    """F-3: a relative ``literature_dir`` must not lose the discovery row.
+
+    Before the repair the owner was resolved from the *unresolved* literature
+    path (``Path(".")/..``) while the protocol was resolved, so
+    ``relative_to`` raised ``ValueError`` and a legitimate workspace with a
+    ``project.json`` silently lost its ``DISCOVERY_SEARCH`` row.
+    """
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(ws)
+
+    # The harness is called from the workspace's parent directory with a
+    # RELATIVE literature directory.
+    monkeypatch.chdir(tmp_path)
+    outcome = asyncio.run(
+        disc.run_discovery(
+            protocol_path=proto, literature_dir=os.path.join("ws", "literature")
+        )
+    )
+
+    assert outcome.audit_status == "WRITTEN", outcome.audit_reason
+    assert Path(outcome.audit_workspace) == ws.resolve()
+    journal = ws / "audit" / "journal.jsonl"
+    rows = [
+        json.loads(line)
+        for line in journal.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert [r["action"] for r in rows] == ["DISCOVERY_SEARCH"]
+    assert rows[0]["status"] == "SUCCESS"
+
+
+def test_protocol_outside_the_owning_workspace_is_an_explicit_outcome(
+    tmp_path, monkeypatch
+):
+    """F-4: a protocol outside the owning workspace is never a silent loss.
+
+    The literature owner is a real workspace, but the protocol lives
+    elsewhere: the owner cannot vouch for the harvest, so no row is written
+    -- and the outcome says so explicitly (``NOT_WRITTEN`` + a reason).
+    """
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    external = tmp_path / "external"
+    external.mkdir()
+    (external / "project.json").write_text(
+        json.dumps({"project_id": "ext", "title": "E", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(external)
+
+    outcome = asyncio.run(
+        disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature")
+    )
+
+    assert outcome.audit_status == "NOT_WRITTEN"
+    assert outcome.audit_reason
+    assert outcome.audit_workspace == ""
+    # No ledger was polluted (neither the owner nor the protocol's project).
+    assert not (ws / "audit" / "journal.jsonl").exists()
+    assert not (external / "audit" / "journal.jsonl").exists()
+
+
+def test_literature_dir_without_a_manifest_falls_back_to_the_protocol_workspace(
+    tmp_path, monkeypatch
+):
+    """F-4 (owner fallback): the protocol's own workspace owns the row.
+
+    The literature directory has no ``project.json`` of its own, but the
+    protocol lives in a real workspace -- that workspace authorised the
+    harvest, so it owns the canonical row (never an unrelated ancestor).
+    """
+    monkeypatch.setattr(disc, "SearchEngine", _FakeEngine)
+    owner = tmp_path / "owner"
+    owner.mkdir()
+    (owner / "project.json").write_text(
+        json.dumps({"project_id": "owner", "title": "O", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(owner)
+    lit = tmp_path / "unmanaged" / "literature"
+
+    outcome = asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=lit))
+
+    assert outcome.audit_status == "WRITTEN", outcome.audit_reason
+    assert Path(outcome.audit_workspace) == owner.resolve()
+    rows = [
+        json.loads(line)
+        for line in (owner / "audit" / "journal.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip()
+    ]
+    assert [r["action"] for r in rows] == ["DISCOVERY_SEARCH"]
+
+
+def test_failed_harvest_reports_pre_existing_artifacts_instead_of_deleting_them(
+    tmp_path, monkeypatch
+):
+    """F-5: a failed harvest never deletes the artifacts of an earlier run.
+
+    Deleting a researcher's data would destroy evidence, so the artifacts
+    stay on disk -- but they must never be mistaken for this run's corpus:
+    the outcome and the audit row name them explicitly.
+    """
+    monkeypatch.setattr(disc, "SearchEngine", _AllFailEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    proto = _write_protocol(ws)
+    lit = ws / "literature"
+    lit.mkdir()
+    earlier = '[{"title": "Earlier run"}]'
+    (lit / "raw_search.json").write_text(earlier, encoding="utf-8")
+    (lit / "all_raw_search.json").write_text(earlier, encoding="utf-8")
+
+    outcome = asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=lit))
+
+    assert outcome.status == "FAILED"
+    assert outcome.published is False
+    # The earlier run's evidence is NOT deleted ...
+    assert (lit / "raw_search.json").read_text(encoding="utf-8") == earlier
+    assert (lit / "all_raw_search.json").read_text(encoding="utf-8") == earlier
+    # ... but it is reported as stale, not as this run's corpus.
+    assert outcome.stale_artifacts_present is True
+    assert len(outcome.stale_artifacts) == 2
+    assert all("raw_search.json" in item for item in outcome.stale_artifacts)
+
+    event = json.loads(
+        [
+            line
+            for line in (ws / "audit" / "journal.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip()
+        ][0]
+    )
+    assert event["metrics"]["stale_artifacts_present"] is True
+    assert event["parameters"]["stale_artifacts_present"] is True
+    assert "NOT this run's corpus" in event["description"]
+
+
+def test_observed_proxy_exposes_the_provider_client_for_the_engine_cleanup():
+    """F-11: the proxy must delegate ``client``/``close`` to the provider.
+
+    The kit's ``SearchEngine.close()`` calls ``hasattr(provider, "client")``
+    on the *wrapped* provider; a regression in the proxy's delegation would
+    break the real engine's cleanup with no test failing.
+    """
+    from scholar_search.engine import SearchEngine
+
+    closed: list[str] = []
+
+    class _Client:
+        async def close(self):
+            closed.append("client")
+
+    class _Provider:
+        name = "openalex"
+
+        def __init__(self):
+            self.client = _Client()
+
+        async def close(self):
+            closed.append("provider")
+
+        async def search(self, query):
+            if False:  # pragma: no cover - never iterated
+                yield
+
+    provider = _Provider()
+    probe = disc._ProviderProbe()
+    proxy = disc._ObservedProvider(provider, probe)
+
+    # The proxy exposes the wrapped provider's client and close.
+    assert proxy.client is provider.client
+    assert proxy.close == provider.close
+
+    # ... so the real engine's cleanup reaches the wrapped client.
+    engine = SearchEngine(providers=[proxy])
+    asyncio.run(engine.close())
+    assert closed == ["client"]

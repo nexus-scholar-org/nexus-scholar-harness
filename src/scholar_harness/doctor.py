@@ -30,6 +30,8 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
+from .workspace import counts
+
 console = Console(force_terminal=True, legacy_windows=False)
 
 
@@ -293,50 +295,106 @@ CANONICAL_FILES = (
 
 CANONICAL_DIRS = ("synthesis", "literature")
 
-# Stats doctor can derive from the filesystem using the same rules ``sync`` uses
-# (sync_state in orchestrator.py) -- excluding chromadb/vector counts, which
-# would pull a heavy dependency into a light command.
-_SYNC_COUNT_KEYS = (
-    ("discovered_papers", "literature/raw_search.json"),
-    ("deduped_papers", "literature/deduped.json"),
-    ("verified_papers", "literature/verified.json"),
-    ("included_papers", "literature/included.json"),
-    ("excluded_papers", "literature/excluded.json"),
-)
+# The corpus counters are NOT limited to the canonical ``literature/`` paths
+# any more (T-TRUTH-COUNTS-01): the physical corpus is counted wherever it
+# physically lives (``literature/``, ``calibration/``, any other corpus-bearing
+# directory) and recognition is content-based.  The counting rules live in
+# :mod:`scholar_harness.workspace.counts` -- the doctor never re-implements
+# them.
+
+#: The check row that carries the declared-vs-actual reconciliation.
+RECONCILIATION_CHECK = ("layout", "project.json-stats")
 
 
-def _actual_stats(ws: Path) -> dict[str, int]:
-    """Derive countable stats from the filesystem (sync's rules, minus heavy deps)."""
-    stats: dict[str, int] = {}
-    for key, rel in _SYNC_COUNT_KEYS:
-        path = ws / rel
-        if path.is_file():
-            try:
-                stats[key] = len(json.loads(path.read_text(encoding="utf-8-sig")))
-            except (OSError, ValueError):
-                stats[key] = 0
-    pdf_dir = ws / "pdfs"
-    if pdf_dir.is_dir():
-        stats["downloaded_pdfs"] = len(list(pdf_dir.glob("*.pdf")))
-    ext_dir = ws / "extracted"
-    if ext_dir.is_dir():
-        stats["extracted_markdowns"] = len(list(ext_dir.glob("*.md")))
-    return stats
+def _cap(items: list[str], limit: int = 8) -> str:
+    """Join artifact names for a check detail, capped so one workspace cannot
+    flood the table/JSON output."""
+    if len(items) <= limit:
+        return ", ".join(items)
+    return ", ".join(items[:limit]) + f", ... (+{len(items) - limit} more)"
 
 
-def check_layout(workspace: Path) -> list[CheckResult]:
+def _extra_actual_stats(ws: Path) -> dict[str, int]:
+    """Counters the doctor derives itself (PDFs, extracted markdown).
+
+    Both counters are ALWAYS emitted -- ``0`` when the directory is absent --
+    so a declared ``downloaded_pdfs: 5`` in a workspace without a ``pdfs/``
+    directory is still compared (silently skipping it would hide a stale
+    manifest).
+
+    The computation lives in :mod:`scholar_harness.workspace.counts` so the
+    doctor and ``orchestrator.sync_state`` reconcile the SAME workspace the
+    SAME way (F-4): two different extra counters produced two different
+    verdicts for one and the same workspace.
+    """
+    return counts.extra_actual_stats(ws)
+
+
+def _counted_parts(corpus: "counts.CorpusCounts") -> str:
+    """The physically counted counters, rendered for a check detail."""
+    parts = []
+    for key in counts.CORPUS_STAT_KEYS:
+        selected = corpus.selected.get(key) or []
+        if not selected:
+            continue
+        parts.append(f"{key}={corpus.stats.get(key, 0)} ({', '.join(selected)})")
+    return "; ".join(parts)
+
+
+def _layout_row(name: str, status: Status, detail: str) -> CheckResult:
+    """One layout check row."""
+    return CheckResult("layout", name, status, detail)
+
+
+def _record_state(state: dict[str, Any] | None, **values: Any) -> None:
+    """Write the reconciliation state into the caller's out-parameter."""
+    if state is None:
+        return
+    state.clear()
+    state.update(values)
+    state.setdefault("performed", False)
+    state.setdefault("status", "NOT_APPLICABLE")
+    state.setdefault("detail", "")
+
+
+def check_layout(
+    workspace: Path, *, state: dict[str, Any] | None = None
+) -> list[CheckResult]:
     """Validate the workspace layout against the canonical contract.
 
     A directory without Nexus markers reports SKIP (not a failure).  With
-    markers: PASS when every canonical contract file exists, WARN when
-    ``project.json`` stats are stale vs the directory state, FAIL when any
-    canonical file is missing.
+    markers: PASS when every canonical contract file exists, FAIL when any
+    canonical file is missing, and FAIL when the ``project.json`` summary
+    disagrees with the physical artifacts (T-TRUTH-COUNTS-01: a stale
+    summary is a correctness defect, not a hint -- it used to be a soft
+    ``WARN`` while a workspace holding 2165 records claimed ``0``).
+
+    The physical truth is reported next to the consistency check, so the
+    doctor never hides the counts behind a stale registry:
+
+    * ``corpus-counts`` states what was physically counted;
+    * ``corpus-unreadable`` puts the artifacts that could not be read or
+      understood on their OWN line -- an unreadable artifact that maps to no
+      role must not poison the counted counters (D-1);
+    * ``provider-evidence-overlap`` states the known limitation of a
+      summed provider counter;
+    * ``project.json-stats`` is NEVER ``PASS`` when the reconciliation was
+      not performed: a corpus-free workspace reconciles against its declared
+      ``0`` (D-2), an unreadable/unexpected-shaped corpus artifact reports
+      ``UNRESOLVED`` (FAIL), record-bearing artifacts the harness cannot
+      classify report ``UNCLASSIFIED`` (FAIL), and a missing manifest
+      reports that no reconciliation was performed.
+
+    ``state`` is an optional out-parameter: when a dict is passed, the
+    reconciliation state is written into it (machine readable).
     """
     ws = workspace.resolve()
     if not ws.is_dir():
         return [
             CheckResult(
-                "layout", "workspace", Status.FAIL,
+                "layout",
+                "workspace",
+                Status.FAIL,
                 f"Workspace directory does not exist: {ws}",
             )
         ]
@@ -344,7 +402,9 @@ def check_layout(workspace: Path) -> list[CheckResult]:
     if not any((ws / marker).exists() for marker in MARKERS):
         return [
             CheckResult(
-                "layout", "workspace", Status.SKIP,
+                "layout",
+                "workspace",
+                Status.SKIP,
                 f"No Nexus Scholar markers in {ws} (not an init'd workspace)",
             )
         ]
@@ -356,48 +416,296 @@ def check_layout(workspace: Path) -> list[CheckResult]:
     missing_dirs = [d for d in CANONICAL_DIRS if not (ws / d).is_dir()]
 
     if missing_files or missing_dirs:
-        results.append(CheckResult(
-            "layout", "canonical-files", Status.FAIL,
-            "Missing canonical contract files: " + ", ".join(missing_files + missing_dirs),
-        ))
+        results.append(
+            CheckResult(
+                "layout",
+                "canonical-files",
+                Status.FAIL,
+                "Missing canonical contract files: "
+                + ", ".join(missing_files + missing_dirs),
+            )
+        )
     else:
-        results.append(CheckResult(
-            "layout", "canonical-files", Status.PASS,
-            "All canonical contract files present",
-        ))
+        results.append(
+            CheckResult(
+                "layout",
+                "canonical-files",
+                Status.PASS,
+                "All canonical contract files present",
+            )
+        )
+
+    # Count ONCE and hand the result to the reconciliation (the corpus may
+    # hold tens of thousands of records; parsing it twice doubled runtime).
+    corpus = counts.count_corpus(ws)
+    counted = _counted_parts(corpus)
+    unresolved = corpus.unresolved
+
+    if corpus.undetermined:
+        detail = (
+            "NOT RECONCILED — the counter(s) for "
+            + ", ".join(sorted(corpus.undetermined))
+            + " could not be determined: "
+            + _cap([f"{a.relpath} ({a.state})" for a in unresolved])
+            + " (never a silent 0)"
+            + (f"; the counters that were counted: {counted}" if counted else "")
+        )
+        results.append(_layout_row("corpus-counts", Status.FAIL, detail))
+    elif corpus.status == "UNIDENTIFIED":
+        detail = (
+            "NOT RECONCILED — no corpus artifact could be identified or parsed: "
+            + _cap(
+                [
+                    f"{a.relpath} ({a.state})"
+                    for a in corpus.candidates
+                    if a.state == counts.STATE_UNREADABLE
+                ]
+            )
+        )
+        results.append(_layout_row("corpus-counts", Status.FAIL, detail))
+    elif corpus.unclassified:
+        detail = (
+            "corpus: "
+            + corpus.summary()
+            + " — UNCLASSIFIED record-bearing artifact(s): "
+            + _cap([f"{a.relpath} ({a.count} records)" for a in corpus.unclassified])
+            + " (these records are not represented by any declared counter)"
+        )
+        results.append(_layout_row("corpus-counts", Status.WARN, detail))
+    elif corpus.status == "SUMMARY":
+        # Corpus evidence, but only a DECLARED summary: there is no physical
+        # record list to count, so this is never a physical count.
+        evidence = [
+            a
+            for a in corpus.candidates
+            if a.state in (counts.STATE_SUMMARY_ONLY, counts.STATE_CONFLICT)
+        ]
+        detail = (
+            "corpus: DECLARED SUMMARY only — no physical record list was found: "
+            + _cap([f"{a.relpath} ({a.detail})" for a in evidence])
+        )
+        results.append(_layout_row("corpus-counts", Status.WARN, detail))
+    else:
+        results.append(
+            _layout_row("corpus-counts", Status.PASS, "corpus: " + corpus.summary())
+        )
+
+    if corpus.conflicts:
+        detail = (
+            "artifact(s) whose own summary disagrees with their own record list: "
+            + _cap([f"{a.relpath} — {a.detail}" for a in corpus.conflicts])
+        )
+        results.append(_layout_row("corpus-conflicts", Status.WARN, detail))
+
+    # D-1: an artifact that could not be read/understood gets its OWN line.
+    # A role-less artifact never poisons the counted counters; a role-mapped
+    # one only does so when its role has no counted evidence at all (that
+    # case is already reported by the corpus-counts row above).
+    broken = [
+        a
+        for a in corpus.candidates
+        if a.state == counts.STATE_UNREADABLE
+        or (a.state == counts.STATE_UNKNOWN_SHAPE and a.role is not None)
+    ]
+    if broken:
+        lines = []
+        for artifact in broken:
+            if artifact.relpath in corpus.undetermined.get(artifact.role or "", []):
+                role_note = f"maps to {artifact.role}, whose counter is undetermined"
+            elif artifact.role is None:
+                role_note = "maps to no counter"
+            else:
+                selected = corpus.selected.get(artifact.role) or []
+                role_note = (
+                    f"maps to {artifact.role} (that counter is determined by "
+                    f"{', '.join(selected)})"
+                )
+            state_note = (
+                "could not be read/parsed"
+                if artifact.state == counts.STATE_UNREADABLE
+                else "could not be understood (unexpected shape)"
+            )
+            lines.append(f"{artifact.relpath} ({state_note}) — {role_note}")
+        detail = "artifact(s) " + _cap(lines)
+        if counted:
+            detail += f"; the counters that were counted: {counted}"
+        results.append(_layout_row("corpus-unreadable", Status.WARN, detail))
+
+    if corpus.provider_overlap:
+        detail = (
+            "the discovered_papers counter was summed from "
+            + str(len(corpus.provider_evidence))
+            + " provider artifact(s) ("
+            + ", ".join(corpus.provider_evidence)
+            + ") — provider harvests overlap, so the counter may count the same "
+            "document twice; a union artifact is the authoritative count"
+        )
+        results.append(_layout_row("provider-evidence-overlap", Status.WARN, detail))
 
     manifest_path = ws / "project.json"
-    if manifest_path.is_file():
-        stale: list[str] = []
-        try:
-            declared = json.loads(manifest_path.read_text(encoding="utf-8-sig")).get("stats", {})
-            actual = _actual_stats(ws)
-            stale = [
-                key for key, value in actual.items()
-                if int(declared.get(key, 0) or 0) != value
-            ]
-        except (OSError, ValueError):
-            stale = None  # unreadable manifest -> warn, don't crash the doctor
-        if stale is None:
-            results.append(CheckResult(
-                "layout", "project.json-stats", Status.WARN,
-                "Could not parse project.json for the staleness check",
-            ))
-        elif stale:
-            results.append(CheckResult(
-                "layout", "project.json-stats", Status.WARN,
-                "Stats may be stale vs the directory state (" + ", ".join(stale) + ") — "
-                "run `nexus-scholar sync` to refresh",
-            ))
+    if not manifest_path.is_file():
+        results.append(
+            _layout_row(
+                "project.json-stats",
+                Status.WARN,
+                "project.json is missing — no reconciliation was performed (the "
+                "declared counters could not be compared with the physical artifacts)",
+            )
+        )
+        _record_state(
+            state,
+            performed=False,
+            reconciled=False,
+            status="MISSING_MANIFEST",
+            detail="project.json is missing",
+        )
+        return results
+
+    try:
+        json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+        manifest_readable = True
+    except (OSError, ValueError):
+        manifest_readable = False  # unreadable manifest -> warn, don't crash
+    if not manifest_readable:
+        results.append(
+            _layout_row(
+                "project.json-stats",
+                Status.WARN,
+                "Could not parse project.json — no reconciliation was performed",
+            )
+        )
+        _record_state(
+            state,
+            performed=False,
+            reconciled=False,
+            status="UNREADABLE_MANIFEST",
+            detail="project.json could not be parsed",
+        )
+        return results
+
+    reconciliation = counts.reconcile(
+        ws, corpus=corpus, additional_actual=_extra_actual_stats(ws)
+    )
+    details = [
+        f"{m.key} declared={m.declared} actual={m.actual}"
+        for m in reconciliation.mismatches
+    ]
+    stale = ("; declared-vs-actual: " + "; ".join(details)) if details else ""
+    counted_note = f"; counted: {counted}" if counted else ""
+    status = reconciliation.status
+    # The physical number of records the workspace really holds (never a
+    # declared number): the guard for every "0 corpus records" claim.
+    physical_records = sum(a.count or 0 for a in corpus.counted)
+
+    if status == "UNRESOLVED":
+        detail = (
+            "NOT RECONCILED — project.json stats could NOT be verified against "
+            "the physical artifacts: "
+            + _cap([f"{a.relpath} ({a.state})" for a in unresolved])
+            + " — the affected counter(s) were NOT counted (never a silent 0)"
+            + stale
+            + counted_note
+        )
+        results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    elif status == "UNCLASSIFIED":
+        detail = (
+            "NOT RECONCILED — project.json stats could NOT be verified against "
+            "the physical artifacts: "
+            + _cap([f"{a.relpath} ({a.count} records)" for a in corpus.unclassified])
+            + " — these records are not represented by any declared counter"
+            + stale
+            + counted_note
+        )
+        results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    elif status == "UNIDENTIFIED":
+        detail = (
+            "NOT RECONCILED — corpus artifacts exist but none could be identified "
+            "or parsed, so the declared counters could not be verified"
+            + stale
+            + counted_note
+        )
+        results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    elif status == "CONFLICT":
+        # The corpus physically exists (it carries records) but one of its
+        # artifacts contradicts itself. The physical count is used and
+        # reported; the workspace is NOT reconciled and never a green verdict.
+        detail = (
+            "NOT RECONCILED — the corpus artifact(s) whose own summary "
+            "disagrees with their own record list: "
+            + _cap([f"{a.relpath} — {a.detail}" for a in corpus.conflicts])
+            + f"; the physical count ({physical_records} record(s)) is used, "
+            "but the corpus is not self-consistent, so the declared counters "
+            "were not verified"
+            + stale
+            + counted_note
+        )
+        results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    elif status == "SUMMARY":
+        # A declared summary is not a physical count: it can never be a
+        # verified reconciliation.
+        summary_artifacts = [
+            a for a in corpus.candidates if a.state == counts.STATE_SUMMARY_ONLY
+        ]
+        detail = (
+            "NOT RECONCILED — the corpus is a DECLARED SUMMARY only (no "
+            "physical record list): "
+            + _cap([f"{a.relpath} ({a.detail})" for a in summary_artifacts])
+            + " — a declared summary is not a verified physical count"
+            + stale
+            + counted_note
+        )
+        results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    elif status == "STALE":
+        detail = (
+            "project.json stats disagree with the physical artifacts ("
+            + "; ".join(details)
+            + ")"
+            + counted_note
+            + " — run `nexus-scholar sync` to repair"
+        )
+        results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    elif status == "NO_CORPUS":
+        # D-2: NO_CORPUS means "this workspace holds no corpus artifact at
+        # all" -- a verifiable state that reconciles against a declared 0
+        # (it is NOT the same as "nothing was counted"). The claim "0 corpus
+        # records" is only ever made when the physical count really is zero:
+        # a record-bearing artifact (even a conflicting one) must never be
+        # reported as "no corpus artifact".
+        if physical_records == 0:
+            detail = (
+                "no corpus artifact in this workspace — the declared counters ("
+                + ", ".join(
+                    f"{k}={v}" for k, v in sorted(reconciliation.declared.items())
+                )
+                + ") reconcile against the physical state (0 corpus records)"
+            )
+            results.append(_layout_row("project.json-stats", Status.PASS, detail))
         else:
-            results.append(CheckResult(
-                "layout", "project.json-stats", Status.PASS,
-                "project.json stats match the directory state",
-            ))
+            detail = (
+                "NOT RECONCILED — the workspace holds "
+                + f"{physical_records} physical corpus record(s), so it is not "
+                "a corpus-free workspace"
+                + stale
+                + counted_note
+            )
+            results.append(_layout_row("project.json-stats", Status.FAIL, detail))
+    else:
+        detail = (
+            "project.json stats match the physical artifacts (" + corpus.summary() + ")"
+        )
+        results.append(_layout_row("project.json-stats", Status.PASS, detail))
 
+    _record_state(
+        state,
+        performed=True,
+        reconciled=reconciliation.reconciled,
+        status=status,
+        detail="",
+        declared=dict(reconciliation.declared),
+        actual=dict(reconciliation.actual),
+        mismatches=[m.as_dict() for m in reconciliation.mismatches],
+    )
     return results
-
-
 # ---------------------------------------------------------------------------
 # Seam: CLI importable + console-script entrypoints
 # ---------------------------------------------------------------------------
@@ -479,23 +787,55 @@ def run_doctor(
 ) -> dict[str, Any]:
     """Run every doctor check and assemble the report.
 
-    Returns ``{"checks": [{group, name, status, detail}, ...], "overall": str}``.
-    Overall is the worst status across checks (FAIL > WARN > PASS > SKIP).
+    Returns ``{"checks": [{group, name, status, detail}, ...], "overall": str,
+    "reconciliation": {...}}``. Overall is the worst status across checks
+    (FAIL > WARN > PASS > SKIP) -- with ONE hard rule (D-3): the aggregate can
+    never report ``PASS`` while the reconciliation was not performed. An
+    ordinary optional ``SKIP`` sub-check stays harmless; only the
+    reconciliation row can block a PASS aggregate.
     """
     ws = (workspace or Path(".")).resolve()
     checks: list[CheckResult] = []
     checks.extend(check_kits(importable_map=importable_map))
     checks.extend(check_keys(env_file))
     checks.extend(check_skills(skills_root=skills_root))
-    checks.extend(check_layout(ws))
+    reconciliation: dict[str, Any] = {}
+    checks.extend(check_layout(ws, state=reconciliation))
     checks.extend(check_seam())
+    if not reconciliation:
+        # ``check_layout`` did not fill the state (it returned early, or the
+        # caller stubbed it): fall back to the reconciliation row itself.
+        row = next(
+            (c for c in checks if (c.group, c.name) == RECONCILIATION_CHECK), None
+        )
+        if row is None:
+            reconciliation = {
+                "performed": False,
+                "reconciled": False,
+                "status": "NOT_APPLICABLE",
+                "detail": "no reconciliation check was run (not a Nexus Scholar workspace)",
+            }
+        else:
+            reconciliation = {
+                "performed": row.status in (Status.PASS, Status.FAIL),
+                "reconciled": row.status is Status.PASS,
+                "status": row.status.value,
+                "detail": row.detail,
+            }
+    else:
+        reconciliation.setdefault("reconciled", False)
 
     overall = Status.SKIP
     for check in checks:
         if _STATUS_PRIORITY.index(check.status) < _STATUS_PRIORITY.index(overall):
             overall = check.status
 
-    return {
+    # D-3: a green aggregate must mean the declared counters were actually
+    # compared with the physical artifacts.
+    if not reconciliation.get("performed") and overall is Status.PASS:
+        overall = Status.WARN
+
+    report: dict[str, Any] = {
         "checks": [
             {
                 "group": check.group,
@@ -506,7 +846,17 @@ def run_doctor(
             for check in checks
         ],
         "overall": overall.value,
+        "reconciliation": {
+            "performed": bool(reconciliation.get("performed", False)),
+            "reconciled": bool(reconciliation.get("reconciled", False)),
+            "status": reconciliation.get("status", "NOT_APPLICABLE"),
+            "detail": reconciliation.get("detail", ""),
+        },
     }
+    for key in ("declared", "actual", "mismatches"):
+        if key in reconciliation:
+            report["reconciliation"][key] = reconciliation[key]
+    return report
 
 
 def _mask_json(report: dict[str, Any]) -> str:
@@ -519,7 +869,11 @@ def _mask_json(report: dict[str, Any]) -> str:
     # NOTE: unlike _render_table (which re-masks), the JSON guarantee rests on
     # check_keys never placing a value in a detail string — keep it that way.
     return json.dumps(
-        {"checks": report["checks"], "overall": report["overall"]},
+        {
+            "checks": report["checks"],
+            "overall": report["overall"],
+            "reconciliation": report.get("reconciliation", {}),
+        },
         indent=2,
     )
 

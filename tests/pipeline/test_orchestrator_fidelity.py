@@ -102,6 +102,36 @@ class _FakeEngine:
         pass
 
 
+class _FailingProvider:
+    """A provider that raises -- the kit swallows it, the harness must not."""
+
+    name = "crossref"
+
+    async def search(self, query):
+        raise RuntimeError("crossref exploded")
+        yield  # pragma: no cover - unreachable, keeps this an async generator
+
+
+class _FailingEngine:
+    """Every provider fails: the harvest produced nothing and broke."""
+
+    def __init__(self, providers=None):
+        self.providers = [_FailingProvider()]
+
+    async def search_all(self, query, dedup=False):
+        results = []
+        for provider in self.providers:
+            try:
+                async for doc in provider.search(query):
+                    results.append(doc)
+            except Exception:  # noqa: BLE001 - the kit's swallow behavior
+                continue
+        return results
+
+    async def close(self):
+        pass
+
+
 class _FakeDedup:
     def deduplicate(self, docs):
         return []
@@ -268,7 +298,12 @@ def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(
 
     results = _run(ws)
 
-    assert results["status"] == "SUCCESS"
+    # T-TRUTH-COUNTS-01: the fake engine returns no documents, so the
+    # harvest is EMPTY_RESULT and the pipeline must NOT report SUCCESS
+    # ("empty output is not automatically success"). The old assertion
+    # expected "SUCCESS" -- that was the defect this task closes.
+    assert results["status"] == "EMPTY_RESULT"
+    assert results["discovery"]["status"] == "EMPTY_RESULT"
     assert results["stages"]["extraction"]["status"] == "DONE"
 
     md = ws / "extracted" / "SCI-000001.md"
@@ -333,6 +368,110 @@ def test_stages_7_9_bind_retriever_and_8_uses_real_client(tmp_path, monkeypatch)
 
 
 # ---------------------------------------------------------------------------
+# T-TRUTH-COUNTS-01: declared counts must reconcile with physical artifacts
+# ---------------------------------------------------------------------------
+
+
+def test_pipeline_sync_repairs_a_stale_declared_count(tmp_path):
+    """AC-2/N-3: ``sync`` repairs an under-reported summary from the files."""
+    from scholar_harness.doctor import Status, check_layout
+
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps(
+            {
+                "project_id": "fidelity-test-workspace",
+                "registered_workspace_id": FIXTURE_WORKSPACE_ID,
+                "title": "Reconciliation",
+                "stats": {"discovered_papers": 0},
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    corpus = ws / "calibration"
+    corpus.mkdir()
+    payload = {"documents": [{"title": f"study {i}"} for i in range(5)]}
+    (corpus / "raw_union.json").write_text(json.dumps(payload), encoding="utf-8")
+
+    stats_check = next(r for r in check_layout(ws) if r.name == "project.json-stats")
+    assert stats_check.status is Status.FAIL  # declared 0 vs 5 physical records
+
+    result = orch.ResearchOrchestrator(ws).sync_state()
+    assert result["stats"]["discovered_papers"] == 5
+
+    manifest = json.loads((ws / "project.json").read_text(encoding="utf-8"))
+    assert manifest["stats"]["discovered_papers"] == 5
+    assert manifest["registered_workspace_id"] == FIXTURE_WORKSPACE_ID
+
+    stats_check = next(r for r in check_layout(ws) if r.name == "project.json-stats")
+    assert stats_check.status is Status.PASS
+
+
+def test_pipeline_failure_does_not_publish_authoritative_output(tmp_path, monkeypatch):
+    """COMPASS section 7: failure does not publish authoritative output.
+
+    A FAILED harvest must not leave a corpus artifact behind, must not run
+    the downstream stages, and must not be reported as a successful run.
+    """
+    _stub_kit_engines(monkeypatch)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _FailingEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+    _record_workspace_identity(ws, "fidelity-test-workspace")
+
+    results = _run(ws)
+
+    assert results["status"] == "FAILED"
+    assert results["discovery"]["status"] == "FAILED"
+    assert results["discovery"]["corpus_published"] is False
+
+    # No authoritative corpus artifact was published.
+    assert not (ws / "literature" / "raw_search.json").exists()
+    assert not (ws / "literature" / "all_raw_search.json").exists()
+    assert not (ws / "literature" / "deduped.json").exists()
+    assert not (ws / "literature" / "verified.json").exists()
+    assert not list((ws / "extracted").glob("*.md"))
+    assert not (ws / "synthesis" / "literature_review.md").exists()
+
+    # The downstream stages are skipped with an explicit reason.
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
+    assert "discovery failed" in results["stages"]["extraction"]["reason"]
+
+    # The journal records the abort -- never a "completed" row.
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert "PIPELINE_RUN_ABORTED" in journal
+    assert "PIPELINE_RUN_COMPLETED" not in journal
+
+
+def test_pipeline_run_records_the_discovery_event(tmp_path, monkeypatch):
+    """AC-5: a pipeline run leaves a canonical DISCOVERY_SEARCH journal row."""
+    _stub_kit_engines(monkeypatch)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+    _record_workspace_identity(ws, "fidelity-test-workspace")
+
+    _run(ws)
+
+    journal = ws / "audit" / "journal.jsonl"
+    events = [
+        json.loads(line)
+        for line in journal.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    discovery = [e for e in events if e.get("action") == "DISCOVERY_SEARCH"]
+    assert discovery, "the discovery stage must leave a canonical audit event"
+    event = discovery[-1]
+    assert event["agent_or_tool"]
+    assert event["inputs"] and event["outputs"]
+    assert event["metrics"]["raw_hits"] == 0  # the fake engine returns nothing
+    assert event["status"] != "SUCCESS"  # an empty harvest is never a success
+
+
+# ---------------------------------------------------------------------------
 # Provider resolution map (Stage 1, D1) and PDF/slug helpers
 # ---------------------------------------------------------------------------
 
@@ -371,3 +510,114 @@ def test_extraction_file_stem_and_pdf_helpers(tmp_path):
     hit.write_bytes(b"%PDF-1.4")
     assert orch._study_pdf(pdf_dir, doc) == hit
     assert orch._study_pdf(pdf_dir, {"workspace_id": "SCI-000999", "doi": "x"}) is None
+
+
+# ---------------------------------------------------------------------------
+# T-TRUTH-COUNTS-01 (final narrow repair): the STATE_SYNC row carries the
+# reconciliation status, not a generic SUCCESS
+# ---------------------------------------------------------------------------
+
+
+def _sync_events(ws: Path) -> list[dict]:
+    return [
+        json.loads(line)
+        for line in (ws / "audit" / "journal.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip()
+    ]
+
+
+def test_state_sync_row_status_expresses_the_reconciliation_status(tmp_path):
+    """F-8: the STATE_SYNC row's status IS the reconciliation's status.
+
+    The row's purpose is the reconciliation, so a generic ``SUCCESS`` next
+    to a ``STALE`` payload was a false history entry. The row now carries
+    the reconciliation status itself (``STALE`` -> ``OK`` after the repair).
+    """
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps(
+            {
+                "project_id": "fidelity-test-workspace",
+                "registered_workspace_id": FIXTURE_WORKSPACE_ID,
+                "title": "Reconciliation",
+                "stats": {"discovered_papers": 0},
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    corpus = ws / "calibration"
+    corpus.mkdir()
+    (corpus / "raw_union.json").write_text(
+        json.dumps({"documents": [{"title": f"study {i}"} for i in range(5)]}),
+        encoding="utf-8",
+    )
+
+    orch.ResearchOrchestrator(ws).sync_state()
+
+    rows = [e for e in _sync_events(ws) if e.get("action") == "STATE_SYNC"]
+    assert rows
+    event = rows[-1]
+    # The declared 0 contradicts the 5 physical records -> STALE, and the
+    # row says so.
+    assert event["metrics"]["reconciliation"]["status"] == "STALE"
+    assert event["status"] == "STALE"
+    assert event["status"] != "SUCCESS"
+
+    # The second sync repairs the summary -> the row now says OK.
+    orch.ResearchOrchestrator(ws).sync_state()
+    rows = [e for e in _sync_events(ws) if e.get("action") == "STATE_SYNC"]
+    assert rows[-1]["status"] == "OK"
+    assert rows[-1]["metrics"]["reconciliation"]["status"] == "OK"
+
+
+def test_state_sync_payload_carries_the_unclassified_and_unreadable_evidence(
+    tmp_path,
+):
+    """F-7: the payload carries the evidence for the non-OK states.
+
+    The doc listed ``unclassified`` / ``unreadable`` / ``undetermined`` as
+    payload keys, but the row did not carry them -- the states could be
+    stated, never justified. The keys are ADDED (not removed from the doc):
+    they are the evidence a reader needs.
+    """
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps(
+            {
+                "project_id": "fidelity-test-workspace",
+                "registered_workspace_id": FIXTURE_WORKSPACE_ID,
+                "title": "Evidence",
+                "stats": {},
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    corpus = ws / "calibration"
+    corpus.mkdir()
+    (corpus / "raw_union.json").write_text(
+        json.dumps({"documents": [{"title": "study"}]}), encoding="utf-8"
+    )
+    # A record-bearing artifact with no known role -> UNCLASSIFIED ...
+    (corpus / "mystery_blob.json").write_text(
+        json.dumps({"documents": [{"title": "mystery"}]}), encoding="utf-8"
+    )
+    # ... and an artifact that cannot be read at all -> UNREADABLE.
+    (corpus / "broken.json").write_text("{ not json", encoding="utf-8")
+
+    orch.ResearchOrchestrator(ws).sync_state()
+
+    rows = [e for e in _sync_events(ws) if e.get("action") == "STATE_SYNC"]
+    payload = rows[-1]["metrics"]["reconciliation"]
+    assert "unclassified" in payload
+    assert "unreadable" in payload
+    assert "undetermined" in payload
+    assert payload["unclassified"], "the unclassified artifact must be listed"
+    assert payload["unreadable"], "the unreadable artifact must be listed"
+    assert payload["status"] == "UNCLASSIFIED"
+    assert rows[-1]["status"] == "UNCLASSIFIED"

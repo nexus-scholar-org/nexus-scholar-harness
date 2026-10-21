@@ -51,6 +51,7 @@ import pytest
 
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import coordinator as coord_mod
+from scholar_harness.pipeline import discovery as disc_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
 
@@ -250,9 +251,9 @@ def _fake_synthesis(*, protocol, retriever, synthesis_dir):
     )
 
 
-def _stub_coordinator(monkeypatch):
+def _stub_downstream_stages(monkeypatch):
+    """Stub every stage EXCEPT discovery (the real stage is then exercised)."""
     _clear_order()
-    monkeypatch.setattr(coord_mod, "run_discovery", _fake_discovery)
     monkeypatch.setattr(coord_mod, "run_deduplication", _fake_dedup)
     monkeypatch.setattr(coord_mod, "run_hydration", _fake_hydration)
     monkeypatch.setattr(coord_mod, "run_verification", _fake_verification)
@@ -264,6 +265,37 @@ def _stub_coordinator(monkeypatch):
     monkeypatch.setattr(coord_mod, "run_matrix", _fake_matrix)
     monkeypatch.setattr(coord_mod, "run_graph", _fake_graph)
     monkeypatch.setattr(coord_mod, "run_synthesis", _fake_synthesis)
+
+
+def _stub_coordinator(monkeypatch):
+    _clear_order()
+    monkeypatch.setattr(coord_mod, "run_discovery", _fake_discovery)
+    _stub_downstream_stages(monkeypatch)
+
+
+def _discovery_double(status: str, **extra):
+    """A discovery stage double that reports an explicit harvest status."""
+
+    async def _fake(*, protocol_path, literature_dir, max_search_results=None):
+        lit = Path(literature_dir)
+        lit.mkdir(parents=True, exist_ok=True)
+        (lit / "all_raw_search.json").write_text("[]", encoding="utf-8")
+        (lit / "raw_search.json").write_text("[]", encoding="utf-8")
+        stale = tuple(extra.get("stale_artifacts", ()) or ())
+        return SimpleNamespace(
+            documents=[{"id": "D1"}],
+            count=1,
+            status=status,
+            reason=extra.get("reason", ""),
+            published=extra.get("published", True),
+            audit_status=extra.get("audit_status", "WRITTEN"),
+            audit_reason=extra.get("audit_reason", ""),
+            audit_workspace=extra.get("audit_workspace", ""),
+            stale_artifacts=stale,
+            stale_artifacts_present=bool(stale),
+        )
+
+    return _fake
 
 
 # ---------------------------------------------------------------------------
@@ -619,6 +651,11 @@ def test_pause_audit_bytes_and_metrics_passthrough(tmp_path, monkeypatch):
     assert ev["inputs"] == [str(p.resolve())]
     assert ev["outputs"] == [str(ws / "literature" / "screening")]
     assert ev["metrics"] == results["stages"]
+    # The PAUSE row's status states the harvest's success-ness. This run's
+    # discovery double reports no status at all, so the documented
+    # "stage double -> SUCCESS" seam applies and the row keeps the
+    # historical SUCCESS (the pause itself is stated by the row's action
+    # and description).
     assert ev["status"] == "SUCCESS"
     assert ev["event_id"].startswith("EVT-")
     # NEG-03: drop-PAUSE fails the len assert above.
@@ -773,3 +810,264 @@ def test_orchestrator_delegates_with_indexing_fn_and_parity(tmp_path, monkeypatc
     asyncio.run(coord_mod.run_pipeline(workspace_dir=ws2, indexing_fn=_fake_indexing))
     assert review.read_bytes() == first
     assert isinstance(orch_journal, bytes) and len(orch_journal) > 0
+
+
+# ---------------------------------------------------------------------------
+# T-TRUTH-COUNTS-01 (final narrow repair): the two status axes stay apart
+# ---------------------------------------------------------------------------
+
+
+def test_degraded_discovery_never_overwrites_the_waiting_state(tmp_path, monkeypatch):
+    """F-1 / D-5: a degraded harvest must not destroy the waiting state.
+
+    Before the repair the PARTIAL branch overwrote ``PENDING_AGENT_REVIEW``
+    with ``PARTIAL``, so a consumer gating on
+    ``results["status"] == "PENDING_AGENT_REVIEW"`` saw a degraded run as a
+    terminal state. The degradation is now an explicit signal
+    (``results["degraded"]``), never a replacement of the workflow state.
+    """
+    _stub_coordinator(monkeypatch)
+    monkeypatch.setattr(
+        coord_mod,
+        "run_discovery",
+        _discovery_double(
+            "PARTIAL",
+            reason="2 document(s) obtained but 1 of 2 provider(s) failed: crossref",
+        ),
+    )
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+
+    results = asyncio.run(
+        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+    )
+
+    # The workflow state survives ...
+    assert results["status"] == "PENDING_AGENT_REVIEW"
+    # ... and the degradation is explicit and visible.
+    assert results["degraded"] is True
+    assert "crossref" in results["degradation_reason"]
+    assert results["discovery"]["status"] == "PARTIAL"
+    assert results["discovery"]["reason"]
+
+    # The ledger does not claim a success for the degraded pause either.
+    pause = [
+        r
+        for r in _journal_rows(ws)
+        if r["action"] == "PIPELINE_RUN_PAUSED_FOR_SCREENING"
+    ]
+    assert len(pause) == 1
+    assert pause[0]["status"] == "PARTIAL"
+    assert pause[0]["status"] != "SUCCESS"
+    assert "crossref" in pause[0]["description"]
+
+
+@pytest.mark.parametrize("harvest_status", ["EMPTY_RESULT", "PARTIAL"])
+def test_pause_row_is_never_a_success_for_a_non_successful_harvest(
+    tmp_path, monkeypatch, harvest_status
+):
+    """F-2: the PAUSE row never logs ``SUCCESS`` for a non-successful harvest.
+
+    ``append_legacy_event`` defaults to ``status="SUCCESS"``; the two PAUSE
+    calls used that default, so the authoritative ledger recorded SUCCESS
+    right after an EMPTY_RESULT / degraded DISCOVERY_SEARCH row.
+    """
+    _stub_coordinator(monkeypatch)
+    monkeypatch.setattr(
+        coord_mod,
+        "run_discovery",
+        _discovery_double(harvest_status, reason=f"{harvest_status} harvest"),
+    )
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+
+    results = asyncio.run(
+        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+    )
+
+    rows = [
+        r
+        for r in _journal_rows(ws)
+        if r["action"] == "PIPELINE_RUN_PAUSED_FOR_SCREENING"
+    ]
+    assert len(rows) == 1
+    assert rows[0]["status"] != "SUCCESS"
+    assert rows[0]["status"] == harvest_status
+    # The workflow state (D-5) is untouched by the harvest outcome.
+    assert results["status"] == "PENDING_AGENT_REVIEW"
+    assert results["discovery"]["status"] == harvest_status
+
+
+def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypatch):
+    """F-9: the abort path must not replace the stage-mapping SHAPES.
+
+    Before the repair an aborted run published
+    ``stages.deduplication == {"status": "SKIPPED", ...}`` and
+    ``stages.matrix`` / ``stages.graph`` (names that do not exist on the
+    successful path), so a consumer reading
+    ``stages.deduplication["unique"]`` hit a ``KeyError``.
+    """
+    _stub_coordinator(monkeypatch)
+    monkeypatch.setattr(
+        coord_mod,
+        "run_discovery",
+        _discovery_double(
+            "FAILED",
+            reason="no documents obtained; 1 provider(s) failed: crossref",
+            published=False,
+        ),
+    )
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+
+    results = asyncio.run(
+        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+    )
+
+    assert results["status"] == "FAILED"
+    stages = results["stages"]
+    # The successful-path keys are all present with neutral values.
+    assert stages["deduplication"]["unique"] == 0
+    assert stages["deduplication"]["duplicates_removed"] == 0
+    assert stages["screening"]["papers_to_screen"] == 0
+    assert stages["screening"]["batch_files_prepared"] == 0
+    assert stages["verification"]["verified"] == 0
+    assert stages["extraction"]["documents"] == 0
+    assert stages["matrix_rows"]["rows"] == 0
+    assert stages["graph_nodes"]["nodes"] == 0
+    assert stages["synthesis"]["total_claims"] == 0
+    for stage in (
+        "deduplication",
+        "verification",
+        "screening",
+        "extraction",
+        "indexing",
+        "matrix_rows",
+        "graph_nodes",
+        "synthesis",
+    ):
+        assert stages[stage]["status"] == "SKIPPED"
+        assert "discovery failed" in stages[stage]["reason"]
+    # The stage NAMES are the successful-path names (never aliases).
+    assert "matrix" not in stages
+    assert "graph" not in stages
+    assert "hydration" not in stages
+
+    aborted = [r for r in _journal_rows(ws) if r["action"] == "PIPELINE_RUN_ABORTED"]
+    assert len(aborted) == 1
+    assert aborted[0]["status"] == "FAILED"
+
+
+def test_pipeline_row_records_a_missing_discovery_audit_event(tmp_path, monkeypatch):
+    """F-4: a provenance gap is recorded in the pipeline row, never dropped."""
+    _stub_coordinator(monkeypatch)
+    monkeypatch.setattr(
+        coord_mod,
+        "run_discovery",
+        _discovery_double(
+            "SUCCESS",
+            audit_status="NOT_WRITTEN",
+            audit_reason="no owning workspace could be resolved for <lit>",
+        ),
+    )
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+
+    results = asyncio.run(
+        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+    )
+
+    assert results["discovery"]["audit_status"] == "NOT_WRITTEN"
+    pause = [
+        r
+        for r in _journal_rows(ws)
+        if r["action"] == "PIPELINE_RUN_PAUSED_FOR_SCREENING"
+    ]
+    assert len(pause) == 1
+    assert "NOT_WRITTEN" in pause[0]["description"]
+    assert "no owning workspace could be resolved" in pause[0]["description"]
+
+
+class _ObservedProviderDouble:
+    """A provider the real stage can observe (the kit's engine calls it)."""
+
+    name = "openalex"
+
+    async def search(self, query):
+        yield {"title": "Study A", "year": 2024}
+        yield {"title": "Study B", "year": 2023}
+
+
+class _ObservedEngine:
+    """A fake engine that really exercises its providers (so they are seen)."""
+
+    def __init__(self, providers=None):
+        # The real providers of the protocol are ignored on purpose: this
+        # double must never touch the network.
+        self.providers = [_ObservedProviderDouble()]
+        self.closed = False
+
+    async def search_all(self, query, dedup=False):
+        results = []
+        for provider in self.providers:
+            try:
+                async for doc in provider.search(query):
+                    results.append(doc)
+            except Exception:  # noqa: BLE001 - the kit's swallow behavior
+                continue
+        return results
+
+    async def close(self):
+        self.closed = True
+
+
+def test_real_non_degraded_harvest_yields_a_successful_pipeline(tmp_path, monkeypatch):
+    """F-10: the real SUCCESS classification reaches the pipeline result.
+
+    The other pipeline-level SUCCESS assertions use a stage double without a
+    ``status`` attribute (the documented "stage double -> SUCCESS"
+    fallback). This test exercises the real
+    ``DiscoveryOutcome.status == "SUCCESS"`` path: the fake engine returns
+    documents AND its providers are observed, so ``_classify`` returns
+    SUCCESS through the ``probe.observed > 0`` branch.
+    """
+    _stub_downstream_stages(monkeypatch)
+    monkeypatch.setattr(disc_mod, "SearchEngine", _ObservedEngine)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    _write_protocol(ws)
+    _record_workspace_identity(ws, "coordinator-test")
+    (ws / "literature").mkdir(parents=True, exist_ok=True)
+    (ws / "literature" / "included.json").write_text(
+        json.dumps([{"workspace_id": "SCI-000001"}]), encoding="utf-8"
+    )
+
+    results = asyncio.run(
+        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+    )
+
+    assert results["discovery"]["status"] == "SUCCESS"
+    assert results["discovery"]["count"] == 2
+    assert results["degraded"] is False
+    assert results["status"] == "SUCCESS"
+
+    rows = _journal_rows(ws)
+    discovery = [r for r in rows if r["action"] == "DISCOVERY_SEARCH"]
+    assert len(discovery) == 1
+    assert discovery[0]["status"] == "SUCCESS"
+    assert discovery[0]["metrics"]["raw_hits"] == 2
+    assert discovery[0]["metrics"]["providers_observed"] == 1
+    done = [r for r in rows if r["action"] == "PIPELINE_RUN_COMPLETED"]
+    assert len(done) == 1
+    assert done[0]["status"] == "SUCCESS"
+
+
+def test_coordinator_docstring_names_the_three_coordinator_owned_rows():
+    """F-6: the docstring must not claim there are only two legacy rows."""
+    text = Path(coord_mod.__file__).read_text(encoding="utf-8")
+    assert "PAUSE + COMPLETED + ABORTED" in text
+    assert "the two coordinator-owned legacy rows" not in text
