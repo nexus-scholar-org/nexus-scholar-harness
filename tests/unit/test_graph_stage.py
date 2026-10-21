@@ -624,7 +624,11 @@ def test_orchestrator_delegation_maps_done_counts(tmp_path, monkeypatch):
 
     results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
 
-    assert results["status"] == "SUCCESS"
+    # T-TRUTH-COUNTS-01: the fake engine returns no documents, so the
+    # harvest is EMPTY_RESULT and the pipeline must not claim SUCCESS
+    # ("empty output is not automatically success"). The stage mapping
+    # asserted below is unchanged.
+    assert results["status"] == "EMPTY_RESULT"
     assert results["stages"]["graph_nodes"] == {
         "status": "DONE",
         "nodes": 2,

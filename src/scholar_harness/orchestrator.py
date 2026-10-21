@@ -25,6 +25,7 @@ from scholar_rag.embedder import get_embedder
 
 from .contracts.acceptance import ArtifactRegistry, RegistryEntry
 from .contracts.models import ArtifactReference, DocumentManifestArtifact
+from .workspace import counts
 from .workspace.errors import RegisteredWorkspaceIdentityMissingError
 from .workspace.identity import validate_registered_workspace_id
 
@@ -328,12 +329,20 @@ class ResearchOrchestrator:
     def sync_state(self, dry_run: bool = False) -> dict[str, Any]:
         """Atomically rebuild project.json stats and INDEX.md from filesystem state.
 
-        Derives all countable metrics from the actual workspace layout (literature
+        Derives all countable metrics from the actual workspace layout (corpus
         payloads, screening outputs, PDFs, extractions, synthesis artifacts) and
         merges them into the existing project.json manifest, preserving
         researcher-authored fields (title, research_questions, keywords, etc.).
         Uses an atomic temp-file + os.replace dance so a crash mid-write can never
         leave a truncated manifest or orphaned INDEX.md.
+
+        Corpus counting is content-based (T-TRUTH-COUNTS-01): every JSON
+        artifact that physically carries a record list is counted, wherever it
+        lives -- ``literature/`` (canonical names keep priority),
+        ``calibration/``, or any other directory. Recognition never depends on
+        the file name alone, and an artifact that cannot be read is reported
+        as ``UNREADABLE`` (never as ``0``). Counters are always written (0
+        when the artifact is absent), so a deleted corpus drops to 0 instead of carrying a stale value over.
         """
         ws = self.workspace_dir
         ws.mkdir(parents=True, exist_ok=True)
@@ -348,11 +357,26 @@ class ResearchOrchestrator:
                     stats[name] = 0
 
         lit = ws / "literature"
-        _count("discovered_papers", lit / "raw_search.json")
-        _count("deduped_papers", lit / "deduped.json")
-        _count("verified_papers", lit / "verified.json")
-        _count("included_papers", lit / "included.json")
-        _count("excluded_papers", lit / "excluded.json")
+
+        # Physical corpus counts (any corpus-bearing directory, canonical
+        # literature/ paths keep priority). Always present, 0 when absent.
+        corpus = counts.count_corpus(ws)
+        stats.update(corpus.stats)
+
+        # Declared-vs-actual reconciliation, captured BEFORE the manifest is
+        # rewritten so the journal records what was corrected. The physical
+        # corpus is counted ONCE and handed over (the corpus may hold tens of
+        # thousands of records).
+        #
+        # The EXTRA counters (PDFs / extracted markdown) come from the same
+        # helper the doctor uses (F-4): with two different sets of extra
+        # counters the same workspace got two different verdicts -- the
+        # doctor said FAIL while the journal row said OK.
+        reconciliation = counts.reconcile(
+            ws,
+            corpus=corpus,
+            additional_actual=counts.extra_actual_stats(ws),
+        )
 
         # PRISMA screening artifacts (batch decisions exclude batch-json supersets)
         prisma_path = lit / "prisma_report.json"
@@ -378,13 +402,11 @@ class ResearchOrchestrator:
             except Exception:
                 pass
 
-        # Harvested PDFs & extractions
-        pdf_dir = ws / "pdfs"
-        if pdf_dir.exists():
-            stats["downloaded_pdfs"] = len(list(pdf_dir.glob("*.pdf")))
-        ext_dir = ws / "extracted"
-        if ext_dir.exists():
-            stats["extracted_markdowns"] = len(list(ext_dir.glob("*.md")))
+        # Harvested PDFs & extractions. ALWAYS present (0 when the directory
+        # is absent) -- exactly like the corpus counters: a stale declared
+        # counter must be repairable, and the value written must be the very
+        # value the reconciliation compared against (one helper, one truth).
+        stats.update(counts.extra_actual_stats(ws))
 
         # Graph / matrix / corpus artifacts
         graph_file = (
@@ -461,6 +483,7 @@ class ResearchOrchestrator:
                 "dry_run": True,
                 "stats_updated": stats,
                 "index_regenerated": False,
+                "reconciliation": reconciliation.as_dict(),
             }
 
         # Atomic write project.json
@@ -473,14 +496,49 @@ class ResearchOrchestrator:
         self._log_audit_event(
             action="STATE_SYNC",
             agent="scholar-harness",
-            description=f"Rebuilt {ws.name} project.json + INDEX.md from filesystem state ({len(stats)} stats refreshed)",
+            description=(
+                f"Rebuilt {ws.name} project.json + INDEX.md from filesystem state "
+                f"({len(stats)} stats refreshed; corpus reconciliation: "
+                f"{reconciliation.status})"
+            ),
             inputs=[
                 str(p)
                 for p in (lit / "raw_search.json", lit / "prisma_report.json")
                 if p.exists()
+            ]
+            + [
+                str(ws / relpath)
+                for relpath in sorted(
+                    {path for paths in corpus.sources.values() for path in paths}
+                )
             ],
             outputs=["project.json", "INDEX.md"],
-            metrics=stats,
+            metrics={
+                **stats,
+                "reconciliation": {
+                    "status": reconciliation.status,
+                    "declared": reconciliation.declared,
+                    "actual": reconciliation.actual,
+                    "mismatches": [m.as_dict() for m in reconciliation.mismatches],
+                    "corpus_present": corpus.corpus_present,
+                    "sources": {k: list(v) for k, v in corpus.sources.items()},
+                    "selected": {k: list(v) for k, v in corpus.selected.items()},
+                    # The evidence for the UNCLASSIFIED / UNREADABLE /
+                    # UNDETERMINED states (T-TRUTH-COUNTS-01): without them
+                    # the payload could only state those states, never
+                    # justify them.
+                    "unclassified": [a.as_dict() for a in corpus.unclassified],
+                    "unreadable": [a.as_dict() for a in corpus.unreadable],
+                    "undetermined": {
+                        k: list(v) for k, v in corpus.undetermined.items()
+                    },
+                },
+            },
+            # The journal axis: this row's purpose IS the reconciliation, so
+            # its status expresses the RECONCILIATION's status -- never a
+            # generic SUCCESS sitting next to a STALE / UNRESOLVED /
+            # UNCLASSIFIED payload.
+            status=reconciliation.status,
         )
 
         return {
@@ -488,6 +546,7 @@ class ResearchOrchestrator:
             "dry_run": False,
             "stats": stats,
             "index_regenerated": index_regenerated,
+            "reconciliation": reconciliation.as_dict(),
         }
 
     def _refresh_index_md_atomic(self) -> bool:
