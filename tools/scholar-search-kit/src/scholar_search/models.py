@@ -36,6 +36,26 @@ class ExternalIds:
             val = val.strip()
             self.arxiv_id = val if val else None
 
+        if self.pubmed_id:
+            # Researcher-authorized r3b hardening: the PMID namespace must be
+            # bare everywhere, for every importer/provider, not just the
+            # OpenAlex search-leg parser (observed live 2026-10-17: URL-form
+            # pubmed_id from any legacy provider or cached JSON collided with
+            # the PubMed provider's bare PMID in _has_identifier_conflict,
+            # annulling the DOI-tier merge of the same work).
+            p_val = str(self.pubmed_id).strip().rstrip("/")
+            for prefix in (
+                "https://pubmed.ncbi.nlm.nih.gov/",
+                "http://pubmed.ncbi.nlm.nih.gov/",
+                "https://www.ncbi.nlm.nih.gov/pubmed/",
+                "pmid:",
+                "PMID:",
+            ):
+                p_val = p_val.removeprefix(prefix)
+            self.pubmed_id = p_val.strip() or None
+        else:
+            self.pubmed_id = None
+
 
 @dataclass
 class Author:

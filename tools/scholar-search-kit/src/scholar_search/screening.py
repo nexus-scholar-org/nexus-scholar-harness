@@ -205,10 +205,10 @@ def generate_batch_screening_prompt(
 # These phrases represent *positive surface forms* that indicate a disqualifying paper.
 # The exclusion criterion texts are NEGATION-based ("RGB-only studies that do NOT evaluate X"),
 # so we cannot extract keywords from the criterion text directly — doing so hits valid
-# inclusion-domain words (spectral, detection, weed) in good papers.
+# inclusion-domain words (task-relevant nouns) in good papers.
 # ---------------------------------------------------------------------------
 _EXC_PHRASE_SIGNALS: dict[str, list[str]] = {
-    # Papers about satellite / coarse-resolution remote sensing (not UAV-scale)
+    # Papers about satellite / coarse-resolution remote sensing (not at the study's scale)
     "OUT_OF_SCOPE_RESOLUTION": [
         "satellite imagery",
         "satellite remote sensing",

@@ -1,13 +1,17 @@
 """Semantic Scholar provider implementation."""
 
+import logging
 import re
 from collections.abc import AsyncIterator
 from typing import Any
 
 from ..config import settings
+from ..exceptions import ProviderError
 from ..models import Author, Document, ExternalIds, Query
 from ..query_translator import BooleanQueryTranslator, QueryField
 from .base import BaseAPIProvider
+
+logger = logging.getLogger(__name__)
 
 
 class SemanticScholarProvider(BaseAPIProvider):
@@ -83,8 +87,8 @@ class SemanticScholarProvider(BaseAPIProvider):
         """Search Semantic Scholar using the bulk endpoint."""
         # Translate query to bulk syntax (e.g. "term1 + term2 | term3")
         translated_query = self.translator.translate(query)
-        # S2 bulk search does not support nested parentheses or & symbols
-        translated_query = translated_query.replace("(", "").replace(")", "").replace("&", " ")
+        # S2 bulk search supports +, |, -, "phrase", and ( ) grouping! Only strip &
+        translated_query = translated_query.replace("&", " ")
         translated_query = re.sub(r"\s+", " ", translated_query).strip()
 
         params = {
@@ -101,12 +105,32 @@ class SemanticScholarProvider(BaseAPIProvider):
 
         token = None
         count = 0
+        # 403 auto-downgrade: AWS API Gateway answers 403 Forbidden when a
+        # bad/expired/placeholder key reaches the S2 endpoint. A rejected key
+        # must never zero out the provider leg (observed live 2026-10-17) —
+        # strip the header once and continue on the unauthenticated tier.
+        use_key = True
 
         while True:
             if token:
                 params["token"] = token
 
-            resp = await self.client.get(self.base_url, params=params)
+            try:
+                resp = await self.client.get(
+                    self.base_url,
+                    params=params,
+                    headers=self._get_headers() if use_key else {},
+                )
+            except ProviderError as exc:
+                if exc.status_code == 403 and use_key and settings.s2_key:
+                    logger.warning(
+                        "S2 rejected the x-api-key (403 Forbidden); "
+                        "downgrading to the unauthenticated public tier"
+                    )
+                    use_key = False
+                    resp = await self.client.get(self.base_url, params=params)
+                else:
+                    raise
             response_data = resp.json()
             data = response_data.get("data", [])
             token = response_data.get("token")

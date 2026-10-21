@@ -33,8 +33,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install -e .[dev]
+        uv venv --python ${{ matrix.python-version }}
+        uv pip install -e ".[dev]"
 
+    # AC-7 (packet T-K0): the kit's own CI must run the kit suite.
+    # `--no-sync` keeps the dev extra installed: a bare `uv run` re-syncs the
+    # project environment and drops the dev-only packages (pytest-asyncio),
+    # which made the previous invocation depend on uv's sync behaviour.
     - name: Run pytest
       run: |
-        uv run pytest -v
+        uv run --no-sync pytest tests -q

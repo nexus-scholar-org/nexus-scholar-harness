@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from .exceptions import ProviderError
 from .http_client import AcademicHttpClient
 from .models import Document
 
@@ -51,15 +52,17 @@ class AbstractHydrator:
             batch = needs_abstract[i : i + batch_size]
             dois = [doc.external_ids.doi for doc in batch if doc.external_ids.doi]
 
-            # Try S2 first
-            s2_results = await self._hydrate_from_s2(dois)
-            hydrated_map.update(s2_results)
-
-            # Fallback to OpenAlex for missing
+            # OpenAlex pipe-batch FIRST: fast, key-authenticated, and the only
+            # leg that hydrated reliably when the S2 key was rejected with 403
+            # (observed live 2026-10-17: OA-first carried +345 abstracts while
+            # every S2 batch 403'd). S2 batch now runs SECOND, only on DOIs
+            # OpenAlex could not recover.
+            oa_results = await self._hydrate_from_openalex(dois)
+            hydrated_map.update(oa_results)
             missing_dois = [d for d in dois if d not in hydrated_map]
             if missing_dois:
-                oa_results = await self._hydrate_from_openalex(missing_dois)
-                hydrated_map.update(oa_results)
+                s2_results = await self._hydrate_from_s2(missing_dois)
+                hydrated_map.update(s2_results)
 
         # Apply hydrated abstracts
         for doc in documents:
@@ -77,11 +80,38 @@ class AbstractHydrator:
             return {}
 
         try:
+            from .config import settings
+
             url = f"{self.S2_BASE}/paper/batch"
             payload = {"ids": [f"DOI:{doi}" for doi in dois]}
             params = {"fields": "paperId,externalIds,abstract"}
+            headers = {"x-api-key": settings.s2_key} if settings.s2_key else {}
 
-            response = await self.http_client.post(url, json=payload, params=params)
+            try:
+                response = await self.http_client.post(
+                    url, json=payload, params=params, headers=headers
+                )
+            except ProviderError as exc:
+                if exc.status_code == 403 and headers:
+                    # Key rejected at the API Gateway (bad/expired/placeholder
+                    # token observed live 2026-10-17): one retry on the
+                    # unauthenticated tier. If that also 403s (batch endpoint
+                    # may require a valid key), return {} — OpenAlex-first
+                    # ordering already did the heavy lifting.
+                    logger.warning(
+                        "S2 batch rejected the x-api-key (403 Forbidden); "
+                        "retrying unauthenticated"
+                    )
+                    try:
+                        response = await self.http_client.post(
+                            url, json=payload, params=params
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        logger.warning(f"S2 batch request failed: {e}")
+                        return {}
+                else:
+                    logger.warning(f"S2 batch request failed: {exc}")
+                    return {}
 
             if response.status_code != 200:
                 logger.warning(f"S2 batch request failed: {response.status_code}")
@@ -95,7 +125,7 @@ class AbstractHydrator:
                     ext_ids = item.get("externalIds", {})
                     doi = ext_ids.get("DOI")
                     if doi:
-                        abstract_map[doi] = item["abstract"]
+                        abstract_map[doi.strip().lower()] = item["abstract"]
 
             return abstract_map
         except Exception as e:
@@ -107,34 +137,32 @@ class AbstractHydrator:
         if not dois:
             return {}
 
+        from .config import settings
+
         abstract_map = {}
-
-        for doi in dois:
+        # Pipe-batch up to 50 DOIs per single OpenAlex request
+        for i in range(0, len(dois), 50):
+            chunk = [d.strip().lower() for d in dois[i : i + 50]]
+            doi_filter = "|".join(f"https://doi.org/{d}" for d in chunk)
+            params: dict[str, Any] = {"filter": f"doi:{doi_filter}", "per-page": 200}
+            if settings.openalex_key:
+                params["api_key"] = settings.openalex_key
             try:
-                # Use filter parameter for reliable DOI matching
-                url = f"{self.OA_BASE}/works?filter=doi:{doi}"
-                response = await self.http_client.get(url)
-
-                if response.status_code != 200:
+                resp = await self.http_client.get(
+                    f"{self.OA_BASE}/works", params=params
+                )
+                if resp.status_code != 200:
                     continue
-
-                data = response.json()
-                # OpenAlex returns a list of works
-                works = data.get("results", [])
-                if not works:
-                    continue
-
-                work = works[0]
-                inverted_index = work.get("abstract_inverted_index")
-
-                if inverted_index:
-                    abstract = self._reconstruct_abstract(inverted_index)
-                    if abstract:
-                        abstract_map[doi] = abstract
+                for work in resp.json().get("results", []):
+                    work_doi = (work.get("ids") or {}).get("doi", "")
+                    work_doi = work_doi.lower().removeprefix("https://doi.org/").strip()
+                    inv = work.get("abstract_inverted_index")
+                    if work_doi and inv:
+                        abstract = self._reconstruct_abstract(inv)
+                        if abstract:
+                            abstract_map[work_doi] = abstract
             except Exception as e:
-                logger.debug(f"OpenAlex lookup failed for {doi}: {e}")
-                continue
-
+                logger.debug(f"OpenAlex batch lookup failed: {e}")
         return abstract_map
 
     @staticmethod

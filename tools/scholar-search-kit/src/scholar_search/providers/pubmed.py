@@ -46,16 +46,28 @@ class PubMedProvider(BaseAPIProvider):
             if medline is None or article is None:
                 continue
 
-            # Parse IDs
+            # Parse IDs — ONLY from the article's own
+            # <PubmedData><ArticleIdList>, never <ReferenceList>: descendant
+            # `.//ArticleId` surfaced reference-list DOIs and the last-write
+            # loop overwrote the article's true DOI (observed live 2026-10-17:
+            # Plant Methods article got doi=10.7717/peerj.453 from its
+            # bibliography's last reference).
             pmid = medline.findtext("PMID")
             doi = None
             pmcid = None
-            for id_elem in article_elem.findall(".//ArticleId"):
+            for id_elem in article_elem.findall("./PubmedData/ArticleIdList/ArticleId"):
                 id_type = id_elem.get("IdType")
-                if id_type == "doi":
-                    doi = id_elem.text
-                elif id_type == "pmc":
-                    pmcid = id_elem.text
+                if id_type == "doi" and id_elem.text:
+                    doi = id_elem.text.strip()
+                elif id_type == "pmc" and id_elem.text:
+                    pmcid = id_elem.text.strip()
+            # Fallback to Article/ELocationID when PubmedData/ArticleIdList
+            # carries no own-DOI (e.g., ahead-of-print records).
+            if doi is None:
+                for eloc in article.findall("./ELocationID"):
+                    if eloc.get("EIdType") == "doi" and eloc.text:
+                        doi = eloc.text.strip()
+                        break
 
             # Parse Year
             year = None
@@ -140,9 +152,7 @@ class PubMedProvider(BaseAPIProvider):
         elif query.year_max:
             params["term"] += f" AND 1000:{query.year_max}[pdat]"
 
-        resp = await self.client.get(
-            f"{self.base_url}/esearch.fcgi", params=params
-        )
+        resp = await self.client.get(f"{self.base_url}/esearch.fcgi", params=params)
         search_response = resp.json()
         pmids = search_response.get("esearchresult", {}).get("idlist", [])
 
