@@ -273,6 +273,21 @@ jobs:
       - name: Sync project environment (harness + dev extras)
         run: uv sync --extra dev
 
+      # The console the UI talks to imports the kits, so the kits' RUNTIME
+      # dependencies have to be present. The vendored sources under tools/ are
+      # on PYTHONPATH, but their dependencies are declared by the kits, not by
+      # the harness (the harness delegates them). The metapackage wheel is the
+      # published contract for exactly that set, and it deliberately keeps the
+      # heavy lazy dependencies (chromadb, torch) out -- installing the kits
+      # directly would pull those in. `uv pip install` rather than `uv sync`
+      # for the same reason the plugin installer uses it: `uv sync` only
+      # manages the harness's own dependency set.
+      - name: Build the metapackage wheel (the kits' runtime dependency contract)
+        run: uv build --wheel packaging/nexus-scholar
+
+      - name: Install the metapackage wheel (brings the kits' runtime deps)
+        run: uv pip install --python .venv/bin/python packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:

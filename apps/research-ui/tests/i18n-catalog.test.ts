@@ -472,27 +472,35 @@ describe("byte pins", () => {
   const FILES = [
     {
       path: "lib/mock-project.ts",
-      sha256: "af33ce0e6e9372ff4aa5c2d35689580ae8a78402edc521d40e7db0e314f72f2c",
+      sha256: "9df4e8d104719cf3fd372267afbb6b07a8977f262bf1ca67946200b1a8e478c4",
     },
     {
       path: "lib/contracts.ts",
-      sha256: "57b3d551a1ae0be4c0aa9cee7d05df47aef973c647f686699301dcbddaa624a2",
+      sha256: "b7a4c9c7c25ac1fde060f36bbcc7d7ab2ca6628e12f5a0fa51ce17ba36b1b3fb",
     },
     {
       path: "package.json",
-      sha256: "5687ea5bda1a92ab38d81d62263aff3f4f93082f7b4cc27ad8cebd847fb3f449",
+      sha256: "b8b9c1e8accec9b0fd7b9d74f9ca0ea38fb2f416413ed2164a19bebcb3627208",
     },
     {
       path: "package-lock.json",
-      sha256: "bcdd05a0a17254fd70f58e3ff45b7419373e9cd072968536c7374387826536e7",
+      sha256: "39618d29b4cb8744eb7bea072c2e5110708bd10c08e2201752903a3cc90c4e9d",
     },
   ] as const;
 
   for (const { path, sha256 } of FILES) {
     it(`matches SHA-256 for ${path}`, () => {
       const root = resolve(import.meta.dirname, "..");
+      // Hash the COMMITTED content, not the checkout's line endings. Git
+      // checks text files out with CRLF on Windows and LF everywhere else,
+      // so a raw-byte hash of a text file is platform-dependent and this pin
+      // could only ever pass on the machine that computed it.
       const b = readFileSync(resolve(root, path));
-      const d = createHash("sha256").update(b).digest("hex");
+      const normalized = Buffer.from(
+        b.toString("utf8").replace(/\r\n/g, "\n"),
+        "utf8",
+      );
+      const d = createHash("sha256").update(normalized).digest("hex");
       expect(d).toBe(sha256);
     });
   }
