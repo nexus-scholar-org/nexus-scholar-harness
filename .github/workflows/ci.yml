@@ -230,3 +230,107 @@ jobs:
           esac
 
           echo "P7.8 uvx flow e2e OK: init/setup-mcp/doctor/log/sync-index"
+
+  # ---------------------------------------------------------------------------
+  # Research UI (apps/research-ui)
+  #
+  # The UI track's gates existed only on a developer machine: 216 vitest
+  # tests, a production build, and 82 Playwright browser tests, none of which
+  # ran on push.  These jobs make the recorded evidence in
+  # apps/research-ui/docs/GATES.md continuously verifiable.
+  #
+  # The two jobs are deliberately separate.  `research-ui` needs the Python
+  # harness; `research-ui-browser` is pure Node.
+  # ---------------------------------------------------------------------------
+
+  research-ui:
+    # The vitest suite is NOT a pure-JS suite.  tests/lineage.test.tsx and
+    # tests/screening-live.test.tsx are cross-boundary "live mode against a
+    # real console" tests: they resolve the repository root from the checkout,
+    # build a PYTHONPATH over src/ and tools/*/src, and spawn
+    # `uv run scholar-harness serve`.  They therefore need the harness
+    # environment as well as node -- which is why this job is not node-only.
+    runs-on: ubuntu-latest
+    env:
+      # `uv run` preserves PYTHONPATH, and the vendored kit sources under
+      # tools/ are the kits this checkout already contains -- so the console
+      # finds them without `scripts/install_plugins.py` cloning anything.
+      # POSIX ':' separator: this job is ubuntu-only.
+      PYTHONPATH: ${{ github.workspace }}/src:${{ github.workspace }}/tools/scholar-protocol-kit/src:${{ github.workspace }}/tools/scholar-search-kit/src:${{ github.workspace }}/tools/scholar-pdf-kit/src:${{ github.workspace }}/tools/scholar-bib-kit/src:${{ github.workspace }}/tools/scholar-rag-kit/src:${{ github.workspace }}/tools/scholar-graph-kit/src:${{ github.workspace }}/tools/scholar-agent-kit/src:${{ github.workspace }}/tools/scholar-verify-kit/src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sync project environment (harness + dev extras)
+        run: uv sync --extra dev
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/research-ui/package-lock.json
+
+      - name: Install app dependencies
+        working-directory: apps/research-ui
+        run: npm ci
+
+      # typecheck runs BEFORE the build on purpose.  tsconfig.json lists
+      # `next-env.d.ts` and `.next/types/**` in `include`, and neither exists
+      # in a fresh checkout (both are gitignored), but TypeScript tolerates
+      # missing include patterns -- so typecheck does not need a prior build.
+      # The build below regenerates next-env.d.ts for subsequent runs.
+      - name: Typecheck
+        working-directory: apps/research-ui
+        run: npm run typecheck
+
+      - name: Vitest suite
+        working-directory: apps/research-ui
+        run: npm run test
+
+      - name: Production build
+        working-directory: apps/research-ui
+        run: npm run build
+
+  research-ui-browser:
+    # The browser suite fulfills the console at the network boundary with
+    # shape-conformant payloads (tests-browser/screening-actions.spec.ts), so
+    # it needs no Python and no live workspace -- pure Node.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/research-ui/package-lock.json
+
+      - name: Install app dependencies
+        working-directory: apps/research-ui
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        working-directory: apps/research-ui
+        run: npx playwright install --with-deps chromium
+
+      # The Playwright webServer block runs `npm run build && npx next start`
+      # itself (playwright.config.ts), so no separate build step is needed.
+      - name: Playwright browser suite
+        working-directory: apps/research-ui
+        run: npm run test:browser
+
+      # Follow-up (not yet in CI): the long-strings gate runs its own second
+      # build via NEXT_DIST_DIR=.next-longstrings and its own config
+      # (playwright.long-strings.config.ts).  Add it here as a separate step
+      # when that gate is wanted on push.
