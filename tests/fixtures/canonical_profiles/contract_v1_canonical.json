@@ -1,0 +1,201 @@
+{
+  "cases": [
+    {
+      "expected_canonical_bytes": "{\"s\":\"Café 中文 🧪\"}",
+      "expected_fingerprint": "sha256:3a8561ad2aaba016bc9e0d9fc4843ddc3900e08409c2573023358fb872eafee3",
+      "payload": {
+        "s": "Café 中文 🧪"
+      },
+      "payload_id": "unicode_text",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"s\":\"Café 中文 🧪\"}",
+      "expected_fingerprint": "sha256:a349c6f145eb655e828c4214516a936db99633ac0d73905126aa3931a934b807",
+      "payload": {
+        "s": "Café 中文 🧪"
+      },
+      "payload_id": "unicode_combining",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"x\":5}",
+      "expected_fingerprint": "sha256:dd9446a11b2021b753a5df48d11f339055375b59cd81d7559d36b652aaff849d",
+      "payload": {
+        "x": 5.0
+      },
+      "payload_id": "integral_float",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"x\":0}",
+      "expected_fingerprint": "sha256:5bff452c5ed93f2e87a23984db5a15050c6477335fdec955b70063bb2d692bf1",
+      "payload": {
+        "x": -0.0
+      },
+      "payload_id": "negative_zero_float",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"x\":2.5}",
+      "expected_fingerprint": "sha256:25b934393cfa55ee8731d92ce0707735ea809bca2bb7bd099640940014139470",
+      "payload": {
+        "x": 2.5
+      },
+      "payload_id": "fractional_float",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"e_dict\":{},\"e_list\":[],\"n\":null}",
+      "expected_fingerprint": "sha256:781750966afdf841b7f4a8492305288a29432a5ad015733509b18389e99391e7",
+      "payload": {
+        "e_dict": {},
+        "e_list": [],
+        "n": null
+      },
+      "payload_id": "empty_containers",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"a\":{\"b\":{\"c\":{\"d\":[1,2,{\"e\":3}]}}}}",
+      "expected_fingerprint": "sha256:886aaddbe994be1ea8309a1b32f2903898c9b166d8d3392005540fea8d4052fc",
+      "payload": {
+        "a": {
+          "b": {
+            "c": {
+              "d": [
+                1,
+                2,
+                {
+                  "e": 3
+                }
+              ]
+            }
+          }
+        }
+      },
+      "payload_id": "deep_nesting",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"n\":123456789012345678901234567890}",
+      "expected_fingerprint": "sha256:03b8f78ef5e8a305f4cda82942db0c6accec4046b40457ae19055ea5e4fff2ac",
+      "payload": {
+        "n": 123456789012345678901234567890
+      },
+      "payload_id": "large_integer",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"big\":\"1e10\",\"n\":\"42\"}",
+      "expected_fingerprint": "sha256:fc1b606279dce98659a69880288897a34f6a4a128c8ce2963838aa4bbb008691",
+      "payload": {
+        "big": "1e10",
+        "n": "42"
+      },
+      "payload_id": "numeric_looking_string",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"f\":false,\"i\":1,\"t\":true,\"z\":0}",
+      "expected_fingerprint": "sha256:15fbca12726334da05199fe329906a8886a647f3b97424057969cbc5fa6ba1ef",
+      "payload": {
+        "f": false,
+        "i": 1,
+        "t": true,
+        "z": 0
+      },
+      "payload_id": "bool_vs_int",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"a\":2,\"b\":1,\"z\":{\"x\":4,\"y\":3}}",
+      "expected_fingerprint": "sha256:0a9384593b88b9a9afd85fb43135fba0502a6316c1789beb9e94e2709a7f815d",
+      "payload": {
+        "a": 2,
+        "b": 1,
+        "z": {
+          "x": 4,
+          "y": 3
+        }
+      },
+      "payload_id": "keyorder_alpha",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"a\":2,\"b\":1,\"z\":{\"x\":4,\"y\":3}}",
+      "expected_fingerprint": "sha256:0a9384593b88b9a9afd85fb43135fba0502a6316c1789beb9e94e2709a7f815d",
+      "payload": {
+        "a": 2,
+        "b": 1,
+        "z": {
+          "x": 4,
+          "y": 3
+        }
+      },
+      "payload_id": "keyorder_beta",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"study_ids\":[\"STU-a\",\"STU-b\",\"STU-c\"]}",
+      "expected_fingerprint": "sha256:5089fb53551a8d57f01606301972fd820112fa7feb79f1c27353586f0b2a0bff",
+      "payload": {
+        "study_ids": [
+          "STU-a",
+          "STU-b",
+          "STU-c"
+        ]
+      },
+      "payload_id": "arrayorder_forward",
+      "set_like_arrays": []
+    },
+    {
+      "expected_canonical_bytes": "{\"study_ids\":[\"STU-c\",\"STU-b\",\"STU-a\"]}",
+      "expected_fingerprint": "sha256:b3df67307bf1bcd2d14bbabbb52c5fcdf02b11f4d4cf2cedacc5cdf843abe3ab",
+      "payload": {
+        "study_ids": [
+          "STU-c",
+          "STU-b",
+          "STU-a"
+        ]
+      },
+      "payload_id": "arrayorder_reverse",
+      "set_like_arrays": []
+    }
+  ],
+  "generator": "scripts/generate_canonical_profile_goldens.py",
+  "profile": "contract_v1_canonical",
+  "reference": "scholar_harness.contracts.canonical",
+  "rejections": [
+    {
+      "builder": "nan",
+      "expected_exception_type": "ValueError",
+      "payload_id": "nan"
+    },
+    {
+      "builder": "infinity",
+      "expected_exception_type": "ValueError",
+      "payload_id": "infinity"
+    },
+    {
+      "builder": "negative_infinity",
+      "expected_exception_type": "ValueError",
+      "payload_id": "negative_infinity"
+    },
+    {
+      "builder": "non_string_key",
+      "expected_exception_type": "TypeError",
+      "payload_id": "non_string_key"
+    },
+    {
+      "builder": "unsupported_bytes",
+      "expected_exception_type": "TypeError",
+      "payload_id": "unsupported_bytes"
+    },
+    {
+      "builder": "unsupported_object",
+      "expected_exception_type": "TypeError",
+      "payload_id": "unsupported_object"
+    }
+  ]
+}

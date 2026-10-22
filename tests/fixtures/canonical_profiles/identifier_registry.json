@@ -1,0 +1,260 @@
+{
+  "corpus_snapshot": {
+    "expected_fingerprint": "sha256:39e0a1cc8c4e2f5e7f57d1ecb0bd3e15ccfa0037c6df1b8355d4f22953cdba7b",
+    "payload": {
+      "record_to_study": {
+        "REC-1": "STU-a",
+        "REC-2": "STU-b"
+      },
+      "studies": [
+        {
+          "alias_ids": [
+            "SCI-b"
+          ],
+          "external_ids": {
+            "openalex": [
+              "W-2",
+              "W-1"
+            ]
+          },
+          "source_record_ids": [
+            "REC-2",
+            "REC-1"
+          ],
+          "study_id": "STU-b"
+        },
+        {
+          "alias_ids": [],
+          "external_ids": {},
+          "source_record_ids": [
+            "REC-1"
+          ],
+          "study_id": "STU-a"
+        }
+      ]
+    }
+  },
+  "deterministic_id_cases": [
+    {
+      "algorithm_version": "v1",
+      "expected_id": "DOC-700d7b9a573b7ef3a2b0a99f7184a481",
+      "input": {
+        "media_type": "application/pdf",
+        "source_sha256": "sha256:abababababababababababababababababababababababababababababababab",
+        "study_id": "STU-44444444444444444444444444444444"
+      },
+      "kind": "document",
+      "payload_id": "document_pdf",
+      "workspace_namespace": "WSP-abababababababababababababababab"
+    },
+    {
+      "algorithm_version": "rag-chunk-identity-v1",
+      "expected_id": "CHK-5c89bbab3dc56e3d01f58bf1b895dc83",
+      "input": {
+        "document_id": "DOC-33333333333333333333333333333333",
+        "study_id": "STU-44444444444444444444444444444444"
+      },
+      "kind": "chunk",
+      "payload_id": "chunk_rag",
+      "workspace_namespace": "WSP-abababababababababababababababab"
+    },
+    {
+      "algorithm_version": "v1",
+      "expected_id": "WSP-0f8f7f331bca261e87c36194f11cbf44",
+      "input": {
+        "label": "x"
+      },
+      "kind": "workspace",
+      "payload_id": "workspace_v1",
+      "workspace_namespace": "WSP-abababababababababababababababab"
+    },
+    {
+      "algorithm_version": "v1",
+      "expected_id": "STU-fb7d2183ae334403a394296a6d55726f",
+      "input": {
+        "doi": "10.1/x"
+      },
+      "kind": "study",
+      "payload_id": "study_v1",
+      "workspace_namespace": "WSP-abababababababababababababababab"
+    },
+    {
+      "algorithm_version": "v1",
+      "expected_id": "COR-cdd03830ab377693c065bf1691391224",
+      "input": {
+        "limit": 10,
+        "query": "q"
+      },
+      "kind": "corpus",
+      "payload_id": "corpus_v1",
+      "workspace_namespace": "WSP-abababababababababababababababab"
+    }
+  ],
+  "generator": "scripts/generate_canonical_profile_goldens.py",
+  "profile": "identifier_registry",
+  "reference": "scholar_harness.contracts.identifiers",
+  "registry": {
+    "artifact": {
+      "legacy_prefixes": [],
+      "mint_prefix": "ART-",
+      "prefixes": [
+        "ART-"
+      ]
+    },
+    "audit_event": {
+      "legacy_prefixes": [
+        "EVT-"
+      ],
+      "mint_prefix": "AUD-",
+      "prefixes": [
+        "AUD-",
+        "EVT-"
+      ]
+    },
+    "chunk": {
+      "legacy_prefixes": [],
+      "mint_prefix": "CHK-",
+      "prefixes": [
+        "CHK-"
+      ]
+    },
+    "claim": {
+      "legacy_prefixes": [],
+      "mint_prefix": "CLM-",
+      "prefixes": [
+        "CLM-"
+      ]
+    },
+    "corpus": {
+      "legacy_prefixes": [],
+      "mint_prefix": "COR-",
+      "prefixes": [
+        "COR-"
+      ]
+    },
+    "document": {
+      "legacy_prefixes": [],
+      "mint_prefix": "DOC-",
+      "prefixes": [
+        "DOC-"
+      ]
+    },
+    "evidence": {
+      "legacy_prefixes": [],
+      "mint_prefix": "EV-",
+      "prefixes": [
+        "EV-"
+      ]
+    },
+    "protocol": {
+      "legacy_prefixes": [],
+      "mint_prefix": "PRT-",
+      "prefixes": [
+        "PRT-"
+      ]
+    },
+    "run": {
+      "legacy_prefixes": [],
+      "mint_prefix": "RUN-",
+      "prefixes": [
+        "RUN-"
+      ]
+    },
+    "screening_decision": {
+      "legacy_prefixes": [],
+      "mint_prefix": "SCR-",
+      "prefixes": [
+        "SCR-"
+      ]
+    },
+    "source_record": {
+      "legacy_prefixes": [],
+      "mint_prefix": "REC-",
+      "prefixes": [
+        "REC-"
+      ]
+    },
+    "study": {
+      "legacy_prefixes": [
+        "SCI-"
+      ],
+      "mint_prefix": "STU-",
+      "prefixes": [
+        "STU-",
+        "SCI-"
+      ]
+    },
+    "workspace": {
+      "legacy_prefixes": [],
+      "mint_prefix": "WSP-",
+      "prefixes": [
+        "WSP-"
+      ]
+    }
+  },
+  "validate_identifier_cases": [
+    {
+      "accepted": true,
+      "expected_exception_type": null,
+      "kind": "study",
+      "payload_id": "study_stu",
+      "value": "STU-000001"
+    },
+    {
+      "accepted": true,
+      "expected_exception_type": null,
+      "kind": "study",
+      "payload_id": "study_legacy_sci",
+      "value": "SCI-000001"
+    },
+    {
+      "accepted": true,
+      "expected_exception_type": null,
+      "kind": "audit_event",
+      "payload_id": "audit_aud",
+      "value": "AUD-000001"
+    },
+    {
+      "accepted": true,
+      "expected_exception_type": null,
+      "kind": "audit_event",
+      "payload_id": "audit_legacy_evt",
+      "value": "EVT-000001"
+    },
+    {
+      "accepted": true,
+      "expected_exception_type": null,
+      "kind": "artifact",
+      "payload_id": "artifact_dotted",
+      "value": "ART-abc.def-01"
+    },
+    {
+      "accepted": false,
+      "expected_exception_type": "ValueError",
+      "kind": "chunk",
+      "payload_id": "chunk_wrong_prefix",
+      "value": "DOC-075c0f35ab39286246e4465643fe20d8"
+    },
+    {
+      "accepted": false,
+      "expected_exception_type": "ValueError",
+      "kind": "chunk",
+      "payload_id": "chunk_lowercase",
+      "value": "chk-ab10cb5729e20ff5dc8d26a93455010c"
+    },
+    {
+      "accepted": false,
+      "expected_exception_type": "ValueError",
+      "kind": "chunk",
+      "payload_id": "chunk_empty_suffix",
+      "value": "CHK-"
+    },
+    {
+      "accepted": false,
+      "expected_exception_type": "TypeError",
+      "kind": "study",
+      "payload_id": "study_non_string",
+      "value": 12345
+    }
+  ]
+}

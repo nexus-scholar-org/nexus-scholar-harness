@@ -16,7 +16,7 @@ def test_manifest_is_valid_and_covers_every_e3_task() -> None:
     data = MODULE.load_manifest()
     expected = {
         f"T-{number}" for number in (*range(10, 100, 10), 95, *range(100, 160, 10))
-    } | {f"T-{number}" for number in range(160, 230, 10)}
+    } | {f"T-{number}" for number in range(160, 240, 10)}
     assert set(data["tasks"]) == expected
 
 

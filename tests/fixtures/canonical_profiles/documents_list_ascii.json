@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "expected_canonical_bytes": "[{\"abstract\":\"An abstract Caf\\u00e9 \\u4e2d\\u6587 \\ud83e\\uddea\",\"authors\":[{\"family_name\":\"Smith\",\"given_name\":\"John\"}],\"external_ids\":{\"doi\":\"10.1234/test.1\",\"openalex_id\":\"W-1\"},\"provider\":\"openalex\",\"provider_id\":\"W-1\",\"title\":\"RAG review Caf\\u00e9 \\u4e2d\\u6587 \\ud83e\\uddea\",\"year\":2024}]",
+      "expected_fingerprint": "sha256:a862a9d4d02c3ead3171af61700eceb002e13e4db9213f50f30479d8bd6bac24",
+      "payload": [
+        {
+          "abstract": "An abstract Café 中文 🧪",
+          "authors": [
+            {
+              "family_name": "Smith",
+              "given_name": "John"
+            }
+          ],
+          "external_ids": {
+            "doi": "10.1234/test.1",
+            "openalex_id": "W-1"
+          },
+          "provider": "openalex",
+          "provider_id": "W-1",
+          "title": "RAG review Café 中文 🧪",
+          "year": 2024
+        }
+      ],
+      "payload_id": "documents_unicode"
+    }
+  ],
+  "generator": "scripts/generate_canonical_profile_goldens.py",
+  "profile": "documents_list_ascii",
+  "reference": "scholar_search.canonical"
+}
