@@ -199,6 +199,25 @@
       "checkpoint": ["uv run pytest tests/recon -q"],
       "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
       "closure": ["uv run pytest -q"]
+    },
+    "T-230": {
+      "repo": "harness",
+      "paths": [
+        "scripts/generate_canonical_profile_goldens.py",
+        "tests/conformance/test_canonical_profile_parity.py",
+        "tests/fixtures/canonical_profiles/**",
+        "docs/architecture/canonical_profile_parity.md"
+      ],
+      "inner": [
+        "uv run pytest tests/conformance/test_canonical_profile_parity.py -q",
+        "uv run python scripts/generate_canonical_profile_goldens.py --check"
+      ],
+      "checkpoint": [
+        "uv run pytest tests/conformance -q",
+        "uv run python scripts/generate_canonical_profile_goldens.py --check"
+      ],
+      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
+      "closure": ["uv run pytest -q"]
     }
   },
   "docs": {

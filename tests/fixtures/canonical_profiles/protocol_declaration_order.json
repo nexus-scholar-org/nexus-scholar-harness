@@ -1,0 +1,99 @@
+{
+  "cases": [
+    {
+      "expected_canonical_bytes": "{\"$schema\":\"schemas/v1/protocol.schema.json\",\"protocol_id\":\"PRT-019a2b3c4d5e6f7a8b9c0d1e2f3a4b5c\",\"created_at\":\"2026-09-20T12:00:00+00:00\",\"project_slug\":\"canonical-profile-parity\",\"playbook_type\":\"SCOPING_REVIEW\",\"metadata\":{\"lead_researcher\":\"Nexus Reviewer\",\"target_venue_type\":\"ACM Computing Surveys\",\"timeline_weeks\":8,\"title\":\"Canonical Profile Parity Baseline\"},\"epistemology\":{\"primary_paradigm\":\"Pragmatist / Mixed Methods\",\"secondary_paradigm\":null,\"unit_of_analysis\":\"Canonical protocol serialization\",\"trustworthiness_framework\":\"JBI Scoping Review Framework\",\"epistemological_rationale\":\"Validate protocol identity stability.\",\"incompatible_concepts\":[]},\"research_questions\":[{\"id\":\"RQ1\",\"text\":\"How do serializer profiles affect canonical identity?\",\"target_facet\":\"determinism\",\"synthesis_type\":\"Comparative Matrix\",\"required_evidence_type\":\"Empirical serialization output\"}],\"search_strategy\":{\"core_concepts\":[{\"concept\":\"Protocol Identity\",\"synonyms\":[\"canonical serialization\",\"protocol fingerprint\"],\"boolean_operator\":\"OR\"}],\"target_databases\":[\"openalex\",\"semanticscholar\"],\"date_range\":{\"end_year\":2026,\"start_year\":2020},\"languages\":[\"en\"],\"open_access_preferred\":true,\"target_candidate_pool_size\":{\"max\":500,\"min\":100},\"golden_seeds\":[]},\"screening_criteria\":{\"inclusion\":[{\"id\":\"INC-01\",\"criterion\":\"Protocols declaring explicit research questions\",\"maps_to_rqs\":[\"RQ1\"],\"reason_category\":null}],\"exclusion\":[{\"id\":\"EXC-01\",\"criterion\":\"Malformed protocol documents\",\"maps_to_rqs\":[],\"reason_category\":\"INVALID_FORMAT\"}],\"two_tier_screening\":true},\"matrix_dimensions\":[],\"verification\":{\"retraction_check_required\":true,\"coi_and_funding_audit_required\":true,\"reproducibility_das_cas_check\":true,\"minimum_trust_score_threshold\":5.0}}",
+      "expected_fingerprint": "sha256:4690ffbab06f8f67d6c4d131365452cc7d763fdf2bc74889f30931933b81d4f6",
+      "payload": {
+        "$schema": "schemas/v1/protocol.schema.json",
+        "created_at": "2026-09-20T12:00:00+00:00",
+        "epistemology": {
+          "epistemological_rationale": "Validate protocol identity stability.",
+          "incompatible_concepts": [],
+          "primary_paradigm": "Pragmatist / Mixed Methods",
+          "secondary_paradigm": null,
+          "trustworthiness_framework": "JBI Scoping Review Framework",
+          "unit_of_analysis": "Canonical protocol serialization"
+        },
+        "matrix_dimensions": [],
+        "metadata": {
+          "lead_researcher": "Nexus Reviewer",
+          "target_venue_type": "ACM Computing Surveys",
+          "timeline_weeks": 8,
+          "title": "Canonical Profile Parity Baseline"
+        },
+        "playbook_type": "SCOPING_REVIEW",
+        "project_slug": "canonical-profile-parity",
+        "protocol_id": "PRT-019a2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
+        "research_questions": [
+          {
+            "id": "RQ1",
+            "required_evidence_type": "Empirical serialization output",
+            "synthesis_type": "Comparative Matrix",
+            "target_facet": "determinism",
+            "text": "How do serializer profiles affect canonical identity?"
+          }
+        ],
+        "screening_criteria": {
+          "exclusion": [
+            {
+              "criterion": "Malformed protocol documents",
+              "id": "EXC-01",
+              "maps_to_rqs": [],
+              "reason_category": "INVALID_FORMAT"
+            }
+          ],
+          "inclusion": [
+            {
+              "criterion": "Protocols declaring explicit research questions",
+              "id": "INC-01",
+              "maps_to_rqs": [
+                "RQ1"
+              ],
+              "reason_category": null
+            }
+          ],
+          "two_tier_screening": true
+        },
+        "search_strategy": {
+          "core_concepts": [
+            {
+              "boolean_operator": "OR",
+              "concept": "Protocol Identity",
+              "synonyms": [
+                "canonical serialization",
+                "protocol fingerprint"
+              ]
+            }
+          ],
+          "date_range": {
+            "end_year": 2026,
+            "start_year": 2020
+          },
+          "golden_seeds": [],
+          "languages": [
+            "en"
+          ],
+          "open_access_preferred": true,
+          "target_candidate_pool_size": {
+            "max": 500,
+            "min": 100
+          },
+          "target_databases": [
+            "openalex",
+            "semanticscholar"
+          ]
+        },
+        "verification": {
+          "coi_and_funding_audit_required": true,
+          "minimum_trust_score_threshold": 5.0,
+          "reproducibility_das_cas_check": true,
+          "retraction_check_required": true
+        }
+      },
+      "payload_id": "protocol_baseline"
+    }
+  ],
+  "generator": "scripts/generate_canonical_profile_goldens.py",
+  "profile": "protocol_declaration_order",
+  "reference": "scholar_protocol.canonical"
+}
