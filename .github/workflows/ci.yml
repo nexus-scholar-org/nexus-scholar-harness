@@ -184,7 +184,12 @@ jobs:
   # without the backfill would be green-by-excluded-tests, which is worse than
   # an honest red -- never land one without the other, and never "fix" a red
   # here by widening the deselect list (a renamed nodeid shows up as a count
-  # drift against the recorded 1674 -> 1667 collect delta).
+    # drift in the delta below).  THE RULE IS THE DELTA, NOT THE
+    # ABSOLUTES: `pytest --collect-only` must shrink by EXACTLY 7
+    # with these flags, on whatever main currently collects.  That
+    # base count moves as main grows (1674 when this job was
+    # written, 1823 after it was rebased onto #144), so no absolute
+    # count is an anchor -- only the delta of 7 is load-bearing.
   # ---------------------------------------------------------------------------
   python-test:
     needs: build-wheel
@@ -261,9 +266,10 @@ jobs:
       # modified in any test file -- no skip, no xfail, no marker, no
       # deletion; exclusion happens ONLY via this CLI flag -- and they RUN FOR
       # REAL in the paired `python-test-heavy` job below.  Proven exact:
-      # `pytest --collect-only` goes 1674 -> 1667 with these flags, delta
-      # exactly these 7 nodeids and nothing else (no other item added or
-      # removed), and without them this job's suite is 8 failed / 1660 passed
+        # `pytest --collect-only` shrinks by exactly 7 with these
+        # flags -- delta held at 1823 -> 1816 after #142/#143/#144
+        # moved main from 1674.  Exactly these 7 nodeids and nothing
+        # removed); without them this job's suite was 8 failed /
       # (these 7 + the protocol-identity dist-info test that the kit install
       # step above fixes).
       #
@@ -364,7 +370,8 @@ jobs:
 
       # Exactly the 7 `python-test` deselects -- same verbatim nodeids.  If
       # these drift apart, one of the two jobs must be re-verified against the
-      # recorded 1674 -> 1667 collect delta.  `-o addopts=""` for the same
+        # delta: collect-only must shrink by EXACTLY 7, whatever main
+        # collects.  `-o addopts=""` for the same
       # reason as in `python-test`: CLI `-q` + addopts `-q` would be `-qq`,
       # which hides the `7 passed` summary line on pytest 9.1.1.
       - name: Heavy-backend suite (exactly the 7 python-test deselects)
