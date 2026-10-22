@@ -1,0 +1,32 @@
+{
+  "$id": "https://nexus-scholar.org/schemas/claims/v1/claim-citation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "contract_version": "1.0.0",
+  "description": "A machine-readable citation binding a quantitative claim to an artifact.",
+  "properties": {
+    "artifact_id": {
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "locator": {
+      "title": "Locator",
+      "type": "string"
+    },
+    "path": {
+      "title": "Path",
+      "type": "string"
+    },
+    "value": {
+      "title": "Value"
+    }
+  },
+  "required": [
+    "artifact_id",
+    "path",
+    "locator",
+    "value"
+  ],
+  "title": "ClaimCitation",
+  "type": "object"
+}
