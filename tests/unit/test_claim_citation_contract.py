@@ -34,6 +34,7 @@ from scholar_harness.contracts.schema_catalog import (
 )
 
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "claim_citation"
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 VALID_SOURCE = {
     "artifact_id": "ART-7c1e9b3a52d84f6e8a0c2d4f1b9e3a57",
@@ -405,3 +406,47 @@ def test_bundled_schema_file_matches_the_renderer():
 def test_unknown_schema_filename_is_rejected():
     with pytest.raises(KeyError):
         load_schema("not-a-schema.json")
+
+
+# ---------------------------------------------------------------------------
+# Checkout line-ending guard for byte-strict artifacts
+# ---------------------------------------------------------------------------
+
+
+def test_gitattributes_pins_lf_for_byte_strict_claims_artifacts():
+    """``.gitattributes`` must pin ``text eol=lf`` for both claims surfaces.
+
+    The generator `--check` gate and ``test_bundled_schema_file_matches_the_renderer``
+    compare the checked-out files byte-for-byte against LF-rendered bytes. Without
+    these rules, a checkout with ``core.autocrlf=true`` (e.g. fresh Windows
+    checkouts) rewrites the pretty-printed JSON to CRLF and the strict byte
+    comparison fails even though no content changed. Line endings are part of
+    the artifacts' canonical bytes, so they are pinned here rather than
+    stripped inside the gate.
+    """
+    gitattributes = (REPO_ROOT / ".gitattributes").read_text(encoding="utf-8")
+    rules = {
+        line.split(" #", 1)[0].strip()
+        for line in gitattributes.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+    assert "src/scholar_harness/claims/schemas/*.json text eol=lf" in rules
+    assert "tests/fixtures/claim_citation/*.json text eol=lf" in rules
+
+
+def test_checked_in_claims_artifacts_are_lf_only_on_disk():
+    """The byte-strict artifacts must contain no CR bytes as checked out.
+
+    Belt-and-braces companion to the ``.gitattributes`` guard above: it
+    catches a CRLF checkout (e.g. via a stale worktree that predates the
+    eol rules) directly, on the fixture files the unit suite does not
+    otherwise byte-compare against an LF renderer.
+    """
+    for rel in (
+        "src/scholar_harness/claims/schemas/claim-citation.schema.json",
+        "tests/fixtures/claim_citation/valid_citation.json",
+        "tests/fixtures/claim_citation/locator_shifted_citation.json",
+        "tests/fixtures/claim_citation/value_shifted_citation.json",
+    ):
+        data = (REPO_ROOT / rel).read_bytes()
+        assert b"\r" not in data, f"{rel} contains CR bytes; checkout is not LF"
