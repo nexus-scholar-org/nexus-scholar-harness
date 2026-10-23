@@ -31,6 +31,25 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
+# Rich renders help through a Console; when the environment forces color
+# (FORCE_COLOR, CI, a tty) ANSI style codes are interleaved inside rendered
+# text, so raw substring checks on ``result.stdout``/``result.output`` only
+# hold in plain-render environments. Stripping the escapes asserts the real
+# invariant -- the flag/message is produced by the command -- in BOTH
+# rendering modes; nothing but escape sequences is removed.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _strip_ansi(text: str) -> str:
+    """Rendered CLI output with ANSI styling removed (render-mode independent)."""
+    return _ANSI_RE.sub("", text)
+
+
+def _help_text(result) -> str:
+    """The ``--help`` output with ANSI styling removed (render-mode independent)."""
+    return _strip_ansi(result.stdout)
+
+
 def _journal(ws: Path) -> list[dict]:
     journal = ws / "audit" / "journal.jsonl"
     text = journal.read_text(encoding="utf-8")
@@ -68,7 +87,7 @@ def test_log_event_help_exposes_flags_and_policy():
     assert result.exit_code == 0
     for flag in ("--action", "--agent", "--description", "--inputs",
                  "--outputs", "--status", "--param", "--metric"):
-        assert flag in result.stdout
+        assert flag in _help_text(result)
 
 
 def test_log_batch_help_documents_lenient_skip_policy():
@@ -204,7 +223,7 @@ def test_log_event_refuses_bad_kv_flag(tmp_path):
         "--param", "no-equals-sign",
     ])
     assert result.exit_code == 1
-    assert "must be KEY=VALUE" in result.output
+    assert "must be KEY=VALUE" in _strip_ansi(result.output)
     # Nothing appended: the bad flag is rejected before any write.
     assert len(_journal(ws)) == before
 
@@ -237,8 +256,8 @@ def test_log_batch_all_valid(tmp_path):
 
     result = runner.invoke(app, ["log", "batch", str(ws), str(events_file)])
     assert result.exit_code == 0, result.output
-    assert "Logged 3 event(s)" in _norm(result.output)
-    assert "0 record error(s)" in _norm(result.output)
+    assert "Logged 3 event(s)" in _norm(_strip_ansi(result.output))
+    assert "0 record error(s)" in _norm(_strip_ansi(result.output))
 
     events = _journal(ws)
     assert len(events) == before + 3
@@ -267,7 +286,7 @@ def test_log_batch_skips_missing_action_record(tmp_path):
     result = runner.invoke(app, ["log", "batch", str(ws), str(events_file)])
     assert result.exit_code == 1
     assert "missing required 'action'" in result.stdout + result.stderr
-    assert "1 record error(s)" in _norm(result.output)
+    assert "1 record error(s)" in _norm(_strip_ansi(result.output))
 
     events = _journal(ws)
     assert len(events) == before + 3
