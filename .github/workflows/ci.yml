@@ -120,6 +120,271 @@ jobs:
             --help || echo "Workspace-manager CLI not yet available"
         continue-on-error: true
 
+  # ---------------------------------------------------------------------------
+  # Harness Python suite (tests/) -- pytest previously had ZERO CI invocation.
+  # The suite carries the Contract v1 drift gates that only ran when someone
+  # ran pytest locally: tests/conformance/test_contract_baseline.py executes
+  # scripts/generate_contract_baseline.py --check, and the parity/conformance
+  # gates live under tests/conformance/.  An unenforced gate is not a gate.
+  #
+  # Design: its OWN job, not extra steps in `lint-and-test`.
+  #  - A suite failure must be legible as its own check, distinct from
+  #    lint/install/packaging failures, and `lint-and-test` must not change.
+  #  - `lint-and-test` already pays the 3 OS x 2 Python matrix for env-setup
+  #    gates.  The suite is platform-independent Python logic and takes ~5 min,
+  #    so ONE representative runner (ubuntu + Python 3.12, the locally
+  #    validated interpreter) keeps the gate continuous without 6x ~5 min of
+  #    duplicate signal; cross-OS env/path classes stay covered by the 6-leg
+  #    matrix above and by wheel-e2e.
+  #
+  # DEPENDENCY ORDER IS LOAD-BEARING (sync -> wheel install -> kit dist-info
+  # install -> pytest).  Do not reorder these four env steps:
+  #  1. `uv sync --extra dev` builds the harness env (pytest, pytest-asyncio,
+  #     httpx2).  An explicit `uv sync` is EXACT and prunes packages it does
+  #     not manage -- that includes the metapackage wheel from step 2 AND the
+  #     eight kit dist-infos from step 3 (verified: a sync after them uninstalls
+  #     all of them) -- so it must come FIRST and must never run after 2 or 3.
+  #  2. The metapackage wheel is the kits' runtime dependency contract
+  #     (aiohttp, hishel, httpx, mcp, pypdf, tenacity, networkx, ...).  Without
+  #     it pytest cannot even import the suite (ModuleNotFoundError: hishel).
+  #     Installing the kits via scripts/install_plugins.py instead is NOT an
+  #     option here: it pulls chromadb + sentence-transformers + torch
+  #     (~2GB), which the wheel deliberately excludes (see the wheel smoke
+  #     job: a chromadb import is a packaging regression).
+  #  3. The eight kit distributions are installed `--no-deps` from
+  #     tools/<kit> so their DISTRIBUTION METADATA exists in the env.  WHY:
+  #     the wheel force-includes kit *sources* but ships exactly one dist-info
+  #     (nexus_scholar-1.0.0), so importlib.metadata.version("scholar-protocol-
+  #     kit") raised PackageNotFoundError and scholar_protocol/identity.py
+  #     fell back to "0+unknown" while
+  #     tests/test_protocol_identity_conformance.py:43 asserts the kit's
+  #     distribution version is "1.0.0".  That assertion is the contract; it is
+  #     deliberately NOT weakened/skipped.  Evidence that this step is safe:
+  #     `--no-deps` installs NO dependencies (chromadb/torch/
+  #     sentence-transformers stay find_spec() -> None, verified before AND
+  #     after), and the source files it writes are byte-identical to the ones
+  #     already there (SHA-256 manifest of all 8 packages: wheel copy ==
+  #     after-install copy == tools/<kit>/src checkout copy).  ~2-4 s per kit.
+  #     Import precedence after this step: inside pytest, the checkout's
+  #     `tools/*/src` entries win for the 7 kits listed in
+  #     [tool.pytest.ini_options].pythonpath (pytest prepends them to sys.path,
+  #     verified with a probe plugin); scholar-verify-kit (not in that list)
+  #     resolves from site-packages; scholar_agent is a namespace package over
+  #     both.  The plain-interpreter path resolves everything from
+  #     site-packages.  Both copies are the same bytes, so neither precedence
+  #     changes behaviour.
+  #  4. pytest runs with `--no-sync` so no implicit re-sync can mutate the
+  #     hand-built env mid-run (uv 0.12.5's implicit `uv run` sync was
+  #     verified non-pruning; the pruning hazard is an explicit `uv sync`).
+  #
+  # PAIRED SELECT/DESELECT -- this job and `python-test-heavy` are a unit and
+  # BOTH are required checks.  This job deselects exactly 7 chromadb-backend
+  # nodeids (listed verbatim on the pytest step); python-test-heavy installs
+  # the heavy backends and runs EXACTLY those 7.  Shipping the deselect
+  # without the backfill would be green-by-excluded-tests, which is worse than
+  # an honest red -- never land one without the other, and never "fix" a red
+  # here by widening the deselect list (a renamed nodeid shows up as a count
+    # drift in the delta below).  THE RULE IS THE DELTA, NOT THE
+    # ABSOLUTES: `pytest --collect-only` must shrink by EXACTLY 7
+    # with these flags, on whatever main currently collects.  That
+    # base count moves as main grows (1674 when this job was
+    # written, 1823 after it was rebased onto #144), so no absolute
+    # count is an anchor -- only the delta of 7 is load-bearing.
+  # ---------------------------------------------------------------------------
+  python-test:
+    needs: build-wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sync project environment (harness + dev extras)
+        run: uv sync --extra dev
+
+      - name: Download nexus-scholar wheel artifact (shared single build)
+        uses: actions/download-artifact@v4
+        with:
+          name: nexus-scholar-wheel
+          path: packaging/nexus-scholar/dist
+
+      - name: Install the metapackage wheel (the kits' runtime deps)
+        run: uv pip install --python .venv/bin/python packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl
+
+      # Step 3 of the load-bearing order above.  AFTER the wheel install on
+      # purpose (both write the same site-packages paths; installing kits first
+      # would leave the wheel's later install as the last writer of files whose
+      # content is identical anyway) and never after another `uv sync` (a sync
+      # prunes these dist-infos).  `--no-deps` on purpose: the kits' own
+      # dependency sets include the heavy rag backends (chromadb,
+      # sentence-transformers, torch ~2 GB) that the wheel deliberately
+      # excludes -- here only the dist-info metadata is wanted, so no
+      # dependency may come with it.
+      - name: Install the 8 kit distributions (--no-deps, metadata only)
+        run: |
+          uv pip install --python .venv/bin/python --no-deps \
+            tools/scholar-protocol-kit \
+            tools/scholar-search-kit \
+            tools/scholar-pdf-kit \
+            tools/scholar-bib-kit \
+            tools/scholar-rag-kit \
+            tools/scholar-graph-kit \
+            tools/scholar-agent-kit \
+            tools/scholar-verify-kit
+
+      # Two of the three frozen Contract v1 baseline drift gates have no pytest
+      # driver: generate_contract_baseline.py --check runs inside the suite
+      # (tests/conformance/test_contract_baseline.py) and
+      # generate_nexus_scholar_pins.py --check already runs in lint-and-test;
+      # these two previously ran only by hand.  They run BEFORE pytest so a red
+      # suite cannot starve them of execution.
+      - name: Contract v1 drift gates not covered by pytest (closure lane)
+        run: |
+          uv run --no-sync python scripts/generate_contract_schemas.py --check
+          uv run --no-sync python scripts/generate_two_study_contract_fixture.py --check
+
+      # Recorded pr-lane command for harness tasks in
+      # docs/architecture/test_gate_manifest.json (`uv run pytest -q`), with
+      # --no-sync added per the dependency-ordering note above and
+      # `-o addopts=""` added because pyproject's addopts ALSO contains `-q`:
+      # CLI `-q` + addopts `-q` = `-qq` on pytest 9.1.1, which suppresses the
+      # final summary line entirely (verified: only the progress line prints).
+      # The summary is load-bearing here -- `7 deselected` is the visible proof
+      # of the paired deselect below -- so the double `-q` must be neutralized.
+      #
+      # The 7 `--deselect` nodeids are the chromadb-backend tests: in this
+      # deliberately minimal env they fail on the missing backend (chromadb is
+      # find_spec() -> None here; see the wheel-smoke E3 probe).  They are NOT
+      # modified in any test file -- no skip, no xfail, no marker, no
+      # deletion; exclusion happens ONLY via this CLI flag -- and they RUN FOR
+      # REAL in the paired `python-test-heavy` job below.  Proven exact:
+        # `pytest --collect-only` shrinks by exactly 7 with these
+        # flags -- delta held at 1823 -> 1816 after #142/#143/#144
+        # moved main from 1674.  Exactly these 7 nodeids and nothing
+        # removed); without them this job's suite was 8 failed /
+      # (these 7 + the protocol-identity dist-info test that the kit install
+      # step above fixes).
+      #
+      # Deselect list discipline: nodeids are copied verbatim from the failing
+      # run.  If a test is renamed/re-parametrized, the deselect stops
+      # matching, this job turns red honestly (the chromadb test runs and
+      # fails), and the fix is to re-verify with --collect-only -- never to
+      # widen or "repair" this list blind.  The parametrized id
+      # `...not_indexed[cli]` is quoted so the shell keeps the brackets.
+      - name: Harness Python suite (pr lane; 7 chromadb nodeids deselected)
+        run: |
+          uv run --no-sync pytest -q -o addopts="" \
+            --deselect='tests/conformance/test_e3_index_lineage_boundary.py::test_e3_neg_050_pinned_stale_bytes_are_not_indexed[cli]' \
+            --deselect='tests/conformance/test_e3_index_lineage_boundary.py::test_e3_diagnostic_real_chroma_index_workspace_reproducer' \
+            --deselect='tests/e2e/test_e2e_extract_index.py::test_phase2_full_pipeline_e2e' \
+            --deselect='tests/e2e/test_e2e_synthesis.py::test_phase3_e2e_full_lifecycle' \
+            --deselect='tests/e2e/test_e4_negative_proof.py::test_e4_neg_001_pdf_byte_flip_is_not_current' \
+            --deselect='tests/e2e/test_e4_negative_proof.py::test_e4_rebuild_after_input_change_yields_new_lineage' \
+            --deselect='tests/e2e/test_extraction_runtime_acceptance.py::test_script_index_json_success_in_a_real_subprocess'
+
+  # ---------------------------------------------------------------------------
+  # Heavy-backend backfill for exactly the 7 nodeids `python-test` deselects.
+  #
+  # PAIRED DESIGN: this job exists ONLY to make the deselect above honest.  A
+  # deselect without this backfill would be green-by-excluded-tests, so the two
+  # jobs are one unit and BOTH are required checks -- never land one alone.
+  #
+  # Scope discipline: it runs EXACTLY those 7 nodeids (as positional args),
+  # not the whole suite, so its signal stays narrow and its cost legible.  It
+  # is otherwise byte-for-byte the same env recipe as `python-test` (same
+  # sync -> wheel -> kit --no-deps ordering rules) with ONE extra step: the
+  # rag-kit heavy backends, installed at job level only.  Those backends must
+  # never enter pyproject.toml, uv.lock's harness entry, or the wheel's
+  # runtime metadata -- the minimal-dependency packaging contract is gated by
+  # the wheel-smoke job.
+  #
+  # COST (measured/estimated, reverse this decision if the price is unwelcome):
+  #   ~1.6-1.8 GB unpacked per run (torch alone ~1375 MB),
+  #   cold run ~8-12 min, warm (uv cache) ~4-6 min.
+  # ---------------------------------------------------------------------------
+  python-test-heavy:
+    needs: build-wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Same load-bearing order as `python-test` (sync first: an explicit
+      # `uv sync` prunes everything it does not manage, so it must never come
+      # after the wheel or kit installs).
+      - name: Sync project environment (harness + dev extras)
+        run: uv sync --extra dev
+
+      - name: Download nexus-scholar wheel artifact (shared single build)
+        uses: actions/download-artifact@v4
+        with:
+          name: nexus-scholar-wheel
+          path: packaging/nexus-scholar/dist
+
+      - name: Install the metapackage wheel (the kits' runtime deps)
+        run: uv pip install --python .venv/bin/python packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl
+
+      # Env parity with `python-test`, so any pass/fail difference between the
+      # two jobs is attributable to the heavy backends alone.
+      - name: Install the 8 kit distributions (--no-deps, metadata only)
+        run: |
+          uv pip install --python .venv/bin/python --no-deps \
+            tools/scholar-protocol-kit \
+            tools/scholar-search-kit \
+            tools/scholar-pdf-kit \
+            tools/scholar-bib-kit \
+            tools/scholar-rag-kit \
+            tools/scholar-graph-kit \
+            tools/scholar-agent-kit \
+            tools/scholar-verify-kit
+
+      # The ONLY step that differs from `python-test`.  The versions are the
+      # rag-kit's declared externals resolved at the measured set (the rag-kit
+      # itself declares chromadb>=0.4.22 and sentence-transformers>=2.3.1; it
+      # is installed --no-deps above because a full install would also pull the
+      # sibling kits from git).  Pinned == for reproducibility.  Deliberately
+      # job-scoped: never add these to pyproject.toml, uv.lock, or the wheel.
+      - name: Install rag-kit heavy backends (job-scoped; not in the lock)
+        run: |
+          uv pip install --python .venv/bin/python \
+            "chromadb==1.5.9" \
+            "sentence-transformers==6.2.0" \
+            "torch==2.14.1"
+
+      # Exactly the 7 `python-test` deselects -- same verbatim nodeids.  If
+      # these drift apart, one of the two jobs must be re-verified against the
+        # delta: collect-only must shrink by EXACTLY 7, whatever main
+        # collects.  `-o addopts=""` for the same
+      # reason as in `python-test`: CLI `-q` + addopts `-q` would be `-qq`,
+      # which hides the `7 passed` summary line on pytest 9.1.1.
+      - name: Heavy-backend suite (exactly the 7 python-test deselects)
+        run: |
+          uv run --no-sync pytest -q -o addopts="" \
+            'tests/conformance/test_e3_index_lineage_boundary.py::test_e3_neg_050_pinned_stale_bytes_are_not_indexed[cli]' \
+            'tests/conformance/test_e3_index_lineage_boundary.py::test_e3_diagnostic_real_chroma_index_workspace_reproducer' \
+            'tests/e2e/test_e2e_extract_index.py::test_phase2_full_pipeline_e2e' \
+            'tests/e2e/test_e2e_synthesis.py::test_phase3_e2e_full_lifecycle' \
+            'tests/e2e/test_e4_negative_proof.py::test_e4_neg_001_pdf_byte_flip_is_not_current' \
+            'tests/e2e/test_e4_negative_proof.py::test_e4_rebuild_after_input_change_yields_new_lineage' \
+            'tests/e2e/test_extraction_runtime_acceptance.py::test_script_index_json_success_in_a_real_subprocess'
+
   schema-validation:
     runs-on: ubuntu-latest
     steps:

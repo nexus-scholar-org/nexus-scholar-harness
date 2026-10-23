@@ -25,6 +25,16 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    # tests/unit/test_http_client.py declares 8 `async def` tests marked
+    # `@pytest.mark.asyncio` (the search kit's http retry/backoff suite). The
+    # plugin used to arrive only transitively through the kits' own dev extras
+    # (scripts/install_plugins.py), so a clean `uv sync --extra dev` env could
+    # not run those tests at all -- they failed with "async def functions are
+    # not natively supported". The harness declares the tests, so the harness
+    # must declare the plugin that runs them. Dev extra ONLY: it must never
+    # enter the metapackage wheel's runtime deps (the minimal-dependency
+    # packaging contract is CI-hard-gated by the wheel-smoke job).
+    "pytest-asyncio>=0.21.0",
     "ruff>=0.4.0",
     # starlette's TestClient -- used by the console API tests under
     # tests/console/ -- requires httpx2. Without it declared here the console
