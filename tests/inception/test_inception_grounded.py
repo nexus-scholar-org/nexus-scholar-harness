@@ -13,6 +13,7 @@ M0.3 DoD 3 hardening covered here:
 
 import asyncio
 import json
+import re
 
 import pytest
 import typer
@@ -30,6 +31,19 @@ from scholar_harness.inception import (
 from scholar_harness.recon import ReconEngine, distill_pool
 
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
+
+# Rich renders typer help through a Console; when the environment forces color
+# (FORCE_COLOR, CI, a tty) ANSI style codes are interleaved inside the rendered
+# flag text, so raw ``in result.stdout`` checks only hold in plain-render
+# environments. Stripping the escapes asserts the real invariant -- the flag is
+# registered and documented in ``--help`` -- under every rendering mode.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _help_text(result) -> str:
+    """The ``--help`` output with ANSI styling removed (render-mode independent)."""
+    return _ANSI_RE.sub("", result.stdout)
+
 
 TOPIC = (
     "Can an on-device computer-vision weed-detection pipeline achieve real-time "
@@ -177,8 +191,9 @@ def _read_genesis(ws_dir):
 def test_inception_help_lists_grounded_flag():
     result = CliRunner().invoke(app, ["inception", "--help"])
     assert result.exit_code == 0
-    assert "--grounded" in result.stdout
-    assert "--no-scaffold" in result.stdout
+    help_text = _help_text(result)
+    assert "--grounded" in help_text
+    assert "--no-scaffold" in help_text
 
 
 # ---------------------------------------------------------------------------
@@ -711,8 +726,9 @@ def test_grounded_delta_probe_runs_once_and_merges(tmp_path):
 def test_inception_help_lists_headless_flags():
     result = CliRunner().invoke(app, ["inception", "--help"])
     assert result.exit_code == 0
-    assert "--auto-select" in result.stdout
-    assert "--direction-id" in result.stdout
+    help_text = _help_text(result)
+    assert "--auto-select" in help_text
+    assert "--direction-id" in help_text
 
 
 def _grounded_engine(tmp_path) -> ReconEngine:

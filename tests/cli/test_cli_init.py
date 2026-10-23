@@ -24,6 +24,19 @@ from scholar_harness.inception import (
 
 runner = CliRunner()
 
+# Rich renders typer help through a Console; when the environment forces color
+# (FORCE_COLOR, CI, a tty) ANSI style codes are interleaved inside the rendered
+# flag text, so raw ``in result.stdout`` checks only hold in plain-render
+# environments. Stripping the escapes asserts the real invariant -- the flag is
+# registered and documented in ``--help`` -- under every rendering mode.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _help_text(result) -> str:
+    """The ``--help`` output with ANSI styling removed (render-mode independent)."""
+    return _ANSI_RE.sub("", result.stdout)
+
+
 # The raw wizard test freezes time so both PROJECT_INITIALIZED runs are
 # comparable; scaffold-only uses its own frozen timestamp.
 _TITLE = "On-Device: Weed Detection!"
@@ -298,10 +311,11 @@ def test_run_wizard_raw_target_accepts_init_title_default(tmp_path):
 def test_init_command_registered():
     result = runner.invoke(app, ["init", "--help"])
     assert result.exit_code == 0
-    assert "project_title" in result.stdout
-    assert "--dir" in result.stdout
-    assert "--scaffold-only" in result.stdout
-    assert "Bootstrap a portable Nexus Scholar research workspace" in result.stdout
+    help_text = _help_text(result)
+    assert "project_title" in help_text
+    assert "--dir" in help_text
+    assert "--scaffold-only" in help_text
+    assert "Bootstrap a portable Nexus Scholar research workspace" in help_text
 
 
 def test_init_cli_scaffold_only_smoke(tmp_path):

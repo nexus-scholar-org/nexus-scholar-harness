@@ -8,12 +8,25 @@ CWD-independent on every platform).
 from __future__ import annotations
 
 import json
+import re
 
 from typer.testing import CliRunner
 
 from scholar_harness.cli import app
 
 runner = CliRunner()
+
+# Rich renders typer help through a Console; when the environment forces color
+# (FORCE_COLOR, CI, a tty) ANSI style codes are interleaved inside the rendered
+# flag text, so raw ``in result.stdout`` checks only hold in plain-render
+# environments. Stripping the escapes asserts the real invariant -- the flag is
+# registered and documented in ``--help`` -- under every rendering mode.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _help_text(result) -> str:
+    """The ``--help`` output with ANSI styling removed (render-mode independent)."""
+    return _ANSI_RE.sub("", result.stdout)
 
 
 # ---------------------------------------------------------------------------
@@ -24,11 +37,12 @@ runner = CliRunner()
 def test_setup_mcp_command_registered():
     result = runner.invoke(app, ["setup-mcp", "--help"])
     assert result.exit_code == 0
-    assert "--workspace" in result.stdout
-    assert "--harness" in result.stdout
-    assert "--dry-run" in result.stdout
-    assert "--env-file" in result.stdout
-    assert "Wire the nexus-scholar MCP server into harness config files" in result.stdout
+    help_text = _help_text(result)
+    assert "--workspace" in help_text
+    assert "--harness" in help_text
+    assert "--dry-run" in help_text
+    assert "--env-file" in help_text
+    assert "Wire the nexus-scholar MCP server into harness config files" in help_text
 
 
 # ---------------------------------------------------------------------------

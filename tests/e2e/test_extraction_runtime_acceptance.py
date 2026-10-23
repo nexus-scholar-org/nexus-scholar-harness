@@ -635,13 +635,30 @@ def test_a1_crlf_extraction_output_is_readable_and_recorded_as_normalized(
 ) -> None:
     """The kit's frontmatter grammar is LF-only; Stage 5 on Windows commits CRLF.
 
-    The normalization is a byte-level step and is recorded, not hidden.
+    The CRLF bytes are committed explicitly here -- byte-level, not via
+    write_text's platform-dependent newline translation -- so the normalization
+    path is exercised on every platform, not only Windows. The normalization is
+    recorded, not hidden: the raw on-disk digest keeps the CRLF bytes verbatim,
+    the recorded normalized digest is the digest of the LF-normalized body the
+    kit's own parser reads, and the two digests stay distinguishable.
     """
+
+    from scholar_pdf.frontmatter import parse_bound_frontmatter, sha256_bytes
 
     state = _extracted_state(tmp_path)
     workspace = state["workspace"]
     path = workspace / "extracted" / f"{state['included'][0]['workspace_id']}.md"
-    assert b"\r\n" in path.read_bytes()  # write_text on Windows
+    # Reproduce the Windows Stage 5 condition ourselves: a canonical LF base
+    # committed back as CRLF bytes. Depending on write_text's newline
+    # translation made this test Windows-only by construction.
+    lf = path.read_bytes().replace(b"\r\n", b"\n")
+    assert b"\r" not in lf  # canonical LF base on every platform
+    crlf = lf.replace(b"\n", b"\r\n")
+    assert crlf != lf  # the bytes we commit really are CRLF, not the LF base
+    path.write_bytes(crlf)
+    on_disk = path.read_bytes()
+    assert on_disk == crlf  # precondition under the test's control, not the OS's
+    assert b"\r\n" in on_disk  # Stage 5's Windows condition, produced everywhere
 
     outcome = publish_document_manifest(workspace)
     assert outcome.accepted, outcome.refusal
@@ -651,6 +668,13 @@ def test_a1_crlf_extraction_output_is_readable_and_recorded_as_normalized(
     assert _DIGEST.match(provenance["extracted_file_sha256"]), provenance[
         "extracted_file_sha256"
     ]
+    # The raw digest records the committed CRLF bytes verbatim: the rewrite is
+    # recorded, not hidden.
+    assert provenance["extracted_file_sha256"] == sha256_bytes(on_disk)
+    # The recorded normalized digest is the digest of the LF-normalized body the
+    # kit's parser reads -- not a second name for the raw CRLF bytes.
+    _frontmatter, body = parse_bound_frontmatter(lf)
+    assert provenance["extracted_sha256"] == sha256_bytes(body.encode("utf-8"))
     # The normalized body digest and the raw on-disk digest must be distinguishable:
     # collapsing them would hide the rewrite the producer performed.
     assert provenance["extracted_sha256"] != provenance["extracted_file_sha256"]

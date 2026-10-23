@@ -3,6 +3,7 @@
 import builtins
 import hashlib
 import json
+import re
 
 import pytest
 import typer
@@ -24,6 +25,19 @@ from scholar_harness.inception import (
 )
 
 runner = CliRunner()
+
+# Rich renders typer help through a Console; when the environment forces color
+# (FORCE_COLOR, CI, a tty) ANSI style codes are interleaved inside the rendered
+# flag text, so raw ``in result.stdout`` checks only hold in plain-render
+# environments. Stripping the escapes asserts the real invariant -- the flag is
+# registered and documented in ``--help`` -- under every rendering mode.
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _help_text(result) -> str:
+    """The ``--help`` output with ANSI styling removed (render-mode independent)."""
+    return _ANSI_RE.sub("", result.stdout)
+
 
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
 
@@ -335,6 +349,7 @@ def test_console_responder_aborts_on_eof(monkeypatch):
 def test_inception_command_registered():
     result = runner.invoke(app, ["inception", "--help"])
     assert result.exit_code == 0
-    assert "Socratic methodology interview" in result.stdout
-    assert "--no-scaffold" in result.stdout
-    assert "--root" in result.stdout
+    help_text = _help_text(result)
+    assert "Socratic methodology interview" in help_text
+    assert "--no-scaffold" in help_text
+    assert "--root" in help_text
