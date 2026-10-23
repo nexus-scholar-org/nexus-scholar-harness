@@ -866,10 +866,16 @@ def _source_fingerprint(
     if pdf is not None:
         # The hit is re-checked through the same containment rule as every other read:
         # a file inside ``pdfs/`` that is a symlink out of the workspace must not be
-        # hashed, let alone cited as ``source_kind="workspace_pdf"``.
+        # hashed, let alone cited as ``source_kind="workspace_pdf"``. ``_study_pdf``
+        # hands back a lexically-constructed ``pdfs/<stem>.pdf`` path (its ``exists()``
+        # test follows a link but the path itself is not rewritten), so the comparison
+        # has to resolve first: a lexical ``relative_to`` passes for any link planted
+        # inside ``pdfs/`` no matter where that link points. A hit that cannot be
+        # resolved cannot prove containment either, so it refuses with the typed
+        # refusal just like the ``_resolve_inside`` guard above.
         try:
-            pdf.relative_to(workspace)
-        except ValueError as exc:
+            pdf.resolve().relative_to(workspace)
+        except (OSError, ValueError) as exc:
             raise PublicationRefused(
                 "PATH_ESCAPES_WORKSPACE",
                 f"{pdf} resolves outside the workspace root, so its bytes are not "

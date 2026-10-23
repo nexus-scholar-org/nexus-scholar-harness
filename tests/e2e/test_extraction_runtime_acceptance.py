@@ -1498,6 +1498,65 @@ def test_study_pdf_outside_the_workspace_is_refused(
     assert not (workspace / "literature" / "extraction_publications").exists()
 
 
+def test_pdf_hit_that_resolves_outside_the_workspace_is_refused_without_symlink_privileges(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """MINOR 7 regression guard, runnable where OS symlink privileges are absent.
+
+    ``_study_pdf`` returns a *lexically* constructed ``pdfs/<stem>.pdf`` path: its
+    ``exists()`` call follows a link but the returned path is not rewritten, so a
+    containment check that compares that lexical path against the resolved workspace
+    passes for any link planted inside ``pdfs/`` -- the guard never fires and the
+    bytes behind the link become ``source_kind="workspace_pdf"`` evidence. This guard
+    reproduces exactly that shape without needing to create a symlink: ``_study_pdf``
+    is stubbed to return a real file lexically inside the workspace whose
+    ``resolve()`` reports an outside target, which is precisely what pathlib yields
+    for a final-component symlink. It drives the real publication path
+    (``build_document_manifest_candidate`` -> ``_read_extracted_document`` ->
+    ``_source_fingerprint``), so it FAILS if the guard ever compares the lexical
+    path again (mutation: it does not raise at all).
+
+    What it does NOT cover, deliberately: no real symlink is created, so it does not
+    exercise ``Path.exists()`` following a link, OS-level resolution, intermediate
+    directory links, or Windows junctions. That end-to-end behavior stays with
+    ``test_workspace_pdf_that_symlinks_out_of_the_workspace_is_refused`` above,
+    which is the authoritative check wherever symlinks exist (Linux CI).
+    """
+
+    state = _extracted_state(tmp_path)
+    workspace = state["workspace"]
+    study_id = state["study_ids"][0]
+    outside = tmp_path / "outside" / "elsewhere.pdf"
+    outside.parent.mkdir(parents=True)
+    outside.write_bytes(b"%PDF-1.7\nnot this workspace's evidence\n")
+    # Built from the *resolved* workspace so the lexical side of the comparison is
+    # inside the root on every platform (macOS tmp paths are not always resolved).
+    lexical_hit = Path(workspace).resolve() / "pdfs" / f"{study_id}.pdf"
+    lexical_hit.parent.mkdir(exist_ok=True)
+    lexical_hit.write_bytes(b"%PDF-1.7\nworkspace bytes\n")
+
+    class _ResolvesOutsideWorkspace(type(lexical_hit)):
+        """The lexical shape of a final-component symlink: inside, resolving out."""
+
+        def resolve(self, strict: bool = False) -> Path:
+            return outside
+
+    hit = _ResolvesOutsideWorkspace(lexical_hit)
+
+    from scholar_harness import extraction_producer as producer
+
+    monkeypatch.setattr(producer, "_study_pdf", lambda *_: hit)
+
+    with pytest.raises(PublicationRefused) as caught:
+        build_document_manifest_candidate(workspace)
+
+    assert caught.value.code == "PATH_ESCAPES_WORKSPACE"
+    assert "resolves outside the workspace root" in caught.value.message
+    assert str(lexical_hit) in caught.value.message
+    assert _registered_manifests(workspace) == {}
+    assert not (workspace / "literature" / "extraction_publications").exists()
+
+
 def test_republication_of_an_unchanged_body_is_idempotent(tmp_path: Path) -> None:
     """MAJOR 5's control: an unchanged body still replays idempotently.
 
