@@ -1,0 +1,460 @@
+{
+  "batch_id": "batch_0213",
+  "batch_index": 213,
+  "screener_id": "A1",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+  "n_records": 50,
+  "decisions": [
+    {
+      "screening_id": "SCI-007546",
+      "decision": "EXCLUDE",
+      "reason": "Orchard weeding robot detects weeds from the robot's first-person perspective; no UAV imagery evidenced (EXC-01 ground-robot-only).",
+      "reason_code": "WRONG_PLATFORM",
+      "criterion_refs": ["EXC-01"],
+      "confidence": 0.7,
+      "one_line_support": "intelligent orchard weeding robotic system ... detect weeds from a first-person perspective and pre-plan weeding paths"
+    },
+    {
+      "screening_id": "SCI-005640",
+      "decision": "EXCLUDE",
+      "reason": "UAV BLE-based bridge structural-health-monitoring sensing; infrastructure task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Structural Health Monitoring of Bridges by Unmanned Aerial Vehicle (UAV) via BLE Communication"
+    },
+    {
+      "screening_id": "SCI-002688",
+      "decision": "INCLUDE",
+      "reason": "Empirical UAV plus image-processing method study estimating fruit-tree (apple orchard) canopy area against manual measurement with regression validation; managed orchard crop characterization in scope (INC-01/INC-02).",
+      "reason_code": "INC-01",
+      "criterion_refs": ["INC-01", "INC-02"],
+      "confidence": 0.5,
+      "one_line_support": "images of the apple trees ... were taken by light unmanned aerial vehicle to calculate the canopy area"
+    },
+    {
+      "screening_id": "SCI-005583",
+      "decision": "EXCLUDE",
+      "reason": "UAV thermal detection of clandestine graves in an arid environment; forensic search, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "detection of clandestine graves in an arid environment using thermal imaging deployed from an unmanned aerial vehicle"
+    },
+    {
+      "screening_id": "SCI-010674",
+      "decision": "EXCLUDE",
+      "reason": "UAV structural-health-monitoring port vulnerability assessment; port infrastructure mapping, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Port Vulnerability Assessment Using Unmanned-Aerial-Vehicle-Based Structural Health Monitoring ... mapping and detecting of defects ... in port infrastructure"
+    },
+    {
+      "screening_id": "SCI-002032",
+      "decision": "EXCLUDE",
+      "reason": "Confirmed systematic literature review of crop/weed detection algorithms; review retained as background, not primary evidence (EXC-03).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "confidence": 0.95,
+      "one_line_support": "we conducted a systematic literature review (SLR) to extract and synthesize algorithms and features used in research on crop and weed detection"
+    },
+    {
+      "screening_id": "SCI-011614",
+      "decision": "EXCLUDE",
+      "reason": "Design and MATLAB/CFD simulation of a security-and-surveillance UAV; aircraft design task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "The design and simulation of unmanned aerial vehicles (UAVs) ... security and surveillance ... flight dynamics and control systems"
+    },
+    {
+      "screening_id": "SCI-003155",
+      "decision": "EXCLUDE",
+      "reason": "Blockchain-based geographic position verification for UAV swarms; swarm networking task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Verification of Localization via Blockchain Technology on Unmanned Aerial Vehicle Swarm"
+    },
+    {
+      "screening_id": "SCI-012045",
+      "decision": "EXCLUDE",
+      "reason": "UAV helicopter emergency-landing pad selection and operational control algorithm; navigation/control task excluded (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "ensure emergency safe landing on an unequipped pad ... algorithm for finding an unprepared landing pad"
+    },
+    {
+      "screening_id": "SCI-001738",
+      "decision": "EXCLUDE",
+      "reason": "Standalone peer-review report of a UAV mission-planning manuscript; not a primary empirical report (EXC-03); mission planning also fails the task criterion (EXC-02).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03", "EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Peer Review #1 of \"Heterogeneous mission planning for a single unmanned aerial vehicle (UAV) with attention-based deep reinforcement learning\""
+    },
+    {
+      "screening_id": "SCI-011572",
+      "decision": "EXCLUDE",
+      "reason": "HeMoDU UAV multi-object detection benchmarked on VisDrone urban-road traffic datasets; traffic task, not crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Multi-Object Detection Algorithm for Unmanned Aerial Vehicles on Urban Roads ... VisDrone2019 and UA-DETRAC"
+    },
+    {
+      "screening_id": "SCI-005063",
+      "decision": "EXCLUDE",
+      "reason": "Multirotor UAV microgravity-platform performance assessment (geophysical survey); no crop/weed signal, abstract null (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Performance Assessment Framework for Multirotor Unmanned Aerial Vehicle Microgravity Platforms"
+    },
+    {
+      "screening_id": "SCI-011591",
+      "decision": "EXCLUDE",
+      "reason": "UAV motor-control susceptibility to intentional electromagnetic interference; electronics reliability task (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "mode transformation in the system ... motor control system of the unmanned aerial vehicle (UAV) illuminated by an external IEMI"
+    },
+    {
+      "screening_id": "SCI-009833",
+      "decision": "EXCLUDE",
+      "reason": "Folding-wing UAV balloon-launch/parachute dynamics simulation; aeroengineering task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Dynamics simulation of a folding wing unmanned aerial vehicle with the parachute system assisted launching"
+    },
+    {
+      "screening_id": "SCI-004860",
+      "decision": "EXCLUDE",
+      "reason": "Overview of UAV path-planning algorithms; navigation task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Path Planning Approaches for Unmanned Aerial Vehicle ... path planning algorithms are classified into traditional and intelligent algorithms"
+    },
+    {
+      "screening_id": "SCI-010840",
+      "decision": "EXCLUDE",
+      "reason": "Dual-rotor unmanned aerial-aquatic vehicle underwater trajectory-tracking control; vehicle engineering, abstract null (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "System Design and Underwater Trajectory Tracking Control of Dual-Rotor Unmanned Aerial-Aquatic Vehicle"
+    },
+    {
+      "screening_id": "SCI-011555",
+      "decision": "PENDING",
+      "reason": "Title shows U-Net crop/weed segmentation in agricultural imagery but abstract is null and title carries no UAV/aerial term; platform unverifiable, needs full-text check (INC-01).",
+      "reason_code": "PENDING_ABSTRACT_NULL_PLATFORM_UNVERIFIED",
+      "criterion_refs": ["INC-01"],
+      "confidence": 0.5,
+      "one_line_support": "Utilizing convolutional neural networks (CNN) and U-Net architecture for precise crop and weed segmentation in agricultural imagery"
+    },
+    {
+      "screening_id": "SCI-012645",
+      "decision": "EXCLUDE",
+      "reason": "UAV urban-area optimal-height/minimum-power study (communications/energy); no crop/weed signal, abstract null (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Optimal Height with Minimum Power for a Unmanned Aerial Vehicle in an Urban Area"
+    },
+    {
+      "screening_id": "SCI-008340",
+      "decision": "EXCLUDE",
+      "reason": "Magnetometer calibration and compensation for multi-rotor UAV yaw accuracy; sensor/navigation task (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "magnetometer calibration and compensation method ... for multi-rotor unmanned aerial vehicle ... improve the yaw angle accuracy"
+    },
+    {
+      "screening_id": "SCI-008639",
+      "decision": "EXCLUDE",
+      "reason": "Decentralized robust region-tracking control for quadrotor swarms; control task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "robust region reaching controller ... drive a swarm of quadrotors ... track the trajectory of a moving target region"
+    },
+    {
+      "screening_id": "SCI-001075",
+      "decision": "INCLUDE",
+      "reason": "Dataset/benchmark release delivering a georeferenced multispectral field orthomosaic of a barley crop for weed/crop classification and field-scale semantic segmentation; orthomosaic/camera-parameter workflow implies aerial mapping, confirm platform at full text (INC-01/INC-02).",
+      "reason_code": "INC-02",
+      "criterion_refs": ["INC-01", "INC-02"],
+      "confidence": 0.55,
+      "one_line_support": "fully processed, georeferenced multispectral orthomosaic ... field-scale semantic segmentation, weed/crop classification, and precise spatial analysis"
+    },
+    {
+      "screening_id": "SCI-006578",
+      "decision": "EXCLUDE",
+      "reason": "Reliability modelling of passively redundant aircraft subsystems with tolerances; aircraft engineering, no UAV/crop signal (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "reliability of passively redundant aircraft subsystems, taking into account the tolerances"
+    },
+    {
+      "screening_id": "SCI-007955",
+      "decision": "EXCLUDE",
+      "reason": "UAV manufacturing innovation-ecosystem and industrial-park economics; industry-policy task outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "innovative ecosystem for the production of unmanned aerial vehicles (UAVs) ... industrial parks as mechanisms for scaling"
+    },
+    {
+      "screening_id": "SCI-013580",
+      "decision": "EXCLUDE",
+      "reason": "UAV photogrammetry gully-morphology DSM accuracy under flight schemes; erosion geomorphology, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Permanent Gully Morphology Measurement by Unmanned Aerial Vehicle Photogrammetry with Different Flight Schemes"
+    },
+    {
+      "screening_id": "SCI-002801",
+      "decision": "EXCLUDE",
+      "reason": "Mathematical model of point-target detection probability by a UAV payload operator; target-acquisition modeling, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "probability of detection of a point target by the operator of the payload of an optoelectronic device installed on an unmanned aerial vehicle"
+    },
+    {
+      "screening_id": "SCI-004064",
+      "decision": "EXCLUDE",
+      "reason": "Epilachna beetle pest incidence and management on potato; crop-pest study with no mapping task and no UAV (EXC-02; EXC-01).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02", "EXC-01"],
+      "confidence": 0.9,
+      "one_line_support": "Seasonal incidence and management of Epilachna Beetle ... infesting potato in the plains of West Bengal"
+    },
+    {
+      "screening_id": "SCI-003879",
+      "decision": "EXCLUDE",
+      "reason": "UAV landslide analysis and monitoring case study; geohazard mapping, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "UAV (Unmanned Aerial Vehicle) for Landslide Analysis Case Study ... Grenggeng Village, Kebumen District"
+    },
+    {
+      "screening_id": "SCI-002999",
+      "decision": "EXCLUDE",
+      "reason": "Wideband monopole antenna design for UAV VHF communications; antenna engineering outside crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "wideband monopole antenna for VHF band unmanned aerial vehicle (UAV) communication"
+    },
+    {
+      "screening_id": "SCI-010701",
+      "decision": "INCLUDE",
+      "reason": "Empirical UAV multispectral method study estimating sugarcane biomass with mixed-effect models and ground validation (R2 0.93/0.97); crop monitoring method study in scope (INC-01/INC-02).",
+      "reason_code": "INC-01",
+      "criterion_refs": ["INC-01", "INC-02"],
+      "confidence": 0.6,
+      "one_line_support": "multi-temporal images from Unmanned Aerial Vehicles (UAVs) ... sugarcane biomass estimations ... accurately estimate sugarcane biomasses"
+    },
+    {
+      "screening_id": "SCI-001594",
+      "decision": "EXCLUDE",
+      "reason": "Confirmed review chapter on agricultural UAV obstacle-avoidance systems; retained as background (EXC-03); obstacle avoidance is also a navigation task (EXC-02).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03", "EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Review of Agricultural Unmanned Aerial Vehicles (UAV) Obstacle Avoidance System ... The objective of this chapter is to review"
+    },
+    {
+      "screening_id": "SCI-012895",
+      "decision": "EXCLUDE",
+      "reason": "Reinforcement-learning quadrotor attitude tracking control with prescribed performance; control task excluded (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Reinforcement Learning-Based Robust Optimal Attitude Tracking Control for Quadrotor Unmanned Aerial Vehicle with Prescribed Performance"
+    },
+    {
+      "screening_id": "SCI-005704",
+      "decision": "EXCLUDE",
+      "reason": "YOLOv8 vehicle detection in UAV aerial imagery for traffic control; transportation task, not crop/weed mapping (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "detection of vehicles by unmanned aerial vehicles (UAVs) is gaining substantial attention in the field of traffic control"
+    },
+    {
+      "screening_id": "SCI-001227",
+      "decision": "EXCLUDE",
+      "reason": "Confirmed review of common ragweed biology and control strategies; review retained as background for citation chasing (EXC-03).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "confidence": 0.95,
+      "one_line_support": "Common Ragweed-Ambrosia artemisiifolia L.: A Review ... control strategies are summarized ... UAV-assisted weed mapping"
+    },
+    {
+      "screening_id": "SCI-004298",
+      "decision": "EXCLUDE",
+      "reason": "Book chapter reviewing UAV remote sensing for high-throughput crop phenotyping; review retained as background (EXC-03); phenotyping also excluded (EXC-02).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03", "EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "The objective of this chapter is to introduce the agronomic community to remote sensing ... high-throughput field phenotyping"
+    },
+    {
+      "screening_id": "SCI-008836",
+      "decision": "EXCLUDE",
+      "reason": "Abstract withheld by moderation; visible title alone shows a UAV relaying-communications network survey, clearly outside crop/weed mapping (EXC-02).",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.8,
+      "one_line_support": "A survey on unmanned aerial vehicle relaying networks"
+    },
+    {
+      "screening_id": "SCI-001123",
+      "decision": "EXCLUDE",
+      "reason": "Database review of digital-technology-driven agriculture (AI and IoT); broad review with no primary UAV crop/weed mapping experiment (EXC-03).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "confidence": 0.9,
+      "one_line_support": "The research work done in the areas during the last 10 years has been reviewed from the scientific databases"
+    },
+    {
+      "screening_id": "SCI-012229",
+      "decision": "EXCLUDE",
+      "reason": "Automatic modulation recognition for communication signals via deep learning; signal-processing task with no UAV/crop link (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Automatic Modulation Recognition Algorithm Based on Time-Frequency Features and Deep Learning with Fading Channels"
+    },
+    {
+      "screening_id": "SCI-010282",
+      "decision": "EXCLUDE",
+      "reason": "Control-law synthesis for an airplane-type UAV with intermediate coordinate constraints; control theory task (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Controlling an Airplane-type Unmanned Aerial Vehicle with Given Intermediate Values of Different Parts of Coordinates"
+    },
+    {
+      "screening_id": "SCI-013949",
+      "decision": "EXCLUDE",
+      "reason": "UAV rice tiller-angle measurement pipeline explicitly framed for automated plant phenotyping; phenotyping excluded (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "lays a foundation for automated phenotyping of plant architecture traits ... measurement of rice tiller angle directly from UAV images"
+    },
+    {
+      "screening_id": "SCI-002630",
+      "decision": "EXCLUDE",
+      "reason": "UAV 5G smart traffic-surveillance system for road accidents in Saudi Arabia; transportation task (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "smart traffic monitoring system using Unmanned Aerial Vehicles (UAVs) ... traffic surveillance system based on Unmanned Aerial Vehicle (UAV) using 5G"
+    },
+    {
+      "screening_id": "SCI-009010",
+      "decision": "INCLUDE",
+      "reason": "Primary empirical UAV multispectral semantic-segmentation study of cabbage fields with pixel-level labels, cross-area generalization testing and infrared-band analysis; squarely in scope (INC-01/INC-02).",
+      "reason_code": "INC-01",
+      "criterion_refs": ["INC-01", "INC-02"],
+      "confidence": 0.95,
+      "one_line_support": "We operated UAVs and collected 2010 multispectral images under different spatiotemporal conditions to measure how well semantic segmentation models generalize"
+    },
+    {
+      "screening_id": "SCI-014032",
+      "decision": "INCLUDE",
+      "reason": "Title-only evidence: UAV multispectral high-throughput aboveground peanut biomass estimation with optimized spectral-textural features; crop remote-sensing method study in scope, abstract null (INC-01/INC-02).",
+      "reason_code": "INC-01",
+      "criterion_refs": ["INC-01", "INC-02"],
+      "confidence": 0.55,
+      "one_line_support": "High-Throughput Estimation of Aboveground Peanut Biomass with Optimized Spectral-Textural Features from Unmanned Aerial Vehicle Multispectral Imagery"
+    },
+    {
+      "screening_id": "SCI-009055",
+      "decision": "EXCLUDE",
+      "reason": "UAV laser scanning vs stereo photogrammetry for coniferous plantation stand heights; forestry, non-agricultural vegetation (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Comparison of Coniferous Plantation Heights Using Unmanned Aerial Vehicle (UAV) Laser Scanning and Stereo Photogrammetry"
+    },
+    {
+      "screening_id": "SCI-010319",
+      "decision": "EXCLUDE",
+      "reason": "Dual-attention CNN for UAV rotor fault diagnosis from vibration signals; aircraft health-monitoring task (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Multisensory Frequency Features for Unmanned Aerial Vehicle Rotor Fault Diagnosis"
+    },
+    {
+      "screening_id": "SCI-010677",
+      "decision": "EXCLUDE",
+      "reason": "UAV vs Google Earth imagery for gully-erosion morphology extraction; erosion geomorphology, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Gully Morphology Extraction Suitability Using Unmanned Aerial Vehicle and Google Earth Imagery"
+    },
+    {
+      "screening_id": "SCI-002542",
+      "decision": "EXCLUDE",
+      "reason": "UAV big-data analysis and server applications for survey-mapping efficiency; generic IT infrastructure with no agriculture (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Big data analysis and server applications for Unmanned Aerial Vehicle/Drones ... survey-mapping of UAV"
+    },
+    {
+      "screening_id": "SCI-003720",
+      "decision": "EXCLUDE",
+      "reason": "UAV semi-automatic lineament mapping of geological structures in a shear zone; geology, non-agricultural (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "semi-automatic mapping based on an Unmanned Aerial Vehicle (UAV) to capture geological structures ... lineament mapping"
+    },
+    {
+      "screening_id": "SCI-005487",
+      "decision": "EXCLUDE",
+      "reason": "Numerical flutter analysis of a UAV composite wing structure; aeroelasticity task, abstract null (EXC-02).",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Numerical flutter analysis of composite wing structure on an unmanned aerial vehicle (UAV)"
+    },
+    {
+      "screening_id": "SCI-010983",
+      "decision": "EXCLUDE",
+      "reason": "Title and abstract in Indonesian (non-English); UAV propeller thrust-bench motor characterization also fails the task criterion (EXC-04; EXC-02).",
+      "reason_code": "OUTSIDE_DATE_LANGUAGE",
+      "criterion_refs": ["EXC-04"],
+      "confidence": 0.95,
+      "one_line_support": "Rancang Bangun Alat Uji Gaya Dorong Propeller untuk Karakterisasi Motor Pada Sistem Propulsi Unmanned Aerial Vehicle"
+    },
+    {
+      "screening_id": "SCI-005156",
+      "decision": "EXCLUDE",
+      "reason": "Confirmed review of patch antennas for UAV applications; antenna review retained as background (EXC-03).",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "confidence": 0.95,
+      "one_line_support": "Review on Patch Antennas for Unmanned Aerial Vehicle Application ... The review of patch antennas"
+    }
+  ]
+}

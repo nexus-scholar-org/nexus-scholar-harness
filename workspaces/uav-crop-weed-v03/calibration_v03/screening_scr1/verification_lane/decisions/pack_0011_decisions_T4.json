@@ -1,0 +1,459 @@
+{
+  "screener_id": "T4",
+  "pack": "pack_0011",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+  "n_records": 50,
+  "decisions": [
+    {
+      "screening_id": "SCI-006259",
+      "decision": "EXCLUDE",
+      "reason": "UAV visual navigation using satellite image matching; navigation correction, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "SIFT/ORB matching to reset visual navigation errors; no agricultural imagery."
+    },
+    {
+      "screening_id": "SCI-006269",
+      "decision": "EXCLUDE",
+      "reason": "Correlation-filter UAV object tracking on UAV123/DTB70/UAVDT; generic tracking, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Saliency-enhanced CF tracker benchmarked on UAV tracking datasets; no weeds."
+    },
+    {
+      "screening_id": "SCI-006279",
+      "decision": "EXCLUDE",
+      "reason": "UAV polarization/IR imaging for crime-scene evidence search; forensics, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Polarization contrast gain for evidence detection at crime scenes; no weeds."
+    },
+    {
+      "screening_id": "SCI-006292",
+      "decision": "EXCLUDE",
+      "reason": "Acoustic classification of drone models; audio machine learning, no crop/weed mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "MFCC features classify 17 drone models at 98.8%; no imagery or weeds."
+    },
+    {
+      "screening_id": "SCI-006303",
+      "decision": "EXCLUDE",
+      "reason": "UAV propeller performance and optimization design; propulsion engineering, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Vortex-theory propeller sizing with 9% error; no imagery or weeds."
+    },
+    {
+      "screening_id": "SCI-006314",
+      "decision": "EXCLUDE",
+      "reason": "Grey-wolf path planning for bridge inspection; infrastructure inspection, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "GWO cost-function path planning around obstacles for bridges; no weeds."
+    },
+    {
+      "screening_id": "SCI-006324",
+      "decision": "EXCLUDE",
+      "reason": "Mountain terrain UAV path planning with improved genetic algorithm; navigation, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Genetic algorithm smooths path length in mountains; no agricultural imagery."
+    },
+    {
+      "screening_id": "SCI-006337",
+      "decision": "EXCLUDE",
+      "reason": "Multi-UAV odor source localization with fish-swarm algorithm; gas sensing, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Curiosity-driven artificial fish swarm finds odor sources; no weeds."
+    },
+    {
+      "screening_id": "SCI-006348",
+      "decision": "EXCLUDE",
+      "reason": "Capacitive wireless power transfer for drone charging; electrical engineering, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Multi-pickup CPT coupling plates with higher power efficiency; no weeds."
+    },
+    {
+      "screening_id": "SCI-006358",
+      "decision": "EXCLUDE",
+      "reason": "Overview of LiDAR and GPR on UAVs for search/naval/archaeology domains; no crop/weed mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Synthetic review of sensor platforms mentions agriculture generically, no weed task."
+    },
+    {
+      "screening_id": "SCI-006368",
+      "decision": "EXCLUDE",
+      "reason": "Small-UAV detection via DetUAV-Mamba; counter-drone surveillance, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "YOLO+Mamba detects micro-UAVs for security applications; no weeds."
+    },
+    {
+      "screening_id": "SCI-006378",
+      "decision": "EXCLUDE",
+      "reason": "Autonomous UAV air-pollution mapping; atmospheric measurement, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Polygon-decomposition scanning for pollution concentration maps; no weeds."
+    },
+    {
+      "screening_id": "SCI-006389",
+      "decision": "EXCLUDE",
+      "reason": "Moderation-redacted record; title-only decision. UAV flight control under wind disturbance clearly leaves the crop/weed domain.",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.8,
+      "one_line_support": "Title-only: ant-colony fuzzy PID flight control; no weed/crop term present."
+    },
+    {
+      "screening_id": "SCI-006400",
+      "decision": "EXCLUDE",
+      "reason": "Kalman-filter positioning for agricultural UAVs; navigation estimation, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "PCA-MCKF position estimation in Webots for Ag-UAV flight control; no weeds."
+    },
+    {
+      "screening_id": "SCI-006410",
+      "decision": "EXCLUDE",
+      "reason": "Title-only (abstract null): shipboard manned/unmanned vehicle synergy evaluation clearly leaves the crop/weed domain.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.8,
+      "one_line_support": "Title-only: shipboard manned/unmanned synergy with CFP-miner; no weed term."
+    },
+    {
+      "screening_id": "SCI-006421",
+      "decision": "EXCLUDE",
+      "reason": "Title-only (abstract null): UAV plant counting in mountains; counting task, no crop/weed localization or mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02", "INC-01"],
+      "confidence": 0.6,
+      "one_line_support": "Title-only: AI plant counting via UAV; no weed term or mapping signal."
+    },
+    {
+      "screening_id": "SCI-006432",
+      "decision": "EXCLUDE",
+      "reason": "KNN detection of GPS spoofing for UAVs; security, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "RSS-based location authentication against spoofing; no imagery or weeds."
+    },
+    {
+      "screening_id": "SCI-006443",
+      "decision": "EXCLUDE",
+      "reason": "UAV/GIS soil-cover and geobotanical mapping; pedology mapping, no crop/weed detection task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Aerial photo used to refine plant-association and soil maps; no weed task."
+    },
+    {
+      "screening_id": "SCI-006455",
+      "decision": "EXCLUDE",
+      "reason": "Helicopter pilot collision-avoidance AI in UAV-congested skies; aviation safety, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Stereo depth and alerts for drone collision probability; no weeds."
+    },
+    {
+      "screening_id": "SCI-006465",
+      "decision": "EXCLUDE",
+      "reason": "Sediment connectivity and erosion on semi-arid slopes; geomorphology with UAV imagery, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Thirteen-year sediment yields and connectivity index; no weeds or crops."
+    },
+    {
+      "screening_id": "SCI-006475",
+      "decision": "EXCLUDE",
+      "reason": "Lightweight multi-target detection on VisDrone; generic detection, no crop/weed targets.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "DFTD-YOLO neck/head improvements with mAP gains on VisDrone2021; no weeds."
+    },
+    {
+      "screening_id": "SCI-006486",
+      "decision": "EXCLUDE",
+      "reason": "UAV-SfM forest resource estimation; forestry, not agricultural crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "GCP placement effects on tree-top and crown area estimates; no weeds."
+    },
+    {
+      "screening_id": "SCI-006497",
+      "decision": "EXCLUDE",
+      "reason": "Title-only (abstract null): herbicide-resistant soybean weed resistance review; no UAV or imagery platform.",
+      "reason_code": "WRONG_PLATFORM",
+      "criterion_refs": ["INC-01", "EXC-01"],
+      "confidence": 0.85,
+      "one_line_support": "Title-only: weed resistance and RR soybeans; UAV term absent."
+    },
+    {
+      "screening_id": "SCI-006508",
+      "decision": "EXCLUDE",
+      "reason": "UAV photogrammetry for tsunami building vulnerability; disaster assessment, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "PTVA-4 model with UAV oblique imagery and TUNAMI-N2; no weeds."
+    },
+    {
+      "screening_id": "SCI-006518",
+      "decision": "EXCLUDE",
+      "reason": "Hyperspectral SLAM and A* planning for UAVs; navigation, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Semantic-aware path planning over hyperspectral cameras; no weed task."
+    },
+    {
+      "screening_id": "SCI-006531",
+      "decision": "EXCLUDE",
+      "reason": "UAV-assisted 6G V2X federated-learning networks; communications, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Markov-chain latency model for UAV-relayed C-V2X messages; no weeds."
+    },
+    {
+      "screening_id": "SCI-006541",
+      "decision": "EXCLUDE",
+      "reason": "UAV path-tracking control via improved ADRC; control theory, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "IMPESO observer reduces tracking error in simulation; no weeds."
+    },
+    {
+      "screening_id": "SCI-006551",
+      "decision": "EXCLUDE",
+      "reason": "UAV remote sensing to identify coastal/marine engineering land parcels; land-use classification, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "SVM classifies residential/engineering/aquaculture parcels; no weeds."
+    },
+    {
+      "screening_id": "SCI-006562",
+      "decision": "EXCLUDE",
+      "reason": "Moderation-redacted record; title-only decision. Post-quantum cryptography for UAV communication clearly leaves the crop/weed domain.",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Title-only: MAVLink quantum-resistant security framework; no weed term."
+    },
+    {
+      "screening_id": "SCI-006573",
+      "decision": "EXCLUDE",
+      "reason": "UAV feasibility study for aircraft visual inspection; maintenance, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Proof-of-concept UAV for hangar-free aircraft inspection; no weeds."
+    },
+    {
+      "screening_id": "SCI-006583",
+      "decision": "EXCLUDE",
+      "reason": "Node-RED web UI for UAV medical delivery; software interface, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Tablet UI for doctors operating sample-delivery drones; no weeds."
+    },
+    {
+      "screening_id": "SCI-006594",
+      "decision": "EXCLUDE",
+      "reason": "Onboard YOLO detection/localization of swarm neighbors in denied environments; swarm sensing, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "YOLOv5-Ghost with RGB-D estimates other-UAV positions; no weeds."
+    },
+    {
+      "screening_id": "SCI-006605",
+      "decision": "EXCLUDE",
+      "reason": "Counter-drone devices and legal aspects for border guard operations; security/legal, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Survey of UAV countermeasure devices and regulations; no weeds."
+    },
+    {
+      "screening_id": "SCI-006616",
+      "decision": "EXCLUDE",
+      "reason": "Title-only (abstract null): coordinated UAV/USV maritime monitoring path planning clearly leaves the crop/weed domain.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Title-only: maritime monitoring with travel-time uncertainty; no weed term."
+    },
+    {
+      "screening_id": "SCI-006626",
+      "decision": "EXCLUDE",
+      "reason": "UAV path optimization for offshore wind-farm inspection; energy infrastructure, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "TSP-style blade-inspection pathing with sea-wind awareness; no weeds."
+    },
+    {
+      "screening_id": "SCI-006636",
+      "decision": "EXCLUDE",
+      "reason": "Moderation-redacted record; title-only decision. Quantum UAV network cybersecurity chapter clearly leaves the crop/weed domain.",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Title-only: resilient quantum UAV networks, cybersecurity and AI; no weed term."
+    },
+    {
+      "screening_id": "SCI-006648",
+      "decision": "EXCLUDE",
+      "reason": "UAV NDVI camera comparison for general plant health monitoring; vigour mapping only, no crop/weed localization or classification task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["INC-01", "EXC-02"],
+      "confidence": 0.75,
+      "one_line_support": "Multispectral vs NIR-modified camera NDVI over fields; no weed detection."
+    },
+    {
+      "screening_id": "SCI-006658",
+      "decision": "EXCLUDE",
+      "reason": "Confirmed comprehensive review of civil UAV key technologies; review report type.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "confidence": 0.85,
+      "one_line_support": "Explicit comprehensive review of platforms, propulsion, navigation and cases."
+    },
+    {
+      "screening_id": "SCI-006668",
+      "decision": "EXCLUDE",
+      "reason": "YOLO small-ship detection in oceanic scenes; maritime detection, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Ship detection on vessel datasets with wake-wave handling; no weeds."
+    },
+    {
+      "screening_id": "SCI-006678",
+      "decision": "EXCLUDE",
+      "reason": "LSTM health-status prediction for UAV swarms; fleet management, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Swarm health R2 0.91 via LSTM and network theory; no weeds."
+    },
+    {
+      "screening_id": "SCI-006688",
+      "decision": "EXCLUDE",
+      "reason": "Comparative EU UAS regulation analysis; legal/policy study, no crop/weed mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Regulatory harmonization study across selected EU countries; no weeds."
+    },
+    {
+      "screening_id": "SCI-006699",
+      "decision": "EXCLUDE",
+      "reason": "Moderation-redacted record; title-only decision. Title names a review of UAVs in the low-altitude economy, clearly leaving the crop/weed domain.",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "criterion_refs": ["EXC-02", "EXC-03"],
+      "confidence": 0.85,
+      "one_line_support": "Title-only: review of UAV applications in low-altitude economy; agriculture absent."
+    },
+    {
+      "screening_id": "SCI-006710",
+      "decision": "EXCLUDE",
+      "reason": "Expressway traffic-state recognition from UAV video; intelligent transport, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "YOLOv8 + DeepSORT vehicle tracking feeding random-forest states; no weeds."
+    },
+    {
+      "screening_id": "SCI-006720",
+      "decision": "EXCLUDE",
+      "reason": "UAV-mounted soil NPK sensors with ML crop suggestions; nutrient sensing and fertilization advice, no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["INC-01", "EXC-02"],
+      "confidence": 0.75,
+      "one_line_support": "Soil moisture/NPK/pH sensors on UAV produce fertilizer tips; no weed imagery."
+    },
+    {
+      "screening_id": "SCI-006730",
+      "decision": "EXCLUDE",
+      "reason": "Proposed framework for UAV monitoring of aquaculture farms; fish-farm surveillance, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.9,
+      "one_line_support": "Framework for geotagging and viewing fish behavior; no weeds."
+    },
+    {
+      "screening_id": "SCI-006743",
+      "decision": "EXCLUDE",
+      "reason": "Quantum computing drone ad-hoc-network queuing models (chapter); communications security, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Safety queuing models for quantum drone networks; no imagery or weeds."
+    },
+    {
+      "screening_id": "SCI-006753",
+      "decision": "EXCLUDE",
+      "reason": "FFG-YOLO small-target detection improvements on UAV imagery; generic detection model, no crop/weed targets.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "FEB/FCB/GCAB modules for small targets on drones; no weed dataset."
+    },
+    {
+      "screening_id": "SCI-006764",
+      "decision": "EXCLUDE",
+      "reason": "Aerial manipulation with actuated pogostick arm; robotics dynamics, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Collision-based aerial manipulation via pogostick impulses; no weeds."
+    },
+    {
+      "screening_id": "SCI-006774",
+      "decision": "EXCLUDE",
+      "reason": "Title-only (abstract null): model predictive fuel-cell/battery energy management for UAVs clearly leaves the crop/weed domain.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.8,
+      "one_line_support": "Title-only: fuel-cell and battery power management; no weed term."
+    },
+    {
+      "screening_id": "SCI-006784",
+      "decision": "EXCLUDE",
+      "reason": "Structural carbon-fiber batteries for UAVs; energy storage materials, no crop/weed task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.95,
+      "one_line_support": "Ink-printed carbon fiber battery non-uniformity rates; no weeds."
+    }
+  ]
+}

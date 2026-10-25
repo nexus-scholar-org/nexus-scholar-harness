@@ -1,0 +1,55 @@
+{
+  "run_identity": {
+    "session": "UAV-HARVEST-R2-20261017",
+    "date": "20261017",
+    "code_label": "patched_post-L1L6+r2fixes",
+    "keyed": "yes",
+    "note": "verification pass; decisions (a)+(b) applied"
+  },
+  "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+  "query": "(\"UAV\" OR \"UAS\" OR \"drone\" OR \"drones\" OR \"unmanned aerial vehicle\" OR \"unmanned aerial vehicles\" OR \"unmanned aircraft system\" OR \"uncrewed aerial vehicle\" OR \"remotely piloted aircraft\" OR \"aerial imagery\" OR \"orthomosaic\") AND (\"weed\" OR \"weeds\" OR \"crop weed\" OR \"crop-weed\" OR \"crop and weed\" OR \"site-specific weed management\" OR \"precision weeding\" OR \"herbicide prescription\") AND (\"mapping\" OR \"detection\" OR \"segmentation\" OR \"classification\" OR \"monitoring\" OR \"localization\" OR \"identification\" OR \"discrimination\")",
+  "providers": {
+    "openalex": {
+      "count": 1342,
+      "elapsed_s": 18.38,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 2000,
+      "error_note": null
+    },
+    "crossref": {
+      "count": 1000,
+      "elapsed_s": 2.65,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 1000,
+      "error_note": null
+    },
+    "arxiv": {
+      "count": 39,
+      "elapsed_s": 0.16,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 200,
+      "error_note": null
+    },
+    "pubmed": {
+      "count": 76,
+      "elapsed_s": 1.6,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 200,
+      "error_note": null
+    },
+    "semanticscholar": {
+      "count": 200,
+      "elapsed_s": 3.29,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 200,
+      "error_note": null
+    }
+  },
+  "total_raw_records": 2657,
+  "run_status": "SUCCESS"
+}

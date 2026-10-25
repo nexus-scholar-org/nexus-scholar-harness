@@ -1,0 +1,55 @@
+{
+  "run_identity": {
+    "session": "UAV-HARVEST-R3-20261017",
+    "date": "20261017",
+    "code_label": "patched_post-L1L6+r2fixes+pubmednorm+stemlex",
+    "keyed": "no",
+    "note": "definitive; cumulative fixes a+b+pubmednorm+stemlex; keyed=no (env var removed for child processes)"
+  },
+  "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+  "query": "(\"UAV\" OR \"UAS\" OR \"drone\" OR \"drones\" OR \"unmanned aerial vehicle\" OR \"unmanned aerial vehicles\" OR \"unmanned aircraft system\" OR \"uncrewed aerial vehicle\" OR \"remotely piloted aircraft\" OR \"aerial imagery\" OR \"orthomosaic\") AND (\"weed\" OR \"weeds\" OR \"crop weed\" OR \"crop-weed\" OR \"crop and weed\" OR \"site-specific weed management\" OR \"precision weeding\" OR \"herbicide prescription\") AND (\"mapping\" OR \"detection\" OR \"segmentation\" OR \"classification\" OR \"monitoring\" OR \"localization\" OR \"identification\" OR \"discrimination\")",
+  "providers": {
+    "openalex": {
+      "count": 1343,
+      "elapsed_s": 16.77,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 2000,
+      "error_note": null
+    },
+    "crossref": {
+      "count": 1000,
+      "elapsed_s": 3.66,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 1000,
+      "error_note": null
+    },
+    "arxiv": {
+      "count": 37,
+      "elapsed_s": 2.01,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 200,
+      "error_note": null
+    },
+    "pubmed": {
+      "count": 76,
+      "elapsed_s": 2.18,
+      "status": "SUCCESS",
+      "partial": false,
+      "cap": 200,
+      "error_note": null
+    },
+    "semanticscholar": {
+      "count": 0,
+      "elapsed_s": 0.64,
+      "status": "PARTIAL",
+      "partial": true,
+      "cap": 200,
+      "error_note": "RateLimitExceededError: [semanticscholar] Rate limit exceeded on academic API (HTTP 429)"
+    }
+  },
+  "total_raw_records": 2456,
+  "run_status": "SUCCESS"
+}

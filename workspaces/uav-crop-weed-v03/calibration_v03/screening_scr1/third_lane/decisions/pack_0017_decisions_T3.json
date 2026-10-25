@@ -1,0 +1,134 @@
+{
+  "screener_id": "T3",
+  "pack_id": "pack_0017",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+  "decisions": [
+    {
+      "screening_id": "SCI-013824",
+      "decision": "PENDING",
+      "reason": "Abstract null; title pairs UAV ortho imagery with sweetpotato virus disease detection; disease task is likely WRONG_TASK but guardrail forbids title-only UAV+crop exclusion.",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-01", "EXC-02"],
+      "confidence": 0.6,
+      "one_line_support": "Title-only: SPVD-DETR detects sweetpotato virus disease from UAV ortho imagery; UAV+crop, abstract null."
+    },
+    {
+      "screening_id": "SCI-013867",
+      "decision": "EXCLUDE",
+      "reason": "Monocular vision pipeline for UAV safe landing zone detection; navigation/perception task with no agricultural or crop/weed signal.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "Title: real-time safe landing zone detection for UAVs; navigation task, no crop/weed signal."
+    },
+    {
+      "screening_id": "SCI-013923",
+      "decision": "EXCLUDE",
+      "reason": "Multitemporal UAV multispectral/textural indices predict popcorn grain yield and popping expansion; self-described phenotyping for yield screening, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "UAV phenotyping predicts popcorn yield and popping expansion; abstract calls it non-destructive yield screening."
+    },
+    {
+      "screening_id": "SCI-013951",
+      "decision": "EXCLUDE",
+      "reason": "UAV imagery plus Random Forest to spatialize soil CO2 efflux, moisture, and temperature in agroecosystems; soil process monitoring, not crop/weed detection or mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "UAV+RF spatialize soil CO2 efflux, moisture, temperature; soil processes, no weed/crop task."
+    },
+    {
+      "screening_id": "SCI-013952",
+      "decision": "EXCLUDE",
+      "reason": "UAV RGB/RGBNIR imagery and Random Forest predict structural, physiological, productive traits of forage cactus; crop trait phenotyping, no crop/weed mapping.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.85,
+      "one_line_support": "UAV+RF estimate forage cactus dry mass, chlorophyll, height, volume; phenotyping task only."
+    },
+    {
+      "screening_id": "SCI-013965",
+      "decision": "PENDING",
+      "reason": "Abstract null and the P-numbered ID suggests a standalone conference abstract; title pairs UAV with fungicide exposure assessment; crop-protection guardrail forbids title-only exclusion although the task is clearly exposure science.",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-01", "EXC-02", "EXC-03"],
+      "confidence": 0.55,
+      "one_line_support": "Title-only: AOEL fungicide exposure using aerial and ground drones; UAV+crop-protection, abstract null."
+    },
+    {
+      "screening_id": "SCI-013970",
+      "decision": "PENDING",
+      "reason": "Aerial crop classification with mislabel correction is task-adjacent, but the platform (UAV vs crewed aerial vs satellite) and any weed dimension are not evident from title/abstract; genuinely ambiguous signal.",
+      "reason_code": "PENDING_PLATFORM_UNCLEAR",
+      "criterion_refs": ["INC-01", "EXC-01"],
+      "confidence": 0.5,
+      "one_line_support": "Patch-level crop classification from 'aerial imagery' in Taiwan; UAV separability and weed dimension not evident."
+    },
+    {
+      "screening_id": "SCI-013988",
+      "decision": "EXCLUDE",
+      "reason": "Abstract null but title describes a multi-UAV collaborative detection framework with no agricultural or crop/weed signal; generic UAV systems work.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.7,
+      "one_line_support": "Title-only: Fedud multi-UAV collaborative detection framework; no crop/weed or agriculture signal."
+    },
+    {
+      "screening_id": "SCI-013994",
+      "decision": "PENDING",
+      "reason": "Abstract null; title pairs UAV hyperspectral imagery with barley (crop) waterlogging detection; stress-detection task likely out of scope but guardrail forbids title-only UAV+crop exclusion.",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-01", "EXC-02"],
+      "confidence": 0.6,
+      "one_line_support": "Title-only: early barley waterlogging detection from UAV hyperspectral imagery; UAV+crop, abstract null."
+    },
+    {
+      "screening_id": "SCI-014016",
+      "decision": "EXCLUDE",
+      "reason": "Field agronomy study of crop-weed competition period and herbicide efficacy in chia; title has weed signal but no UAV/aerial platform signal, indicating ground-based weed science without evident UAV mapping evidence.",
+      "reason_code": "WRONG_PLATFORM",
+      "criterion_refs": ["EXC-01", "INC-01"],
+      "confidence": 0.6,
+      "one_line_support": "Crop-weed competition and herbicide efficacy in chia; no UAV or aerial platform signal in title."
+    },
+    {
+      "screening_id": "SCI-014032",
+      "decision": "PENDING",
+      "reason": "Abstract null; title pairs UAV multispectral imagery with peanut (crop) aboveground biomass estimation; guardrail forbids title-only UAV+crop exclusion though task looks yield-oriented.",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-01", "EXC-02"],
+      "confidence": 0.6,
+      "one_line_support": "Title-only: peanut biomass estimation from UAV multispectral spectral-textural features; UAV+crop, abstract null."
+    },
+    {
+      "screening_id": "SCI-014042",
+      "decision": "EXCLUDE",
+      "reason": "Abstract null but title is UAV flight constellation selection by task characteristics; UAV operations planning, no agricultural or crop/weed signal.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.75,
+      "one_line_support": "Title-only: selecting UAV flight constellation for task characteristics; operations planning, no crop/weed signal."
+    },
+    {
+      "screening_id": "SCI-014090",
+      "decision": "EXCLUDE",
+      "reason": "Abstract null but title is a generic occlusion-robust multi-object UAV detector; no agricultural or crop/weed signal.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.7,
+      "one_line_support": "Title-only: DRONet occlusion-mastering multi-object UAV detection; generic detector, no crop/weed signal."
+    },
+    {
+      "screening_id": "SCI-014102",
+      "decision": "EXCLUDE",
+      "reason": "UAV RGB DualSlim-YOLO detects cauliflower seedlings and emergence for phenotyping and germplasm screening; self-described high-throughput seedling phenotyping, no crop/weed mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "confidence": 0.8,
+      "one_line_support": "Abstract: UAV seedling detection and emergence traits for high-throughput phenotyping and germplasm screening; no weed task."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "session": "UAV-HARVEST-R3-20261017",
+  "status": "RECONCILED",
+  "failures": [],
+  "reconcile_line": "manifest_counts == raw_file_counts == live_records -> union 2456 = 2456 = 2456; dedup 2281 = 2281 = 2281 (175 merged)",
+  "quality_snapshot_deduped": {
+    "n": 2281,
+    "with_abstract": 1851,
+    "pct_with_abstract": 81.1,
+    "title_only": 430,
+    "pct_title_only": 18.9,
+    "with_doi": 2221,
+    "pct_with_doi": 97.4,
+    "in_window": 2281,
+    "pct_in_window": 100.0
+  },
+  "union_doi": {
+    "doi_bearing": 2369,
+    "doi_less": 87
+  },
+  "hydration_stats": {
+    "attempted": 872,
+    "hydrated": 445,
+    "failed": 454
+  },
+  "dedup_stats": {
+    "total_documents": 2456,
+    "unique_documents": 2281,
+    "duplicates": 175,
+    "duplicate_rate": 0.07125407166123779
+  }
+}

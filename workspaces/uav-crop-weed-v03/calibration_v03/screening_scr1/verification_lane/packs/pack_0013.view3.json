@@ -1,0 +1,418 @@
+{
+ "role": "T4 third-rater, blinded (no other screener decisions inside)",
+ "pack": "pack_0013",
+ "n_records": 50,
+ "instruction_anchor_sha_prompt": "0c7f129d",
+ "criteria_sha_prefix": "9ae1f97d",
+ "records": [
+  {
+   "screening_id": "SCI-007330",
+   "title": "Detail-Preserving Pyramid-to-Hypergraph Relation Learning for Tiny Unmanned Aerial Vehicle Detection",
+   "abstract": "Tiny unmanned aerial vehicle (UAV) detection in visible-light imagery is constrained by weak target cues, spatially varying scale requirements, and clutter-induced responses. We formulate the task as an ordered representation problem involving detail preservation, location-dependent pyramid coordination, and candidate-restricted high order relation learning. The proposed Pyramid-to-Hypergraph detector (P2H) contains a Tri-Cue Detail Encoder (TCDE) and a Pyramid-to-Hypergraph Relation Learning (PHRL). TCDE combines local texture, contextual evidence, and high-frequency residual cues through sample-dependent scalar weights. Within PHRL, the Spatial Scale Router (SSR) aligns the $P_2$--$P_5$ hierarchy and assigns a normalized location-dependent mixture over the four scales. The Salient Hypergraph Reasoner (SHR) then constructs multi-cardinality semantic--spatial hyperedges over selected candidates and propagates their relational information. Evaluation uses 13,499 images containing 13,941 UAV instances compiled from six public datasets, with 10,000 images for training, 2,000 for validation, and 1,499 for testing. Under fixed data partitions and consistent evaluation criteria, P2H achieves 89.27\\% precision, 84.62\\% average precision at an intersection-over-union threshold of 0.50 ($\\mathrm{AP}_{50}$), 58.01\\% at 0.75 ($\\mathrm{AP}_{75}$), 54.91\\% over thresholds from 0.50 to 0.95 ($\\mathrm{AP}_{50:95}$), and 58.78\\% for small objects ($\\mathrm{AP}_{s}$). Ablations show complementary contributions from TCDE and PHRL, while the lower large-object average precision indicates scale-dependent gains under the evaluated setting.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007340",
+   "title": "Design and Development of Test Rig for Electric Propulsion System for an Unmanned Aerial Vehicle (UAV)",
+   "abstract": "Nowadays, the demand for Unmanned Aerial Vehicles (UAVs) is growing in various sectors such as Defence, agriculture, and commercial applications which necessitates advancements in their propulsion systems. There are several pros of the electric propulsion system, such as reduced emissions, lesser noise, and increased efficiency of the system. The current research work presents the designing and developing a comprehensive test rig for evaluating electric propulsion system tailored for UAV applications. In the present paper, the mechanical design section mainly emphasizes a conceptual framework of a robust and modular structure capable of accommodating various necessary units. The test rig can also be equipped with precise load cells to measure thrust, torque, and speed of the motors, along with a high-accuracy power analyzer to monitor various electric parameters. Moreover, the electrical design section comprises the selection of power inputs, controllers, and data acquisition systems for collection and storage of test data. The proposed test rig has design features of a versatile power supply unit capable of delivering a range of voltages and currents to facilitate various operating conditions. Finally, the potential improvements for enhancing the setup to modern requirements, such as incorporating a thermal management system, integrating advanced sensors, etc., are briefly discussed.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007350",
+   "title": "Cooperative Task Planning of Heterogeneous Unmanned Aerial Vehicle Formations Driven by a Multi-Objective Dolphin Echolocation Optimization Algorithm",
+   "abstract": "In the task planning of heterogeneous unmanned aerial vehicle formations, problems such as dynamic topological instability and sparse Pareto front exist, which affect the robustness of the planning. To address this, this paper proposes a cooperative task planning method based on multi-objective dolphin echolocation optimization driving. Firstly, a differentiated dynamic model of heterogeneous unmanned aerial vehicles covering different configurations such as rotors and fixed wings is constructed, and a dynamic communication topology model is established based on time-varying graph theory to quantify transmission delay and link stability. Then, a multi-objective optimization model is designed with task completion, energy balance, and time cost as the core, Bayesian networks are introduced to construct a dynamic threat field, and risk assessment and real-time response are achieved in complex environments. Based on this, a multi-objective dolphin echo optimization algorithm is adopted to solve the model, and its echo beam focusing search and adaptive weight allocation mechanism are utilized to effectively improve the convergence and distribution of the Pareto solution set. Finally, a â€œdecision executionâ€ hierarchical collaborative control architecture is constructed, utilizing the decision layer to output a global planning scheme and the execution layer to achieve rolling optimization and precise tracking of instructions through distributed model predictive control. The simulation test results show that this method can maintain high task completion, energy balance, and communication stability in different formation sizes and complex environments significantly better than traditional algorithms. When the formation size is between 20 and 60 sorties, the hypervolume (HV) index of this method is superior to that of the comparison method. In cases of sudden obstacles and complex electromagnetic interference scenarios, the average energy consumption of a single unmanned aerial vehicle after applying this method is maintained at 150â€“250 Wh, and the transmission delay is stable at 50â€“200 ms. The experimental results verify that this method has good planning robustness and collaborative real-time performance.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007361",
+   "title": "Unmanned Aerial Systems in Sarawak: Suitability of Work System Theory for Unmanned Traffic Management Frameworks",
+   "abstract": "The sporadic adoption rate of Unmanned Aerial Systems (UAS) in various sectors such as agriculture, logistics, search and rescue, and environmental monitoring, among others, calls for robust Unmanned Traffic Management (UTM) frameworks to ensure a secure and seamless UAS operation.The development and integration of UTM into the existing air traffic management (ATM) framework present unique challenges that require wellresearched solutions.Sarawak's diverse geography and topological terrain, characterized by hilly and inaccessible roads and dangerous waterways, necessitate the adoption of UAS for emergencies, logistics, and disaster management.This paper determines the suitability of Work System Theory (WST), which promotes a holistic understanding and practical design of systems for developing UTM frameworks for Sarawak.The capability of WST to allow dynamic interactions between technology, processes, participants, and the environment in the work system sets it apart from other traditional information systems theories, such as General System Theory, Sociotechnical System Theory, and the Actor-Network Theory.This paper argues that WST provides a more comprehensive and adaptable foundation for UTM frameworks in Sarawak through the review of related information system theories, highlighting their strengths and limitations.The findings suggest that WST provides a valuable theoretical foundation for creating safe, efficient, and sustainable UTM systems that can support the growth of the UAS industry in Sarawak while addressing the unique socio-cultural and environmental contexts of the region.This work contributes to both theoretical discourse and practical advancements in UTM, advocating for WST as a foundational framework for emerging technologies in complex environments.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007372",
+   "title": "Integrated Airframe Digital Twin Framework for Fatigue Tracking of Unmanned Aerial Vehicles",
+   "abstract": "Structural fatigue is one of the primary factors affecting the structural integrity and operational safety of aircraft during their service life. As flight hours accumulate and mission profiles become increasingly complex, accurately assessing and predicting fatigue damage becomes critical for ensuring airworthiness and optimizing maintenance planning. The Airframe Digital Twin has emerged as a promising paradigm for addressing this challenge, enabling structural fatigue diagnosis and prognosis through the development of multiphysics, multiscale, and probabilistic virtual representations of as-built systems. This paper presents a comprehensive and integrated framework for constructing the digital twin of an unmanned aerial vehicle, incorporating in-service load tracking, multilevel structural analysis, and probabilistic diagnosis and prognosis. The flight test of the unmanned aerial vehicle is utilized to validate the proposed framework. Results demonstrate that the developed digital twin can effectively predict fatigue crack growth in real time using only flight parameters as input. Furthermore, with inspection data available, the digital twin can be updated to provide a more accurate prediction of future damage evolution. These insights offer valuable guidance to optimize aircraft fleet maintenance strategies, thereby enhancing safety and cost-effectiveness.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007383",
+   "title": "A Novel Lattice-Based Soft Gripper for Aerial Grasping",
+   "abstract": "peer reviewed",
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007393",
+   "title": "Unmanned Microgravity Automated Aerial Vehicle (UMAAV) Development and Testing",
+   "abstract": "Simulating microgravity environments on Earth is essential in advancing space technologies. Current methods, such as parabolic flights on carrier aircraft, prove to be costly and inefficient. This work presents the development of the Unmanned Microgravity Automated Aerial Vehicle (UMAAV), a quadrotor-based platform designed to provide low-cost and repeatable microgravity testing. UMAAV uses dual-propulsion, consisting of primary lift motors and a Microgravity Auxiliary Thrust-Calibrating Hub (MATCH), a secondary set of bidirectional motors dedicated to matching Earthâ€™s gravitational acceleration. By generating precisely controlled upward or downward thrust, MATCH enables UMAAV to maintain near-zero net acceleration for an extended interval during a vertical parabolic flight. This work outlines a combined theoretical, simulated, experimental approach to model and control UMAAVâ€™s microgravity performance. A Gazebo computer simulation and a MATLAB-based propagating flight model were developed and estimated 5.16 seconds of microgravity for a 1.5-kg payload. Preliminary thrust stand experiments were conducted to analyze the loss in reversed-propeller efficiency, validating the need for high-quality control of reverse thrust with MATCH. A UMAAV prototype and full UMAAV were constructed for flight tests, demonstrating UMAAVâ€™s ability to autonomously reverse propeller direction in flight, achieving proof-of-concept accelerations in flight. Lastly, a Short-interval Layering and In-situ Mycelial Extrusion Technology for Interval-based Microgravity Experiments (SLIMETIME), was developed as a payload for UMAAV, successfully extruding automated samples.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007404",
+   "title": "Autonomous Exploration for Micro Aerial Vehicles with Sparse Sensing Using Harmonic Fields and Monte Carlo Integration",
+   "abstract": "Efficient autonomous exploration in unknown, obstacle-cluttered environments remains a significant challenge in the robotic field. Building on our previous Partial Differential Equation-based navigation for ground vehicles [1], this paper extends the framework to Micro Aerial Vehicles operating under severe sensing constraints. Using a Crazyflie 2.1 quadrotor equipped with a sparse four-beam range sensor, we propose a continuous exploration policy that simultaneously optimizes translation and rotation to maximize information gain. We generate these velocity commands by solving an elliptic Partial Differential Equation with Dirichlet boundary conditions. To overcome flat gradient deadlocks, we solve a Poisson equation with source values dynamically derived from a Hybrid Visibility Graph. Crucially, we enhance the grid-free Walk on Spheres algorithm by reducing solution variance, significantly lowering computational overhead. Validated through comparative simulations and real-world ROS2-MATLAB experiments, our approach efficiently calculates the navigation gradient directly at the agent's position, ensuring smooth, deadlock-free exploration in complex 2D spaces.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007414",
+   "title": "Strip Crops and Intercrops Outperform Crop Rotations for Weed Management Under Conservation Agriculture in Zimbabwe",
+   "abstract": "ABSTRACT High weed infestation remains a major constraint on crop productivity for smallholder farmers practising Conservation Agriculture (CA). Fewer, more diverse weeds are desirable to reduce competition and provide ecosystem services. Crop diversification can help, but it is not yet clear which species combinations and layouts are most effective for smallholder CA. Here, we conducted an experiment in subâ€humid Zimbabwe at two research stations with contrasting soils, and over two growing seasons (2021â€“2022 and 2022â€“2023). We evaluated weed community responses to maize monoculture, maize rotated with cowpea or pigeon pea, maizeâ€pigeon pea intercropping and maizeâ€cowpea and maizeâ€pigeon pea strip cropping under moderately fertilised versus unfertilised conditions. Data were collected on weed abundance (number and biomass), diversity (species richness, Pielou evenness and Shannon diversity) and community composition. There were significant differences between sites and, to a lesser extent, between growing seasons. More substantial impacts of cropping systems on weeds were observed at the more fertile site. On average across both sites, seasons and fertiliser levels, maizeâ€pigeon pea strip cropping performed best, resulting in the lowest weed number (23.2 weeds m âˆ’2 ) and biomass (99.2 g m âˆ’2 ) and the highest weed species diversity (Shannon index = 1.35), while the maizeâ€cowpea rotation performed worst (number = 31.3 weeds m âˆ’2 , biomass = 179.3 g m âˆ’2 and Shannon index = 1.12). Cropping system biomass was associated with lower weed biomass, but had no consistent effect on weed numbers or diversity. Fertilisation had weak and inconsistent effects. Overall, our results suggest that high biomass cropping systems, such as maizeâ€pigeon pea strip cropping, could contribute to sustainable weed management in Zimbabwe. However, more research is needed to develop strategies for less fertile sites, where weeds seem less susceptible to crop competition.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007426",
+   "title": "Development and Control of Flapping Wing Unmanned Aerial Vehicle (UAV) Ornithopter",
+   "abstract": "An Ornithopter flies differently from conventional drones by flapping its wings. Flapping wings are very efficient, enable astonishing agility, are much safer, and can make compliant contact with surfaces rather than shedding them as a rotor system does. This work focuses on developing a flapping-wing UAV Ornithopter model that mimics bird flight and can be adapted for reconnaissance missions. The Ornithopter is designed and constructed from a cost-effective, lightweight carbon fiber material. The Ornithopter development methodology involves selecting materials based on mission requirements, flexibility, lightweight design, precision, and affordability. The mechanical structure includes the fuselage, wing frame, gearbox design, flapping mechanism, linkages, joints, tail, and stability. The lift was designed to exceed the weight for sustained flight. Wing loading and mechanism design consider lift, drag, thrust, and weight. The choice of electric motor depends on torque requirements and flapping speed. The flight control system integrates tail angular orientation. The control design mitigates flexing problems by using hinges and bearings in the parts to meet the desired performance requirements. This flapping-wing UAV is built for remote surveillance, recreation-like contests, aerial robotics, and photography. A control system was developed and incorporated for flight control and monitoring data. Flight tests conducted show that the Ornithopter can sustain flight for excellent stability, carrying a minimum load of electronics. This study will assist the Ornithopter in maintaining stability for sustained flight of 5 minutes and achieving durability and agility.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007436",
+   "title": "Impact of Unmanned Aerial Vehicle (UAV) Transportation on Plasma Hemostasis Parameters",
+   "abstract": "Objectives â€” To determine whether vertical take-off and landing (VTOL) drone transport affects parameters of a global hemostasis assay and to identify UAV transport conditions that preserve sample integrity. Methods â€” Plateletâ€‘free plasma was prepared from wholeâ€‘blood samples collected from 30 healthy volunteers (11 men, 19 women; ages 22-38 years) according to preâ€‘analytical standard operating procedures. Thrombodynamics (Hemacore T-2, Russia) was employed to assess lag time (Tlag), initial and stationary clot-growth velocities (Vi, Vst), clot size (CS), clot density (D), and spontaneous clotting time (Tsp). Samples were evaluated under three conditions: (i) immediately after collection; (ii) after laboratory storage (reference); and (iii) after transport by the InnoVtol-3s VTOL UAV over distances up to 250 km. Results â€” No statistically significant differences were observed among the Immediate, Reference, and UAVâ€‘transported groups for Vi, Vst, Tlag, CS, or D (Kruskal-Wallis test with Dunnâ€“Holm; padj â‰¥0.05 for all pairwise contrasts.) Spontaneous clotting time (Tsp) was absent in all samples within the observation window. Across all groups, values remained within analytical variation (",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007446",
+   "title": "Retraction Note: Quantum neural network-based multilabel image classification in high-resolution unmanned aerial vehicle imagery",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007459",
+   "title": "Lightweight Authentication Protocol for Unmanned Aerial Vehicles (LA-UAV) for Future Cellular Networks",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007470",
+   "title": "Analysis of numerical integration methods for unmanned aerial vehicle flight dynamics simulation",
+   "abstract": "Compute simulation of a UAV flight in a six-degree-of-freedom model involves numerical integration of a system of twelve non-linear ordinary differential equations. The solution quality and simulator speed depend directly on a chosen integration scheme, yet the choice is usually made by habit rather than by quantitative evidence on specific problems. Purpose: Provide a quantitative comparison of five one-step integration methods-explicit Euler, Heun, midpoint RK2, classic RK4, and adaptive Rungeâ€“Kuttaâ€“Fehlberg (RKF45)- on fixed-wing UAV dynamics problems, using the authorâ€™s Python-based simulator as the implementation platform. Results: In a 60-second cruise flight with a step size of 0.01 s, RK4 produces a coordinate error of 8.6Â·10 -7 m, while explicit Euler, at the same step size, accumulates 1.23 m - a sixorders-of-magnitude gap. In a coordinated turn, Euler error reaches 64 m at the same step size, which is unacceptable. The adaptive RKF45 scheme with tol = 10 -6 during the cruise reduces the number of right-hand-side evaluations from 24,000 (RK4, h = 0.01 s) to 5,900, a fourfold saving at a comparable accuracy. In the wind-gust scenario, the advantage is even larger - 3.700 vs 12,000 evaluations, with both the coordinate and velocity errors smaller than those of fixed-step RK4 by a factor of about twenty. Practical significance: The authors give quantitative recommendations for selecting an integrator depending on the flight mode and requirements for determinacy of the computational cycle.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007480",
+   "title": "Transfer Learning-Based Autonomous Landing Site Detection for Unmanned Aerial Vehicles (UAVs)",
+   "abstract": "Drones require safe landing and it travels in any different environmental conditions even in congested places. Autonomous landing scene recognition plays a vital role for down navigation, which ensures safe landing in unpredictable environments with varying conditions related to the terrain and obstacles. There are many methods where traditional methods use handcrafted future extraction, which struggle to adapt and which struggles to adapt dynamic settings. As everything needs advancements, deep learning advancement improvised the capabilities of scene recognition. This paper dive deep into a transfer learning-based approach using deep convolutional neural networks (CNNs). Identification of the landing site for a drone is a major base for safe operations. The data, named landing scenes-7 which includes the ability of images captured at different altitudes, lighting conditions and geographical locations, was evolved to train and evaluate the model. The architecture that is introduced in the system is ResNeXt-50 optimized with the ADAM optimizer, known for its group conversion structure that enhances future extraction and model Generalization. The analysis between the comparison of ResNeXt-50 outperforms ResNet-50 and stochastic gradient descent (SGD) processing speed, classification, accuracy, and robustness in detecting safe landing zones.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007491",
+   "title": "Design, Performance Analysis, and Testing of a Camber Morphing Wing for Tactical Unmanned Aerial Vehicles (UAV)",
+   "abstract": "Abstract The demand for efficient and sustainable Unmanned Aerial Vehicles (UAVs) has increased significantly in recent years. One of the key reasons for this growth in UAVs is their adaptability and agility across diverse conditions. Flight modes are implemented using control surfaces. Conventional fixed-wing UAVs rely on discrete control surfaces, such as flaps and ailerons, for maneuvering. Although these control surfaces are widely used, they introduce aerodynamic discontinuities, flow separation, and increased drag. The concept of morphing wings is more substantial, but conformal shape change is necessary to avoid these limitations while maintaining flight control authority. One of the most challenging aspects in morphing is its implementation and application to actual aircraft to validate its effectiveness. This study explores the feasibility of using a 3D-printed conformal camber-morphing mechanism in the design and construction of small UAVs. Two different conformal camber morphing mechanisms have been designed, developed, and tested in flight and in the wind tunnel to assess their performance relative to conventional flap-based wings. CFD analysis and wind-tunnel results indicate up to 51.4% and 49.5% improvements in the Coefficient of Lift (C L ), respectively, at the same Drag Coefficient (C D ) of flap-based and morphing wings, highlighting the superior aerodynamic efficiency of the morphing design. The results show that 3D-printed modular morphing can be a practical and effective alternative to conventional flap-based wings, thereby improving UAV aerodynamic efficiency. This research establishes a foundational design flow for integrating morphing technologies into lightweight, low-cost UAV applications, validated through experimental testing and flight tests. The major contribution of this paper is to demonstrate the effectiveness of a camber-morphing wing aircraft through implementation and a rigorous design process, culminating in wind-tunnel and flight testing on a small UAV in its final stage of development.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007502",
+   "title": "Topology Management of a Swarm of Unmanned Aerial Vehicles",
+   "abstract": "The article is devoted to the problem of controlling the topology of a swarm of unmanned aerial vehicles (UAVs). The primary objective of swarm operation is maintaining a dynamic topology, i.e., stable information exchange and structural consistency between swarm elements in a constantly changing environment. It is shown that existing approaches rely on a global navigation satellite system (GPS) for UAV positioning, such as the Global Positioning System (GPS). This approach is unacceptable, as UAVs can suddenly experience loss of GPS signals while performing their missions, potentially resulting in a lack of location information. To support functionality, including the use of geographic routing protocols, maintaining connectivity in dynamic network conditions, and adapting to topological changes in the UAV swarm, this paper utilizes virtual coordinates. This paper develops a virtual coordinate system that forms the basis of the proposed method for UAV swarm topology management. This eliminates the need for global coordinates, a centralized controller, motion model coordination, and pre-calibration of the swarm formation. The system operates solely based on local distance measurements to neighbors, making it universal, scalable, and resilient to the loss of individual UAVs. Algorithms for merging and separating swarms based on the virtual coordinate system have been developed.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007512",
+   "title": "Design and Implementation of Motion Simulation for Precision Drop of Unmanned Aerial Vehicle Projectiles",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007522",
+   "title": "Development of an Unmanned Aerial Vehicle (UAV) for Firefighting in Hazardous Environments",
+   "abstract": "Fire incidents in hard-to-reach and/or hazardous areas present significant challenges to traditional firefighting methods, necessitating innovative solutions to enhance safety and efficiency. Current firefighting technologies present certain inefficiencies in suppressing fires while simultaneously minimizing risks to personnel. This study introduces a firefighting unmanned aerial vehicle (UAV) designed to deploy fire-extinguishing balls directly to fire sources, reducing response time and improving suppression accuracy and personnel safety in high-risk environments. The UAV incorporates advanced design features, including real-time monitoring, a stable payload delivery system, and precise navigation. Simulation and field testing were conducted to evaluate its effectiveness in delivering fire-extinguishing balls and suppressing fires in hazardous and confined areas. Results demonstrate the UAVâ€™s ability to deploy fire-extinguishing balls with high precision, significantly reducing fire suppression time compared to conventional methods. Its stable design and monitoring capabilities ensure consistent performance in dynamic environments. This innovative approach represents a step forward in integrating Industry 4.0 technologies into occupational safety and health (OSH) practices, offering a safer and more efficient alternative to traditional firefighting",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007534",
+   "title": "Analyzing Unmanned Aerial Vehicle (Drone) Attacks: A Disaster Medicine Perspective",
+   "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": true,
+   "moderation_terms": [
+    "explosive",
+    "military",
+    "terrorism",
+    "terrorist"
+   ]
+  },
+  {
+   "screening_id": "SCI-007545",
+   "title": "Geometry Optimization of Unmanned Aerial Vehicle (UAV) Hyperspectral Surveys for Water Quality Retrieval and Satellite Upscaling in Miningâ€‘Impacted Waters",
+   "abstract": "Efficient near-real-time monitoring of water quality is a global challenge. Rapidly developing UAV technologies offer new opportunities for high-resolution monitoring of surface-water conditions. This study evaluates the optimal configuration and acquisition strategy of a lightweight UAV-based visible and near-infrared (VNIR) hyperspectral system for quantitative water-quality assessment and detection of hydrogeochemical anomalies in mining-impacted areas. Field campaigns in three contrasting mining regions, two in Greece and one in Spain, assessed the systemâ€™s ability to retrieve total suspended solids (TSS) and dissolved iron (dissolved Fe). Multiple acquisition geometries were tested to evaluate their influence on quantitative retrieval. To reduce the effects of the low signal-to-noise ratio typical of water targets, Savitzkyâ€“Golay filtering was optimized, while Partial Least Squares Regression (PLSR) was used to assess the impact of acquisition geometry on model performance. The results show that the optimal acquisition geometry is parameter-dependent. TSS was retrieved most accurately from a single upstream flight line (RÂ²cal/val=0.782/0.634), whereas dissolved Fe estimation required spectra aggregated from multiple flight directions (RÂ²cal/val=0.778/0.328). Key spectral regions in the blue (415â€“470 nm) and red-edge (680â€“760 nm), related to TSS and Fe precipitates, were identified as most relevant for robust quantitative estimation. To support upscaling the hyperspectral water spectra to PlanetScope multispectral data, spectral similarity was evaluated using the Spectral Angle Mapper (SAM), showing that flight paths oriented away from the sun minimized deviations from spaceborne spectra. Overall, the study provides a reproducible, low-cost methodology for UAV-based hyperspectral water-quality monitoring and upscaling to multispectral satellite observations.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007556",
+   "title": "Sustainable Fabrication of Unmanned Aerial Vehicle (UAV) Blade using Composite PLA and Woven fabric of Date Palm Fiber (DPF)",
+   "abstract": "This study develops a sustainable composite material for UAV blades using woven polylactic acid (PLA) and date palm fiber (DPF). The biodegradable PLA matrix reinforced with DPF provides a lightweight and high-strength alternative to conventional epoxyâ€“glass fiber or carbon fiber composites, while significantly reducing environmental impact. DPF was first extracted and chemically treated to enhance surface adhesion. The fibers, with an average diameter of 220 Î¼m, were spun into yarns and woven into plain-weave fabrics with controlled uniformity. The woven mats were impregnated with PLA, ensuring effective fiber coating, improved moisture resistance, and the formation of prepreg textile sheets and molded to fabricate the UAV blade. The resulting composite exhibited a laminate thickness of 3 mm, suitable for aerodynamic blade design. Mechanical characterization showed tensile strength of 95 MPa and flexural strength of 150 MPa, with a specific modulus competitive with glass fiber composites at a fraction of the weight. Optimized fiber extraction and weaving improved fiberâ€“matrix bonding, while the plain weave configuration ensured stable load distribution under bending stresses. The proposed PLA/DPF composite demonstrates strong potential for UAV applications by combining structural integrity, weight reduction, and biodegradability. It not only upcycles agricultural waste but also offers a sustainable alternative to petroleum-based composites, enabling lower carbon footprint and end-of-life recyclability.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007568",
+   "title": "Test and numerical simulation of damage on an aircraft wing leading edge impacted by an unmanned aerial vehicle",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007578",
+   "title": "Design of a Real-Time Hand Gesture Control System for Unmanned Aerial Vehicles Using a Lightweight Multi-Scale Feature Extraction Network",
+   "abstract": "Abstract Hand gesture-based control provides an intuitive alternative to traditional remote controllers for operating Unmanned Aerial Vehicles (UAVs) in applications such as aerial cinematography and emergency response. However, existing vision-based gesture recognition methods often place high computational demands on onboard processors, which limits real-time response and may fail to capture long-range spatial dependencies under field conditions. A lightweight feature extraction method is presented for real-time gesture-based control of UAVs on resource-constrained onboard platforms. The method uses a three-stage downsampling architecture that reduces computational redundancy compared to conventional four-stage backbones. For multi-scale extraction, a module is introduced that combines parallel dilated convolutions for local detail extraction with a selective state space model for global dependency modeling. Practical training and inference optimizations, including extended training cycles and inference-time layer merging, are applied to improve performance without increasing model size. The method is evaluated on the public MD-UHGRD UAV gesture dataset. It achieves a mean average precision of 94.1% Â± 0.3, an inference frame rate of 47 Â± 0.6 FPS, and a parameter count of 9.8 M. Compared to SA-YOLO, it improves mAP by 0.9 percentage points, reduces parameters by 0.5 M, and increases inference speed by 2 FPS (paired t-test, p",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007588",
+   "title": "Integrated nitrogen and weed management on crop growth, soil biology and weed dynamics in aerobic rice",
+   "abstract": "Aerobic rice systems require efficient nutrient and weed management to sustain productivity, yet complex nitrogen dynamics and severe weed competition often reduce growth and yield. Scientific evidence on the combined effects of integrated nitrogen sources and weed management strategies in aerobic rice remains limited. A two-year split-plot field experiment was conducted during Kharif 2023 and 2024 to investigate the effect of integrated nitrogen and weed management practices on crop growth, soil microbial attributes, and weed density in aerobic rice. The experiment comprised of four levels of nutrient management treatments in main plot, (N1 - 100% STBNR (Soil Test Based Nitrogen Recommendation), N2 - 75% STBNR + 25% nitrogen supplied through FYM (Farm Yard Manure), N3 - 75% STBNR + Soil application of Azotobacter and Azospirillum, and N4 - 75% STBNR + 25% nitrogen supplied through FYM + soil application of Azotobacter and Azospirillum) and four sub plot treatments comprised of Pendimethalin (1 kg/ha) applied one day after sowing followed by bispyribac-sodium at 25 DAS; a stale seedbed (15 DBS) followed by brown manuring plus bispyribac-sodium (25 g/ha) at 25 DAS; a stale seedbed (15 DBS) followed by one hand weeding at 25 DAS; and a weedy check replicated thrice. The results revealed significant interaction between nitrogen and weed management across the pooled years. The treatment, combining 75% STBNR + 25% N through FYM + Azotobacter and Azospirillum with SSB fb 1 HW at 25 DAS, recorded the tallest plants (74.2 cm) and the highest LAI (4.19), statistically at par with the same under SSB fb BM. This treatment also exhibited a notably higher bacterial population and microbial biomass, indicating improved soil biology and nutrient availability. The lowest weed density was observed in 75% STBNR +25% nitrogen through FYM with SSB fb BM (7.15 no./mÂ²), which was at par with 75% STBNR +Azotobacter and Azospirillum with SSB fb BM. Plant height, and LAI showed significant positive correlations with bacterial population and microbial biomass carbon and negative correlations with total weed density and weed biomass, whereas weed indices strong positive relationships with weed density and biomass.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007598",
+   "title": "Integrated and multi-objective flight performance enhancement for a turbojet-powered unmanned aerial vehicle",
+   "abstract": "Abstract In this research article, integrated and multi-objective flight performance enhancement for a turbojet powered unmanned aerial vehicle (TJP-UAV) is considered. For this purpose, its autonomous flight control system (AFCS) and its (fuel mass/total mass) ratio are redesigned in order to enhance its trajectory tracking performance of the flight controller and also its general flight performance (i.e. maximum range, maximum endurance, and ceiling altitude). A TJP-UAV is manufactured in Erciyes University and Iskenderun Technical University drone laboratories and called as ERU-ISTE-TJP-UAV in this research article. Its AFCS parameters (i.e. gains of the relevant PID controllers) and its (fuel mass/total mass) ratio are stochastically revised in an integrated and multi-objective way for maximization of both of trajectory tracking performance of the flight controller and general flight performance by using a certain stochastic optimization tool. The optimized parameters are then used to create a simulation environment of autonomously flying TJP-UAV. A novel framework for application of integrated and multi-objective redesign concept in order to determine optimum values of AFCS parameters and fuel mass of a TJP-UAV is developed in this article. Another considerable contribution of this research article is implementation of the c-SPSA optimization for previously mentioned aim. These chief contributions result in much less energy consumption and satisfy green environmental demands. Additionally, 29.44% improvement in total cost index, 36.96% improvement in autonomous flight cost index and 24.78% improvement in general flight cost index are obtained for this optimized TJP-UAV compared to the default control and propulsion system design.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007609",
+   "title": "Wind Farm Unmanned Aerial Vehicle Autonomous Inspection System Based on Improved RRT Algorithm and Target Detection",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007620",
+   "title": "Particle Filtering-Based In-Flight Icing Detection for Unmanned Aerial Vehicles",
+   "abstract": "Ice accretion poses a threat to fixed-wing aerial vehicles as it alters the wingsâ€™ shape and thus degrades the aerodynamic performance. In manned aircraft, the icing detection system assists the pilot and utilises dedicated sensors. However, in unmanned aerial vehicles (UAVs), onboard icing detection can generally only be achieved using standard sensors in conjunction with dynamical models, because dedicated sensors are rarely available. In this paper, we propose two approaches based on the particle filter for both icing detection and accurate state and aerodynamic parameter estimation in the presence of icing, with different levels of severity. The first approach uses the observation likelihood for icing hypothesis testing with a complement of the Gaussian kernel to compute icing probability. The second approach uses a discrete jump approach based on a Bernoulli process and a subset of particles to test the icing hypothesis for faster icing detection by estimating changes in icing-related aerodynamic parameters. Using both approaches, the simulation results demonstrate improved estimation accuracy compared to an extended Kalman filter (EKF), under both moderate and severe icing conditions. With adequate tuning, the proposed approaches show potential for indirect icing detection in UAVs. They also enable the computation of icing severity and provide a more accurate and reliable estimate of the icing probability compared to the EKF.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007631",
+   "title": "U-STAR-PIML: Uncertainty-Aware Staged Trust-Adaptive Residual Physics-Informed Machine Learning for Recursive Fixed-Wing Unmanned Aerial Vehicle Dynamics Prediction",
+   "abstract": "This study proposes Uncertainty-Aware Staged Trust-Adaptive Residual Physics-Informed Machine Learning (U-STAR-PIML), a recursive one-step dynamics model for fixed-wing unmanned aerial vehicles, evaluated with the JSBSim C172x as a surrogate simulation benchmark. It combines a learnable compact six-degree-of-freedom prior, history-dependent temporal residual correction, trust-aware state-dependent residual gating, hard kinematics, a heteroscedastic one-step uncertainty head, and staged optimization. The protocol separates one-step accuracy, recursive rollout, predictive-interval behavior, and physically distinct distribution shifts. Across five training seeds, the full U-STAR-PIML model (E5) achieves a mean one-step root-mean-square error (RMSE) of 0.005515Â±0.000009 and the lowest mean rollout-position RMSE of 18.61Â±2.15 m; the data-driven baseline has the lowest 20 s all-state RMSE of 2.923Â±0.623. Recursive rankings remain seed-sensitive, without a universal winner. For the representative E5 cross-condition evaluation, the exact wind vector used in the JSBSim simulation is supplied to the model at every prediction step, i.e., perfect wind information is assumed. Under this assumption, wind out-of-distribution (OOD) conditions cause the largest degradation, with rollout-position RMSE reaching 72.76 m; wind-estimation error is not evaluated. An external zero-shot evaluation on 10 independent IDF-DS Ranger 2400 real-flight logs reduces pooled one-step all-state RMSE from 0.12374 for Persistence to 0.03379, although improvements are not uniform across dynamic state groups. The uncertainty head yields 95% empirical coverage of 96.68â€“100%, with conservative over-coverage under most conditions. These results support simulation-based prediction and an initial cross-airframe transfer diagnostic but do not establish same-airframe sim-to-real transfer, recursive real-flight stability, or operational validity.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007641",
+   "title": "Ð¡Ð˜Ð¡Ð¢Ð•ÐœÐ ÐœÐžÐÐ†Ð¢ÐžÐ Ð˜ÐÐ“Ð£ ÐŸÐžÐ’Ð†Ð¢Ð Ð¯ÐÐžÐ“Ðž ÐŸÐ ÐžÐ¡Ð¢ÐžÐ Ð£ Ð— ÐÐ’Ð¢ÐžÐœÐÐ¢Ð˜Ð§ÐÐ˜Ðœ ÐŸÐžÐ”ÐÐ’Ð›Ð•ÐÐÐ¯Ðœ Ð’Ð†Ð”Ð•ÐžÐ—Ð’â€™Ð¯Ð—ÐšÐ£ Ð‘Ð•Ð—ÐŸÐ†Ð›ÐžÐ¢ÐÐ˜Ð¥ Ð›Ð†Ð¢ÐÐ›Ð¬ÐÐ˜Ð¥ ÐÐŸÐÐ ÐÐ¢Ð†Ð’",
+   "abstract": "The article substantiates the prerequisites for the development of an integrated automatic airspace monitoring system with the function of blocking the video communication channels of enemy unmanned aerial vehicles.An algorithm for its operation is proposed, which is aimed at performing these specific tasks and provides for its operation in automatic mode without operator intervention.The algorithms created correspond to current trends in the field of electronic warfare against flying objects and are aimed at maximum protection of the operator of the electronic warfare device during its operation.A structural logical diagram of the airspace monitoring system has been modeled, consisting of five clusters: threats (UAV complex with their operators), airspace radio monitoring subsystem with a receiving antenna complex, directed jamming subsystem with a transmitting antenna complex, automatic control subsystem, and administrative and management decision-making cluster.The proposed electronic warfare system provides a basis",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007651",
+   "title": "Research on Optimization Model of Flight Test Mission Schedule Management for Civil Aircraft",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007661",
+   "title": "Pelatihan Perakitan Unmanned Aerial Vehicle (UAV) dengan Pemanfaatan Komponen dan Peralatan UAV untuk Meningkatkan Daya Saing Siswa Sekolah Menengah Kejuruan",
+   "abstract": "Background: Pesatnya perkembangan industri Unmanned Aerial Vehicle (UAV) membuka peluang besar bagi lulusan pendidikan vokasi untuk terlibat dalam sektor teknologi dan rekayasa. Namun, keterbatasan fasilitas praktik dan dominasi pembelajaran teoritis di SMK menjadi tantangan dalam menyiapkan lulusan yang siap kerja. Penelitian ini bertujuan untuk mengembangkan model pelatihan UAV berbasis praktik bagi siswa SMK Angkasa 1 Jakarta guna meningkatkan daya saing dan keterampilan teknis mereka. Metode: Metode pelatihan yang diterapkan mencakup sosialisasi, demonstrasi, dan pembelajaran berbasis proyek (Project-Based Learning), yang diikuti oleh 30 siswa dari jurusan teknik terkait. Evaluasi dilakukan melalui pre-test dan post-test, observasi, dan kuesioner. Hasil: Hasil penelitian menunjukkan adanya peningkatan signifikan skor pengetahuan siswa dari 79,43 menjadi 88,00 (p = 0,007). Hasil kuesioner menunjukkan tingkat kepuasan siswa dan guru yang tinggi, dengan rata-rata skor di atas 4,00 dari skala 5. Observasi juga mengungkap keterlibatan aktif siswa serta tantangan dalam hal keterbatasan fasilitas dan tenaga pengajar. Kesimpulan: Kesimpulannya, pelatihan UAV berbasis praktik terbukti efektif meningkatkan kompetensi siswa dan layak untuk diintegrasikan ke dalam kurikulum atau kegiatan ekstrakurikuler di SMK.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007672",
+   "title": "Rainy traffic parameters high-precision measurement methodology based on aerial images from unmanned aerial vehicle",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007682",
+   "title": "Features of building a neural network based on MobileNetV2 models in unmanned aerial vehicle detection tasks",
+   "abstract": "This article delineates the development and calibration of neural network models based on MobileNetV2-SSD (Single Shot MultiBox Detector) and MobileNetV2-SSD FPN-Lite (Feature Pyramid Network) architectures for addressing the detection of unmanned aerial vehicles (UAV). The author conducts a systematic investigation of the structural characteristics underlying the supplementary SSD- and FPN- layers incorporated within these models, aiming to achieve robust detection performance across a spectrum of drone dimensions, as quantified by accuracy and recall metrics. The research validates the documented limitations of existing architectures in detecting small-scale objects within image datasets. By strategically integrating additional layers that assimilate feature representations from the early strata of the base network and generate composite feature maps for detection purposes, the study demonstrates a substantial elevation in mean Average Precision (mAP) by 20 % and an improvement in F1-score balance by 38 % relative to the foundational model. Additionally, the investigation furnishes a comprehensive set of recommendations for hyperparameter optimization to maximize model performance, accompanied by practical guidance regarding training dataset composition and preparation protocols tailored to the particular characteristics of input imagery. Remarkably, the research also revealed an unexpected enhancement in model performance following the quantization process for deployment on edge computing devices, a phenomenon potentially explained by regularization effects inherent to the compilation and quantization pipeline.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007694",
+   "title": "LP-SAC: A Temporal Reinforcement Learning Optimization Framework for Unmanned Aerial Vehicle Task Offloading",
+   "abstract": "With the rapid advancement of mobile edge computing (MEC), unmanned aerial vehicle (UAV) technology has become widely adopted in task offloading scenarios for ground users due to their flexible deployment and wide-area coverage. However, under random user mobility and dynamically varying communication environments, conventional offloading strategies struggle to effectively process temporal data, leading to low training efficiency and unstable decision performance. To address these challenges, this paper develops a UAV-assisted task offloading framework for mobile users, which jointly considers communication rates, computational capability, and UAV flight energy consumption. We propose an improved Soft Actor-Critic (SAC) algorithm, termed LP-SAC, which integrates a Long Short-Term Memory (LSTM) network and a Prioritized Experience Replay (PER) mechanism. The algorithm aims to minimize the overall system delay by capturing temporal dependencies via LSTM, enhancing sample utilization through PER, and improving exploration and stability within the maximum-entropy reinforcement learning framework. Experimental results demonstrate that, compared with Deep Q-Network (DQN), Deep Deterministic Policy Gradient (DDPG), Twin Delayed Deep Deterministic Policy Gradient (TD3), and SAC, the proposed LPSAC significantly reduces task completion delay and exhibits superior training convergence and policy stability, providing an effective optimization solution for mobile UAV-assisted task offloading systems.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007706",
+   "title": "Optimizing Unmanned Aerial Vehicle Battery Management for Energyâ€Aware Mapping Missions",
+   "abstract": "Unmanned aerial vehicles are widely used for mapping and surveillance applications. A challenging task in mission planning is managing battery use, especially when mapping large areas in a single operation. Mission planning in this case leads to an optimization problem that is generally computationally demanding and intractable in practice. This study proposes a new optimization formulation that addresses these drawbacks. The proposed strategy is aimed at reducing total flight duration by scheduling necessary battery replacements under energy constraints due to limited battery capacities. The approach also optimizes the locations of base stations for battery replacements to minimize the overall mission flight distance, avoiding unnecessary long flights to and from the base. The developed strategy is validated in two realâ€world mapping missions. In each case, the optimal solution is compared with a benchmark in which the mapping area is divided according to the planned battery capacities. Both simulation and experimental results demonstrate that the proposed approach reduces the number of required battery replacements and the total flight and mission duration by up to 20%. Moreover, mission safety is enhanced by reducing the number of highâ€risk takeoffs and landings. These findings demonstrate that the proposed optimization strategy improves both efficiency and safety in unmanned aerial vehicle mission planning.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007717",
+   "title": "Impact of sowing time and integrated weed management approaches on weed dynamics, crop growth and yield in dry-direct seeded rice",
+   "abstract": "A field experiment was conducted at G. B. Pant University of Agriculture and Technology, Pantnagar, Uttarakhand, India, during the Kharif seasons of 2023 and 2024 to evaluate the impact of different sowing time and weed management approaches on weed flora and crop yield of dry direct-seeded rice. The experiment was laid out under split plot design with three main plots and five sub plots and replicated thrice. The treatments comprised of three sowing dates (1st June, 10th June, and 20th June) and five weed management treatments viz., W1- Pendimethalin 38.7 CS 678 g/ha (PE) fb penoxsulum 1.02% w/w + cyhalofop-butyl (RM) 5.17 w/w OD 135 g/ha (PoE), W2-Pendimethalin 38.4% + pyrazosulfuron 0.85% (RM) 785 g/ha (PE) fb penoxsulum 21.7% SC 93.7 g/ha (PoE) fb one hand weeding at 40 DAS, W3- Penoxsulum 1% + pendimethalin 24% (RM) 625 g/ha (PE) fb bispyribac sodium 10% EC 25 g/ha (PoE), W4- Three manual hand weeding at 20, 40 and 60 DAS and W5-Weedy check. The experimental results revealed that the least weed density, weed dry weight and highest weed control efficiency was observed at 60 DAS and at harvest stage, (92.03 and 87.27% in 2023; 91.44 and 90.32% in 2024), respectively, with sowing on 20th June as compared to earlier sowing dates on 1st June and 10th June. Among weed management strategies, integrated treatment consisting of pre-emergence application of pendimethalin 38.4% + pyrazosulfuron 0.85% (RM) 785 g/ha followed by post-emergence penoxsulam 21.7% SC 93.7 g/ha followed by one hand weeding at 40 DAS recorded lowest total weed density and dry weight while achieved higher weed control efficiency (97.35 and 92.84% in 2023; 97.74 and 96.09% in 2024) at 60 DAS and harvest stage, respectively. Effective weed suppression under this combination of sowing time with integrated weed management treatment resulted in more tiller survival, higher panicle density and higher crop yield (5.41 t/ha in 2023 and 6.37 t/ha in 2024). The number of panicles per square meter was significantly higher under 20th June sowing combined with integrated weed management, while the weedy check recorded more than 60% reduction in panicle number due to severe weed competition. The study highlights that optimum sowing time coupled with integrated weed management is crucial for minimizing weed interference and improving productivity of dry direct-seeded rice under Kharif conditions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007728",
+   "title": "A Comparative Study of INDI and NDI with Nonlinear Disturbance Observer for Aerial Robotics",
+   "abstract": "This work presents a simulation-based comparative robustness analysis of Incremental Nonlinear Dynamic Inversion (INDI) and Nonlinear Dynamic Inversion augmented with a nonlinear disturbance observer (NDI+NDO) for fully actuated aerial robots. A systematic simulation campaign across representative operating scenarios is conducted, where we compare tracking performance, robustness, control effort, under parametric variations, external disturbances, and measurement noise. Results show that INDI demonstrates stronger robustness in several model-mismatch and combined-stress cases, while NDI+NDO primarily matches nominal performance but exhibits greater sensitivity under several non-ideal conditions. These findings provide practical guidance on the relative strengths and limitations of incremental and observer-based inversion strategies for aerial robotic applications.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007738",
+   "title": "Eyes on the mission: Mixed methods assessment of eye-tracker-enabled interactive decision support in a simulated unmanned aerial vehicle system",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007748",
+   "title": "A Hybrid CNN Framework for Intrusion Detection in Unmanned Aerial Vehicles",
+   "abstract": "Unmanned Aerial Vehicles (UAVs) are progressively implemented in sensitive applications for instance healthcare, agriculture, industrial inspection, and smart monitoring systems. Their dependence on wireless communication, localization sensors, and self-governing decision makes them susceptible to various cyberattacks , and data injection attacks that can compromise system integrity and robustness. To mitigate these security issues, this paper develops a hybrid CNN-LSTM intrusion detection system (IDS) for UAVs. The model is learned and assessed based on a public cyber dataset incorporating five classes, including one benign class and four types of attacks False Data Injection (FDI), Evil Twin, replay, and DoS. Data preprocessing and SMOTE augmentation techniques are employed to manage class uneven distribution and improve the model performance. Experimental results reveal that the suggested IDS attains superior detection accuracy about 97% further low loss, emphasizing its effectiveness in safeguarding UAV systems against multiple malicious threats.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007759",
+   "title": "Study of the Unmanned Aerial Vehicle Propeller Performances Near Ceiling: Experimental, Numerical and CFD-based Approaches",
+   "abstract": "Abstract The ceiling effect is a significant factor for unmanned aerial vehicle (UAV) missions that require close flight in the proximity of top planar boundaries such as inverted docking, perching, and flight in a confined space. In this study, the ceiling effect on a 5.5-inch propeller of a small UAV and a 9-inch of a medium-sized UAV was modeled and simulated using computational fluid dynamics (CFD) with multiple reference frame (MRF) method. The result was then validated by an experimental method at propeller speeds ranging from 5000 to 9000 RPM. For the near-ceiling region, computational fluid dynamics and experiment setup results for the propeller thrust were compared with the Cheeseman and Bennett model, the Hayden model, and also using the Conyers model. The results showed a close agreement between the computational fluid dynamics and experimental results, as well to the theoretical models, with some errors. Further, the validated CFD results were used to investigate the extreme-near ceiling region, which is not currently covered by the theoretical models. Our contribution in this study wishes to provide more understanding of such effects in the extreme near ceiling on a single-rotor model by using the velocity streamlines, thus possibly expand to multi-rotor unmanned aerial vehicles (UAVs) of different sizes in future research.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007771",
+   "title": "Autonomous Ground Vehicle for Precision Weed Detection and Targeted Pesticide Spraying Using Deep Learning",
+   "abstract": "Efficient and targeted weed management remains a significant challenge in modern agriculture, as conventional blanket pesticide application increases chemical consumption, operational cost, and environmental impact. This paper presents an autonomous ground vehicle for precision weed control that integrates perception, navigation, and actuation within a single platform. The system employs a Light Detection and Ranging (LiDAR) sensor for autonomous navigation across uneven agricultural terrain. Simultaneously, a real-time weed detection and classification pipeline is implemented using the YOLO (You Only Look Once) deep learning framework integrated with a camera-based vision system. The proposed framework continuously captures field imagery along an autonomously generated navigation path and performs real-time object detection to identify and classify weed species. Detected weeds are spatially localized with high inference speed and evaluated using standard performance metrics, including mean Average Precision (mAP) and Intersection over Union (IoU). Based on the classification output, control commands are generated to actuate a localized pesticide spraying mechanism, ensuring chemical application is restricted exclusively to detected weed regions. Experimental results demonstrate the feasibility of combining deep learningbased object detection with autonomous agricultural vehicles for accurate and scalable precision spraying. The proposed system reduces unnecessary pesticide usage and off-target spraying, contributing to more sustainable and environmentally responsible weed management practices.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007781",
+   "title": "Study on Rotor Interactional Effects on Aerodynamic Noise Characteristics of Quadrotor Unmanned Aerial Vehicle",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007791",
+   "title": "From Detection to Countermeasure: A Review of Key Technologies in Counterâ€Unmanned Aerial Vehicle Systems",
+   "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": true,
+   "moderation_terms": [
+    "military"
+   ]
+  },
+  {
+   "screening_id": "SCI-007806",
+   "title": "Evaluation of Topographic Correction Models in Multispectral Images Acquired by Unmanned Aerial Vehicle (UAV)",
+   "abstract": "Topographic effects can introduce radiometric distortions in multispectral images acquired by Unmanned Aerial Vehicles (UAVs), compromising their reliability for environmental and agricultural applications.This study evaluates the performance of six classical topographic correction models: Simple Ratio, Cosine, C Correction, SCS+C, Empirical-Statistical, and Empirical-Rotational, applied to high-resolution UAV imagery.Data collection was conducted using a DJI Mavic 3 Multispectral at an altitude of 75.9 meters over a 0.5-hectare area with irregular relief.A total of 84 multispectral images were acquired and processed.Descriptive statistics (mean, median, and standard deviation) were estimated using ten calibration panels to assess the models.Results demonstrated that C Correction and Empirical-Rotational consistently reduced variability among calibration panels, providing the most effective correction without altering mean reflectance values.In contrast, the Simple Ratio and Empirical-Statistical models increased data dispersion, indicating limited suitability for UAV imagery in complex terrain.These findings emphasize the importance of selecting appropriate topographic correction models to ensure consistent spectral responses, thereby supporting applications such as vegetation monitoring, biomass estimation, and environmental studies.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007816",
+   "title": "Focused Review of Energy Storage and Proton Exchange Membrane Fuel Cells for Unmanned Aerial Vehicles for [REDACTED] Applications: Relay Drones",
+   "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": true,
+   "moderation_terms": [
+    "military"
+   ]
+  },
+  {
+   "screening_id": "SCI-007827",
+   "title": "A multi-strategy enhanced whale optimisation algorithm for three-dimensional unmanned aerial vehicle path planning",
+   "abstract": "To address the issues of slow convergence and susceptibility to local optima encountered by traditional whale optimization algorithms when solving three-dimensional UAV path planning problems, this paper proposes an Improved Whale Optimization Algorithm (IWOA) for optimizing UAV paths. The IWOA incorporates nonlinear adaptive parameters and employs a random reuse strategy with nonlinear inertial weights to accelerate convergence, enhance the probability of escaping local optima, and strengthen the algorithm's optimization capabilities. The IWOA is compared with Particle Swarm Optimization (PSO), Successive Convex Approximation (SCA), WOA algorithms on the CEC2005 test function set and complex terrains meeting practical mission requirements. Simulation comparisons reveal that the proposed IWOA algorithm demonstrates superior convergence performance across 23 test functions. For UAV path planning, the IWOA-optimized objective function achieves the minimum value while generating shorter paths, effectively addressing the core challenges of limited endurance and obstacle avoidance in complex environments.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007838",
+   "title": "A Hybrid Multi-Criteria Decision-Making Approach for Sustainable Forest Fire Monitoring Using Unmanned Aerial Vehicles",
+   "abstract": "Unmanned aerial vehicles (UAVs) have become an effective tool for forest fire monitoring. This study evaluates UAVs for forest fire management, addressing the challenges posed by ambiguous and uncertain factors. Single-valued neutrosophic sets (SVNSs) are employed to model complex uncertainties, as they incorporate three distinct membership values: false, true, and indeterminate. The evaluation of UAVs is a multifaceted task due to the variety of factors involved. To address this complexity, multi-criteria decision-making (MCDM) methods are used. Specifically, the Analytic Hierarchy Process (AHP) and the Technique for Order of Preference by Similarity to Ideal Solution (TOPSIS) are integrated with SVNS to compute UAV factor weights (via AHP) and rank the UAVs (via SVN-TOPSIS). This study examines sixteen criteria for evaluating ten UAVs to identify the optimal one for forest fire monitoring. A sensitivity analysis is conducted to assess the stability of the results, varying criteria weights and observing their impact on the rankings. The findings confirm the robustness of the proposed methodology, with stable outcomes across different scenarios. A comparative analysis with other MCDM methods (such as CODAS, VIKOR, COPRAS, MABAC, and a fuzzy framework) shows a strong correlation between the results from the proposed model and those from the alternative MCDM approaches.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007848",
+   "title": "Fault-Tolerant Control for Quadrotor Unmanned Aerial Vehicle with Nonlinearities and Unknown External Disturbances",
+   "abstract": "Since an unmanned aerial vehicle (UAV) system is nonlinear, underactuated, and strongly coupled, controlling UAVs is not a trivial task. Furthermore, when actuator faults and the transient performance when disturbances change are taken into account, the control problem becomes even more challenging. This paper inserts a nonlinear control law into the conventional equivalent-input-disturbance (EID) approach for reducing the fluctuation of the system output when disturbances change. Combing the nonlinear control law with the EID approach yields an adaptive EID approach. This paper applies the adaptive EID approach to address actuator faults and improve the transient performance in nonlinear UAVs for the first time, and proposes an adaptive EID-based fault-tolerant control strategy to tackle the aforementioned challenges. Actuator faults are transformed into parameter uncertainties. Four EID estimators are then designed to suppress nonlinearities, disturbances, and actuator faults simultaneously. Furthermore, exact linearization is employed to compensate for the nonlinearities inherent in quadrotor unmanned aerial vehicle (QUAV) systems. As a result, the stability conditions are analyzed using the concept of globally uniformly ultimate boundedness (GUUB), which simplifies the tuning of controller parameters. In addition, exact linearization helps enlarge the stability region. The effectiveness of the proposed approach is demonstrated through simulation results in both way-point tracking and periodic-trajectory tracking control.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-007861",
+   "title": "An Enhanced Deep Reinforcement Learning (DRL)-Guided Hybrid Planner for Unmanned Aerial Vehicle Path Planning in Complex Environments",
+   "abstract": "Unmanned Aerial Vehicles (UAVs) are currently essential for disaster response, environmental monitoring, logistics, precision agriculture, and surveillance. UAVs must plan paths that are globally efficient, locally responsive, and kinematically smooth in cluttered, dynamic spaces. Artificial intelligence (AI) methods, especially deep reinforcement learning (DRL), have shown promise in reducing brittle hand-tuning while complementing classical planners such as A*, which remains a reliable global backbone. We introduce a DRL-guided hybrid that supervises an A* global planner and a dynamic window approach (DWA) local navigator by reweighting the A* heuristic, managing waypoint sub-goals, and adaptively tuning DWA's scoring terms from real-time risk features; this learned meta-control replaces fixed gains and outperforms prior A* + DWA fusions and end-to-end DRL by retaining deterministic guarantees while adding context-aware adaptability. Our performance evaluations show that our DRL-guided planner reduces pathfinding runtime by over 55% and total mission time by 24% while preserving safety. Trajectories are markedly smoother, showing a 24.2% reduction in total corner degree, which better matches UAV kinematic constraints. Additionally, we observe consistent improvements in obstacle clearance and fewer evasive dead-ends than a tuned A* + DWA baseline. Replanning latency is lower across all dynamic scenarios, yielding faster recovery from environmental changes.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  }
+ ]
+}

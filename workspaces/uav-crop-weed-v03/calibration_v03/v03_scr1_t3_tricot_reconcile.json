@@ -1,0 +1,7524 @@
+{
+  "wave": "SCR1-T3-20261018",
+  "t3_totals": {
+    "EXCLUDE": 641,
+    "PENDING": 133,
+    "INCLUDE": 40
+  },
+  "t3_audit": {
+    "packs_clean": 17,
+    "problems": []
+  },
+  "guardrail_adjacent_excludes": [
+    {
+      "pack": 1,
+      "sid": "SCI-000005",
+      "redacted": true,
+      "raw_code": "WRONG_REPORT_TYPE",
+      "title": "Crop Monitoring using Unmanned Aerial Vehicles: A Review"
+    },
+    {
+      "pack": 1,
+      "sid": "SCI-000102",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Unmanned Aerial Vehicle-Based Multispectral Remote Sensing for Commercially Important Aromatic Crops in India for Its Efficient Monitoring and Management"
+    },
+    {
+      "pack": 1,
+      "sid": "SCI-000231",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "UAV-Based Monitoring of Water Hyacinth for Invasive Weed Management: A Hybrid Detection–Segmentation Deep Learning Approach"
+    },
+    {
+      "pack": 2,
+      "sid": "SCI-000534",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Comparing Supervised and Semi-supervised Machine Learning Methods for Mapping Aquatic Weeds, as Biomass Resource from High-Resolution UAV Images"
+    },
+    {
+      "pack": 3,
+      "sid": "SCI-000847",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Assessing the impact of soil and field conditions on cotton crop emergence using UAV-based imagery"
+    },
+    {
+      "pack": 6,
+      "sid": "SCI-001512",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "A Minimalist Approach to Yield Mapping of Standing Wheat Crop with Unmanned Aerial Vehicles"
+    },
+    {
+      "pack": 6,
+      "sid": "SCI-001598",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Prediction of Citronella Chlorophyll Content for Crop Health Non-Invasively Using Unmanned Aerial Vehicle Sensors and Machine Learning"
+    },
+    {
+      "pack": 7,
+      "sid": "SCI-002878",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Selection of Optimal Vegetation Indices for Predicting Winter Crop Dry Matter Based on Unmanned Aerial Vehicle"
+    },
+    {
+      "pack": 8,
+      "sid": "SCI-003714",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "TEMPERATURE DYNAMICS CHARACTERISTIC OF SPRING BARLEY CROPS BASED ON UNMANNED AERIAL VEHICLE DATA"
+    },
+    {
+      "pack": 9,
+      "sid": "SCI-005561",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Applications of Artificial Intelligence and Image Processing Using Unmanned Air Vehicle (UAV) for Crop Health Identification"
+    },
+    {
+      "pack": 10,
+      "sid": "SCI-005698",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "The Use of Unmanned Aerial Vehicle (UAV) Thermal and Multispectral Products in Quantifying Crop Water Use for Irrigated Barley Crop"
+    },
+    {
+      "pack": 11,
+      "sid": "SCI-007416",
+      "redacted": false,
+      "raw_code": "WRONG_REPORT_TYPE",
+      "title": "Correction: Gokool et al. Crop Monitoring in Smallholder Farms Using Unmanned Aerial Vehicles to Facilitate Precision Agriculture Practices: A Scoping Review and Bibliometric Analysis. Sustainability 2023, 15, 3557"
+    },
+    {
+      "pack": 11,
+      "sid": "SCI-008252",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Analysis of Normalized Vegetation Index in Castile Coffee Crops, Using Mosaics of Multispectral Images Acquired by Unmanned Aerial Vehicle (UAV)"
+    },
+    {
+      "pack": 12,
+      "sid": "SCI-008676",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Estimating leaf chlorophyll content of crops via optimal unmanned aerial vehicle hyperspectral data at multi-scales"
+    },
+    {
+      "pack": 13,
+      "sid": "SCI-009825",
+      "redacted": false,
+      "raw_code": "WRONG_REPORT_TYPE",
+      "title": "A review of unmanned aerial vehicle-based methods for plant stand count evaluation in row crops"
+    },
+    {
+      "pack": 14,
+      "sid": "SCI-011268",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Double-spraying with different routes significantly improved the performance of both pre- and post-emergence wheat herbicides applied by unmanned aerial spraying systems"
+    },
+    {
+      "pack": 14,
+      "sid": "SCI-011536",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Unmanned aerial vehicles (UAVs)-based crop lodging susceptibility and seed yield assessment during different growth stages of rapeseed (Brassica napus)"
+    },
+    {
+      "pack": 15,
+      "sid": "SCI-011864",
+      "redacted": false,
+      "raw_code": "WRONG_TASK",
+      "title": "Extraction of crop canopy features and decision-making for variable spraying based on unmanned aerial vehicle LiDAR data"
+    }
+  ],
+  "redacted_code_normalizations": [
+    {
+      "pack": 1,
+      "sid": "SCI-000005",
+      "raw_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "pack": 8,
+      "sid": "SCI-003689",
+      "raw_code": "WRONG_TASK"
+    },
+    {
+      "pack": 9,
+      "sid": "SCI-005446",
+      "raw_code": "WRONG_TASK"
+    },
+    {
+      "pack": 10,
+      "sid": "SCI-006399",
+      "raw_code": "WRONG_TASK"
+    },
+    {
+      "pack": 10,
+      "sid": "SCI-006522",
+      "raw_code": "WRONG_TASK"
+    },
+    {
+      "pack": 12,
+      "sid": "SCI-009129",
+      "raw_code": "WRONG_TASK"
+    },
+    {
+      "pack": 12,
+      "sid": "SCI-009496",
+      "raw_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "pack": 16,
+      "sid": "SCI-012933",
+      "raw_code": "WRONG_TASK"
+    }
+  ],
+  "lane_scope": "814 conflict records only (mutual INCLUDE/EXCLUDE/PENDING unchanged)",
+  "triway_class_histogram": {
+    "majority_exclude": 620,
+    "majority_pending": 115,
+    "tie_three_way": 41,
+    "majority_include": 38
+  },
+  "suggested_histogram": {
+    "EXCLUDE": 620,
+    "PENDING": 115,
+    "ADJUDICATE": 41,
+    "INCLUDE": 38
+  },
+  "outcomes": [
+    {
+      "sid": "SCI-000001",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000004",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000005",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-000007",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000016",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000018",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000019",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000020",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000026",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000028",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000032",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000040",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000065",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000075",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000077",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-000086",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000092",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000094",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000097",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000100",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000102",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000106",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000108",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000110",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000116",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000118",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000123",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000124",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000140",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-000143",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000144",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000169",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000174",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000211",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000225",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000229",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000231",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000232",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000234",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000241",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000242",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000243",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000248",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000257",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000261",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "INC-01"
+    },
+    {
+      "sid": "SCI-000270",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000276",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01"
+    },
+    {
+      "sid": "SCI-000305",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000318",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000335",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000352",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000359",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000364",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000366",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000370",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000379",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000382",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000390",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000391",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000398",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000404",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000410",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000419",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000423",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-000425",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000427",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01"
+    },
+    {
+      "sid": "SCI-000432",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000438",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000448",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-000459",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000460",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-000469",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000474",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000520",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000528",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000531",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000534",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000537",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000540",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000542",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000546",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000548",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000549",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-000550",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000552",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000554",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000562",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000565",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000567",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000570",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000571",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000586",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000587",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000597",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000599",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-000603",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000613",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000614",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000617",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000627",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000631",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000634",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-000635",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000637",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000639",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000642",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000650",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000651",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000652",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000654",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000658",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000669",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-000676",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000685",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000694",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000700",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000713",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000714",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000719",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000722",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000725",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000730",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000764",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000766",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000775",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000777",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000784",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000793",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000802",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000812",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000816",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000821",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000835",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_REPORT_STATUS"
+    },
+    {
+      "sid": "SCI-000837",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000840",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000847",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000850",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000852",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000854",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000855",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_PLATFORM"
+    },
+    {
+      "sid": "SCI-000858",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-000859",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000867",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "MODERATION_TITLE_ONLY"
+    },
+    {
+      "sid": "SCI-000868",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000873",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000877",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000878",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000880",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000885",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000894",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "BOUNDARY_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-000895",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000899",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000906",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000925",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000928",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000935",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000938",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-000942",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000945",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-000946",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_PLATFORM_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-000952",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-000954",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000962",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000964",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000967",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-000971",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000974",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-000979",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000981",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000989",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000990",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-000993",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-000995",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001000",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001006",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001008",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001009",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001014",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001021",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001022",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001023",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001027",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-001029",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-001030",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001032",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001051",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_DATE_LANGUAGE_UNVERIFIED"
+    },
+    {
+      "sid": "SCI-001056",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001059",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001062",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001067",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001068",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001071",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001075",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001079",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001083",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001094",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001095",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001099",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001100",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001101",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001108",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001109",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001110",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001124",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001125",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001126",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001128",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-001141",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001145",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001148",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001154",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001158",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001161",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001164",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001165",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001166",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001178",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001181",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001187",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001192",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001194",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001201",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001207",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_TASK_MIXED"
+    },
+    {
+      "sid": "SCI-001219",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001226",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001228",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-001237",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001240",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001243",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001250",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001253",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001255",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001261",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001280",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001284",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001289",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001296",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001297",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001300",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001301",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001319",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001334",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001335",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001336",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001343",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001353",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001355",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-001375",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001384",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001418",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-001450",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001457",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001459",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-001464",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001475",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001487",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001512",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001538",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001547",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001555",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001560",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001565",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-001577",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001588",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001596",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001598",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001678",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001685",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001700",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001713",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001716",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001722",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001766",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001767",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001772",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001780",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001793",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001801",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001819",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001843",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001855",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001856",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_NULL_ABSTRACT"
+    },
+    {
+      "sid": "SCI-001866",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001890",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001913",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-001919",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUT_OF_SCOPE"
+    },
+    {
+      "sid": "SCI-001928",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-001934",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001959",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-001963",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001967",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-001997",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_ABSTRACT_BOILERPLATE"
+    },
+    {
+      "sid": "SCI-002029",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002043",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002085",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002090",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002117",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002123",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002155",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002224",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002256",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002268",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002271",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-002273",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_AMBIGUOUS_TASK"
+    },
+    {
+      "sid": "SCI-002275",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002288",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_AMBIGUOUS_STUDY"
+    },
+    {
+      "sid": "SCI-002290",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002291",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002319",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/INC-02"
+    },
+    {
+      "sid": "SCI-002329",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002338",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002345",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002367",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002373",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002374",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002422",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002434",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002466",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002469",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002517",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-002566",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-002648",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002651",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002688",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002700",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002701",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-002702",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-002727",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002754",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002833",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002841",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002853",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-002878",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002945",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-002955",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003016",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003018",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003101",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003105",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003143",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-003198",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003209",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003213",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003230",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003237",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003272",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003274",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003308",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003337",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003349",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003386",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003402",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003425",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-003429",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003431",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003464",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003474",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003500",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-003522",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003536",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003537",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003542",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003545",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-003567",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003572",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003579",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003586",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003594",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-003602",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003640",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003659",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003689",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-003714",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003719",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003722",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003727",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003758",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003787",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-003805",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003821",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003835",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-003850",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-003949",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-003955",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004060",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004073",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004140",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004145",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-004215",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-004268",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004277",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-004286",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004311",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004337",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004449",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004459",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004463",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004515",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004534",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004536",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004593",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-004633",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004634",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004636",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004642",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004663",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-004718",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004730",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004731",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004754",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004798",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004813",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004887",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004894",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004944",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-004947",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-004971",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-004982",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005000",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005012",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005017",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005030",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005051",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005079",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005096",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005110",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005131",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005158",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005173",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005178",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005189",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005207",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005224",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005258",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005278",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005305",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005306",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005356",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-005374",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-005377",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005385",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005443",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005446",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-005482",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-005484",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005497",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-005526",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005531",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-005561",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005568",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005570",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005578",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-005591",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005592",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005594",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-005597",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005677",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-005698",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005731",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005764",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-005767",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005865",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-005904",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-005922",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005945",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005951",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-005967",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006000",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-006041",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006050",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-006051",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006169",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-006287",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006296",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006308",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006331",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006335",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-006342",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006380",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-006399",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-006442",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006449",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006454",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006490",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-006504",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-006519",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006522",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-006585",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006595",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-006639",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006646",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006694",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-006704",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006757",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006835",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006926",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-006934",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-006938",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-006977",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007059",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007061",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007076",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TASK_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007077",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007119",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007133",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007158",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007165",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007216",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007245",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-007266",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-007269",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-007325",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007354",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-007363",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007378",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-007403",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007416",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-007450",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007452",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-007469",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-007486",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-007530",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007538",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007604",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007617",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007688",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007701",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007705",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007754",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-007761",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007795",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007798",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007859",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-007878",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-007994",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008011",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008012",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008017",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-008077",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-008084",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008102",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008103",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008162",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-008163",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-008191",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-008252",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008283",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-008334",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008336",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008342",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008425",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008432",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008499",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008538",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008573",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008654",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008676",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008681",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008691",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008711",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008768",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008796",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008814",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-008834",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008843",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-008851",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-008861",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-008884",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008886",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008931",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008962",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-008999",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009020",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009023",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009035",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009079",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009126",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009129",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-009131",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009133",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009136",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009160",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009180",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009197",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009276",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009277",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009280",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009287",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_NOT_EVIDENT"
+    },
+    {
+      "sid": "SCI-009290",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-009292",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009307",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009374",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-009391",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009407",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009414",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009443",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009482",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009496",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-009509",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009512",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009531",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009550",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009597",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009601",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-009609",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009645",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009662",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009668",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009701",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009705",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009724",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009750",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009767",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/02"
+    },
+    {
+      "sid": "SCI-009768",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009774",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009815",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009818",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009825",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-009866",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-009977",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010010",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-010043",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010057",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010080",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-010091",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-010130",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-010146",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010156",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010165",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010169",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010182",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010192",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010203",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010224",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-010241",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010275",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-010288",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010305",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010309",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010360",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010481",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010497",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010523",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_DATASET_SCOPE_UNCLEAR"
+    },
+    {
+      "sid": "SCI-010541",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_TASK_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-010654",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010655",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010676",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010691",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-010701",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010724",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010737",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010768",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010783",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-010790",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010811",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010877",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010884",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010896",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010939",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010942",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-010977",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011114",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/02"
+    },
+    {
+      "sid": "SCI-011129",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011144",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011183",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011214",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011239",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-011268",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011285",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011289",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011302",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011312",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-011315",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011328",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-011342",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011349",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011396",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011408",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011429",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_MODERATION_TITLE_ONLY"
+    },
+    {
+      "sid": "SCI-011430",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-011446",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-011457",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011475",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-011527",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011536",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011560",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011564",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011612",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011617",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011618",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011619",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011620",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011631",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011640",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011642",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011643",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011677",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011682",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011699",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/02"
+    },
+    {
+      "sid": "SCI-011701",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011702",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011707",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011709",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011710",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011839",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011864",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011872",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011934",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-011942",
+      "A1": "PENDING",
+      "A2": "INCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/02"
+    },
+    {
+      "sid": "SCI-011946",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "PENDING_TITLE_ONLY_AMBIGUOUS"
+    },
+    {
+      "sid": "SCI-011954",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012015",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012065",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-012086",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012088",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012118",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012203",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012208",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012221",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012250",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012313",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012324",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/02"
+    },
+    {
+      "sid": "SCI-012326",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012329",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012371",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012424",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012457",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-012459",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012469",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012472",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012510",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012517",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012524",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012541",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012545",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-012630",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012635",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "INCLUDE",
+      "suggested": "INCLUDE",
+      "class": "majority_include",
+      "t3_norm_code": "INC-01/02"
+    },
+    {
+      "sid": "SCI-012647",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012666",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012711",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012729",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012730",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012742",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012766",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012772",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012775",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNSTATED"
+    },
+    {
+      "sid": "SCI-012787",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012810",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012811",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012813",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012845",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012849",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012850",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012861",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012865",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-012933",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "MODERATION_TITLE_ONLY_EXCLUDE"
+    },
+    {
+      "sid": "SCI-012959",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-012973",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-012986",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012990",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-012999",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013005",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013008",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013028",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013073",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013075",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013076",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013086",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013139",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013143",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013227",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013253",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013269",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013297",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013301",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013313",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013318",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013373",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-013396",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-013465",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013509",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013542",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013543",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013552",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013571",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013593",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013638",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013639",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_REPORT_TYPE"
+    },
+    {
+      "sid": "SCI-013666",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "PENDING",
+      "suggested": "ADJUDICATE",
+      "class": "tie_three_way",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013673",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013674",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013688",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-013701",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013709",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013741",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "OUTSIDE_DATE_LANGUAGE"
+    },
+    {
+      "sid": "SCI-013796",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013798",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013803",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013809",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013821",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013824",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013867",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013923",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013951",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013952",
+      "A1": "INCLUDE",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013965",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-013970",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "PENDING_PLATFORM_UNCLEAR"
+    },
+    {
+      "sid": "SCI-013988",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-013994",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-014016",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_PLATFORM"
+    },
+    {
+      "sid": "SCI-014032",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "T3": "PENDING",
+      "suggested": "PENDING",
+      "class": "majority_pending",
+      "t3_norm_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED"
+    },
+    {
+      "sid": "SCI-014042",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-014090",
+      "A1": "EXCLUDE",
+      "A2": "PENDING",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    },
+    {
+      "sid": "SCI-014102",
+      "A1": "EXCLUDE",
+      "A2": "INCLUDE",
+      "T3": "EXCLUDE",
+      "suggested": "EXCLUDE",
+      "class": "majority_exclude",
+      "t3_norm_code": "WRONG_TASK"
+    }
+  ],
+  "note": "suggestions only; Option C human lead confirms every record; no EXCLUDE was filled mechanically anywhere"
+}

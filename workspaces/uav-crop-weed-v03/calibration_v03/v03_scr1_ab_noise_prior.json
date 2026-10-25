@@ -1,0 +1,49 @@
+{
+ "experiment": "T5 A/B noise-prior vs blind shard (queue item 15)",
+ "protocol": "v03_scr1_t5_ab_noise_prior_protocol.md",
+ "arms": {
+  "B_blind": "T4 round-2/3 landed decisions (validated), packs 0001 and 0015",
+  "A_informed": "T5A fresh shards, identical frozen instrument + one disclosed noise-prior paragraph"
+ },
+ "pack_0001": {
+  "strict_validated": true,
+  "counts_A": {"EXCLUDE": 48, "PENDING": 2},
+  "counts_B": {"EXCLUDE": 49, "PENDING": 1},
+  "concordance_n": 50,
+  "discordant": [{"sid": "SCI-001043", "B": "EXCLUDE", "A": "PENDING", "direction": "conservative", "A_conf": 0.5}],
+  "mean_confidence": {"A": 0.892, "B": 0.803, "delta": 0.089},
+  "guardrail_violations_A": [],
+  "note": "49/50 concordant; sole shift conservative; no confidence inflation direction"
+ },
+ "pack_0015": {
+  "strict_validated": true,
+  "counts_A": {"EXCLUDE": 49, "PENDING": 1},
+  "counts_B": {"EXCLUDE": 47, "PENDING": 3},
+  "concordance_n": 50,
+  "discordant": [
+   {"sid": "SCI-008686", "B": "PENDING", "A": "EXCLUDE", "A_reason_code": "WRONG_TASK", "A_conf": 0.7,
+    "note": "redacted guardrail-pending class in blind arm; arm A auto-excluded despite title-only/UAV+crop-protection signal"},
+   {"sid": "SCI-008813", "B": "PENDING", "A": "EXCLUDE", "A_conf": 0.5,
+    "note": "generic UAV-mapping title-only ambiguity flipped exclusionary by the prior"}
+  ],
+  "mean_confidence": {"A": 0.905, "B": 0.923, "delta": -0.017},
+  "guardrail_violations_A": [
+   {"sid": "SCI-008686", "why": "abstract-null/redacted title carries UAV + crop-protection terms -> guardrail demands PENDING; arm A excluded on WRONG_TASK at 0.7"}
+  ],
+  "void_condition": "PRE-REGISTERED: any guardrail violation in arm A voids the run",
+  "quarantine": "pack_0015 arm-A decisions are QUARANTINED - never joined to any lane totals; T4 baseline remains the only third-rater evidence for these records; SCI-008686 was already a T4-PENDING exception routed to the human adjudication sheet, so Option C surface is unchanged"
+ },
+ "test_metrics": {
+  "pooled_discordant": 3,
+  "directions": {"exclusionary": 2, "conservative": 1},
+  "formal_test": "exact binomial one-sided on 2/3 at p~0.5 — underpowered at n=100; pre-registered void condition governs the verdict, not the test",
+  "reason_code_redistribution": "WRONG_TASK application extended to recodes of pending-class records in arm A on pack_0015; stable elsewhere",
+  "confidence_effect": "+0.089 on clean pack, -0.017 on guardrail pack — mean uninformative; the risk is localized on the PENDING class, not the mean"
+ },
+ "verdict": {
+  "policy": "pre-registered outcome policy 3 (harmful -> mandatory blinding on judgment lanes)",
+  "rationale": "the disclosed prior flipped blind-held PENDINGs to EXCLUDE in the exclusionary direction and produced a live guardrail violation (SCI-008686) - exactly the mechanism the protocol warned of; non-borderline behavior was stable (49/50 and 48/50 concordance), so the prior is inert on clean noise but acts specifically on the judgment/pending class",
+  "policy_decision": "lesson 48's 'warn the shard about pack noise' idea is REJECTED for judgment lanes; blinding stays mandatory; a noise-prior may be considered only for non-judgmental classification passes, and never alongside abstract-null/guardrail rules",
+  "option_c_integrity": "preserved: quarantine contained the arm-A divergence; human packet unchanged (T4 still the binding third-rater evidence)"
+ }
+}

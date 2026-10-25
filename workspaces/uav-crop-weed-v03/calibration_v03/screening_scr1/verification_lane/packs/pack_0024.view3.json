@@ -1,0 +1,411 @@
+{
+ "role": "T4 third-rater, blinded (no other screener decisions inside)",
+ "pack": "pack_0024",
+ "n_records": 50,
+ "instruction_anchor_sha_prompt": "0c7f129d",
+ "criteria_sha_prefix": "9ae1f97d",
+ "records": [
+  {
+   "screening_id": "SCI-013232",
+   "title": "MAET: A Generalizable Masked Autoencoding Framework for Anomaly Detection in Time-Series Data",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013242",
+   "title": "Unmanned Aerial Vehicle Optimal Route Planning for Data Collection of Underground Communicating Sensor Nodes in Agriculture",
+   "abstract": "The massive deployment of soil moisture and temperature sensors inside agricultural plots will become essential in the next years to meet the challenges of the agroecological transition. In such a context, the use of buried communicating sensor nodes is particularly relevant because they are protected underground from human activities, animals, and agricultural machinery. Their communication range is however limited to a few meters above the ground, that leads to difficulties in collecting their data remotely. One possible solution is to use one or several UAVs to visit them successively. Nevertheless, this approach requires being able to take into account the presence of obstacles at low flight height in the path planning algorithms, and to solve the Close Enough Traveling Salesman Problem (CE-TSP) in cluttered environments. To meet this need, the objective of this article is to present the possibility of exploiting real data from an airborne Light Detection and Ranging sensor (LiDAR) to determine the location and height of obstacles in the workspace of the UAV. Based on this data, a cost matrix associated to the trajectories between each node can be calculated, with the possibility for the UAV to fly above the obstacle areas. Next, to optimize the route of the UAV in the CE-TSP framework, this article presents a simple approach based on a Partheno Genetic Algorithm (PGA) completed with some heuristic rules. Our method is applied in a real use case consisting of 50 sensor nodes distributed in our experimental farm. The results highlight the performances of the method proposed. They demonstrate the capabilities of our method to address the CE-TSP with obstacles, and open the way to future prospects for collecting data of buried sensor nodes using UAVs.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013252",
+   "title": "Ice velocity in the Yellow River bends using unmanned aerial vehicle imagery",
+   "abstract": "Ice velocity is a critical parameter in river ice monitoring, playing a vital role in analyzing ice blockages, the freeze-up process, and ice jam locations. It provides essential references for freeze-up forecasting. This study utilized UAV (Unmanned Aerial Vehicle) remote sensing imagery from December 2023, during the ice run period, combined with the Pyramidal Lucas-Kanade Optical Flow Algorithm to quantify ice velocity distribution across multiple bends during the Yellow River's ice run period. The study identified low ice velocity cross-sections at bend apexes, where velocity decreased sharply, leading to ice floe accumulation and an increased probability of ice jams. Significant spatial variations in ice velocity within bends were observed. Curvature and constriction ratios were identified as key factors influencing ice velocity distribution. Bends with high curvature and significant constriction should be prioritized for monitoring and early warning. The study also revealed a correlation between the low ice velocity cross-section at the apex of Shisifenzi Bend and the location of the initial ice jam during the ice run period, suggesting its potential as a scientific guide for ice jam risk forecasting. These findings provide valuable insights for freeze-up forecasting and flood prevention in the Yellow River.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013263",
+   "title": "National Laboratories for Environmental Management and Stewardship (NNLEMS): National Lab Capabilities in Unmanned Aerial Systems (UAS) (Revision 1)",
+   "abstract": "The Network of National Laboratories for Environmental Management and Stewardship (NNLEMS) formed an Unoccupied Aircraft Systems (UAS) topical team in spring 2025 for the purpose of documenting the capabilities of the National Laboratories relevant to the goals and needs of the Department of Energy (DOE) Office of Legacy Management (LM). The team was comprised of representatives from eight National Laboratories (Table 1), thereby bringing diverse skillsets from across the DOE complex. Recognizing that LM has extensive experience working with UAS contractors and using data collected from UAS, the topical team focused on the National Laboratoriesâ€™ unique capabilities and types of scientific investigations that are not yet commercially available or easily contracted as services.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013275",
+   "title": "Optimizing Data Distribution Service Discovery for Swarm Unmanned Aerial Vehicles Through Preloading and Network Awareness",
+   "abstract": "Collaborative unmanned aerial vehicle (UAV) swarm operations using the open-source PX4â€“ROS2 system have been extensively studied for reconnaissance and autonomous missions. PX4â€“ROS2 utilizes data distribution service (DDS) middleware to ensure network flexibility and support scalable operations. DDS enables decentralized information exchange through its discovery protocol. However, in dense swarm environments, the default initialization process of this protocol generates considerable communication overhead, which hinders reliable peer detection among UAVs. This study introduces an optimized DDS discovery scheme incorporating two key strategies: a preloading method that embeds known participant data before deployment, and a dynamic network awareness approach that regulates discovery behavior based on real-time connectivity. Integrated into PX4â€“ROS2, the proposed scheme was assessed through both simulations and real-world testing. Results demonstrate that the optimized discovery process reduced peak packet traffic by over 90% during the initial exchange phase, thereby facilitating more stable and scalable swarm operations in wireless environments.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013287",
+   "title": "Reinforcement Learning-Guided Particle Swarm Optimization for Multi-Objective Unmanned Aerial Vehicle Path Planning",
+   "abstract": "Multi-objective Unmanned Aerial Vehicle (UAV) path planning in complex 3D environments presents a fundamental challenge requiring the simultaneous optimization of conflicting objectives such as path length, safety, altitude constraints, and smoothness. This study proposes a novel hybrid framework, termed QL-MOPSO, that integrates reinforcement learning with metaheuristic optimization through a three-stage hierarchical architecture. The framework employs Q-learning to generate a global guidance path in a discretized 2D grid environment using an eight-directional symmetric action space that embodies rotational symmetry at Ï€/4 intervals, ensuring uniform exploration capabilities and unbiased path planning. A crucial intermediate stage transforms the discrete 2D path into a 3D initial trajectory, bridging the gap between discrete learning and continuous optimization domains. The MOPSO algorithm then performs fine-grained refinement in continuous 3D space, guided by a novel Q-learning path deviation objective that ensures continuous knowledge transfer throughout the optimization process. Experimental results demonstrate that the symmetric action space design yields 20.6% shorter paths compared to asymmetric alternatives, while the complete QL-MOPSO framework achieves 5% path length reduction and significantly faster convergence compared to standard MOPSO. The proposed method successfully generates Pareto-optimal solutions that balance multiple objectives while leveraging the symmetry-aware guidance mechanism to avoid local optima and accelerate convergence, offering a robust solution for complex multi-objective UAV path planning problems.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013298",
+   "title": "Hawk-rabbit game architecture for unmanned aerial vehicle swarm multi-target defense under uncertain attack targets",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013309",
+   "title": "Exploring the interaction of weed control management and crop structure on maize yield in the wide range of Mexican cropping systems",
+   "abstract": "Abstract The widespread reliance on herbicides as the primary weed control strategy is increasingly being questioned. Agroecological management offers a promising alternative, yet comparisons with conventional approaches often fail to consider the theoretical agroeconomic models and its experimental validation. Evaluating agroecological weed management across a wide range of cropping systems allows for robust comparisons with herbicide-based strategies and facilitates the analysis of the potential interactions with different cropping systems and crop structures. The objectives of our study were (i) to assess grain yield between weed management treatments in different maize cropping systems (CSYS), (ii) to explore interactions between weed management and practices number and crop structure (CSTR) and investigate how these interactions affect the evolution of weed and maize covers, and (iii) to assess weed control treatments and CSTR effects on final grain yield. Our results show that weed management treatments did not differ in grain yield in a wide range of CSYS. Agroecological management required a greater number of practices. The timing of weed control practices (from emergence to 6â€“9 expanded leaves) was an important factor for both agroecological and herbicides treatments and for different genotypes. Weed management treatments did not interact with CSTR to define grain yield. However, CSTR explained between 28 and 60% of grain yield variability. We highlight the importance of genotype and plant density elections for grain yield determination. We also highlight that the apparent response of genotypes and density on weeds in experimental conditions is not evident in field conditions. It is still necessary to develop more complex models that can include factors such as the decision-making of farmers and technicians.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013322",
+   "title": "ProVANT Simulator: A Virtual Unmanned Aerial Vehicle Platform for Control System Development",
+   "abstract": "This paper introduces the ProVANT Simulator, a comprehensive environment for developing and validating control algorithms for Unmanned Aerial Vehicles (UAVs). Built on the Gazebo physics engine and integrated with the Robot Operating System (ROS), it enables reliable Software-in-the-Loop (SIL) and Hardware-in-the-Loop (HIL) testing. Addressing key challenges such as modeling complex multi-body dynamics, simulating disturbances, and supporting real-time implementation, the framework features a modular architecture, an intuitive graphical interface, and versatile capabilities for modeling, control, and hardware validation. Case studies demonstrate its effectiveness across various UAV configurations, including quadrotors, tilt-rotors, and unmanned aerial manipulators, highlighting its applications in aggressive maneuvers, load transportation, and trajectory tracking under disturbances. Serving both academic research and industrial development, the ProVANT Simulator reduces prototyping costs, development time, and associated risks.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013332",
+   "title": "Endâ€toâ€end instance segmentation framework for automated pavement distress assessment using unmanned aerial vehicleâ€derived digital orthophoto maps",
+   "abstract": "This study presents a novel framework for automated detection and segmentation of pavement distresses using high-resolution digital orthophoto maps captured by unmanned aerial vehicles (UAVs). While recent UAV-based research often relies on manual measurements from rasterized digital models, only a few studies have employed automated methods for analyzing pavement distress, primarily using raw aerial image tiles. Developing a distress detection system specifically suited for UAV-based, scale-variant orthomaps is complex but offers significant advantages. This study developed a comprehensive dataset from UAV-derived orthophotos and utilized geographic information system tools to create precise vector annotations of various pavement distress types. These annotations were transformed into standard object detection formats to train state-of-the-art computer vision models. The study evaluated both one-stage (YOLOv7, YOLOv8 with YOLACT [You Only Look At CoefficienTs] segmentation head) and two-stage (Mask R-CNN) instance segmentation networks under various configurations. The YOLOv7 model with low hyperparameter settings achieved the highest performance, attaining mean average precision scores of 0.70 for box detection and 0.67 for mask segmentation. Inferencing strategies, such as strided inference with different tile sizes, were employed to optimize detection across varying scales. The detection results from the YOLOv7 model demonstrated a satisfactory agreement with manual measurements, highlighting the framework's potential for project-level pavement assessment.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013342",
+   "title": "Unmanned Aerial Vehicle Path Planning Based on the Improved Î± and Î² Particle Swarm Optimization Algorithm of Levy",
+   "abstract": "Particle Swarm Optimization (PSO) has been applied more and more extensively because of its strong search capability. However, it has a low convergence rate and a partial optimum catch. In order to solve this problem, we present an Alpha -$\\beta$- Directed Particle Swarm Optimization (LABPSO), which is based on Levy's flying policy. This algorithm introduces two coefficients,$\\alpha$and$\\beta$, and incorporates the Levy flight strategy, which enhances the navigation efficiency of the particle swarm optimization algorithm, ensures its smoothness, collision-free path, and simultaneously optimizes travel time and distance.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013353",
+   "title": "EXPERIENCE OF CREATING A 3D MODEL OF A REAL ESTATE PROPERTY USING AN UNMANNED AERIAL VEHICLE",
+   "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": true,
+   "moderation_terms": [
+    "military"
+   ]
+  },
+  {
+   "screening_id": "SCI-013364",
+   "title": "Effect of unmanned aerial vehicle mission difficulty level on pilot's autonomic nervous system",
+   "abstract": "OBJECTIVES: The aim of this article is to investigate the psychophysiological responses of unmanned aerial vehicle (UAV) pilots during flight simulations with high mission complexity. In particular, it focuses on the responses of the sympathetic and parasympathetic parts of the autonomic nervous system. MATERIAL AND METHODS: Fourteen pilots aged 26-31 years took part in the study. The research was conducted using a UAV flight simulator. During the test, data was collected from electrocardiogram sensor and piezoelectric (lead zirconate titanate - PZT) respiration sensor as well as the pilot's mission performance was assessed. In addition, the test subjects were subjected to a simple reaction speed test after the completed exercise. RESULTS: For missions classified as having low difficulty, the mean RR interval (meanRR) was 1004.03 milliseconds, with a standard deviation (SD) = 18.5 ms. This corresponds to an mean heart rate of about 59.8 bpm (SD = 1.1), which is 16.9% longer than the RR intervals observed during high difficulty missions (meanRRÂ±SD 859Â±59.75 ms). The values of respiratory rate per minute for the different levels of difficulty were MÂ±SD 17.3Â±0.87 for low, 18.1Â±1.04 for medium, and 18.8Â±0.41 for high mission difficulty. CONCLUSIONS: A correlation between the effects of an unmanned aircraft flight simulator and the pilot's body was proven. By means of tests using electrocardiogram, PZT and reaction time measurements, it was proven that the flight simulator directly induces stressful stimuli that affect the subject's body. By analyzing the individual results, it was also proven that the sympathetic part of the nervous system is activated as the level of mission difficulty increases. Int J Occup Med Environ Health. 2025;38(4):391-404.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013375",
+   "title": "Design and Analysis of a High Performance Axial Flux Permanent Magnet Synchronous Motor for Unmanned Aerial Vehicle",
+   "abstract": "The rapid development of unmanned aerial vehicles (UAVs) has led to an increasing demand for reliable and high-performance propulsion motors. This study designed and analyzed an axial flux permanent magnet synchronous motor (AFPMSM) specifically for unmanned aerial vehicles. The output power of the AFPMSM designed in this paper is 1.4 KW, and it can generate a torque of 3.97 Nm at a rotational speed of 3500r/min. In the design of AFPMSM, a structure of double stator and single rotor is adopted. This structure features two effective working air gaps, which can significantly enhance the torque density and power density of the motor, effectively reduce the motorâ€™s weight, and thereby significantly improve the motorâ€™s performance. This motor enables the unmanned aerial vehicle to adapt to the constantly changing mission requirements.t.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013386",
+   "title": "Geomagnetic Anomaly Detection Using the Method of the System of Approximation Models Based on Observations from Unmanned Aerial Vehicles",
+   "abstract": "Abstract The paper develops a procedure for detecting anomalies in geomagnetic field observations by digitally processing information from unmanned aerial vehicles during geomagnetic surveys. Data from a global navigation satellite system and from a scalar magnetometer were used. The geomagnetic anomaly detection was based on the mathematical apparatus of a system of approximation models using two-stage approximations. The first stage involved constructing a system of moving local approximation models that were defined on sequences of intersecting local subareas. An algorithm was formed to optimize the parameters of moving local approximation models based on solving systems of linear equations. The second stage was spatial filtering of the resulting system of local approximation models using weighting functions. The geomagnetic anomalies were detected under approaches from decision theory. The procedure that we developed for detecting geomagnetic anomalies was investigated from model observations using statistical testing and optimization search methods. Calculations of the probabilities of correct and false detection of geomagnetic anomalies are proposed. The method of the system of approximation models for experimental observations has been investigated, and the characteristics of geomagnetic anomaly detection have been evaluated. Satisfactory efficiency of the proposed detection procedure for geomagnetic anomalies was confirmed.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013397",
+   "title": "Image-based obstacle detection methods for the safe navigation of industrial unmanned aerial vehicles",
+   "abstract": "Computer vision is becoming increasingly important for industrial unmanned aerial vehicles (UAVs) to do real-time object and obstacle recognition while they are engaged in autonomous navigation. Variable texture features of objects, on the other hand, frequently lead to feature disappearance, which in turn reduces the accuracy of detection. This work proposed a novel Texture-variant Obstacle Object Classification Model (TOOCM) for feature extraction and dynamic texture representation. By capturing small texture fluctuations in real-time situations, the primary goal is to enhance the accuracy of both obstacle detection and object classification. The TOOCM model incorporates an N-layer ResNet architecture designed to address the difficulties of disappearing features in an adaptable Manner through dynamic layer augmentation based on variations in texture and size. Reconstruction of each convolutional layer in the ResNet is performed on an as-needed basis, taking into consideration the amount of texture concentration in incoming picture regions. The emergence of identifiable texture regions will result in the identification of new objects, which will then trigger adaptive categorization and layer restructuring activities. TOOCM, in contrast to traditional fixed-layer deep models, offers layer-wise learning updates during the navigation of UAV, which guarantees constant performance in complicated settings. The results of the experiments show that TOOCM achieves a greater detection accuracy of 14.09%, enhanced precision of 14.53%, and a loss reduction of 14.17%, particularly in high-density obstacle settings. These results demonstrate that the suggested adaptive feature learning approach is effective.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013407",
+   "title": "A Lightweight Confidence-Gated Graph Neural Network for Multi-Sensor Fusion in Unmanned Aerial Vehicle Systems",
+   "abstract": "In recent years, multi-sensor fusion has become a vital part of reliable Unmanned Aerial Vehicle (UAV) navigation, particularly in compound operational environments. However, traditional fusion methods are dependent on fixed or uni-modal processing where heterogeneous sensor streams are treated autonomously and are vulnerable to noise, drift, or temporary degradation. Hence, this research proposes a Graph Neural Network-Confidence Gated Sensor Fusion (GNN-CGSF) framework for modelling Inertial Measurement Unit, LiDAR, GPS, and stereo camera observations as a structured sensor graph for accurate and stable UAV state estimation. Initially, raw measurements were collected and converted into compact descriptors which encapsulate motion dynamics, spatial geometry, and positional stability. After that, the descriptors were signified with graph node representing each respective descriptor. Moreover, the temporal alignment and cross-sensor consistency creates edge encodings that signify the UAV's motion behaviour. Once GNNCGSF output the descriptors with confidence scores, its output updates the agitation of each sensor over time, weigh frequency of sensor error reliability to down-weight sensors degrading consciences on position and orientation solutions such as cameras in low-light and GPS in weak-signal regions. Following tessellation, observations will be fused into standard graph aggregation methods produce a unified latent representation that will be decoded for position and orientation. Experimental evaluation demonstrates that the proposed GNN-CGSF attains greater results in terms of Multiple Object Tracking Accuracy (MOTA) with 93.4% and Higher Order Tracking Accuracy (HOTA) with 86.3% compared to the GNN-T method.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013417",
+   "title": "Research on Intelligent Cable Inspection and Ship Evidence Collection Technology for the Hydrographic Marker Base Unmanned Aerial Vehicle Nest System",
+   "abstract": "This paper proposes an innovative protection scheme for submarine cables. By modifying existing offshore navigation beacons to serve as drone hangars and establishing a distributed drone inspection network, it enables daily inspections of 500kV submarine cables and evidence collection for maritime vessel interventions. The system takes advantage of the multi-point layout of the navigation beacons to achieve on-site deployment of drones and rapid response, significantly improving the efficiency and emergency response capability of submarine cable protection. The research content includes the navigation beacon modification plan, drone hangar design, autonomous inspection path planning, vessel intervention evidence collection technology, and system integration plan. Practical applications have shown that this system can reduce the cost of manual inspections by approximately 60%, shorten the emergency response time to within 15 minutes, and provide an intelligent solution for submarine cable protection.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013428",
+   "title": "Programmed unmanned aerial vehicles show great potential for monitoring marine megafauna in specific areas of interest",
+   "abstract": "Abstract Targeted conservation measures are contingent on robust knowledge of spatioâ€temporal animal distribution in areas of interest. We explore unmanned aerial vehicle (UAV) transect monitoring as a novel method for standardized digital aerial surveys of marine megafauna by investigating the fineâ€resolution spatioâ€temporal distribution of harbour porpoises ( Phocoena phocoena ) in a Swedish nature reserve along with drivers of this distribution and potential biases. Biweekly UAV video data were collected along preâ€programmed strip transects over 17 weeks from June to September 2023, totalling a survey area of 3.37 km 2 , thereby providing porpoise monitoring data covering 89% of a special area of conservation for the species. All UAV video data were manually reviewed by a primary observer, and 25% of the UAV footage was also reviewed by a second, unexperienced observer to identify observer bias and learning effects. No significant observer bias or learning effect was found, but increased sea state affected porpoise density negatively. From the monitoring data, we were able to calculate relative density estimates, identify smallâ€scale spatioâ€temporal differences and detect negative effects of recreational boat activity on porpoise presence. We further demonstrate that within this restricted area, porpoises are found in higher relative densities outside a designated conservation area, compared to within the conservation area, providing important knowledge to guide fineâ€scale local conservation actions. We highlight advantages and areas of improvement of UAV transect monitoring as an accessible, versatile and adaptable method to survey marine megafauna in spatially restricted specific areas of interest. We conclude that this method constitutes a promising and valuable tool for wildlife monitoring, especially as it can be easily adapted and modified for specific contexts and species.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013438",
+   "title": "Route planning of an unmanned aerial vehicle using ant colony optimization for environment including a no-fly zone and obstacles",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013448",
+   "title": "A Wireless Power Transfer System for Unmanned Aerial Vehicles with CC/CV Charging Based on Topology Switching",
+   "abstract": "To enhance the battery endurance of unmanned aerial vehicles (UAVs), this article addresses key issues in traditional wireless power transfer (WPT) systems. These issues occur during constant current/constant voltage (CC/CV) switching, such as poor stability, high payload, power loss, and charging instability. Accordingly, a WPT system based on topology switching is proposed. First, a lightweight compensation topology based on LCC-Series compensated topology (LCC-S) is designed. A tuning capacitor is incorporated, and two switches regulate the switching of the compensation capacitor to realize CC/CV mode transition. Meanwhile, the impedance matrix model is built to find optimal compensation component values, maximizing energy transfer. To reduce sensitivity to misalignment, a â€œ+â€ shaped compensation coil is added to the basic 2 Ã— 2 square coil array. It improves magnetic field uniformity and suppresses flux leakage. Experimental results show that the system achieves stable load-independent output. Within horizontal offset [âˆ’150, 150] mm and diagonal offset [âˆ’150âˆš2, 150âˆš2] mm, it keeps output power over 150 W and efficiency over 70%, with strong anti-misalignment ability. This system effectively solves key challenges such as endurance bottlenecks, complex CC/CV switching, and weak anti-misalignment. It offers a reliable technical solution for efficient charging of autonomous UAVs.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013459",
+   "title": "Effect of Tembotrione Herbicide on Weed Persistence, Crop Resistance and its Effects on Maize (Zea mays L.)",
+   "abstract": "A field experiment was conducted at School of Agricultural Sciences (SAS), Nagaland University, Medziphema campus, Nagaland, during the kharif season of 2023 and 2024 to study the effect of tembotrione herbicide on weed persistence, crop resistance and its effects on maize. The experiment was conducted in Randomized block design and comprised of ten treatments viz., T1- Weedy check, T2- Hand weeding at 20 & 40 DAS, T3 â€“ Tembotrione 100g ha-1 at 15 DAS, T4- Tembotrione 125g ha-1 at 15 DAS, T5 - Tembotrione 150g ha-1 at 15 DAS, T6 â€“ Tembotrione 100g ha-1 at 30 DAS, T7 - Tembotrione 125g ha-1 at 30 DAS, T8 - Tembotrione 125g ha-1 at 30 DAS, T9 - Atrazine 750g ha-1 at 2 DAS and T10 â€“ 2,4-D Na 800 g ha-1 at 20 DAS. Surfactant 20 (polyoxyâ€ethylene 20 sorbitan monolaurate) was used at the rate of 5ml/liter of water. Results of the experiment revealed that Tembotrione 150g ha-1 at 30 DAS resulted in the lowest weed persistence and highest crop resistance. The maximum decrease in weed population and weed dry matter was observed in the same treatment resulting in maximum weed control efficiency. The highest fresh weight of cobs and kernel yield cob-1 were observed in Tembotrione 150g ha-1 at 30 DAS resulting in highest yield of maize and also the benefit cost ratio. It can be concluded that application of Tembotrione 150g ha-1 at 30 DAS is recommended since it resulted in maximum control of weeds and highest crop resistance and the lowest weed persistence and ultimately resulted in maximum profit.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013470",
+   "title": "Evaluation of P&O algorithm efficiency under varying conditions for solar powered unmanned aerial vehicle",
+   "abstract": "Abstract One of the most challenging issues while obtaining constant and maximum power from irradiance for a solar powered Unmanned Aerial Vehicle (UAV) is determining the optimal conditions to Maximum Power Point Tracking (MPPT). MPPT is critical for increasing the endurance of solar-powered UAVs. The aim of the study is to compare the operating efficiency of the Perturb and Observe (P&O) algorithm, which is the most preferred MPPT algorithm for UAVs, at 5 km and 25 km altitudes. For this, irradiance and solar cell temperature are used as PV inputs and the efficiency of the MPPT algorithm is calculated in MATLAB/Simulink. It is seen that the P&O algorithm operates with higher efficiency at high altitude, intense irradiance and low solar cell temperature conditions. The result of this study contributes to increased energy efficiency by reliably tracking the maximum power harvested from PV under different atmospheric densities and ambient temperatures, thanks to the P&O algorithm of the UAV flying at different altitudes in practical applications. This article fills a gap in the literature by determining and comparing the operational efficiency of the P&O algorithm at different altitudes for the solar powered High Altitude Platform (HAP), depending on months and ambient conditions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013480",
+   "title": "Multi-weather unmanned aerial vehicle remote sensing image restoration via scale-aware Trident Mamba",
+   "abstract": "Improving visual quality in unmanned aerial vehicle (UAV) remote sensing scenarios under adverse weather conditions presents a significant challenge, as different types of weather degradation exhibit distinct characteristics. Most existing methods are trained independently for specific types of degradation, which severely limits their adaptability to dynamic real-world environments. To tackle these challenges, we employ a multiple-in-one image restoration strategy for UAV remote sensing, aiming to address multiple weather-induced degradations through a unified training model. First, we construct a high-quality dataset called UAV-Weather6k, which includes adverse weather conditions such as rain, haze, and snow. Subsequently, we propose an effective scale-aware Trident Mamba for unified image restoration. The framework integrates a multi-resolution and a multi-patch parallel multi-branch architecture, where each branch employs different multi-scale learning to effectively capture features under diverse weather conditions. Extensive experiments demonstrate the effectiveness of our model, achieving competitive performance compared with state-of-the-art methods.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013492",
+   "title": "Fog image recognition network (FIRNet) with low computational complexity and high accuracy for Unmanned Aerial Vehicle",
+   "abstract": "The research on fog image recognition of unmanned aerial vehicles (UAVs) aims to address the issues of poor image quality and low recognition accuracy in foggy weather, which is of great significance for enhancing the perception ability of UAVs in harsh environments and expanding application scenarios. Compared with traditional methods, convolutional neural networks (CNNs) have advantages such as automatic feature extraction and spatial information retention in fog image recognition. Although conventional CNNs have relatively high recognition accuracy, their computational complexity is extremely high, making them difficult to deploy on mobile devices such as UAVs. Therefore, a fog image recognition network called FIRNet is proposed. In this network, neurons in each layer are trimmed to a number suitable for the binary classification task of images, and depth-separable convolution is used to replace conventional convolution. The fog image dataset HazyDet for UAV is used to train FIRNet. The experimental results show that FIRNet achieves the fog image recognition accuracy of 0.9865 with an ultra-low computational complexity of 48.43 MFLOPS.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013502",
+   "title": "FineQuest: Adaptive Knowledge-Assisted Sports Video Understanding via Agent-of-Thoughts Reasoning",
+   "abstract": "Video Question Answering (VideoQA) based on Large Language Models (LLMs) has shown potential in general video understanding but faces significant challenges when applied to the inherently complex domain of sports videos. In this work, we propose FineQuest, the first training-free framework that leverages dual-mode reasoning inspired by cognitive science: i) Reactive Reasoning for straightforward sports queries and ii) Deliberative Reasoning for more complex ones. To bridge the knowledge gap between general-purpose models and domain-specific sports understanding, FineQuest incorporates SSGraph, a multimodal sports knowledge scene graph spanning nine sports, which encodes both visual instances and domain-specific terminology to enhance reasoning accuracy. Furthermore, we introduce two new sports VideoQA benchmarks, Gym-QA and Diving-QA, derived from the FineGym and FineDiving datasets, enabling diverse and comprehensive evaluation. FineQuest achieves state-of-the-art performance on these benchmarks as well as the existing SPORTU dataset, while maintains strong general VideoQA capabilities.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013513",
+   "title": "Conceptualization of an Aerostatic Platform for Mid-Air Docking and Energy Transference Systems for Unmanned Aerial Vehicles: A Paradigm Shift in UAV Operational Endurance",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013523",
+   "title": "A dual-channel hyperspectral classification method based on NAS and transformer",
+   "abstract": "Transformer networks present excellent performance in capturing long distance dependencies between different locations in the input sequence and are highly capable on a global scale. Recently, several neural architecture search (NAS) algorithms have been proposed for hyperspectral image (HSI) classification, which further improves the accuracy of HSI classification to a new level with more attention paid to local information. However, current two-channel network methods cannot focus on both local and global information of hyperspectral images, which leads to a decrease in the classification accuracy of this type of data. In this paper, a two-channel network named CTmixer-NAS is proposed for hyperspectral image classification. Combining the advantages of NAS and Transformer networks, local and global information is captured simultaneously. In the Transformer branch, the fusion of information at different self-coding layers is proposed. In the CNN branch, a high-performance network structure is automatically designed using NAS, which improves the accuracy of hyperspectral classification. The proposed approach saves labor cost, and the most suitable network structure can be searched according to different datasets, which makes the searched network structure present better generalization performance. CTmixer-NAS achieves the best performance in five hyperspectral datasets in comparative experiments.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013533",
+   "title": "Measurement of the Primary Beam of the Tianlai Cylindrical Antenna Using an Unmanned Aerial Vehicle",
+   "abstract": "Abstract The Tianlai Cylinder Pathfinder Array consists of three adjacent cylindrical reflectors fixed on the ground, each 40 m long and 15 m wide, with the cylinder axis oriented along the Northâ€“South (Nâ€“S) direction. Dual linear polarization feeds are distributed along the focus line, parallel to the cylinder axis. Measurement of the primary beam profile of these cylindrical reflectors is difficult, as they are too large to be placed in an anechoic chamber. While the beam profile along the Eastâ€“West (Eâ€“W) direction can be measured with the transit observations of bright astronomical radio sources, the beam profile along the Nâ€“S direction remains very uncertain. We present a preliminary measurement of the beam profile of the Tianlai cylindrical antenna along both the Nâ€“S direction and Eâ€“W direction in the frequency range of 700â€“800 MHz, using a calibrator source carried by an unmanned aerial vehicle (UAV) flying in the far field. The beam profile of the Tianlai cylindrical antenna is determined from the analysis of the auto-correlation signals from the cylinder array correlator, taking into account the emitter antenna beam profile, itself measured with a dipole antenna on the ground. The accuracy of the UAV-based determination of the cylinder beam profiles is validated by comparing the results with the one derived from bright astronomical source transits, and with simulated beams.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013545",
+   "title": "Ð ÐÐ—Ð ÐÐ‘ÐžÐ¢ÐšÐ ÐÐ˜Ð—ÐšÐžÐŸÐ ÐžÐ¤Ð˜Ð›Ð¬ÐÐžÐ™ ÐŸÐÐ¢Ð§-ÐÐÐ¢Ð•ÐÐÐ« Ð¡ ÐšÐ Ð£Ð“ÐžÐ’ÐžÐ™ ÐŸÐžÐ›Ð¯Ð Ð˜Ð—ÐÐ¦Ð˜Ð•Ð™ Ð’ Ð”Ð˜ÐÐŸÐÐ—ÐžÐÐ• Ð§ÐÐ¡Ð¢ÐžÐ¢ 900 â€“ 950 ÐœÐ“Ð¦ Ð”Ð›Ð¯ Ð¡Ð˜Ð¡Ð¢Ð•Ðœ Ð£ÐŸÐ ÐÐ’Ð›Ð•ÐÐ˜Ð¯ Ð‘Ð•Ð¡ÐŸÐ˜Ð›ÐžÐ¢ÐÐ«ÐœÐ˜ Ð›Ð•Ð¢ÐÐ¢Ð•Ð›Ð¬ÐÐ«ÐœÐ˜ ÐÐŸÐŸÐÐ ÐÐ¢ÐÐœÐ˜",
+   "abstract": "Ð¿Ñ€ÐµÐ´ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ñ‹ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ¸ Ð½Ð¸Ð·ÐºÐ¾Ð¿Ñ€Ð¾Ñ„Ð¸Ð»ÑŒÐ½Ð¾Ð¹ Ð¿Ð°Ñ‚Ñ‡-Ð°Ð½Ñ‚ÐµÐ½Ð½Ñ‹ Ñ ÐºÑ€ÑƒÐ³Ð¾Ð²Ð¾Ð¹ Ð¿Ð¾Ð»ÑÑ€Ð¸Ð·Ð°Ñ†Ð¸ÐµÐ¹, Ð¿Ñ€ÐµÐ´Ð½Ð°Ð·Ð½Ð°Ñ‡ÐµÐ½Ð½Ð¾Ð¹ Ð´Ð»Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð² Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ðµ Ñ‡Ð°ÑÑ‚Ð¾Ñ‚ 900-950 ÐœÐ“Ñ† Ð² ÑÐ¸ÑÑ‚ÐµÐ¼Ð°Ñ… ÑƒÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ñ Ð±ÐµÑÐ¿Ð¸Ð»Ð¾Ñ‚Ð½Ñ‹Ð¼Ð¸ Ð»ÐµÑ‚Ð°Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¼Ð¸ Ð°Ð¿Ð¿Ð°Ñ€Ð°Ñ‚Ð°Ð¼Ð¸ (Ð‘ÐŸÐ›Ð). ÐŸÑ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð¾ Ð¿Ñ€Ð¾ÐµÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð°Ð½Ñ‚ÐµÐ½Ð½Ñ‹ Ñ Ð¼Ð½Ð¾Ð³Ð¾Ñ‚Ð¾Ñ‡ÐµÑ‡Ð½Ð¾Ð¹ ÑÑ…ÐµÐ¼Ð¾Ð¹ Ð¿Ð¸Ñ‚Ð°Ð½Ð¸Ñ Ð½Ð° Ð¾ÑÐ½Ð¾Ð²Ðµ ÑÑ‚ÐµÐºÐ»Ð¾Ñ‚ÐµÐºÑÑ‚Ð¾Ð»Ð¸Ñ‚Ð° FR-4. ÐžÐ¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð°Ñ†Ð¸Ñ Ð³ÐµÐ¾Ð¼ÐµÑ‚Ñ€Ð¸Ñ‡ÐµÑÐºÐ¸Ñ… Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð¾Ð² Ð¿Ñ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð° Ð² ÑÑ€ÐµÐ´Ðµ CST Microwave Studio ÑÐ¾ ÑÐ»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ð¼Ð¸ ÐºÑ€Ð¸Ñ‚ÐµÑ€Ð¸ÑÐ¼Ð¸: ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ ÑÑ‚Ð¾ÑÑ‡ÐµÐ¹ Ð²Ð¾Ð»Ð½Ñ‹ (ÐšÐ¡Ð’) â‰¤ 2.5 Ð¸ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ ÑÐ»Ð»Ð¸Ð¿Ñ‚Ð¸Ñ‡Ð½Ð¾ÑÑ‚Ð¸ (Axial Ratio) â‰¤ 2 Ð´Ð‘. Ð’ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ðµ Ð¼Ð¾Ð´ÐµÐ»Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ Ð±Ñ‹Ð»Ð° Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð° Ð¿Ð°Ñ‚Ñ‡-Ð°Ð½Ñ‚ÐµÐ½Ð½Ð° ÑÐ¾ ÑÐ»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ð¼Ð¸ Ñ…Ð°Ñ€Ð°ÐºÑ‚ÐµÑ€Ð¸ÑÑ‚Ð¸ÐºÐ°Ð¼Ð¸: ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ Ð¾Ñ‚Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ (S11) 8 Ð´Ð‘Ð¸, ÑÑ‚Ð°Ð±Ð¸Ð»ÑŒÐ½ÑƒÑŽ Ð´Ð¸Ð°Ð³Ñ€Ð°Ð¼Ð¼Ñƒ Ð½Ð°Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð½Ð¾ÑÑ‚Ð¸ ÐºÐ°Ðº Ð² Ð²ÐµÑ€Ñ‚Ð¸ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¹, Ñ‚Ð°Ðº Ð¸ Ð² Ð³Ð¾Ñ€Ð¸Ð·Ð¾Ð½Ñ‚Ð°Ð»ÑŒÐ½Ð¾Ð¹ Ð¿Ð»Ð¾ÑÐºÐ¾ÑÑ‚ÑÑ…. Ð­ÐºÑÐ¿ÐµÑ€Ð¸Ð¼ÐµÐ½Ñ‚Ð°Ð»ÑŒÐ½Ñ‹Ðµ Ð¸ÑÑÐ»ÐµÐ´Ð¾Ð²Ð°Ð½Ð¸Ñ Ð¸Ð·Ð³Ð¾Ñ‚Ð¾Ð²Ð»ÐµÐ½Ð½Ð¾Ð³Ð¾ Ð¼Ð°ÐºÐµÑ‚Ð° Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð´Ð¸Ð»Ð¸ ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²Ð¸Ðµ Ñ…Ð°Ñ€Ð°ÐºÑ‚ÐµÑ€Ð¸ÑÑ‚Ð¸Ðº Ñ€Ð°ÑÑ‡ÐµÑ‚Ð½Ñ‹Ð¼ Ð´Ð°Ð½Ð½Ñ‹Ð¼. Ð˜Ð·Ð¼ÐµÑ€ÐµÐ½Ð¸Ñ, Ð¿Ñ€Ð¾Ð²Ð¾Ð´Ð¸Ð¼Ñ‹Ðµ Ñ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸ÐµÐ¼ Ð²ÐµÐºÑ‚Ð¾Ñ€Ð½Ð¾Ð³Ð¾ Ð°Ð½Ð°Ð»Ð¸Ð·Ð°Ñ‚Ð¾Ñ€Ð° Ñ†ÐµÐ¿ÐµÐ¹ ZVL-13 ÐºÐ¾Ð¼Ð¿Ð°Ð½Ð¸Ð¸ Rohde Schwarz, Ð²Ñ‹ÑÐ²Ð¸Ð»Ð¸ Ð½ÐµÐ·Ð½Ð°Ñ‡Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ðµ Ð¾Ñ‚ÐºÐ»Ð¾Ð½ÐµÐ½Ð¸Ñ, ÑÐ²ÑÐ·Ð°Ð½Ð½Ñ‹Ðµ Ñ Ñ‚ÐµÑ…Ð½Ð¾Ð»Ð¾Ð³Ð¸Ñ‡ÐµÑÐºÐ¸Ð¼Ð¸ Ð¿Ð¾Ð³Ñ€ÐµÑˆÐ½Ð¾ÑÑ‚ÑÐ¼Ð¸. ÐÐ°ÑƒÑ‡Ð½Ð°Ñ Ð½Ð¾Ð²Ð¸Ð·Ð½Ð° Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð·Ð°ÐºÐ»ÑŽÑ‡Ð°ÐµÑ‚ÑÑ Ð² Ð¾Ð¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ð¾Ð¹ ÐºÐ¾Ð½ÑÑ‚Ñ€ÑƒÐºÑ†Ð¸Ð¸ Ð½Ð¸Ð·ÐºÐ¾Ð¿Ñ€Ð¾Ñ„Ð¸Ð»ÑŒÐ½Ð¾Ð¹ Ð¿Ð°Ñ‚Ñ‡-Ð°Ð½Ñ‚ÐµÐ½Ð½Ñ‹, ÑÐ¾Ñ‡ÐµÑ‚Ð°ÑŽÑ‰ÐµÐ¹ Ð²Ñ‹ÑÐ¾ÐºÐ¸Ð¹ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ ÑƒÑÐ¸Ð»ÐµÐ½Ð¸Ñ Ð¸ ÑÑ‚Ð°Ð±Ð¸Ð»ÑŒÐ½Ñ‹Ð¹ ÐºÐ¾ÑÑ„Ñ„Ð¸Ñ†Ð¸ÐµÐ½Ñ‚ ÑÐ»Ð»Ð¸Ð¿Ñ‚Ð¸Ñ‡Ð½Ð¾ÑÑ‚Ð¸ Ð½Ð° Ð·Ð°Ð´Ð°Ð½Ð½Ð¾Ð¼ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ðµ Ñ‡Ð°ÑÑ‚Ð¾Ñ‚. Ð ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ð´ÐµÐ¼Ð¾Ð½ÑÑ‚Ñ€Ð¸Ñ€ÑƒÑŽÑ‚ Ð¿ÐµÑ€ÑÐ¿ÐµÐºÑ‚Ð¸Ð²Ð½Ð¾ÑÑ‚ÑŒ Ð¿Ñ€Ð¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ Ñ€Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ð½Ð½Ð¾Ð¹ Ð½Ð¸Ð·ÐºÐ¾Ð¿Ñ€Ð¾Ñ„Ð¸Ð»ÑŒÐ½Ð¾Ð¹ Ð¿Ð°Ñ‚Ñ‡-Ð°Ð½Ñ‚ÐµÐ½Ð½Ñ‹ Ð² ÐºÐ¾Ð¼Ð¼ÐµÑ€Ñ‡ÐµÑÐºÐ¸Ñ… Ð¸ ÑÐ¿ÐµÑ†Ð¸Ð°Ð»Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ñ… Ð‘ÐŸÐ›Ð Ð´Ð»Ñ Ð¿Ð¾Ð²Ñ‹ÑˆÐµÐ½Ð¸Ñ Ð½Ð°Ð´ÐµÐ¶Ð½Ð¾ÑÑ‚Ð¸ ÐºÐ°Ð½Ð°Ð»Ð¾Ð² ÑƒÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ñ this article presents the development of a low-profile circularly polarized patch antenna operating in the 900â€“950 MHz frequency range for unmanned aerial vehicle (UAV) control systems. The antenna, designed with a multi-point feeding network on an FR-4 substrate, was optimized in CST Microwave Studio under the following criteria: VSWR â‰¤ 2.5 and axial ratio â‰¤ 2 dB. Simulation results demonstrate a reflection coefficient (S11) 8 dBi, and stable radiation patterns in both vertical and horizontal planes. Experimental studies of the fabricated prototype confirmed alignment with simulated data. Measurements using a Rohde & Schwarz ZVL-13 vector network analyzer revealed minor deviations attributable to manufacturing tolerances. The scientific novelty lies in the optimized design achieving high gain and stable axial ratio across the target frequency band. Results validate the antennaâ€™s potential for enhancing control channel reliability in commercial and specialized UAV systems",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013557",
+   "title": "Aerodynamic noise reduction of small unmanned aerial vehicle rotors via steady suction and blowing control",
+   "abstract": "To address the pronounced noise generated by the rotors of a small-scale unmanned aerial vehicle (UAV) during hover, this study investigates two active boundary-layer control schemesâ€”BR-S (baseline rotor with suction) and BR-SB (baseline rotor with combined suction and blowing). Three-dimensional large-eddy simulations capture the near-field unsteady flow, while the Ffowcs-Williamsâ€“Hawkings acoustic analogy predicts the far-field noise. Across rotational speeds of 2000â€“7000 rpm and suctionâ€“blowing velocities of 0â€“12 m/s, overall sound-pressure level and spectral characteristics are systematically evaluated. Results show that BR-SB markedly outperforms BR-S, achieving up to 6.5 dB reduction at lateral microphones and mean reductions of 3.21 dB (aft) and 5.38 dB (lateral). By contrast, BR-S suppresses low-order blade-passing-frequency peaks but introduces localized mid-frequency sidebands. Flow-physics analysis reveals that leading-edge suction delays boundary-layer separation, whereas trailing-edge blowing persistently perturbs the shear layer and fragments nascent vortex structures, thereby attenuating both discrete harmonics and broadband turbulent noise. Overall, the combined suctionâ€“blowing strategy offers an effective and practically feasible pathway toward quieter operation of small UAV rotors.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013567",
+   "title": "Development of an optoelectronic image segmentation method from unmanned aerial vehicles based on the ant colony optimization algorithm under the influence of salt-and-pepper noise",
+   "abstract": "The object of research is the process of segmenting an image from an unmanned aerial vehicle based on the ant algorithm under the influence of salt-and-pepper noise. â€œSaltâ€-and-â€œpepperâ€ noise occurs due to data transmission errors, failures of digital camera sensors or malfunctions during recording/reading of information. It is characterized by the random appearance of individual pixels in the image, the value of which is equal to the minimum (â€œpepperâ€) or maximum (â€œsaltâ€) brightness level. Unlike the known ones, the method of segmenting an optoelectronic image based on the ant algorithm provides image segmentation under the influence of salt-and-pepper noise and involves: â€“ initialization of initial parameters; â€“ calculation of the length of the path segment of agents; â€“ calculation of the attractiveness of the route for the agent; â€“ updating the pheromone concentration; â€“ calculation of the probability of transition of agents; â€“ calculation of the objective function; â€“ movement of agents; â€“ determination of the best route of agents. Experimental studies have shown that the segmentation method based on the ant algorithm provides a reduction in segmentation errors of the first kind on average: â€“ in the absence of salt-and-pepper noise â€“ 4%; â€“ at the intensity of salt-and-pepper noise Ïƒ = 5â€“21%; â€“ at the intensity of salt-and-pepper noise Ïƒ = 15â€“10%. The segmentation method based on the ant algorithm provides a reduction in segmentation errors of the second kind on average: â€“ in the absence of salt-and-pepper noise â€“ 3%; â€“ at the intensity of salt-and-pepper noise Ïƒ = 5â€“15%; â€“ at the intensity of salt-and-pepper noise Ïƒ = 15â€“6%. The practical significance of the segmentation method based on the ant algorithm is to ensure high-quality image segmentation under the influence of salt-and-pepper noise.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013579",
+   "title": "Method for Obtaining Water-Leaving Reflectance from Unmanned Aerial Vehicle Hyperspectral Remote Sensing Based on Airâ€“Ground Collaborative Calibration for Water Quality Monitoring",
+   "abstract": "Unmanned aerial vehicle (UAV) hyperspectral remote sensing imaging systems have demonstrated significant potential for water quality monitoring. However, accurately obtaining water-leaving reflectance from UAV imagery remains challenging due to complex atmospheric radiation transmission above water bodies. This study proposes a method for water-leaving reflectance inversion based on airâ€“ground collaborative correction. A fully connected neural network model was developed using TensorFlow Keras to establish a non-linear mapping between UAV hyperspectral reflectance and the measured near-water and water-leaving reflectance from ground-based spectral. This approach addresses the limitations of traditional linear correction methods by enabling spatiotemporal synchronization correction of UAV remote sensing images with ground observations, thereby minimizing atmospheric interference and sensor differences on signal transmission. The retrieved water-leaving reflectance closely matched measured data within the 450â€“900 nm band, with the average spectral angle mapping reduced from 0.5433 to 0.1070 compared to existing techniques. Moreover, the water quality parameter inversion models for turbidity, color, total nitrogen, and total phosphorus achieved high determination coefficients (R2 = 0.94, 0.93, 0.88, and 0.85, respectively). The spatial distribution maps of water quality parameters were consistent with in situ measurements. Overall, this UAV hyperspectral remote sensing method, enhanced by airâ€“ground collaborative correction, offers a reliable approach for UAV hyperspectral water quality remote sensing and promotes the advancement of stereoscopic water environment monitoring.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013589",
+   "title": "A Novel Rapid Detection Method for Bridge Vibration Based on an Unmanned Aerial Vehicle and a Raspberry Pi",
+   "abstract": "The high cost of traditional structural health monitoring systems limits their application to only a few major bridges, leaving most structures unmonitored between manual inspections. To address this issue, this study proposes a UAV mobile detection device (UMD) system that integrates a Raspberry Pi, data acquisition module, and accelerometer for rapid, contact-based vibration measurement. A vibration transmission model between the UMD and the bridge deck is developed to guide hardware design and quantify the influence of isolator stiffness and damping. The UMDâ€™s performance is validated through both laboratory floor tests and field bridge experiments, demonstrating reliable identification of modal frequencies in the range of 0.00â€“51.95 Hz with a maximum acceleration error below 0.01 g and a relative modal frequency deviation within 3.4%. The analysis further determines that an accelerometer resolution of 0.02Ã—10âˆ’1 g is required for accurate frequency domain measurement. These findings establish the UMD as a fast, low-cost, and accurate tool for rapid bridge vibration assessment and lay the groundwork for future multi-UAV synchronized monitoring.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013600",
+   "title": "Corrigendum to â€œThe search for small intrusions of the Stepnyak gold-bearing type within the Akmola region of Kazakhstan: A multi-geophysical technique and unmanned aerial vehicle approachâ€ [Phys. Chem. Earth, Parts A/B/C, 140, (October 2025), 103988 https://doi.org/10.1016/j.pce.2025.103988]",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013611",
+   "title": "Monitoring the Condition of Contact Network Using Electric Unmanned Aerial Vehicles",
+   "abstract": "The research purpose is to ensure the required duration of continuous monitoring of the electrified railway transport overhead catenary system. This monitoring is carried out by using electric helicopter-type unmanned aerial aircrafts. To achieve this purpose the method was used for recharging the onboard battery pack by the energy of the electromagnetic field generated by traction currents flowing through the contact wire or suspension wire during the flight of the aircraft in close proximity to the overhead catenary system. To implement this method, an inductive way of transferring electromagnetic energy from the overhead catenary system to the apparatus onboard system is used. An electric winding is used as the receiver of this energy. This winding is a part of the onboard charging device and is installed on the aircraft. The subject of the research was the 25 kV AC chain-type catenary suspension. A finite element model of the circuit was developed. The monitoring device was represented by the Freefly Alta 8 hexacopter with an Alta Flight Battery Pack from Freefly. The following results and recommendations can be made: using the mathematical modeling methods utilizing the COMSOL MultiphysicsÂ® 6.0 program, one can prove the possibility of recharging by the electromagnetic field of the current in the catenary wire, at the lateral displacement of the aircraft from the longitudinal axis of the catenary wire. The thermal calculation results for the battery pack showed that at negative ambient temperatures, the use of thermal containers is an effective and efficient measure for maintaining the optimal temperature regime for the battery pack for an extended period with an acceptable increase in takeoff weight in terms of the maximum takeoff weight.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013621",
+   "title": "Research on Countermeasures Technology for Unmanned Aerial Vehicle Swarms",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013633",
+   "title": "Research on the flight vibration prediction method of fixed-wing jet unmanned aerial vehicle",
+   "abstract": "Abstract Accurate determination of the vibration environment is crucial yet challenging for the environmental adaptability design, reliability optimization, and test verification of fixed-wing Unmanned Aerial Vehicles (UAVs). To address this, we first identify the key influencing factors by analyzing the correlation between vibration intensity and flight parameters such as altitude, Mach number, and angle of attack. Subsequently, a novel prediction method integrating Principal Component Analysis (PCA) and polynomial fitting is proposed. The performance of this multivariate PCA-based method is benchmarked against two baseline models: univariate linear regression and a Backpropagation Neural Network (BPNN). Validation with field-measured data shows that the proposed PCA-based method reduces the prediction error by 40%-50% compared to the conventional univariate linear regression method. This approach provides robust support for defining precise vibration test conditions and reliability profiles, addressing a key need in the engineering development of fixed-wing UAVs.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013645",
+   "title": "Productivity and profitability of groundnut under different crop establishment methods and weed management practices",
+   "abstract": "A field experiment was conducted during the Kharif season of 2019 and 2020 at Research Farm, Rajasthan Agricultural Research Institute, Durgapura, Jaipur (Rajasthan) to studies on different land configuration, mulching and weed management on growth, yield and quality of groundnut (Arachis hypogaea L.). The experiment consisted of 20 treatment combinations, main plot treatment consists of four land configurations and mulch, viz. flat sowing without mulch, flat sowing with mulch, broad bed and furrow system without mulch and broad bed and furrow system with mulch, however sub plot consist 5 weed management treatments, viz. control, 2 hand weeding at 25 and 45 DAS, pendimethalin @ 750 g a.i./ha PE fb hand weeding at 25 DAS, pendimethalin + imazethapyr (ready mix) @ 1.0 kg a.i./ha PE fb hand weeding at 25 DAS and pendimethalin @ 750 g a.i./ha PE fb imazethapyr @ 40 g a.i. ha-1 PoE were evaluated in split plot design and replicated thrice. Result indicates that the lowest weed density, dry weight of weed and highest pod yield was recorded under crop sown with broad bed and furrow system with mulch. Among weed management practices, two hand weeding at 25 and 45 DAS recorded significantly higher reduction in total weed density and dry weight of weed coupled with highest weed control efficiency, pod yield as compared to weedy check, pendimethalin 38.7 CS @ 750 g a.i./ha PE fb imazethapyr @ 40 g a.i./ha PoE, pendimethalin 38.7 CS @ 750 g a.i./ha PE fb hand weeding at 25 DAS, however it was found at par with pendimethalin 30 EC + imazethapyr 2 EC (ready mix) 1.0 kg a.i./ha fb hand weeding at 25 DAS during both the year of experimentation.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013655",
+   "title": "Diagnosis and Quantification of Staining in Reinforced Concrete Structures Using Unmanned Aerial Vehicle (UAV)",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013665",
+   "title": "Unmanned Aerial Vehicle Following Flight Based on Reinforcement Learning",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013678",
+   "title": "Chaotic dung beetle optimizationâ€“enhanced multi-agent deep reinforcement learning for joint task offloading and resource allocation in multi-unmanned aerial vehicle internet of medical things networks",
+   "abstract": "Abstract The rapid growth of connected medical devices generates massive volumes of heterogeneous health data that must be processed and transmitted in real time. In such environments, minimizing latency and energy consumption remains a critical challenge for next-generation health monitoring systems. Existing reinforcement learning and optimization methods for intelligent communication networks face several challenges, including slow convergence, high computational overhead, and inefficiency in handling task prioritization. To resolve these issues, this work develops a chaotic dung beetle optimization-boosted multi-agent deep reinforcement learning that jointly optimizes communication reliability, computational efficiency, and task prioritization. A reward function is designed to jointly minimize delay, energy usage, and system cost while preserving information freshness. Specifically, the dung beetle optimization process is combined with a piecewise linear chaotic map to enhance population diversity, which significantly improves search space exploration and leads to faster convergence and higher solution quality. The proposed algorithm enhances the exploration capability of multi-agent deep reinforcement learning through the integration of chaotic dung beetle optimization, enabling more accurate and reliable decision-making in real-world applications. Extensive experiments demonstrate that the proposed chaotic dung beetle optimization-boosted multi-agent deep reinforcement learning model achieves superior performance compared to baseline algorithms. Specifically, it reaches an accuracy of over 97.00% with rapid convergence, reduces system cost under varying health data sizes and Medical Internet of Things devices, and maintains robust scalability across diverse workloads. Moreover, the model achieves significant reductions in communication latency and energy consumption as central processing unit cycles and bandwidth increase, while effectively prioritizing high-criticality tasks.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013689",
+   "title": "The application of cloud-edge-terminal integrated technology of unmanned aerial vehicles in the survey and design of transmission lines",
+   "abstract": "Electric power survey and design is a key link in electric power engineering construction, and its technical level directly affects the quality and efficiency of the project. With the development of computer technology, the means of power survey and design have undergone a transformation from manual calculation to three-dimensional design. In recent years, unmanned aerial vehicle (UAV) aerial surveying technology has been widely applied in the survey and design of transmission lines due to its advantages of low cost, high efficiency and strong flexibility, significantly improving the efficiency and quality of the survey.This research is based on an electric long-endurance fixed-wing unmanned aerial vehicle (UAV) aerial surveying system to obtain high-resolution orthophotos and laser point cloud data, achieving threedimensional visualization and measurement functions. It provides technical support for aerial line selection and threedimensional optimization design of transmission lines and has certain innovative reference value.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013700",
+   "title": "Monitoring of train traffic safety using unmanned aerial vehicles and low-orbit satellite constellations",
+   "abstract": "The organization of safety monitoring channels in railway transport using intelligent video surveillance systems (IVS) is analyzed. A solution is proposed that uses unmanned aerial vehicles (UAVs) to record video of objects and transmit monitoring data to a control center via satellite communication. A comparative analysis of two safety monitoring network architectures based on domestic low-orbit satellite constellations, \"Gonets\" and \"Rassvet\", is carried out. The advantages and disadvantages of each architecture for railway monitoring tasks are identified. The key role of inter-satellite links based on atmospheric optical communication (AOC) is identified, which can significantly extend the range of monitoring systems given the vast scale of the Russian railway network. The conclusion is drawn regarding the prospects of integrating satellite communication into video surveillance systems for large-scale remote-area monitoring.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013712",
+   "title": "AI-Enabled Unmanned Aerial System for Highway Bridge Claims Management",
+   "abstract": "The increasing backlog of aging civil infrastructure, particularly bridges, has created an urgent need for efficient inspection, repair, and rehabilitation methods. In the United States, 7.5% or 46,154 of the nationâ€™s bridges are classified as deficient by the Federal Highway Administration, requiring significant attention to maintain structural integrity. These bridges frequently generate construction claims related to concrete integrity and structural damage, posing ongoing challenges for engineering consultants. Current methods for claim resolution often result in lengthy disputes. Unmanned aerial system (UAS), integrated with artificial intelligence (AI) through deep learning (DL) algorithms, offers a promising solution by enabling rapid, extensive data collection and analysis, especially for crack severity classification, a largely unexplored area in bridge infrastructure. This study presents a convolutional neural network (CNN) model that classifies structural defects in 658 critical crack images and 1,040 noncritical crack images captured by UAS, achieving an accuracy of 95%. The results underscore the potential of UAS-DL integration to transform bridge inspection and claim resolution, minimizing delays and costs while enhancing reliability, speed, and precision. This study demonstrates the potential of UAS-DL technology to streamline construction claim management by providing efficient and objective assessment.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013723",
+   "title": "Development and evaluation of a proton exchange membrane fuel cell system for unmanned aerial vehicles applications",
+   "abstract": "This study presents the in-house development and characterization of a proton exchange membrane fuel cell (PEMFC) energy supply system for unmanned aerial vehicles. The system performance, including the 30-cell PEMFC stack stability and efficiency, is evaluated. Stable operation was achieved up to 16 V (about 160 W), while lower voltages led to a gradual performance degradation due to excess heating. A maximum efficiency of 39 % was achieved, with the reaction heat being the main energy loss, accounting for 47 % of the total energy input. An auxiliary battery is successfully integrated to provide additional power and compensate for the slower response of the PEMFC to dynamic load changes. When increasing the system current from 0 to 15 A, the PEMFC initially supplies around 55 % of the system current. After 1 min, this value increases to 70 %. A circuit for automatically charging the battery using the PEMFC power is implemented and evaluated. When the battery voltage is low and the system has extra power, the battery is charged with a 2 A current that decreases as the voltage increases. A flight simulation based on real flight data is performed, and the system meets all power demands. The PEMFC reached higher levels of performance during this test compared to the static tests, likely due to differences in temperature and humidity. The study also discusses system limitations and suggests potential improvements.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013733",
+   "title": "Situation-aware deep reinforcement learning for unmanned aerial vehicle swarm navigation in dynamic multi-obstacle environments",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013745",
+   "title": "Ð¡Ð¾Ð²Ñ€ÐµÐ¼ÐµÐ½Ð½Ñ‹Ðµ Ð¼ÐµÑ‚Ð¾Ð´Ð¸ÐºÐ¸ Ð¾Ð±ÑƒÑ‡ÐµÐ½Ð¸Ñ Ñ‚Ð°ÐºÑ‚Ð¸ÐºÐµ Ð¿Ñ€Ð¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ Ð±ÐµÑÐ¿Ð¸Ð»Ð¾Ñ‚Ð½Ñ‹Ñ… Ð²Ð¾Ð·Ð´ÑƒÑˆÐ½Ñ‹Ñ… ÑÑ€ÐµÐ´ÑÑ‚Ð² Ð² ÑƒÑÐ»Ð¾Ð²Ð¸ÑÑ… Ð¸Ð·Ð¼ÐµÐ½ÑÑŽÑ‰ÐµÐ¹ÑÑ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¾Ð¹ Ð¾Ð±ÑÑ‚Ð°Ð½Ð¾Ð²ÐºÐ¸",
+   "abstract": "Ð’ ÑÑ‚Ð°Ñ‚ÑŒÐµ Ð°Ð½Ð°Ð»Ð¸Ð·Ð¸Ñ€ÑƒÐµÑ‚ÑÑ Ð¿Ñ€Ð¾Ð±Ð»ÐµÐ¼Ð° Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²ÐºÐ¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð¾Ð² Ð±ÐµÑÐ¿Ð¸Ð»Ð¾Ñ‚Ð½Ñ‹Ñ… Ð²Ð¾Ð·Ð´ÑƒÑˆÐ½Ñ‹Ñ… ÑÑ€ÐµÐ´ÑÑ‚Ð² Ðº Ð²Ñ‹Ð¿Ð¾Ð»Ð½ÐµÐ½Ð¸ÑŽ Ð·Ð°Ð´Ð°Ñ‡ Ð¼Ð¾Ð½Ð¸Ñ‚Ð¾Ñ€Ð¸Ð½Ð³Ð° Ð¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¾Ð³Ð¾ ÑÐ¾Ð¿Ñ€Ð¾Ð²Ð¾Ð¶Ð´ÐµÐ½Ð¸Ñ ÑÐ¾Ñ‚Ñ€ÑƒÐ´Ð½Ð¸ÐºÐ¾Ð² ÐœÐ’Ð” Ð² Ð³Ð¾Ñ€Ð¾Ð´ÑÐºÐ¾Ð¹ ÑÑ€ÐµÐ´Ðµ, Ð³Ð´Ðµ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð¸Ð²Ð½Ð¾ÑÑ‚ÑŒ Ð¾Ð¿Ñ€ÐµÐ´ÐµÐ»ÑÐµÑ‚ÑÑ Ð½Ðµ ÑÑ‚Ð¾Ð»ÑŒÐºÐ¾ Ð½Ð°Ð²Ñ‹ÐºÐ°Ð¼Ð¸ Ð¿Ð¸Ð»Ð¾Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ, ÑÐºÐ¾Ð»ÑŒÐºÐ¾ Ñ€Ð°Ð·Ð²Ð¸Ñ‚Ð¸ÐµÐ¼ Ð°Ð½Ñ‚Ð¸Ñ†Ð¸Ð¿Ð°Ñ†Ð¸Ð¸, ÑÐ¸Ñ‚ÑƒÐ°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð¹ Ð¾ÑÐ²ÐµÐ´Ð¾Ð¼Ð»ÐµÐ½Ð½Ð¾ÑÑ‚Ð¸, ÑÐ¿Ð¾ÑÐ¾Ð±Ð½Ð¾ÑÑ‚Ð¸ Ñ„Ð¸Ð»ÑŒÑ‚Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¹ ÑˆÑƒÐ¼ Ð¸ Ð¿Ñ€Ð¸Ð½Ð¸Ð¼Ð°Ñ‚ÑŒ Ñ€ÐµÑˆÐµÐ½Ð¸Ñ Ð¿Ñ€Ð¸ Ð´ÐµÑ„Ð¸Ñ†Ð¸Ñ‚Ðµ Ð²Ñ€ÐµÐ¼ÐµÐ½Ð¸ Ð¸ Ð¿Ñ€Ð¸ Ð¿Ð¾Ð¿Ñ‹Ñ‚ÐºÐ°Ñ… Ð¿Ñ€Ð¾Ñ‚Ð¸Ð²Ð¾Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ñ ÑÐ¾ ÑÑ‚Ð¾Ñ€Ð¾Ð½Ñ‹ Ð¿Ñ€Ð°Ð²Ð¾Ð½Ð°Ñ€ÑƒÑˆÐ¸Ñ‚ÐµÐ»ÐµÐ¹ (Ñ€Ð°Ð´Ð¸Ð¾Ð¿Ð¾Ð¼ÐµÑ…Ð¸, GPS-ÑÐ¿ÑƒÑ„Ð¸Ð½Ð³, Ð¼Ð°ÑÐºÐ¸Ñ€Ð¾Ð²ÐºÐ°). ÐžÐ±Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð° Ð¾Ð³Ñ€Ð°Ð½Ð¸Ñ‡ÐµÐ½Ð½Ð¾ÑÑ‚ÑŒ Ñ‚Ñ€Ð°Ð´Ð¸Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ñ… Ð»Ð¸Ð½ÐµÐ¹Ð½Ñ‹Ñ… Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼, Ñ„Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÑŽÑ‰Ð¸Ñ… Ñ„Ñ€Ð°Ð³Ð¼ÐµÐ½Ñ‚Ð°Ñ€Ð½Ð¾Ðµ Ð¿Ñ€Ð¾Ñ„ÐµÑÑÐ¸Ð¾Ð½Ð°Ð»ÑŒÐ½Ð¾Ðµ ÑÐ¾Ð·Ð½Ð°Ð½Ð¸Ðµ Ð¸ Ð¿Ñ€Ð¾Ð²Ð¾Ñ†Ð¸Ñ€ÑƒÑŽÑ‰Ð¸Ñ… ÐºÐ¾Ð³Ð½Ð¸Ñ‚Ð¸Ð²Ð½ÑƒÑŽ Ð¿ÐµÑ€ÐµÐ³Ñ€ÑƒÐ·ÐºÑƒ Ñ Ñ‚ÑƒÐ½Ð½ÐµÐ»ÑŒÐ½Ñ‹Ð¼ ÑÑ„Ñ„ÐµÐºÑ‚Ð¾Ð¼ Ð²Ð¾ÑÐ¿Ñ€Ð¸ÑÑ‚Ð¸Ñ. ÐŸÑ€ÐµÐ´Ð»Ð¾Ð¶ÐµÐ½Ð° Ð¸ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐµÐ½Ð° Ð¼ÐµÑ‚Ð¾Ð´Ð¸ÐºÐ° Ð°Ð´Ð°Ð¿Ñ‚Ð¸Ð²Ð½Ð¾Ð³Ð¾ ÑÑ†ÐµÐ½Ð°Ñ€Ð½Ð¾Ð³Ð¾ Ð¼Ð¾Ð´ÐµÐ»Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ, Ð¿Ñ€Ð¸ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹ Ð¸Ð½Ñ‚ÐµÐ»Ð»ÐµÐºÑ‚ÑƒÐ°Ð»Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ð¹ ÑÐ¸Ð¼ÑƒÐ»ÑÑ‚Ð¾Ñ€ Ð´Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð¸Ð·Ð¼ÐµÐ½ÑÐµÑ‚ ÑÐ»Ð¾Ð¶Ð½Ð¾ÑÑ‚ÑŒ Ð²Ð²Ð¾Ð´Ð½Ñ‹Ñ… (Ð¿Ð¾Ð¼ÐµÑ…Ð¸ ÑÐ²ÑÐ·Ð¸, Ð¿Ð¾Ð³Ð¾Ð´Ð½Ñ‹Ðµ Ñ„Ð°ÐºÑ‚Ð¾Ñ€Ñ‹, Ð¿Ð»Ð¾Ñ‚Ð½Ð°Ñ Ð·Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ°, Ñ€ÐµÐ³Ð»Ð°Ð¼ÐµÐ½Ñ‚Ð½Ñ‹Ðµ Ð¾Ð³Ñ€Ð°Ð½Ð¸Ñ‡ÐµÐ½Ð¸Ñ Ð¿Ð¾Ð»ÐµÑ‚Ð°, Ð¾Ñ‚ÐºÐ°Ð·Ñ‹ Ð½Ð°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ð¸) Ð² Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ Ð¾Ñ‚ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ¹ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ÑÑ‚Ð¸ Ð¾Ð±ÑƒÑ‡Ð°ÑŽÑ‰ÐµÐ³Ð¾ÑÑ, Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶Ð¸Ð²Ð°Ñ Ñ‚Ñ€ÐµÐ½Ð¸Ñ€Ð¾Ð²ÐºÑƒ Ð² Ð·Ð¾Ð½Ðµ Ð¾Ð¿Ñ‚Ð¸Ð¼Ð°Ð»ÑŒÐ½Ð¾Ð¹ Ñ‚Ñ€ÑƒÐ´Ð½Ð¾ÑÑ‚Ð¸; Ð´Ð¾Ð¿Ð¾Ð»Ð½Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÑ‚ÑÑ Ñ€ÐµÑ„Ð»ÐµÐºÑÐ¸Ð²Ð½Ñ‹Ð¹ Ð´ÐµÐ±Ñ€Ð¸Ñ„Ð¸Ð½Ð³ Ð½Ð° Ð¾ÑÐ½Ð¾Ð²Ðµ Ð²Ð¸Ð´ÐµÐ¾Ñ„Ð¸ÐºÑÐ°Ñ†Ð¸Ð¸ Ð¸ Ð°Ð½Ð°Ð»Ð¸Ð·Ð° Ñ‚Ñ€Ð°ÐµÐºÑ‚Ð¾Ñ€Ð¸Ð¸ Ð²Ð·Ð³Ð»ÑÐ´Ð°. Ð¡Ð¾Ð¿Ð¾ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ñ Ñ‚Ñ€Ð°Ð´Ð¸Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¼ Ð¾Ð±ÑƒÑ‡ÐµÐ½Ð¸ÐµÐ¼ Ð½Ð° Ð²Ñ‹Ð±Ð¾Ñ€ÐºÐ°Ñ… Ñ€Ð°Ð²Ð½Ð¾Ð¹ Ñ‡Ð¸ÑÐ»ÐµÐ½Ð½Ð¾ÑÑ‚Ð¸ Ð´ÐµÐ¼Ð¾Ð½ÑÑ‚Ñ€Ð¸Ñ€ÑƒÐµÑ‚ Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð½Ð¾Ðµ ÑƒÐ»ÑƒÑ‡ÑˆÐµÐ½Ð¸Ðµ Ð¿Ñ€Ð¸ÐºÐ»Ð°Ð´Ð½Ñ‹Ñ… Ð¿Ð¾ÐºÐ°Ð·Ð°Ñ‚ÐµÐ»ÐµÐ¹: ÑÐ¾ÐºÑ€Ð°Ñ‰ÐµÐ½Ð¸Ðµ Ð²Ñ€ÐµÐ¼ÐµÐ½Ð¸ Ð¾Ð±Ð½Ð°Ñ€ÑƒÐ¶ÐµÐ½Ð¸Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð½Ð°Ð±Ð»ÑŽÐ´ÐµÐ½Ð¸Ñ Ñ 18,42 Ð´Ð¾ 12,15 Ñ, ÑƒÐ¼ÐµÐ½ÑŒÑˆÐµÐ½Ð¸Ðµ Ñ€ÐµÐ°ÐºÑ†Ð¸Ð¸ Ð½Ð° Ð¾Ñ‚ÐºÐ°Ð· Ð½Ð°Ð²Ð¸Ð³Ð°Ñ†Ð¸Ð¸ Ñ 5,87 Ð´Ð¾ 3,22 Ñ, ÑÐ½Ð¸Ð¶ÐµÐ½Ð¸Ðµ ÐºÑ€Ð¸Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸Ñ… Ð¾ÑˆÐ¸Ð±Ð¾Ðº Ñ 3,12 Ð´Ð¾ 1,45 Ð½Ð° 10 Ð²Ñ‹Ð»ÐµÑ‚Ð¾Ð² Ð¸ Ñ€Ð¾ÑÑ‚ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ÑÑ‚Ð¸ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¾Ð¹ Ð·Ð°Ð´Ð°Ñ‡Ð¸ Ñ 0,642 Ð´Ð¾ 0,815; Ð¾Ð´Ð½Ð¾Ð²Ñ€ÐµÐ¼ÐµÐ½Ð½Ð¾ Ð²Ð¾Ð·Ñ€Ð°ÑÑ‚Ð°ÐµÑ‚ ÑƒÑÑ‚Ð¾Ð¹Ñ‡Ð¸Ð²Ð¾ÑÑ‚ÑŒ Ðº Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð¼Ñƒ ÑˆÑƒÐ¼Ñƒ (Ñ 5,34 Ð´Ð¾ 7,89 Ð±Ð°Ð»Ð»Ð°) Ð¸ ÑÐ½Ð¸Ð¶Ð°ÐµÑ‚ÑÑ Ð²Ð°Ñ€Ð¸Ð°Ñ‚Ð¸Ð²Ð½Ð¾ÑÑ‚ÑŒ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð¾Ð², Ñ‡Ñ‚Ð¾ ÑƒÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÑ‚ Ð½Ð° Ð¿Ð¾Ð²Ñ‹ÑˆÐµÐ½Ð¸Ðµ ÑÑ‚Ð°Ð±Ð¸Ð»ÑŒÐ½Ð¾ÑÑ‚Ð¸ Ð½Ð°Ð²Ñ‹ÐºÐ°. ÐŸÑÐ¸Ñ…Ð¾Ñ„Ð¸Ð·Ð¸Ð¾Ð»Ð¾Ð³Ð¸Ñ‡ÐµÑÐºÐ¸Ð¹ Ð¼Ð¾Ð½Ð¸Ñ‚Ð¾Ñ€Ð¸Ð½Ð³ (Ð²Ð°Ñ€Ð¸Ð°Ð±ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ Ñ€Ð¸Ñ‚Ð¼Ð°, Ñ‚Ñ€ÐµÐ¼Ð¾Ñ€, Ð¿ÑƒÐ»ÑŒÑ) Ð²Ñ‹ÑÐ²Ð»ÑÐµÑ‚ Ð¼ÐµÐ½ÑŒÑˆÑƒÑŽ Ñ†ÐµÐ½Ñƒ Ð´ÐµÑÑ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ Ð² ÑÑ‚Ñ€ÐµÑÑÐ¾Ð²Ð¾Ð¹ Ñ„Ð°Ð·Ðµ, Ð° Ð¾Ñ‚ÑÑ€Ð¾Ñ‡ÐµÐ½Ð½Ð°Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ° Ñ‡ÐµÑ€ÐµÐ· Ñ‚Ñ€Ð¸ Ð¼ÐµÑÑÑ†Ð° Ñ„Ð¸ÐºÑÐ¸Ñ€ÑƒÐµÑ‚ Ð±Ð¾Ð»ÐµÐµ Ð²Ñ‹ÑÐ¾ÐºÐ¾Ðµ ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð¸Ðµ Ð¸Ð½Ñ‚ÐµÐ³Ñ€Ð°Ñ‚Ð¸Ð²Ð½Ñ‹Ñ… ÐºÐ¾Ð¼Ð¿ÐµÑ‚ÐµÐ½Ñ†Ð¸Ð¹ (85â€“94% Ð¿Ñ€Ð¾Ñ‚Ð¸Ð² 59,8â€“78,3%). ÐŸÐ¾ÐºÐ°Ð·Ð°Ð½Ð° Ð¸Ð½Ñ‚ÐµÐ½ÑÐ¸Ñ„Ð¸ÐºÐ°Ñ†Ð¸Ñ Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²ÐºÐ¸: ÑƒÐ¼ÐµÐ½ÑŒÑˆÐµÐ½Ð¸Ðµ Ñ‚Ñ€ÐµÐ±ÑƒÐµÐ¼Ð¾Ð³Ð¾ Ð½Ð°Ð»ÐµÑ‚Ð° Ð´Ð¾ ÐºÐ²Ð°Ð»Ð¸Ñ„Ð¸ÐºÐ°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð³Ð¾ ÑƒÑ€Ð¾Ð²Ð½Ñ Ñ 48,5 Ð´Ð¾ 31,2 Ñ‡Ð°ÑÐ°, Ñ€Ð¾ÑÑ‚ ÑƒÑÐ¿ÐµÑˆÐ½Ñ‹Ñ… Ð²Ñ‹Ð»ÐµÑ‚Ð¾Ð² Ð½Ð° 10 Ñ‡Ð°ÑÐ¾Ð² Ð¿Ñ€Ð°ÐºÑ‚Ð¸ÐºÐ¸ Ñ 6,4 Ð´Ð¾ 11,8 Ð¸ ÑÐ½Ð¸Ð¶ÐµÐ½Ð¸Ðµ Ñ€Ð°Ð½Ð½ÐµÐ¹ Ð°Ð²Ð°Ñ€Ð¸Ð¹Ð½Ð¾ÑÑ‚Ð¸ Ñ 28,4% Ð´Ð¾ 12,7%, Ñ‡Ñ‚Ð¾ Ð¸Ð½Ñ‚ÐµÑ€Ð¿Ñ€ÐµÑ‚Ð¸Ñ€ÑƒÐµÑ‚ÑÑ ÐºÐ°Ðº Ñ„Ð¾Ñ€Ð¼Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ ÑÐ¸Ñ‚ÑƒÐ°Ñ†Ð¸Ð¾Ð½Ð½Ð¾Ð¹ Ð¿Ð»Ð°ÑÑ‚Ð¸Ñ‡Ð½Ð¾ÑÑ‚Ð¸ Ð¸ Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´ Ðº Ð¿Ð°Ñ€Ð°Ð»Ð»ÐµÐ»ÑŒÐ½Ð¾Ð¹ Ð¾Ð±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐµ Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¸Ð²Ð½Ð¾ Ð·Ð½Ð°Ñ‡Ð¸Ð¼Ð¾Ð¹ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¸. The article examines the problem of training unmanned aerial vehicle operators to support urban public-safety tasks carried out by police units, where effectiveness depends not only on piloting skills but also on anticipation, situational awareness, the ability to filter informational noise, and decision-making under time pressure and deliberate counteractions by offenders (communication interference, GPS spoofing, concealment). The limitations of traditional linear programs are shown: they often produce fragmented professional thinking and cognitive overload with a tunnel-vision effect. An adaptive scenario-modeling method is proposed and tested, in which an intelligent simulator dynamically changes the complexity of inputs (communication interference, weather factors, dense urban environment, regulatory flight constraints, navigation failures) depending on the traineeâ€™s current performance, keeping training within an optimal difficulty zone; reflexive debriefing based on video review and eye-tracking analysis is also used. Compared with traditional training (equal-size samples), applied indicators improve markedly: the time to detect an object of interest decreases from 18,42 to 12,15 s, reaction to navigation failure decreases from 5,87 to 3,22 s, critical errors drop from 3,12 to 1,45 per 10 flights, and overall task success increases from 0.642 to 0.815; resilience to informational noise rises (from 5.34 to 7.89 points) and performance variability decreases, indicating higher skill stability. Psychophysiological monitoring (heart rate variability, tremor, pulse) shows a lower â€œcostâ€ of activity in the stress phase, while delayed testing after three months records higher retention of integrative competencies (85â€“94% versus 59,8â€“78,3%). Training intensification is demonstrated: the required flight time to reach the qualification level decreases from 48.5 to 31.2 hours, successful flights per 10 hours of practice increase from 6,4 to 11,8, and early accident rate decreases from 28,4% to 12,7%, which is interpreted as the formation of situational plasticity and a shift toward parallel processing of operationally relevant information.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013755",
+   "title": "Accelerating Outlier-Robust Point Cloud Registration by Known Gravity Directions",
+   "abstract": "3D point cloud registration, which seeks the optimal rigid transformation to align two point clouds, is a fundamental task in autonomous systems. However, the 3D correspondences between point clouds are prone to substantial outliers (mismatches), leading to significant decreases in registration accuracy. Existing outlier-robust registration methods commonly have high computational complexity and, hence, are limited in time-sensitive applications. Inertial measurement unit (IMU) sensors are widespread in modern autonomous systems and can offer precise gravity directions. Accordingly, we propose a highly efficient voting-based outlier removal method by leveraging the gravity prior in this paper. This pre-processing step can significantly reduce the candidate correspondence set for subsequent estimation, thus accelerating robust point cloud registration. We then leverage pairwise invariant features to decompose the optimization of rotation and translation. Further, we propose a two-stage consensus maximization solver to optimize the rotation and translation sequentially, leading to deterministic and robust registration. Extensive experiments on both synthetic and real-world datasets indicate that our method effectively boosts registration efficiency while exhibiting comparable robustness to state-of-the-art methods.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013765",
+   "title": "A curriculum-guided and explainable reinforcement learning framework for fixed-wing unmanned aerial vehicle autopilots",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  }
+ ]
+}

@@ -1,0 +1,291 @@
+{
+ "role": "T4 third-rater, blinded (no other screener decisions inside)",
+ "pack": "pack_0025",
+ "n_records": 35,
+ "instruction_anchor_sha_prompt": "0c7f129d",
+ "criteria_sha_prefix": "9ae1f97d",
+ "records": [
+  {
+   "screening_id": "SCI-013775",
+   "title": "The unmanned aerial vehicle technologies and artificial intelligence as the most important factors in ensuring the Russian economy competitiveness and implementing a strategy of technological leadership",
+   "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": true,
+   "moderation_terms": [
+    "military"
+   ]
+  },
+  {
+   "screening_id": "SCI-013785",
+   "title": "Crop yield and weed community response to cover crop termination strategies under organic management in the US Midâ€South",
+   "abstract": "Abstract Weed management is still a main drawback for the wider adoption of organic cropping systems in the Midâ€South. Holistic cropping management, which involves a combination of cover cropping, tillage practices, and integrating crop and livestock systems, is an option to overcome this challenge. To investigate the effects of different cropping systems on cash crop yield and weed pressure, we conducted a randomized complete block study over 4 years (2021â€“2024) in Booneville, AR, with four treatments: conventional tillage with roller crimping cover crops, conventional tillage with grazing, noâ€till, and noâ€tillage with roller crimping cover crops with grazing. The fallâ€planted cover crop was cereal rye in 2022 and 2024, and wheat in 2023. The cash crop was soybean in 2022 and 2024, and sorghum in 2023. Outcomes of this study were significantly influenced by weather conditions. Cover crop termination strategies were effective in killing cover crops; however, residue levels were insufficient to suppress weeds. Dominant weed species composition varies annually. Redroot pigweed, curly dock, and bromegrass canopy cover were influenced by tillage, while johnsongrass was the predominant weed species across all evaluations. Cropping systems did not affect sorghum productivity, but soybean production was greater in the conventional tillage system in 2023. Our study thus supports tillage as an important driver of organic soybean production; however, further studies should investigate alternatives to mitigate the increasing drought occurrences in the US Midâ€South.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013795",
+   "title": "Generative AI-Assisted Creative Design of Unmanned Aerial Vehicles: A Case Study of Fire-Fighting UAV Design",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013808",
+   "title": "Adaptive model predictive control with extended state observer for unmanned aerial vehicle trajectory tracking",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013819",
+   "title": "Autonomous inspection method for insulator strings using an unmanned aerial vehicle",
+   "abstract": "This study proposes a novel autonomous inspection framework for insulator strings in transmission facilities with an unmanned aerial vehicle (UAV). The proposed framework aims to overcome practical limitations of current inspection using the UAV for transmission facilities. Current inspection relies on manual piloting, which makes it difficult in consistent acquisition of inspection data under structural and environmental variability in transmission facilities. Reliable anomaly detection also remains challenging in real deployments because of scarce abnormal samples and diverse site conditions. To address these challenges, the proposed framework hybridizes an adaptive flight strategy with a novel deep neural network to autonomously inspect insulator strings without manual intervention. The proposed framework features three key characteristics. First, the adaptive flight strategy determines the position and orientation of the UAV to acquire high-quality images of insulator strings by analyzing the structural features of transmission facilities with multimodal information. Second, a novel deep neural network, titled hybrid anomaly detection via multi-scale variational autoencoder and classifier (HAD-VAEC), is proposed to detect abnormal insulator strings by effectively learning the distinct features between normal and abnormal patterns in a latent hyperspace. Third, synthetic insulator images are co-trained with real images using a novel co-training strategy, which are generated through three-dimensional computer-aided design modeling and generative adversarial networks. This feature aims to address data imbalance and improve the robustness of the HAD-VAEC. Extensive experiments on both virtual and real-world environments clearly demonstrate that the proposed framework enables efficient, safe, and autonomous inspection of insulator strings by addressing core technologies of the 4th industrial resolution.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013831",
+   "title": "Research on the application of unmanned aerial vehicle aeromagnetic measurement based on rubidium optical pump magnetometer",
+   "abstract": "Optical Pumped Magnetometers (OPMs) have become key instruments in the field of precision magnetic field measurement due to their high accuracy, stability, and compact design. These quantum sensors are widely applied in geophysical exploration, engineering surveying, and unexploded ordnance detection. This study presents the [Formula: see text]-type rubidium atomic optical pumped magnetometer developed by the Quantum Precision Measurement Team at Zhejiang University of Technology, which is integrated with a custom-designed unmanned aerial vehicle (UAV) magnetic measurement platform. Under static conditions, a performance comparison experiment was conducted between the [Formula: see text]-type rubidium atomic optically pumped magnetometer (ZAM) and a commercial QuSpin magnetometer. Additionally, a QuSpin magnetometer was mounted on one side of the UAV platform, and a self-developed magnetometer was mounted on the other side, to verify the performance of the instrument in practical applications. Experimental results show that: in static tests, the difference between the measurement data of the two sensors had a standard deviation (STD) of 0.3nT, indicating good agreement between the two sensors; in dynamic tests, variational mode decomposition was introduced to separate the geomagnetic signal from the system environmental noise, and the processed difference between the two ZAM instruments had an STD of 1.3nT. These experimental results demonstrate that the stability and accuracy of the ZAM magnetometer are comparable to those of commercial instruments. Finally, a field experiment carried out in a metal mining area of Huzhou further verified the efficiency and practicality of UAV aerial magnetic survey, highlighting its broad application prospects in mineral exploration.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013841",
+   "title": "DCA-YOLO: A Dynamic Cross-Attention Network for Small Vehicle Detection in UAV Aerial Imagery",
+   "abstract": "To address challenges in uncrewed aerial vehicle (UAV) aerial imagery, such as complex backgrounds, drastic scale variations, and partial occlusions. We propose dynamic cross-attention YOLO (DCA-YOLO), a high-performance vehicle detection framework featuring a newly designed neck architecture named the DAC path aggregation network. Our approach introduces three synergistic modules in the neck to enhance feature expressiveness for small vehicle detection: 1) dynamic weighted adaptive feature fusion; 2) cross-layer dynamic interaction; and 3) coordinate-aware dynamic attention. These modules synergistically improve multiscale representation, seamlessly integrate shallow details with deep semantics, and dynamically emphasize key object features. To this end, we leverage the efficient and powerful FasterNet as the backbone to achieve an effective balance between computational overhead and detection accuracy. Experiments on the VisDrone and uncrewed aerial vehicle high scale (UAV-HS) datasets demonstrate that DCA-YOLO achieves an optimal accuracy-efficiency tradeoff among compact detectors. On the challenging VisDrone dataset, DCA-YOLO significantly outperforms the baseline YOLOv8n, boosting mAP$_{50}$ from 57.2% to 60.9%, mAP$_{50:95}$ from 38.5% to 41.6%, and mAP$_{s}$ from 14.3% to 16.1%.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013851",
+   "title": "Ð Ð¾Ð·Ñ€Ð¾Ð±ÐºÐ° ÑƒÐ´Ð°Ñ€Ð½Ð¾Ð³Ð¾ Ð±ÐµÐ·Ð¿Ñ–Ð»Ð¾Ñ‚Ð½Ð¾Ð³Ð¾ Ð»Ñ–Ñ‚Ð°Ð»ÑŒÐ½Ð¾Ð³Ð¾ Ð°Ð¿Ð°Ñ€Ð°Ñ‚Ñƒ Ð¿ÐµÑ€ÑˆÐ¾Ð³Ð¾ ÐºÐ»Ð°ÑÑƒ",
+   "abstract": "Ð£ Ð¿Ñ€ÐµÐ´ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ñ–Ð¹ Ñ€Ð¾Ð±Ð¾Ñ‚Ñ– Ð²Ð¸ÐºÐ»Ð°Ð´ÐµÐ½Ð¾ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð¸ Ð¿Ñ€Ð¾ÐµÐºÑ‚ÑƒÐ²Ð°Ð½Ð½Ñ Ñ‚Ð° Ð²Ð¸Ð¿Ñ€Ð¾Ð±ÑƒÐ²Ð°Ð½ÑŒ Ð²Ñ–Ñ‚Ñ‡Ð¸Ð·Ð½ÑÐ½Ð¾Ð³Ð¾ ÑƒÐ´Ð°Ñ€Ð½Ð¾Ð³Ð¾ Ð‘Ð¿Ð›Ð Ð»Ñ–Ñ‚Ð°ÐºÐ¾Ð²Ð¾Ð³Ð¾ Ñ‚Ð¸Ð¿Ñƒ, Ð°Ð´Ð°Ð¿Ñ‚Ð¾Ð²Ð°Ð½Ð¾Ð³Ð¾ Ð´Ð¾ Ñ€Ð¾Ð±Ð¾Ñ‚Ð¸ Ð² ÑƒÐ¼Ð¾Ð²Ð°Ñ… Ñ–Ð½Ñ‚ÐµÐ½ÑÐ¸Ð²Ð½Ð¾Ð³Ð¾ Ñ€Ð°Ð´Ñ–Ð¾ÐµÐ»ÐµÐºÑ‚Ñ€Ð¾Ð½Ð½Ð¾Ð³Ð¾ Ð¿Ñ€Ð¸Ð´ÑƒÑˆÐµÐ½Ð½Ñ. ÐÐ²Ñ‚Ð¾Ñ€Ð°Ð¼Ð¸ Ð¿Ñ€Ð¾Ð²ÐµÐ´ÐµÐ½Ð¾ ÐºÑ€Ð¸Ñ‚Ð¸Ñ‡Ð½Ð¸Ð¹ Ð°Ð½Ð°Ð»Ñ–Ð· Ñ–ÑÐ½ÑƒÑŽÑ‡Ð¸Ñ… Ð°Ð½Ð°Ð»Ð¾Ð³Ñ–Ð², Ð½Ð° Ð¾ÑÐ½Ð¾Ð²Ñ– ÑÐºÐ¾Ð³Ð¾ ÑÑ„Ð¾Ñ€Ð¼ÑƒÐ»ÑŒÐ¾Ð²Ð°Ð½Ð¾ ÐºÐ¾Ð¼Ð¿Ð»ÐµÐºÑ Ñ‚ÐµÑ…Ð½Ñ–Ñ‡Ð½Ð¸Ñ… Ð²Ð¸Ð¼Ð¾Ð³ Ð´Ð¾ Ð¿ÐµÑ€ÑÐ¿ÐµÐºÑ‚Ð¸Ð²Ð½Ð¾Ð³Ð¾ Ð·Ñ€Ð°Ð·ÐºÐ°. ÐžÐ¿Ð¸ÑÐ°Ð½Ð¾ Ð¿Ñ€Ð¾Ñ†ÐµÑ ÑÑ‚Ð²Ð¾Ñ€ÐµÐ½Ð½Ñ Ð¿Ñ€Ð¾Ñ‚Ð¾Ñ‚Ð¸Ð¿Ñƒ Ð· Ð²Ð¸ÐºÐ¾Ñ€Ð¸ÑÑ‚Ð°Ð½Ð½ÑÐ¼ Ð°Ð´Ð¸Ñ‚Ð¸Ð²Ð½Ð¸Ñ… Ñ‚ÐµÑ…Ð½Ð¾Ð»Ð¾Ð³Ñ–Ð¹ (3D-Ð´Ñ€ÑƒÐº), ÐºÐ¾Ð¼Ð¿Ð¾Ð·Ð¸Ñ‚Ð½Ð¸Ñ… Ð¼Ð°Ñ‚ÐµÑ€Ñ–Ð°Ð»Ñ–Ð² Ñ‚Ð° ÑÑƒÑ‡Ð°ÑÐ½Ð¾Ñ— Ð¾Ð±Ñ‡Ð¸ÑÐ»ÑŽÐ²Ð°Ð»ÑŒÐ½Ð¾Ñ— Ð±Ð°Ð·Ð¸ (Raspberry Pi 5). Ð ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð¸ Ð²Ð¸Ð¿Ñ€Ð¾Ð±ÑƒÐ²Ð°Ð½ÑŒ Ð¿Ñ–Ð´Ñ‚Ð²ÐµÑ€Ð´Ð¸Ð»Ð¸ Ð·Ð°ÑÐ²Ð»ÐµÐ½Ñ– Ñ…Ð°Ñ€Ð°ÐºÑ‚ÐµÑ€Ð¸ÑÑ‚Ð¸ÐºÐ¸: ÐºÑ€ÐµÐ¹ÑÐµÑ€ÑÑŒÐºÑƒ ÑˆÐ²Ð¸Ð´ÐºÑ–ÑÑ‚ÑŒ 90â€“120 ÐºÐ¼/Ð³Ð¾Ð´, Ñ‚Ñ€Ð¸Ð²Ð°Ð»Ñ–ÑÑ‚ÑŒ Ð¿Ð¾Ð»ÑŒÐ¾Ñ‚Ñƒ Ð´Ð¾ 2 Ð³Ð¾Ð´Ð¸Ð½ Ñ‚Ð° Ð·Ð´Ð°Ñ‚Ð½Ñ–ÑÑ‚ÑŒ Ð½ÐµÑÑ‚Ð¸ Ð±Ð¾Ð¹Ð¾Ð²Ðµ Ð½Ð°Ð²Ð°Ð½Ñ‚Ð°Ð¶ÐµÐ½Ð½Ñ Ð²Ð°Ð³Ð¾ÑŽ Ð´Ð¾ 5 ÐºÐ³ Ð½Ð° Ð²Ð¸ÑÐ¾Ñ‚Ð°Ñ… Ð´Ð¾ 2000 Ð¼. ÐŸÑ€Ð°ÐºÑ‚Ð¸Ñ‡Ð½Ð° Ñ†Ñ–Ð½Ð½Ñ–ÑÑ‚ÑŒ Ñ€Ð¾Ð·Ñ€Ð¾Ð±ÐºÐ¸ Ð¿Ð¾Ð»ÑÐ³Ð°Ñ” Ñƒ Ð²Ð¸ÑÐ¾ÐºÑ–Ð¹ Ñ‚ÐµÑ…Ð½Ð¾Ð»Ð¾Ð³Ñ–Ñ‡Ð½Ð¾ÑÑ‚Ñ– Ñ‚Ð° Ð¼Ð¾Ð¶Ð»Ð¸Ð²Ð¾ÑÑ‚Ñ– ÑˆÐ²Ð¸Ð´ÐºÐ¾Ð³Ð¾ Ð¼Ð°ÑÑˆÑ‚Ð°Ð±ÑƒÐ²Ð°Ð½Ð½Ñ Ð²Ð¸Ñ€Ð¾Ð±Ð½Ð¸Ñ†Ñ‚Ð²Ð° Ð´Ð»Ñ Ð¿Ð¾Ñ‚Ñ€ÐµÐ± Ð—Ð¡Ð£.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013861",
+   "title": "Data-driven energy management of hydrogen fuel cell hybrid unmanned aerial vehicles via a hierarchical TD3-ECMS framework",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013872",
+   "title": "Neural network-based active disturbance rejection control and its application in quadrotor unmanned aerial vehicle trajectory tracking",
+   "abstract": "This study proposes a novel neural network-based active disturbance rejection control (ADRC) scheme, enhanced with the adaptive moment estimation (ADAM) optimizer for precise trajectory tracking of quadrotor UAVs under disturbances. A cascaded ADRC architecture is designed for attitude control, featuring an inner loop that enables rapid attitude response and an outer loop that handles low-frequency disturbances and uncertainties. This study implements the online adaptive tuning of extended state observer (ESO) parameters via a radial basis function neural network (RBFNN), which dynamically adjusts observer gains as disturbances evolve. The integration of the ADAM optimizer accelerates RBFNN training compared to traditional backpropagation by leveraging gradient moment estimations for adaptive learning rates. This approach enables real-time rejection of time-varying disturbances and eliminates the need for manual parameter recalibration. The theoretical stability of the proposed system is rigorously proven using Lyapunov analysis. Hardware-in-the-loop experiments validate the superior performance of the proposed scheme in three scenarios.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013883",
+   "title": "Scheduling and routing with degradation-triggered job arrivals: An application to forest firefighting with an unmanned aerial vehicle fleet",
+   "abstract": "We define an intertwined scheduling and routing problem where new jobs appear due to the degradation of the existing jobs. Specifically, once a job arrives at a potential job location, a time window begins during which the demand of the job can be fulfilled. The demand degrades within the time window, and once it surpasses a particular threshold, it triggers the arrival of new jobs. Each job location inherently possesses an initial default reward, and the presence of an unprocessed job at a location gradually reduces this default value. The overall objective is to maximize the total remaining reward. The underlying motivation of this problem aligns with the proverb ``a stitch in time saves nine,\"and the problem itself carries practical implications. We focus on the problem in the context of aerial forest firefighting. Each ignited area has a designated action window; delaying intervention causes the fire to grow, diminishing the area's value and causing it to spread to adjacent areas. We develop a mixed-integer programming model that maximizes value retention in wildfire-threatened regions, and a hybrid model based on dynamic constraint generation to enhance the scalability of the model. We evaluate the performance and practicality of our models through computational experiments and a case study. Additionally, we ensure the study's reproducibility and encourage further research by providing open access to the codebase of our model.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013893",
+   "title": "Crop Geometry and Integrated Weed Management in Pigeon pea: Advances, Challenges, and Future Perspectives for Sustainable Production",
+   "abstract": "Pigeon pea (Cajanus cajan L.) is a legume pulse crop grown globally in tropical and semi-tropical regions. It is a rich source of protein, has nitrogen-fixing potential, and plays a significant role in ensuring food and nutritional security, as well as in improving the fertility of poor soils. However, crop productivity is limited by poor planting geometry and uncontrolled weed growth during the crop's susceptible growth period. Studies involving different geometric patterns, such as varied row spacing and plant population, paired row planting, and different intercropping patterns (greengram, urdbean, soybean, and maize), have shown a positive impact on growth and yield attributes, higher weed suppression, and greater utilization of light, water, and nutrients. The intercropping of pigeon pea with short-duration crops such as greengram, urdbean, soybean, and maize maximizes utilization of the crop area, increases productivity, and improves the economics of the crop. Yield losses due to weeds during the crop-weed competition period are very large, and therefore, there is a need to manage weeds to improve crop yields. Recent evidence suggests that integrated weed management (IWM) combining cultural, mechanical, and herbicidal approaches significantly enhances weed suppression, resource-use efficiency, and productivity in pigeon pea systems. However, increasing herbicide resistance and climate variability necessitate integrating precision agriculture and genome-assisted weed management strategies. Critically, recent breakthroughs in CRISPR/Cas9-based genome editing of the CcEPSPS gene in pigeon pea offer a transformative tool for developing herbicide-tolerant varieties, whereas region-specific herbicide evaluation studies further strengthen evidence-based IWM recommendations. Parallels between the evolution of herbicide resistance in weed management and insecticide resistance in pest management underscore the urgent need for a holistic, integrated crop protection framework in pigeon pea systems.. KEYWORDS :Cajanus cajan, Crop geometry, Intercropping, Integrated weed management, Yield improvement",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013903",
+   "title": "Comparative assessment of the vertical distribution of respirable particulate matter in surface coal and metal mines using unmanned aerial vehicle mounted low-cost sensor",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013915",
+   "title": "AN OPTIMAL CONFIGURATION KIT FOR UNMANNED AERIAL VEHICLES FOR INFORMATION COLLECTION AT THE SCENE OF AN EMERGENCY",
+   "abstract": "This article examines an approach to developing specialized unmanned aerial system configurations for fire reconnaissance missions. Based on an analysis of fire statistics in the Russian Federation, regulatory requirements for reconnaissance, and limitations of typical of unmanned aerial system payloads, three priority fire categories are identified: landscape fires, residential building fires, and industrial fires. A comparative analysis of promising payload technologies is conducted, including a SLM lidar, a hyperspectral camera, a gimbal with a communications repeater, and a radar detector. The applicability conditions for fire reconnaissance missions for these technologies are determined. Based on the study's results, three specialized of unmanned aerial system configurations â€“ City, Nature, and Technogenic â€“ are developed, tailored to various operational scenarios. It is demonstrated that this approach to platform and payload selection allows for a more comprehensive consideration of the nature of the fire, reconnaissance conditions, and the composition of the required information.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013926",
+   "title": "Aerodynamic optimization of an externally tilted hex-rotor hovering unmanned aerial vehicle",
+   "abstract": "We investigate the aerodynamic performance and flow field synergy of an externally tilted hex-rotor unmanned aerial vehicle (UAV) in hovering mode, aiming to enhance its hovering efficiency through tailored flow interactions. Experimental measurements and computational fluid dynamics (CFD) simulations are combined to examine the effects of rotor spacing ratio ( i =0.50â€“0.83) and tilt angle ( Î¸ =0Â°â€“40Â°) on thrust, power consumption, figure of merit (FM), and power loading (PL), with particular emphasis on the underlying aerodynamic coupling mechanisms. The results demonstrate that the optimal configuration ( i =0.56, Î¸ =24Â°) achieves a 5.43% thrust increase, a 2.73% power reduction, an 11.15% improvement in FM, and a 3.77% enhancement in PL compared to a conventional planar configuration. Flow field analyses reveal that moderate tilting ( Î¸ =24Â°) promotes downwash convergence and strengthens vortex coupling, thereby increasing the effective flow velocity while minimizing the inter-rotor turbulent interference. Furthermore, the spacing ratio of i =0.56 effectively balances the reduction of detrimental flow interference with the promotion of beneficial flow interactions, as evidenced by stabilized primary vortex structures and constrained recirculation zones in the CFD simulations. This work highlights how the aerodynamic optimization of non-planar rotor configurations is critically dependent on the synergistic control of tilt-induced flow deflection and spacing-dependent interference, and establishes a theoretical framework for understanding multi-rotor flow dynamics; as such, the findings may aid the design of efficient rotor systems for UAVs.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013936",
+   "title": "Hierarchical mental-states reasoning with dynamic fusion world models for imperfect multi-unmanned aerial vehicle cooperative-competitive environments",
+   "abstract": "Anticipating opponentsâ€™ intentions in multi-agent systems is critical for rapid, robust decision-making in domains from autonomous unmanned aerial vehicle (UAV) coordination to competitive strategy games. However, most existing methods rely on unrealistic access to private opponent information or fail to capture the recursive reasoning humans use to adapt in dynamic, partially observable environments. We address these gaps with a hierarchical world-opponent modeling framework that unifies environment dynamics prediction and intention-strategy reasoning in a single architecture, without requiring private data. Inspired by human social inference, our method uses multiple learnable intention and strategy queries over local observations to recursively update opponent models, anticipate future trajectories, and adapt strategies in real time. Joint optimization of the world and opponent models captures the mutual influence between environment transitions, intentions, and maneuvers, yielding sample-efficient learning. Across benchmarks, including close-range multi-UAV engagements and the StarCraft Multi-Agent Challenge, our approach achieves up to 5.3 times faster learning than model-free multi-agent reinforcement learning baselines, while consistently improving maneuver effectiveness and decision intelligence. These results demonstrate a scalable, high-efficiency solution for adversarial reasoning in complex multi-agent cooperative-competitive settings.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013946",
+   "title": "An Integrated Cloudâ€Based Failure Mode and Effects Analysis Framework for Risk Assessment of Unmanned Aerial Vehicle Operations in Urban Logistics Using Group Consensus",
+   "abstract": "ABSTRACT Unmanned aerial vehicles (UAVs) are increasingly considered for urban logistics, including the delivery of critical medical supplies. However, their safe operation in dense urban environments requires systematic risk analysis that can account for both technological uncertainties and human factors. Conventional failure mode and effects analysis (FMEA) offers a structured way to identify and prioritize risks but is limited by its use of deterministic evaluations and the absence of mechanisms to handle uncertainty or disagreement among experts. To address these limitations, this study develops an integrated cloudâ€based FMEA framework to UAV logistics operations. The method begins with expert assessments expressed through linguistic terms, which are transformed into cloud models to represent uncertainty more faithfully. A consensusâ€reaching process is then applied to align divergent expert opinions and establish an aggregated evaluation matrix. To determine the relative importance of risk factors, a hybrid weighting scheme is employed that combines subjective judgments through cloud stepâ€wise weight assessment ratio analysis (SWARA) and objective information through cloud criteria importance through intercriteria correlation (CRITIC). These weights are subsequently integrated into a cloud technique for order similarity to ideal solution (TOPSIS) procedure that produces a transparent ranking of failure modes. The framework is applied to a case study of medical supply delivery UAVs, where it identifies the most critical risks and validates the prioritization through sensitivity and comparative analyses. The results demonstrate that the proposed approach provides a robust and practical decisionâ€support tool for enhancing safety in urban UAV logistics.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013958",
+   "title": "Large-Signal Stability Control for Multiple Cascaded Filter DC Microgrid Based on Modified IDA-PBC",
+   "abstract": "Multiple cascaded filters can lead to instability in DC microgrids. To address this issue, this paper proposes a stabilization strategy for a DC microgrid with multiple cascaded filter subsystems. Stability is achieved by considering the cascaded input and output filters at the subsystem level and establishing a modified Interconnection and Damping Assignment Passivity-Based Control (IDA-PBC) strategy based on port-controlled Hamiltonian modelling. First, the general design procedure of the proposed control strategy and its large-signal stability proof are presented, and the stability of the entire microgrid is proved. Second, an example design of the controller considering the cascaded input and output filters source subsystem is given. Finally, the modified IDA-PBC strategy is applied to the basic unit of the DC microgrid, which includes the source subsystem of the cascaded input and output filters and the load subsystem of the cascaded input filter. The modified strategy is further applied to a complete DC microgrid containing multiple subsystems. The experimental results and hardware-in-the-loop results indicate the effectiveness of the proposed strategy.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013969",
+   "title": "A camera calibration method driven by unmanned aerial vehicles and high-precision estimation of maize SPAD values under adverse conditions",
+   "abstract": "Rapid and non-destructive monitoring of maize SPAD is important for precision water and nitrogen management in arid irrigation areas. This study developed a UAVâ€“smartphone cross-device calibration framework for SPAD estimation using UAV multispectral imagery, smartphone RGB images, and ground-measured SPAD data collected at the jointing, tasseling, and grain-filling stages. Spectral and texture features were integrated for UAV-based modeling, and regularized least-squares calibration was used to map smartphone-derived features into the UAV feature space. The random forest model using combined spectral and texture features achieved the best UAV-based performance, with validation RÂ² values of 0.81, 0.79, and 0.75 across the three growth stages, representing an improvement of more than 9% over single-feature models. After cross-device calibration, smartphone-based SPAD estimation achieved RÂ² values of 0.80, 0.86, and 0.82, respectively. These results demonstrate that cross-device feature calibration can effectively bridge UAV multispectral and smartphone RGB observations, providing a low-cost and accurate approach for field-scale maize SPAD monitoring and precision waterâ€“nitrogen management.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013980",
+   "title": "Collaborative Scheduling Optimization of Staging and Transfer Operations for Mixed Unmanned Aerial Vehicle Fleets at Offshore Wind Power Substations",
+   "abstract": "Offshore wind power substations serve as fixed bases for unmanned aerial vehicle logistics distribution. In the mixed-fleet scheduling of multiple unmanned aerial vehicle types, parking spot allocation, configuration decisions, and transfer timing are deeply coupled, rendering traditional scheduling algorithms ineffective for efficient solution. To address this, this paper takes the context of substations performing material delivery and inspection missions to surrounding wind turbines, maintenance vessels, and other offshore facilities. An optimization model is constructed that comprehensively considers group priority, aircraft type differentiation, and configuration transition factors, with objectives of minimizing total transfer time, number of configuration changes, and workload variance among transfer crews. An event-driven configurable greedy initial solution generation strategy is introduced, and an adaptive large neighborhood search algorithm is designed, incorporating domain-knowledge-driven destruction and repair operators, an adaptive weight mechanism, and a simulated annealing acceptance criterion. Experimental results demonstrate that the proposed algorithm achieves the optimal mean objective values across all six test cases, outperforming the conventional adaptive large neighborhood search algorithm by 7.0â€“7.9% and the genetic algorithm by 14.4â€“22.1%, while maintaining the lowest standard deviation. The algorithm exhibits robust stability and practical applicability, providing effective decision support for unmanned aerial vehicle logistics distribution scheduling at offshore wind power substations.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-013992",
+   "title": "Vulnerability Detection in Unmanned Aerial Vehicle via Structural Skeleton Inference with RGB-to-IR Transfer Learning",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014004",
+   "title": "From resistance to resilience: A bioeconomic evaluation of integrated weed management of glyphosate-resistant ryegrass in dryland cropping systems",
+   "abstract": "ABSTRACT Weeds cost Australian crop growers over AUD 4.0 billion annually in lost yield revenue and weed control expenditure. When new weed species invade or herbicide resistance develops, existing herbicide-based practices are often ineffective leading to costly reactive management. This study seeks to quantify the cost of a resistant weed incursion and assess the value of having a diverse integrated weed management (IWM) strategy already in place to reduce those costs and increase cropping system resilience. Using the RIM model, we evaluate the bioeconomic implications of glyphosate-resistant annual ryegrass in broadacre cropping systems under six IWM scenarios. Herbicide-resistant annual ryegrass is the most problematic weed in Australian cropping systems due to its abundance, high fecundity and outcrossing, with multiple resistance to a range of herbicides. Outcomes were compared with and without weed seed control practices, based on a typical crop rotation in the Riverina and Sunraysia (Mallee) regions of southeastern Australia. Modelling revealed that the cost of acquiring glyphosate resistance was lower when diverse weed control practices were in place, including rotating cereal crops with break crops such as canola and legumes, using competitive crops like barley, and early (dry) sowing of break crops. An IWM program achieving 80% weed seed control efficacy reduced the cost of gaining glyphosate resistance by up to AUD 18.0 per hectare, demonstrating its important role in building resilience to new weed challenges. These findings highlight the value of an IWM strategy, not only for profitable weed management, but also for mitigating the costs of future resistance development and weed incursions. Farm-level adoption of diverse IWM practices that reduce the seed set of a new and potentially mobile weed may then also improve resistance management by limiting potential for spread at the broader landscape scale.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014014",
+   "title": "MODIFIED VECTOR FIELD METHOD FOR THE AUTONOMOUS LANDING OF AN UNMANNED AERIAL VEHICLE ON A MOVING PLATFORM",
+   "abstract": "This paper addresses the problem of autonomous landing of an unmanned aerial system (UAS) on a moving platform. A mathematical formulation is proposed for stabilizing the relative motion in a non-stationary coordinate frame attached to the platform. A modified guidance law based on the vector field method is synthesized, featuring feedforward compensation for the platformâ€™s velocity and heading. Results of comprehensive simulation studies of a fixed-wing UAS are presented for various platform motion scenarios.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014025",
+   "title": "Context-aware and deformation-adaptive small unmanned aerial vehicles detection via parallel attention and multi-scale fusion",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014036",
+   "title": "A Novel Slippery Liquid-like Icephobic Surface Coating for Unmanned-Aerial-Vehicle Propeller Icing Protection",
+   "abstract": "Freezing rain poses a substantial hazard to the operation and safety of unmanned aerial vehicles (UAVs) in cold-weather environments. In the present study, a comprehensive experimental campaign was conducted to investigate the effect of surface icephobicity on ice accretion and shedding from rotating UAV propellers under freezing-rain conditions. A novel, durable, slippery liquid-like surface (SLLS) coating, characterized by low contact-angle hysteresis and low ice adhesion, is utilized as a passive strategy for UAV icing mitigation. The coating was assessed through wettability and ice-adhesion measurements, phase-locked high-speed imaging of supercooled large-droplet impingements, rotating-propeller ice accretion experiments, accelerated rain erosion testing, and surface-topography characterization. The measurement results revealed distinct normal and oblique droplet impingement regimes and demonstrated that the evolving leading-edge ice geometry substantially altered droplet deformation, liquid redistribution, and subsequent ice growth. Compared with the uncoated, baseline propeller, the SLLS-coated propeller was found to promote earlier ice shedding and reduce the ice-induced power consumption by approximately 36%. These findings highlight the potential of SLLS coatings as a promising strategy for UAV propeller icing protection to ensure safer and more efficient UAV operations under adverse weather conditions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014047",
+   "title": "Exploring the Potential of Unmanned Aerial Systemâ€Based Topographic Indices Maps to Evaluate Storm Drain Positioning",
+   "abstract": "ABSTRACT Urbanisation, climate uncertainty, and limited city budgets have heightened the need for efficient urban drainage management. While advanced hydrodynamic models assess the performance of drainage networks, they are computationally intensive, timeâ€consuming, and expensive. This study introduces a spatial analysis framework that integrates the Topographic Wetness Index (TWI) and the Topographic Control Index (TCI), derived from highâ€resolution Digital Surface Models (DSMs) captured using Unmanned Aerial Systems (UAS), to evaluate storm drain positioning relative to surfaceâ€water flowpaths and microtopographic controls; however, it does not account for subsurface pipe capacity or sewer network performance. TWI was used to assess whether storm drains align with surface flow paths, while TCI identified drains located within topographic depressions. The optimal TWI threshold (90th percentile) was determined by comparing it with the 1â€inâ€100â€year Environment Agency flood map. Using this threshold, TWIâ€based classification achieved 53% accuracy and 75% precision in identifying drains along flow paths, while TCIâ€based analysis demonstrated 92% accuracy and 79% precision for detecting drains within depressions. The combined framework enables the identification of drainage inefficiencies at street level, informing maintenance prioritisation and the integration of natureâ€based solutions. By using UASâ€derived geospatial data and topographic modelling, this approach provides a Tier 1 screening tool that is costâ€effective, scalable, and proactive for adaptive stormwater planning.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014059",
+   "title": "A context-calibrated framework based on uncrewed aerial vehicle imagery for power-line detectability and mitigation evaluation: a model system from Black-necked Crane wintering grounds on the Tibetan Plateau",
+   "abstract": "Overhead power lines are a major source of avian mortality, yet quantitative and context-calibrated assessments of wire detectability and marker performance under variable field conditions remain scarce. Using 560 uncrewed aerial vehicle (UAV) images from three datasets collected in Black-necked Crane ( Grus nigricollis ) wintering grounds on the Tibetan Plateau, we quantified wire detectability with a Visibility Index (VI; targetâ€“background contrast and edge strength) and characterized background heterogeneity with a Visual Complexity Index (VCI; entropy, edge density, and colour variance at global and local scales). We integrate these metrics into a Collision Risk Index (CRI) as a relative, image-based proxy for detectability to support span prioritization and context-matched evaluation of mitigation devices. Within the warning-device datasets, which included sunny and cloudy conditions, sleeves provided more robust detectability gains, particularly at longer distances, whereas balls yielded smaller and less consistent improvements. Detectability varies strongly with weather, distance, and relative observation height, highlighting the need to compare mitigation options under matched contexts. We frame this high-altitude wintering landscape as a model system for collision-risk mitigation and provide practical guidance for adapting and recalibrating the workflow to other species, habitats, and linear infrastructures.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014069",
+   "title": "Tree extraction in open-pit mine restoration areas using unmanned aerial vehicle LiDAR and you only look once-based deep learning",
+   "abstract": "Accurate monitoring of tree recovery in restored open-pit mines is essential for evaluating rehabilitation effectiveness and guiding post-closure management. Using the Huafeng open-pit limestone quarry (Qingyang County, Anhui Province) as a case study, we integrated 2025 unmanned aerial vehicle (UAV)-borne LiDAR with 2024 UAV red, green, and blue (RGB) orthophotos to develop a cross-temporal tree extraction and forest-change assessment workflow. A 0.5 m canopy height model (CHM) was derived from high-density LiDAR point clouds, and individual crown tops and canopy boundaries were delineated by combining local maximum detection with watershed segmentation, yielding 5,863 individual trees under predefined height and crown-size constraints. These LiDAR-derived tree objects were projected onto RGB imagery to generate training/validation labels for a You Only Look Once (YOLO)v9 detector, which was applied to 2024 orthophotos to map tree distribution and forest/non-forest patterns. The net forest increase of approximately 1.34 ha represented a 15.8% relative increase compared with 2024. Nonâ€‘forest areas declined by 24.1%, from 5.56 ha to 4.22 ha. Newly established forest was concentrated on the pitâ€‘bottom platform, terraced slopes with topsoil cover, and the former industrial site, whereas persistent nonâ€‘forest patches were predominantly associated with steep bareâ€‘rock slopes. These contrasting spatial patterns highlight priority areas for targeted soil conservation and replanting, and demonstrate the value of multiâ€‘source UAV remote sensing for reproducible restoration monitoring.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014081",
+   "title": "Effects of distributed propeller layout on cruise efficiency of unmanned aerial vehicles: a design optimization study",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014092",
+   "title": "A Physics-Guided Adaptive Frequency-Decoupling Energy Management Strategy for Multi-Source Unmanned Aerial Vehicles",
+   "abstract": "Hybrid proton exchange membrane fuel cell (PEMFC) powertrains offer a promising solution for long-endurance and zero-emission unmanned aerial vehicles (UAVs). However, balancing hydrogen economy, PEMFC durability, and energy-storage safety remains challenging under dynamic load demands. To address this issue, this paper proposes a physics-guided adaptive high-low-pass soft actor-critic (PG-AHL-SAC) energy management strategy (EMS). In the proposed framework, propulsion power demand is decomposed into frequency-specific components. The low-frequency component is primarily assigned to the PEMFC, while the battery (BAT) and supercapacitor (SC) buffer medium- and high-frequency transients, thereby reducing dynamic stress on the fuel cell. A continuous-action SAC controller then optimizes real-time power distribution using a multi-objective reward function accounting for hydrogen consumption, PEMFC degradation, and energy-storage constraints. The framework is evaluated under a representative single-mission flight profile, incorporating both noise-free and noisy mission profile. The results demonstrate that PG-AHL-SAC achieves a competitive hydrogen economy while strictly maintaining the BAT state of charge and SC energy limits. Compared with benchmark EMSs, the proposed strategy provides smoother PEMFC power trajectories and a more favorable trade-off among hydrogen economy, PEMFC durability, and energy-storage safety, performing closely to the offline dynamic programming optimum without requiring prior load knowledge. Furthermore, sensitivity analyses indicate robust performance under filtering parameter and cost-weight perturbations. Ultimately, these findings reveal that PG-AHL-SAC provides an effective, health-aware EMS for multi-source UAV powertrains operating under the specific mission profile evaluated. While robustness against noisy mission profile and parameter perturbations is confirmed within this tested scope, validation across broader operating conditions remains for future work.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014103",
+   "title": "Temporal Evolution and Vertical Distribution of Size-Resolved Aerosol Composition and Mixing State within the Boundary Layer Using an Unmanned Aerial Vehicle",
+   "abstract": "Abstract Characteristics of individual particles and aerosol mixing state strongly influence atmospheric chemistry, radiation, and cloud formation yet remain poorly constrained. Here, we investigated the spatiotemporal evolution of size-resolved particle composition in a coastal environment by applying a new capability using a microscopy-based particle sampler coupled to an unmanned aerial vehicle (UAV). With sampling resolutions up to 30 m and 1 min, over 100 000 particles were analyzed by computer-controlled scanning electron microscopy with energy-dispersive X-ray spectroscopy. The observations revealed a pronounced temporal transition in particle chemistry from sea-breeze-influenced aerosol dominated by aged sea salt and dust (46â€“83%) to continentally impacted aerosol dominated by organic-sulfur-containing particles (57â€“89%). Fine-resolution vertical profiles further showed that this transition was governed by the complex interactions among boundary layer dynamics, regional transport, and secondary aerosol formation in the coastal atmosphere. The aerosol mixing state showed pronounced diurnal variability and size dependence but weak vertical variation. Formation of organic-sulfur-containing particles shifts the aerosol population toward external mixing, decreasing the mixing state index from 53% to 27%. These findings provide new insights into aerosol transformation and demonstrate the value of high spatiotemporal single-particle characterizations for understanding aerosol environmental and climatic impacts.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014113",
+   "title": "Multiple targets tracking with unmanned aerial vehicle swarm based on multi-agent deep reinforcement learning framework with safety network",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014123",
+   "title": "Polarity aware detection transformer with hierarchical cross attention for unmanned aerial vehicle small object detection",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014133",
+   "title": "A method for generating unmanned aerial vehicle trajectories by integrating YOLOv8-LSTM dynamic tracking with Q-learning to optimize nonlinear IBVS",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  },
+  {
+   "screening_id": "SCI-014143",
+   "title": "Lyapunov-Guided Latency Optimization in Semantic Communication Empowered Edge Networks",
+   "abstract": "The rapid proliferation of data-intensive applications has exacerbated the limitations of traditional communication systems, which treat data as meaningless symbols leading to inefficient transmission. Semantic communication emerges as a promising paradigm that transmits the meaning of information rather than raw bits, significantly reducing bandwidth consumption while maintaining task performance. However, existing Semantic Communication empowered Edge Networks (SCEN) overlook two critical challenges, namely, the transmission efficiency subject to semantic reconstruction quality constraints and the impact of user mobility on computation offloading policies. To address these gaps, this paper proposes a comprehensive optimization framework that jointly optimizes semantic feature selection and bandwidth allocation to minimize transmission latency while ensuring semantic quality. For static scenarios, a hybrid approach combining Karushâ€“Kuhnâ€“Tucker conditions and Harris Hawks optimization is developed. For dynamic environments with mobile users, a Lyapunov-guided stability-aware formulation is further introduced, a novel distributed and cooperative multi-agent proximal policy optimization algorithm that incorporates a contribution-based global reward and fairness-driven penalty mechanism. Extensive experiments on real-world mobility data and the CIFAR-10 dataset demonstrate that the proposed methods achieve superior performances in terms of latency reduction, queue stability, and semantic quality compared to state-of-the-art baselines, validating the efficacy and scalability in both static and dynamic SCEN scenarios.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null
+  }
+ ]
+}

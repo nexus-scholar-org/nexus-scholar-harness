@@ -1,0 +1,462 @@
+{
+  "batch_id": "batch_0252",
+  "batch_index": 252,
+  "screener_id": "A1",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+  "n_records": 50,
+  "decisions": [
+    {
+      "screening_id": "SCI-004959",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Indonesian-language mangrove tree counting from UAV imagery via local maxima; coastal wetland vegetation inventory, non-agricultural per EXC-02.",
+      "confidence": 0.9,
+      "one_line_support": "Automated mangrove tree detection from UAV images reports detection counts and overall accuracy for forest inventory."
+    },
+    {
+      "screening_id": "SCI-009169",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAV hyperspectral image stitching and radiometric correction framework; generic image preprocessing without crop/weed task in visible text.",
+      "confidence": 0.85,
+      "one_line_support": "Seam-cutting blending and spectral correction improve stitching of UAV hyperspectral strip images."
+    },
+    {
+      "screening_id": "SCI-013241",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Finite-time adaptive fuzzy backstepping control for UAV altitude and attitude; flight-control engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Event-triggered command filtered backstepping controller verified in UAV simulations and experiments."
+    },
+    {
+      "screening_id": "SCI-013338",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is zero-sum game control of UAV confrontation via reinforcement learning; adversarial control without crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: zero-sum game control of unmanned aerial vehicle confrontation via reinforcement learning."
+    },
+    {
+      "screening_id": "SCI-012841",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAV imagery estimation of mangrove above/below-ground biomass and carbon; non-agricultural coastal ecosystem assessment per EXC-02.",
+      "confidence": 0.95,
+      "one_line_support": "Phantom 4 Pro imagery builds DSMs to estimate biomass and carbon in Rembang mangroves."
+    },
+    {
+      "screening_id": "SCI-000390",
+      "decision": "PENDING",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-01", "INC-02", "GUARDRAIL_TITLE_ONLY_UAV_WEED"],
+      "reason": "Abstract null; title is few-shot fine-tuning of segmentation models for weed detection using UAV multispectral imagery - clearly UAV+weed and on-domain, title-only. Hold PENDING for retrieval.",
+      "confidence": 0.6,
+      "one_line_support": "Title: barley-to-rapeseed few-shot fine-tuning for weed detection with UAV multispectral imagery; abstract missing."
+    },
+    {
+      "screening_id": "SCI-004454",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAV application prospects based on 5G communication technology; communications systems without crop/weed mapping task.",
+      "confidence": 0.95,
+      "one_line_support": "Paper proposes 5G-enabled UAV applications for transport, patrol and broadcasting; no agriculture mapping task."
+    },
+    {
+      "screening_id": "SCI-012969",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is UAV remote sensing of dangerous rock mass on an open-pit mine slope; mining/geotechnical task with no crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: UAV remote sensing for dangerous rock mass identification and deformation analysis in an open pit mine."
+    },
+    {
+      "screening_id": "SCI-009545",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null Chinese title is detection and tracking of low-altitude UAVs with optimized YOLOv4; drone detection task with no crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: low-altitude unmanned aerial vehicle detection and tracking based on optimized YOLOv4 algorithm."
+    },
+    {
+      "screening_id": "SCI-001886",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAV collection of airborne particulate matter from fireworks plumes; air quality/particle science without crop/weed task.",
+      "confidence": 0.95,
+      "one_line_support": "Drone-mounted 3D-printed platform traps firework plume particles for SEM and EDX analysis."
+    },
+    {
+      "screening_id": "SCI-013549",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is dual-modal UAV camera systems for bridge tower defect detection; infrastructure inspection with no crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: integrating dual-modal camera systems on UAVs for bridge tower defect detection."
+    },
+    {
+      "screening_id": "SCI-004519",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Online neural-network learning with MPC for a tilt-rotor VTOL UAV; flight-control engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Lyapunov-guaranteed online NN learning improves trajectory tracking of a hybrid VTOL UAV in simulation."
+    },
+    {
+      "screening_id": "SCI-013266",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is a deep active subspace method for aerodynamic prediction; aircraft aerodynamics with no crop/weed signal.",
+      "confidence": 0.9,
+      "one_line_support": "Title: data-driven deep active subspace method for aerodynamic prediction and analysis; no agricultural task named."
+    },
+    {
+      "screening_id": "SCI-005343",
+      "decision": "EXCLUDE",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "criterion_refs": ["EXC-02", "MODERATION_TITLE_ONLY_EXCLUDE"],
+      "reason": "Text withheld by moderation; visible title is a short review of antenna tracker systems for UAVs, clearly communications hardware outside the domain.",
+      "confidence": 0.9,
+      "one_line_support": "Visible title concerns UAV antenna tracker systems; no crop/weed mapping relevance.",
+      "moderation_redacted": true
+    },
+    {
+      "screening_id": "SCI-010884",
+      "decision": "PENDING",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-02", "GUARDRAIL_TITLE_ONLY_UAV_WEED"],
+      "reason": "Abstract null; title pairs UAV nadir/oblique photography with maize LAI and biomass estimation (crop). Guardrail: title-only UAV+crop; note task appears to be biophysical estimation.",
+      "confidence": 0.5,
+      "one_line_support": "Title: enhancing LAI and biomass estimation in maize with UAV nadir and cross-circling oblique photography; abstract missing."
+    },
+    {
+      "screening_id": "SCI-009058",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is position estimation of near-surface targets for UAV magnetic surveys; geophysical survey task with no crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: fast position estimation method of near-surface targets detection for UAV magnetic surveys."
+    },
+    {
+      "screening_id": "SCI-009613",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_PLATFORM",
+      "criterion_refs": ["EXC-01"],
+      "reason": "Okra field trial of stale seedbed, mulching and mechanical weeding effects on nutrient uptake; agronomy with no UAV imagery.",
+      "confidence": 0.97,
+      "one_line_support": "RBD experiment at a coconut research station evaluates weeding methods in okra; no aerial platform."
+    },
+    {
+      "screening_id": "SCI-006757",
+      "decision": "PENDING",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-02", "GUARDRAIL_TITLE_ONLY_UAV_WEED"],
+      "reason": "Only a symposium stub abstract is visible; title is prediction of apple-tree flowering date from UAV imagery - title-only UAV+crop record, hold PENDING for retrieval.",
+      "confidence": 0.5,
+      "one_line_support": "Title: prediction of flowering date of apple trees from UAV imagery; no substantive abstract available."
+    },
+    {
+      "screening_id": "SCI-008791",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Land-cover classification mapping of alpine meadow and steppe in Sanjiangyuan National Park integrating UAV; conservation vegetation mapping, non-agricultural.",
+      "confidence": 0.95,
+      "one_line_support": "UAV resampled virtual biomass quadrats refine land-cover classes in a national park, not crop/weed mapping."
+    },
+    {
+      "screening_id": "SCI-011848",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Analysis of group/UAV-swarm control algorithms (Reynolds, potential fields, leader-following); swarm control without crop/weed task.",
+      "confidence": 0.95,
+      "one_line_support": "Reviews UAV group control models and proposes interaction message protocols for swarm coordination."
+    },
+    {
+      "screening_id": "SCI-000284",
+      "decision": "INCLUDE",
+      "reason_code": "INC-01",
+      "criterion_refs": ["INC-01", "INC-02", "INC-03"],
+      "reason": "Primary empirical study: rotary-wing UAS detection of mile-a-minute weed patches at multiple altitudes with spatially targeted biocontrol release in hard-to-access areas.",
+      "confidence": 0.6,
+      "one_line_support": "UAS imagery detects Persicaria perfoliata patches at <=15 m and deploys biocontrol weevils from a 3D-printed pod."
+    },
+    {
+      "screening_id": "SCI-011979",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_PLATFORM",
+      "criterion_refs": ["EXC-01"],
+      "reason": "Herbicide trial for weed management in Indian pennywort; horticultural field experiment with no UAV imagery.",
+      "confidence": 0.97,
+      "one_line_support": "RCBD trial of oxyflurofen and hand weeding on weed control and yield in Centella asiatica."
+    },
+    {
+      "screening_id": "SCI-000582",
+      "decision": "INCLUDE",
+      "reason_code": "INC-01",
+      "criterion_refs": ["INC-01", "INC-02", "INC-03"],
+      "reason": "Primary empirical method study: comparison of CNN, SGDC and XGBoost models for detecting invasive weed Brassica nigra from autonomous drone imagery.",
+      "confidence": 0.85,
+      "one_line_support": "Three ML models classify the invasive weed Brassica nigra from autonomous drone footage; CNN judged best."
+    },
+    {
+      "screening_id": "SCI-001931",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "reason": "Title declares an overview chapter of intelligent reflecting surface assisted UAV communication systems; overview, not primary empirical crop/weed study.",
+      "confidence": 0.9,
+      "one_line_support": "Title: An Overview of Intelligent Reflecting Surface Assisted UAV Communication Systems; communications survey chapter."
+    },
+    {
+      "screening_id": "SCI-011942",
+      "decision": "PENDING",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-01", "INC-02", "GUARDRAIL_TITLE_ONLY_UAV_WEED"],
+      "reason": "Abstract null; title is an ensemble model for wheat spike counting in UAV images - clearly UAV+crop and on-domain, title-only. Hold PENDING for retrieval.",
+      "confidence": 0.6,
+      "one_line_support": "Title: APW ensemble model for efficient wheat spike counting in unmanned aerial vehicle images; abstract missing."
+    },
+    {
+      "screening_id": "SCI-003336",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAV proliferation and nuclear deterrence strategy analysis (India-Pakistan); security studies without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Examines UAV surveillance effects on second-strike survivability and preemptive strike calculus between nuclear powers."
+    },
+    {
+      "screening_id": "SCI-010456",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "VR-based drone flight simulation, virtual training and model database system; simulation/training without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Builds a drone model database and VR flight simulation platform for training and safety."
+    },
+    {
+      "screening_id": "SCI-013663",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is a high-voltage transmission line detection system based on UAV; power-line inspection with no crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: design of a high-voltage transmission line voltage detection system based on UAVs."
+    },
+    {
+      "screening_id": "SCI-003157",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is UAV path generation for heliostat field optical characterization; solar-energy inspection with no crop/weed signal.",
+      "confidence": 0.95,
+      "one_line_support": "Title: UAV path generation for image collection to assist heliostat field optical characterization."
+    },
+    {
+      "screening_id": "SCI-013184",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Optimization and 3D printing of carbon-fiber-reinforced UAV shell structures; materials/manufacturing engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Continuous carbon fiber prepreg filament and FEM testing reduce UAV shell weight by 25%."
+    },
+    {
+      "screening_id": "SCI-010739",
+      "decision": "PENDING",
+      "reason_code": "MODERATION_REDACTED_PEND",
+      "criterion_refs": ["MODERATION_REDACTED_PEND"],
+      "reason": "Text withheld by moderation; visible title 'UAV Perspective Small Target Recognition Algorithm Based on Improved YOLOv5' is a generic UAV target-recognition method whose target domain cannot be determined, so the title does not clearly leave the review domain.",
+      "confidence": 0.5,
+      "one_line_support": "Visible title gives generic small-target recognition from UAV with improved YOLOv5; target domain withheld.",
+      "moderation_redacted": true
+    },
+    {
+      "screening_id": "SCI-004452",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Micro UAV visual inspection of aircraft (wing, fuselage, tail) with visual servoing; aircraft maintenance without crop/weed task.",
+      "confidence": 0.95,
+      "one_line_support": "MAV visual servoing simulations and manual flights inspect a virtual and real airplane for surface defects."
+    },
+    {
+      "screening_id": "SCI-003208",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAV 3D orthomosaics feed autonomous-vehicle driving simulator maps; automotive simulation without crop/weed task.",
+      "confidence": 0.95,
+      "one_line_support": "UAV orthomosaic processed through RoadRunner and CARLA builds 3D maps for AV testing."
+    },
+    {
+      "screening_id": "SCI-012735",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Elevator trim estimation for a flying-wing UAV via nonlinear disturbance observer; flight-control engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Disturbance observer estimates elevator trim and compensates longitudinal motion control on flight data."
+    },
+    {
+      "screening_id": "SCI-005443",
+      "decision": "PENDING",
+      "reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "criterion_refs": ["INC-02", "GUARDRAIL_TITLE_ONLY_UAV_WEED"],
+      "reason": "Abstract null; title is phenological assessment of a wild blueberry field using a UAV - title-only UAV+crop (managed perennial) record, hold PENDING for retrieval.",
+      "confidence": 0.55,
+      "one_line_support": "Title: phenological assessment of the wild blueberry field using an unmanned aerial vehicle; abstract missing."
+    },
+    {
+      "screening_id": "SCI-001268",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "reason": "Abstract states the paper provides an overview/review of smart agriculture applications in rice; confirmed review, not primary empirical study.",
+      "confidence": 0.9,
+      "one_line_support": "'This paper provides an overview of the key smart agriculture applications' and 'The review discusses' drones and sensors in rice."
+    },
+    {
+      "screening_id": "SCI-008004",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Abstract-null title is a fusion network for lightweight small target detection in UAVs; generic detection with no crop/weed signal.",
+      "confidence": 0.9,
+      "one_line_support": "Title: multi-scale dynamic fusion network for lightweight small target detection in UAVs; target domain unnamed."
+    },
+    {
+      "screening_id": "SCI-013133",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Finite-element structural analysis and optimization of an unmanned cargo aircraft wing; airframe engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "FEM redesign of UCAV wing ribs and spars raises safety factor to 1.9 under operational loads."
+    },
+    {
+      "screening_id": "SCI-004356",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Hybrid artificial bee colony path-planning algorithm for UAVs; navigation optimization without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "HABC combines ABC with late acceptance hill climbing to shorten obstacle-avoiding UAV paths."
+    },
+    {
+      "screening_id": "SCI-003594",
+      "decision": "PENDING",
+      "reason_code": "PENDING_PLATFORM_UNVERIFIED",
+      "criterion_refs": ["INC-01"],
+      "reason": "Crop-weed semantic segmentation data augmentation study framed for 'agricultural robotics' on two farm datasets; no UAV/aerial signal in visible text, platform eligibility unverifiable.",
+      "confidence": 0.5,
+      "one_line_support": "RICAP-based augmentation improves crop-weed segmentation on Narrabri and Bonn datasets; imagery platform not stated."
+    },
+    {
+      "screening_id": "SCI-007097",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "reason": "Abstract-null title is a conference author information page; administrative front matter, not a primary empirical report.",
+      "confidence": 0.95,
+      "one_line_support": "Title: LEF & ICLU 2025 Author Information Page; no study content."
+    },
+    {
+      "screening_id": "SCI-001163",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": ["EXC-03"],
+      "reason": "Abstract states 'This review paper explores recent trends' via systematic literature review of 50+ papers; confirmed review, not primary empirical study.",
+      "confidence": 0.95,
+      "one_line_support": "Review synthesizes AI and data science in smart agriculture through a systematic literature review of 50+ papers."
+    },
+    {
+      "screening_id": "SCI-013478",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Optical comb generation for UAV 5G communication systems; communications engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Two-component optical combs enable frequency-diverse antenna arrays for UAV platform 5G links."
+    },
+    {
+      "screening_id": "SCI-008177",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "GIS-based vertical port placement and routing for UAV defibrillator delivery in mountains; emergency medical logistics without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Least-cost 3D flight paths place drone ports for AED delivery across South Tyrol."
+    },
+    {
+      "screening_id": "SCI-001193",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAS LiDAR/SfM digital elevation modeling of erosion and sediment connectivity in steep-slope vineyards; soil erosion/geomorphology mapping without a crop/weed detection or classification task.",
+      "confidence": 0.7,
+      "one_line_support": "Multi-temporal UAS DEMs map sediment connectivity under vineyard management changes; outputs erosion, not crop/weed, maps."
+    },
+    {
+      "screening_id": "SCI-013187",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Self-healing UAV skin for icing prevention and monitoring; materials/avionics engineering without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Supramolecular elastomer skin provides icephobicity and real-time ice accretion sensing on UAV surfaces."
+    },
+    {
+      "screening_id": "SCI-005625",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Russian-language paper on detection and radio-electronic countermeasures against small UAVs; counter-drone security without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Portable complex detects small unmanned aircraft and applies electronic influence; anti-drone application."
+    },
+    {
+      "screening_id": "SCI-002300",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Multi-agent reinforcement learning for multiple UAVs cooperatively pursuing a target UAV; pursuit-evasion control without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "Cooperative double Q-learning pursues a moving target UAV in a dynamic 3D simulator."
+    },
+    {
+      "screening_id": "SCI-007825",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "Ukrainian-language study of domain-gap reduction for detecting unmanned aircraft on embedded systems; counter-drone detection without crop/weed task.",
+      "confidence": 0.97,
+      "one_line_support": "DA-ANS method trains YOLOv8/11-nano detectors for UAV detection on Jetson Nano from synthetic data."
+    },
+    {
+      "screening_id": "SCI-002196",
+      "decision": "EXCLUDE",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": ["EXC-02"],
+      "reason": "UAS cover-crop seeding application-rate accuracy and distribution uniformity tests; seeding application engineering without a crop/weed detection or mapping task.",
+      "confidence": 0.85,
+      "one_line_support": "DJI Agras T25 seeding trials quantify cereal rye metering errors and swath spread patterns."
+    }
+  ]
+}

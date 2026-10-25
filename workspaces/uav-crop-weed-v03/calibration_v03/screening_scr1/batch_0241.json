@@ -1,0 +1,511 @@
+{
+ "batch_id": "batch_0241",
+ "session": "UAV-SCREEN-SCR1-20261018",
+ "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+ "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+ "model_id": "opencode/glm-5.3-flash-free",
+ "temperature": 0.1,
+ "n_records": 50,
+ "records": [
+  {
+   "screening_id": "SCI-003571",
+   "title": "A Review of Applications and Communication Technologies for Internet of Things (IoT) and Unmanned Aerial Vehicle (UAV) Based Sustainable Smart Farming",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.3390/su13041821",
+   "arxiv_id": null,
+   "abstract": "To reach the goal of sustainable agriculture, smart farming is taking advantage of the Unmanned Aerial Vehicles (UAVs) and Internet of Things (IoT) paradigm. These smart farms are designed to be run by interconnected devices and vehicles. Some enormous potentials can be achieved by the integration of different IoT technologies to achieve automated operations with minimum supervision. This paper outlines some major applications of IoT and UAV in smart farming, explores the communication technologies, network functionalities and connectivity requirements for Smart farming. The connectivity limitations of smart agriculture and it’s solutions are analysed with two case studies. In case study-1, we propose and evaluate meshed Long Range Wide Area Network (LoRaWAN) gateways to address connectivity limitations of Smart Farming. While in case study-2, we explore satellite communication systems to provide connectivity to smart farms in remote areas of Australia. Finally, we conclude the paper by identifying future research challenges on this topic and outlining directions to address those challenges.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-013921",
+   "title": "Linking weed incidence to natural grassland vegetation patterns and environmental drivers in a smallholder crop-livestock system",
+   "year": 2026,
+   "providers": "crossref",
+   "doi": "10.1007/s12600-026-01383-x",
+   "arxiv_id": null,
+   "abstract": "Abstract Natural grasslands surrounding cropping fields can act as reservoirs of plant species that influence weed establishment in cropping systems. Understanding these interactions is important for explaining changes in plant community assembly and vegetation composition across agricultural landscapes. This study compared species composition between manured maize ( Zea mays L.) cropping fields and natural grasslands. Additionally, it identified environmental factors that influence the distribution and assembly of vegetation in natural grasslands. The study was conducted in two agroecological regions (Highveld and Middleveld) of Eswatini. Transects in natural grasslands and maize cropping fields were used to sample plant species composition and density. Stacked-species Distribution Models (s-SDMs) were used to predict the assembly of natural grassland vegetation using climatic, soil, and socio-ecological variables. Weed species richness (S), diversity ( H ’), and dominance (D) were greater in manured maize fields than in natural grasslands. Model selection based on the Akaike information criterion (AIC) identified 10 factors explaining patterns in species abundance, richness, diversity, and dominance. Phosphorus influenced all diversity indices. Temperature, soil pH, and elevation influenced vegetation abundance, while soil texture affected vegetation abundance, richness, and diversity. About three-quarters of natural grasslands in the Highveld had the highest potential species richness, whereas more than half in the Middleveld had the lowest potential species richness. A combination of environmental variables influences the assemblage of plant species in grasslands, which, when grazed by cattle and introduced to maize cropping fields through uncured manure, may increase species richness and diversity, challenging weed management.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-000036",
+   "title": "Multispectral Crop–Weed Segmentation Patches",
+   "year": 2026,
+   "providers": "openalex",
+   "doi": "10.5281/zenodo.18361815",
+   "arxiv_id": null,
+   "abstract": "This dataset provides a modified, patch-based version of the WeedsGalore dataset for crop–weed semantic segmentation using UAV multispectral imagery. The dataset consists of 224×224 image patches extracted from UAV acquisitions and includes RGB, near-infrared (NIR), and red-edge (RE) spectral bands, as well as five vegetation indices: NDVI, EVI, MSAVI, NDRE, and GNDVI. All spectral bands and indices are stored as single-channel grayscale images encoded as int32. Pixel-wise segmentation masks are provided as single-channel grayscale images (int8) with three classes: background (0), crop (1), and weed (2). To improve model robustness, data augmentation was applied to the training set only, including horizontal and vertical flipping, rotations of 90°, 180°, and 270°, and random zoom-in and zoom-out within ±20%. Validation and test samples were not augmented to prevent data leakage. This dataset is derived from the original WeedsGalore dataset (Celikkan et al., WACV 2025), which is released under the Creative Commons Attribution 4.0 International (CC BY 4.0) license. The modified dataset is distributed under the same license and requires appropriate attribution to the original authors. The dataset is associated with the article:“Multispectral Feature Decomposition via Dual-Branch CNN–Transformer U-Net for Crop–Weed Semantic Segmentation”.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-006588",
+   "title": "Research on the elevation calculation method of unmanned aerial vehicle aerial survey image control points based on the EMG2008 model",
+   "year": 2025,
+   "providers": "crossref",
+   "doi": "10.1117/12.3084372",
+   "arxiv_id": null,
+   "abstract": "In the field of large-scale topographic mapping, unmanned aerial vehicle (UAV) aerial surveying has become the mainstream technical means due to its advantages of high efficiency and flexibility. However, in the absence of regional conversion parameters, the determination of control point elevations still highly relies on the traditional multi-control point joint measurement method, which leads to problems such as low efficiency, sharp cost increase, and safety hazards when operating on complex terrains. In response to the above-mentioned bottlenecks, this paper proposes a method for calculating the elevation of image control points based on the EGM2008 correction model. By innovatively adopting the single-point joint measurement technology to determine regional elevation anomalies and combining it with the EGM2008 Earth gravity field model, it realizes the rapid solution of batch image control point elevations. Experimental data show that through strict theoretical derivation, scene measurement verification and error analysis, this method can accurately meet the requirements of elevation accuracy for image control points in large-scale topographic mapping, effectively reduce the operation difficulty and safety risks under complex terrain conditions, and improve the efficiency of aerial surveying operations.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-010156",
+   "title": "Characteristics of photosynthesis and vertical canopy architecture of citrus trees under two labor-saving cultivation modes using unmanned aerial vehicle (UAV)-based LiDAR data in citrus orchards",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.1093/hr/uhad018",
+   "arxiv_id": null,
+   "abstract": "Abstract Analyzing and comparing the effects of labor-saving cultivation modes on photosynthesis, as well as studying their vertical canopy architecture, can improve the tree structure of high-quality and high-yield citrus and selection of labor-saving cultivation modes. The photosynthesis of 1080 leaves of two labor-saving cultivation modes (wide-row and narrow-plant mode and fenced mode) comparing with the traditional mode were measured, and nitrogen content of all leaves and photosynthetic nitrogen use efficiency (PNUE) were determined. Unmanned aerial vehicle (UAV)-based light detection and ranging (LiDAR) data were used to assess the vertical architecture of three citrus cultivation modes. Results showed that for the wide-row and narrow-plant and traditional modes leaf photosynthetic CO2 assimilation rate, stomatal conductance, and transpiration rate of the upper layer were significantly higher than those of the middle layer, and values of the middle layer were markedly higher than those of the lower layer. In the fenced mode, a significant difference in photosynthetic factors between the upper and middle layers was not observed. A vertical canopy distribution had a more significant effect on PNUE in the traditional mode. Leaves in the fenced mode had distinct photosynthetic advantages and higher PNUE. UAV-based LiDAR data effectively revealed the differences in the vertical canopy architecture of citrus trees by enabling calculating the density and height percentile of the LiDAR point cloud. The point cloud densities of three cultivation modes were significantly different for all LiDAR density slices, especially at higher canopy heights. The labor-saving modes, particularly the fenced mode, had significantly higher height percentile data.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-008591",
+   "title": "Numerical study of the strength characteristics of the V-shaped tail of an unmanned aerial vehicle based on composite materials",
+   "year": 2020,
+   "providers": "crossref",
+   "doi": "10.38013/2542-0542-2020-3-54-61",
+   "arxiv_id": null,
+   "abstract": "In this research, we investigate the strength characteristics of the V-shaped tail of an unmanned aerial vehicle made of polymer composite materials based on an epoxy matrix filled with fiberglass and carbon fibre. The study was carried out by numerical modelling of the stress-strain state of the system in the Ansys Mechanical software and the Composite Prep-Post module allowing a model of layered structures of polymer composite materials to be set up. The values of stresses and strains under static loading conditions were determined. The numerical calculation was verified by comparing its results with the values obtained during a full-scale exper-iment. It is shown that the values obtained by numerical calculation differ from those obtained in the full-scale experiment by 10–15 %. An assumption is made that this discrepancy can be associated with macro-structural inhomogeneities of polymer composite materials appearing as a result of using the autoclave-free moulding method, which are not considered by numerical modelling based on idealized micro-models. In order to increase the accuracy of numerical modelling in the first approximation, it is proposed to introduce a correction factor when calculating the amount of deformation in problems on the rigidity of design structures.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-010165",
+   "title": "Analysis of the Architecture of Perceiving a Dynamic Environment for an Unmanned Aerial Vehicle",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.1007/978-3-031-36201-9_50",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-001273",
+   "title": "Precision technologies to improve dairy grazing systems",
+   "year": 2023,
+   "providers": "openalex",
+   "doi": "10.3168/jdsc.2022-0308",
+   "arxiv_id": null,
+   "abstract": "Pasture-based dairy herds continue to grow around the world as demand increases for sustainable farming practices. Grazing dairy farmers may benefit from the utilization of precision dairy technologies because these technologies have the potential to improve animal welfare, increase farm efficiency, and reduce costs. Precision dairy technologies have provided novel information about activity, rumination, and grazing behavior of various breeds in pasture-based systems. Previous research with wearable technologies has indicated that rumination, eating, and no activity have moderate to high correlations (r = 0.65 to 0.88) with visual observation; however, activity may be difficult to record in grazing herds. However, many grazing dairy farmers around the world are using activity monitors with generally positive success. Grazing is a complex behavior to define because cows may walk to an area and stop to eat or continuously walk and take bites of grass from the pasture. Wearable technologies can detect whether a cow is grazing with reasonable accuracy. However, the challenge is to determine pasture intake as bite rate and bite size because these can vary as the pasture is grazed to a low residual height. Nevertheless, grazing behavior data collected with wearable technologies was highly correlated (r = 0.92 to 0.95) with visual observations. Grazing is a behavior that should continue to be explored, especially with precision dairy technologies. As healthy and productive pastures are integral to grazing systems, accurate forage biomass measurements can improve efficiency and production of pastured dairy cows. However, few farms use technology to determine forage availability. Therefore, using dairy technologies to monitor forage dry matter from pasture may provide a potential benefit for grazing-based dairy farms. Current satellite technology with the normalized difference vegetation index and electronic rising plate meters may provide new technologies for farms to monitor forage biomass and fine-tune grazing within pastures. In the future, pasture-based dairy farms may rely on virtual fencing, drones to detect animal health issues and forage availability, and autonomous vehicles to move cattle and to detect weeds on pasture.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-012711",
+   "title": "Unmanned aerial vehicle phenotyping of agronomic and physiological traits in mungbean",
+   "year": 2025,
+   "providers": "crossref",
+   "doi": "10.1002/ppj2.70016",
+   "arxiv_id": null,
+   "abstract": "Abstract Mungbean is an important sub‐tropical legume crop grown across Asia, Africa, and Australia. Yield improvement is crucial for expanding production, but phenotyping important traits across diverse environments using current approaches is challenging, limiting the scale and complexity of information captured. High‐throughput phenotyping platforms offer a solution by rapidly screening traits at scale. This study deploys an unmanned aerial vehicle (UAV) platform to determine the potential of phenotyping a range of agronomic and physiological traits within a diverse mungbean population evaluated across three field trials. Three predictive data‐driven modeling approaches were undertaken to evaluate performance accuracy in predicting these traits: linear regression, stepwise regression, and partial least squares regression. Results show that using the geometric trait “coverage” as a proxy is most suitable for screening visual traits like early vigor. For functional traits (i.e., aboveground biomass), predictive data‐driven models demonstrate high accuracy during early‐ and mid‐canopy development stages ( R 2 0.79, root mean square error [RMSE] 4.08 and R 2 0.8, RMSE 26.92, respectively), but accuracy declines in late‐canopy development ( R 2 0.33 and RMSE 43.15). Prediction accuracy can be optimized by using different modeling approaches at different stages during the transition from early‐ to mid‐canopy development as well as canopy closure. Similar findings were observed when examining the prediction models for the physiological trait, stomatal conductance ( R 2 0.69 and RMSE 0.10). These approaches are expected to enable breeders and researchers to incorporate UAV‐based phenotyping systems into mungbean improvement programs. Such approaches might be most efficiently used at scale if applied as part of a “real‐time” calibration approach.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-001555",
+   "title": "Identification and mapping of Individual Trees from Unmanned Aerial Vehicle Imagery Using an object oriented Convolutional Neural Network",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.21203/rs.3.rs-3486635/v1",
+   "arxiv_id": null,
+   "abstract": "Abstract Precision agriculture (PA) is an agricultural management strategy founded on the observation, measurement and responding to inter/intra-field crop variability. It includes advances in data collection/analysis and management, along with the technological developments in Data storage and retrieval, accurate positioning, yield monitoring and remote sensing. The last provides unprecedented spatial, spectral, and temporal resolution, but can also provide detailed information about the vegetation’s height and various observations. Today, the success of new agricultural technologies has meant that many farming tasks have become automated, and scientists have carried out more studies and companies based on intelligent algorithms that automatically learn decision rules from data. The use of deep learning (DL) and particularly the development and application of some of its algorithms called convolutional neural networks (CNN) is considered a particular success. In the present work, we applied and tested the performance of a simple Convolutional Neural Network to automatically detect and map olive trees from a Phantom4 advanced drone imagery. The workflow involved the image acquisition and the orthomosaic generation with Pix4D software, beside the use of geographical information system and object-based image analyses. The application to a RGB ortho-mosaic of an olive grove, in the east region of Morocco, performed well achieving an overall accuracy of 95.16%.",
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-004567",
+   "title": "Measurement of post-dispersal invertebrate seed predation of some relevant weed species in maize fields in Hungary: An ecosystem service provided in crop fields contributing to weed management",
+   "year": 2022,
+   "providers": "crossref",
+   "doi": "10.17221/159/2021-pps",
+   "arxiv_id": null,
+   "abstract": "Invertebrate seed predation is a potential ecosystem service that substantially reduces weed seeds in crop fields, decreasing the seedling emergence and, thus, limiting the weed competition next season. It may, thus, be considered as a natural component of the long-term weed management toolbox. This study aimed to measure the post-dispersal invertebrate seed predation levels of the following relevant weed species in Hungarian maize fields: Ambrosia artemisiifolia, Datura stramonium, Chenopodium album, and Echinochloa crus-galli, and to compare the predation levels among them. We hypothesised that invertebrate seed predators will predate weed seeds, but the predation levels may vary with the weed species. Two sampling rounds were performed, in November 2019 and October 2020, in GĂśdĂśllĹ, Hungary. A total of 100 seed cards/round were placed on the soil surface inside a maize field prior to harvest, 10 m from the field's edge, along 25 transects, with four cards/transect. A distance of 10 m was set between the transects and 1 m between the cards. Twenty seeds of each weed species were glued onto sandpaper (25 Ă 10 cm, P-60), and a wire mesh was used to exclude vertebrate predators. The seed removal was calculated every 24 h, for seven days in 2019 and for five days in 2020, and then the seed predation was measured using the number of removed seeds on each card. The results showed high seed predation levels on all the seed cards, with an overall average of 85.9 ± 13.7%. Besides, there was a decrease in the % of remaining seeds on the cards starting from the first day after exposure due to seed predation in both years. The optimum exposure period for measuring the seed predation was found to be three to four days, though the number of predated seeds on days 3 and 4 significantly differed between years (P < 0.001), with higher predation rates in 2020 than in 2019. However, no differences were detected in the predation rates among the weed species (P = 0.962, 0.079). These findings indicate the potential contribution of seed predation by invertebrates to weed management in Hungarian maize fields.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-007952",
+   "title": "A Proof-of-Concept Use of Unmanned Aerial Vehicle for Autonomous Person Detection and Tracking in Solar Farms",
+   "year": 2026,
+   "providers": "crossref",
+   "doi": "10.1007/s10846-026-02451-4",
+   "arxiv_id": null,
+   "abstract": "Unmanned Aerial Vehicle (UAV) technology has rapidly advanced, enabling the execution of increasingly complex autonomous tasks. This work presents a proof-of-concept autonomous surveillance framework utilizing a low-cost UAV for indoor monitoring as an initial step toward the surveillance of photovoltaic power plants. The proposed system integrates environment perception, mapping, autonomous navigation, person detection, target tracking, and operator supervision within a unified ROS-based architecture. A lightweight web interface was developed to support mission supervision through autonomous navigation commands, real-time video streaming, and automatic email notifications triggered by detected intruders. Experiments conducted in both simulated and real environments demonstrated the successful integration of the proposed modules, allowing the UAV to map previously unknown environments, autonomously navigate while avoiding obstacles using only monocular visual odometry, and continuously detect and track a target. Despite the limitations imposed by the selected low-cost platform, the results demonstrate the feasibility of the proposed surveillance framework under controlled conditions and establish a modular foundation for future deployment in photovoltaic power plants through the adoption of industrial UAV platforms, long-range communication infrastructures, and multi-sensor localization techniques.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-001329",
+   "title": "Growing a Better Future through Responsible Crop Protection",
+   "year": 2026,
+   "providers": "openalex",
+   "doi": "10.1093/ae/tmag004",
+   "arxiv_id": null,
+   "abstract": "THINAPOB/ADOBESTOCK; SULIT.PHOTOS/ADOBESTOCK In 2024, the top five concerns expressed by Americans were strengthening the economy, defending against terrorism, reducing the influence of money in politics, the rising cost of health care, and improving education (Pew Research Center 2024). While these are all critically important issues, the relative attention they receive is not proportional to the impact on society. For example, 8,352 people were killed in terrorist incidents in 2023 (Relief Web 2024). In contrast, globally, approximately 9 million people died in 2023 from causes related to hunger (Concern Worldwide 2024). Both are issues of extreme concern, but given the disconnect in attention compared to impact, how do we promote interest in policy issues that can directly improve the most lives globally? In the U.S. alone, almost 13.5% of American households (18 million) were food insecure in 2023 (USDA-ERS 2025), even though the availability of food has increased over the past 50 years (Kearney 2010). Many of us in the U.S. may take for granted the diversity, nutritional variety, and taste of unique ingredients when we live just a short distance away from the grocery store. But it is difficult to grasp what it takes to bring this quantity, quality, and diversity to our tables. Consider mangoes, an important source of nutrition and income for medium and smallholder farmers and a staple crop in tropical regions. More than 7,000 miles away from the U.S., there is a mango farmer named Veronica Kioko in Kenya (Fig. 1). Farming is Veronica’s livelihood, but every year, she faces a risk of losing 20–100% of her crop to pests (Muriithi et al. 2024). In the scope of global agriculture, mangoes are considered a minor crop, but to a farmer such as Veronica relying on them for income, every mango is important. Fruit flies, mealybugs, aphids, and whiteflies are all insect pests that can affect the quantity and quality of her crop. The availability of crop protection solutions to manage these pests has a direct impact on food abundance, economic well-being, and quality of life for farmers and consumers. In Kenya, a coalition of stakeholders worked to bring a new, approved pest management option, Isoclast™ Active (sulfoxaflor) insecticide, to mango farmers. The relatively simple step of making a new crop protection option, sulfoxaflor, available to smallholder farmers in Kenya positively affected production and human lives by increasing the annual mango yield and quality. Veronica articulated this value: “The extra income, in fact, is helping us to educate our children … it has helped in paying school fees” (Minor Use Foundation 2024). Veronica’s story is just one out of millions that illustrates the significant biological and social impacts of crop protection solutions. Kenyan mango farmer Veronica Kioko (far right) with her children. Author Carmen Tiu was the study monitor and sponsor representative for the research to support regulatory approval for sulfoxaflor use on mango. (Photo: Minor Use Foundation) Conventional modern agriculture supplies over 98% of the world’s food (Tal 2018). Thus, policies and regulatory frameworks that enable access to crop protection solutions and allow for the use of diverse practices are critical and have an impact on global nutrition and food security. Crop protection solutions are among our most valuable tools for protecting and optimizing food production. These tools include plant breeding (traditional and genetic engineering), fertilizers/biostimulants, pesticides (biological and synthetic), biological control, cultural practices, behavior-modifying chemicals such as pheromones, mass trapping, and other emerging technologies. The benefits these tools offer are directly connected to the quality of life for the ≈25% of the global population who work in agriculture (Roser 2023) and to our collective food security. In response to the lack of public understanding (and in some instances hostility) about the role of crop protection to promote a peaceful and food-secure world, the authors of this article organized a symposium at the 2023 Annual Meeting of the Entomological Society of America titled “Advocating Responsible Crop Protection to Influence Policy and Gain Public Engagement” (Fig. 2). It highlighted the importance of promoting public understanding and trust in science-informed crop protection. It brought together a diverse group of speakers from academia, government, non-governmental organizations (NGOs), and industry (Table 1). Meng Wang presenting during the 2023 Entomological Society of America Annual Meeting symposium, “Advocating Responsible Crop Protection to Influence Policy and Gain Public Engagement.” Presentations as part of the Larry Larson Symposium “Advocating Responsible Crop Protection to Influence Policy and Gain Public Engagement” on 5 November 2023 at the Annual Meeting of the Entomological Society of America in National Harbor, Maryland. Collectively, the authors of this article promote the use of science-informed decision making to protect diverse options for global food security and to improve people’s lives. To provide a framework for advocacy on this topic, we formalize a new concept to encompass biological and socioeconomic outcomes. In this article, we define the term from the symposium title: Responsible Crop Protection. Responsible Crop Protection (RCP) is a science-informed, socially responsive, and collaborative approach to managing pests. It ensures that solutions are societally informed, economically viable, guided by stewardship, and empowered by community engagement and education. Responsible Crop Protection relies on collaborative decision-making among agricultural stakeholders, including private industry, academia, government, non-governmental organizations (NGOs), farmers, and consumers. RCP builds upon the principles of integrated pest management (IPM) to protect crops that support global food, fuel, and fiber needs in a socially responsive manner (Dara 2019). RCP is a pro-active response to modernize and build upon the iconic IPM concept. RCP must meet three criteria, and we identify five tenets to achieve that end. To meet the three criteria, RCP must 1) be effective for pest, vector, and pathogen management, 2) not cause unreasonable adverse effects on humans and the environment, and 3) be economical for farmers and consumers (Fig. 3). RCP provides a framework for evaluating crop protection innovations to ensure they respond to and benefit social needs. RCP that meets these criteria involves these five tenets: integrated pest management; technological innovation; regulatory compliance; environmental stew-ardship, human health, and wellbeing; economic viability; and community engagement and education (Fig. 4). Three criteria for Responsible Crop Protection. The five tenets of Responsible Crop Protection. RCP provides a framework that we believe facilitates more constructive action and conversation around contemporary crop protection needs. The following sections provide details regarding each tenet and how to put them into action. IPM is “a comprehensive approach to managing host stress that is economically and ecologically sustainable” (Peterson et al. 2018). IPM uses a range of tactics, including behavioral, biological, cultural, physical, and chemical, along with resistant crops that may have been developed through traditional breeding, precision breeding, or genetic engineering. RCP is not a replacement for IPM; rather, IPM is at the core of RCP. Embedding IPM in RCP builds on the legacy of integrating science-informed tactics for pest management, while heightening the social responsibility around the choice of tactics (Kogan 1998; Wise and Whalon 2009; Pedigo et al. 2021; Zhou et al. 2024). From its origin as “integrated control” (Stern et al. 1959) and “an ecological approach to pest control” (Geier and Clark 1960), the concept of IPM was based on concerns of overreliance on chemical pest control and the need for an approach based on understanding pest populations and using diverse tactics. As Stern et al. (1959) highlighted, “Biological and chemical control are not necessarily alternative methods; in many cases they may be complementary, and, with adequate understanding can be made to augment one another.” At the time, the authors recognized the need to replace highly toxic pesticides common at the time, which were used at high use rates, lacked selectivity, and had high environmental persistence. The thoughtful integration that was called for over 60 years ago is more accessible than ever with the expansion of low-use rate, highly selective pesticides, with low environmental persistence. As we apply IPM in the context of RCP, we reinvigorate deliberate programs to diversify tactics, minimize the environmental impact of the various tactics, enhance stakeholder engagement, and ensure economic returns to producers. Because contemporary pesticides are developed with an emphasis on sustainability goals and are applied with precision technologies, significantly lower quantities are used (Fig. 5; Corteva Agriscience 2025a). Corteva Agriscience incorporates the United Nations Sustainable Development Goals into the crop protection development process. With IPM at the core, RCP incorporates minimizing environmental impacts broadly. For example, in the past, tillage was part of effective weed control (Walsh et al. 2020), but responsible application of crop protection tactics emphasizes practices that limit soil disturbance and reduce greenhouse gas emissions. IPM at the core of RCP highlights that the concept remains a gold standard for pest management, but there are new tools and tactics available that can meet the benchmark for “responsible.” Modern agriculture stands as the only solution for achieving safe and sustainable global food security. This requires scientific innovation and societal acceptance of new crop protection technologies. Innovation is an area in which the collaboration of all sectors involved in agricultural production will be especially important to ensure that these technologies are developed and deployed in a way that benefits farmers and is understood by the public. The development of next-generation crop protection approaches must continue to advance favorable characteristics and enable the adoption of precision agriculture practices. Increasing development and deployment of scale-neutral technologies including artificial intelligence (AI) to manage, integrate, and interpret more data, along with the use of sensors, rapid diagnostics based on big data and machine language, more accurate sampling, and improved application technology via drones and robotics, creates options that did not even exist in the recent past for crop protection. The current and future demands to feed the world are driving the crop protection industry to move from the traditional “trial-and-error” discovery approach to predictive modelling and design approaches that enable development of effective, affordable, and more selective molecules with pesticidal activity. These molecules undergo a selection process that is aligned with sustainability goals and meet or exceed regulatory safety standards for human health and the environment. An example of this new approach is the CropKey initiative that Bayer CropScience put in place in 2024 (Bayer 2024). Additionally, Bayer is developing new tools and assays to generate relevant safety data earlier in the process, enabling fast characterization of candidate molecules in a high-throughput manner (Haas and Nauen 2021). This fast, early safety characterization then guides chemistry selection (e.g., by promoting molecules with more favorable profiles for bees and other taxa). Corteva Agriscience uses a similar approach to evaluate molecules in its Predictive Safety Center (Rasoulpour et al. 2025) and requires all potential products to meet sustainability requirements to advance in the development pipeline (Corteva Agriscience 2025b). At an early stage of pesticide development, the goal is to identify properties related to potential human, animal, pollinator, or other environmental concerns and discard candidate chemistry that would pose unreasonable risk before it ever advances. RCP embraces continuous improvement of existing crop management tools. It promotes development and use of tools to produce crops via conventional breeding or advanced technologies (e.g., gene editing, including CRISPR), reduced-risk biological and chemical pesticides, and precision agriculture (e.g., drones, sensors, smart systems, and AI-driven decision tools). Embracing innovative technology can exist in RCP because it is done in the context of support for a regulatory environment that priori-tizes health. The widely accepted precept that “whatever gets measured, can be managed” (FAO 2021) is a critical pillar for regulatory policies governing the development of crop protection products. Many consumers hold the view that food safety is dichotomous, and crop protection is either “safe” or “not safe” according to whether it is “natural” or “unnatural.” However, the revolutionary scientist Paracelsus (1493–1541) discovered long ago that “All substances are poisons; there is none which is not a poison; it is the dose that differentiates a poison from a remedy” (ChemicalSafetyFacts.org 2022). Thus, a science-informed approach to crop protection regulation relies on robust measurements as a basis for human and environmental health exposure and risk. Because contemporary pesticides are developed with an emphasis on sustainability goals and are applied with precision technologies, significantly lower quantities are used. RCP can only succeed when the science-informed regulatory frameworks and compliance policies are properly communicated, understood, and supported by the public and other stakeholders. Consistent global of crop protection technologies are to ensure a environment for and the who crop protection development, and not in fact, regulatory such as the U.S. Protection scientific in work (e.g., to U.S. frameworks (e.g., U.S. et al. to (e.g., to protect from U.S. 2025), and policies to modernize approaches (e.g., U.S. U.S. Crop protection products must with the of every in which they are or This some pesticides and crops must meet the standards of more than regulatory around the is supported by robust data by regulatory have been over the and include many safety to to human health from and and to protect the environment, including soil health, quality, and must that from the for and Development The are the which ensure the and of the is a quality and is part of the U.S. of and and are to regulatory and and these data to the uses are or are the there is a of the safety of pest management that new are For example, to and the for part the pesticide every years 2025), and can be or and there is a of safety for consumers or the environment. are and or during the of existing In to the regulatory process for the of crop protection for crops 2025) involves the public and to enable access to safe and effective crop protection technology for crop farmers. in the U.S. 2025) and global and and the Minor Use these modern of these hold a process to stakeholder and and are and data and data are to the and global for These public in crop protection allow tools that can as that of Veronica the mango farmer in be available while risk. RCP practices support the economic of farmers and consumers. RCP access to affordable, and food for all with other as and that affect income the use of crop protection tools as pesticides, and has an on income by reducing crop the and yield from and the use of and from for crops such as and et al. In crop from in the of use from for the crops The of crop economically because it for a more recent and study by the of for America that in the U.S. and by as as the use of pesticides et al. 2024). Thus, for many it is not economically to produce yield to the use of crop protection products. pesticides protect in and other by that crops significant pest This protection to the quality of the as pesticides reduce and by pests. produce can to crop for farmers (USDA-ERS responsible use of pesticides the sustainability and of all enable farmers to manage more pest that to crop For smallholder farmers, effective pesticides enable production of food and income for and Wang 2018). In the context of global food economically is to adequate and food production. soil is the use of and can protecting the soil from by tillage and to a more crop that provides the for populations RCP support economic benefits for diverse and consumers. RCP only when all five tenets are and technology and policy support economic but they can only be deployed with public engagement and RCP and responsive with the public not in on the policies and related to food production. involved in agricultural production must with and other stakeholders to needs and the crop protection practices that ensure sustainable use for to and to with societal and environmental The concept of regarding crop protection provides a framework that is difficult to RCP provides the criteria for and the tenets of what it takes to meet criteria, agricultural a that is to common with diverse issues with and scientific the public is in and by For example, and to are (e.g., by there are to scientific because of continue to that are by a of the public (Pew Research Center people that because of the of that this with the public when it with people at a and more than To use an one will how they how is needs to be about people in not and to the needs and concerns of farmers and consumers regarding impacts on lives will more interest in crop protection than is when it is in a manner that than people’s 2010). In that be for by a diverse of and its simple a of to a and and it to crop protection safety standards and as However, such to the public can be to the of this work and this industry (and in But crop protection solutions with industry to bring the solutions to et al. it is to understanding of and build public trust through et al. Crop protection have to a on the development process and data to bring a to Bayer Corteva example is Bayer public access to safety study of crop protection and crop products. its its has over unique of study have been to private and In Bayer its to through the the public to how a regulatory study is in and in the (Fig. 5 and Additionally, approach to responsible crop protection development involves the of the Bayer (Bayer and the (Bayer The work to offer on relevant and decision-making while on sustainability and promoting collaboration with various stakeholders, including academia, industry, and regulatory policy Crop protection are to RCP because RCP criteria through the tenets benefits Bayer for the crop protection solution development process. are to for policies to promote RCP because of the critical role that in crop as pests and as Embedding technology that protect health, and as requirements to achieve RCP ensures that pest management of the past are not The Entomological Society of America a step to be an for by the Policy in to a policy and provide the framework to influence policy and with developing policy 2025b). RCP relies on decision making that is science-informed, socially responsive, effective, and RCP promotes that support the of all for the use of highly selective pest control tactics to ensure that pests are while protecting is a to responsible use of crop protection products when the tenets of RCP are and by all stakeholders involved in development and a collective on this topic, and the Entomological Society of America can a significant role in policies that will benefit and have a global impact for crop production and food but these can to crop protection for pests in other The is that our food is more than it upon the grocery in a developed In the early of the we grocery and were how one public health our access to food The of just one into a crop can have For example, the industry in because of and production in was access to effective insect management products. are to meet global nutrition and our food is to such as and such as pests. Crop pests are which are to by et al. RCP relies on decision making that is science-informed, socially responsive, effective, and that RCP creates a framework for that social concerns and common regarding our for and food for Veronica access to innovative crop protection for her mangoes her life and her how and what we is a human and we for the choice to food in diverse for be a concept in which we can common about crop protection with diverse stakeholders. RCP criteria and tenets can these critical to us for a food-secure and peaceful The authors the by and Additionally, we are for the of many at Corteva The in a more effective that we will meet the need for an effective framework for constructive advocacy and about the global need for crop protection. is a solutions scientist at Corteva she creates about products and agricultural is of the based at is of policy and regulatory at is a scientist and safety at Bayer is a solutions scientist at Corteva creates about and enabling technologies for is a in crop health at Corteva global and for is a technology characterization in crop health at Corteva she global and for is a and in the of and at in biological risk and insect and from role as of the on and following as of the National of and and in and at remains a for to support agriculture and is a of the Bayer Carmen Tiu is a global regulatory at Corteva Agriscience and current in global food standards in 2024, she the of of the American Meng Wang is at Bayer Crop she has the initiative to allow to how crops are Wise is a in the of at and the of the",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-004367",
+   "title": "Quadcopter Unmanned Aerial Vehicle (UAV) Design for Search and Rescue (SAR)",
+   "year": 2022,
+   "providers": "crossref",
+   "doi": "10.1109/icosnikom56551.2022.10034866",
+   "arxiv_id": null,
+   "abstract": "The hard and challenging disaster terrain often hindered victim search processes which commonly use ground-based methods. UAVs were used to avoid this problem altogether, thus decreasing the victim search time. This research mainly focuses on the design of UAVs, specifically quadcopters, which are used for victim search. Our quadcopter UAV is designed to meet the requirements for SAR UAV systems, such as having a real-time response, stable flight, autonomous flight capability, and the ability to maintain its position and altitude. Commercial off-the-shelf components were used in this UAV. On the software side, an open-source autopilot firmware called ArduPilot is used. An observation points arrangement and UAV flight path for victim search operation is also described in this paper. The resulting UAV could take off at a maximum weight of 4kg. This research has not tested the maximum range and velocity of the UAV. Logging data of the UAV shows that the UAV is capable of maintaining altitude and position steadily, even though there are some wind disturbances. UAV is also capable of autonomous flights using 1 and 3 waypoints. UAV is also capable of completing a search mission scenario. Our UAV can also reach 30m height, which is more than enough for monitoring the disaster area.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-008618",
+   "title": "Optimal Tuning of Single-Axis Satellite Attitude Control Parameters Using Genetic Algorithm",
+   "year": 2020,
+   "providers": "crossref",
+   "doi": "10.1115/dscc2020-3212",
+   "arxiv_id": null,
+   "abstract": "Abstract This paper studies the optimization of control parameters for single-axis attitude control of a rigid satellite using thrusters. It is desired to tune the control parameters to minimize the number of thruster firings. The motion task is defined as an attitude pointing maneuver from arbitrary initial condition to the rest. To this end, a control loop with pulse-width pulse-frequency modulator is suggested. The control actuators are pairs of identical non-ideal thrusters which each one produces torque in one direction around the control axis. A novel approach is proposed to model the dynamics of thruster with a design parameter which shapes the response of the actuator. Nine parameters of the control loop, e.g. feedback gains, modulator parameters, and thruster dynamics, are selected as decision variables. Genetic algorithm is used to find the optimal values of the variables such that the firing is minimized. It is shown that firing minimization requires a sluggish thruster. Moreover, to study the effect of deviation from optimal value on number of thruster firings and fuel consumption, a sensitivity analysis is performed. Based on sensitivity analysis, an optimal range is suggested for each parameter where both number of firing and fuel consumption are minimized.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-002073",
+   "title": "Evaluation of potato varieties under coconut base cropping system in South Bengal",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.22271/09746315.2021.v17.i3.1490",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-002268",
+   "title": "Simulation of a Unmanned Aerial Vehicle (UAV) Swarm Control System",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.17979/spudc.000024.01",
+   "arxiv_id": null,
+   "abstract": "A promising direction for the use of UAVs is their association into groups or herds, like the insects observe the principle of swarm organization in the nature. In the case of UAVs, after combining into a swarm, each drone is controlled by its own automation, and the behavior of the swarm can be controlled by a program with elements of artificial intelligence or (several) an operator. In this work, we considered the task of improving the safety of the flight of a group of UAVs in the agro-industrial complex. The simulation of an unmanned aerial vehicle (UAV) swarm control system was created by using the 3D simulator Coppeliasim and the software PyCharm, and it was implemented when monitoring plants in the agro-industrial complex.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-012110",
+   "title": "Tests of pulse interference from lightning discharges occurring in unmanned aerial vehicle housings made of carbon fibers.",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.17531/ein/193984",
+   "arxiv_id": null,
+   "abstract": "The Aim of the study was to determine the effect of a carbon fiber enclosure on overvoltages induced in unmanned aerial vehicle (UAV) circuits. Carbon fiber reinforced polymer (CFRP) is characterized by a heterogeneous structure and a thorough analysis of its impact on the LEMP (Lightning ElectroMagnetic Pulse) protection of UAVs is crucial for the further development of such machines. The shorter the distance, the greater the amplitude of the EMP, the greater the value of the surges. Their maximum value determines the safe zone. This distance can be reduced by using an enclosure that can absorb or dissipate EMP. The tested object was placed between a large capacitor plates, which ensured the uniformity of the field. This article presents new results of tests on the CFRP shielding effectiveness against the electrical component of atmospheric discharge. Using described below method, an increase in the signal amplitude inside the box was achieved in relation to the input signal, thus strengthening it instead of suppressing it.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-008839",
+   "title": "Flight planning in multi-unmanned aerial vehicle systems: Nonconvex polygon area decomposition and trajectory assignment",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.1177/1729881421989551",
+   "arxiv_id": null,
+   "abstract": "Nowadays, it is quite common to have one unmanned aerial vehicle (UAV) working on a task but having a team of UAVs is still rare. One of the problems that prevent us from using teams of UAVs more frequently is flight planning. In this work, we present the first open-source solution ( https://pypi.org/project/pode/ ) for splitting any complex area into multiple parts. The area of interest can be convex or nonconvex and can include any number of no-flight zones. Four solutions, based on the algorithm of Hert and Lumelsky, are tested with the aim of improving the compactness of the partitions. We also show how the shape of the partitions influences flight performance in a real case scenario.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-003526",
+   "title": "Health Monitoring and Assessment of the Cultural Monument Through Unmanned Aerial Vehicle (UAV) Image Processing",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.1007/978-981-15-8025-3_16",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-011452",
+   "title": "Utilization of Unmanned Aerial Vehicle (UAV) Technology to Identify Land Cover in Kedai Damar Village, Serdang Bedagai, North Sumatera",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.1088/1755-1315/1352/1/012053",
+   "arxiv_id": null,
+   "abstract": "Abstract Remote sensing has been widely used in various fields, one of which is to provide information related to land cover classification Kedai Damar Village is one of 13 villages in the Tebing Tinggi sub-district, Serdang Bedagai Regency. The settlement of Kedai Damar is the one that is most remote from the headquarters of the high cliffs sub-district. This settlement is situated in the center of the PT.Perkebunan Nusantara-IV plantation region in Pabatu North Sumatera. As a result, several rural towns have opened shops providing food and other essentials to farmers and farmworkers in order to rely on PT. Perkebunan Nusantara-IV plantation. This research was conducted in the Kedai Damar Village administrative center area using unmanned aircraft technology and then visually interpretation of aerial photos and mapping administrative area land cover in the Kedai Damar Village administrative center area using processed data in the form of orthophoto from agisoft metashape software. Based on the results of the study, the Kedai Damar Village area has 5 types of land cover classifications that can be identified visually based on 9 elements of interpretation (hue, color, shape, size, texture, pattern, shadow, site and association) as well as ground checks or data collection and observations. In the field. there are 5 types of land cover that can be visually identified, including non-oil Palm, open land, factory Area, settlement, oil palm plantations.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-011250",
+   "title": "Autonomous Exploration Path Planning Method for Unmanned Aerial Vehicle Based on Flight Safety Constraint",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.1007/978-981-97-3336-1_37",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-010132",
+   "title": "Finding Survivors in a Terrestrial Region: A Solution to the Unmanned Aerial Vehicle Trajectory Planning Problem",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.1109/comsnets56262.2023.10041346",
+   "arxiv_id": null,
+   "abstract": "Unmanned Aerial Vehicles (UAVs) are often employed for a wide range of tasks such as military, reconnais-sance, commercial, agriculture, disaster management, product delivery, research, etc. Among these, drones are crucial during a disaster since they must assess the damage and quickly locate the survivors under the rubble. Drones fly autonomously or operated by remote pilots. In autonomous drones, trajectories are programmed to identify the survivors in a given coverage area. This is mapped to a trajectory planning problem for complete coverage with minimal time and minimal energy. In this paper, we propose a novel two-stage algorithm for finding survivors in a terrestrial region. In the first stage, an efficient waypoint generation algorithm for locating the waypoints is designed and in the second stage, a column-by-column traversal algorithm is designed to effectively traverse the generated waypoints. The experiments are conducted in real time using Tello drones. From the experiments, it is inferred that our waypoint generation algorithm results in a lower number of waypoints than the other existing techniques. Our traversal algorithm is as efficient as the existing spiral algorithm.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-010204",
+   "title": "Retracted : Cable tunnel unmanned aerial vehicle location and navigation method based on ultra wideband and depth camera fusion",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.1049/els2.12068",
+   "arxiv_id": null,
+   "abstract": "Abstract With the increasing demand for electric energy, more and more cities are constructing cable tunnels. In order to prevent the cable in the tunnel from being damaged, regular inspection of the cable tunnel is very important. However, due to the large scale of cable tunnel construction, the traditional manual inspection is difficult to meet the maintenance requirements. With the development of intelligent technology, the intelligent patrol mode of UAV has gradually replaced the traditional manual patrol mode and become the main patrol mode of cable tunnel. Therefore, the positioning and navigation method of cable tunnel UAV is studied in this paper. By using UWB localization algorithm and depth camera fusion, the positioning and navigation methods of UAVs are determined and compared with the positioning algorithm based on optical flow. Experimental comparison results show that the maximum and minimum yaw angles of UAV positioning based on the proposed algorithm are 2.41° and 0.16°, while the maximum and minimum yaw angles of UAV positioning based on the comparison algorithm are 3.11° and 1.51°. It can be seen that the integration of UWB and depth camera is of great significance for the research of positioning and navigation methods of cable tunnel UAVs.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-005926",
+   "title": "AFE-YOLOv8: A Novel Object Detection Model for Unmanned Aerial Vehicle Scenes with Adaptive Feature Enhancement",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.3390/a17070276",
+   "arxiv_id": null,
+   "abstract": "Object detection in unmanned aerial vehicle (UAV) scenes is a challenging task due to the varying scales and complexities of targets. To address this, we propose a novel object detection model, AFE-YOLOv8, which integrates three innovative modules: the Multi-scale Nonlinear Fusion Module (MNFM), the Adaptive Feature Enhancement Module (AFEM), and the Receptive Field Expansion Module (RFEM). The MNFM introduces nonlinear mapping by exploiting the property that deformable convolution can dynamically adjust the shape of the convolution kernel according to the shape of the target, and it effectively enhances the feature extraction capability of the backbone network by integrating multi-scale feature maps from different mapping branches. Meanwhile, the AFEM introduces an adaptive fusion factor, and through the fusion factor, it adaptively integrates the small-target features contained in the feature maps of different detection branches into the small-target detection branch, thus enhancing the expression of the small-target features contained in the feature maps of the small-target detection branch. Furthermore, the RFEM expands the receptive field of the feature maps of the large- and medium-scale target detection branches through stacked convolution, so as to make the model’s receptive field cover the whole target, and thereby learn more rich and comprehensive features of the target. The experimental results demonstrate the superior performance of the proposed model compared to the baseline in detecting objects of various scales. On the VisDrone dataset, the proposed model achieves a 4.5% enhancement in mean average precision (mAP) and a 5.45% improvement in average precision at an IOU threshold of 0.5 (AP50). Additionally, ablation experiments conducted on the challenging DOTA dataset showcase the model’s robustness and generalization capabilities.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-000191",
+   "title": "Weed Segmentation in Soybean Fields and Variable-Rate Herbicide Prescription Map Generation Based on UAV Imagery and Improved YOLOv11-seg Model",
+   "year": 2026,
+   "providers": "openalex",
+   "doi": "10.3389/fpls.2025.1743263",
+   "arxiv_id": null,
+   "abstract": "Introduction: Weeds pose a major threat to soybean yield during the early seedling stage, where accurate identification of their spatial locations and contours is essential for precise field management. This study proposes an improved UAV-based YOLOv11-seg framework for high-precision weed segmentation in soybean fields. Methods: A real-field weed dataset was established under complex agricultural environments. A UAV-inspection-oriented, task-driven improved YOLOv11-seg weed segmentation method is proposed. The core of this method lies in the targeted integration and adaptation of existing modules to optimize small-target perception. To enhance detection accuracy, the backbone and neck C3K2 modules were replaced with RCSOSA (reparameterized convolution based on channel shuffle and one-shot aggregation). A Spatially Enhanced Attention Module (SEAM) was integrated into the C2PSA block to better distinguish small weeds from soybean seedlings, while the inverted Residual Mobile Block (iRMB) and adaptive down-sampling module (ADown) improved feature representation and reduced detail loss in low-contrast scenes. Results: Experimental results show that the proposed model achieves mAP@0.5(Box) = 0.89 and mAP@0.5(Mask) = 0.84, surpassing mainstream models such as YOLOv8s-seg and YOLOv12s-seg, with lower computational cost (25.3 GFLOPs, 8.3 M parameters). Discussion: The main contribution of this study lies in establishing a complete and practical end-to-end engineering workflow, spanning from accurate UAV image recognition to the generation of variable-rate application prescription maps. By integrating with the ArcGIS Pro platform, this solution achieves a fully automated pipeline from perception to decision-making, offering reliable technical support for intelligent weed control during the seedling stage in precision agriculture.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-011866",
+   "title": "An improved wireless power transmission system for micro unmanned aerial vehicles",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.1049/pel2.12747",
+   "arxiv_id": null,
+   "abstract": "Abstract Due to its limited load capacity, the piggybacking of wireless charging systems for micro unmanned aerial vehicles has become a challenging task in the design of micro unmanned aerial vehicles. Therefore, this paper proposes an improved lightweight design method for micro unmanned aerial vehicles to carry a wireless charging system. The improved system uses an inductor–capacitor–capacitor‐parallel (LCC‐P) topology compensation network instead of a bilateral inductor–capacitor–capacitor (LCC) topology compensation network to achieve constant current charging (CC) and constant voltage charging (CV). Then the adaptive frequency conversion control is used to realize the automatic conversion from CC charging to CV charging during the charging process. Compared with the traditional wireless charging system based on a direct current‐direct current converter (DC‐DC converter) to achieve CC charging and CV charging, this improved system reduces the total weight of the receiving end of the wireless charging system based on ensuring the charging efficiency, which meets the demand of wireless charging systems carried by micro drone aircraft. The test results of the constructed physical system coincide with the simulation design results, and the total weight of the receiving end is only 8 g, which verifies the correctness and effectiveness of the improved design scheme.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-004509",
+   "title": "Method for determining the energy characteristics of laser radiation for controlling an unmanned aerial vehicle via an atmospheric optical channel",
+   "year": 2022,
+   "providers": "crossref",
+   "doi": "10.18127/j00338486-202202-11",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-013582",
+   "title": "ОЦІНКА ЗАБРУДНЕННЯ ҐРУНТІВ УНАСЛІДОК ПАДІННЯ БЕЗПІЛОТНИХ ЛІТАЛЬНИХ АПАРАТІВ ЯК ОБ’ЄКТУ ЕКОЛОГІЧНОГО ІНСПЕКТУВАННЯ (НА ПРИКЛАДІ СЕЛА КРАСНОСІЛКА СТАРОКОСТЯНТИНІВСЬКОЇ МІСЬКОЇ ТЕРИТОРІАЛЬНОЇ ГРОМАДИ)",
+   "year": 2025,
+   "providers": "crossref",
+   "doi": "10.31891/2307-5732-2025-359-76",
+   "arxiv_id": null,
+   "abstract": "The article presents a comprehensive eco-geochemical evaluation of soil contamination resulting from the fall and detonation of Unmanned Aerial Vehicles (UAVs) in Krasnosilka village, Starokostiantyniv urban territorial community. Intensive military activity has led to the formation of localized pollution zones containing residues of fuels, lubricants, explosive compounds, composite materials and metal fragments. Field sampling and laboratory analysis revealed elevated concentrations of heavy metals – particularly lead, cadmium, chromium, arsenic, mercury and iron – compared to background levels, with several toxicants exceeding Maximum Permissible Concentrations. These findings confirm the emergence of highly contaminated micro-sites that pose risks to agroecosystems through reduced soil fertility, impaired biological activity and potential bioaccumulation of pollutants in agricultural products. The study highlights the need for systematic environmental inspection, including spatially differentiated sampling, assessment of biological toxicity, and continuous monitoring of contaminant migration. Based on the obtained results, the paper proposes an integrated set of environmental mitigation and restoration measures. Priority is given to cost-effective biological remediation strategies, such as phytoremediation using metal-accumulating crops and the application of microbial biotechnologies to restore soil microbiota. For critically damaged areas, temporary land conservation is recommended to prevent further ecological degradation. The research provides scientifically grounded recommendations for improving environmental inspection procedures and establishing an effective system for post-war soil rehabilitation in agricultural landscapes.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-003851",
+   "title": "Unmanned Aerial Vehicle for Cleaning and Firefighting Purposes",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.1109/icrest51555.2021.9331147",
+   "arxiv_id": null,
+   "abstract": "Fire incidents have been a very common phenomenon for the past few years in Bangladesh. The proposal will be better and faster than any other existing traditional technologies. Again, this can be also used for cleaning high rise buildings, which will reduce hazards of the labors. The project is divided into four essential phases, frame design, flight control system, calibration and PID tuning, and water spraying system. The frame is designed using the \"SolidWorks 2018\". The components are chosen by calculating the ratings of each component according to requirement. In order to make the drone stable, proper calibration of each sensors is done along with roll and pitch rates. All of these are done using \"Mission Planner\" software. A pump of 16 liters/minute flow rate with a water hose gun is used for spraying at a target.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-003784",
+   "title": "Precision Agriculture With Technologies for Smart Farming Towards Agriculture 5.0",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.1002/9781119769170.ch14",
+   "arxiv_id": null,
+   "abstract": "This chapter looks at the role UAVs play in precision farming and the Internet of Things. It also analyzes scenarios for UAV implementations in a precision agriculture. IoT technology core principles are described, including smart sensors, networks and protocols used in agriculture, as well as IoT applications and smart farm solutions. It also analyzes the use of UAV systems in diverse agricultural ecosystems. UAV innovations are helping to improvethe farming exponentially. By the use of agriculture data and robotic solutions that integrate artificial-intelligent strategies, lays the groundwork for future sustainable agriculture. By revisiting each critical phase, this chapter analyzes the new era of farming system and role of UAV technologies which is help to improve the agriculture area, so that farmers can enable totake decisions to save cost of farming when preserving ecosystem and changing how food is generated.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-004323",
+   "title": "Object Detection in Unmanned Aerial Vehicle Camera Stream Using Deep Neural Network",
+   "year": 2022,
+   "providers": "crossref",
+   "doi": "10.1109/icumt57764.2022.9943463",
+   "arxiv_id": null,
+   "abstract": "Nowadays, the world is experiencing an increasing boom in applications of artificial intelligence, especially deep learning. This is more and more used in many areas such as industry, medicine and security systems, etc. This article deals with object detection from Unmanned Aerial Vehicle (UAV) perspective. The whole system uses one camera, which is suitably positioned on the UAV to capture the scene. Image processing and subsequent object detection using the YOLOv4 model are performed on the Jetson Nano device. The device itself is relatively powerful, but to save the computing power of the device, the YOLOv4 neural network model was modified. The YOLOv4 model was trained on our own dataset. This training set was created specifically for UAV applications. The result of this work is a learned YOLOv4 neural network model designed for UAVs with regard to the used training set. The modified network model is also able to run in real-time and save computing power for possibly other UAV operations. All materials, dataset and scripts used in this work, are available at https://github.com/KicoSVK/object-detection-in-uav-using-yolov4.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-010980",
+   "title": "Area target calibration in weapon scoring system using computer vision to support Unmanned Combat Aerial Vehicle",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.1063/5.0193738",
+   "arxiv_id": null,
+   "abstract": "Research development of Unmanned Combat Aerial Vehicle (UCAV) or fixed wing Combat Drone requires an accurate weapon scoring system for shooting training assessments to determine the type and capability of the rocket weapon to be used.The current camera-based rocket fire assessment method is only to determine the position of the rocket's impact point on the target, resulting in the pattern of combat training being limited to one shooting heading.The orientation of the rocket shooting practice with only one heading will result in the dependence of the UCAV pilot in carrying out the attack, it will be difficult to carry out firing patterns from various directions.One of the reasons for this is that the camera calibration method for the target area of the shot used is not yet oriented to multi-heading shots.This study aims to produce a method of weapon scoring system for the purposes of UCAV which is focused on calibrating the camera with computer vision for the area of the shot where the attack source is multi-heading.This study proposes a method of Clockwiseelliptical calibration using computer vision for monitoring and evaluating air to ground shooting exercises using high speed weapons.The method generates five main steps, i.e Input Video, Determination of 5 Main Points, Selection of Target Areas in the Image, Object Shape Transformation, and Calculation.The result succeeded in informing the position of the rocket explosion point and its distance from the center point and the angle of the rocket, the accuracy of the shape of the rocket trajectory to the impact point according to geo coordinates, sourced from variations in shot headings.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-004331",
+   "title": "The Effects of Jamming on Global Positioning System (GPS) Accuracy for Unmanned Aerial Vehicles (UAVs)",
+   "year": 2022,
+   "providers": "crossref",
+   "doi": "10.1109/iconda56696.2022.10000335",
+   "arxiv_id": null,
+   "abstract": "Unmanned aerial vehicles (UAVs) are vulnerable to a number of threats, including jamming. Jamming is the act of intentionally directing electromagnetic energy towards a communication and / or navigation system to disrupt or prevent signal transmission and reception. Global Navigation Satellite System (GNSS) jammers transmit interference signals in the frequency band used for satellite navigation. Frequency Selective Surface (FSS) filter as a potential solution to mitigate the jamming activity. The effectiveness of FSS depends on the incidence angle of the jamming signals. It is important to characterize the GPS performance of the UAV in the absence of the FSS filter, which will be used as a benchmark for modelling the appropriate FSS filter. Hence, this paper aims to investigate preliminary effects of jamming signal on UAV. The purpose of this research is to investigate the effects of Global Positioning System (GPS) jamming on UAVs based on two different conditions, namely, varying times and rotation angles. The study was conducted using GPS simulation in an anechoic chamber to prevent external interferences and multipath. Different estimated probable error (EPE) patterns are observed at different times due to the GPS satellite constellation being dynamic. This indicates that GPS accuracy is time-dependent. The results also show that the presence of a jammer imposes a significant effect on GPS accuracy when the jammer signal reaches -89 dBm. The significance of this work is to provide a solution to prevent GPS jamming and ensure safe and reliable UAV navigation by using a frequency selective surface (FSS) filter for future work.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-001224",
+   "title": "Ai and Iot Precision Agriculture",
+   "year": 2025,
+   "providers": "openalex",
+   "doi": "10.5281/zenodo.17892903",
+   "arxiv_id": null,
+   "abstract": "The agriculture sector is seeking innovative technologies for increasing food-grain production and productivity because of the rapid increase in population, unpredictable climatic changes and food security concerns. The inherently complex, dynamic, and non-linear nature of agricultural system require solutions based on advance techniques and technologies that can monitor, control, and visualize various farm operations in real-time to provide greater accuracy, better understanding, and appropriate solutions. Thus, artificial intelligence and internet of things is progressively emerging across all the industries including agriculture. Advancement in artificial intelligence and IoT based technologies has made revolutionary changes in agriculture to maximize the crop productivity. In this paper a comprehensive review on artificial intelligence and internet of things(IoT) in the areas of the agriculture is presented. The main objective of this paper is to review various potential applications of artificial intelligence and IoT such as robotics, drones, fertilizer application, weed and pest control, IoT based smart irrigation, real time weather forecasting etc.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-001308",
+   "title": "Robotics in Precision Agriculture: Task-, Platform-, and Evaluation-Oriented Review",
+   "year": 2026,
+   "providers": "openalex",
+   "doi": "10.3390/robotics15040081",
+   "arxiv_id": null,
+   "abstract": "Robotics is increasingly positioned as an enabling technology for precision agriculture, where management actions must be spatially and temporally targeted under constraints on labour, input use, safety, and environmental impact. This review synthesises studies on agricultural field robotics and organises the literature along four complementary axes: task (monitoring, weeding, spraying, and harvesting), platform (UGV, UAV, gantry/fixed-structure, greenhouse robot, and hybrid systems), autonomy-stack module (perception, localisation, planning, control, actuation, safety, and human–robot interaction), and evaluation setting (lab, greenhouse, open-field single season, and open-field multi-season/multi-site). Across these dimensions, this review analyses how platform constraints shape sensing geometry, actuation capability, localisation reliability, energy/endurance, supervision burden, and safety requirements. It further examines enabling technologies that recur across tasks, including vision and multimodal perception under occlusion and illumination variability, localisation and mapping under weak or denied GNSS, uncertainty-aware planning in deformable and partially observed environments, and compliant end-effectors for contact-rich operations. Beyond cataloguing systems, this paper emphasises evaluation practice by synthesising core task-relevant metrics, comparing laboratory and field validation settings, and proposing a reporting checklist and benchmark ladder to improve reproducibility and cross-study comparability. This review identifies recurring bottlenecks in domain shift, long-term autonomy, calibration robustness, crop-safe actuation, and safety assurance near humans, and it concludes with a staged research roadmap linking near-term evaluation reform to longer-term credible multi-site autonomy. Overall, this paper provides a structured framework for interpreting agricultural robotic systems not only by application but also by deployment context, system maturity, and evaluation credibility.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-014026",
+   "title": "The structure and working mode design of the electric-powered unmanned aerial vehicle composite power supply",
+   "year": 2026,
+   "providers": "crossref",
+   "doi": "10.1088/1742-6596/3306/1/012016",
+   "arxiv_id": null,
+   "abstract": "Abstract The limited endurance and poor dynamic response of single power source systems have become critical bottlenecks restricting the performance of electric unmanned aerial vehicles (UAVs). To address these issues, this paper proposes a design scheme for a composite power supply system tailored for micro electric UAVs. The overall vehicle structure integrating the composite power supply is designed, and the operational principles of the composite power system are systematically analyzed. Based on the power distribution control objectives, multiple working modes of the composite power system are formulated, and quantitative mode switching thresholds, including motor demand power, battery SOC, and supercapacitor voltage, are established. The main circuit topology of the composite power supply is optimized and designed, followed by a detailed analysis of the control strategies for each working mode. A MATLAB/Simulink simulation platform matching the proposed topology is built to complete multi-condition flight simulation verification, and the simulation results verify the rationality of the topology and the effectiveness of the mode switching control strategy. The proposed design effectively coordinates the power output between different energy sources, improving the system’s dynamic response capability and overall energy utilization efficiency. This work provides a viable technical solution for enhancing the endurance and power performance of micro electric UAVs.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-000832",
+   "title": "Coding-Elite Particle Swarm Optimization Searching of Moving Targets by UAVs",
+   "year": 2022,
+   "providers": "openalex",
+   "doi": "10.21203/rs.3.rs-1817153/v1",
+   "arxiv_id": null,
+   "abstract": "Abstract This paper proposes an elite coded particle swarm optimization (CEPSO) unmanned aerial vehicles (UAVs) search target motion for target detection in the shortest time. According to Bayesian theory, the problem of moving object searched is transformed into the optimization of cost function, which is used to describe the probability of moving objects being found. In order to better fit the problem, a coded elite particle swarm optimization algorithm is used to encode the search trajectory of the UAV as the movement path of the particle in the process of generation and evolution. This coding method uses the cognitive properties and social learning properties of particle swarms to generate better solutions. At the same time, in order to increase the diversity of particle swarms, a method of elite particle perturbation is used, which greatly improves the detection probability. In order to verify the superiority of the algorithm in this paper, a large number of simulation experiments are carried out on the existing methods. The experimental results show that compared with PSO, the detection probability of the proposed CEPSO is improved by 6.9%, and the time performance is improved by 8.5%. It also compares with other meta-heuristic algorithms, including differential evolution (DE), artificial bee colony (ABC), harmony search (HS), biogeographic-based optimization (BBO), invasive weed optimization (IWO), teaching-learning-based Optimization (TLBO). The experimental results show that the algorithm proposed in this paper has better detection accuracy and less detection time.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-001511",
+   "title": "Resource Management for UAV Networks",
+   "year": 2020,
+   "providers": "crossref",
+   "doi": "10.1017/9781108691017.007",
+   "arxiv_id": null,
+   "abstract": "In this chapter, we focus on how wireless communication resources (spectral, temporal, and power) can be optimized and managed in wireless networks that support UAVsWestart by analyzing a very unique problem related to wireless networks supported by hovering UAV base stations: Cell association in hover time constraints. We show how the presence of hover time constraints for the UAVs will drastically change the way in which cell association is performed. Then, we generalize the problem of cell association to a fully fledged 3D cellular system that integrates both UAV base stations and UAV user equipment. Subsequently, we investigate the problem of spectrum and cache management in a wireless network supported by UAV base stations that are able to access both licensed and unlicensed spectrum resources.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-007159",
+   "title": "Adaptive Multiple Input Multiple Output Antennas for Unmanned Aerial Vehicle and Drone-Based Communication in Dynamic Environments",
+   "year": 2025,
+   "providers": "crossref",
+   "doi": "10.35629/5252-0708924932",
+   "arxiv_id": null,
+   "abstract": "This paper investigates the performance of an Adaptive Kalman Filter-based Multiple Input Multiple Output (MIMO) beam forming technique for Unmanned Aerial Vehicle (UAV) communications. The adaptive beam forming technique was implemented to improve signal quality and tracking accuracy in dynamic communication channels, which are characterized by time-varying channel conditions driven by UAV mobility. A comprehensive analysis was conducted in MATLAB, where the proposed system was compared with traditional fixed beam forming. The results reveal a significant improvement in Bit Error Rate (BER) for the adaptive beam forming system. Specifically, the average BER for the fixed beam forming system is found to be 0.115, whereas the adaptive system reduces the BER to 0.012, demonstrating a 10× reduction in error rate. Additionally, the channel capacity increases from an average of 5.2 bps/Hz for fixed beam forming to 6.8 bps/Hz for the adaptive beam forming system, which corresponds to a 30% increase in spectral efficiency. The adaptive Kalman Filter-based beam forming system offers substantial improvements across all performance parameters, making it a potential solution for reliable UAV communications in dynamic, interference conditioned environments.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-005581",
+   "title": "Route planning of heterogeneous unmanned aerial vehicles under recharging and mission time with carrying payload constraints",
+   "year": 2023,
+   "providers": "crossref",
+   "doi": "10.3926/jiem.4381",
+   "arxiv_id": null,
+   "abstract": "Purpose: We consider the problem of route planning of multiple rechargeable heterogeneous UAVs with multiple trips under mission time and payload carrying constraints. The goal is to determine the types and number of UAVs to be deployed and their flying paths that minimizes the monetary cost, which is a sum of the recharging energy cost of each UAV, the UAV rental cost, and the cost of violating the mission time deadline.Design/methodology/approach: The problem is formulated as a mixed integer programming (MIP). Then, the genetic algorithm (GA) is developed to solve the model and the solutions are compared to those obtained from the exact method (Branch-and-Bound). Novel chromosome encoding and population initializations are designed, and standard procedures for crossover and mutation are adapted to this work. Test problems on grid networks and real terrains are used to evaluate the runtime efficiency and solution optimality, and the sensitivity of GA parameters is studied based on two-level factorial experiments.Findings: The proposed GA method can find optimal solutions for small problem sizes but with much less computation time than the exact method. For larger problem sizes, the exact method failed to find optimal solutions within the limits of time and disk space constraints (24 hours and 500 GB) while the GA method yields the solutions within a few minutes with as high as 49% better objective values. Also, the proposed GA method is shown to well explore the solution space based on the variation of the total costs obtained.Originality/value: The unique aspects of this work are that the model optimizes the sum of three different costs – the electricity recharging cost, the UAV rental cost, the penalty cost for mission deadline violation, and the recharging period based on the remaining energy, the payload capacity, and the heterogeneity of UAVs are incorporated into the model. The model is formulated as a mixed integer programming and the genetic algorithm is developed to solve the program. Novel chromosome encoding and population initializations are designed, and standard procedures for crossover and mutation are adapted to this work.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-007832",
+   "title": "IMPROVING THE ACCURACY OF GEO-TAGGING AERIAL PHOTOGRAPHS FROM UNMANNED AERIAL VEHICLES USING GLOBAL NAVIGATION SATELLITE SYSTEM BASE STATIONS",
+   "year": 2026,
+   "providers": "crossref",
+   "doi": "10.17513/use.38482",
+   "arxiv_id": null,
+   "abstract": "Последнее десятилетие характеризуется быстрым развитием технологий аэрофотосъемки и 3D-моделирования благодаря совершенствованию беспилотных летательных аппаратов и программного обеспечения фотограмметрической обработки.Ортофотопланы являются ключевым продуктом этих технологий, обеспечивая точное корректное представление земной поверхности.Основная цель данного исследования заключается в разработке методики повышения точности координатной привязки аэрофотоснимков, полученных с помощью беспилотных летательных аппаратов, при которой преодолевается ограничение, связанное с необходимостью использования традиционных наземных опорных точек.Данная методика основывается на использовании информации, поступающей от локальных сетей постоянных станций глобальной навигационной спутниковой системы.Цель -разработка и апробация комплексной методики получения высокоточных ортофотопланов с использованием беспилотных летательных аппаратов Autel Evo II Pro 6K и программного обеспечения Agisoft Metashape, включая оценку точности при использовании дифференциальной GNSS-коррекции (PPK).Методика включает три этапа: первый -планирование и подготовка (оценка метеоусловий, нормативно-правовые аспекты, проектирование миссии), второй -полевые работы (аэрофотосъемка с использованием наземных опорных точек и дифференциальной GNSS-системы), третий и последний -камеральная обработка (обработка GNSS-данных в GeoBox Office и RTKLIB, фотограмметрическая обработка в Agisoft Metashape).В результате получены ортофотопланы масштаба 1:500 с горизонтальной точностью около 2 см.Анализ точности с использованием PPK-коррекции от ближней базовой станции показал среднюю квадратическую ошибку = 10,97 см.При использовании удаленных базовых станций CORS (до 76 км) точность оставалась на сопоставимом уровне (12,269 см).Визуальная и количественная верификация подтвердили пригодность результатов для инженерно-топографических работ.Разработанная методика демонстрирует эффективность комплекса беспилотных летательных аппаратов Autel Evo II Pro 6K и ПО Agisoft Metashape для создания высококачественных геопространственных продуктов.Методика может быть применена в кадастровых работах, инженерных изысканиях, сельском хозяйстве и экологическом мониторинге. Ключевые слова:",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-008334",
+   "title": "Unmanned Aerial Vehicle Glint Image Restoration Algorithm Based on Discrete Cosine Transform",
+   "year": 2020,
+   "providers": "crossref",
+   "doi": "10.3788/aos202040.1928001",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-008999",
+   "title": "Biological control technology and application based on agricultural unmanned aerial vehicle (UAV) intelligent delivery of insect natural enemies (Trichogramma) carrier",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.1002/ps.6371",
+   "arxiv_id": null,
+   "abstract": "AbstractBACKGROUNDAgricultural pests and diseases affect grain yield and quality. In addition to the use of chemical agents, the biological control of diseases and insect pests has attracted more and more attention due to an urgent need for environmental protection. However, traditional operational methods do not integrate well with biological control technology. With the advantages of simple operation, low operating cost, high operating efficiency and wide application range, use of multirotor unmanned aerial vehicles (UAVs) in biological control is of great significance.RESULTSAn intelligent delivery system comprising an insect natural enemy (Trichogramma) capsule based on an M45 electric multirotor UAV was built to release Trichogramma ostriniae in corn fields under full autonomous mode. During operation, the M45 UAV can fly accurately in accordance with operational requirements; average deviation between the actual and planned routes was 0.24 m, the average flight speed was 9.18 m s−1 and the average altitude was 5.08 m. The effective coverage rate of natural enemies was 99.33% and the coverage redundancy was 36.75%. After delivery, an investigation into the field control effect showed an average control effect of 83.70%, which can result in effective pest control.CONCLUSIONA natural enemy carrier intelligent delivery system based on an M45 electric multirotor UAV was found to have good flight performance. In addition, natural enemies were evenly distributed, giving even coverage of the target fields. The system had a good control effect. © 2021 Society of Chemical Industry.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-011889",
+   "title": "Aerodynamic Investigation on a Coaxial-Rotors Unmanned Aerial Vehicle of Bionic Chinese Parasol Seed",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.3390/biomimetics9070403",
+   "arxiv_id": null,
+   "abstract": "Aerodynamic investigation of a bionic coaxial-rotors unmanned aerial vehicle (UAV) is performed. According to Chinese parasol seed features and flight requirements, the bionic conceptual design of a coaxial-rotors UAV is described. A solution procedure for the numerical simulation method, based on a multi-reference frame (MRF) model, is expressed, and a verification study is presented using the typical case. The aerodynamic design is conducted for airfoil, blade, and coaxial-rotors interference. The aerodynamic performance of the coaxial rotors is investigated by numerical simulation analysis. The rotor/motor integrated experiment verification is conducted to assess the performance of the coaxial-rotors UAV. The results indicate that the UAV has excellent aerodynamic performance and bionic configuration, allowing it to adapt to task requirements. The bionic UAV has a good cruise power load reach of 8.36 kg/kw, and the cruise flying thrust force is not less than 78 N at coaxial-rotor and rotor-balloon distance ratios of 0.39 and 1.12, respectively. It has the “blocks stability phenomenon” formed by the rotor downwash speed decreases and the balloon’s additional negative pressure. The present method and the bionic configuration provide a feasible design and analysis strategy for coaxial-rotors UAVs.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-002376",
+   "title": "Herbicides Weed Management Effect on Weed Dynamics, Crop Growth and Yield in Rice",
+   "year": 2020,
+   "providers": "crossref",
+   "doi": "10.20546/ijcmas.2020.903.103",
+   "arxiv_id": null,
+   "abstract": "Effect of herbicide and their combinations on crop growth, weed suppression and rice yield were evaluated at agronomic research farm of Rajendra Agricultural University, Bihar (Pusa) during Kharif season of 2009-10.Results revealed that weed control measures had a significant effects on weed population/m2. At 20 DAT minimum weed population/m2 was recorded with Butachlor @ 1.5 kg a.i/ha (PE) which was significantly superior to weedy check (no weeding) and hand weeding at 25 and 50 DAT and statistically at par with Butachlor @ 1.5 kg a.i/ha (PE) + Pyrazosulfuron@ 40g a.i/ha (PoE), Pretilachlor @ 0.5 kg a.i/ha (PE)and Pretilachlor @ 0.5 kg a.i/ha (PE) + Pyrazosulfuron (10WP) @ 40 gm a.i/ha (PoE).At 40 DAT lowest weed population/m2 was recorded with hand weeding at 25 and 50 DAT which was highly significant to weedy check and significantly superior to Butachlor @ 1.5 kg a.i/ha (PE) and Pretilachlor @ 0.5 kg a.i/ha (PE) but statistically at par with Butachlor @ 1.5 kg a.i/ha (PE) + Pyrazosulfuron@ 40g a.i/ha (PoE) and Pretilachlor @ 0.5 kg a.i/ha (PE) + Pyrazosulfuron (10 WP) @ 40 gm a.i/ha (PoE).At 60 DAT, minimum weed population/m2 was recorded with hand weeding at 25 and 50 DAT which was highly significant to weedy check but significantly superior to Butachlor @ 1.5 kg a.i/ha (PE), Butachlor @ 1.5 kg a.i/ha (PE) + Pyrazosulfuron@ 40g a.i/ha (PoE), Pretilachlor @ 0.5 kg a.i/ha (PE)and Pretilachlor @ 0.5 kg a.i/ha (PE) + Pyrazosulfuron (10 WP) @ 40 gm a.i/ha (PoE).A similar trend was observed at harvest. Response of weed control measures on weed control efficiency was found to be significant at all the stages of growth. AT 40 DAT maximum weed control efficiency was recorded with hand weeding at 25 and 50 DAT (91.61%) which was significantly superior to Butachlor @ 1.5 kg a.i/ha (PE) (82.00%), Butachlor @ 1.5 kg a.i/ha (PE) + Pyrazosulfuron@ 40g a.i/ha (PoE), Pretilachlor @ 0.5 kg a.i/ha (PE)(89.11), Pretilachlor @ 0.5 kg a.i/ha (PE) (82.77%) and Pretilachlor @ 0.5 kg a.i/ha (PE) + Pyrazosulfuron (10 WP) @ 40 gm a.i/ha (PoE) (88.22%). A similar trend was observed at 60 DAT and at harvest. The crop growth parameters, yield attributes and grain yield were recorded highest in spacing 15 x 15 cm over 20 x 15 cm and 20 x 20 cm in respect of number of tillers/m2, dry weight of plant (g/m2), LAI, CGR (g/day/m2), weed population/m2, weed dry weight (g/m2) and number of panicle/m2 but was found at par in case of weed control efficiency (%) and 1000-grain weight. The spacing 15 x 15 cm also showed superiority over 20 x 15 cm and 20 x 20 cm in respect of grain and straw yield (q/ha) and grain : straw ratio but influence of population density on HI was found to be non-significant. Simultaneously, closer plant spacing recorded significantly highest gross and net return as well as B: C ratio than wider spacing. The treatment weedy check (no weeding) recorded significantly higher plant height but achieved significantly poor growth parameters, yield attributing characters, yield and economics. Results revealed that among various weed control measures, hand weeding and chemical weedicides recorded significantly higher number of tillers/m2, dry weight (g/m2), LAI, CGR (g/day/m2), weed parameters, number of tillers/m2, length of panicle (cm), number of grains/panicle, 1000-grain weight (g), grain and straw yield (q/ha) and harvest index than weedy check treatment with at par response among themselves. However, chemical weed control practices fetched significantly higher yield and at par net return and B : C ratio as compared to hand weeding (twice) treatment in the experimentation",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-011275",
+   "title": "Pavement conditions evaluation based on guidelines for pavement condition index PCI) with the assistance of unmanned aerial vehicle (UAV)",
+   "year": 2024,
+   "providers": "crossref",
+   "doi": "10.1063/5.0201093",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-009057",
+   "title": "Manned-Unmanned Teaming Air-to-Air Combat Tactic Development Using Longshot Unmanned Aerial Vehicle",
+   "year": 2021,
+   "providers": "crossref",
+   "doi": "10.11627/jkise.2021.44.3.064",
+   "arxiv_id": null,
+   "abstract": null,
+   "abstract_effectively_null": true
+  },
+  {
+   "screening_id": "SCI-000011",
+   "title": "A Literature Survey of Unmanned Aerial Vehicle Usage for Civil Applications",
+   "year": 2021,
+   "providers": "openalex",
+   "doi": "10.1590/jatm.v13.1233",
+   "arxiv_id": null,
+   "abstract": "Unmanned vehicles/systems (UVs/USs) technology has exploded in recent years. Unmanned vehicles are operated in the air, on the ground, or on/in the water. Unmanned vehicles play a more significant role in many civil application domains, such as remote sensing, surveillance, precision agriculture and rescue operations rather than manned systems. Unmanned vehicles outperform manned systems in terms of mission safety and operational costs. Unmanned aerial vehicles (UAVs) are widely utilized in the civil infrastructure because of their low maintenance costs, ease of deployment, hovering capability, and excellent mobility. The UAVs can gather photographs faster and more accurately than satellite imagery, allowing for more prompt assessment. This study provides a comprehensive overview of UAV civil applications, including classification and requirements. Also encompassed with research trends, critical civil challenges, and future insights on how UAVs with artificial intelligence (smart AI). Furthermore, this paper discusses the specifications of several drone models and simulators. According to the literature review, precision agriculture is one of the civil applications of smart UAVs. Unmanned aerial vehicles aid in the detection of weeds, crop management, and the identification of plant diseases, among other issues, paving the path for researchers to create drone applications in the future.",
+   "abstract_effectively_null": false
+  },
+  {
+   "screening_id": "SCI-007290",
+   "title": "Research on Partial-Band Noise Interference Effects on Unmanned Aerial Vehicle Data Links",
+   "year": 2025,
+   "providers": "crossref",
+   "doi": "10.1109/eei67650.2025.11334806",
+   "arxiv_id": null,
+   "abstract": "As the electromagnetic battlefield environment becomes increasingly complex, unmanned aerial vehicle (UAV) data links are susceptible to partial-band noise interference, which can lead to frame synchronization loss. This paper focuses on a direct sequence spread spectrum (DSSS) data link. Based on the principle of partial-band noise interference and incorporating the bandwidth characteristics of the radio frequency (RF) front-end and the system bit error rate formula, a loss-of-lock threshold model under partial-band noise interference is established. Through an RF front-end monitoring module, a series of interference effect tests were conducted using the electromagnetic interference injection method. The loss-of-lock thresholds under various conditions and the output signals from key nodes in the RF front-end were obtained, enabling the study of how the loss-of-lock threshold varies with working signal power and interference parameters, as well as analysis of the interference mechanism. Test results show that the theoretical and test values of the loss-of-lock threshold exhibit consistent trends, validating the effectiveness of the model. The loss-of-lock threshold is positively correlated with the working signal power and nonlinearly related to the interference parameters. The interference causes a nonlinear gain compression effect at the automatic gain controller (AGC), compressing the working signal power, while the interference pass through the filter and interferes with the demodulation process, leading to a significant increase in the bit error rate.",
+   "abstract_effectively_null": false
+  }
+ ]
+}

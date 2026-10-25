@@ -1,0 +1,31 @@
+{
+  "session": "UAV-HARVEST-R3E-REHYD-20261017",
+  "candidates_doi_abstractless": 2659,
+  "title_only_without_doi": 6,
+  "hydration_stats": {
+    "attempted": 2659,
+    "hydrated": 64,
+    "failed": 2595
+  },
+  "wall_seconds": 229.11,
+  "pool": {
+    "pool_r3e": 14413,
+    "with_abstract_pre_dedup": 11811,
+    "coverage_basis": "pre-dedup snapshot (mutation-safe)"
+  },
+  "dedup_r3e": {
+    "stats": {
+      "total_documents": 14413,
+      "unique_documents": 14150,
+      "duplicates": 263,
+      "duplicate_rate": 0.01824741552764865
+    },
+    "clusters": 14150,
+    "singletons": 13906,
+    "error": null
+  },
+  "sentinel": {
+    "tier1_hits": 7,
+    "of": 7
+  }
+}

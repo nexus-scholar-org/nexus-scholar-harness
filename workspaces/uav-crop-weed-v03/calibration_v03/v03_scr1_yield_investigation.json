@@ -1,0 +1,502 @@
+{
+ "investigation": "SCR1_query_yield_year_curves_cap_replay",
+ "n_includes": 588,
+ "n_pending": 391,
+ "query_yield_ranked": [
+  {
+   "query_id": "Q-R3-openalex",
+   "records": 1330,
+   "include_lean": 513,
+   "pending_lean": 130,
+   "include_per_1k": 385.71,
+   "providers": {
+    "openalex": 1330
+   }
+  },
+  {
+   "query_id": "Q-R3-crossref",
+   "records": 935,
+   "include_lean": 11,
+   "pending_lean": 30,
+   "include_per_1k": 11.76,
+   "providers": {
+    "crossref": 935
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2026",
+   "records": 883,
+   "include_lean": 6,
+   "pending_lean": 38,
+   "include_per_1k": 6.8,
+   "providers": {
+    "crossref": 883
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2023",
+   "records": 819,
+   "include_lean": 6,
+   "pending_lean": 22,
+   "include_per_1k": 7.33,
+   "providers": {
+    "crossref": 819
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2025",
+   "records": 827,
+   "include_lean": 4,
+   "pending_lean": 19,
+   "include_per_1k": 4.84,
+   "providers": {
+    "crossref": 827
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2022",
+   "records": 825,
+   "include_lean": 4,
+   "pending_lean": 12,
+   "include_per_1k": 4.85,
+   "providers": {
+    "crossref": 825
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2024",
+   "records": 821,
+   "include_lean": 4,
+   "pending_lean": 26,
+   "include_per_1k": 4.87,
+   "providers": {
+    "crossref": 821
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2021",
+   "records": 841,
+   "include_lean": 3,
+   "pending_lean": 5,
+   "include_per_1k": 3.57,
+   "providers": {
+    "crossref": 841
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2020Q1",
+   "records": 167,
+   "include_lean": 3,
+   "pending_lean": 2,
+   "include_per_1k": 17.96,
+   "providers": {
+    "crossref": 167
+   }
+  },
+  {
+   "query_id": "Q-R2-semanticscholar",
+   "records": 11,
+   "include_lean": 3,
+   "pending_lean": 2,
+   "include_per_1k": 272.73,
+   "providers": {
+    "semanticscholar": 11
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2025Q1",
+   "records": 489,
+   "include_lean": 2,
+   "pending_lean": 11,
+   "include_per_1k": 4.09,
+   "providers": {
+    "crossref": 489
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2023Q1",
+   "records": 345,
+   "include_lean": 2,
+   "pending_lean": 10,
+   "include_per_1k": 5.8,
+   "providers": {
+    "crossref": 345
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2024Q2",
+   "records": 299,
+   "include_lean": 2,
+   "pending_lean": 3,
+   "include_per_1k": 6.69,
+   "providers": {
+    "crossref": 299
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2025Q4",
+   "records": 295,
+   "include_lean": 2,
+   "pending_lean": 8,
+   "include_per_1k": 6.78,
+   "providers": {
+    "crossref": 295
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2025Q2",
+   "records": 261,
+   "include_lean": 2,
+   "pending_lean": 5,
+   "include_per_1k": 7.66,
+   "providers": {
+    "crossref": 261
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2024Q3",
+   "records": 258,
+   "include_lean": 2,
+   "pending_lean": 2,
+   "include_per_1k": 7.75,
+   "providers": {
+    "crossref": 258
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2021Q1",
+   "records": 231,
+   "include_lean": 2,
+   "pending_lean": 4,
+   "include_per_1k": 8.66,
+   "providers": {
+    "crossref": 231
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2023Q2",
+   "records": 152,
+   "include_lean": 2,
+   "pending_lean": 3,
+   "include_per_1k": 13.16,
+   "providers": {
+    "crossref": 152
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2022Q3",
+   "records": 138,
+   "include_lean": 2,
+   "pending_lean": 1,
+   "include_per_1k": 14.49,
+   "providers": {
+    "crossref": 138
+   }
+  },
+  {
+   "query_id": "Q-R3-arxiv",
+   "records": 5,
+   "include_lean": 2,
+   "pending_lean": 0,
+   "include_per_1k": 400.0,
+   "providers": {
+    "arxiv": 5
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3C-20261017-Y2020",
+   "records": 839,
+   "include_lean": 1,
+   "pending_lean": 6,
+   "include_per_1k": 1.19,
+   "providers": {
+    "crossref": 839
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2024Q1",
+   "records": 448,
+   "include_lean": 1,
+   "pending_lean": 9,
+   "include_per_1k": 2.23,
+   "providers": {
+    "crossref": 448
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2022Q1",
+   "records": 225,
+   "include_lean": 1,
+   "pending_lean": 2,
+   "include_per_1k": 4.44,
+   "providers": {
+    "crossref": 225
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2022Q4",
+   "records": 174,
+   "include_lean": 1,
+   "pending_lean": 0,
+   "include_per_1k": 5.75,
+   "providers": {
+    "crossref": 174
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2020Q4",
+   "records": 172,
+   "include_lean": 1,
+   "pending_lean": 1,
+   "include_per_1k": 5.81,
+   "providers": {
+    "crossref": 172
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2021Q3",
+   "records": 152,
+   "include_lean": 1,
+   "pending_lean": 0,
+   "include_per_1k": 6.58,
+   "providers": {
+    "crossref": 152
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2022Q2",
+   "records": 144,
+   "include_lean": 1,
+   "pending_lean": 2,
+   "include_per_1k": 6.94,
+   "providers": {
+    "crossref": 144
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2021Q2",
+   "records": 122,
+   "include_lean": 1,
+   "pending_lean": 0,
+   "include_per_1k": 8.2,
+   "providers": {
+    "crossref": 122
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2026Q2",
+   "records": 112,
+   "include_lean": 1,
+   "pending_lean": 2,
+   "include_per_1k": 8.93,
+   "providers": {
+    "crossref": 112
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2020Q2",
+   "records": 98,
+   "include_lean": 1,
+   "pending_lean": 0,
+   "include_per_1k": 10.2,
+   "providers": {
+    "crossref": 98
+   }
+  },
+  {
+   "query_id": "Q-R3-pubmed",
+   "records": 5,
+   "include_lean": 1,
+   "pending_lean": 0,
+   "include_per_1k": 200.0,
+   "providers": {
+    "pubmed": 5
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2025Q3",
+   "records": 254,
+   "include_lean": 0,
+   "pending_lean": 5,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 254
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2023Q3",
+   "records": 198,
+   "include_lean": 0,
+   "pending_lean": 5,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 198
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2023Q4",
+   "records": 230,
+   "include_lean": 0,
+   "pending_lean": 5,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 230
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2024Q4",
+   "records": 367,
+   "include_lean": 0,
+   "pending_lean": 7,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 367
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2026Q1",
+   "records": 233,
+   "include_lean": 0,
+   "pending_lean": 5,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 233
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2026Q3",
+   "records": 154,
+   "include_lean": 0,
+   "pending_lean": 6,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 154
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2026Q4",
+   "records": 40,
+   "include_lean": 0,
+   "pending_lean": 0,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 40
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2020Q3",
+   "records": 81,
+   "include_lean": 0,
+   "pending_lean": 1,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 81
+   }
+  },
+  {
+   "query_id": "UAV-HARVEST-R3D-20261017-Y2021Q4",
+   "records": 170,
+   "include_lean": 0,
+   "pending_lean": 2,
+   "include_per_1k": 0.0,
+   "providers": {
+    "crossref": 170
+   }
+  }
+ ],
+ "query_count": 40,
+ "year_curves": {
+  "crossref": {
+   "records_by_year": {
+    "2020": 1431,
+    "2021": 1640,
+    "2022": 1639,
+    "2023": 1915,
+    "2024": 2332,
+    "2025": 2273,
+    "2026": 1551,
+    "2027": 18
+   },
+   "includes_by_year": {
+    "2020": 7,
+    "2021": 9,
+    "2022": 8,
+    "2023": 11,
+    "2024": 12,
+    "2025": 13,
+    "2026": 9
+   },
+   "include_per_1k_by_year": {
+    "2020": 4.9,
+    "2021": 5.5,
+    "2022": 4.9,
+    "2023": 5.7,
+    "2024": 5.1,
+    "2025": 5.7,
+    "2026": 5.8,
+    "2027": 0.0
+   }
+  },
+  "openalex": {
+   "records_by_year": {
+    "2020": 82,
+    "2021": 110,
+    "2022": 118,
+    "2023": 175,
+    "2024": 209,
+    "2025": 306,
+    "2026": 330
+   },
+   "includes_by_year": {
+    "2020": 29,
+    "2021": 48,
+    "2022": 53,
+    "2023": 70,
+    "2024": 69,
+    "2025": 114,
+    "2026": 130
+   },
+   "include_per_1k_by_year": {
+    "2020": 353.7,
+    "2021": 436.4,
+    "2022": 449.2,
+    "2023": 400.0,
+    "2024": 330.1,
+    "2025": 372.5,
+    "2026": 393.9
+   }
+  }
+ },
+ "cap_replay_crossref": {
+  "crossref_records_total": 12799,
+  "crossref_unique_includes_total": 69,
+  "rank_proxy": "deduped file order within query_id (blocks contiguous); NOT original provider rank",
+  "caps": {
+   "100": {
+    "crossref_records_kept": 3519,
+    "crossref_unique_includes_alive": 23,
+    "recall_pct_of_69": 33.3
+   },
+   "250": {
+    "crossref_records_kept": 7243,
+    "crossref_unique_includes_alive": 39,
+    "recall_pct_of_69": 56.5
+   },
+   "500": {
+    "crossref_records_kept": 10009,
+    "crossref_unique_includes_alive": 53,
+    "recall_pct_of_69": 76.8
+   },
+   "1000": {
+    "crossref_records_kept": 12799,
+    "crossref_unique_includes_alive": 69,
+    "recall_pct_of_69": 100.0
+   },
+   "inf": {
+    "crossref_records_kept": 12799,
+    "crossref_unique_includes_alive": 69,
+    "recall_pct_of_69": 100.0
+   }
+  }
+ }
+}

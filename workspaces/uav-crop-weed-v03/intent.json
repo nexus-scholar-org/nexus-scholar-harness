@@ -1,0 +1,268 @@
+{
+  "protocol_id": "proto-20261012-uav-crop-weed-reliability",
+  "genesis_timestamp": "2026-10-12T14:12:24.953835+00:00",
+  "project_slug": "uav-crop-weed-reliability",
+  "playbook_type": "SCOPING_REVIEW",
+  "title": "Reliability and Generalization in UAV Crop-Weed Mapping: A Scoping Review",
+  "lead_researcher": "Mouadh",
+  "target_venue_type": "Q1 Agricultural Informatics / Remote Sensing Journal (e.g., COMPAG, Remote Sensing, ISPRS); PRISMA-ScR Scoping Review",
+  "primary_paradigm": "Pragmatist / Mixed Methods",
+  "timeline_weeks": 6,
+  "unit_of_analysis": "Linked study/report families (collapsing preprints, conference proceedings, and dataset repositories into their primary journal report), with separate evaluation-setting rows for each materially distinct dataset/split/shift/target-data-use condition; repeated seeds are grouped within a setting.",
+  "trustworthiness_framework": "Transparent scoping evidence map with PRISMA-ScR reporting; protocol-specific provenance, single-reviewer agent-assisted triage with multi-rater verification sampling (Fleiss/Cohen kappa), and evaluation-design charting.",
+  "epistemological_rationale": "Descriptive evidence mapping combines structured categorical counts with qualitative comparison of evaluation designs; it does not estimate pooled causal effects or assume generalization from reported in-distribution accuracy.",
+  "research_questions": [
+    {
+      "text": "How do UAV crop-weed mapping studies define and evaluate reliability under spectral degradation, sensor differences, and temporal shift?",
+      "target_facet": "reliability_evaluation",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+    },
+    {
+      "text": "Which datasets, sensors, dates, fields, and split units support the reported generalization claims?",
+      "target_facet": "evaluation_independence",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+    },
+    {
+      "text": "How are uncertainty, calibration, missing evidence, and failed transfer reported?",
+      "target_facet": "uncertainty_and_failure",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+    },
+    {
+      "text": "Which evidence gaps remain after separating dataset diversity, model mechanisms, and demonstrated external validation?",
+      "target_facet": "evidence_gaps",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+    }
+  ],
+  "core_concepts": [
+    {
+      "concept": "UAV",
+      "synonyms": [
+        "UAS",
+        "drone",
+        "drones",
+        "unmanned aerial vehicle",
+        "unmanned aerial vehicles",
+        "unmanned aircraft system",
+        "uncrewed aerial vehicle",
+        "remotely piloted aircraft",
+        "aerial imagery",
+        "orthomosaic"
+      ],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "weed",
+      "synonyms": [
+        "weeds",
+        "crop weed",
+        "crop-weed",
+        "crop and weed",
+        "site-specific weed management",
+        "precision weeding",
+        "herbicide prescription"
+      ],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "mapping",
+      "synonyms": [
+        "detection",
+        "segmentation",
+        "classification",
+        "monitoring",
+        "localization",
+        "identification",
+        "discrimination"
+      ],
+      "boolean_operator": "OR"
+    }
+  ],
+  "target_databases": [
+    "openalex",
+    "semanticscholar",
+    "crossref",
+    "arxiv",
+    "pubmed"
+  ],
+  "start_year": 2020,
+  "end_year": 2026,
+  "languages": [
+    "en"
+  ],
+  "open_access_preferred": false,
+  "pool_min": 0,
+  "pool_max": 1000,
+  "two_tier_screening": true,
+  "inclusion_criteria": [
+    {
+      "criterion": "Uses UAV-acquired imagery for crop/weed detection, segmentation, classification, or spatial weed mapping in an agricultural context (arable row crops, broadacre cereals, vegetables, or managed perennial orchards, vineyards, and pastures); UAV results must be separable in mixed-platform studies.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ]
+    },
+    {
+      "criterion": "Primary empirical method study or dataset/benchmark report describing a UAV crop/weed mapping method, experiment, or annotated dataset. Journal, conference, and substantive preprint reports are eligible (linked into study families). In-window method studies (2020-2026) evaluated on pre-2020 UAV datasets (e.g., WeedMap 2018) are eligible. Missing evaluation details are charted as not reported; records with missing abstracts matching UAV+weed title heuristics and inaccessible full texts remain pending retrieval/audit rather than auto-excluded.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ]
+    },
+    {
+      "criterion": "Published from 2020 through the recorded final search cutoff, inclusive; English full text in scope. Older foundational UAV datasets remain background/provenance sources unless a logged amendment expands eligibility. Screened under Option C (single lead reviewer Mouadh Bekhouche confirming all agent triage suggestions, with independent ~10% random sample plus boundary-exclude verification by Soumia Zertal and Fadhila Djenba).",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ]
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "criterion": "Satellite-only, ground-robot-only (including studies framed around field weed mapping that evaluate exclusively on proximal/ground datasets such as Sugar Beets 2016, CWFID, or DeepWeeds without UAV data), handheld, or laboratory/pot imaging with no separable eligible UAV mapping evidence.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ],
+      "reason_category": "WRONG_PLATFORM"
+    },
+    {
+      "criterion": "UAV navigation/SLAM, yield estimation only, crop disease/pest damage, wildlife crop damage, crop lodging, phenotyping, or non-agricultural vegetation mapping (e.g., invasive aquatic weeds such as water hyacinth, forestry/wildfire, urban turfgrass) without a separable agricultural crop/weed localization, classification, or mapping task.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ],
+      "reason_category": "WRONG_TASK"
+    },
+    {
+      "criterion": "Confirmed review (systematic, scoping, narrative, or bibliometric), editorial, commentary, protocol-only report, or standalone abstract with no associated substantive primary report. An incomplete search-provider abstract (abstract=null) or failure to retrieve full text is not this exclusion; retain useful reviews as background for citation chasing.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ],
+      "reason_category": "WRONG_REPORT_TYPE"
+    },
+    {
+      "criterion": "Outside the frozen publication date (published before 2020 or after the recorded final search cutoff date) or non-English full text after bibliographic/full-text verification.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3",
+        "RQ4"
+      ],
+      "reason_category": "OUTSIDE_DATE_LANGUAGE"
+    }
+  ],
+  "matrix_dimensions": [
+    {
+      "id": "study_reports",
+      "name": "Study Reports",
+      "description": "Study identity (STU-*), all linked report versions (journal, conference, preprint, Zenodo/dataset DOI), publication status and dates. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "task_context",
+      "name": "Task Context",
+      "description": "Crop species, weed classes (species-level vs broadleaf/narrowleaf/generic), agricultural setting (arable row, broadacre cereal, vegetable, perennial orchard/pasture), and vision task (semantic_segmentation | instance_segmentation | object_detection | patch_classification | ordinal_density_regression); separate non-UAV components. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "dataset_units",
+      "name": "Dataset Units",
+      "description": "Dataset name/re-use status (novel_primary vs reused_benchmark such as WeedMap/WeedsGalore/CoFly-WeedDB), unique fields/orthomosaics/flights/dates/seasons, tile dimensions, and true independent biological/spatial units versus raw tile/image count. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "sensor_inputs",
+      "name": "Sensor Inputs",
+      "description": "Sensor/platform, physical bands (RGB | MS_narrowband | Hyperspectral | Thermal | LiDAR_DSM), ground sampling distance (GSD mm/px), flight altitude, radiometric calibration state (uncalibrated_DN | sunshine_sensor_only | calibrated_reflectance_panel | not_reported), and derived indices actually used. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "availability_alignment",
+      "name": "Availability Alignment",
+      "description": "Tested stress and degradation conditions (none_assumed_ideal | natural_motion_blur | band_coregistration_shift | illumination_radiometric_drift | altitude_GSD_shift | missing_modality_dropout); explicitly distinguish synthetic perturbation from naturally observed field stress. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "temporal_design",
+      "name": "Temporal Design",
+      "description": "Temporal sampling structure (single_date_snapshot | multi_date_pooled_random | multi_growth_stage_BBCH | heldout_date_same_season | heldout_cross_year); distinguish multiple acquisition dates pooled in training from genuine held-out temporal generalization testing. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "split_protocol",
+      "name": "Split Protocol",
+      "description": "Train/validation/test partitioning unit (random_tile_same_orthomosaic | spatial_block_same_field | acquisition_flight_holdout | cross_field_same_farm | cross_location_independent | cross_year | not_reported), spatial autocorrelation/overlap leakage risk, and target-domain data exposure during development. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "fusion_mechanism",
+      "name": "Fusion Mechanism",
+      "description": "Multimodal/spectral integration mechanism (single_stream_rgb | early_band_stacking | late_decision_fusion | cross_modal_attention_gating | decoupled_radiance_index_streams) and presence of matched single-modality ablation controls; separate mechanism claims from tested interventions. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "uncertainty_calibration",
+      "name": "Uncertainty Calibration",
+      "description": "Uncertainty and calibration regime (none | uncalibrated_confidence_threshold | probabilistic_predictive_uncertainty | post_hoc_calibration_ECE_Brier | risk_aware_abstention_or_validity_gate); learned attention weights and hardware precision quantization (FP16/INT8) are not statistical probability calibration. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "metrics_comparators",
+      "name": "Metrics Comparators",
+      "description": "Weed-class-specific metrics (weed IoU, weed F1, mAP@50, mAP@50-95, R2 weed cover) versus background-inflated overall accuracy (OA/mIoU), matched baseline comparators, repeated random seeds, and variance reporting; no cross-dataset metric ranking. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "transfer_outcomes",
+      "name": "Transfer Outcomes",
+      "description": "Transfer evaluation regime (in_distribution_only | zero_shot_direct_transfer | few_shot_fine_tuning | unsupervised_domain_adaptation | test_time_adaptation | self_labeled_crop_row_pseudo_gt) and quantitative performance drop (delta IoU/F1) across fields, dates, sensors, or crops; explicitly preserve failed transfer outcomes. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "provenance_limits",
+      "name": "Provenance Limits",
+      "description": "Verbatim quote and section/page/table locator per substantive charted value; strictly distinguish not_reported, unavailable, conflicting, and not_applicable evidence states. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "open_science",
+      "name": "Open Science",
+      "description": "Dataset availability (public_direct_url | upon_request | not_available), code/weights availability, license, retractions/corrections, and funding/COI disclosures; charted descriptively rather than used as exclusion cutoffs. Preliminary narrative only; accepted charting requires CHARTING_CODEBOOK.md and charting.schema.json. Do not collapse evidence states or mix evaluation settings.",
+      "required": false,
+      "fallback_value": "Not Reported"
+    }
+  ],
+  "retraction_check_required": true,
+  "coi_and_funding_audit_required": true,
+  "reproducibility_das_cas_check": true,
+  "minimum_trust_score_threshold": 0.0
+}

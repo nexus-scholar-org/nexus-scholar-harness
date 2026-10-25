@@ -1,0 +1,721 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/v1/charting.schema.json",
+  "title": "UAV Crop-Weed Reliability Scoping Review — Evaluation-Setting Charting Schema",
+  "description": "Validates charted evaluation-setting rows linked to study/report families (protocol proto-20261012-uav-crop-weed-reliability). Repeated random seeds are grouped within a setting; materially distinct dataset, split, shift, or target-data-use conditions require separate rows. DRAFT v0.3 — not frozen; supercedes pilot charting sidecar v0.2 only upon researcher freeze.",
+  "type": "object",
+  "required": [
+    "study_id",
+    "setting_id",
+    "coder_id",
+    "full_text_verified",
+    "study_reports",
+    "task_context",
+    "dataset_units",
+    "sensor_inputs",
+    "availability_alignment",
+    "temporal_design",
+    "split_protocol",
+    "fusion_mechanism",
+    "uncertainty_calibration",
+    "metrics_comparators",
+    "transfer_outcomes",
+    "provenance_limits",
+    "open_science"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "study_id": {
+      "type": "string",
+      "pattern": "^STU-[0-9a-f]{8,32}$|^SCI-[0-9]{6}$",
+      "description": "Canonical Study Family ID (STU-*) or deduplicated workspace cluster ID (SCI-*)."
+    },
+    "setting_id": {
+      "type": "string",
+      "pattern": "^SET-[0-9]{2,3}$",
+      "description": "Unique evaluation-setting index within the study family (e.g., SET-01 for in-domain block split, SET-02 for cross-year transfer)."
+    },
+    "coder_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the human researcher or dual-coding pass (e.g., 'mouadh', 'soumia', 'fadhila', 'consensus')."
+    },
+    "full_text_verified": {
+      "type": "boolean",
+      "const": true,
+      "description": "Formal charting requires verified full text; abstract-only charting is prohibited per RESEARCHER_DECISIONS.md #6."
+    },
+    "study_reports": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "primary_report_doi",
+        "primary_publication_type",
+        "primary_publication_year",
+        "linked_reports",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "primary_report_doi": { "type": ["string", "null"] },
+        "primary_publication_type": {
+          "type": "string",
+          "enum": [
+            "journal_article",
+            "conference_proceeding",
+            "preprint_only",
+            "dataset_benchmark_descriptor"
+          ]
+        },
+        "primary_publication_year": {
+          "type": "integer",
+          "minimum": 2020,
+          "maximum": 2026
+        },
+        "linked_reports": {
+          "type": "array",
+          "description": "Preprints (arXiv/bioRxiv/SSRN), conference versions, or dataset repositories (Zenodo/Mendeley) belonging to the same study family.",
+          "items": {
+            "type": "object",
+            "required": ["identifier", "report_role", "year"],
+            "additionalProperties": false,
+            "properties": {
+              "identifier": { "type": "string" },
+              "report_role": {
+                "type": "string",
+                "enum": [
+                  "preprint_version",
+                  "conference_precursor",
+                  "dataset_repository",
+                  "code_repository",
+                  "erratum_or_corrigendum"
+                ]
+              },
+              "year": { "type": ["integer", "null"] }
+            }
+          }
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "task_context": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "agricultural_setting",
+        "crop_species",
+        "weed_granularity",
+        "vision_task",
+        "uav_separability",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "agricultural_setting": {
+          "type": "string",
+          "enum": [
+            "arable_row_crop",
+            "broadacre_cereal",
+            "vegetable_horticulture",
+            "perennial_orchard_vineyard",
+            "managed_pasture_forage",
+            "not_reported"
+          ]
+        },
+        "crop_species": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Standardized crop common or Latin names (e.g., ['maize'], ['barley', 'rapeseed'], ['sugar_beet'])."
+        },
+        "weed_granularity": {
+          "type": "string",
+          "enum": [
+            "binary_crop_vs_weed",
+            "coarse_group_broadleaf_narrowleaf",
+            "multi_species_fine_grained",
+            "single_target_weed_species",
+            "weed_pressure_gradient_or_cover",
+            "not_reported"
+          ]
+        },
+        "vision_task": {
+          "type": "string",
+          "enum": [
+            "semantic_segmentation",
+            "instance_segmentation",
+            "panoptic_segmentation",
+            "bounding_box_object_detection",
+            "patch_or_tile_classification",
+            "ordinal_or_density_regression",
+            "obia_or_pixel_machine_learning"
+          ]
+        },
+        "uav_separability": {
+          "type": "string",
+          "enum": [
+            "uav_only",
+            "mixed_platform_uav_separable"
+          ]
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "dataset_units": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "dataset_origin",
+        "dataset_names",
+        "unique_fields_count",
+        "unique_orthomosaics_or_flights_count",
+        "unique_acquisition_dates_count",
+        "unique_seasons_or_years_count",
+        "total_tiles_or_patches_count",
+        "independent_unit_level",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "dataset_origin": {
+          "type": "string",
+          "enum": [
+            "primary_newly_collected",
+            "reused_in_window_uav_benchmark",
+            "reused_pre_2020_uav_benchmark",
+            "hybrid_primary_and_benchmark"
+          ]
+        },
+        "dataset_names": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Named datasets used in this setting (e.g., ['WeedsGalore'], ['BAWSeg'], ['WeedMap_2018_RedEdge'], ['Custom_Sorghum_UAV'])."
+        },
+        "unique_fields_count": { "type": ["integer", "null"], "minimum": 1 },
+        "unique_orthomosaics_or_flights_count": { "type": ["integer", "null"], "minimum": 1 },
+        "unique_acquisition_dates_count": { "type": ["integer", "null"], "minimum": 1 },
+        "unique_seasons_or_years_count": { "type": ["integer", "null"], "minimum": 1 },
+        "total_tiles_or_patches_count": { "type": ["integer", "null"], "minimum": 1 },
+        "independent_unit_level": {
+          "type": "string",
+          "enum": [
+            "sub_image_tile_or_patch",
+            "single_raw_uav_frame",
+            "spatial_plot_or_block",
+            "flight_campaign_or_orthomosaic",
+            "distinct_physical_field",
+            "not_reported"
+          ]
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "sensor_inputs": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "modalities_used",
+        "spectral_bands",
+        "derived_indices_used",
+        "gsd_mm_per_pixel",
+        "flight_altitude_m",
+        "radiometric_calibration",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "modalities_used": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "RGB",
+              "MS_narrowband",
+              "Hyperspectral",
+              "Thermal",
+              "LiDAR_or_DSM_CHM"
+            ]
+          }
+        },
+        "spectral_bands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Explicit physical bands ingested by the model (e.g., ['R', 'G', 'B', 'RE', 'NIR'])."
+        },
+        "derived_indices_used": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Vegetation or color indices computed and used (e.g., ['ExG', 'NDVI', 'NDRE', 'CIVE', 'HSV'])."
+        },
+        "gsd_mm_per_pixel": { "type": ["number", "null"], "minimum": 0 },
+        "flight_altitude_m": { "type": ["number", "null"], "minimum": 0 },
+        "radiometric_calibration": {
+          "type": "string",
+          "enum": [
+            "calibrated_reflectance_panel_and_dls",
+            "calibrated_reflectance_panel_only",
+            "downwelling_light_sensor_only",
+            "empirical_line_or_statistical_normalization",
+            "uncalibrated_raw_or_8bit_dn",
+            "not_reported",
+            "not_applicable"
+          ]
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "availability_alignment": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "stress_categories_evaluated",
+        "stress_origin",
+        "alignment_or_restoration_method",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "stress_categories_evaluated": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "none_assumed_ideal",
+              "motion_or_defocus_blur",
+              "band_to_band_spatial_misregistration",
+              "radiometric_or_illumination_drift",
+              "spatial_resolution_or_altitude_degradation",
+              "missing_spectral_band_or_modality_dropout",
+              "label_noise_or_pseudo_label_corruption",
+              "canopy_occlusion_or_high_weed_density"
+            ]
+          }
+        },
+        "stress_origin": {
+          "type": "string",
+          "enum": [
+            "naturally_observed_in_field",
+            "synthetically_injected_perturbation",
+            "both_natural_and_synthetic",
+            "not_applicable",
+            "not_reported"
+          ]
+        },
+        "alignment_or_restoration_method": { "type": ["string", "null"] },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "temporal_design": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "temporal_regime",
+        "crop_growth_stages_bbch",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "temporal_regime": {
+          "type": "string",
+          "enum": [
+            "single_date_snapshot",
+            "multiple_dates_pooled_no_heldout",
+            "multi_stage_stratified_no_heldout",
+            "heldout_date_or_growth_stage_same_season",
+            "heldout_cross_season_or_cross_year",
+            "explicit_time_series_sequence_model",
+            "not_reported"
+          ],
+          "description": "Per Decision #6, strictly separate multiple_dates_pooled_no_heldout from heldout_date_or_growth_stage_same_season and heldout_cross_season_or_cross_year."
+        },
+        "crop_growth_stages_bbch": {
+          "type": ["string", "null"],
+          "description": "Reported growth stages or BBCH codes (e.g., 'BBCH 15, 17, 19' or 'seedling vs pre-harvest')."
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "split_protocol": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "partition_unit",
+        "spatial_leakage_risk",
+        "target_domain_data_use",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "partition_unit": {
+          "type": "string",
+          "enum": [
+            "random_tile_or_pixel_same_orthomosaic",
+            "random_raw_frame_same_flight",
+            "spatial_block_or_strip_same_field",
+            "heldout_flight_or_acquisition_same_field",
+            "heldout_field_same_farm_or_region",
+            "heldout_geographic_location_or_farm",
+            "heldout_year_or_season",
+            "not_reported"
+          ]
+        },
+        "spatial_leakage_risk": {
+          "type": "string",
+          "enum": [
+            "high_overlapping_or_random_tiles_from_same_flight",
+            "moderate_unbuffered_adjacent_blocks_or_frames",
+            "low_buffered_blocks_or_independent_fields_flights",
+            "unclear_not_reported"
+          ]
+        },
+        "target_domain_data_use": {
+          "type": "string",
+          "enum": [
+            "in_domain_split_only",
+            "zero_target_exposure_strict_holdout",
+            "unlabeled_target_images_for_uda_or_tta",
+            "self_labeled_target_via_crop_row_or_index_rules",
+            "labeled_target_few_shot_or_fine_tuning",
+            "target_acquisition_partially_exposed_in_train"
+          ]
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "fusion_mechanism": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "architecture_family",
+        "integration_topology",
+        "matched_modality_ablation_present",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "architecture_family": {
+          "type": "string",
+          "enum": [
+            "cnn_segmentation_encoder_decoder",
+            "vision_transformer_or_hybrid_segmentation",
+            "one_stage_yolo_detector_or_segmenter",
+            "two_stage_rcnn_detector_or_segmenter",
+            "two_stage_cascade_detector_plus_segmenter",
+            "classical_ml_rf_svm_obia",
+            "knowledge_distilled_student_teacher"
+          ]
+        },
+        "integration_topology": {
+          "type": "string",
+          "enum": [
+            "single_modality_rgb_only",
+            "early_channel_stacking_concatenation",
+            "dual_stream_cross_modal_attention_or_gating",
+            "decoupled_radiance_and_index_streams",
+            "late_decision_or_feature_ensemble",
+            "not_applicable",
+            "not_reported"
+          ]
+        },
+        "matched_modality_ablation_present": {
+          "type": "boolean",
+          "description": "True ONLY if the study compares multimodal fusion against a matched single-modality baseline (e.g., RGB+MS vs RGB-only with the same backbone and split)."
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "uncertainty_calibration": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "uncertainty_method",
+        "calibration_metrics_reported",
+        "abstention_or_validity_rejection",
+        "false_calibration_terminology_trap",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "uncertainty_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "uncalibrated_softmax_or_confidence_threshold",
+            "mc_dropout_or_bayesian_approximation",
+            "deep_ensemble_variance",
+            "probabilistic_output_head_or_dirichlet",
+            "risk_aware_loss_or_validity_index"
+          ]
+        },
+        "calibration_metrics_reported": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ECE",
+              "MCE",
+              "Brier_score",
+              "NLL",
+              "reliability_diagram",
+              "uncertainty_error_correlation"
+            ]
+          }
+        },
+        "abstention_or_validity_rejection": {
+          "type": "boolean",
+          "description": "True if the method can reject/abstain on invalid predictions (e.g., In-Row Concentration Ratio IRCR gate or risk-aware rejection)."
+        },
+        "false_calibration_terminology_trap": {
+          "type": "string",
+          "enum": [
+            "none",
+            "hardware_quantization_fp16_int8_called_calibration",
+            "radiometric_sensor_panel_called_calibration",
+            "learned_attention_weights_claimed_as_uncertainty"
+          ]
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "metrics_comparators": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "weed_class_specific_metrics_reported",
+        "primary_metrics",
+        "repeated_seeds_or_folds_count",
+        "variance_or_ci_reported",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "weed_class_specific_metrics_reported": {
+          "type": "boolean",
+          "description": "True if weed-specific IoU/F1/AP is reported separately from background/soil and crop classes."
+        },
+        "primary_metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "weed_iou": { "type": ["number", "null"] },
+            "weed_f1_or_dice": { "type": ["number", "null"] },
+            "mean_iou": { "type": ["number", "null"] },
+            "macro_f1": { "type": ["number", "null"] },
+            "map_50": { "type": ["number", "null"] },
+            "map_50_95": { "type": ["number", "null"] },
+            "overall_accuracy": { "type": ["number", "null"] },
+            "weed_cover_r2": { "type": ["number", "null"] }
+          }
+        },
+        "repeated_seeds_or_folds_count": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Number of random seeds or cross-validation runs grouped within this setting."
+        },
+        "variance_or_ci_reported": { "type": "boolean" },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "transfer_outcomes": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "shift_axes_tested",
+        "adaptation_regime",
+        "source_weed_metric_value",
+        "target_weed_metric_value",
+        "delta_transfer_drop",
+        "failed_transfer_documented",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "shift_axes_tested": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "none_in_distribution_only",
+              "cross_plot_or_block_same_field",
+              "cross_flight_or_acquisition_date",
+              "cross_field_same_crop",
+              "cross_year_or_season",
+              "cross_sensor_or_platform_ground_to_uav",
+              "cross_altitude_or_gsd",
+              "cross_crop_species"
+            ]
+          }
+        },
+        "adaptation_regime": {
+          "type": "string",
+          "enum": [
+            "not_applicable_in_distribution",
+            "zero_shot_direct_transfer",
+            "few_shot_supervised_fine_tuning",
+            "unsupervised_domain_adaptation",
+            "online_test_time_adaptation",
+            "unsupervised_crop_row_self_labeling"
+          ]
+        },
+        "source_weed_metric_value": { "type": ["number", "null"] },
+        "target_weed_metric_value": { "type": ["number", "null"] },
+        "delta_transfer_drop": {
+          "type": ["number", "null"],
+          "description": "Target metric minus Source metric (negative value indicates performance degradation under shift)."
+        },
+        "failed_transfer_documented": {
+          "type": "boolean",
+          "description": "True if the study explicitly reports a severe performance breakdown or failure mode under transfer or stress."
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "provenance_limits": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "missing_or_ambiguous_dimensions",
+        "internal_contradictions_noted",
+        "claimed_vs_demonstrated_gap",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "missing_or_ambiguous_dimensions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "internal_contradictions_noted": { "type": ["string", "null"] },
+        "claimed_vs_demonstrated_gap": {
+          "type": "string",
+          "enum": [
+            "aligned_claims_match_split_independence",
+            "overclaimed_generalization_from_random_tile_split",
+            "overclaimed_multispectral_gain_without_matched_ablation",
+            "overclaimed_real_time_or_robustness_without_stress_test",
+            "not_applicable"
+          ]
+        },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    },
+    "open_science": {
+      "type": "object",
+      "required": [
+        "evidence_state",
+        "data_availability",
+        "code_availability",
+        "license",
+        "retraction_or_correction_status",
+        "funding_and_coi_disclosed",
+        "narrative_summary",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state": { "$ref": "#/$defs/evidence_state" },
+        "data_availability": {
+          "type": "string",
+          "enum": [
+            "public_repository_verified_link",
+            "stated_public_upon_publication",
+            "available_upon_reasonable_request",
+            "reused_public_benchmark_only",
+            "not_available_or_proprietary",
+            "not_reported"
+          ]
+        },
+        "code_availability": {
+          "type": "string",
+          "enum": [
+            "public_repository_verified_link",
+            "stated_public_upon_publication",
+            "available_upon_reasonable_request",
+            "not_available",
+            "not_reported"
+          ]
+        },
+        "license": { "type": ["string", "null"] },
+        "retraction_or_correction_status": {
+          "type": "string",
+          "enum": [
+            "none_detected",
+            "corrigendum_or_erratum_linked",
+            "retracted"
+          ]
+        },
+        "funding_and_coi_disclosed": { "type": "boolean" },
+        "narrative_summary": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" }
+      }
+    }
+  },
+  "$defs": {
+    "evidence_state": {
+      "type": "string",
+      "enum": [
+        "reported",
+        "not_reported",
+        "unavailable",
+        "conflicting",
+        "not_applicable"
+      ],
+      "description": "Strict epistemic state of the charted dimension. Never collapse not_reported (authors omitted it in full text) with unavailable (full text or supplement inaccessible) or not_applicable."
+    },
+    "provenance_anchor": {
+      "type": "object",
+      "required": ["verbatim_quote", "locator"],
+      "additionalProperties": false,
+      "properties": {
+        "verbatim_quote": {
+          "type": "string",
+          "minLength": 5,
+          "description": "Exact verbatim substring from the verified full text supporting the charted value, or explicit statement of absence (e.g., '[Checked Section 2 & 3: no split grouping unit stated]')."
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 2,
+          "description": "Section, page, table, or figure identifier (e.g., 'Section 3.2, p. 6, Table 2')."
+        }
+      }
+    }
+  }
+}

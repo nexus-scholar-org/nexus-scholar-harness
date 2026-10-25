@@ -1,0 +1,135 @@
+{
+ "role": "T3 boundary third-rater, blinded (no A1/A2 decisions inside)",
+ "pack": "pack_0017",
+ "n_records": 14,
+ "instruction_anchor_sha_prompt": "0c7f129d",
+ "criteria_sha_prefix": "9ae1f97d",
+ "records": [
+  {
+   "screening_id": "SCI-013824",
+   "title": "SPVD-DETR: A novel real-time end-to-end object detector of sweetpotato virus disease from unmanned aerial vehicle ortho imagery",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013867",
+   "title": "Lightweight monocular vision pipeline for real-time safe landing zone detection in unmanned aerial vehicles",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013923",
+   "title": "Predicting Grain Yield and Popping Expansion in Native Peruvian Popcorn and Purple-Kernel Hybrids Using Multitemporal Unmanned Aerial Vehicle-Derived Multispectral and Textural Indices",
+   "abstract": "Popping expansion is the main quality trait determining the commercial value of popcorn maize, yet its evaluation requires destructive grain sampling. We investigated whether multitemporal UAV multispectral and textural features could predict grain yield and popping expansion in a native population of Peruvian popcorn and its five purple-kernel corn hybrids grown in 16 drainage lysimeters (80 subplots) under controlled irrigation in Lima, Peru. Eight UAV flights were conducted between 50 and 117 days after sowing, and 8 vegetation indices plus 5 GLCM texture metrics were extracted from canopy-masked imagery. Six regression algorithms were trained using Sequential Forward Selection (SFS; applied to five of six algorithms) and validated by Leave-One-Lysimeter-Out cross-validation (LOGO). Early grain, grain filling, and maturity were the most informative stages for yield prediction. The best model, obtained at maturity, was SVR-rbf using SCCCI and Homogeneity, reaching R2 = 0.66 and RMSE = 1.23 t ha−1. SCCCI was the most consistently selected predictor across models. By contrast, popping expansion was poorly predicted (R2 = 0.17), indicating that this post-harvest quality trait is only weakly linked to canopy-level spectral information. Multitemporal UAV phenotyping therefore shows promise for non-destructive yield screening, but not for replacing direct popping expansion measurements.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013951",
+   "title": "Monitoring of CO2 Efflux, Moisture, and Temperature in Soils of Agroecosystems in a Semi-Arid Region Using an Unmanned Aerial Vehicle and Application of Machine Learning",
+   "abstract": "This study aimed to characterize the spatiotemporal dynamics of soil respiration (CO2 efflux), soil moisture, and soil temperature across different land-use systems in a semi-arid environment through in situ monthly monitoring and to evaluate the potential of UAV-based imagery combined with Random Forest modeling to spatialize these variables within the agroforestry system. The variables were monitored monthly using an Infrared Gas Analyzer (IRGA) over 9 months, and UAV imagery was acquired at two distinct time points. The 11-month experimental campaign enabled evaluation of seasonal and spatial variability and of soil physical and hydraulic properties. Soil CO2 efflux ranged from 1.0 to 6.7 μmol m−2 s−1, with higher values observed during the rainy period, closely following soil moisture dynamics. Soil moisture and temperature exhibited clear seasonal patterns driven by rainfall variability. The pasture system showed higher CO2 efflux in most months, while AFS2 presented more stable fluxes over time. In contrast, AFS1 exhibited lower CO2 efflux, likely associated with its soil characteristics. Despite these patterns, no significant differences were observed among land-use systems for most soil physical properties. UAV-derived data combined with machine learning techniques proved effective for modeling soil CO2 efflux, soil temperature, and soil moisture, demonstrating their potential for monitoring soil processes in semi-arid environments. Overall, agroforestry systems did not significantly differ from other land uses in terms of CO2 efflux, likely due to their early stage of development. These findings indicate that the effects of agroforestry systems on soil processes occur gradually and highlight the importance of long-term monitoring to fully capture system dynamics.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013952",
+   "title": "Unmanned Aerial Vehicle Remote Sensing and Machine Learning to Predict Productive and Physiological Traits of Forage Cactus in Semi-Arid Forage Systems",
+   "abstract": "The use of nondestructive technologies combined with machine learning has emerged as a promising approach for estimating structural and productive traits in agricultural systems. This study evaluated the potential of Unmanned Aerial Vehicle (UAV) imagery integrated with the Random Forest algorithm to predict structural, physiological and productive variables of forage cactus cultivated under semi-arid conditions. The experiment was conducted over two years using four varieties: Orelha de Elefante Mexicana (OEM), Miúda, IPA Sertânia and IPA 20. RGB and red–green–near-infrared (RGNir) orthomosaics, along with a digital elevation model, were used to derive spectral and structural variables, which were related to field measurements. Model performance was assessed using the coefficient of determination (R2). The models showed high predictive performance for dry mass production, particularly for OEM, IPA Sertânia and IPA 20 (R2 = 0.85, 0.85 and 0.83). Physiological variables, such as chlorophyll A and B, also showed consistent fits (R2 = 0.70 and 0.83), while structural variables, including height and volume, exhibited lower stability. Differences among varieties affected model accuracy, especially for Miúda, due to its architectural characteristics. The integration of UAV imagery and machine learning provides a reliable approach for monitoring forage cactus, although model performance depends on plant structure.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013965",
+   "title": "P23-04 REDEFINING OCCUPATIONAL EXPOSURE IN PRECISION AGRICULTURE: AOEL-BASED ASSESSMENT OF FUNGICIDE APPLICATION USING UNMANNED AERIAL AND GROUND DRONE SYSTEMS",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013970",
+   "title": "Automated Mislabel Detection and Correction Mechanism for Aerial Crop Classification",
+   "abstract": "Large-scale aerial imagery in Taiwan often contains noisy labels that degrade model generalization due to the memorization effect. We adopt the Adaptively trIggered Online Object-wise correction (AIO2) framework using a standard U-Net backbone for automated mislabel detection and correction in patch-level crop classification. The system integrates an adaptive trigger to identify the transition from robust feature learning to noise memorization, paired with a Mean-Teacher architecture for online label refinement. Experimental results on five major crops show that our approach achieves competitive or improved F1-scores over state-of-the-art baselines on most crop types, indicating its effectiveness against instance-dependent noise in agricultural imagery. This framework provides a scalable, automated solution for purifying agricultural data and enhancing the reliability of land monitoring without manual intervention.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013988",
+   "title": "Fedud: a multi unmanned aerial vehicle collaborative detection framework",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-013994",
+   "title": "Early Detection of Barley Waterlogging Using Unmanned Aerial Vehicle-based Hyperspectral Imagery",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-014016",
+   "title": "Determination of Critical Period of Crop-Weed Competition and Evaluation of Herbicide Efficacy in Chia (Salvia hispanica L.)",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-014032",
+   "title": "High-Throughput Estimation of Aboveground Peanut Biomass with Optimized Spectral–Textural Features from Unmanned Aerial Vehicle Multispectral Imagery",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-014042",
+   "title": "A METHOD FOR SELECTING A FLIGHT CONSTELLATION OF UNMANNED AERIAL VEHICLES TAKING INTO ACCOUNT THE SPECIFIC CHARACTERISTICS OF THE TASKS TO BE PERFORMED",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-014090",
+   "title": "DRONet: occlusion-mastering multi-object detection tailored for unmanned aerial vehicles",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-014102",
+   "title": "DualSlim-YOLO: A Lightweight Detection Model Based on Unmanned Aerial Vehicle Imagery for Cauliflower Seedling Identification and Growth Assessment",
+   "abstract": "Cauliflower emergence rate and seedling growth are key indicators of field conditions and varietal potential. Traditional manual surveys are unsuitable for continuous monitoring across multiple varieties. This study integrates UAV RGB imagery with the DualSlim-YOLO model to estimate cauliflower emergence rates and monitor seedling growth. Built on YOLOv11, the model incorporates a lightweight feature extraction structure and an optimized detection-scale configuration. It reduces computational complexity while maintaining detection accuracy, thereby improving the efficiency of cauliflower seedling detection. DualSlim-YOLO achieved P, R, F1-score, mAP@0.5, and mAP@0.5:0.95 of 95.35%, 96.75%, 96.05%, 98.55%, and 86.65%, respectively. The number of parameters was reduced by 38.61%, while the inference speed increased by 22.16%, demonstrating good lightweight performance. Based on this model, UAV images of 171 cauliflower varieties acquired at 7, 21, and 28 d after transplanting were used for seedling detection and emergence rate estimation. In addition, 18 time-series seedling phenotypic traits were extracted, enabling a comprehensive quantitative evaluation of emergence dynamics and early-growth performance across multiple cauliflower varieties. This method effectively screens cauliflower varieties for high emergence rates, rapid emergence, and excellent seedling growth performance. It provides technical support for high-throughput, nondestructive seedling phenotyping and early germplasm screening under field conditions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  }
+ ]
+}

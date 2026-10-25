@@ -1,0 +1,96 @@
+{
+  "session": "UAV-HARVEST-R3C-20261017",
+  "partition_strategy": "crossref_year_sweep_2020_2026",
+  "per_year": [
+    {
+      "year": 2020,
+      "universe_total": 1521,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "year": 2021,
+      "universe_total": 1685,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "year": 2022,
+      "universe_total": 1691,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "year": 2023,
+      "universe_total": 1938,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "year": 2024,
+      "universe_total": 2395,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "year": 2025,
+      "universe_total": 2319,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "year": 2026,
+      "universe_total": 1547,
+      "fetched": 1000,
+      "cap": 1000,
+      "cap_bound": true,
+      "status": "SUCCESS",
+      "error": null
+    }
+  ],
+  "sweep_total_fetched": 7000,
+  "sweep_new_in_r3c": 5913,
+  "sweep_dropped_as_pool_duplicates": 1087,
+  "wall_seconds": 18.44,
+  "pool": {
+    "pool_r3c": 8382,
+    "with_abstract_pre_dedup": 6963,
+    "coverage_basis": "pre-dedup snapshot (mutation-safe)",
+    "new_hydrated": 2471,
+    "new_attempted": 3428,
+    "new_failed": 958
+  },
+  "dedup_r3c": {
+    "stats": {
+      "total_documents": 8382,
+      "unique_documents": 8180,
+      "duplicates": 202,
+      "duplicate_rate": 0.024099260319732762
+    },
+    "clusters": 8180,
+    "singletons": 7996,
+    "error": null
+  },
+  "sentinel": {
+    "tier1_hits": 7,
+    "of": 7
+  }
+}
