@@ -11,6 +11,21 @@ workspaces/**/chroma_db/
 # Harness Console runtime state (job stdout, job dirs)
 workspaces/**/.harness-console/
 
+# Superseded calibration harvest generations.
+# Each search round re-derives the whole corpus; only the current round (r3e) is
+# tracked, because every generation is hundreds of MB of regenerable JSON and
+# history cannot be shrunk after the fact. Small round summaries stay tracked.
+workspaces/**/calibration_v03/v03_*_deduped.json
+workspaces/**/calibration_v03/v03_*_union_raw.json
+workspaces/**/calibration_v03/v03_*_union_hydrated.json
+workspaces/**/calibration_v03/v03_*_crossref_year_sweep.json
+workspaces/**/calibration_v03/v03_*_crossref_quarter_sweep.json
+workspaces/**/calibration_v03/v03_*_raw_*.json
+# …except the current generation, which is the evidentiary corpus.
+!workspaces/**/calibration_v03/v03_r3e_20261017_deduped.json
+!workspaces/**/calibration_v03/v03_r3e_20261017_union_hydrated.json
+!workspaces/**/calibration_v03/v03_r3e_*_raw_*.json
+
 # External Plugins (installed via scripts/install_plugins.py)
 
 
