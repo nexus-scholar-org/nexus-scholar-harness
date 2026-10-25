@@ -1,0 +1,39 @@
+{
+  "session": "UAV-HARVEST-V03-PATCHED-20261017",
+  "reconciled": {
+    "per_provider_manifest_vs_rawfiles": "N=N (5/5 providers)",
+    "union": "union_count=2115 == sum(manifest) == live docs",
+    "hydration_pool": "2115",
+    "dedup": "cluster_count=2060 == representatives == unique_documents",
+    "merged": 55
+  },
+  "quality_snapshot_deduped": {
+    "n": 2060,
+    "with_abstract": 1696,
+    "pct_with_abstract": 82.3,
+    "title_only_no_abstract": 364,
+    "pct_title_only": 17.7,
+    "with_doi": 1994,
+    "pct_with_doi": 96.8,
+    "doi_less": 66,
+    "in_window_2020_2026": 2060,
+    "pct_in_window": 100.0
+  },
+  "union_doi_corrected": {
+    "doi_bearing": 2043,
+    "doi_less": 72,
+    "note": "driver has_doi() defect on string external_ids corrected here; driver-printed doi-less=2115 is invalid and superseded"
+  },
+  "hydration_stats": {
+    "attempted": 718,
+    "hydrated": 360,
+    "failed": 373
+  },
+  "abstract_coverage": {
+    "before": 1396,
+    "after": 1741,
+    "still_no_abstract_deduped_quality": null
+  },
+  "failures": [],
+  "status": "RECONCILED"
+}

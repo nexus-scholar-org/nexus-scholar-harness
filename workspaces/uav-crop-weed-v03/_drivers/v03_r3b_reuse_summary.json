@@ -1,0 +1,39 @@
+{
+  "leg_label": "S2-leg-reused-from-r2-cache",
+  "leg_note": "S2 retrieval executed 2026-10-17 (~16:10) under patched_post-L1L6+r2fixes, unauthenticated endpoint after keyed-403 downgrade; reuse authorized by the researcher (Option A). No new S2 API call in r3b.",
+  "s2_total": 200,
+  "s2_new_in_r3b": 13,
+  "s2_dropped_as_base_duplicates": 187,
+  "researcher_hypothesis_126dups": [
+    [
+      "s2_total",
+      200
+    ],
+    [
+      "predicted_new_uniques",
+      74
+    ]
+  ],
+  "pool": {
+    "pool_r3b": 2469,
+    "with_abstract": 2008,
+    "coverage_basis": "pre-dedup snapshot (mutation-safe)",
+    "new_hydrated": 0,
+    "new_attempted": 0
+  },
+  "dedup_r3b": {
+    "stats": {
+      "total_documents": 2469,
+      "unique_documents": 2291,
+      "duplicates": 178,
+      "duplicate_rate": 0.07209396516808425
+    },
+    "clusters": 2291,
+    "singletons": 2130,
+    "error": null
+  },
+  "sentinel_memo": {
+    "tier1_hits": 7,
+    "of": 7
+  }
+}

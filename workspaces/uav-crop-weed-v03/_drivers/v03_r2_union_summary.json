@@ -1,0 +1,34 @@
+{
+  "session": "UAV-HARVEST-R2-20261017",
+  "per_provider": {
+    "openalex-full": 1342,
+    "semanticscholar": 200,
+    "crossref-full": 1000,
+    "arxiv-full": 39,
+    "pubmed": 76
+  },
+  "union_total": 2657,
+  "rebuild_skipped": 0,
+  "hydration": {
+    "attempted": 897,
+    "hydrated": 477,
+    "failed": 466
+  },
+  "abstract_coverage": {
+    "before": 1754,
+    "after": 2185,
+    "still_no_abstract_pool": 472
+  },
+  "dedup": {
+    "stats": {
+      "total_documents": 2657,
+      "unique_documents": 2356,
+      "duplicates": 301,
+      "duplicate_rate": 0.11328566051938277
+    },
+    "clusters": 2356,
+    "singletons": 2088,
+    "merged": 301,
+    "error_note": null
+  }
+}

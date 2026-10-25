@@ -1,0 +1,248 @@
+{
+ "round": "SCR1_round3_followups",
+ "items": [
+  "7",
+  "8",
+  "9",
+  "13"
+ ],
+ "grounding_flags_by_provider": {
+  "crossref": {
+   "screened_rows_A1": 12799,
+   "flagged_rows": 5432,
+   "flag_rate_pct": 42.44,
+   "top_problem_classes": {
+    "low_grounding_ratio_only": 4497,
+    "WRONG_TASK_WITHOUT_VISIBLE_TASK_ANCHOR": 383,
+    "TITLE_ONLY_EXCLUDE_CITES_NON_TITLE_TOKENS": 271,
+    "WRONG_REPORT_TYPE_WITHOUT_MARKER": 215
+   }
+  },
+  "openalex": {
+   "screened_rows_A1": 1330,
+   "flagged_rows": 600,
+   "flag_rate_pct": 45.11,
+   "top_problem_classes": {
+    "low_grounding_ratio_only": 350,
+    "WRONG_REPORT_TYPE_WITHOUT_MARKER": 154,
+    "WRONG_PLATFORM_BUT_PLATFORM_TOKEN_PRESENT": 37,
+    "INCLUDE_MISSING_PLATFORM_OR_TASK_TOKENS": 29
+   }
+  },
+  "semanticscholar": {
+   "screened_rows_A1": 11,
+   "flagged_rows": 9,
+   "flag_rate_pct": 81.82,
+   "top_problem_classes": {
+    "low_grounding_ratio_only": 3,
+    "GUARDRAIL_PRECONDITIONS_NOT_MET": 2,
+    "WRONG_PLATFORM_BUT_PLATFORM_TOKEN_PRESENT": 1,
+    "INCLUDE_MISSING_PLATFORM_OR_TASK_TOKENS": 1
+   }
+  },
+  "pubmed": {
+   "screened_rows_A1": 5,
+   "flagged_rows": 0,
+   "flag_rate_pct": 0.0,
+   "top_problem_classes": {}
+  },
+  "arxiv": {
+   "screened_rows_A1": 5,
+   "flagged_rows": 0,
+   "flag_rate_pct": 0.0,
+   "top_problem_classes": {}
+  }
+ },
+ "t4_agreement_by_pack_crossref_share": {
+  "0-90": {
+   "packs": 1,
+   "n": 50,
+   "agree": 49,
+   "exceptions": 1,
+   "agreement_pct": 98.0
+  },
+  "100": {
+   "packs": 23,
+   "n": 1135,
+   "agree": 1121,
+   "exceptions": 14,
+   "agreement_pct": 98.77
+  },
+  "95-99": {
+   "packs": 1,
+   "n": 50,
+   "agree": 49,
+   "exceptions": 1,
+   "agreement_pct": 98.0
+  }
+ },
+ "small_provider_marginal_value": {
+  "semanticscholar": {
+   "unique_records": 11,
+   "mutual_include": 3,
+   "mutual_pending": 2,
+   "mutual_exclude": 3
+  },
+  "arxiv": {
+   "unique_records": 5,
+   "mutual_include": 2,
+   "mutual_pending": 0,
+   "mutual_exclude": 0
+  },
+  "pubmed": {
+   "unique_records": 5,
+   "mutual_include": 1,
+   "mutual_pending": 0,
+   "mutual_exclude": 4
+  }
+ },
+ "year_2027_leak": {
+  "n": 18,
+  "rows": [
+   {
+    "sid": "SCI-008076",
+    "title": "Indoor Localization of Unmanned Aerial Vehicles Using Low-Cost Onboard Range Sen",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-008098",
+    "title": "Applying Unsupervised Semantic Segmentation to High-Resolution Unmanned Aerial V",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-008157",
+    "title": "Security Enforcement and Governance in Cloud Integrated Unmanned Aerial Vehicle ",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-013971",
+    "title": "Set-Membership Relative Localization for Unmanned Aerial Vehicles Based on Const",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-013981",
+    "title": "Cooperative Path Planning of Multi-unmanned Aerial Vehicle Based on Improved Pig",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014003",
+    "title": "Analysis Workflow Improvement and Integrated Diagnosis of Vegetation Indices Tow",
+    "lane": "mutual_pending",
+    "A1": "PENDING",
+    "A2": "PENDING",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014020",
+    "title": "Development of Control System Synthesis Method for Unmanned Aerial Vehicles Movi",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014021",
+    "title": "Methods of Collecting Information Using Unmanned Aerial Vehicles for Monitoring ",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014023",
+    "title": "A Unmanned Aerial Vehicle Routing Problem with Full Coverage Constraints",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014031",
+    "title": "Fast Fixed-Time Robust Control of Quadrotor Unmanned Aerial Vehicle with Enhance",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014048",
+    "title": "FDI Attack Detection of Unmanned Aerial Vehicles in Traffic Scenarios Integratin",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014051",
+    "title": "Dynamic INT8 Quantization of YOLOv12 for Efficient Weed-Crop Detection on Edge D",
+    "lane": "mutual_pending",
+    "A1": "PENDING",
+    "A2": "PENDING",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014052",
+    "title": "SkyGuard System: A Security Framework for Unmanned Aerial Vehicles Based on Cros",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014058",
+    "title": "The Multi-Sensor and Multi-Target Assignment Method for Unmanned Aerial Vehicles",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014070",
+    "title": "Straight-Line Path Following Control Using a Disturbance Attenuation Guidance La",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014072",
+    "title": "Strong Baselines and Structural Enhancement for Multispectral Crop–Weed Segmenta",
+    "lane": "mutual_pending",
+    "A1": "PENDING",
+    "A2": "PENDING",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014078",
+    "title": "Improving Cross-Date Generalization in Multispectral Crop-Weed Segmentation via ",
+    "lane": "mutual_pending",
+    "A1": "PENDING",
+    "A2": "PENDING",
+    "citations": 0
+   },
+   {
+    "sid": "SCI-014079",
+    "title": "Research on Deep Learning-Based Defect Detection Method for Insulation Equipment",
+    "lane": "mutual_exclude",
+    "A1": "EXCLUDE",
+    "A2": "EXCLUDE",
+    "citations": 0
+   }
+  ]
+ }
+}

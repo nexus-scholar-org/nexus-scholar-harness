@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-10-17T15:11:00+00:00",
+  "generator_authorship": "Orchestrator agent (GLM) executing researcher-requested workspace hosting; mechanical record, not authenticated scientific approval",
+  "workspace_role": "amendment-host (isolation of v0.3 from byte-preserved pilot v0.2 and demo clone)",
+  "protocol_revision": "0.3",
+  "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+  "prior_protocol_fingerprint": "sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451",
+  "drafting_pipeline": {
+    "intent_source": "researcher-approved v0.3 intent packet authored in conversation; transcribed verbatim to intent.json",
+    "compiler": "scholar-protocol-kit deterministic compiler (canonical_json; created_at pinned from genesis_timestamp)",
+    "golden_seeds_compiler_behavior": "dropped by design; carried in SEARCH_STRATEGY.md + pilot calibration sentinels; consumed via scholar-search validate-query"
+  },
+  "structural_and_cross_field_strict": "PASS",
+  "strict_cli_verdict": "VALID - 0 error(s), 0 warning(s) [strict mode]",
+  "recompile_identical_bytes": true,
+  "draft_vs_compiled_divergences": [
+    "search_strategy.golden_seeds: hand-draft 7 entries vs compiled 0 (compiler design; documented above)",
+    "screening_criteria.exclusion[2].maps_to_rqs: hand-draft order [RQ1,RQ3,RQ2,RQ4] normalized by compiler to [RQ1,RQ2,RQ3,RQ4] (draft typo caught by machine)"
+  ],
+  "charting_schema_structural": "PASS",
+  "charting_test_matrix": {
+    "file": "audit/charting_validation_matrix.json",
+    "schema_metacheck": "PASS (draft 2020-12)",
+    "synthetic_positive_cases": 1,
+    "synthetic_negative_cases": 6,
+    "negative_cases_rejected": ["short verbatim quote (<5)", "malformed setting_id", "non-hex STU id", "out-of-window primary year", "unknown additional property"],
+    "finding_f1_conditional_integrity_gap": {
+      "severity": "major (pre-freeze)",
+      "detail": "v0.3 draft charting schema does NOT couple evidence_state to content: a row with evidence_state=not_reported and fully populated values/provenance validates. The pilot v0.2 sidecar enforces state->value/evidence/note conditional invariants. Import the v0.2 cell logic into the v0.3 schema before freeze, or consciously accept the weaker binding in the freeze decision."
+    }
+  },
+  "guardrail_suffix_check": "13/13 matrix dimension descriptions end with the exact v0.2 guardrail sentence",
+  "semantic_status": "PROVISIONAL_NOT_FROZEN",
+  "search_executed": false,
+  "source_version": "c10d2819e92556cabd8124e918a1bb672504c9ec",
+  "limitations": [
+    "No literature search, screening, or source entailment executed in this workspace.",
+    "Charting reference anchors (BAWSeg / WeedsGalore / Ludena) are UNVERIFIED-DRAFT abstract-level transcriptions; verify against retrieved full texts before any dual-coding pilot.",
+    "INC-03 embeds Option C screening design and reviewer names (consent gates unchanged; relocation pending researcher decision).",
+    "Pilot v0.2 charting sidecar remains normative in the parent workspace until this workspace's charting pair is researcher-frozen.",
+    "5-file search-kit patch in the demo clone is excluded from this workspace's provenance (canonical-repo stream parked)."
+  ]
+}

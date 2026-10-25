@@ -1,0 +1,3043 @@
+{
+  "session": "UAV-SCREEN-SCR1-20261018",
+  "pilot_scope": "batches 0001-0006 (300 records target)",
+  "screener_ids": [
+    "A1",
+    "A2"
+  ],
+  "shared_decided": 300,
+  "missing_from_A1": 0,
+  "missing_from_A2": 0,
+  "agreement_pct": 99.33,
+  "confusion_pairs": {
+    "EXCLUDE|EXCLUDE": 281,
+    "INCLUDE|INCLUDE": 10,
+    "PENDING|PENDING": 7,
+    "INCLUDE|PENDING": 1,
+    "PENDING|EXCLUDE": 1
+  },
+  "shared_include_agreement": 10,
+  "binary_include_vs_include_and_exclude_vs_exclude_only_n": 291,
+  "po_binary": 1.0,
+  "kappa_binary": 1.0,
+  "guardrail": {
+    "guardrail_title_only_ids": 0,
+    "violations": [],
+    "ok": true
+  },
+  "kit_reconciliation": {
+    "majority_count": 292,
+    "ties": 1,
+    "fleiss_kappa": 0.9506
+  },
+  "reconciled_include": 10,
+  "reconciled_decided": 293,
+  "include_rate_point": 0.0341,
+  "include_rate_wilson95": [
+    0.0186,
+    0.0617
+  ],
+  "projected_full_corpus_includes_14150": 483,
+  "pilot_records": {
+    "SCI-000039": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Book-chapter overview of drone uses in advanced farming; general review, not primary empirical study.",
+      "A2_support": "General book chapter on drone applications across farming tasks; overview not primary study"
+    },
+    "SCI-000043": {
+      "batch": "batch_0003",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "WeedFormer: SegFormer+CBAM crop-weed segmentation of UAV imagery on WeedsGalore, 2026.",
+      "A2_support": "WeedFormer: transformer crop-weed semantic segmentation on UAV imagery, evaluated on WeedsGalore"
+    },
+    "SCI-000126": {
+      "batch": "batch_0004",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "Drone RGB imagery distinguishes weed patches in wild blueberry for site-specific weed management maps.",
+      "A2_support": "Weed patch maps from RGB drone imagery for targeted ground/drone spraying in wild blueberry"
+    },
+    "SCI-000223": {
+      "batch": "batch_0005",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "UAV aerial imagery with YOLOv11 discriminating weed vs crop vegetation for sustainable weed control.",
+      "A2_support": "Weed-crop discrimination using UAV aerial imagery and YOLO object detection"
+    },
+    "SCI-000281": {
+      "batch": "batch_0003",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "UAV swarms adaptively monitor/map crop fields, explicitly mapping weed patches via information gain.",
+      "A2_support": "UAV swarm adaptively maps crop fields targeting weed patches via information gain"
+    },
+    "SCI-000347": {
+      "batch": "batch_0005",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "UAV images over maize classify crop/soil/weed patches for precision herbicide reduction, 2020.",
+      "A2_support": "UAV imagery over maize with ANN weed classification and prescription maps for precision herbicide reduction"
+    },
+    "SCI-000372": {
+      "batch": "batch_0002",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "UAV sorghum crop-weed semantic segmentation with deblurring—reliability under image degradation.",
+      "A2_support": "Crop-weed semantic segmentation in UAV sorghum imagery with deblurring for motion-blurred scenes"
+    },
+    "SCI-000380": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Self-described survey/review of UAV-IoT smart agriculture applications (135 articles); confirmed review.",
+      "A2_support": "Abstract states 'this review focuses on UAVs in smart agriculture'; a 135-article survey"
+    },
+    "SCI-000395": {
+      "batch": "batch_0004",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "UAV RGB YOLO crop detection and exclusion-based weed pressure mapping in faba bean, 2026.",
+      "A2_support": "YOLO crop detection and exclusion-based weed mapping on high-density UAV RGB field imagery"
+    },
+    "SCI-000443": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Self-described review of herbicide-resistant weed management; drone detection mentioned only as emerging tech.",
+      "A2_support": "Abstract states 'This review highlights herbicide resistance'; review, no primary UAV study"
+    },
+    "SCI-000593": {
+      "batch": "batch_0001",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "A2_reason": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "Title states 'Energy-Efficient Real-Time UAV Weed Detection'; abstract corrupted—title-only signal.",
+      "A2_support": "Title: 'Energy-Efficient Real-Time UAV Weed Detection' (RADLER); abstract field unusable"
+    },
+    "SCI-000637": {
+      "batch": "batch_0005",
+      "A1": "INCLUDE",
+      "A2": "PENDING",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "PENDING_SAMPLE_DATA_SCOPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Zenodo drone video sample data outputting AI-detected weed hotspot coordinates for agriculture.",
+      "A2_support": "Zenodo sample drone field video/telemetry with AI-detected weed hotspot coordinates; explicitly not a full training set"
+    },
+    "SCI-000694": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Turfgrass mowing/imaging and weed detection (title only); EXC-02 names urban turfgrass non-agricultural.",
+      "A2_support": "Weed detection in turfgrass using YOLO; urban turfgrass explicitly excluded by EXC-02"
+    },
+    "SCI-000739": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Cassava leaf disease detection with deep learning; disease task and no UAV platform specified.",
+      "A2_support": "Cassava leaf disease classification with deep learning from general leaf images"
+    },
+    "SCI-000763": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Self-described review article on IoT+UAV+deep learning in agriculture; confirmed review.",
+      "A2_support": "Explicit review article on IoT, UAVs, and deep learning in smart agriculture"
+    },
+    "SCI-000893": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Mango canopy extraction/area prediction from UAV images for spraying; canopy segmentation, not weed/crop mapping.",
+      "A2_support": "UAV mango canopy extraction/area prediction for precision pesticide spraying"
+    },
+    "SCI-000903": {
+      "batch": "batch_0005",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "Multispectral drone imagery detects late-season rice weed escapes; RPAAS site-specific herbicide application.",
+      "A2_support": "Multispectral drone weed detection with site-specific RPAAS herbicide application for rice weed escapes"
+    },
+    "SCI-000911": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Objective is sunflower seedling-emergence estimation (phenotyping); weeds only masked out, not mapped.",
+      "A2_support": "UAV remote sensing of sunflower seedling emergence rate and plant count; weeding only used for masking"
+    },
+    "SCI-000913": {
+      "batch": "batch_0001",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "Multi-temporal UAV images extract/map poisonous weed (diphtheria aconitum) distribution on managed grassland.",
+      "A2_support": "Drone aerial images extract diphtheria aconitum distribution/migration to monitor poisonous weeds in grassland"
+    },
+    "SCI-001382": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Safe autonomous landing in cluttered environments via depth sensing; navigation.",
+      "A2_support": "Safe autonomous UAV landing via depth-sensor obstacle plane extraction"
+    },
+    "SCI-001405": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Weed management in soybean with early post-emergence herbicide (title only, null abstract); ground agronomy.",
+      "A2_support": "Weed management in soybean using post-emergence herbicide; agronomic trial no UAV signal"
+    },
+    "SCI-001422": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Echo-state networks for UAV nonlinear adaptive control; flight control.",
+      "A2_support": "Echo state network nonlinear adaptive flight control of fixed-wing UAV"
+    },
+    "SCI-001466": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Chemical tests (phenol, NaOH, KOH) classifying rice varieties; bench agronomy, no remote platform.",
+      "A2_support": "Chemical tests (phenol/KOH/NaOH) to classify rice varieties"
+    },
+    "SCI-001563": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Instance-segmentation floating-litter collection with multi-rotor vehicle; environmental robotics.",
+      "A2_support": "Instance segmentation for floating litter collection with multi-rotor aerial robot"
+    },
+    "SCI-001564": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "AI-empowered models for UAV communications (title only, null abstract); networking.",
+      "A2_support": "AI-empowered models for UAV communications"
+    },
+    "SCI-001696": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Path planning for multi-body UAV aerial docking (title only, null abstract); flight mechanics.",
+      "A2_support": "Path planning of aerial docking for multi-body UAV"
+    },
+    "SCI-001708": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Survey of SLAM and data fusion for UAV navigation/perception; robotics review.",
+      "A2_support": "Survey of SLAM and data fusion techniques for UAV navigation"
+    },
+    "SCI-001757": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Generic encyclopedia entry 'Unmanned Aerial Vehicle', null abstract; no crop/weed mapping signal.",
+      "A2_support": "Encyclopedia/term entry titled simply 'Unmanned Aerial Vehicle'; no study content"
+    },
+    "SCI-001774": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "River flow monitoring with unmanned aerial system (title only, null abstract); hydrology.",
+      "A2_support": "River flow monitoring with unmanned aerial system"
+    },
+    "SCI-001806": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV mango images segmented for crop-health/disease regions; disease task, not weed mapping.",
+      "A2_support": "Intuitionistic fuzzy segmentation of diseased mango crop areas in UAV images"
+    },
+    "SCI-001833": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Rolled-crimped rye mulch field trials for organic soybean weed suppression; ground agronomy.",
+      "A2_support": "Cereal rye cover-crop cultural management for weed suppression in organic soybean; no UAV"
+    },
+    "SCI-001852": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-based digital topographic maps and flood-flow analysis (title only); hydrography.",
+      "A2_support": "UAV-based digital topographic map production and flood flow analysis"
+    },
+    "SCI-001854": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Cellular mobility management for low-altitude UAV-UEs; wireless infrastructure.",
+      "A2_support": "Mobility management for cellular-connected UAVs in low-altitude scenarios"
+    },
+    "SCI-002017": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Peer-review of seagrass-bed mapping with UAV deep learning; marine seagrass, non-agricultural.",
+      "A2_support": "Peer-review record for seagrass bed mapping study; coastal habitat not crop/weed"
+    },
+    "SCI-002056": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Embedded UAV detecting cars and humans with SSD MobileNet; generic detection.",
+      "A2_support": "Embedded UAV real-time object detection (cars/humans) with Raspberry Pi and Edge TPU"
+    },
+    "SCI-002136": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "ST-YOLO small-object detection on VisDrone/UAVDT/CARPK datasets; generic detection.",
+      "A2_support": "ST-YOLO small-object detector on VisDrone/UAVDT/CARPK/UAVROD datasets"
+    },
+    "SCI-002191": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Record titled 'Frontmatter' of a book with null abstract; not a substantive primary report.",
+      "A2_support": "Record is book frontmatter, not a study"
+    },
+    "SCI-002200": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Integrated weed management field trial in okra with herbicides/hand weeding; ground agronomy.",
+      "A2_support": "Integrated weed management field trial in okra with herbicides and hand weeding; no imaging"
+    },
+    "SCI-002212": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "'Review for' a UAV slope-deformation paper—standalone peer-review record, null abstract.",
+      "A2_support": "Peer-review record for slope deformation detection paper (geology UAV photogrammetry)"
+    },
+    "SCI-002295": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Soil moisture and nutrient field experiment in rice-wheat carbon sequestration; ground agronomy.",
+      "A2_support": "Soil moisture and nutrient effects on carbon sequestration in rice-wheat system"
+    },
+    "SCI-002315": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "sUAS winter wheat plant-height estimation; growth/phenotyping measurement, no weed mapping.",
+      "A2_support": "sUAS winter wheat plant-height/DSM estimation; crop phenotyping not weed mapping"
+    },
+    "SCI-002438": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_PLATFORM",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Imaging chamber on robotic weeder traveling 3.2 km/h in tomato; ground platform, no UAV.",
+      "A2_support": "Machine-vision crop-weed classification for robotic weeder using camera imaging chamber; ground rig"
+    },
+    "SCI-002440": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Chapter on variable-rate herbicide (map/sensor-based PRE/POST ground application); no UAV imagery platform.",
+      "A2_support": "Chapter overview of variable-rate herbicide application (PRE/POST); field sprayers no UAV"
+    },
+    "SCI-002478": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "3D LiDAR crop-height/plot phenotyping from UAV with sim toolchain; phenotyping per EXC-02.",
+      "A2_support": "UAV 3D LiDAR crop height and plot estimation for phenotyping"
+    },
+    "SCI-002621": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Onboard pattern-recognition UAV navigation system; navigation.",
+      "A2_support": "UAV navigation system based on onboard pattern recognition algorithms"
+    },
+    "SCI-002671": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "5G HD video transmission from multi-rotor UAV; communications link design.",
+      "A2_support": "5G HD video transmission design for multi-rotor UAV"
+    },
+    "SCI-002672": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Botanical weed-flora survey of Egyptian cereal fields; ground vegetation sampling, no imagery.",
+      "A2_support": "Weed flora composition survey of cereal crops in middle Egypt; botanical field survey no UAV"
+    },
+    "SCI-002810": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV behavior mapping of park users in Salt Lake County; social observation.",
+      "A2_support": "UAV behavior mapping of park users in neighborhood parks"
+    },
+    "SCI-002826": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-aided 5G NR enhanced urban networks (title only, null abstract); networking.",
+      "A2_support": "UAV-aided 5G NR network enhancement in urban scenarios"
+    },
+    "SCI-002856": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Bi-copter propeller-vibration parameter optimization; structural design.",
+      "A2_support": "Propeller-vibration parameter optimization for bi-copter UAV hovering"
+    },
+    "SCI-002863": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Modular self-supporting tether cable concept for powering hovering UAV; power delivery.",
+      "A2_support": "Concept of modular self-supporting power cable for tethered hovering UAV"
+    },
+    "SCI-002871": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Finite-element landing-gear stress analysis of light UAV; structural engineering.",
+      "A2_support": "Finite-element stress analysis of small UAV leaf-spring landing gear"
+    },
+    "SCI-002905": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Augmented-reality system assisting UAV assembly/maintenance; human-computer interaction.",
+      "A2_support": "Augmented reality system for assistance of UAV assembly and maintenance"
+    },
+    "SCI-002929": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Aerodynamic optimization for offshore search-and-rescue UAV; SAR.",
+      "A2_support": "Aerodynamic propeller optimization for offshore search-and-rescue UAV"
+    },
+    "SCI-002932": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Acoustic structural health monitoring of aircraft; unrelated to agriculture despite 'aerial' wording.",
+      "A2_support": "Acoustic structural health monitoring of aerial vehicles via time-reversal sensor communication"
+    },
+    "SCI-002943": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Link-breakage prediction for UAV communication network routing; networking.",
+      "A2_support": "Link breakage time prediction for UAV communication network routing"
+    },
+    "SCI-002962": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Glyphosate bio-efficacy field trial in transgenic maize; ground herbicide agronomy.",
+      "A2_support": "Field experiment of glyphosate herbicide in transgenic maize; agronomy trial no UAV"
+    },
+    "SCI-003072": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Robust constrained trajectory-tracking quadrotor control with disturbance observers; control theory.",
+      "A2_support": "Quadrotor trajectory tracking control with sliding-mode disturbance observer"
+    },
+    "SCI-003142": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Detailed classification/review of UAV path-planning approaches; non-agricultural navigation.",
+      "A2_support": "Classification review of UAV path planning approaches by energy efficiency"
+    },
+    "SCI-003230": {
+      "batch": "batch_0001",
+      "A1": "PENDING",
+      "A2": "EXCLUDE",
+      "A1_reason": "PENDING_TITLE_ONLY_PLATFORM_UNCLEAR",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Title-only: wheat/weed cover phenotyping with RGB images, crop-weed competition; platform unspecified.",
+      "A2_support": "High-throughput field phenotyping of wheat/weed cover with RGB; phenotyping/ecophysiology, no UAV claim"
+    },
+    "SCI-003241": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV shoreline change monitoring at Regency Beach; coastal survey.",
+      "A2_support": "Shoreline change monitoring at Regency Beach using UAV imagery"
+    },
+    "SCI-003242": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Autopilot flight testing with fuzzy PD+I controller; flight control.",
+      "A2_support": "Autopilot flight testing of UAV with fuzzy PD+I controller"
+    },
+    "SCI-003348": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Encyclopedia plant chapter 'Sonchus oleraceus', null abstract; no remote mapping.",
+      "A2_support": "Encyclopedia chapter on the plant species Sonchus oleraceus"
+    },
+    "SCI-003350": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Survey of UAV evolution with machine learning across military/smart-ag domains; non-ag focus.",
+      "A2_support": "Survey/comparative analysis of UAV evolution with machine learning techniques"
+    },
+    "SCI-003368": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Encyclopedia chapter on Amaranthus genus biology; no remote-sensing platform or mapping task.",
+      "A2_support": "Encyclopedia chapter on the plant genus Amaranthus"
+    },
+    "SCI-003408": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "YOLOv5 for generic small-object detection in UAV data; no crop/weed targets.",
+      "A2_support": "YOLOv5 small-object pattern recognition from UAV data; no agricultural task stated"
+    },
+    "SCI-003486": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Post-disaster victim detection UAV with cognitive radio; disaster robotics.",
+      "A2_support": "Autonomous UAV for post-disaster victim search with cognitive radio communication"
+    },
+    "SCI-003509": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Leader-follower swarm formation flight with relative localization; navigation.",
+      "A2_support": "Leader-follower cooperative navigation and formation flight for UAV swarm"
+    },
+    "SCI-003525": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Mapping study of heterogeneous UAV communications (46 studies); comms review, non-agricultural.",
+      "A2_support": "Mapping study of communication patterns among heterogeneous UAVs; networking review"
+    },
+    "SCI-003530": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Semantic segmentation of infrastructure cracks from shelled UAV imagery; civil inspection.",
+      "A2_support": "Semantic segmentation models for infrastructure crack detection from UAV imagery"
+    },
+    "SCI-003547": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "RBF node localization for UAV-assisted 5G sensor networks (title only); no crop/weed signal.",
+      "A2_support": "Radial basis function node localization for UAV-assisted 5G wireless sensor networks"
+    },
+    "SCI-003636": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Single-shot detection of real-time flying objects (title only, null abstract); airborne-target detection.",
+      "A2_support": "Single-shot detection of real-time flying objects for/with UAV"
+    },
+    "SCI-003643": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV dynamic simulation of octocopter in SimInTech; flight modeling.",
+      "A2_support": "UAV octocopter flight monitoring system simulation in SimInTech"
+    },
+    "SCI-003660": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Drones as threats to penal-system security (title only, null abstract); prison security.",
+      "A2_support": "Drones as a threat to penal-system object security"
+    },
+    "SCI-003667": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Optimization of UAV lateral-motion control; flight control.",
+      "A2_support": "Optimal lateral motion control of UAV using rudder only"
+    },
+    "SCI-003769": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Maritime buoyage inspection with UAV and ADRC control; marine monitoring.",
+      "A2_support": "Maritime buoyage inspection UAV with active disturbance rejection control"
+    },
+    "SCI-003969": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Maritime emergency search-and-rescue system with UAV and landing platform; sea rescue.",
+      "A2_support": "Maritime emergency search-and-rescue system based on UAVs"
+    },
+    "SCI-003989": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Field herbicide trials (dicamba/glufosinate) in cotton/soybean; no UAV imagery.",
+      "A2_support": "Field studies of dicamba/glufosinate herbicide control on row crop weeds; no imaging platform"
+    },
+    "SCI-004072": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Taxonomic classification of UAV types by size/autonomy; no crop/weed task.",
+      "A2_support": "Taxonomy/classification article of UAV types and characteristics"
+    },
+    "SCI-004252": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Drone applications for business management and market trends; commercial analysis, no mapping study.",
+      "A2_support": "Applications of drones for improved business management and market analysis"
+    },
+    "SCI-004290": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Vehicle routing under safe separation for multi-UAV operation (title only, null abstract); OR.",
+      "A2_support": "Vehicle routing problem with safe separation for multi-UAV operation"
+    },
+    "SCI-004398": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Visual-servo autonomous coastline tracking by octocopter; coastal surveillance.",
+      "A2_support": "Visual servoing strategy for UAV coastline tracking"
+    },
+    "SCI-004412": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Flight tests of UAV inflight icing effects (title only); aviation safety.",
+      "A2_support": "Flight-testing campaign on UAV inflight icing characteristics and flight performance"
+    },
+    "SCI-004437": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV monitoring/no-fly-zone warning for transmission line inspection; power infrastructure.",
+      "A2_support": "UAV monitoring system for transmission-line inspection with no-fly-zone warning"
+    },
+    "SCI-004441": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "PnP-algorithm automatic UAV landing on known runway image; navigation.",
+      "A2_support": "PnP-based automatic landing of UAV using known runway image"
+    },
+    "SCI-004499": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Conceptual blended wing-body parcel-transport UAV design; aerodynamics and economics.",
+      "A2_support": "Conceptual aerodynamic design of blended wing-body parcel transport UAV"
+    },
+    "SCI-004544": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "ML/AI for UAV communication and networking (title only, null abstract); non-ag topic.",
+      "A2_support": "Book chapter on ML/AI for UAV communication and networking"
+    },
+    "SCI-004565": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Earthworm-crop-weed coculture agronomy (title only, null abstract); ground ecological trial, no imaging platform.",
+      "A2_support": "Earthworm coculture reducing weed infestation for crop production; biology trial no UAV"
+    },
+    "SCI-004579": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Backstepping sliding-mode quadrotor control chapter (title only); flight control.",
+      "A2_support": "Backstepping sliding mode control for quadrotor with disturbance and input constraint"
+    },
+    "SCI-004580": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Indonesian topographic stockpile survey comparing UAV eBee vs GPS-RTK; mining survey.",
+      "A2_support": "Comparison of UAV eBee vs GPS RTK topographic survey of coal stockpiles (mining); Indonesian title"
+    },
+    "SCI-004683": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Survey of UAV collision-avoidance algorithms; aerospace topic with only incidental agriculture mention.",
+      "A2_support": "Approaches/algorithms for UAV collision avoidance; a survey-type treatment"
+    },
+    "SCI-004694": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV NDVI vs pasture forage nutritive value; feed-quality monitoring, no weed/crop discrimination.",
+      "A2_support": "UAV NDVI vs forage nutritive value (CP/ADF/NDF) in ryegrass pastures; forage quality not weed mapping"
+    },
+    "SCI-004795": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Risk management model for UAV flight operations; safety management.",
+      "A2_support": "Multi-criteria risk management model for UAV flight operations"
+    },
+    "SCI-004808": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "'Review for' a weed functional-trait paper—standalone peer-review record, null abstract.",
+      "A2_support": "Peer-review record of a weed functional-trait manuscript; no UAV mapping content"
+    },
+    "SCI-004818": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV path planning with DP-DDPG in complex environments; navigation.",
+      "A2_support": "DP-DDPG reinforcement learning for UAV path planning"
+    },
+    "SCI-004831": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Author response for rock-mass discontinuity mapping from UAV photography; geology meta-record.",
+      "A2_support": "Record is an 'Author response' peer-review item, not a primary report"
+    },
+    "SCI-004882": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-FDN forest-fire/smoke detection network; wildfire task per EXC-02.",
+      "A2_support": "UAV-FDN forest-fire detection network from UAV perspective"
+    },
+    "SCI-004967": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Ground-aerial robotic system prototyping for data collection missions; robotics engineering.",
+      "A2_support": "Ground-aerial robotic prototype for data-collection missions; UAV battery swap and landing"
+    },
+    "SCI-005032": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "PID parameter optimization for tricopter programmed flights; flight control.",
+      "A2_support": "PID parameter optimization for three-rotor UAV programmed flights"
+    },
+    "SCI-005054": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Antenna radiation-pattern accuracy assessment using UAV platforms; RF measurement.",
+      "A2_support": "Accuracy assessment of antenna pattern measurements using UAV platforms"
+    },
+    "SCI-005093": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Structural crack definition on concrete building walls via UAV and deep learning; civil inspection.",
+      "A2_support": "UAV detection/definition of structural cracks in concrete building walls"
+    },
+    "SCI-005123": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Sugarcane field seed treatment and herbicide management; ground agronomy, no aerial imagery.",
+      "A2_support": "Sugarcane seed treatment fungicide and herbicide field notes; no imaging platform"
+    },
+    "SCI-005151": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Unmanned combat aerial vehicle (UCAV) military capabilities; defense review.",
+      "A2_support": "Descriptive article on unmanned combat aerial vehicles as military weapons"
+    },
+    "SCI-005167": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Augmented-reality visualization/simulation of UAV control systems; simulator tooling.",
+      "A2_support": "Augmented reality visualization/simulation of autonomous UAV control systems"
+    },
+    "SCI-005241": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Physics-based reliability models for UAV flight-control allocation; reliability engineering.",
+      "A2_support": "Physics-based reliability-integrated control allocation for quadrotor rotor failures"
+    },
+    "SCI-005301": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Sliding-mode trajectory control for UAV slung-load swing suppression; payload control.",
+      "A2_support": "Sliding-mode trajectory tracking and swing suppression for UAV slung loads"
+    },
+    "SCI-005336": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Survey classifying UAVs for meteorology applications; atmospheric science review.",
+      "A2_support": "Survey of UAV classification and payloads for meteorology"
+    },
+    "SCI-005359": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Olive tree water status from UAV thermal imagery and dendrometers; irrigation monitoring, no weed/crop mapping.",
+      "A2_support": "UAV thermal imaging and dendrometers for olive tree water status monitoring"
+    },
+    "SCI-005386": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "ADC effectiveness evaluation of marine law-enforcement UAV; enforcement operations.",
+      "A2_support": "ADC-model effectiveness evaluation of marine law enforcement UAV"
+    },
+    "SCI-005463": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Alcohol influence on manual drone piloting precision; human-factors experiment.",
+      "A2_support": "Experimental study of alcohol influence on manual UAV piloting precision"
+    },
+    "SCI-005654": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Camera-LiDAR fusion to detect and localize UAVs; counter-drone sensing.",
+      "A2_support": "Camera-LiDAR fusion to detect and localize drone targets"
+    },
+    "SCI-005667": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Roller-crimped rye field trials for sweet corn weed control; ground agronomy, no aerial imagery.",
+      "A2_support": "Roller-crimped rye cover crop for weed mitigation in sweet corn; agronomy trial no UAV"
+    },
+    "SCI-005706": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Survivability indicators of UAV acoustic detection systems; defense reliability.",
+      "A2_support": "Survivability indicator determination for UAV acoustic detection system"
+    },
+    "SCI-005711": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "NTRIP-RTK direct georeferencing accuracy for UAV aerial photos; geodesy.",
+      "A2_support": "NTRIP-RTK direct georeferencing accuracy testing for general aerial mapping"
+    },
+    "SCI-005741": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Recommendation-system framework for UAV maneuver decision-making; autonomy.",
+      "A2_support": "Recommendation-system framework for autonomous UAV maneuver decision"
+    },
+    "SCI-005791": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Type-3 fuzzy controller for fixed-wing longitudinal flight (title only, null abstract); control.",
+      "A2_support": "Interval type-3 fuzzy controller for fixed-wing UAV longitudinal dynamics"
+    },
+    "SCI-005835": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV detection of marine litter/plastic on Black Sea beaches; marine debris monitoring.",
+      "A2_support": "UAV detection of marine litter/plastic on Black Sea beaches"
+    },
+    "SCI-005858": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Book 'Securing UAV networks' (title only, null abstract); network security topic.",
+      "A2_support": "Book on securing unmanned aerial vehicle networks"
+    },
+    "SCI-005911": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Human surveillance and activity recognition from drone videos; not agriculture.",
+      "A2_support": "Drone video human activity recognition on UAV-Human and Drone Action datasets"
+    },
+    "SCI-005994": {
+      "batch": "batch_0003",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "PENDING_ABSTRACT_PLATFORM_UNCLEAR",
+      "A2_reason": "PENDING_PLATFORM_UNSTATED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "YOLOv8 crop-and-weed detection on a 'dedicated dataset'; abstract omits acquisition platform (aerial vs ground).",
+      "A2_support": "YOLOv8 trained on a dedicated crop and weed detection dataset; platform not stated"
+    },
+    "SCI-006105": {
+      "batch": "batch_0006",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "PENDING_ABSTRACT_PLATFORM_UNCLEAR",
+      "A2_reason": "PENDING_PLATFORM_UNSTATED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "Ensemble weed detection on soybean/grass/broadleaf/soil images; acquisition platform (aerial vs ground) unstated.",
+      "A2_support": "Ensemble DL weed/crop classification on soybean-weed image dataset; aerial platform not stated"
+    },
+    "SCI-006214": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Agricultural-drone context but topic is an image-encryption scheme; no crop/weed mapping.",
+      "A2_support": "Chaotic encryption/compressed sensing for agricultural UAV image transmission; no mapping"
+    },
+    "SCI-006221": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV concept/classification for forensic examination of soldiery crimes; forensics.",
+      "A2_support": "UAV concept/classification for forensic examinations; Ukrainian-language text"
+    },
+    "SCI-006237": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "General UAV survey producing orthophoto/DTM/DSM for 120-ha area; geodesy, no crop/weed task.",
+      "A2_support": "Accuracy assessment of fixed-wing UAV spatial surveying data (DTM/DSM/orthophoto)"
+    },
+    "SCI-006252": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Binary task offloading in UAV-assisted edge computing; computation/networking.",
+      "A2_support": "Binary task offloading optimization in UAV-assisted edge computing"
+    },
+    "SCI-006256": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Lightweight wireless charging receiver for UAVs; power electronics.",
+      "A2_support": "Lightweight compact-receiver wireless charging system designed specifically for UAVs"
+    },
+    "SCI-006314": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Grey-wolf optimization path planning for bridge inspection; infrastructure.",
+      "A2_support": "Grey wolf optimization path planning for UAV bridge inspection"
+    },
+    "SCI-006379": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Multi-sensor UAV target recognition/classification (title only, null abstract); generic detection.",
+      "A2_support": "UAV multi-sensor target recognition and classification; no crop/weed signal"
+    },
+    "SCI-006409": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Laser particle-sensor UAV air-quality measurement; pollution monitoring.",
+      "A2_support": "UAV particle-sensor air quality fine-grained analysis (Co-KNN-DNN)"
+    },
+    "SCI-006433": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Korean title; cost analysis of defense UAV performance-based logistics; military economics.",
+      "A2_support": "Cost analysis of UAV performance-based logistics (military supply); Korean-language text"
+    },
+    "SCI-006488": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV wireless power transfer parameter detection and controller design; electronics.",
+      "A2_support": "Primary parameter detection and H-infinity control of UAV wireless power transfer"
+    },
+    "SCI-006614": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV computer-vision bird detection/deterrence in rice farms; wildlife damage per EXC-02, no weed/crop mapping.",
+      "A2_support": "UAV computer vision for real-time bird detection/deterrence in rice farms"
+    },
+    "SCI-006680": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV target detection integrating Deep SORT and wireless signals; counter-drone task.",
+      "A2_support": "UAV target detection with Deep SORT and wireless signals on VisDrone/COCO"
+    },
+    "SCI-006739": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Effectiveness evaluation of small UAV anti-terrorism operations with integrated attack; defense.",
+      "A2_support": "Effectiveness evaluation of anti-terrorism operations of small integrated detection/attack UAVs"
+    },
+    "SCI-006772": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Book chapter on UAV technology evolution, military/commercial uses; no crop/weed mapping study.",
+      "A2_support": "Historical/evolutionary chapter on UAV technology; no crop-weed mapping evidence"
+    },
+    "SCI-006813": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Systematic review of UAV path-planning mobility challenges (title only, null abstract); non-ag navigation.",
+      "A2_support": "Systematic review of UAV path planning mobility challenges"
+    },
+    "SCI-006856": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Evolution of military UAVs in modern warfare with doctrinal analysis; defense policy review.",
+      "A2_support": "Article on evolution of military UAVs in modern warfare and armed forces doctrine"
+    },
+    "SCI-006873": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Linear complementarity MPC for aerial physical interaction; robotics control.",
+      "A2_support": "Linear complementarity-based MPC for aerial physical interaction"
+    },
+    "SCI-006900": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Reinforcement-learning UAV flight-path planning software; navigation.",
+      "A2_support": "Reinforcement learning UAV flight path planning software implementation"
+    },
+    "SCI-007046": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Payload-centric aerial manipulation controller with two UAVs; robotics manipulation.",
+      "A2_support": "Payload-centric controller for two-UAV cooperative manipulation of a slender object"
+    },
+    "SCI-007047": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Design and fabrication of an all-terrain UAV airframe (title only); aerospace engineering.",
+      "A2_support": "Design and fabrication of all-terrain UAV airframe"
+    },
+    "SCI-007075": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Neural-network detection of UAV control signals for electronic-intelligence/counter-UAV; ESM.",
+      "A2_support": "Neural-network detection of UAV control signals for electronic intelligence"
+    },
+    "SCI-007279": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Visual land-cover interpretation of village orthophotos; no crop/weed mapping task.",
+      "A2_support": "Visual land cover classification of a village from drone orthophotos; general mapping, not crop/weed"
+    },
+    "SCI-007328": {
+      "batch": "batch_0002",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "PENDING_TITLE_ONLY_PLATFORM_UNCLEAR",
+      "A2_reason": "PENDING_PLATFORM_UNSTATED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "Title-only DINOv3/YOLO26 crop-weed detection toward vegetable weeding; abstract null, platform unstated.",
+      "A2_support": "Title: DINOv3 meets YOLO26 for enhanced crop-weed detection; abstract null, platform unstated"
+    },
+    "SCI-007338": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-borne cavity-enhanced albedometer instrument (title only, null abstract); atmospheric instrumentation.",
+      "A2_support": "UAV-borne cavity-enhanced albedometer instrumentation; abstract null, no crop/weed signal"
+    },
+    "SCI-007387": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Limited-intervention collaborative decision-making between manned aircraft and UAVs; airspace autonomy.",
+      "A2_support": "Collaborative decision-making mechanisms between manned aircraft and UAVs"
+    },
+    "SCI-007410": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "CSM-DETR construction-site object detection on UAV imagery; construction monitoring,",
+      "A2_support": "CSM-DETR transformer detection for UAV construction-site monitoring"
+    },
+    "SCI-007441": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Machine-learning optimization of UAV operations/energy in surveillance/cities; operations autonomy.",
+      "A2_support": "ML-driven optimization framework for UAV operations (trajectory/energy)"
+    },
+    "SCI-007454": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "YOLOv10-DFP small-target detection on VisDrone UAV images; generic detection.",
+      "A2_support": "YOLOv10-DFP small-target detection improved on VisDrone drone dataset"
+    },
+    "SCI-007497": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Learning-based cooperative rigid-payload transport by aerial manipulators; robotics.",
+      "A2_support": "Learning-based geometric leader-follower control for aerial manipulator payload transport"
+    },
+    "SCI-007547": {
+      "batch": "batch_0006",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "PENDING_ABSTRACT_PLATFORM_UNCLEAR",
+      "A2_reason": "PENDING_PLATFORM_UNSTATED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "VLMs (Grounding DINO, YOLO-World) achieve strong crop-weed detection but abstract never states acquisition platform.",
+      "A2_support": "VLM crop-weed detectors (Grounding DINO, YOLO-World, Qwen2.5-VL) with cross-season generalization; platform unstated"
+    },
+    "SCI-007640": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Bayesian network of UAV accident risk factors (title only, null abstract); safety analysis.",
+      "A2_support": "Bayesian network identification of key risk factors for UAV accidents"
+    },
+    "SCI-007662": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "High-payload fixed-wing UAV aerodynamic design (title only, null abstract); aircraft design.",
+      "A2_support": "Aerodynamic assessment of high-payload fixed-wing UAV; abstract null, no crop/weed signal"
+    },
+    "SCI-007721": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "TLBDNet tea leaf blight detection in UAV images; crop disease task per EXC-02.",
+      "A2_support": "TLBDNet detects tea leaf blight disease in UAV remote sensing images"
+    },
+    "SCI-007736": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV multispectral characterization of rare forest tree Quercus hondae; non-agricultural forestry.",
+      "A2_support": "UAV time-series multispectral identification of endangered tree species Quercus hondae in forest"
+    },
+    "SCI-007744": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Composite UAV wing fabrication framework for surveillance; structural/aero design.",
+      "A2_support": "Fabrication framework for glass-fiber composite UAV surveillance wing"
+    },
+    "SCI-007751": {
+      "batch": "batch_0001",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "PENDING_ABSTRACT_PLATFORM_UNCLEAR",
+      "A2_reason": "PENDING_PLATFORM_UNSTATED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "Abstract claims real-time weed detection and crop-quality AI but names no platform (UAV vs ground).",
+      "A2_support": "ML/DL weed detection and crop quality via computer vision and precision-agriculture sensors; platform not stated as UAV"
+    },
+    "SCI-007810": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "MIP scheduling for multi-UAV mountain forest-fire surveillance; wildfire patrol.",
+      "A2_support": "Mixed-integer scheduling of multi-UAV mountain forest fire surveillance"
+    },
+    "SCI-007840": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Wheat sowing-method and herbicide field experiment in Uttar Pradesh; ground agronomy.",
+      "A2_support": "Sowing methods and herbicide weed-management trial in wheat; no imagery"
+    },
+    "SCI-007868": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Universal-joint continuum manipulator for aerial manipulation incl. spot spraying; robotics.",
+      "A2_support": "Universal-joint continuum manipulator experimental evaluation for aerial manipulation"
+    },
+    "SCI-007889": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Fractional-order PID for dense multirotor swarm stability; flight control.",
+      "A2_support": "Fractional-order PID vs PID stabilization for dense multirotor swarm flight"
+    },
+    "SCI-007988": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Strawberry yield prediction with RS485 sensor network and UAV vision; yield estimation per EXC-02.",
+      "A2_support": "UAV vision and sensor network strawberry yield prediction with YOLOv8/LLM"
+    },
+    "SCI-008108": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Campus anomaly detection from UAV perspective (title only); security surveillance.",
+      "A2_support": "Campus anomaly detection systems from a UAV perspective"
+    },
+    "SCI-008110": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Improved Greylag Goose optimization applied to UAV path planning; metaheuristics.",
+      "A2_support": "Improved Greylag Goose optimization applied to UAV path planning"
+    },
+    "SCI-008199": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV photogrammetry for dimensional survey of timber building; architecture.",
+      "A2_support": "UAV photogrammetry 3D reconstruction for measuring timber building elements"
+    },
+    "SCI-008255": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Zigbee communication protocol for UAV networks; FANET networking.",
+      "A2_support": "Zigbee protocol communication network evaluation for multi-UAV systems"
+    },
+    "SCI-008319": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV vs knapsack sprayer droplet deposition and Phytophthora/aphid control; plant-protection spraying, no weed mapping.",
+      "A2_support": "UAV sprayer droplet deposition and control efficacy against pepper disease Phytophthora and aphids"
+    },
+    "SCI-008408": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Window detection from oblique UAV images and point clouds; building facade modeling.",
+      "A2_support": "Window detection in building facades from oblique UAV images and point clouds"
+    },
+    "SCI-008422": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Green mango fruit detection and count estimation by UAV; yield estimation per EXC-02.",
+      "A2_support": "UAV detection/counting of green mango fruits for yield estimation"
+    },
+    "SCI-008465": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Multi-UAV cooperative acoustic source localization; signal localization, no agriculture.",
+      "A2_support": "Multi-UAV acoustic source localization via coordinated range/direction measurements"
+    },
+    "SCI-008523": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Offset-free MPC trajectory tracking for VTOL ducted-fan UAV; flight control.",
+      "A2_support": "Offset-free MPC trajectory tracking control of ducted-fan VTOL UAV"
+    },
+    "SCI-008533": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Russian-language UAV landing maneuver control onto moving platform; flight control.",
+      "A2_support": "Terminal landing maneuver control of UAV on moving platform; Russian-language text"
+    },
+    "SCI-008547": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Roundabout fastest-path study extracting vehicle trajectories from UAVs; traffic engineering.",
+      "A2_support": "Fastest-path analysis at roundabouts using vehicle trajectories from UAVs"
+    },
+    "SCI-008633": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Monocular obstacle-avoidance UAV path planning (title only, null abstract); navigation.",
+      "A2_support": "Monocular vision obstacle avoidance trajectory planning for UAV"
+    },
+    "SCI-008637": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Vicsek model with combined auditory/visual sensing; collective behavior, no UAV or agriculture.",
+      "A2_support": "Auditory/visual sensing cues in a modified Vicsek collective behavior model"
+    },
+    "SCI-008695": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Hybrid differential evolution 3D UAV route planning; navigation.",
+      "A2_support": "Hybrid differential evolution 3D route planning for fixed-wing UAV"
+    },
+    "SCI-008764": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "IoT-UAV rice pest detection via cloud image tags; pest detection per EXC-02.",
+      "A2_support": "IoT-UAV rice pest detection model using Imagga cloud classification"
+    },
+    "SCI-008803": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Autonomous firefighting micro-UAV inside buildings; firefighting robotics.",
+      "A2_support": "Autonomous firefighting inside buildings by micro-scale UAV"
+    },
+    "SCI-008806": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Simulation of battery-depletion attacks on UAVs; cybersecurity.",
+      "A2_support": "Simulation and assessment of battery depletion attacks on UAVs"
+    },
+    "SCI-008809": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Securing communications with friendly UAV jammers; physical-layer security.",
+      "A2_support": "Secrecy transmission analysis of friendly UAV jammers against eavesdroppers"
+    },
+    "SCI-008859": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Nozzle enabling strategy for crop-protection UAS spray deposition; spraying engineering, no weed mapping.",
+      "A2_support": "Nozzle enabling strategy effect on spray deposition of crop protection UAS"
+    },
+    "SCI-008902": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Adaptive Kalman filter estimating measurement-loss probability; pure estimation algorithm, no UAV crop/weed signal.",
+      "A2_support": "Adaptive Kalman filter estimating measurement-loss probability; generic filtering no UAV-weed task"
+    },
+    "SCI-009056": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Reinforcement-learning smart flight controller for UAV; control.",
+      "A2_support": "Reinforcement learning smart flight controller for UAV hover control"
+    },
+    "SCI-009062": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Wheat yellow-rust disease recognition from UAV images; disease task per EXC-02.",
+      "A2_support": "PSPNet recognizes wheat yellow rust disease from UAV images"
+    },
+    "SCI-009070": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Energy-efficient clustering for UAV-enabled heterogeneous wireless sensor networks; networking.",
+      "A2_support": "Energy-efficient clustering/data-gathering for UAV-enabled heterogeneous wireless sensor networks"
+    },
+    "SCI-009121": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Winglet aerodynamic comparison at low Reynolds number; CFD aero design.",
+      "A2_support": "Winglet aerodynamic performance comparison for UAV at low Reynolds number"
+    },
+    "SCI-009132": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Autonomous micro-UAV landing with assistive platform; navigation.",
+      "A2_support": "Autonomous micro-UAV landing with assistive platform and spherical object detection"
+    },
+    "SCI-009225": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Indonesian NDVI classification of paddy fertility/growth; crop condition, no weed task.",
+      "A2_support": "UAV NDVI unsupervised classification of rice crop fertility; Indonesian text"
+    },
+    "SCI-009269": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Security threats and countermeasures for UAV communications; network security review.",
+      "A2_support": "Review of UAV communication security threats and countermeasures"
+    },
+    "SCI-009336": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Autonomous UAV 3D documentation of historical monuments; cultural heritage survey.",
+      "A2_support": "Autonomous UAV documentation/3D scanning of historical monuments"
+    },
+    "SCI-009427": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Fuzzy brain emotional learning controller for quadcopter tracking; control.",
+      "A2_support": "Bidirectional fuzzy brain-emotional-learning adaptive control of quadcopter with payload uncertainty"
+    },
+    "SCI-009445": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAVs for geophysical observations of Earth's physical fields; geoscience sensing.",
+      "A2_support": "UAV-based geophysical observations of Earth physical fields"
+    },
+    "SCI-009520": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "k-out-of-n reliability of tethered UAV (title only, null abstract); reliability engineering.",
+      "A2_support": "k-out-of-n system and ML reliability analysis of tethered UAV"
+    },
+    "SCI-009569": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Korean MQTT remote recovery of polar biologger data by UAV; wildlife telemetry.",
+      "A2_support": "MQTT system to remotely recover polar biologger data using UAVs; Korean-language text"
+    },
+    "SCI-009579": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Chinese title: improved YOLOv4 for drone optical-communication capture/positioning; comms task.",
+      "A2_support": "Improved YOLOv4 for UAV optical-communication capture/localization; Chinese-language title"
+    },
+    "SCI-009604": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "In-situ UAV observations of wind-turbine wakes; wind-energy meteorology.",
+      "A2_support": "In situ UAV observations of wind turbine wakes in the MOMEMTA project"
+    },
+    "SCI-009626": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV oblique photography characterizing marine shale outcrop; geology.",
+      "A2_support": "Marine shale outcrop characterization from UAV oblique photographic data"
+    },
+    "SCI-009663": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV hyperspectral inversion of iron content in mining areas; geology, no crops/weeds.",
+      "A2_support": "UAV hyperspectral inversion of iron content in mining tailings reservoirs"
+    },
+    "SCI-009669": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Joint waveform selection/power allocation for hybrid UAV swarm radar tracking; defense.",
+      "A2_support": "Waveform selection and power allocation for manned/unmanned UAV hybrid swarm radar tracking"
+    },
+    "SCI-009701": {
+      "batch": "batch_0003",
+      "A1": "PENDING",
+      "A2": "PENDING",
+      "A1_reason": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "A2_reason": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+      "suggested_action": "PENDING/TIE",
+      "A1_support": "Title-only: UAV pesticide spraying drift and drift reduction using maize; abstract null—pending retrieval.",
+      "A2_support": "Title: pesticide drift residual patterns from UAV spraying and reduction using maize; abstract null"
+    },
+    "SCI-009886": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Two-phase planning of hazardous-waste collection by UAV; operations research.",
+      "A2_support": "Two-phase planning of hazardous waste collection using a UAV"
+    },
+    "SCI-009910": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "DQN-OLSR routing for UAV ad-hoc networks; networking QoS.",
+      "A2_support": "DQN-OLSR routing protocol for UAV ad-hoc networks"
+    },
+    "SCI-010013": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Multiagent reinforcement learning for multi-UAV navigation/delivery; distributed control.",
+      "A2_support": "Multiagent reinforcement learning navigation control for multiple UAVs"
+    },
+    "SCI-010064": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Recycled fabric-waste composite for UAV airframe structure; materials testing.",
+      "A2_support": "Mechanical characterization of recycled fabric composites for UAV structures"
+    },
+    "SCI-010108": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Review of UAV photogrammetric DEM accuracy; geospatial review, non-agricultural.",
+      "A2_support": "Review of UAV photogrammetric DEM accuracy assessment; geodesy not crop/weed"
+    },
+    "SCI-010264": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Reconfigurable capacitive wireless charging for UAV landing gears; power electronics.",
+      "A2_support": "Misalignment-tolerant lightweight capacitive wireless charging for UAV landing gears"
+    },
+    "SCI-010450": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Deep learning classification of coastal salt-marsh halophytes from UAV RGB; natural wetland vegetation.",
+      "A2_support": "UAV deep learning classification of halophyte species in coastal salt marsh"
+    },
+    "SCI-010519": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Supervisory control of multi-UAV tributary (river) mapping; watercourse survey, not agriculture.",
+      "A2_support": "Supervisory control of multi-UAV leader-follower mapping of broad tributary areas"
+    },
+    "SCI-010606": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Probability of UAV trajectory deviation under wind; airspace safety simulation.",
+      "A2_support": "Probability of UAV trajectory deviation under wind with six-DOF simulation"
+    },
+    "SCI-010646": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Barriers to UAV adoption by rural Indian farmers; adoption study, no crop/weed mapping evaluation.",
+      "A2_support": "Barriers to UAV adoption for precision agriculture in India; adoption survey, no mapping method"
+    },
+    "SCI-010662": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "High-power microwave pulse-induced UAV electronics failure; electromagnetic damage.",
+      "A2_support": "High-power microwave pulse-induced damage experiments on UAV systems"
+    },
+    "SCI-010664": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Estuarine mangrove ecosystem changes from UAV images (title only); coastal habitat, not ag.",
+      "A2_support": "UAV investigation of estuarine mangrove ecosystem changes in national park"
+    },
+    "SCI-010685": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV conflict detection/management in U-Space urban airspace; air-traffic safety.",
+      "A2_support": "Centralized UAV conflict detection in U-Space urban airspace"
+    },
+    "SCI-010695": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV image-acquisition quality standardization for crop phenotyping protocols; phenotyping per EXC-02.",
+      "A2_support": "UAV phenotyping image-acquisition standardization for canopy cover; protocol/quality study"
+    },
+    "SCI-010726": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Chinese-fir plantation crown extraction and growth from UAV-LiDAR; forestry.",
+      "A2_support": "UAV-LiDAR crown extraction and annual growth of Chinese fir plantation; forestry"
+    },
+    "SCI-010777": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Aerial swarm defense via interception and herding strategies; security game.",
+      "A2_support": "Swarm interception/herding strategies defending an area from attacking agents"
+    },
+    "SCI-010799": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV hyperspectral stain detection on photovoltaic modules; solar plant maintenance.",
+      "A2_support": "UAV hyperspectral stain detection on photovoltaic modules"
+    },
+    "SCI-010825": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_PLATFORM",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Unmanned GROUND vehicle for pesticide spraying in chilli; explicitly UGV, not aerial.",
+      "A2_support": "Low-cost unmanned ground vehicle for pesticide spraying in chilli crop"
+    },
+    "SCI-010832": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Pruned YOLOv4 + SiamMask UAV object detection/tracking; generic vision, no ag targets.",
+      "A2_support": "Pruned YOLOv4 + SiamMask real-time detection/tracking for UAV platforms"
+    },
+    "SCI-010919": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Multi-UAV anti-submarine cooperation search; military maritime mission.",
+      "A2_support": "Multi-UAV cooperative anti-submarine search with knowledge-driven soft actor-critic"
+    },
+    "SCI-011010": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Pixel-level UAV identification of bridge concrete cracks; infrastructure inspection.",
+      "A2_support": "Pixel-level crack identification for bridge concrete structures from UAV imagery"
+    },
+    "SCI-011015": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Multi-UAV cooperative hunting system with MADDPG (title only, null abstract); military robotics.",
+      "A2_support": "Multi-UAV cooperative hunting system based on MADDPG"
+    },
+    "SCI-011016": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Pre-plant herbicide mixture field trial in soybean; ground agronomy, no imagery.",
+      "A2_support": "Pre-plant incorporation herbicide mixtures trial in soybean; no imaging platform"
+    },
+    "SCI-011028": {
+      "batch": "batch_0002",
+      "A1": "INCLUDE",
+      "A2": "INCLUDE",
+      "A1_reason": "INC-01;INC-02",
+      "A2_reason": "INC-01;INC-02",
+      "suggested_action": "INCLUDE",
+      "A1_support": "UAV photos in lab bench: YOLOv5/YOLOv8 count corn plants and weeds, degree of weediness.",
+      "A2_support": "Assesses agrotechnical parameters from UAV photos; counts corn, weeds, weediness via YOLOv5/YOLOv8"
+    },
+    "SCI-011091": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Autonomous UAV LiDAR exploration of post-disaster infrastructure; inspection.",
+      "A2_support": "Autonomous UAV exploration platform scanning post-disaster infrastructure with LiDAR"
+    },
+    "SCI-011096": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "YOLOv3 building structural-crack detection with UAV systems (title only); civil inspection.",
+      "A2_support": "YOLOv3 structural crack detection in buildings with autonomous UAV"
+    },
+    "SCI-011111": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Landing/rollout dynamics of skid-equipped aircraft (title only, null abstract); aviation.",
+      "A2_support": "Landing and rollout dynamic characteristics of skid-equipped aircraft"
+    },
+    "SCI-011138": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV night monitoring of forest-fire firefront (title only, null abstract); wildfire.",
+      "A2_support": "Night monitoring of forest fire firefront evolution using UAVs"
+    },
+    "SCI-011282": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Digital-twin anomaly detection of UAV rotary engine; engine health monitoring.",
+      "A2_support": "Fixed-wing UAV rotary engine anomaly detection via online digital twin methods"
+    },
+    "SCI-011284": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Flight-data anomaly detection of UAV via autoencoder; aircraft health monitoring.",
+      "A2_support": "Spatial-temporal autoencoder anomaly detection from UAV flight data"
+    },
+    "SCI-011320": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Intelligent forest fire detection using UAVs; wildfire/smoke task.",
+      "A2_support": "Forest fire/smoke detection with UAV video and YOLO segmentation"
+    },
+    "SCI-011379": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Concrete crack assessment with UAV deep neural networks (title only, null abstract); civil inspection.",
+      "A2_support": "Real-time surface crack assessment of concrete structures using UAV and deep networks"
+    },
+    "SCI-011409": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Larch caterpillar infestation severity from UAV multispectral/LiDAR; forest pest task.",
+      "A2_support": "UAV multispectral/LiDAR identification of larch caterpillar infestation severity in forests"
+    },
+    "SCI-011412": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV RGB detection of larch needle pests; forest pest identification per EXC-02.",
+      "A2_support": "UAV RGB detection of larch needle pest Erannis jacobsoni in forests"
+    },
+    "SCI-011439": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV base-station density formula for urban line-of-sight probability; cellular planning.",
+      "A2_support": "Estimation formula for UAV base station density and line-of-sight probability"
+    },
+    "SCI-011484": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Mustard residue extract plus herbicide field trial for wheat weed control; ground agronomy.",
+      "A2_support": "Mustard residue extract plus herbicide trial for weed control in wheat; agronomy no UAV"
+    },
+    "SCI-011632": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "VHF synthetic-aperture radar resolution on UAV carrier; remote-sensing hardware.",
+      "A2_support": "VHF SAR antenna spatial resolution estimation along real UAV flight path"
+    },
+    "SCI-011652": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-assisted vehicular authentication scheme in V2X edge networks; security protocol.",
+      "A2_support": "UAV-assisted vehicular authentication scheme in edge computing networks"
+    },
+    "SCI-011823": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Event-triggered DNN sliding-mode attitude control of quadcopters; control theory.",
+      "A2_support": "Event-triggered adaptive DNN sliding mode attitude control of quadcopters"
+    },
+    "SCI-011830": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Open-source FPV flight platform and simulation for UAV autonomy research; hardware.",
+      "A2_support": "Open-source FPV flight hardware/simulation for studying UAV autonomy"
+    },
+    "SCI-011898": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Air-to-air UAV detection in airspace on Det-Fly dataset; no agricultural crop/weed mapping.",
+      "A2_support": "Air-to-air UAV detection on Det-Fly dataset; drone detection, not agricultural crop/weed mapping"
+    },
+    "SCI-011920": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV urban visual localization by building shape/spatial matching; navigation.",
+      "A2_support": "UAV visual localization in urban scenes via building shape/spatial matching"
+    },
+    "SCI-011930": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Radio-map-based UAV cargo pickup/delivery trajectory design; logistics.",
+      "A2_support": "Trajectory optimization for UAV cargo pickup and delivery with radio map"
+    },
+    "SCI-012004": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Minimum-jerk soft-landing guidance on moving platform; control.",
+      "A2_support": "Minimum-jerk guidance for autonomous soft-landing of UAV on moving platform"
+    },
+    "SCI-012005": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "FPGA adaptive multi-channel interference filter for radio systems; signal processing.",
+      "A2_support": "FPGA adaptive multi-channel filter system for radio-electronic interference suppression"
+    },
+    "SCI-012043": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "MPC trajectory generation for UAV landing on moving boat; marine control.",
+      "A2_support": "MPC trajectory generation for UAV landing on a moving boat deck"
+    },
+    "SCI-012054": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-released fire-extinguishing bombs on transmission-line wildfires; firefighting.",
+      "A2_support": "UAV releasing fire-extinguishing bombs on transmission-line wildfires"
+    },
+    "SCI-012098": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Biomass/carbon mapping of cork oak forests with UAV LiDAR; forestry vegetation, not farmland.",
+      "A2_support": "UAV LiDAR biomass and carbon stock modeling in cork oak forest"
+    },
+    "SCI-012149": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Portuguese title; UAV operations in Brazilian joint military theatre; airspace coordination.",
+      "A2_support": "UAV operations in joint military operational theater (Brazilian Armed Forces); Portuguese"
+    },
+    "SCI-012155": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_REPORT_TYPE",
+      "A2_reason": "WRONG_REPORT_TYPE",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "A 'Correction:' notice for a maize canopy-temperature UAV remote-sensing paper; meta-publication.",
+      "A2_support": "Record is a 'Correction:' notice for a published article"
+    },
+    "SCI-012231": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Solid particle spreader (groove wheel) design for UAV broadcasting; application hardware, no weed mapping.",
+      "A2_support": "Optimized groove wheel spreader for UAV solid-particle discharge; application hardware, not mapping"
+    },
+    "SCI-012296": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Cross-view person re-identification between fixed cameras and UAV; surveillance task.",
+      "A2_support": "Cross-view person re-identification between fixed cameras and UAVs on AG-ReID"
+    },
+    "SCI-012331": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Reliability analysis of UAV swarms with binary/multi-state system models; availability mathematics.",
+      "A2_support": "Availability/reliability models (BSS vs MSS) for UAV swarms"
+    },
+    "SCI-012390": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Grey-correlation quality evaluation of UAV ground shelter/cabin; hardware quality.",
+      "A2_support": "Grey correlation quality evaluation of UAV ground shelter"
+    },
+    "SCI-012422": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Hypersonic aircraft trajectory planning (title only); aerospace, not UAV crop mapping.",
+      "A2_support": "Hypersonic aircraft trajectory planning by relative entropy programming"
+    },
+    "SCI-012477": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Grape basal crop coefficient/evapotranspiration from UAV multispectral; water-use estimation, no weed mapping.",
+      "A2_support": "UAV multispectral estimation of grape basal crop coefficient for evapotranspiration"
+    },
+    "SCI-012604": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV hyperspectral detection of corn biomass/chlorophyll/nitrogen at plant scale; phenotyping/physiology.",
+      "A2_support": "UAV hyperspectral detection of corn biomass, chlorophyll, nitrogen; trait estimation not weed mapping"
+    },
+    "SCI-012641": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Low-Reynolds NACA 0015 airfoil study for UAV (title only, null abstract); aerodynamics.",
+      "A2_support": "Low-Reynolds NACA 0015 airfoil variations for UAV implementation"
+    },
+    "SCI-012655": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Genetic algorithm fused with particle swarm for UAV path planning; navigation.",
+      "A2_support": "Genetic algorithm + particle swarm fusion for UAV path planning"
+    },
+    "SCI-012732": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAVs for construction lifecycle management with blockchain; construction industry.",
+      "A2_support": "UAV support of construction object lifecycle management with blockchain"
+    },
+    "SCI-012776": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Open-vocabulary UAV segmentation for unseen general categories (disaster/urban); no crop-weed evaluation.",
+      "A2_support": "Open-vocabulary semantic segmentation of UAV imagery; agriculture only a listed application"
+    },
+    "SCI-012784": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Chinese-language UAV image extraction of methane ebullition bubbles in frozen reservoir; limnology.",
+      "A2_support": "UAV imagery to identify methane ebullition hotspots in ice-covered reservoir"
+    },
+    "SCI-012808": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-ISAC secrecy-rate optimization; communications, no vegetation mapping.",
+      "A2_support": "Secrecy rate optimization for STAR-RIS UAV integrated sensing and communication systems"
+    },
+    "SCI-012881": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "System identification of small hybrid UAV dynamics with differential evolution; flight modeling.",
+      "A2_support": "System identification of hybrid UAV flight dynamics using differential evolution"
+    },
+    "SCI-012909": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "STM32 quadcopter flight-control software design; embedded control.",
+      "A2_support": "STM32 software control system design for quadcopter UAV"
+    },
+    "SCI-012914": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Spray-adjuvant droplet deposition on mango leaves from UAV pesticide spraying; application engineering.",
+      "A2_support": "Spray adjuvant droplet deposition/anti-drift for UAV-sprayed pesticides on mango"
+    },
+    "SCI-013054": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Event-triggered robust UAV tracking control (title only, null abstract); control theory.",
+      "A2_support": "Robust event-triggered tracking control of UAV with non-vanishing disturbances"
+    },
+    "SCI-013066": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV vector-bracket structural optimization for thrust/lift in agriculture; no crop/weed mapping task.",
+      "A2_support": "Structural optimization of VTOL agricultural UAV vector bracket aerodynamics; no mapping task"
+    },
+    "SCI-013121": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Label reassignment for generic UAV small-object detection; no agricultural targets.",
+      "A2_support": "Label reassignment for UAV object detectors on dense small targets"
+    },
+    "SCI-013167": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Lightweight YOLO real-time small-object detection on infrared UAV imagery; generic detection targets.",
+      "A2_support": "YOLO-SRMX lightweight detection evaluated on HIT-UAV infrared dataset"
+    },
+    "SCI-013249": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Ukrainian title; computer-vision problems for autonomous/swarm UAV decision-making; non-ag vision.",
+      "A2_support": "Computer-vision decision-making problems for autonomous UAV swarms; Ukrainian-language text"
+    },
+    "SCI-013257": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Modeling resources/capabilities of UAV swarms (title only, null abstract); systems engineering.",
+      "A2_support": "Formal modeling and verification of resources/capabilities for UAV swarms"
+    },
+    "SCI-013353": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV-created 3D model of a residential property; cadastral/geodesy survey.",
+      "A2_support": "3D model creation of real estate property using UAV"
+    },
+    "SCI-013365": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Systematic review of thrust-vectoring technology in UAVs; propulsion review, non-agricultural.",
+      "A2_support": "Review of thrust vectoring technology applications in UAVs"
+    },
+    "SCI-013387": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Machine-learning detection of GPS spoofing/jamming cyberattacks on UAVs; cybersecurity.",
+      "A2_support": "Machine learning detection of GPS spoofing/jamming cyberattacks on UAVs"
+    },
+    "SCI-013389": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_PLATFORM",
+      "A2_reason": "WRONG_PLATFORM",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "IoT-based ground mechatronic device for pesticide spraying/weed control; no UAV imagery.",
+      "A2_support": "IoT mechatronic (NodeMCU/Arduino, pumps, sensors) platform for weed control/spraying; ground device"
+    },
+    "SCI-013464": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Reed-dominated Volga-delta biomass/height mapping with satellite + drone; natural wetland, not farmland.",
+      "A2_support": "Reed (Phragmites) community biomass/height mapping in Volga Delta; wetland vegetation not crop/weed"
+    },
+    "SCI-013470": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "P&O MPPT efficiency for solar-powered UAV at altitude; energy harvesting.",
+      "A2_support": "P&O MPPT efficiency comparison for solar-powered UAVs at varying altitudes"
+    },
+    "SCI-013527": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Deep-learning vehicle re-identification in urban traffic (title only, null abstract); surveillance.",
+      "A2_support": "Deep learning vehicle re-identification in urban traffic monitoring"
+    },
+    "SCI-013547": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Ukrainian title; UAV flight planning for critical-infrastructure monitoring; routing, non-ag.",
+      "A2_support": "UAV flight planning for critical infrastructure monitoring; Ukrainian-language text"
+    },
+    "SCI-013592": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV aeromagnetic/geophysical search for gold-bearing intrusions; mineral exploration.",
+      "A2_support": "UAV aeromagnetic/induced polarization geophysics for gold exploration"
+    },
+    "SCI-013669": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Corrigendum to a UAV thermal imaging PV-plant review; erratum, photovoltaics topic.",
+      "A2_support": "Corrigendum for a review on UAV thermal imaging of PV power plants; non-agricultural topic"
+    },
+    "SCI-013684": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Portuguese title; autoencoder image compression for UAV search-and-rescue; non-ag.",
+      "A2_support": "Autoencoder image compression for UAV search-and-rescue operations; Portuguese text"
+    },
+    "SCI-013723": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "PEM fuel-cell system development and flight simulation for UAVs; propulsion energy.",
+      "A2_support": "Development of proton exchange membrane fuel cell power system for UAVs"
+    },
+    "SCI-013734": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Variable residual coefficient RIEKF for UAV GNSS/SINS positioning; navigation filtering.",
+      "A2_support": "GNSS/SINS tightly coupled robust positioning filter for rotor UAV"
+    },
+    "SCI-013748": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Marine macroalga Lessonia assessment model with UAV/GIS (title only, null abstract); seaweed, not ag weeds.",
+      "A2_support": "UAV/GIS macroalgal assessment of Lessonia complex; marine algae not ag crop/weed"
+    },
+    "SCI-013765": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Reinforcement-learning framework for fixed-wing UAV autopilots (title only); navigation task.",
+      "A2_support": "Curriculum-guided reinforcement learning framework for fixed-wing UAV autopilots"
+    },
+    "SCI-013766": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV crop-monitoring adoption survey (TAM/TPB) and training curriculum; no crop/weed mapping evaluation.",
+      "A2_support": "TAM/TPB UAV-adoption survey and educational crop-monitoring framework; no mapping evaluation"
+    },
+    "SCI-013823": {
+      "batch": "batch_0004",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Drone LiDAR detection of truck dimensions for road safety; traffic management.",
+      "A2_support": "Drone LiDAR detection of truck dimensions for road safety"
+    },
+    "SCI-013830": {
+      "batch": "batch_0003",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "CFD/PIV coupling of agricultural-UAV downwash and droplet field; spraying physics, no weed mapping.",
+      "A2_support": "CFD/PIV of agricultural UAV downwash and droplet field for pesticide spraying"
+    },
+    "SCI-013871": {
+      "batch": "batch_0006",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Ultralight tethered-UAV launch/recovery station on small UGVs; platform hardware.",
+      "A2_support": "Ultralight launch-and-recovery system for tethered micro-UAVs on UGVs"
+    },
+    "SCI-013920": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "UAV multi-angle BRDF reflectance dataset of wheat/peach canopies; no weed or crop discrimination task.",
+      "A2_support": "Multi-angle BRDF reflectance dataset over wheat and peach canopies; not crop/weed mapping"
+    },
+    "SCI-013930": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Review of UAV surveying of large wild animals; wildlife monitoring, not agricultural crop/weed mapping.",
+      "A2_support": "Review of UAV surveying/monitoring of large wild vertebrates; wildlife, not crop/weed"
+    },
+    "SCI-013964": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Identity-based authentication/key exchange for UAV networks; cryptography.",
+      "A2_support": "Identity-based authentication/key exchange cryptography for UAV environments"
+    },
+    "SCI-013985": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Wind-aware UAV routing in low-altitude urban airspace; air mobility.",
+      "A2_support": "Wind-aware UAV routing in low-altitude urban airspace under FAA Part 107"
+    },
+    "SCI-013998": {
+      "batch": "batch_0005",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Improved RNN real-time UAV trajectory optimization; planning algorithms.",
+      "A2_support": "Real-time UAV trajectory optimization with improved recurrent neural network"
+    },
+    "SCI-013999": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Wireless power transfer coupler for stacked UAV swarm charging; power electronics.",
+      "A2_support": "Wireless power transfer coupler for stacked UAV swarm charging"
+    },
+    "SCI-014031": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "Fixed-time robust quadrotor control chapter (title only); flight control.",
+      "A2_support": "Fixed-time robust control of quadrotor UAV with disturbance rejection; also year 2027 outside window"
+    },
+    "SCI-014077": {
+      "batch": "batch_0001",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "High-throughput UAV phenomics for lettuce biomass prediction; phenotyping per EXC-02.",
+      "A2_support": "UAV phenomics predicts single-plant lettuce biomass; plant phenotyping task"
+    },
+    "SCI-014105": {
+      "batch": "batch_0002",
+      "A1": "EXCLUDE",
+      "A2": "EXCLUDE",
+      "A1_reason": "WRONG_TASK",
+      "A2_reason": "WRONG_TASK",
+      "suggested_action": "EXCLUDE",
+      "A1_support": "QAOA urban congestion prediction and routing; traffic, no UAV mapping.",
+      "A2_support": "QAOA urban congestion prediction and path optimization; no UAV crop context"
+    }
+  }
+}

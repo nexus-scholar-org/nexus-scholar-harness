@@ -1,0 +1,298 @@
+{
+ "task": "v03 scr1 near-twin dedup gap probe (#5)",
+ "stats": {
+  "corpus_docs": 14150,
+  "pairs_pass1_exact": 284,
+  "pairs_pass2_jaccard": 72,
+  "pairs_total": 356,
+  "cluster_coverage": {
+   "already_shared_cluster": 0,
+   "different_clusters_dedup_missed": 356,
+   "missing_cluster_id": 0
+  },
+  "missed_lane_distribution": {
+   "other": 38,
+   "both-mutual-INCLUDE": 6,
+   "both-mutual-EXCLUDE": 310,
+   "INCLUDE-split": 2
+  },
+  "missed_by_pass": {
+   "1": 284,
+   "2": 72
+  },
+  "provider_pair_labels_missed": {
+   "arxiv | openalex": 1,
+   "openalex | openalex": 34,
+   "crossref | openalex": 2,
+   "crossref | crossref": 319
+  },
+  "provider_pair_labels_all": {
+   "arxiv | openalex": 1,
+   "openalex | openalex": 34,
+   "crossref | openalex": 2,
+   "crossref | crossref": 319
+  }
+ },
+ "examples_up_to_20": [
+  {
+   "pass": 2,
+   "jaccard": 0.9375,
+   "title_a": "Using planetscope imagery to evaluate herbicide efficacy in maize (Zea mays) through post-application weed detection",
+   "title_b": "Correction to: Using planetscope imagery to evaluate herbicide efficacy in maize (Zea mays) through post-application weed detection",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-incl | mutual-exc",
+   "cluster_a": 693,
+   "cluster_b": 853,
+   "providers": "openalex | openalex"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9286,
+   "title_a": "WeedNet: a foundation model-based global-to-local AI approach for weed species identification and classification",
+   "title_b": "WeedNet: A Foundation Model-Based Global-to-Local AI Approach for Real-Time Weed Species Identification and Classification",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-incl | other",
+   "cluster_a": 513,
+   "cluster_b": 545,
+   "providers": "openalex | openalex"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9231,
+   "title_a": "Editorial: Advanced technologies of UAV application in crop pest, disease and weed control",
+   "title_b": "Advanced Technologies of UAV Application in Crop Pest, Disease and Weed Control",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | other",
+   "cluster_a": 515,
+   "cluster_b": 5049,
+   "providers": "openalex | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9167,
+   "title_a": "Peer Review #2 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "title_b": "Peer Review #1 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1403,
+   "cluster_b": 1415,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9167,
+   "title_a": "Peer Review #2 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "title_b": "Peer Review #3 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1403,
+   "cluster_b": 1462,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9167,
+   "title_a": "Peer Review #1 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.2)\"",
+   "title_b": "Peer Review #1 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1411,
+   "cluster_b": 1415,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9167,
+   "title_a": "Peer Review #1 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "title_b": "Peer Review #3 of \"Automated mapping of Portulacaria afra canopies for restoration monitoring with convolutional neural networks and heterogeneous unmanned aerial vehicle imagery (v0.1)\"",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1415,
+   "cluster_b": 1462,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9286,
+   "title_a": "Review for \"Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning\"",
+   "title_b": "Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1477,
+   "cluster_b": 5804,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9286,
+   "title_a": "Review for \"Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning\"",
+   "title_b": "Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1483,
+   "cluster_b": 5804,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9286,
+   "title_a": "Review for \"Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning\"",
+   "title_b": "Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1507,
+   "cluster_b": 5804,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9286,
+   "title_a": "Review for \"Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning\"",
+   "title_b": "Autopilot control unmanned aerial vehicle system for sewage defect detection using deep learning",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1509,
+   "cluster_b": 5804,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9444,
+   "title_a": "Review for \"Druid Drone—A portable unmanned aerial vehicle with a multifunctional manipulator for forest canopy and mistletoe research and management\"",
+   "title_b": "Druid Drone—A portable unmanned aerial vehicle with a multifunctional manipulator for forest canopy and mistletoe research and management",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1557,
+   "cluster_b": 10117,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9444,
+   "title_a": "Review for \"Druid Drone—A portable unmanned aerial vehicle with a multifunctional manipulator for forest canopy and mistletoe research and management\"",
+   "title_b": "Druid Drone—A portable unmanned aerial vehicle with a multifunctional manipulator for forest canopy and mistletoe research and management",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1566,
+   "cluster_b": 10117,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9444,
+   "title_a": "Review for \"Druid Drone—A portable unmanned aerial vehicle with a multifunctional manipulator for forest canopy and mistletoe research and management\"",
+   "title_b": "Druid Drone—A portable unmanned aerial vehicle with a multifunctional manipulator for forest canopy and mistletoe research and management",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1568,
+   "cluster_b": 10117,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9091,
+   "title_a": "Review for \"Unmanned aerial vehicle navigation in underground structure inspection: A review\"",
+   "title_b": "Unmanned aerial vehicle navigation in underground structure inspection: A review",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1619,
+   "cluster_b": 5589,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9091,
+   "title_a": "Review for \"Unmanned aerial vehicle navigation in underground structure inspection: A review\"",
+   "title_b": "Unmanned aerial vehicle navigation in underground structure inspection: A review",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1620,
+   "cluster_b": 5589,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9091,
+   "title_a": "Review for \"Unmanned aerial vehicle navigation in underground structure inspection: A review\"",
+   "title_b": "Unmanned aerial vehicle navigation in underground structure inspection: A review",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1622,
+   "cluster_b": 5589,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9091,
+   "title_a": "Review for \"Unmanned aerial vehicle navigation in underground structure inspection: A review\"",
+   "title_b": "Unmanned aerial vehicle navigation in underground structure inspection: A review",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1626,
+   "cluster_b": 5589,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9091,
+   "title_a": "Review for \"Unmanned aerial vehicle navigation in underground structure inspection: A review\"",
+   "title_b": "Unmanned aerial vehicle navigation in underground structure inspection: A review",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1650,
+   "cluster_b": 5589,
+   "providers": "crossref | crossref"
+  },
+  {
+   "pass": 2,
+   "jaccard": 0.9091,
+   "title_a": "Review for \"Unmanned aerial vehicle navigation in underground structure inspection: A review\"",
+   "title_b": "Unmanned aerial vehicle navigation in underground structure inspection: A review",
+   "doi_a": null,
+   "doi_b": null,
+   "lanes": "mutual-exc | mutual-exc",
+   "cluster_a": 1654,
+   "cluster_b": 5589,
+   "providers": "crossref | crossref"
+  }
+ ],
+ "include_split_impact": {
+  "include_split_missed_pairs": 2,
+  "note": "INCLUDE-split pairs = one member on mutual-INCLUDE lane, other on mutual-EXCLUDE lane; if both are the same work and dedup failed to merge them, PRISMA include/exclude counts are corrupted (same work double-counted on opposite sides).",
+  "include_split_examples": [
+   {
+    "pass": 1,
+    "title_a": "Evaluation of water hyacinth (Eichhornia crassipes) response to herbicides using unmanned aerial system imagery",
+    "title_b": "Evaluation of water hyacinth (Eichhornia Crassipes) response to herbicides using unmanned aerial system imagery",
+    "cluster_a": 1346,
+    "cluster_b": 7947
+   },
+   {
+    "pass": 2,
+    "title_a": "Using planetscope imagery to evaluate herbicide efficacy in maize (Zea mays) through post-application weed detection",
+    "title_b": "Correction to: Using planetscope imagery to evaluate herbicide efficacy in maize (Zea mays) through post-application weed detection",
+    "cluster_a": 693,
+    "cluster_b": 853
+   }
+  ]
+ }
+}

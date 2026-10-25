@@ -1,0 +1,459 @@
+{
+ "role": "T3 boundary third-rater, blinded (no A1/A2 decisions inside)",
+ "pack": "pack_0002",
+ "n_records": 50,
+ "instruction_anchor_sha_prompt": "0c7f129d",
+ "criteria_sha_prefix": "9ae1f97d",
+ "records": [
+  {
+   "screening_id": "SCI-000352",
+   "title": "Weedy Rice Detection and Segmentation in UAV Imagery Using Deep Learning Models",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000359",
+   "title": "Transformer-based automatic weed segmentation in multispectral UAV imagery",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000364",
+   "title": "Multitemporal multispectral drone imagery for water hyacinth mapping in Patancheru lake, Hyderabad, India",
+   "abstract": "Pontederia crassipes, commonly known as water hyacinth (WH), is a highly invasive aquatic weed and caused significant ecological and economic impact across the world. Remediation action includes manual monitoring and removal which are often time consuming and expensive. This paper proposes the use of multi-temporal multi-spectral drone imagery for WH mapping and monitoring in Patancheru Lake, Hyderabad, India. The data collection was done in two steps: 1) multi-spectral drone imagery and 2) ground optical image capturing through an Android mobile application. Data was collected in regular interval starting from January 2021. Spectral bands were used to produce the WH detection and mapping. We compare spectral signature of clean and infested water for five different sites inside the lake. Multitemporal water quality samples of these sites were also collected together with drone data to analyse the effect of WH infestation on those parameters. The multispectral data was processed using an unsupervised machine learning classifier named expectation maximisation (EM) clustering to create a segmentation map indicating WH, water and other regions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000366",
+   "title": "Weed Identification and Classification in Mixed Crop Using Deep Learning Technique: A Review",
+   "abstract": "Weeds are the most challenging and significant factor that affects agricultural productivity and has the ability to harm crops. Traditional weed control techniques, such as the use of herbicides and pesticide sprays, have the drawback of damaging the environment and promoting weed resistance. In order to discover incentive solutions, the demand for organic and pollution-free products in agriculture is rapidly increasing. In order to solve weed identification issues, the development of agricultural technologies such as drones, agricultural robots, and satellite techniques has proven essential. As the autonomous sector has advanced, machine learning and deep learning using image processing techniques have become a feasible approach for weed identification and management. This article provides an overview of deep learning methods for weed detection, weed management and machine learning, and autonomous weed control strategies. For weed detection, the fundamental image processing steps— pre-processing, segmentation, feature extraction, and classification—are described in depth for both machine learning and deep learning, which are used by various researchers. Numerous weed identification applications utilizing spectral reflectance, photography, drones, robotics, and satellites are also documented. Finally, applications for weed detection and issues are discussed, along with the future development trend.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000370",
+   "title": "Application of AI in Identification of Pests and Weeds",
+   "abstract": "Pest infestations and invasive weeds pose numerous challenges in agriculture, threatening crop yields and sustainability. This chapter looks into using Artificial Intelligence (AI) to improve pest and weed management using advanced machine learning, deep learning, and computer vision methods. We investigate the development and evaluation of various AI models by reviewing the literature and describing a robust data collection methodology, which includes high-resolution image acquisition, expert annotation, and sophisticated augmentation techniques. Convolutional neural networks (CNNs) are deployed for image classification of pests and weeds, while Recurrent neural networks (RNNs) address temporal dynamics in pest infestations. Transfer learning techniques are utilized to adapt pre-trained models to specific agricultural pain points such as crop disease diagnosis, yield prediction, and autonomous farming. The chapter also emphasizes the importance of annotated datasets, real-time monitoring tools, and integrating AI with unmanned aerial vehicles (UAVs), mobile applications, and remote sensing. These advancements pave the way for a more intelligent, efficient, and environmentally friendly approach to pest and weed management in modern agriculture.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000379",
+   "title": "Recognition of Soybean Crops and Weeds with YOLO v4 and UAV",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000382",
+   "title": "Optimizing Plant Production Through Drone-Based Remote Sensing and Label-Free Instance Segmentation for Individual Plant Phenotyping",
+   "abstract": "A crucial initial step for the automatic extraction of plant traits from imagery is the segmentation of individual plants. This is typically performed using supervised deep learning (DL) models, which require the creation of an annotated dataset for training, a time-consuming and labor-intensive process. In addition, the models are often only applicable to the conditions represented in the training data. In this study, we propose a pipeline for the automatic extraction of plant traits from high-resolution unmanned aerial vehicle (UAV)-based RGB imagery, applying Segment Anything Model 2.1 (SAM 2.1) for label-free segmentation. To prevent the segmentation of irrelevant objects such as soil or weeds, the model is guided using point prompts, which correspond to local maxima in the canopy height model (CHM). The pipeline was used to measure the crown diameter of approximately 15000 ball-shaped chrysanthemums (Chrysanthemum morifolium (Ramat)) in a 6158 m2 field on two dates. Nearly all plants were successfully segmented, resulting in a recall of 96.86%, a precision of 99.96%, and an F1 score of 98.38%. The estimated diameters showed strong agreement with manual measurements. The results demonstrate the potential of the proposed pipeline for accurate plant trait extraction across varying field conditions without the need for model training or data annotation.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000390",
+   "title": "From barley to rapeseed: few-shot fine-tuning of semantic segmentation models for weed detection using UAV multispectral imagery",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000391",
+   "title": "An automated weed detection approach using deep learning and UAV imagery in smart agriculture system",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000398",
+   "title": "Drone-based herbicide application in rice: Current status, field performance and future prospects",
+   "abstract": "Rice productivity is strongly affected by weed competition, especially in direct-seeded and aerobic systems where rice and weeds emerge almost simultaneously. Herbicides remain important for rice weed management, but conventional knapsack and boom spraying are limited by labour scarcity, poor trafficability in flooded fields, uneven coverage, high carrier-water requirement and operator exposure. This critical narrative review synthesises the literature published between 2010 and 2026 on unmanned aerial vehicle (UAV)-based rice herbicide delivery, covering weed ecology, spray deposition, drift, crop safety, field efficacy, economics, environmental risk and adoption constraints. Rice-field evidence shows that UAV herbicide application can achieve weed-control efficiency of about 81.8–95.6 % under optimised early-season conditions. In direct-seeded rice, UAV application of pretilachlor followed by bispyribac-sodium at 30–40 L ha-1 produced 89.2–91.9 % weed-control efficiency at 30 days after sowing, comparable with knapsack spraying at 500 L ha-1. Favourable operating ranges reported in rice include spray volumes of 30–45 L ha-1, droplet sizes of about 150–250 µm, flight heights of 1.5–2.5 m and flight speeds of 2–5 m s-1, but these values depend on herbicide type, weed stage, canopy structure and weather. Unmanned aerial vehicle adoption is most justified in flooded, fragmented and labour-constrained rice fields where timely herbicide application is difficult. Nevertheless, low-volume spraying can increase sensitivity to wind, evaporation, canopy interception, drift and calibration errors. Drone-based herbicide delivery should therefore be viewed as a calibrated precision tool within integrated weed management, not as a stand-alone replacement for conventional weed-control systems. Future progress will depend on integrating UAV spraying with weed mapping, artificial intelligence (AI)-based detection, site-specific spraying and variable-rate herbicide application.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000404",
+   "title": "CONCEPT OF ROBOTICS AND DRONE TECHNOLOGY IN AGRICULTURE",
+   "abstract": "Robotics and drone technology are transforming agriculture by enabling precision farming and improving efficiency, productivity and sustainability. Agricultural robots, such as autonomous tractors, robotic harvesters and automated irrigation systems, use artificial intelligence, sensors, and computer vision to perform tasks like planting, weeding, harvesting, and crop monitoring with high accuracy and reduced labor dependence. Drones equipped with advanced imaging and sensing technologies, provide real-time aerial data to assess crop health, detect pests and diseases, monitor soil conditions, and optimize the use of water and fertilizers. Together these technologies support data-driven decision-making, reduce operational costs and environmental impact, and help address challenges such as labor shortages, climate change, and increasing global food demand.In India, agriculture faces unprecedented challenges in the 21st century such as population growth, climate change, sustainable resource management and natural resource degradation. All these factors exert considerable pressure on existing agricultural system, necessitating innovations to ensure food security and environmental sustainability. In the face of growing challenges in modern agriculture, robots and drones are emerging as essential helpful aids for assisting the farmers by transforming precision agriculture. Indian agriculture is now transforming to modern agricultural farming practices by using innovative solutions for resource optimization, crop monitoring, field work, automatic labor-intensive tasks like planting, harvesting, weeds controlling, fertilizer or insecticide spraying and precision farming.Now a days, drones and robots play several important tasks in sustainable and profitable agricultural and livestock farming practices. Drones provide aerial monitoring, acting as a third eye of farmers, while robots perform physical tasks addressing labour shortages and thus improve crop yields and rural economic sustainability. Use of robots and drones in agriculture farming, enhances the crop productivity, saves time, and offers real-time insights into plant health, soil conditions, irrigation needs and make farmers smarter and more efficient. Agricultural robots and drones also address farm labor shortage and rising food demand. These offer benefits like increased efficiency and reduced costs, but have high initial expenses. Agricultural robots pick apples, gather strawberries, harvest lettuce and strip away weeds. Drones gather aerial images that help farmers in quickly assessing crop health. Modern agriculture faces mounting challenges, including labour shortages, rising input costs, shrinking farmland and critical environmental pressures. Robotics combined with AI and digitalization offers innovative solutions. Farm robots or \"agribots,\" automate essential tasks from planting to harvesting, livestock management and crop health monitoring, revolutionizing traditional mechanization.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000410",
+   "title": "The Application of Hyperspectral Remote Sensing Imagery (HRSI) for Weed Detection Analysis in Rice Fields: A Review",
+   "abstract": "Weeds are found on every cropland across the world. Weeds compete for light, water, and nutrients with attractive plants, introduce illnesses or viruses, and attract harmful insects and pests, resulting in yield loss. New weed detection technologies have been developed in recent years to increase weed detection speed and accuracy, resolving the contradiction between the goals of enhancing soil health and achieving sufficient weed control for profitable farming. In recent years, a variety of platforms, such as satellites, airplanes, unmanned aerial vehicles (UAVs), and close-range platforms, have become more commonly available for gathering hyperspectral images with varying spatial, temporal, and spectral resolutions. Plants must be divided into crops and weeds based on their species for successful weed detection. Therefore, hyperspectral image categorization also has become popular since the development of hyperspectral image technology. Unmanned aerial vehicle (UAV) hyperspectral imaging techniques have recently emerged as a valuable tool in agricultural remote sensing, with tremendous promise for weed detection and species separation. Hence, this paper will review the weeds problem in rice fields in Malaysia and focus on the application of hyperspectral remote sensing imagery (HRSI) for weed detection with algorithms and modelling employed for weeds discrimination analysis.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000419",
+   "title": "Integrated application of drones for soil management and precision agriculture in Nigeria",
+   "abstract": "The recent push for precision agriculture has resulted in the deployment of highly sophisticated Information and Communication Technology (ICT) gadgets in various agricultural practices and methods. The introduction of ICT devices has been linked to significant improvements in agricultural activities. These devices have been shown to enhance the optimal management of critical resources such as water, soil, crop and arable land. Again, ICT devices are increasingly attractive due to their flexibility, ease of operation, compactness and superior computational capabilities. Especially when in comparison to the mundane methods previously used by most small- and large-scale farmers. For instance, ICT devices such as Unmanned Aerial Vehicles (UAVs) also referred to as drones, are increasingly being deployed for remote sensing missions where they capture high quality spatial resolution images. The data generated by these UAVs provide much needed information that aids in early spotting of soil degradation, crop conditions, severity of weed infestation and overall monitoring of crop yield variability. This enables farmers to acquire on-the-spot information that will enhance decision making within a short period of time, which will in turn contribute to reduction in running cost and potentially increase yield. It is safe to say that full potentials of drones are yet to be fully utilized in the Nigerian agricultural sector. This is due to several factors; most notably are the numerous challenges that accompany the introduction and adoption of much new technologies. Other factors; include high cost of technology, inadequate or total lack of skilled labour, poor awareness and low-farmer literacy. Therefore, this review work highlights the global progress recorded as a result of the recent application of drones for soil management and efficient crop production. Furthermore, key discussions surrounding the application of drones for precision agriculture and the possible drawbacks facing the deployment of such technology in Nigeria has been covered in this work.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000423",
+   "title": "Segmentation of weeds using convolutional neural networks in high-resolution images captured by UAV",
+   "abstract": "A presença de plantas daninhas ocasiona diversos prejuízos nas culturas agrícolas, podendo provocar a diminuição na produtividade, redução da qualidade final do produto colhido, disseminação de pragas e doenças e até mesmo a perda total das lavouras. Uma vez que se possa controlar essas plantas daninhas, é possível elevar tanto a qualidade quanto a quantidade da produção, além de reduzir os impactos ambientais por meio da diminuição no uso de defensivos agrícolas. Desta forma, técnicas que permitem o reconhecimento automático das plantas daninhas são extremamente relevantes para a agricultura. A metodologia proposta nesta dissertação de Mestrado utilizou a arquitetura U-Net modificada, empregando os backbones ResNet-34, EfficientNet-B0 e Inception-V3 de Convolutional Neural Networks (CNNs), a fim de realizar a segmentação de mamonas, planta daninha com maior ocorrência na cultura de cana-de-açúcar recém-plantada da área de estudo. Foi utilizada a Aeronave Remotamente Pilotada (ARP) do modelo eBee X para embarcar a câmera Sequoia e capturar imagens multiespectrais e RGB. Por meio dessas imagens foram gerados ortofotomosaicos multiespectrais e RGB, que serviram para a criação da base de dados composta pelo ortofotomosaico NDVI, ortofotomosaico RGB e suas respectivas máscaras binárias geradas por meio da vetorização das mamonas. Foram implementadas técnicas de data augmentation para aumentar o conjunto de dados e transfer learning para os backbones utilizarem pesos pré-treinados com o conjunto de dados do ImageNet. Foram avaliados os dados de entrada contidos na base de dados e identificado um problema de desbalanceamento de classes que prejudicou a segmentação das mamonas. Em vista dessa problemática, foram removidos os dados que não continham a presença de plantas daninhas para equilibrar a classe background e mamona. Os resultados indicam que o modelo mais eficiente para os dados NDVI foi alcançado ao empregar a arquitetura simples da U-Net, sem modificação e sem aplicar o transfer learning. Esse modelo alcançou valores para as métricas Dice (79,75%), F1 (79,73%), IoU (66,66%) e Acurácia (98,17%). Para os dados RGB o modelo que utilizou a arquitetura ResNet-34 obteve o melhor resultado nas métricas com valores de Dice (83,56%), F1 (83,61%), IoU (72,09%) e Acurácia (97,66%). Os resultados mostraram um bom percentual de predição para a segmentação de mamonas em vista do conjunto de dados ser pequeno e pouco diversificado. Além disso, qualitativamente, o modelo realizou a segmentação das mamonas de maneira precisa e eficaz.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000425",
+   "title": "Bitou bush detection and mapping using UAV-based multispectral and hyperspectral imagery and artificial intelligence",
+   "abstract": "The use of Unmanned Aerial Vehicles (UAVs) for remote sensing (RS) of vegetation presents a valuable platform for weed monitoring, owing to the high spatial resolution of collected images. Accurate classification and mapping of weed spatial distribution plays a pivotal role in achieving effective management and ensures efficient and sustainable utilisation of weed control measures. Furthermore, UAV-based RS provides a rapid way of assessing phenological development stages of weed species such as flowering and fruiting. These are often critical stages required for the separation of weed species from surrounding vegetation and are difficult to capture with traditional low resolution airborne and satellite RS imagery. Bitou bush is a shrub and a serious environmental weed of coastal areas of New South Wales. The primary objective of this study is to develop a model for bitou bush mapping from collected multispectral (MS) and hyperspectral (HS) imagery on location in NSW, Australia by employing various classical machine learning (ML) and deep learning (DL) techniques. The performance of Random forests (RF), Support vector machine (SVM), Extreme gradient boosting (XGB), and K-nearest neighbors (KNN) models is evaluated, achieving overall validation accuracies of 78%, 74%, 80%, and 69%, respectively for bitou bush detection using MS imagery. Subsequently, these models are assessed on HS data, resulting in overall validation accuracies of 77%, 86%, 86%, and 80% for RF, SVM, XGB, and KNN, respectively. Moreover, the DL U-Net model achieved an overall validation accuracy of 92%, outperforming the classical ML models in MS data classification tasks. The results of this study highlight the superior performance of the U-Net model in comparison to classical ML models in RS data classification, indicating the value of DL techniques for more accurate and robust RS applications such as bitou bush detection and mapping. The insights gained from this research will aid researchers and land managers select appropriate models based on the complexity and characteristics of their RS datasets. Moreover, the integration of UAV RS and artificial intelligence (AI) provide a valuable and efficient platform for bitou bush monitoring and management practices, ultimately enhancing the efficiency and sustainability of weed control efforts.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000427",
+   "title": "Sugarcane Weed Segmentation Pipeline",
+   "abstract": "Official repository and software release for the paper: A Methodological Framework for Weed Segmentation in Sugarcane Fields Using YOLOv8, SAHI, and Spatial Morphological Filtering. OverviewThis repository contains the complete inference pipeline designed for high-resolution orthomosaic weed detection and segmentation in sugarcane crops. Key Components YOLOv8-seg: Instance segmentation model. Slicing Aided Hyper Inference (SAHI): Slicing workflow ($1024 \\times 1024$ px slice size, $20\\%$ overlap) to process high-resolution orthomosaics without spatial loss. Spatial Morphological Filter: Post-processing module ($\\lambda_{\\text{max}} = 0.10$) to eliminate false-positive detections from sugarcane canopy closure. Included Files src/inference.py: Main execution pipeline. src/spatial_filter.py: Spatial Morphological Filtering implementation. requirements.txt: Dependency specification for reproducibility. README.md: Documentation and setup instructions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000432",
+   "title": "Drone Technology for Crop Disease Resistance: Innovations and Challenges",
+   "abstract": "Drones have been used for diverse application purposes in precision agriculture and new ways of using them are being explored. Many drone applications have been developed for different purposes such as pest detection, crop yield prediction, crop spraying, yield estimation, water stress detection, land mapping, identifying nutrient deficiency in plants, weed detection, livestock control, protection of agricultural products and soil analysis. Drones can create georeferenced maps that pinpoint the exact location of disease outbreaks within a field. These maps help farmers and agronomists monitor disease progression and plan targeted interventions. Drone operations are highly dependent on weather conditions. High winds, rain, and fog can hinder drone flights and affect the quality of images captured. Addressing technical limitations, regulatory and safety concerns, economic barriers, and data management issues will be crucial for the widespread adoption of drones in agriculture. By overcoming these challenges, drone technology can become a vital tool in sustainable and effective crop disease management.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000438",
+   "title": "DRONE SELECTION FOR AGRICULTURAL ENTERPRISES WITH INTERVAL TYPE-2 FUZZY COPRAS METHOD",
+   "abstract": "Technological advancements have led to changes in unmanned aerial vehicles, just as in all fields. These vehicles, known as drones, are used in many areas such as mapping, logistics, entertainment, and agriculture. Especially in agriculture, drones are widely used for various purposes such as mapping, detecting weeds, fertilization, and spraying. This situation has increased the market volume of drones and many companies have introduced their products for sale. Agriculture plays a significant role in the development of developing countries, and drone technologies are of great importance in increasing sector productivity. Drone technologies provide transparency and traceability in the cultivation process of products. Therefore, the aim of the study is to determine the selection criteria of agricultural drones for agricultural enterprises and to select the most suitable alternative among the alternatives. Nine criteria were determined through literature review and expert opinion. Seven alternatives from two companies selling in Türkiye were evaluated. Alternatives were analyzed using the Interval Type-2 COPRAS method. As a result of the evaluation by three experts, alternative A2 was determined as the most suitable alternative.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000448",
+   "title": "An Efficient Real-Time Weed Detection Technique using YOLOv7",
+   "abstract": "Since farming is becoming increasingly more expensive, efficient farming entails doing so without suffering any losses, which is what the current situation desires. Weeds are a key issue in agriculture since they contribute significantly to agricultural losses. To control the weed, pesticides are now evenly applied across the entire area. This approach not only costs a lot of money but also harms the environment and people's health. Therefore, spot spray requires an automatic system. When a deep learning embedded system is used to operate a drone, herbicides can be sprayed in the desired location. With the continuous advancement of object identification technology, the YOLO family of algorithms with extremely high precision and speed has been applied in a variety of scene detection applications. We propose a YOLOv7-based object detection approach for creating a weed detection system. Finally, we used the YOLOv7 model with different parameters for training and testing analyzed on the early crop weed dataset and 4weed dataset. Experimental results revealed that the YOLOv7 model achieved the mAP@0.50, f1score, Precision, and Recall values for the bounding boxes as 99.6,97.6, 99.8, and 95.5 respectively on the early crop weed dataset and 78.53, 79.83, 86.34, and 74.24 on 4weed dataset. The Agriculture business can benefit from using the suggested YOLOv7 model with high accuracy in terms of productivity, efficiency, and time.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000459",
+   "title": "Consumer-grade UAV utilized for detecting and analyzing late-season weed spatial distribution patterns in commercial onion fields",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000460",
+   "title": "AN EFFICIENTNETB3-BASED CONVOLUTIONAL NEURAL NETWORK FOR INTELLIGENT WEED DETECTION AND CROP CLASSIFICATION IN SMART AGRICULTURE",
+   "abstract": "ABSTRACT Weed infestation remains one of the major challenges limiting agricultural productivity, resulting in reduced crop yields, increased production costs, excessive herbicide application, and environmental degradation. Recent advances in Artificial Intelligence (AI), Machine Learning (ML), and Deep Learning (DL), coupled with the availability of high-performance computing resources, have accelerated the adoption of intelligent systems in precision agriculture, particularly for crop and weed classification. However, the performance of deep learning models is often constrained by limited and imbalanced agricultural datasets, which can affect classification accuracy and model generalization. This research developed an EfficientNetB3-based Convolutional Neural Network (CNN) using transfer learning for intelligent weed detection and crop classification in smart agriculture. A dataset comprising 670 labelled images of Beans, Groundnuts, Maize, Rice, Soybeans, and Weeds was prepared through image resizing, normalization, and data augmentation before being divided into training, validation, and testing subsets. To improve classification performance, the pre-trained EfficientNetB3 model was adopted as the backbone architecture and enhanced through transfer learning, fine-tuning, class balancing, Batch Normalization, and learning-rate optimization techniques. The developed model was evaluated using accuracy, precision, recall, F1-score, confusion matrix, and classification report. The results showed that the proposed model achieved a test accuracy of 96.30% with a test loss of 0.0938, outperforming an existing CNN-based model that achieved 89.82% classification accuracy as reported in literature. The improved performance is attributed to the EfficientNetB3 architecture, effective transfer learning strategy, image augmentation, class weighting, and model optimization techniques. The developed model demonstrates strong potential for deployment in smart agriculture applications, including intelligent herbicide spraying, agricultural robotics, unmanned aerial vehicles, and edge computing platforms, thereby contributing to improved crop productivity, reduced chemical usage, enhanced environmental sustainability, and increased food security.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000469",
+   "title": "Weeds detection in a Citrus orchard using multispectral UAV data and machine learning algorithms: A case study from Souss-Massa basin, Morocco",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000474",
+   "title": "Weed Detection Using Deep Learning: A Systematic Literature Review",
+   "abstract": "Weeds are one of the most harmful agricultural pests that have a significant impact on crops. Weeds are responsible for higher production costs due to crop waste and have a significant impact on the global agricultural economy. The importance of this problem has promoted the research community in exploring the use of technology to support farmers in the early detection of weeds. Artificial intelligence (AI) driven image analysis for weed detection and, in particular, machine learning (ML) and deep learning (DL) using images from crop fields have been widely used in the literature for detecting various types of weeds that grow alongside crops. In this paper, we present a systematic literature review (SLR) on current state-of-the-art DL techniques for weed detection. Our SLR identified a rapid growth in research related to weed detection using DL since 2015 and filtered 52 application papers and 8 survey papers for further analysis. The pooled results from these papers yielded 34 unique weed types detection, 16 image processing techniques, and 11 DL algorithms with 19 different variants of CNNs. Moreover, we include a literature survey on popular vanilla ML techniques (e.g., SVM, random forest) that have been widely used prior to the dominance of DL. Our study presents a detailed thematic analysis of ML/DL algorithms used for detecting the weed/crop and provides a unique contribution to the analysis and assessment of the performance of these ML/DL techniques. Our study also details the use of crops associated with weeds, such as sugar beet, which was one of the most commonly used crops in most papers for detecting various types of weeds. It also discusses the modality where RGB was most frequently used. Crop images were frequently captured using robots, drones, and cell phones. It also discusses algorithm accuracy, such as how SVM outperformed all machine learning algorithms in many cases, with the highest accuracy of 99 percent, and how CNN with its variants also performed well with the highest accuracy of 99 percent, with only VGGNet providing the lowest accuracy of 84 percent. Finally, the study will serve as a starting point for researchers who wish to undertake further research in this area.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000520",
+   "title": "Weed detection and herbicide recommendation using YOLO",
+   "abstract": "In modern agriculture, efficient weed management is critical to maximizing crop yield and minimizing environmental impact. Traditional methods of herbicide application often involve uniform spraying across fields, which leads to overuse of chemicals, increased costs, and ecological harm. To address this, our research proposes an intelligent weed detection system that utilizes computer vision and machine learning to identify and count weeds in agricultural fields. The motivation behind this study stems from the existing gap in precision agriculture where real-time, automated weed quantification is limited, and current systems lack adaptability to diverse field conditions. Our proposed methodology involves capturing field images using drones or mobile platforms, preprocessing these images to enhance clarity, and employing a convolutional neural network (CNN)-based model to system's high accuracy in weed detection, achieving an overall classification accuracy of 97.3% thereby offering a scalable and eco- friendly solution for precision weed management.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000528",
+   "title": "Application of multispectral UAV for paddy growth monitoring in Jitra, Kedah, Malaysia",
+   "abstract": "Abstract Rice is the staple food for most people in Southeast Asia, mainly Malaysia. Unfortunately, Malaysia does not reach a 100% self-sufficiency level on rice production due to inefficiency of rice farm management, pest and disease outbreak, poorly irrigation system, and climate change. Each spectral band of electromagnetic signature in the rice crops can be identified to analyse the crop condition based on the reflectance value. Therefore, unmanned aerial vehicle (UAV) can capture different spectral band images of the rice field depending on the sensors used. This study aims to produce a paddy growth map based on the normalized difference vegetative index (NDVI) value and validate the paddy growth map using the soil plant analysis development (SPAD) data. This study was carried out at the paddy field planted with PadiU Putra rice variety in Muda Agricultural Development Authority (MADA), Jitra in Kedah. Three reading samples for each point at the paddy field within 1 m radius were recorded. Then, the samples from each point were scanned using SPAD chlorophyll meter. The image data were collected using multispectral and RGB cameras at the altitude of 60 m, and a calibrated reflectance panel was used to calibrate the image. Ground control point (GCP) was placed at the four corners of the study plot, and it was being used as a georeferencing point for aerial imagery mapping. Those images were undergone orthomosaic process to produce a single overlapped image. NDVI was used to measure the healthy level of rice crops. NDVI map had shown the distribution of NDVI value across the study plot, which includes the healthy and less healthy vegetative area. SPAD value has no significant relationship with the aerial imagery of NDVI value. The NDVI map allows the farmers to monitor the paddy growth status and effectively improve their rice farm management. In the future, advanced classification methods based on the reflectance of weed, water, and soil can be prioritized and separated into different classes, whereby the NDVI map can be plotted on the paddy crops.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000531",
+   "title": "Growth monitoring of field-grown onion and garlic by CIE L*a*b* color space and region-based crop segmentation of UAV RGB images",
+   "abstract": "Canopy coverage-based crop growth monitoring is highly dependent on the performance of crop segmentation algorithms. Under field conditions, crop segmentation for unmanned aerial vehicle (UAV) imagery should be sophisticated considering geometric distortion of images by wind and illumination variations. Under Korean cultivation conditions, a plastic mulch used to restrict weeds and prevent cold weather damage increases the complexity of the image background. In particular, on-site monitoring of onion and garlic growth has been limited by their morphology because they have long narrow leaves. The ultimate goal of this study was to quantify the growth parameters of onion and garlic at multiple growth stages using red, green, and blue (RGB) imagery obtained with UAVs. Canopy coverage and plant height were used as predictor variables to develop mathematical models to estimate the fresh weights of onion and garlic. The use of a CIE L*a*b* color space and mean shift (MS) algorithm enhanced the extraction of the canopy coverage of onion and garlic from complex backgrounds, including plastic mulch, soil, and shadows under varying illumination conditions. Multiple linear regression models consisting of the a* band-based vegetation fraction (VF) and structure from motion (SfM)-based plant height (PH) fitted the fresh weight data of onion and garlic well with high coefficients of determination (R^2) ranging from 0.82 to 0.92. The validation results showed an almost 1:1 slope with highly linear relationships (R^2 > 0.82) between the onion and garlic fresh weights obtained with the UAV RGB imagery and actual fresh weights, confirming that the UAV-RGB imagery based on the use of the a*band and PH can be used to quantify the spatial and temporal variability of onion and garlic growth parameters during the growing season.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000534",
+   "title": "Comparing Supervised and Semi-supervised Machine Learning Methods for Mapping Aquatic Weeds, as Biomass Resource from High-Resolution UAV Images",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000537",
+   "title": "Navigation Route Mapping for Harvesting Robots in Vineyards Using UAV-based Remote Sensing",
+   "abstract": "This work deals with the problem of extracting the route map that needs a harvesting robot in order to navigate between the crop rows in a vineyard. The navigation route mapping is computed by algorithmic processing the RGB imagery acquired by an unmanned aerial vehicle (UAV). The proposed methodology applies simple machine vision methods and it is able to deliver the robot's navigation route map in real-time with high tolerance to missing plants/weeds as well as with high accuracy.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000540",
+   "title": "Systematic review of autonomous weed detection and identification using deep learning and computer vision",
+   "abstract": "Abstract With the current unprecedented interest in exploring the bounds of machine learning and computer vision systems in all domains, several areas of interest started resurfacing; among which is “Precision Agriculture”. The urge to find more efficient methods into preserving the crop yields and the ecological balance is what caused the articles discussing weed management to follow positive progressing trend. This review article provides a launching point for future experiments and projects in machine learning and computer vision systems tackling weed detection and classification. This review brings added value by consolidating in one place results reported in studies that used classical machine learning methods such as SVM, KNN, and ANN, as well as deep learning systems and customized models including VGG16, ResNet, Faster R-CNN, YOLO, DeepLabV3+, U-Net, WeedVision, YOLO-Weed Nano. Its scope covers weed detection, classification, and segmentation using datasets acquired from UAV imagery, field and greenhouse cameras, stereoscopic video, and public datasets such as DeepWeeds, Weed25, and CottonWeedDet12, in addition to crop-specific datasets from corn, soybean, cotton, rice, wheat, onion, and turfgrass environments. In conclusion, a positive trend is observed between the dataset size and model accuracy. Moreover, VGGNet scored the highest accuracy among all reviewed models within all of the discussed papers. The acquired results pave the way for numerous future works including autonomous weed management vehicles and the creation of dataset accommodating diverse agriculture fields applications.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000542",
+   "title": "Automated Weed Detection and Removal using Deep Learning",
+   "abstract": "Precision agriculture uses cutting-edge technology to improve farming operations, increase crop yields, and reduce resource use. This study focuses on developing an autonomous weed and crop detection system that leverages the cutting-edge You Only Look Once (YOLO) algorithm.The purpose is to equip farmers with a real-time solution to identify and distinguish crops fromweeds in agricultural fields. The process entails creating a well-annotated dataset with photos of both crops and weeds. A pre- trained YOLO model, such as YOLOv3 or YOLOv4, is chosen and fine-tuned with the annotated dataset. The YOLO configuration file is changed to meet the unique crop and weed detection needs. The training procedure continues until adequate convergence is obtained. The trained YOLO model is then connectedwith agricultural equipment, such as drone-mounted cameras or other sensing devices, allowing for real- time detection in the field. Post-processing techniques are used to improve detection results while minimizing false positives. Decision-making algorithms are developed to direct activities based on the detected crops and weeds, allowing for focused interventions such as precision herbicide administration.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000546",
+   "title": "Drones and Poles for Low-Elevation Oil and Gas Environmental Surface Inspections",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000548",
+   "title": "Rescuing the Fresh Water Lakes of Africa through the Use of Drones and Underwater Robots",
+   "abstract": "In this paper, we present a conceptual system architecture for real-time monitoring, predicting and controlling of invasive water hyacinth in freshwater bodies through the use of emerging technologies. The proposed system is planned to be deployed as one of the rescue efforts to preserve the fresh water lakes of Africa. The case study and the system presented in this paper are based on the Lake Tana, situated near the city of Bahir Dar, in Ethiopia. The rescuing efforts of Lake Tana so far focused on removal of the weed by hand and using harvesting machines. With the weed invasion doubling every two weeks, the current approaches will not be able to control the rapid invasion of the weed, which is causing considerable socioeconomic losses. The proposed system architecture employs networked underwater robots, aerial drones and other environmental sensors for better mapping of the weed coverage in real-time, predicting the floating paths of the weed, and learning the favourable environmental conditions of the lake for eradicating the invasive weed. The advantages of the proposed technical intervention lie not only in accurate monitoring and fast removal of the weed, but also in facilitating data collection for better understanding of the underlying environmental and chemical conditions that facilitate the rapid infestation and growth of the invasive weed.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000549",
+   "title": "Weed Detection and Treatment by RGB System - Case of the FPL Smart Farm",
+   "abstract": "Strawberry is one of the most important crops in the Loukkos area in Morocco; it exceeds 80% of the national production. This crop is very sensitive and requires well-controlled climatic conditions, specific inputs and meticulous monitoring to avoid any uncertainty in yield. Our work consists in treating the side related to the weeds, which can cause considerable losses of yield and disturb plant development. The danger of these weeds in this culture is the strong competition with the needs of the culture (water, nutrients, light...). The objective of our work is to make a state of the art by bibliographic systemic analysis and propose intelligent methods for detection and treatment of weeds based on RGB images. Most of the works are based on image acquisition mainly by smartphones or unmanned aerial vehicles (UAVs), and some by professional cameras. The image processing can be done by deep learning: through convolutional neural networks (CNN), support vector machine (SVM), or local binary pattern (LBP). Other methods mentionned allow detecting and controlling weeds using a robot that determines the undesirable plants by image processing (via deep learning), records their location and proceeds to a weeding or a localized treatment using herbicides. These methods allow decreasing labor dependency, a better treatment efficiency, and a lower herbicide use up to 90%. We thus propose a best suitable method to detect and treat weeds in an intelligent way in the \"Smart Farm\" of the Polydisciplinary Faculty in Larache. This method consists in using fluorescent paint at the stem base of the strawberry plant in order to differentiate the main crop from any undesirable plant. The robot that takes RGB images under UV rays considers as \"weed\" any plant that does not contain fluorescent paint.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000550",
+   "title": "Weed detection on embedded systems using computer vision algorithms",
+   "abstract": "Agriculture is a vital component of a sustainable development of many states. It supports economic growth and ensures food security. Therefore, great attention is paid to increasing production efficiency and yields. One of the problems occurring in the agricultural section is weed spreading that can corrupt the quality and amount of yields. To achieve better harvest, weed control measures should be conducted in time. Currently, computer vision techniques are implemented in various areas of industry, in particular, in agriculture. They allow one to automate data analysis process and to make decisions faster. However, the weed detection task in agriculture requires not only high recognition accuracy, but also fast computations on portable devices with low memory availability that makes it possible to embed computer vision systems on unmanned aerial vehicles (UAVs). To address these challenges, we proposed a neural-based approach for real-time weed recognition that combines state-of-the-art detection architectures and optimization techniques for faster inference. To conduct a comprehensive study using real field data, we collected and labelled two unique datasets in Volgograd Region. The experiments involved YOLO, SSD, and Faster R-CNN architectures with inference on NVIDIA Jetson Nano. The highest results were achieved for YOLOv5 architecture with mAP of 0.668 for Carrot Dataset (two weeds classes) and 0.882 for Onion Dataset (one weed class), while inference prediction time equals to 29 FPS and 31 FPS respectively.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000552",
+   "title": "UAV Technology in Precision Agriculture",
+   "abstract": "Smart Farming leverages IoT with the use of Unmanned Aerial Vehicles (UAVs), to collect environmental data in real-time, improving crop management and precision agriculture applications. Precision agriculture employs autonomous UAVs to gather data from wireless sensor networks, particularly in places with inadequate or no established communication infrastructure. This study explores the use of unmanned aerial vehicle (UAV) technology to regulate agricultural output. It evaluates whether combining diverse sensing and control technologies—such as optical, radio frequency, near infrared, thermal, multi-spectral, hyper-spectral, LiDAR, and sonar—is practicable in smart agricultural environments. In addition to stressing the cost and small size of unmanned aerial systems (UAS), which might encourage economic growth in developing countries, the article also emphasizes the potential of drones and UAS in agriculture and the need for increasing financial investment in the farm. With the recent integration of precision agriculture sensors into UAS, operations such as field visualization, plant stress recognition, biomass calculation, weed control, stock counting, and chemical spraying may now be completed with greater effectiveness. This research attempts to give a review of the most successful techniques to have precision-based crop monitoring and pest management in agriculture fields utilizing unmanned aerial vehicles (UAVs) or unmanned aircraft.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000554",
+   "title": "Early detection of Hellula undalis in Brassica oleracea var capitata L. : A real-time drone based approach using YOLOv8",
+   "abstract": "• Development of an automated UAV system for real-time pest monitoring. • Specific application for Hellula undalis detection in cabbage crops. • Novel detection method based on larval leaf damage patterns. • Capability for early diagnosis prior to visual identification of the insect. • Development of a novel dataset annotated to identify early larval damage signs on cabbage leaves. • Scalable solution suitable for diverse greenhouse layouts and geometries. The planet population has been reported to be approximately 8.1 billion people, and it is estimated that by 2050 it will increase to 9.8 billion. This growth has significant implications for farmers in meeting the raising demand for food. Moreover, the Food and Agriculture Organization (FAO) has reported that about 20% to 40 % of global crop population is lost due to pests and diseases. Early detection of weeds, plant diseases, and pests in crops is an essential task to prevent or reduce both crop and financial losses. To address this, emerging technologies are transforming the way agricultural activities are controlled, monitored, and managed. These technologies can be grouped in three main areas: Robotics, Artificial Intelligence (AI) and Internet of Things (IoT). Several works have been developed to detect these issues using visual sensors and AI; however, Real-Time detection still is missing. The main objective of the present work is to develop a Real-Time visual inspection system to identify Hellula undalis pest through the damage observed on the leaves in Brassica oleracea var capitata L. , commonly know as cabbage, using a drone and AI, within greenhouses. The dataset was collected using a drone to capture video, from which 1981 images of leaves with pest damage and an equal number without were obtained. YOLOv8 was used as the Deep Learning (DL) model for training to identify leaves with and without pest damage. Finally, a drone was autonomously navigated inside the greenhouse using SLAM techniques to detect, in Real-Time, cabbages with pest damage. The results showed a detection precision of 60%. The system’s implementation proved effective starting from the second week of cabbage growth for early pest sign identification.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000562",
+   "title": "An Automated Weed-Detection Approach Using Deep Learning in Agriculture System",
+   "abstract": "Weed management is a critical factor in ensuring agricultural productivity, as weeds compete with crops for essential resources, significantly reducing yield quality and quantity. Traditional methods, such as manual weeding and indiscriminate herbicide application, are not only labour-intensive but also pose environmental hazards and escalate production costs. This paper introduces an advanced automated weed detection system designed to support precision agriculture by leveraging deep learning technologies. The system integrates DenseNet for high-accuracy binary classification and YOLO for real-time object detection and localization of weeds. DenseNet achieved a validation accuracy of 96%, effectively distinguishing between crop and weed images, while YOLO demonstrated a mean Average Precision (mAP) of 92%, accurately localizing weeds using bounding boxes. This dual-model approach provides an efficient, scalable, and environmentally sustainable solution for targeted weed control. Experimental results highlight its potential to significantly reduce herbicide dependency, optimize resource utilization, and facilitate automated farming practices. Future work will focus on enhancing dataset diversity, improving real-time deployment on drones and robots, and expanding system functionality to include crop health monitoring.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000565",
+   "title": "Análise e simulação de antena de microfita para controle e monitoramento de um drone em áreas agrícolas",
+   "abstract": "This article aims to design a microstrip antenna for transmitting and receiving control data from an UAV (unmanned aerial vehicle) for monitoring agricultural areas. In order to use the characteristics of the microstrip antenna to direct the radio frequency signal in a specific direction, to improve the range and quality of the signal. Thus, from simulations in the Ansys HFSS 2019, Scilab and Mission Planner software, demonstrate the viability of this resource for monitoring agricultural areas, which provide maps of productivity, pest and weed infestation, fundamental values ​​for improving productivity, being possible to reduce one of the problems that large agricultural fields have, due to its extension, allowing UAV to reach larger areas. The developed microstrip antenna has a resonance frequency of 2.45GHz (ISM - Industrial, Scientific and Medical band), in addition to having satisfactory directives for specific simulated precision agriculture applications.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000567",
+   "title": "Innovative Approach for Weed Detection with Crop Disease Diagnosis in Crop Fields using UAV Imagery Techniques",
+   "abstract": "This abstract is a multi-dimension tapestry illustrating the relationship between the central figures of UAVs, sensors and data analysis techniques in the kaleidoscopic world of precision agriculture. The recent progress of UAVs technology, along with powerful sensors and data processing algorithms has made UAV a vital tool for crop health monitoring. The growing need for Early Detection of Crop Diseases is the underlying echo in this study that stresses on reducing potential losses due to these diseases, and to improve agricultural productivity. This Abstract is at the crossroad of a slew of technological convergence. Flying over large plots, the UAVs itself equipped with a variety of multispectral and hyperspectral sensors, it also becomes the guardian of crop status. In the following narrative is shown in detail how data analysis techniques, specifically machine learning and deep learning are applied. These artificial intelligences become the Vivaldi, identifying the spectral fingerprints of crop pathogens with superhuman accuracy. The aim of this work is to explore the changing field of crop disease identification with a focus on UAV-based remote sensing. We aim to organize the wide scope of existing research in a proposed taxonomy based on sensor types, disease typologies and geographical locations. This includes a performance evaluation, which is also measured in the form of accuracy, sensitivity, specificity, and even the F1 score (the harmony on a balance between precision and recall). Abstract This abstract embodies the dynamism, complexities and harmonies of an innovative methodology for weed detection and crop disease diagnosis as precision agriculture never ceases its evolution paving a technological based future with sustainability packed virtues.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000570",
+   "title": "An innovative UAV-based approach for estimating crop stand counts amidst weed infestation",
+   "abstract": "ABSTRACT Unmanned aerial vehicles (UAV)-based imagery offers a rapid, cost-effective solution for estimating stand counts in row crops. However, most existing algorithms assume clean crop rows and do not account for common weed infestation. This research developed an image processing pipeline to estimate crop stand counts in both high and low weed pressure conditions. The methodology was initially developed and tested on cotton using UAV imagery collected at three ground sampling distances (GSD) of 1.4, 2.1, and 2.8 cm, across three post-emergence stages: 9, 13, and 21 days after emergence (DAE) in 2022. The approach was later validated on maize during the 2023-2024 growing seasons. The pipeline integrated edge detection, row detection, and geometrical properties while minimizing reliance on spectral characteristics. Results showed that the methodology was highly effective for stand count estimations in both high and low weed pressure situations. Highest accuracies were achieved at low GSDs and early DAE stages, with an R 2 of 0.80-0.85 between 9-13 DAE at 1.4 cm GSD for heavily weed infested cotton, and R 2 of 0.94-0.97 between 12-17 DAE at 1.8 cm GSD for maize under minimal weed infestation. Flights at higher GSD (2.1 cm) performed reasonably well (R 2 = 0.76) at early stages but showed a decline in accuracy with aggressive weed growth and overlapping cotton seedlings beyond 9 DAE. This novel standardized and scalable approach holds significant potential for improving UAV-based stand count assessments across various crops, particularly in organic and large-scale production systems.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000571",
+   "title": "Intelligent Obstacle Avoidance and Path Planning with V-Shape algorithm for Drones Using Feature-Enriched Deep Learning in Agriculture and Forest Application",
+   "abstract": "The demand for smart and efficient Unmanned Aerial Vehicle (UAV) operations in precision agriculture leads to the development of advanced models for better detection, navigation, and energy use. This study presents the Intelligent Obstacle Avoidance and Path Planning with V-Shape algorithm for Drones Using Feature-Enriched Deep Learning in Agriculture and Forest Application (IOPFDL) model, which enhances weed identification, obstacle avoidance, and swarm UAV activities. It utilizes deep learning techniques like the Channel Attention Model (CAM) for improved feature selection and Ghost Convolution to maintain detection accuracy while reducing computational costs. A dynamic obstacle avoidance system is controlled by CPU and SNR monitoring, shifting tasks to the cloud to ensure smooth operations under varying workloads. The TD3 method plans adaptive global routes and uses AWS SageMaker for cloud processing. An energy optimization feature selectively activates rangefinders in the UAV swarm to lower resource consumption. The V-Shape flight patterns are optimized using an improved Ant Colony Optimization (ACO) technique to enhance energy recovery and decrease drag. Simulations show that the optimized V-Shape formations save up to 15.7% energy for smaller drone groups, and Vertical Line formations cut energy use by 22.3% for larger swarms. IOPFDL model excels in accuracy and stability compared to baseline models, achieving over 0.73 precision and about 0.72 recall rates.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000586",
+   "title": "Comparative Analysis of Classical Feature Detection Methods for UAV-Based Tomato Detection",
+   "abstract": "Remote sensing technologies, especially Unmanned Aerial Vehicles (UAVs), become crucial for Precision Agriculture (PA) to perform different tasks such as crop detection, yield prediction, leaf disease diagnosis, weed detection, and harvest forecasting to ensure higher productivity. Therefore, using various image analytics methods feature detection from the UAV-captured images plays a vital role for conducting these PA tasks. To enhance the effectiveness of the UAV-based image analysis, this study investigates the performance of various classical feature detection algorithms on the UAV-captured images of tomato fields. This study also identifies the standard benchmarks of the evaluation metric used in the feature detection methods. The evaluation considers challenging conditions such as rotation, illumination variation, and scaling. Results show that Oriented FAST and Rotated BRIEF (ORB) and Speeded Up Robust Features (SURF) among the classical methods demonstrated better performance under all these environmental conditions. However, considering the limitations in existing feature detection techniques this study also suggests that integrating classical feature detection with deep learning approaches could significantly improve real-time feature detection efficiency.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000587",
+   "title": "Deblurring-Aware Semantic Segmentation of Crops and Weeds in UAV Sorghum Imagery via a UNet-ResNet Architecture: code and pretrained models",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000597",
+   "title": "Mapping invasive noxious weed species in the alpine grassland ecosystems using very high spatial resolution UAV hyperspectral imagery and a novel deep learning model",
+   "abstract": "The term \"invasive noxious weed species” (INWS), which refers to noxious weed plants that invade native alpine grasslands, has increasingly become an ecological and economic threat in the alpine grassland ecosystem of the Qinghai-Tibetan Plateau (QTP). Both the INWS and native grass species are small in physical size and share a habitat. Using remote sensing data to distinguish INWS from native alpine grass species remains a challenge. High spatial resolution hyperspectral imagery provides an alternative for addressing this problem. Here, we explored the use of unmanned aerial vehicle (UAV) hyperspectral imagery and deep learning methods with a small sample size for mapping the INWS in mixed alpine grasslands. To assess the method, UAV hyperspectral data with a very high spatial resolution of 2 cm were collected from the study site, and a novel convolutional neural network (CNN) model called 3D&2D-INWS-CNN was developed to take full advantage of the rich information provided by the imagery. The results indicate that the proposed 3D&2D-INWS-CNN model applied to the collected imagery for mapping INWS and native species with small ground truth training samples is robust and sufficient, with an overall classification accuracy exceeding 95% and a kappa value of 98.67%. The F1 score for each native species and INWS ranged from 92% to 99%. In conclusion, our results highlight the potential of using very high spatial resolution UAV hyperspectral data combined with a state-of-the-art deep learning model for INWS mapping even with small training samples in degraded alpine grassland ecosystems. Studies such as ours can aid the development of invasive species management practices and provide more data for decision-making in controlling the spread of invasive species in similar grassland ecosystems or, more widely, in terrestrial ecosystems.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000599",
+   "title": "Detection of Parthenium Weed (Parthenium hysterophorus L.) and Its Growth Stages Using Artificial Intelligence",
+   "abstract": "Parthenium weed (Parthenium hysterophorus L. (Asteraceae)), native to the Americas, is in the top 100 most invasive plant species in the world. In Australia, it is an annual weed (herb/shrub) of national significance, especially in the state of Queensland where it has infested both agricultural and conservation lands, including riparian corridors. Effective control strategies for this weed (pasture management, biological control, and herbicide usage) require populations to be detected and mapped. However, the mapping is made difficult due to varying nature of the infested landscapes (e.g., uneven terrain). This paper proposes a novel method to detect and map parthenium populations in simulated pastoral environments using Red-Green-Blue (RGB) and/or hyperspectral imagery aided by artificial intelligence. Two datasets were collected in a control environment using a series of parthenium and naturally co-occurring, non-parthenium (monocot) plants. RGB images were processed with a YOLOv4 Convolutional Neural Network (CNN) implementation, achieving an overall accuracy of 95% for detection, and 86% for classification of flowering and non-flowering stages of the weed. An XGBoost classifier was used for the pixel classification of the hyperspectral dataset—achieving a classification accuracy of 99% for each parthenium weed growth stage class; all materials received a discernible colour mask. When parthenium and non-parthenium plants were artificially combined in various permutations, the pixel classification accuracy was 99% for each parthenium and non-parthenium class, again with all materials receiving an accurate and discernible colour mask. Performance metrics indicate that our proposed processing pipeline can be used in the preliminary design of parthenium weed detection strategies, and can be extended for automated processing of collected RGB and hyperspectral airborne unmanned aerial vehicle (UAV) data. The findings also demonstrate the potential for images collected in a controlled, glasshouse environment to be used in the preliminary design of invasive weed detection strategies in the field.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000603",
+   "title": "Implementation of YOLOv9 in Agricultural AI for Enhanced Weed Detection",
+   "abstract": "Weeds significantly hinder agricultural productivity by reducing crop yields and increasing production costs. Leveraging artificial intelligence (AI) is critical for equipping farmers with early detection capabilities to implement effective weed management strategies. Among AI technologies, deep learning (DL) techniques are especially effective for analyzing agricultural field images to identify weed species. This paper reviews state-of-the-art DL methodologies, with a focus on the YOLOv9 model for weed detection. Our findings highlight YOLOv9’s superior effectiveness, achieving an accuracy of $\\mathbf{9 0 \\%}$, due to its robust architecture and advanced feature extraction. The model’s proficiency in accurately identifying weeds is evident from our thematic analysis. We also explore various image acquisition devices, including robots, drones, and mobile phones. Comparative evaluations show that YOLOv9 consistently outperforms other DL techniques, achieving remarkable accuracy and speed. This study includes a comparative analysis of several algorithms like SSD, Mask R-CNN, and Fast R-CNN, underscoring YOLOv9’s superior performance. This paper serves as a valuable resource for researchers and practitioners, guiding future efforts in weed management and precision agriculture by emphasizing YOLOv9’s transformative potential.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000613",
+   "title": "Machine Learning and Deep Learning Techniques for Weed Detection in Agricultural Fields: Recent Advances, Challenges, and Future Directions",
+   "abstract": "Weed infestation is a key biotic limitation on agricultural productivity. Weeds compete with crops for light, water, nutrients and space, while increasing production costs and, in many instances, functioning as reservoirs for pests. Traditional weed management is mainly dependent on manual, mechanical and blanket chemical control. Herbicides are effective; yet, indiscriminate use increases input cost, accelerates herbicide resistance development, and raises environment and food safety problems. Precision agriculture so increasingly relies on computer vision, machine learning (ML), deep learning (DL), unmanned aerial vehicles (UAVs) and agricultural robotics to detect weeds and to assist site-specific treatment. This critical review summarizes the evolution of handcrafted color, texture, shape, spatial and spectral features with support vector machines, random forests, k-nearest neighbors and artificial neural networks to modern convolutional neural networks, YOLO-family object detectors, encoder-decoder segmentation models, transformers and hybrid architectures. The entire operational pipeline is investigated, including sensing, picture pre-processing, augmentation, feature representation, classification, detection, segmentation, model evaluation, edge deployment, and closed-loop actuation. Recent literature demonstrates that in the real-time object identification, YOLO versions are leading the way while U-Net and other networks are still dominating in the semantic segmentation and ResNet / VGG family are commonly employed in classification. However, the outstanding performance in the datasets often deteriorates in the real field settings because of the illumination variations, occlusion, crop-weed morphological resemblance, small target size, growth stage variations, class imbalance, motion blur, and geographic or seasonal domain shift. High-priority research directions include cross-domain generalization, diversity of datasets, external validation, uncertainty-aware prediction, open-set recognition, multimodal sensing, self-supervised learning, domain adaptation, lightweight edge inference and integration with robotic or variable-rate weed control. The primary takeaway is that future advancement must go beyond incremental gains in benchmark accuracy toward robust, safe, energy-efficient, economically feasible and agronomically verified intelligent weed-management systems.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000614",
+   "title": "AGRI-YOLO: A Lightweight Model for Corn Weed Detection with Enhanced YOLO v11n",
+   "abstract": "Corn, as a globally significant food crop, faces significant yield reductions due to competitive growth from weeds. Precise detection and efficient control of weeds are critical technical components for ensuring high and stable corn yields. Traditional deep learning object detection models generally suffer from issues such as large parameter counts and high computational complexity, making them unsuitable for deployment on resource-constrained devices such as agricultural drones and portable detection devices. Based on this, this paper proposes a lightweight corn weed detection model, AGRI-YOLO, based on the YOLO v11n architecture. First, the DWConv (Depthwise Separable Convolution) module from InceptionNeXt is introduced to reconstruct the C3k2 feature extraction module, enhancing the feature extraction capabilities for corn seedlings and weeds. Second, the ADown (Adaptive Downsampling) downsampling module replaces the Conv layer to address the issue of redundant model parameters; The LADH (Lightweight Asymmetric Detection) detection head is adopted to achieve dynamic weight adjustment while ensuring multi-branch output optimization for target localization and classification precision. Experimental results show that the AGRI-YOLO model achieves a precision rate of 84.7%, a recall rate of 73.0%, and a mAP50 value of 82.8%. Compared to the baseline architecture YOLO v11n, the results are largely consistent, while the number of parameters, G FLOPs, and model size are reduced by 46.6%, 49.2%, and 42.31%, respectively. The AGRI-YOLO model significantly reduces model complexity while maintaining high recognition precision, providing technical support for deployment on resource-constrained edge devices, thereby promoting agricultural intelligence, maintaining ecological balance, and ensuring food security.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000617",
+   "title": "Precise identification of noxious weeds in alpine meadows using UAV-based hyperspectral remote sensing with multi-feature integration and deep learning",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-000627",
+   "title": "Detection and Counting of Maize Leaves Based on Two-Stage Deep Learning with UAV-Based RGB Image",
+   "abstract": "Leaf age is an important trait in the process of maize (Zea mays L.) growth. It is significant to estimate the seed activity and yield of maize by counting leaves. Detection and counting of the maize leaves in the field are very difficult due to the complexity of the field scenes and the cross-covering of adjacent seedling leaves. A method was proposed in this study for detecting and counting maize leaves based on deep learning with RGB images collected by unmanned aerial vehicles (UAVs). The Mask R-CNN was used to separate the complete maize seedlings from the complex background to reduce the impact of weeds on leaf counting. We proposed a new loss function SmoothLR for Mask R-CNN to improve the segmentation performance of the model. Then, YOLOv5 was used to detect and count the individual leaves of maize seedlings after segmentation. The 1005 field seedlings images were randomly divided into the training, validation, and test set with the ratio of 7:2:1. The results showed that the segmentation performance of Mask R-CNN with Resnet50 and SmoothLR was better than that with LI Loss. The average precision of the bounding box (Bbox) and mask (Mask) was 96.9% and 95.2%, respectively. The inference time of single image detection and segmentation was 0.05 s and 0.07 s, respectively. YOLOv5 performed better in leaf detection compared with Faster R-CNN and SSD. YOLOv5x with the largest parameter had the best detection performance. The detection precision of fully unfolded leaves and newly appeared leaves was 92.0% and 68.8%, and the recall rates were 84.4% and 50.0%, respectively. The average precision (AP) was 89.6% and 54.0%, respectively. The rates of counting accuracy for newly appeared leaves and fully unfolded leaves were 75.3% and 72.9%, respectively. The experimental results showed the possibility of current research on exploring leaf counting for field-grown crops based on UAV images.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  }
+ ]
+}

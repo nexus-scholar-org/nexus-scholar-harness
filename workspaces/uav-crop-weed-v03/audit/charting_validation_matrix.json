@@ -1,0 +1,49 @@
+{
+  "results": [
+    {
+      "name": "schema_self_check",
+      "status": "PASS",
+      "detail": "draft 2020-12 metaschema ok"
+    },
+    {
+      "name": "P1_full_valid_row",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "N1_not_reported_but_filled_ACCEPTED_integrity_gap",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "N2_short_verbatim_quote_rejected",
+      "status": "PASS",
+      "detail": "'tiny' is too short"
+    },
+    {
+      "name": "N3_bad_setting_id_rejected",
+      "status": "PASS",
+      "detail": "'SET-1' does not match '^SET-[0-9]{2,3}$'"
+    },
+    {
+      "name": "N4_nonhex_STU_id_rejected",
+      "status": "PASS",
+      "detail": "'STU-zzzznot-hex' does not match '^STU-[0-9a-f]{8,32}$|^SCI-[0-9]{6}$'"
+    },
+    {
+      "name": "N5_out_of_window_year_rejected",
+      "status": "PASS",
+      "detail": "2018 is less than the minimum of 2020"
+    },
+    {
+      "name": "N6_unknown_property_rejected",
+      "status": "PASS",
+      "detail": "Additional properties are not allowed ('nonexistent_field' was unexpected)"
+    },
+    {
+      "name": "guardrail_suffix_13_dims",
+      "status": "PASS",
+      "detail": "13/13 end with guardrail"
+    }
+  ]
+}

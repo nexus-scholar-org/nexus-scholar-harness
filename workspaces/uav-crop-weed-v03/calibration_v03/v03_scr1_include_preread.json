@@ -1,0 +1,1162 @@
+{
+  "artifact": "v03_scr1_include_preread",
+  "generated_by": "v03_scr1_include_preread.py (post-hoc pre-read, NOT a blinded screen)",
+  "generated_date": "2026-10-19",
+  "frozen_criteria_ref": "workspaces/uav-crop-weed-v03/calibration_v03/v03_scr1_SCREENING_CRITERIA_frozen_ref.md",
+  "inputs": {
+    "deduped_corpus": "v03_r3e_20261017_deduped.json",
+    "mutual_include": "v03_scr1_reconciliation_full.json :: human_lanes.mutual_include (588 ids)",
+    "t3_majority_include": "v03_scr1_t3_tricot_reconcile.json :: outcomes[] records with class == 'majority_include' (38 ids); facts: wave SCR1-T3-20261018, 814 conflict records, other classes are majority_exclude/majority_pending/tie_three_way",
+    "pool_overlap_588x38": 0
+  },
+  "stats": {
+    "pool_size": 626,
+    "sample_size": 53,
+    "sampling_rule": "sorted-pool every-12th: sorted(sids)[0, 0+12, ...] -> 53 records",
+    "class_distribution": {
+      "dataset_benchmark": 9,
+      "other_wrong_task": 7,
+      "out_of_window": 1,
+      "phenotyping_traits": 3,
+      "platform_ambiguous": 5,
+      "primary_method_study": 27,
+      "review_or_secondary": 1
+    },
+    "plausibility_distribution": {
+      "keep": 32,
+      "drop": 13,
+      "uncertain": 8
+    },
+    "platform_signal_distribution": {
+      "mixed_separable": 4,
+      "uav_evident": 44,
+      "unclear": 5
+    },
+    "primary_provider_distribution": {
+      "openalex": 45,
+      "crossref": 8
+    },
+    "source_provider_multiset": {
+      "openalex": 45,
+      "crossref": 9,
+      "pubmed": 2
+    },
+    "dual_source_count": 3,
+    "abstract_quality_distribution": {
+      "full": 53
+    },
+    "year_range": [
+      2020,
+      2026
+    ],
+    "drop_risk_count": 21
+  },
+  "records": [
+    {
+      "screening_id": "SCI-000002",
+      "title": "Lightweight Semantic Segmentation Network for Real-Time Weed Mapping Using Unmanned Aerial Vehicles",
+      "year": 2020,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/app10207132', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3211232398', s2_id=None)",
+      "abstract_len": 1865,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Onboard-UAV real-time weed mapping for SSWM; INC-01/INC-02 primary method study.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000036",
+      "title": "Multispectral Crop–Weed Segmentation Patches",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.5281/zenodo.18361815', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7125636990', s2_id=None)",
+      "abstract_len": 1356,
+      "class": "dataset_benchmark",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Patch version of WeedsGalore 'using UAV multispectral imagery' with crop/weed masks; INC-02 dataset report.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000054",
+      "title": "Geospatial analysis of weeds in olive groves using unmanned aerial vehicles and GIS",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi=None, arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7113649564', s2_id=None)",
+      "abstract_len": 3768,
+      "class": "out_of_window",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "abstract begins '[SPA]' - foreign-language record flag",
+      "reason": "EXC-04 OUTSIDE_DATE_LANGUAGE: abstract is Spanish ([SPA]); needs language verification before include.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000078",
+      "title": "Weed Detection and Mapping of a Coffee Farm by a Remotely Piloted Aircraft System",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/agronomy13030830', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4324056567', s2_id=None)",
+      "abstract_len": 1225,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "RPAS coffee-farm weed classify/map (INC-01 managed perennial); 'aerial images were obtained by a remotely piloted aircraft'.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000098",
+      "title": "Walnut tree canopy information extraction based on unmanned aerial vehicle multispectral images",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.13925/j.cnki.gsxb.20250514', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7171709680', s2_id=None)",
+      "abstract_len": 6836,
+      "class": "phenotyping_traits",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: walnut canopy nutritional/parameter inversion, no weed/crop-weed mapping task.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000122",
+      "title": "An exploration of the use of machine learning techniques for site-specific weed management",
+      "year": 2020,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi=None, arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3000531614', s2_id=None)",
+      "abstract_len": 761,
+      "class": "review_or_secondary",
+      "plausibility": "uncertain",
+      "platform_signal": "unclear",
+      "abstract_quality": "full",
+      "note": "thesis chapter list, not a single report",
+      "reason": "PhD-thesis chapter compilation; EXC-03-adjacent but Chapter 5 is 'weed mapping ... using unmanned aerial vehicle imagery'.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000137",
+      "title": "Multispectral Multitemporal UAV Imagery Dataset of Maize Fields for Crop and Weed Monitoring",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.5281/zenodo.22275501', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7208776509', s2_id=None)",
+      "abstract_len": 920,
+      "class": "dataset_benchmark",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Multitemporal multispectral UAV orthomosaics of maize for crop/weed monitoring (INC-02).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000157",
+      "title": "Advanced drone-based weed detection using feature-enriched deep learning approach",
+      "year": 2024,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1016/j.knosys.2024.112655', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4403680880', s2_id=None)",
+      "abstract_len": 1577,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Feature-enriched DL on 'drone imagery, we collected a dataset'; INC-01/INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000172",
+      "title": "Analysis of weed segmentation techniques in crop fields using drone images",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi=None, arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7155470513', s2_id=None)",
+      "abstract_len": 1697,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "U-Net/DeepLabV3+ weed segmentation on 'aerial images ... captured by UAVs' (Cofly, AgricultureVision).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000189",
+      "title": "Weed–Crop Segmentation in Drone Images with a Novel Encoder–Decoder Framework Enhanced via Attention Modules",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/rs15235615', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4389308054', s2_id=None)",
+      "abstract_len": 2213,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Encoder-decoder attention segmentation of weed/crop in drone images; INC-01/INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000206",
+      "title": "Drone-Based Smart Weed Localization from Limited Training Data and Radiometric Calibration Parameters",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/ecrs2023-15854', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4392852437', s2_id=None)",
+      "abstract_len": 987,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Few-shot weed localization in 'multispectral drone images' with radiometric calibration (reliability-relevant, RQ1).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000227",
+      "title": "Vision Transformers For Weeds and Crops Classification Of High Resolution UAV Images",
+      "year": 2021,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.48550/arxiv.2109.02716', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3197076153', s2_id=None)",
+      "abstract_len": 1399,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Vision Transformers for weeds/crops classification of 'High Resolution UAV Images' (arXiv preprint, INC-02).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000260",
+      "title": "Edge-deployable segmentation and prescription mapping of post-emergence weeds in sugar beet crops for UAV-based precision spraying",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1016/j.jafr.2025.102422', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4414905240', s2_id=None)",
+      "abstract_len": 1875,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "spraying-in-title boundary: method core kept under INC-01/INC-02",
+      "reason": "Core is weed detection/segmentation + prescription maps on 'UAV-acquired imagery'; spraying is downstream application, not exclusion.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000277",
+      "title": "Efficient Application of Deep Neural Networks for Identifying Small and Multiple Weed Patches Using Drone Images",
+      "year": 2024,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1109/access.2024.3402213', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4397026421', s2_id=None)",
+      "abstract_len": 2828,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Camouflage weed-patch detection in sugarcane 'using UAV data'; INC-01/INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000296",
+      "title": "Aerial Image-Based Crop Row Detection and Weed Pressure Mapping Method",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "crossref",
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/agronomy15081762', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4412596114', s2_id=None)",
+      "abstract_len": 1942,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Crop-row + weed-pressure mapping from 'drone imagery captured at altitudes of 20-30 m'; spatial weed mapping (INC-01).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000312",
+      "title": "Weed Classification on UAV Images Using Deep Learning",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1109/wiecon-ece60392.2023.10456427', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4393208020', s2_id=None)",
+      "abstract_len": 1147,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Title/abstract: 'Weed Classification on UAV Images Using Deep Learning' (conference, INC-02).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000332",
+      "title": "Weed Identification using K-Means Clustering with Color Spaces Features in Multi-Spectral Images Taken by UAV",
+      "year": 2021,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1109/igarss47720.2021.9554097', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3206633555', s2_id=None)",
+      "abstract_len": 1106,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "K-means weed ID in 'Multi-Spectral Images Taken by UAV'; INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000351",
+      "title": "Ground-truthed and high-resolution drone images of the leafy spurge weed plant (Euphorbia esula)",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex",
+        "pubmed"
+      ],
+      "doi": "ExternalIds(doi='10.1038/s41597-025-05094-6', arxiv_id=None, pubmed_id='40328796', openalex_id='https://openalex.org/W4410130171', s2_id=None)",
+      "abstract_len": 959,
+      "class": "dataset_benchmark",
+      "plausibility": "uncertain",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "rangeland/grassland weed mapping is an EXC-02 vs INC-01 boundary case",
+      "reason": "Drone rangeland leafy-spurge dataset; rangeland vs INC-01 'managed pastures' boundary - human confirm.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000368",
+      "title": "HERSS-MAIZE 2024; High-rEsolution dRone dataset for Site-Specific weed wanagement in Maize (San Piero - Pisa, Tuscany, Italy)",
+      "year": 2024,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.82522/n1cq-bw62', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7105744436', s2_id=None)",
+      "abstract_len": 2387,
+      "class": "dataset_benchmark",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "'High-rEsolution dRone dataset for Site-Specific weed management in Maize'; INC-02 dataset report.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000389",
+      "title": "Investigating the performance of monocular and stereo vision for the detection of weeds in a strawberry field using UAVs and machine learning techniques",
+      "year": 2024,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1117/12.3014678', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4399422902', s2_id=None)",
+      "abstract_len": 1854,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "UAV + ML weed detection/localization in strawberry; INC-01 vegetables.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000413",
+      "title": "Effect of the Red-Edge Band from Drone Altum Multispectral Camera in Mapping the Canopy Cover of Winter Wheat, Chickweed, and Hairy Buttercup",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/drones7040277', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4366413735', s2_id=None)",
+      "abstract_len": 1239,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Red-edge band contribution to wheat/chickweed/buttercup mapping with 'drone ... Altum multispectral camera' (sensor-difference RQ1).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000430",
+      "title": "Deep Learning Model for Minimal Area Detection of Weed Patches in UAV Imagery",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1109/ingarss59135.2023.10490386', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4394628442', s2_id=None)",
+      "abstract_len": 431,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "'UAV acquired camouflage dataset' weed-patch detection in sugarcane; short conference abstract-length paper (INC-02).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000454",
+      "title": "AI In Agriculture Using UAV to Detect Weeds",
+      "year": 2021,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.47904/ijskit.11.3.2021.43-47', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3202525716', s2_id=None)",
+      "abstract_len": 1118,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "UAV orthomosaic workflow over weed-infested wheat ('UAV flying at altitudes of 30 to 100 m'); INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000475",
+      "title": "Automated weed segmentation with knowledge based labeling for machine learning applications",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex",
+        "pubmed"
+      ],
+      "doi": "ExternalIds(doi='10.1038/s41598-026-37475-1', arxiv_id=None, pubmed_id='41588159', openalex_id='https://openalex.org/W7125681198', s2_id=None)",
+      "abstract_len": 2196,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Automated weed/crop labeling workflow on 'high-resolution UAV imagery (0.88 mm)' Saskatchewan; INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000491",
+      "title": "Automation of Detection for Micro Morning Glory in Soybean Fields by Machine Learning Using Drone Aerial Images",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1299/jsmermd.2023.2a2-a25', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4391189719', s2_id=None)",
+      "abstract_len": 948,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Drone-image ML detection of small morning-glory in soybean; INC-01 row crop.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000508",
+      "title": "Effect of varying training epochs of a Faster Region-Based Convolutional Neural Network on the Accuracy of an Automatic Weed Classification Scheme",
+      "year": 2022,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1016/j.atech.2022.100128', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4306174955', s2_id=None)",
+      "abstract_len": 2123,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Faster R-CNN weed classification from 'A ... DJI phantom 4 UAV'; training-epoch ablation (INC-02).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000530",
+      "title": "Weed discrimination based on the spectral response of the corn crop, Manabí, Ecuador",
+      "year": 2021,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.47280/revfacagron(luz).v38.n4.03', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3207335078', s2_id=None)",
+      "abstract_len": 1281,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Corn/weed spectral discrimination with 'EBEE SQ agricultural drone'; INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000564",
+      "title": "AgriDataValue - Weed Detection Image Dataset",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.5281/zenodo.18956536', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7134918206', s2_id=None)",
+      "abstract_len": 1667,
+      "class": "dataset_benchmark",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "abstract head is project blurb; dataset spec at tail",
+      "reason": "Zenodo weed-detection bbox dataset 'captured by a UAV over a field seeded with celeriac'; INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000584",
+      "title": "DL-LY: Distributed swarm learning empowered light-weight YOLOv11 for heterogeneous weed detection in UAV images",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1016/j.aej.2026.02.030', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7135211482', s2_id=None)",
+      "abstract_len": 1761,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Swarm-learning lightweight YOLOv11 'weed detection in UAV images' with heterogeneity/generalization angle (RQ1).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000624",
+      "title": "An Aerial Weed Detection System for Green Onion Crops Using the You Only Look Once (YOLOv3) Deep Learning Algorithm",
+      "year": 2020,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.37221/eaef.13.2_42', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3192161630', s2_id=None)",
+      "abstract_len": 769,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "YOLO-WEED on data 'derived from a five-minute UAV video'; INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000664",
+      "title": "Fusion of Field Geometry Analysis and YOLO for Weed Detection in System of Rice Intensification Paddy Fields",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1109/i5cps67958.2026.11452514', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7143462622', s2_id=None)",
+      "abstract_len": 1910,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Radon+YOLO weed detection in 'Images Captured by Unmanned Aerial Vehicle (UAV) in SRI planted fields'; INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000693",
+      "title": "Using planetscope imagery to evaluate herbicide efficacy in maize (Zea mays) through post-application weed detection",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1007/s11119-026-10380-3', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7161634760', s2_id=None)",
+      "abstract_len": 1907,
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "platform_signal": "mixed_separable",
+      "abstract_quality": "full",
+      "note": "satellite title wearing an embedded UAV experiment - review-scope boundary",
+      "reason": "Satellite-first herbicide-efficacy study but 'separation between damaged and healthy weeds in UAV images' is a separable UAV stream; human confirm.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000712",
+      "title": "HySpex-Constrained Synthetic Maize–Weed UAV Multispectral Image Dataset: MicaSense Altum and DJI Phantom 4 Emulations",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.6084/m9.figshare.32841041', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7166743349', s2_id=None)",
+      "abstract_len": 2464,
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "platform_signal": "unclear",
+      "abstract_quality": "full",
+      "note": "synthetic UAV-band emulation from airborne HySpex source - platform boundary",
+      "reason": "'synthetic ... UAV multispectral sensor emulations' derived from HySpex AIRBORNE (not UAV-acquired) imagery; human confirm under EXC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000737",
+      "title": "Detection of the Grassland Weed Phlomoides umbrosa Using Multi-Source Imagery and an Improved YOLOv8 Network",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/agronomy13123001', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4389380615', s2_id=None)",
+      "abstract_len": 2065,
+      "class": "primary_method_study",
+      "plausibility": "uncertain",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "grassland poisonous-plant mapping - INC-01 pasture boundary case",
+      "reason": "BSS-YOLOv8 grassland noxious-plant detection 'using UAV images'; pasture/grassland vs non-agricultural EXC-02 boundary.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000778",
+      "title": "CamelinaWeed: Annotated UAV Imagery Dataset for Camelina sativa",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.5281/zenodo.20148696', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7161749188', s2_id=None)",
+      "abstract_len": 1668,
+      "class": "dataset_benchmark",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "'Annotated UAV Imagery Dataset' with weed-polygon labels for camelina; INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000800",
+      "title": "Multimodal deep fusion model based on Transformer and multi-layer residuals for assessing the competitiveness of weeds in farmland ecosystems",
+      "year": 2024,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.1016/j.jag.2024.103681', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4391329038', s2_id=None)",
+      "abstract_len": 2220,
+      "class": "phenotyping_traits",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: multimodal fusion estimating weed-competitiveness trait index, not weed detection/mapping.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000834",
+      "title": "Alternaria Leaf Blight and Head Rot of Broccoli: UAV-Based Disease Detection and Fungicide Resistance Management",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi=None, arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7113348540', s2_id=None)",
+      "abstract_len": 2714,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: broccoli disease detection + fungicide resistance; disease is an excluded task.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000879",
+      "title": "Remote Sensing for Italian Ryegrass [Lolium perenne L. ssp. multiflorum (Lam.) Husnot] Detection in Winter Wheat (Triticum aestivum L.)",
+      "year": 2021,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3389/fagro.2021.687112', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W3212868136', s2_id=None)",
+      "abstract_len": 1934,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "Italian ryegrass vs wheat discrimination 'using an unmanned aerial vehicle (UAV) equipped with a 5-band multispectral sensor'; INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000919",
+      "title": "Helicopter-Borne HySpex Maize-Weed Patch Dataset Convolved to MicaSense Altum and DJI Phantom 4 Multispectral Bands",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.6084/m9.figshare.32841389', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7166693011', s2_id=None)",
+      "abstract_len": 1968,
+      "class": "platform_ambiguous",
+      "plausibility": "drop",
+      "platform_signal": "unclear",
+      "abstract_quality": "full",
+      "note": "helicopter imagery wearing UAV-sensor emulation - platform boundary case",
+      "reason": "EXC-01-adjacent: 'helicopter-based aerial imaging' HySpex patches emulated to UAV sensor bands; no UAV-acquired evidence.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-000956",
+      "title": "YOLOv8n-SSDW: A Lightweight and Accurate Model for Barnyard Grass Detection in Fields",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/agriculture15141510', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4412409564', s2_id=None)",
+      "abstract_len": 2180,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "YOLOv8n barnyard-grass detection, 'Field tests using drones ... in real-world complex paddy environments'; INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-001011",
+      "title": "Integrating Convolutional, Transformer, and Graph Neural Networks for Precision Agriculture and Food Security",
+      "year": 2025,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.3390/agriengineering7100353', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4415372084', s2_id=None)",
+      "abstract_len": 1613,
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "platform_signal": "mixed_separable",
+      "abstract_quality": "full",
+      "note": "multi-task multi-platform framework; UAV weed result separable but incidental",
+      "reason": "Multi-benchmark framework incl 91.5% on 'UAV Crop and Weed' but mixed with PlantVillage disease + satellite land-cover tasks; human confirm.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-001045",
+      "title": "SPADE OC2 Mediterranean Watermelon crop dataset (W2) - VITAFields – Visual Intelligence for Targeted Agriculture",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.5281/zenodo.21513071', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7171827510', s2_id=None)",
+      "abstract_len": 1298,
+      "class": "dataset_benchmark",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "VITAFields watermelon 'aerial and drone imagery ... for field-scale semantic segmentation, weed and crop'; INC-02.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-001102",
+      "title": "SPADE OC2 Mediterranean Pea crop dataset (M1) - VITAFields – Visual Intelligence for Targeted Agriculture #5",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.5281/zenodo.21515198', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7170906787', s2_id=None)",
+      "abstract_len": 690,
+      "class": "dataset_benchmark",
+      "plausibility": "uncertain",
+      "platform_signal": "unclear",
+      "abstract_quality": "full",
+      "note": "companion parts are drone imagery; this part's abstract alone is platform-thin",
+      "reason": "Pea-crop orthomosaic part 5; weed/crop-classification use stated but no explicit UAV-acquisition fragment in this part's abstract.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-001146",
+      "title": "Datura stramonium L. in soybean in Austria: risk areas, extent of late-season infestation, and management implications",
+      "year": 2026,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.2478/boku-2026-0001', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W7164551069', s2_id=None)",
+      "abstract_len": 1328,
+      "class": "primary_method_study",
+      "plausibility": "keep",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "'Drone images and an automatic image recognition method' for Datura infestation mapping in soybean; INC-01.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-001192",
+      "title": "Dataset of Crops part one",
+      "year": 2023,
+      "primary_provider": "openalex",
+      "source_providers": [
+        "openalex"
+      ],
+      "doi": "ExternalIds(doi='10.7910/dvn/j0os9r', arxiv_id=None, pubmed_id=None, openalex_id='https://openalex.org/W4398450000', s2_id=None)",
+      "abstract_len": 990,
+      "class": "dataset_benchmark",
+      "plausibility": "drop",
+      "platform_signal": "mixed_separable",
+      "abstract_quality": "full",
+      "note": "crop-classification dataset, weed class split into part two",
+      "reason": "EXC-02-adjacent: dataset is crop-classification ('cassava, sugarcane, maize...'); weeds live in a separate part; drone capture only partial.",
+      "pool_origin": "t3_majority_include"
+    },
+    {
+      "screening_id": "SCI-001375",
+      "title": "Crop Field Classification using Data Fusion of Unmanned Aerial Vehicle (UAV) and Sentinel 2A satellite: the case of Oda Dhawata Kebele Cluster farmland, Oromia Region, Ethiopia",
+      "year": 2021,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.21203/rs.3.rs-1166571/v1', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1762,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "mixed_separable",
+      "abstract_quality": "full",
+      "note": "mixed-platform but crop-type mapping, not weed localization",
+      "reason": "EXC-02 WRONG_TASK: UAV+Sentinel crop FIELD classification, no weed task despite UAV being separable.",
+      "pool_origin": "t3_majority_include"
+    },
+    {
+      "screening_id": "SCI-002152",
+      "title": "Using Unmanned Aerial Systems (UAS) and Deep Learning for Agriculture Mapping in Dubai",
+      "year": 2021,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.2139/ssrn.3891255', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1813,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: UAS land-use/agriculture mapping for food-security monitoring, no crop/weed localization.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-003560",
+      "title": "Modified YOLOv4 for real-time Coconut Trees Detection from an Unmanned Aerial Vehicle",
+      "year": 2021,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.21203/rs.3.rs-826223/v1', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1077,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: UAV coconut-TREE detection/object localization; perennial-crop tree counting, not weed mapping.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-005645",
+      "title": "Vineyard Zoning and Vine Detection Using Machine Learning in Unmanned Aerial Vehicle Imagery",
+      "year": 2024,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.3390/rs16030584', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1504,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "managed-perennial setting but task is vine zoning, not weed mapping",
+      "reason": "EXC-02 WRONG_TASK: vine detection + vineyard zoning; no weed/crop-weed mapping component.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-008137",
+      "title": "A U-Net Improved Version for Crop and Weed Segmentation from Aerial Images",
+      "year": 2026,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.20944/preprints202602.1616.v1', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1470,
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "platform_signal": "unclear",
+      "abstract_quality": "full",
+      "note": "aerial-title with zero platform keywords in abstract",
+      "reason": "U-Net crop/weed segmentation in tobacco from 'Aerial Images'; abstract names no UAV/drone/satellite platform; human confirm (INC-01 separability).",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-009692",
+      "title": "Rapid Detection of Wheat Ears in Orthophotos From Unmanned Aerial Vehicles in Fields Based on YOLOX",
+      "year": 2022,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.3389/fpls.2022.851245', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1397,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: wheat-EAR detection 'critical for wheat yield prediction'; yield/phenology task.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-011678",
+      "title": "Rice Counting and Localization in Unmanned Aerial Vehicle Imagery Using Enhanced Feature Fusion",
+      "year": 2024,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.3390/agronomy14040868', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 1540,
+      "class": "phenotyping_traits",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: rice plant counting/localization (phenotyping), no weed mapping.",
+      "pool_origin": "mutual_include"
+    },
+    {
+      "screening_id": "SCI-013486",
+      "title": "Geospatial monitoring of land use and tree cover using Unmanned Aerial Vehicles and YOLOv5: a case study on tree crops and built-up detection in Thailand",
+      "year": 2025,
+      "primary_provider": "crossref",
+      "source_providers": [
+        "crossref"
+      ],
+      "doi": "ExternalIds(doi='10.1080/10106049.2025.2598496', arxiv_id=None, pubmed_id=None, openalex_id=None, s2_id=None)",
+      "abstract_len": 833,
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "platform_signal": "uav_evident",
+      "abstract_quality": "full",
+      "note": "",
+      "reason": "EXC-02 WRONG_TASK: economic tree-species + built-up detection in Thailand; non-crop-weed vegetation mapping.",
+      "pool_origin": "mutual_include"
+    }
+  ],
+  "drop_risk_records": [
+    {
+      "screening_id": "SCI-000054",
+      "title": "Geospatial analysis of weeds in olive groves using unmanned aerial vehicles and GIS",
+      "class": "out_of_window",
+      "plausibility": "drop",
+      "reason": "EXC-04 OUTSIDE_DATE_LANGUAGE: abstract is Spanish ([SPA]); needs language verification before include."
+    },
+    {
+      "screening_id": "SCI-000098",
+      "title": "Walnut tree canopy information extraction based on unmanned aerial vehicle multispectral images",
+      "class": "phenotyping_traits",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: walnut canopy nutritional/parameter inversion, no weed/crop-weed mapping task."
+    },
+    {
+      "screening_id": "SCI-000122",
+      "title": "An exploration of the use of machine learning techniques for site-specific weed management",
+      "class": "review_or_secondary",
+      "plausibility": "uncertain",
+      "reason": "PhD-thesis chapter compilation; EXC-03-adjacent but Chapter 5 is 'weed mapping ... using unmanned aerial vehicle imagery'."
+    },
+    {
+      "screening_id": "SCI-000351",
+      "title": "Ground-truthed and high-resolution drone images of the leafy spurge weed plant (Euphorbia esula)",
+      "class": "dataset_benchmark",
+      "plausibility": "uncertain",
+      "reason": "Drone rangeland leafy-spurge dataset; rangeland vs INC-01 'managed pastures' boundary - human confirm."
+    },
+    {
+      "screening_id": "SCI-000693",
+      "title": "Using planetscope imagery to evaluate herbicide efficacy in maize (Zea mays) through post-application weed detection",
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "reason": "Satellite-first herbicide-efficacy study but 'separation between damaged and healthy weeds in UAV images' is a separable UAV stream; human confirm."
+    },
+    {
+      "screening_id": "SCI-000712",
+      "title": "HySpex-Constrained Synthetic Maize–Weed UAV Multispectral Image Dataset: MicaSense Altum and DJI Phantom 4 Emulations",
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "reason": "'synthetic ... UAV multispectral sensor emulations' derived from HySpex AIRBORNE (not UAV-acquired) imagery; human confirm under EXC-01."
+    },
+    {
+      "screening_id": "SCI-000737",
+      "title": "Detection of the Grassland Weed Phlomoides umbrosa Using Multi-Source Imagery and an Improved YOLOv8 Network",
+      "class": "primary_method_study",
+      "plausibility": "uncertain",
+      "reason": "BSS-YOLOv8 grassland noxious-plant detection 'using UAV images'; pasture/grassland vs non-agricultural EXC-02 boundary."
+    },
+    {
+      "screening_id": "SCI-000800",
+      "title": "Multimodal deep fusion model based on Transformer and multi-layer residuals for assessing the competitiveness of weeds in farmland ecosystems",
+      "class": "phenotyping_traits",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: multimodal fusion estimating weed-competitiveness trait index, not weed detection/mapping."
+    },
+    {
+      "screening_id": "SCI-000834",
+      "title": "Alternaria Leaf Blight and Head Rot of Broccoli: UAV-Based Disease Detection and Fungicide Resistance Management",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: broccoli disease detection + fungicide resistance; disease is an excluded task."
+    },
+    {
+      "screening_id": "SCI-000919",
+      "title": "Helicopter-Borne HySpex Maize-Weed Patch Dataset Convolved to MicaSense Altum and DJI Phantom 4 Multispectral Bands",
+      "class": "platform_ambiguous",
+      "plausibility": "drop",
+      "reason": "EXC-01-adjacent: 'helicopter-based aerial imaging' HySpex patches emulated to UAV sensor bands; no UAV-acquired evidence."
+    },
+    {
+      "screening_id": "SCI-001011",
+      "title": "Integrating Convolutional, Transformer, and Graph Neural Networks for Precision Agriculture and Food Security",
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "reason": "Multi-benchmark framework incl 91.5% on 'UAV Crop and Weed' but mixed with PlantVillage disease + satellite land-cover tasks; human confirm."
+    },
+    {
+      "screening_id": "SCI-001102",
+      "title": "SPADE OC2 Mediterranean Pea crop dataset (M1) - VITAFields – Visual Intelligence for Targeted Agriculture #5",
+      "class": "dataset_benchmark",
+      "plausibility": "uncertain",
+      "reason": "Pea-crop orthomosaic part 5; weed/crop-classification use stated but no explicit UAV-acquisition fragment in this part's abstract."
+    },
+    {
+      "screening_id": "SCI-001192",
+      "title": "Dataset of Crops part one",
+      "class": "dataset_benchmark",
+      "plausibility": "drop",
+      "reason": "EXC-02-adjacent: dataset is crop-classification ('cassava, sugarcane, maize...'); weeds live in a separate part; drone capture only partial."
+    },
+    {
+      "screening_id": "SCI-001375",
+      "title": "Crop Field Classification using Data Fusion of Unmanned Aerial Vehicle (UAV) and Sentinel 2A satellite: the case of Oda Dhawata Kebele Cluster farmland, Oromia Region, Ethiopia",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: UAV+Sentinel crop FIELD classification, no weed task despite UAV being separable."
+    },
+    {
+      "screening_id": "SCI-002152",
+      "title": "Using Unmanned Aerial Systems (UAS) and Deep Learning for Agriculture Mapping in Dubai",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: UAS land-use/agriculture mapping for food-security monitoring, no crop/weed localization."
+    },
+    {
+      "screening_id": "SCI-003560",
+      "title": "Modified YOLOv4 for real-time Coconut Trees Detection from an Unmanned Aerial Vehicle",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: UAV coconut-TREE detection/object localization; perennial-crop tree counting, not weed mapping."
+    },
+    {
+      "screening_id": "SCI-005645",
+      "title": "Vineyard Zoning and Vine Detection Using Machine Learning in Unmanned Aerial Vehicle Imagery",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: vine detection + vineyard zoning; no weed/crop-weed mapping component."
+    },
+    {
+      "screening_id": "SCI-008137",
+      "title": "A U-Net Improved Version for Crop and Weed Segmentation from Aerial Images",
+      "class": "platform_ambiguous",
+      "plausibility": "uncertain",
+      "reason": "U-Net crop/weed segmentation in tobacco from 'Aerial Images'; abstract names no UAV/drone/satellite platform; human confirm (INC-01 separability)."
+    },
+    {
+      "screening_id": "SCI-009692",
+      "title": "Rapid Detection of Wheat Ears in Orthophotos From Unmanned Aerial Vehicles in Fields Based on YOLOX",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: wheat-EAR detection 'critical for wheat yield prediction'; yield/phenology task."
+    },
+    {
+      "screening_id": "SCI-011678",
+      "title": "Rice Counting and Localization in Unmanned Aerial Vehicle Imagery Using Enhanced Feature Fusion",
+      "class": "phenotyping_traits",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: rice plant counting/localization (phenotyping), no weed mapping."
+    },
+    {
+      "screening_id": "SCI-013486",
+      "title": "Geospatial monitoring of land use and tree cover using Unmanned Aerial Vehicles and YOLOv5: a case study on tree crops and built-up detection in Thailand",
+      "class": "other_wrong_task",
+      "plausibility": "drop",
+      "reason": "EXC-02 WRONG_TASK: economic tree-species + built-up detection in Thailand; non-crop-weed vegetation mapping."
+    }
+  ]
+}

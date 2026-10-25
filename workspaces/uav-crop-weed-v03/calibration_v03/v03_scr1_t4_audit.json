@@ -1,0 +1,279 @@
+{
+ "audit": "SCR1_T4_verification_sample_wave_close",
+ "workspace": "uav-crop-weed-v03",
+ "family": "T4",
+ "n_packs": 25,
+ "n_sample_records": 1235,
+ "n_t4_decisions": 1235,
+ "coverage_complete": true,
+ "missing_t4_decisions": [],
+ "extra_t4_decisions": [],
+ "header_issues": [],
+ "totals": {
+  "EXCLUDE": 1219,
+  "PENDING": 16
+ },
+ "t4_exCLUDE_agreement_count": 1219,
+ "exclusion_side_agreement_rate": 0.987,
+ "exceptions_to_human": [
+  {
+   "screening_id": "SCI-000574",
+   "pack": "pack_0001",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING_TITLE_ONLY_AMBIGUOUS",
+   "t4_confidence": 0.45,
+   "t4_reason": "Abstract null; title-only UAV target/anomaly detection with no crop or weed signal and indeterminate domain",
+   "criterion_refs": [
+    "INC-01"
+   ],
+   "one_line_support": "title-only: 2D target/anomaly detection in time series drone images",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-001498",
+   "pack": "pack_0002",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING_TITLE_ONLY_AMBIGUOUS",
+   "t4_confidence": 0.4,
+   "t4_reason": "Abstract null and title-only generic UAV heading; domain/task indeterminate",
+   "criterion_refs": [
+    "INC-01"
+   ],
+   "one_line_support": "title-only: Unmanned Aerial Vehicle (UAV)",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-002059",
+   "pack": "pack_0003",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING_MODERATION_TITLE_ONLY",
+   "t4_confidence": 0.5,
+   "t4_reason": "Moderation-redacted abstract; title-only generic aerial object detection for UAV, domain not clearly outside review scope",
+   "criterion_refs": [
+    "INC-01"
+   ],
+   "one_line_support": "title-only: Deep Learning-Based Aerial Object Detection for UAVs",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-002776",
+   "pack": "pack_0004",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "MODERATION_TITLE_ONLY",
+   "t4_confidence": 0.5,
+   "t4_reason": "Moderation-redacted abstract withheld; title-only decision. Title shows UAV image analysis but no crop/weed signal, so domain cannot be judged from title alone.",
+   "criterion_refs": [
+    "INC-01",
+    "EXC-02"
+   ],
+   "one_line_support": "Title 'Automated Visible/Infrared Image Analysis System of UAVs' only; abstract withheld by moderation.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-003341",
+   "pack": "pack_0005",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "MODERATION_TITLE_ONLY",
+   "t4_confidence": 0.5,
+   "t4_reason": "Moderation-redacted abstract withheld; title indicates UAV fixed-wing for agricultural monitoring/mapping/dropping, so not clearly off-domain, but mapping task vs spray-dropping application cannot be judged from title alone.",
+   "criterion_refs": [
+    "INC-01",
+    "EXC-02"
+   ],
+   "one_line_support": "Title-only: UAV fixed-wing for agricultural land monitoring, mapping, dropping.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-003991",
+   "pack": "pack_0006",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "MODERATION_TITLE_ONLY",
+   "t4_confidence": 0.5,
+   "t4_reason": "Moderation-redacted abstract withheld; title-only screen. 'Toward a smart multi-UAV system' does not clearly leave the review domain from the title alone, so domain judgment is not possible without the withheld abstract.",
+   "criterion_refs": [
+    "INC-01",
+    "EXC-02"
+   ],
+   "one_line_support": "Title-only: smart multi-UAV system; abstract withheld by moderation.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-004433",
+   "pack": "pack_0007",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING",
+   "t4_confidence": 0.55,
+   "t4_reason": "UAV multispectral/RGB imaging parameters for crop condition maps; agriculture-adjacent data acquisition study, but crop/weed detection or mapping task is not evident; genuinely ambiguous on mapping relevance.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "Abstract: flight-mission parameters for multispectral crop-condition photography creating digital maps.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-004763",
+   "pack": "pack_0008",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING",
+   "t4_confidence": 0.6,
+   "t4_reason": "Null abstract; title signals crop-weed interaction modeling for management support in rice (barnyardgrass, red rice) but no UAV/aerial mapping signal; agriculture-adjacent title-only record, genuinely ambiguous for the review's mapping focus.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "Title: crop-weed interaction model for barnyardgrass and red rice management; no UAV evidence.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-005144",
+   "pack": "pack_0008",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING",
+   "t4_confidence": 0.5,
+   "t4_reason": "Moderation-redacted abstract withheld; title-only: deep semantic segmentation of UAV remote sensing images - generic segmentation that could fall inside or outside the agricultural crop/weed domain; cannot judge from title alone, and no redaction marker permits a title-only exclude here.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "Title: FCN-based semantic segmentation of UAV RS images; no crop/weed evidence, no clear off-domain signal.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-007054",
+   "pack": "pack_0012",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+   "t4_confidence": 0.5,
+   "t4_reason": "Moderation-redacted record; abstract withheld. Title pairs UAV with herbicide (crop-protection signal) in a crop context, so it stays in-domain and cannot be excluded or included on the title alone.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "Title-only: common bean herbicide application by UAV; mapping task not stated.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-008686",
+   "pack": "pack_0015",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+   "t4_confidence": 0.55,
+   "t4_reason": "Abstract null; title couples UAV spraying with insecticide crop-protection chemicals, but no weed mapping task is evident; agricultural UAV spraying records need abstract review.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "UAV spraying microemulsion of insecticides; no mapping task visible.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-008813",
+   "pack": "pack_0015",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "GUARDRAIL_AMBIGUOUS_TITLE_NO_ABSTRACT",
+   "t4_confidence": 0.5,
+   "t4_reason": "Abstract null; UAV object detection and mapping is domain-ambiguous with no crop/weed or clearly non-agricultural signal in the title, so available signal is insufficient.",
+   "criterion_refs": [
+    "INC-02"
+   ],
+   "one_line_support": "CNN object detection/mapping with UAVs; domain unstated.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-008912",
+   "pack": "pack_0015",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "GUARDRAIL_AMBIGUOUS_TITLE_NO_ABSTRACT",
+   "t4_confidence": 0.5,
+   "t4_reason": "Abstract null; title reports weed-infestation monitoring with tillage but no UAV/aerial or imagery signal, so the platform and mapping task cannot be judged from the title alone.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "Weed infestation monitoring, tillage backgrounds; no UAV signal.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-008944",
+   "pack": "pack_0016",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "GUARDRAIL_TITLE_ONLY_UAV_WEED",
+   "t4_confidence": 0.8,
+   "t4_reason": "Abstract null; title-only UAV + crop (coffee) signal — guardrail forbids auto-exclusion; task (frost damage) not judgeable from title alone.",
+   "criterion_refs": [
+    "INC-01",
+    "INC-02"
+   ],
+   "one_line_support": "Title-only 'UAV evaluate frost damage in coffee plants'; guardrail title-only UAV+crop.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-013992",
+   "pack": "pack_0025",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING_AMBIGUOUS_TITLE_ONLY",
+   "t4_confidence": 0.5,
+   "t4_reason": "Title-only and genuinely ambiguous: 'vulnerability detection in UAV' via structural skeleton inference and RGB-to-IR transfer could refer to defect detection on UAVs or structures viewed by UAVs; no crop/weed term visible to anchor either direction.",
+   "criterion_refs": [
+    "INC-01"
+   ],
+   "one_line_support": "Title-only: UAV vulnerability detection via skeleton inference, RGB-to-IR transfer; task not evident.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  },
+  {
+   "screening_id": "SCI-014123",
+   "pack": "pack_0025",
+   "t4_decision": "PENDING",
+   "t4_reason_code": "PENDING_AMBIGUOUS_TITLE_ONLY",
+   "t4_confidence": 0.5,
+   "t4_reason": "Title-only; polarity-aware detection transformer for 'UAV small object detection' is UAV-aerial but the target domain (agricultural vs vehicles/infrastructure) is not evident without an abstract.",
+   "criterion_refs": [
+    "INC-01"
+   ],
+   "one_line_support": "Title-only: detection transformer for UAV small object detection; target domain unstated.",
+   "closed_lane": "mutual_EXCLUDE (pair-lane closed)",
+   "routing": "human adjudication sheet (T4 suggestion does NOT overturn closure)"
+  }
+ ],
+ "n_exceptions": 16,
+ "reason_code_distribution": {
+  "WRONG_TASK": 1031,
+  "MODERATION_TITLE_ONLY_EXCLUDE": 65,
+  "WRONG_REPORT_TYPE": 60,
+  "WRONG_PLATFORM": 60,
+  "MODERATION_TITLE_ONLY": 3,
+  "PENDING": 3,
+  "GUARDRAIL_TITLE_ONLY_UAV_WEED": 3,
+  "OUTSIDE_DATE_LANGUAGE": 3,
+  "PENDING_TITLE_ONLY_AMBIGUOUS": 2,
+  "GUARDRAIL_AMBIGUOUS_TITLE_NO_ABSTRACT": 2,
+  "PENDING_AMBIGUOUS_TITLE_ONLY": 2,
+  "PENDING_MODERATION_TITLE_ONLY": 1
+ },
+ "mean_confidence_by_decision": {
+  "EXCLUDE": 0.906,
+  "PENDING": 0.522
+ },
+ "zero_include_signer": {
+  "any_include": false,
+  "note": "reporting hygiene only; pack composition is the closed exclusion pool"
+ },
+ "semantics": "T4 suggestions only; EXCLUDE agreement counted as exclusion-side error-rate evidence; INCLUDE/PENDING routed to human adjudication; closed mutual-EXCLUDE records are NOT overturned by T4.",
+ "salient_conflicts": []
+}

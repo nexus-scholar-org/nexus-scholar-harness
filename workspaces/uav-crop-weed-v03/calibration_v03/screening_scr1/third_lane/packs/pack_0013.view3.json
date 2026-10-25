@@ -1,0 +1,461 @@
+{
+ "role": "T3 boundary third-rater, blinded (no A1/A2 decisions inside)",
+ "pack": "pack_0013",
+ "n_records": 50,
+ "instruction_anchor_sha_prompt": "0c7f129d",
+ "criteria_sha_prefix": "9ae1f97d",
+ "records": [
+  {
+   "screening_id": "SCI-009531",
+   "title": "Comparison of Droplet Deposition, 28-Homobrassinolide Dosage Efficacy and Working Efficiency of the Unmanned Aerial Vehicle and Knapsack Manual Sprayer in the Maize Field",
+   "abstract": "Brassinolides (BRs) are naturally-occurring phytohormones, which are essentially important to improve the crop adoptive capacity to various stresses. Spray volume (SV) and agrochemical application methods are associated with chemical deposition and field efficiency. The objective of this study was to compare the possible effects of 28-Homobrassinolide (HBL) dosages 18, 22, and 30 mg a.i. ha−1 for unmanned aerial vehicle (UAV) sprayers (15 L ha−1 and 30 L ha−1) and 22 mg a.i. ha−1 for Knapsack manual sprayers (KMS) (450 L ha−1) at maize silking stage on droplets deposition distribution, photosynthetic parameters, grain filling process and yield. The results showed that the droplet deposition of UAV (15, 30 L ha−1) was 47.04%, 8.89% higher than KMS. However, the UAV sprayer had a poor droplet deposition distribution. HBL significantly increased the photosynthetic parameters, grain filling rate, and yield. A UAV spray volume of 15 L ha−1 with 22 mg a.i. ha−1 significantly increased grains yield by 4.16–5.64%, 7.5–12.09% compared to KMS and CK in both years. Considering the high efficiency of the UAV sprayer and better effects of HBL on final yield, spraying 22~30 mg a.i. ha−1 with UAV spray volume 15 L ha−1 at the silking stage could be a better strategy.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009550",
+   "title": "Retrieval of Nitrogen Content in Apple Canopy Based on Unmanned Aerial Vehicle Hyperspectral Images Using a Modified Correlation Coefficient Method",
+   "abstract": "The accurate retrieval of nitrogen content based on Unmanned Aerial Vehicle (UAV) hyperspectral images is limited due to uncertainties in determining the locations of nitrogen-sensitive wavelengths. This study developed a Modified Correlation Coefficient Method (MCCM) to select wavelengths sensitive to nitrogen content. The Normalized Difference Canopy Shadow Index (NDCSI) was applied to remove the shadows from UAV hyperspectral images, thus yielding the canopy spectral information. The MCCM was then used to screen the bands sensitive to nitrogen content and to construct spectral characteristic parameters. Finally, the optimal model for nitrogen content retrieval was established and selected. As a result, the screened sensitive wavelengths for nitrogen content selected were 470, 474, 490, 514, 582, 634, and 682 nm, respectively. Among the nitrogen content retrieval models, the best model was the Support Vector Machine (SVM) model. In the training set, this model outperformed the other models with an R2 of 0.733, RMSE of 6.00%, an nRMSE of 12.76%, and a MAE of 4.49%. Validated by the ground-measured nitrogen content, this model yielded good performance with an R2 of 0.671, an RMSE of 4.73%, an nRMSE of 14.83%, and a MAE of 3.98%. This study can provide a new method for vegetation nutrient content retrieval based on UAV hyperspectral data.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009597",
+   "title": "Numerical simulation of downwash airflow distribution inside tree canopies of an apple orchard from a multirotor unmanned aerial vehicle (UAV) sprayer",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009601",
+   "title": "Correction: Lin, Z.; Guo, W. Cotton Stand Counting from Unmanned Aerial System Imagery Using MobileNet and CenterNet Deep Learning Models. Remote Sens. 2021, 13, 2822",
+   "abstract": "In the original publication [...]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009609",
+   "title": "RETRACTED: Real‐time agricultural field monitoring and smart irrigation architecture using the internet of things and quadrotor unmanned aerial vehicles",
+   "abstract": "AbstractFarming and agricultural production account for a substantial part of the global economic system, and most people rely on them for their living. In this perspective, real‐time agricultural field monitoring and smart irrigation using modern technologies are now important for effective farming in green homes, smart cities, and rural areas. Water is an essential resource to be conserved using the newest technology. The Internet of Things (IoT) and Industry 4.0 enable smart farming, including using Quadrotor unmanned aerial vehicles (Q‐UAV) with computer vision. The IoT‐based smart irrigation management systems with real‐time sensors and Q‐UAVs have contributed to the optimum use of water resources in precision farming. The research presented an intelligent irrigation and field surveillance system using atmospheric and soil data such as temperature, humidity, salinity, wind speed, as well as photographs of the field using UAVs. The parameters mentioned above are available on the smartphone of the farmers using IoT and are hosted without any delay in the Firebase console. In addition to this, a user can control the water pump on various fields via Firebase Cloud Message platform. The intelligence and smartness of the proposed system are implemented with a powerful and low‐cost platform Raspberry Pi 4B system on chip computer with Industry 4.0 standard dedicated for IoT, real‐time embedded protocol interfacing, and computer vision applications.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009645",
+   "title": "Estimation of Rice Aboveground Biomass by Combining Canopy Spectral Reflectance and Unmanned Aerial Vehicle-Based Red Green Blue Imagery Data",
+   "abstract": "Estimating the aboveground biomass (AGB) of rice using remotely sensed data is critical for reflecting growth status, predicting grain yield, and indicating carbon stocks in agroecosystems. A combination of multisource remotely sensed data has great potential for providing complementary datasets, improving estimation accuracy, and strengthening precision agricultural insights. Here, we explored the potential to estimate rice AGB by using a combination of spectral vegetation indices and wavelet features (spectral parameters) derived from canopy spectral reflectance and texture features and texture indices (texture parameters) derived from unmanned aerial vehicle (UAV) RGB imagery. This study aimed to evaluate the performance of the combined spectral and texture parameters and improve rice AGB estimation. Correlation analysis was performed to select the potential variables to establish the linear and quadratic regression models. Multivariate analysis (multiple stepwise regression, MSR; partial least square, PLS) and machine learning (random forest, RF) were used to evaluate the estimation performance of spectral parameters, texture parameters, and their combination for rice AGB. The results showed that spectral parameters had better linear and quadratic relationships with AGB than texture parameters. For the multivariate analysis and machine learning algorithm, the MSR, PLS, and RF regression models fitted with spectral parameters (R2 values of 0.793, 0.795, and 0.808 for MSR, PLS, and RF, respectively) were more accurate than those fitted with texture parameters (R2 values of 0.540, 0.555, and 0.485 for MSR, PLS, and RF, respectively). The MSR, PLS, and RF regression models fitted with a combination of spectral and texture parameters (R2 values of 0.809, 0.810, and 0.805, respectively) slightly improved the estimation accuracy of AGB over the use of spectral parameters or texture parameters alone. Additionally, the bior1.3 of wavelet features at 947 nm and scale 2 was used to predict the grain yield and had good accuracy for the quadratic regression model. Therefore, the combined use of canopy spectral reflectance and texture information has great potential for improving the estimation accuracy of rice AGB, which is helpful for rice productivity prediction. Combining multisource remotely sensed data from the ground and UAV technology provides new solutions and ideas for rice biomass acquisition.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009662",
+   "title": "Estimation of aboveground biomass production using an unmanned aerial vehicle (UAV) and VENμS satellite imagery in Mediterranean and semiarid rangelands",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009668",
+   "title": "Spray performance evaluation of a six‐rotor unmanned aerial vehicle sprayer for pesticide application using an orchard operation mode in apple orchards",
+   "abstract": "AbstractBACKGROUNDIn the last decade, unmanned aerial vehicle (UAV) sprayers have been growing rapidly worldwide as a new method for pesticide application, especially in Asian countries. More and more manufacturers and service providers are currently aiming at UAV spraying operation for fruit trees with higher economic value. We evaluated the spray performance of an electric six‐rotor UAV sprayer using an orchard operation mode (different application volumes and flight patterns) in a hilly apple orchard with small and sparse trees (SS) and a plain orchard with tall‐spindle trees (TS).RESULTSApplication volume (APV) had a significant influence on the spray coverage parameters in both orchards, while flight pattern, intra‐row, inter‐row and verti‐row, had a relatively limited influence at 60 0 and 85 7 L/ha. The UAV's downwash airflow produced a good spray penetration in the isolated SS trees, but not for the conjoined TS trees. It is better to fly along and above rows at 63.5 L/ha or higher for SS trees. The excessively low underside coverage is the main drawback of UAV orchard pesticide application and the underside droplet size was generally less than 200 μm.CONCLUSIONSpray performance is closely related to tree shape, planting pattern, UAV payload, application volume, spray droplet size and downwash airflow field. The results provide data support for the best operational practice development and the decision model for the application volume of UAV sprayer orchard operations. The underside spray performance requires further improvement by several effective measures. © 2022 Society of Chemical Industry.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009701",
+   "title": "Residual Pattern of Pesticides Drifted by Unmanned Aerial Vehicle (UAV) Spraying and Drift Reduction using Maize (Zea mays L.)",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009705",
+   "title": "Using tank‐mix adjuvant improves the physicochemical properties and dosage delivery to reduce the use of pesticides in unmanned aerial vehicles for plant protection in wheat",
+   "abstract": "AbstractBACKGROUNDUnmanned aerial vehicles (UAVs) are widely used to improve the efficiency of pesticide applications. Low‐volume spraying operations require more efficient deposition of droplets on the target surface. Therefore, pesticide deposition and retention on plant surfaces is a serious challenge for modern precision agriculture. Tank‐mix adjuvants have been used to improve spray dilutions performance; however, their effects on the physicochemical properties of spray dilutions, dosage delivery, and pesticide dosage are unclear.RESULTSTank‐mix adjuvant 8860 significantly improved the physicochemical properties of spray dilutions, inhibited spray droplets rebound, improved the wetting and spreading performance of spray dilutions on wheat leaves, and increased the effective deposition of tebuconazole on wheat leaves. Even when its dosage was reduced by one‐third, the spray solution still showed excellent disease control and effective deposition of the active ingredient on wheat leaves.CONCLUSIONThe use of appropriate tank‐mix adjuvants in UAV‐based plant protection for wheat can significantly improve the performance of spray dilutions, increase the efficiency of pesticide dosage delivery, and improve disease control. These adjuvants can also help reduce the pesticide use while ensuring their effectiveness. © 2022 Society of Chemical Industry.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009724",
+   "title": "Mechanized Hybrid Rice Seed Production: Planting Density, the Flight Height of an Unmanned Aerial Vehicle, Fertilizer Application, and the Row-Ratio of Parents",
+   "abstract": "The mechanized seed production of hybrid rice (Oryza sativa L.) represents significant progress in modern agriculture. However, the technologies and the crop management strategies in mechanized hybrid rice seed production are still immature. The present study was conducted with three field experiments to explore the effects of different planting densities, the flight height of an agricultural unmanned aerial vehicle (AUAV) for assisting the pollination, fertilization techniques, and the row-ratio of the restore line and the sterile line on seed yield in hybrid rice seed production. In experiment 1, three planting densities “DS1: 250000 hills per ha; DS2: 285000 hills per ha; DS3: 3,33,000 hills per ha” and three flight heights of an AUAV (FH1: above ground 2 m; FH2: above ground 3 m; FH3: above ground 4 m) were adopted. The results showed that DS1 and DS2 treatments produced a higher seed yield than the DS3 treatment, and the seed yield in the FH2 treatment was significantly higher than FH1 and FH3. In experiment 2, two fertilizer application methods, mechanized deep placement of fertilizer and traditional manual broadcasted fertilizer, were adopted. The results showed that deep placement of fertilizer significantly increased seed yield by increasing the effective panicle number and the grain number per panicle. In experiment 3, three row-ratios of sterile line and restore line at 8:1 (R1), 9:1 (R2), 10:1(R3) were adopted, and the highest seed yield was recorded in the R1 treatment.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009750",
+   "title": "Multispectral remote sensing for accurate acquisition of rice phenotypes: Impacts of radiometric calibration and unmanned aerial vehicle flying altitudes",
+   "abstract": "As a promising method, unmanned aerial vehicle (UAV) multispectral remote sensing (RS) has been extensively studied in precision agriculture. However, there are numerous problems to be solved in the data acquisition and processing, which limit its application. In this study, the Micro-MCA12 camera was used to obtain images at different altitudes. The piecewise empirical line (PEL) method suitable for predicting the reflectance of different ground objects was proposed to accurately acquire the reflectance of multi-altitude images by comparing the performance of the conventional methods. Several commonly utilized vegetation indices (VIs) were computed to estimate the rice growth parameters and yield. Then the rice growth monitoring and yield prediction were implemented to verify and evaluate the effects of radiometric calibration methods (RCMs) and UAV flying altitudes (UAV-FAs). The results show that the variation trends of reflectance and VIs are significantly different due to the change in component proportion observed at different altitudes. Except for the milking stage, the reflectance and VIs in other periods fluctuated greatly in the first 100 m and remained stable thereafter. This phenomenon was determined by the field of view of the sensor and the characteristic of the ground object. The selection of an appropriate calibration method was essential as a result of the marked differences in the rice phenotypes estimation accuracy based on different RCMs. There were pronounced differences in the accuracy of rice growth monitoring and yield estimation based on the 50 and 100 m-based variables, and the altitudes above 100 m had no notable effect on the results. This study can provide a reference for the application of UAV RS technology in precision agriculture and the accurate acquisition of crop phenotypes.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009767",
+   "title": "Crops Classification in Small Areas Using Unmanned Aerial Vehicles (UAV) and Deep Learning Pre-trained Models from Detectron2",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009768",
+   "title": "Estimation of Maize Foliar Temperature and Stomatal Conductance as Indicators of Water Stress Based on Optical and Thermal Imagery Acquired Using an Unmanned Aerial Vehicle (UAV) Platform",
+   "abstract": "Climatic variability and extreme weather events impact agricultural production, especially in sub-Saharan smallholder cropping systems, which are commonly rainfed. Hence, the development of early warning systems regarding moisture availability can facilitate planning, mitigate losses and optimise yields through moisture augmentation. Precision agricultural practices, facilitated by unmanned aerial vehicles (UAVs) with very high-resolution cameras, are useful for monitoring farm-scale dynamics at near-real-time and have become an important agricultural management tool. Considering these developments, we evaluated the utility of optical and thermal infrared UAV imagery, in combination with a random forest machine-learning algorithm, to estimate the maize foliar temperature and stomatal conductance as indicators of potential crop water stress and moisture content over the entire phenological cycle. The results illustrated that the thermal infrared waveband was the most influential variable during vegetative growth stages, whereas the red-edge and near-infrared derived vegetation indices were fundamental during the reproductive growth stages for both temperature and stomatal conductance. The results also suggested mild water stress during vegetative growth stages and after a hailstorm during the mid-reproductive stage. Furthermore, the random forest model optimally estimated the maize crop temperature and stomatal conductance over the various phenological stages. Specifically, maize foliar temperature was best predicted during the mid-vegetative growth stage and stomatal conductance was best predicted during the early reproductive growth stage. Resultant maps of the modelled maize growth stages captured the spatial heterogeneity of maize foliar temperature and stomatal conductance within the maize field. Overall, the findings of the study demonstrated that the use of UAV optical and thermal imagery, in concert with prediction-based machine learning, is a useful tool, available to smallholder farmers to help them make informed management decisions that include the optimal implementation of irrigation schedules.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009774",
+   "title": "Insecticidal Management of Rangeland Grasshoppers Using a Remotely Piloted Aerial Application System",
+   "abstract": "Grasshoppers are integral parts of rangeland ecosystems but also have the potential to reach population densities high enough (outbreaks) to cause serious economic damage from forage loss and affect adjacent crops. The objective of this study was to investigate the efficacy of treating grasshopper population hotspots with a liquid insecticide using a remotely piloted aerial application system (RPAAS), as opposed to fixed-wing aircraft, which is the most common method currently in use. A liquid insecticide, Sevin XLR PLUS (containing carbaryl), was applied on replicated 4.05-hectare (10-acre) plots with an RPAAS on a ranch in New Mexico. Our results demonstrated that Sevin XLR PLUS significantly suppressed grasshopper populations over a 14-day period (normalized population reduction was 79.11 ± 8.35% SEM) and quite rapidly (mostly by day 3) compared to untreated controls. These results are comparable to those achieved with fixed-wing aircraft. The RPAAS covered the whole test area in a single flight in approximately 5 min, making these population hotspot treatment applications relatively rapid, potentially more cost-effective, and more targeted in comparison to fixed-wing aircraft. Before adoption as an application method option, further research is recommended on using an RPAAS to cover larger areas in combination with using diflubenzuron-based insecticides, which are often preferred.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009815",
+   "title": "A scheduling route planning algorithm based on the dynamic genetic algorithm with ant colony binary iterative optimization for unmanned aerial vehicle spraying in multiple tea fields",
+   "abstract": "The complex environments and weak infrastructure constructions of hilly mountainous areas complicate the effective path planning for plant protection operations. Therefore, with the aim of improving the current status of complicated tea plant protections in hills and slopes, an unmanned aerial vehicle (UAV) multi-tea field plant protection route planning algorithm is developed in this paper and integrated with a full-coverage spraying route method for a single region. By optimizing the crossover and mutation operators of the genetic algorithm (GA), the crossover and mutation probabilities are automatically adjusted with the individual fitness and a dynamic genetic algorithm (DGA) is proposed. The iteration period and reinforcement concepts are then introduced in the pheromone update rule of the ant colony optimization (ACO) to improve the convergence accuracy and global optimization capability, and an ant colony binary iteration optimization (ACBIO) is proposed. Serial fusion is subsequently employed on the two algorithms to optimize the route planning for multi-regional operations. Simulation tests reveal that the dynamic genetic algorithm with ant colony binary iterative optimization (DGA-ACBIO) proposed in this study shortens the optimal flight range by 715.8 m, 428.3 m, 589 m, and 287.6 m compared to the dynamic genetic algorithm, ant colony binary iterative algorithm, artificial fish swarm algorithm (AFSA) and particle swarm optimization (PSO), respectively, for multiple tea field scheduling route planning. Moreover, the search time is reduced by more than half compared to other bionic algorithms. The proposed algorithm maintains advantages in performance and stability when solving standard traveling salesman problems with more complex objectives, as well as the planning accuracy and search speed. In this paper, the research on the planning algorithm of plant protection route for multi-tea field scheduling helps to shorten the inter-regional scheduling range and thus reduces the cost of plant protection.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009818",
+   "title": "Synergetic use of unmanned aerial vehicle and satellite images for detecting non-native tree species: An insight into Acacia saligna invasion in the Mediterranean coast",
+   "abstract": "Invasive alien plants (IAPs) are increasingly threatening biodiversity worldwide; thus, early detection and monitoring tools are needed. Here, we explored the potential of unmanned aerial vehicle (UAV) images in providing intermediate reference data which are able to link IAP field occurrence and satellite information. Specifically, we used very high spatial resolution (VHR) UAV maps of A. saligna as calibration data for satellite-based predictions of its spread in the Mediterranean coastal dunes. Based on two satellite platforms (PlanetScope and Sentinel-2), we developed and tested a dedicated procedure to predict A. saligna spread organized in four steps: 1) setting of calibration data for satellite-based predictions, by aggregating UAV-based VHR IAP maps to satellite spatial resolution (3 and 10 m); 2) selection of monthly multispectral (blue, green, red, and near infra-red bands) cloud-free images for both satellite platforms; 3) calculation of monthly spectral variables depicting leaf and plant characteristics, canopy biomass, soil features, surface water and hue, intensity, and saturation values; 4) prediction of A. saligna distribution and identification of the most important spectral variables discriminating IAP occurrence using a fandom forest (RF) model. RF models calibrated for both satellite platforms showed high predictive performances (R2 > 0.6; RMSE <0.008), with accurate spatially explicit predictions of the invaded areas. While Sentinel-2 performed slightly better, the PlanetScope-based model effectively delineated invaded area edges and small patches. The summer leaf chlorophyll content followed by soil spectral variables was regarded as the most important variables discriminating A. saligna patches from native vegetation. Such variables depicted the characteristic IAP phenology and typically altered leaf litter and soil organic matter of invaded patches. Overall, we presented new evidence of the importance of VHR UAV data to fill the gap between field observation of A. saligna and satellite data, offering new tools for detecting and monitoring non-native tree spread in a cost-effective and timely manner.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009825",
+   "title": "A review of unmanned aerial vehicle-based methods for plant stand count evaluation in row crops",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009866",
+   "title": "Effect of flight velocity on droplet deposition and drift of combined pesticides sprayed using an unmanned aerial vehicle sprayer in a peach orchard",
+   "abstract": "Extensive research has been conducted on plant protection unmanned aerial vehicle (UAV) chemical application technology in recent years owing to its importance as a means of pest and disease control. UAV spraying in orchards faces the drawback of drift risk and can be hazardous to non-targeted crops, humans, and the environment. A detailed and systematic analysis must be performed to determine the uniformity and drift risk of plant UAV sprays. In this study, a peach orchard is sprayed with a plant-protection UAV at three different flight velocities and we evaluate the combined pesticide deposition performance of the canopy, ground loss, downwind ground drift, and airborne drift. Additionally, the droplet size and coverage rate in the canopy are calculated by using water-sensitive paper. The results demonstrate that there is significant difference in the droplet size at flight velocities of 1–3 m/s. The droplet size in the lower canopy is slightly smaller than those in the middle and upper parts. Increasing the flight velocity helps the pesticide droplets to spread and penetrate the canopy. However, it also causes a non-uniform pesticide deposition, reduced effective coverage ratio and effective density ratio. Among the three pesticides used in the experiment, imidacloprid exhibits the best deposition efficiency. The deposition amount and normalized deposition amount in the canopy were the highest at a flight velocity of 2 m/s, accompanied by a lower ground loss under the canopy. The highest near-field ground drift is observed at a velocity of 1 m/s, and the far-field airborne drift is highest at 3 m/s. Lastly, this study provides a reference for the commercial application of plant-protection UAVs.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-009977",
+   "title": "Field evaluation of spray drift and nontargeted soybean injury from unmanned aerial spraying system herbicide application under acceptable operation conditions",
+   "abstract": "AbstractBackgroundDroplets of plant production products sprayed from unmanned aerial spraying system (UASS) applications are prone to drift, threatening nontarget crops, humans, and environment. There are few studies that have investigated plant bioassay of UASS spray drift, and even fewer when it comes to herbicide application. This work reports a combined field‐scale evaluation of spray drift and plant bioassay for a rice herbicide florpyrauxifen‐benzyl application using a six‐rotor motor UASS under acceptable operating conditions. An artificial rice canopy was built to simulate a practical field application scenario and the soybean was applied to assess the nontargeted crop injury. The effects of nozzle type (droplet size), flight height, and adjuvant on spray deposition, sedimenting drift, airborne drift, and soybean injury were studied to explore the feasibility of UASS herbicide application.ResultsUnder an average wind speed of 1.2–1.5 m s−1, reduced flight height, increased droplet size, and adding nonionic surfactant resulted in greater deposition, lower drift, and less injury to soybean. Increasing droplet size by changing the nozzle was more effective compared with adding adjuvant and reducing the flight height, which offers greater flexibility and can accomplish better spray performance. The correlations between sedimenting drift and soybean injury percentage were highly significant (P 0.96). The calculated buffer distances of 7.7–18.9 m were to varying degrees less than the soybean safety distances of 10.0–20.0 m.ConclusionThe results of this study provide a reference basis for determining optimum working parameters and establishing buffer zones for the rice herbicide application of UASS. © 2022 Society of Chemical Industry.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010010",
+   "title": "Image-to-Image Translation-Based Data Augmentation for Improving Crop/Weed Classification Models for Precision Agriculture Applications",
+   "abstract": "Applications of deep-learning models in machine visions for crop/weed identification have remarkably upgraded the authenticity of precise weed management. However, compelling data are required to obtain the desired result from this highly data-driven operation. This study aims to curtail the effort needed to prepare very large image datasets by creating artificial images of maize (Zea mays) and four common weeds (i.e., Charlock, Fat Hen, Shepherd’s Purse, and small-flowered Cranesbill) through conditional Generative Adversarial Networks (cGANs). The fidelity of these synthetic images was tested through t-distributed stochastic neighbor embedding (t-SNE) visualization plots of real and artificial images of each class. The reliability of this method as a data augmentation technique was validated through classification results based on the transfer learning of a pre-defined convolutional neural network (CNN) architecture—the AlexNet; the feature extraction method came from the deepest pooling layer of the same network. Machine learning models based on a support vector machine (SVM) and linear discriminant analysis (LDA) were trained using these feature vectors. The F1 scores of the transfer learning model increased from 0.97 to 0.99, when additionally supported by an artificial dataset. Similarly, in the case of the feature extraction technique, the classification F1-scores increased from 0.93 to 0.96 for SVM and from 0.94 to 0.96 for the LDA model. The results show that image augmentation using generative adversarial networks (GANs) can improve the performance of crop/weed classification models with the added advantage of reduced time and manpower. Furthermore, it has demonstrated that generative networks could be a great tool for deep-learning applications in agriculture.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010043",
+   "title": "Experimental Study of the Droplet Deposition Characteristics on an Unmanned Aerial Vehicle Platform under Wind Tunnel Conditions",
+   "abstract": "Unmanned aerial vehicles (UAVs) are widely used in field pesticide spray operations due to their wide applicability and high operational efficiency. However, their high spray height and fine pesticide droplets lead to a greater risk of drift and likely different droplet deposition outcomes compared to the expectation. So far, most of the previous studies have used direct field methods on UAVs’ droplet deposition characteristics and there have been few carried out in wind tunnels. Thus, in this paper, a simulated UAV platform equipped with TeeJet 80-015 VP fan nozzles was utilized to study the droplet deposition characteristics in a wind tunnel. The droplet deposition amount and drift potential reduction percentage (DPRP) under different spray parameters were obtained. The results showed that when the rotor was open, the deposition amount in the target area increased by 2.6 times and the drift deposition amount decreased by 7.3 times when spraying tap water at 3 m/s wind speed and 3 bar pressure. Faster wind speeds led to greater drift deposition amounts and a lower DPRP, but higher pressures resulted in greater drift deposition amounts and a larger DPRP. The 30 g/L PEG-20000 solution has a higher droplet size and smaller relative droplet spectrum width RS, resulting in the deposition amount in the target area increasing by 9.13% on average and the drift amount decreasing by 24.7% on average, and it can be used as an anti-drift additive when needed. The research results can provide reference and technical support for UAV wind tunnel tests and field operation specifications.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010057",
+   "title": "An Unmanned Aerial Vehicle-Based Cotton Nitrogen Nutrition Index Estimation Model Utilizing Feature Selection and Machine Learning",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010080",
+   "title": "[REDACTED] Based Fixed Wing Scouting of an Unmanned Aerial Vehicle",
+   "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+   "abstract_effectively_null": true,
+   "moderation_redacted": true,
+   "moderation_terms": [
+    "military"
+   ],
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010091",
+   "title": "Deep Learning for Super Resolution of Sugarcane Crop Line Imagery from Unmanned Aerial Vehicles",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010130",
+   "title": "Global Research Trends for Unmanned Aerial Vehicle Remote Sensing Application in Wheat Crop Monitoring",
+   "abstract": "Wheat is an important staple crop in the global food chain. The production of wheat in many regions is constrained by the lack of use of advanced technologies for wheat monitoring. Unmanned Aerial Vehicles (UAVs) is an important platform in remote sensing for providing near real-time farm-scale information. This information aids in making recommendations for monitoring and improving crop management to ensure food security. This study appraised global scientific research trends on wheat and UAV studies between 2005 and 2021, using a bibliometric method. The 398 published documents were mined from Web of Science, Scopus, and Dimensions. Results showed that an annual growth rate of 23.94% indicates an increase of global research based on wheat and UAVs for the surveyed period. The results revealed that China and USA were ranked as the top most productive countries, and thus their dominance in UAVs extensive usage and research developments for wheat monitoring during the study period. Additionally, results showed a low countries research collaboration prevalent trend, with only China and Australia managing multiple country publications. Thus, most of the wheat- and UAV-related studies were based on intra-country publications. Moreover, the results showed top publishing journals, top cited documents, Zipf’s law authors keywords co-occurrence network, thematic evolution, and spatial distribution map with the lack of research outputs from Southern Hemisphere. The findings also show that “UAV” is fundamental in all keywords with the largest significant appearance in the field. This connotes that UAV efficiency was important for most studies that were monitoring wheat and provided vital information on spatiotemporal changes and variability for crop management. Findings from this study may be useful in policy-making decisions related to the adoption and subsidizing of UAV operations for different crop management strategies designed to enhance crop yield and the direction of future studies.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010146",
+   "title": "Inversion of Nitrogen Content in Winter Wheat Based on Unmanned Aerial Vehicle Hyperspectral Fractional Differentiation",
+   "abstract": "Crop nitrogen content inversion based on UAV (Unmanned Aerial Vehicle) hyperspectral data is vital for addressing global food supply challenges.Many studies have estimated nitrogen content via simple linear regression using a single vegetation index, multiple vegetation indices, hyperspectral representation, and simple structural transformation.Utilizing UAV hyperspectral data of the winter wheat canopy and leveraging the benefits of fractional differential processing to enhance spectral details, traditional hyperspectral vegetation indices were established, and characteristic parameters derived from spectral position and canopy area were extracted.Then, winter wheat plant nitrogen content models with different spectral information characteristics were highlighted, optimally selected and verified.Results reveal that when the original canopy spectrum is processed using the fractional differential, the association between hyperspectral reflectance and nitrogen levels in winter wheat plants can be effectively enhanced.Fractional differential spectra represent outstanding effects on refining spectral details.The findings provide valuable insights into the potential of hyperspectral fractional differential spectra to enhance the precision of nitrogen estimation in winter wheat.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010156",
+   "title": "Characteristics of photosynthesis and vertical canopy architecture of citrus trees under two labor-saving cultivation modes using unmanned aerial vehicle (UAV)-based LiDAR data in citrus orchards",
+   "abstract": "Abstract Analyzing and comparing the effects of labor-saving cultivation modes on photosynthesis, as well as studying their vertical canopy architecture, can improve the tree structure of high-quality and high-yield citrus and selection of labor-saving cultivation modes. The photosynthesis of 1080 leaves of two labor-saving cultivation modes (wide-row and narrow-plant mode and fenced mode) comparing with the traditional mode were measured, and nitrogen content of all leaves and photosynthetic nitrogen use efficiency (PNUE) were determined. Unmanned aerial vehicle (UAV)-based light detection and ranging (LiDAR) data were used to assess the vertical architecture of three citrus cultivation modes. Results showed that for the wide-row and narrow-plant and traditional modes leaf photosynthetic CO2 assimilation rate, stomatal conductance, and transpiration rate of the upper layer were significantly higher than those of the middle layer, and values of the middle layer were markedly higher than those of the lower layer. In the fenced mode, a significant difference in photosynthetic factors between the upper and middle layers was not observed. A vertical canopy distribution had a more significant effect on PNUE in the traditional mode. Leaves in the fenced mode had distinct photosynthetic advantages and higher PNUE. UAV-based LiDAR data effectively revealed the differences in the vertical canopy architecture of citrus trees by enabling calculating the density and height percentile of the LiDAR point cloud. The point cloud densities of three cultivation modes were significantly different for all LiDAR density slices, especially at higher canopy heights. The labor-saving modes, particularly the fenced mode, had significantly higher height percentile data.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010165",
+   "title": "Analysis of the Architecture of Perceiving a Dynamic Environment for an Unmanned Aerial Vehicle",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010169",
+   "title": "Unmanned Aerial Vehicle (UAV) for Detection and Prediction of Damage Caused by Potato Cyst Nematode G. pallida on Selected Potato Cultivars",
+   "abstract": "High population densities of the potato cyst nematodes (PCN) Globodera pallida and G. rostochiensis cause substantial yield losses to potato production (Solanum tuberosum) due to the delay caused to tuber formation by the retardation of plant growth. It requires meticulous estimation of the population densities by using soil sampling and applying the right combination of nematode management to deal with the PCN problem. This study aims to assess the use of an unmanned vehicle (UAV) in detecting and estimating the effect of ranges of densities of a PCN, G. pallida, on four cultivated potato cultivars with resistance to PCN in a naturally infested potato field in The Netherlands. First, the initial population density (Pi) of G. pallida was estimated by using an intensive sampling method of collecting about 1.5 kg of soil per m2 from the center of each 3 × 5 m plot. At harvest, the fresh tuber yield of the potato cultivars (Avarna, Fontane, Sarion, and Serresta) were assessed. The Seinhorst yield loss model was used to investigate the relationship between Pi and fresh tuber yield. Secondly, the spatial data of UAV with optical and thermal sensors were analyzed to find any relationship between Pi and UAV indices. By using the classical yield loss model, all four cultivars were found to be affected by Pi with a relative minimum fresh tuber yield m, which ranged from 0.26 to 0.40. The maximum fresh tuber yield varied from 49.48 to 80.36 tons (ha)−1. The density at which the fresh tuber yield started to deteriorate was in the range of 0.62–2.16 eggs (g dry soil)−1. A regression was observed between Pi, and all UAV indices in a similar pattern to that of the fresh tuber yield by using the Seinhorst yield loss model, except for the cultivar Avarna for the two UAV indices (NDRE and NDVI). Unlike the tolerance limit, the relative minimum values of the UAV indices—except the chlorophyll index—differ when compared among each other and when compared with that of the fresh tuber yield within the same cultivar. This indicates that all indices can be useful for detection and decision making for statutory purposes but not for estimating damage (except the chlorophyll index).",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010182",
+   "title": "JETSON NANO DEVKIT BASED DECISION SUPPORT SYSTEM DESIGN FOR SPRAYING STRATEGY AND SPRAYING SYSTEM OF AGRICULTURAL UNMANNED AERIAL VEHICLES",
+   "abstract": "Aim: The aim of this paper is to create an intelligent decision support system for spraying and fertilization operations in agricultural lands with Agricultural Unmanned Aerial Vehicles. In this system, different pesticides will be sprayed in sparse or undeveloped areas, different pesticides will be sprayed in areas with normal development and different pesticides will be sprayed in areas with intensive development and plant health will be protected. Thus, inadequate spraying or burning of the plant due to over spraying will be prevented. Method: In this paper, a decision support system embedded in the Jetson Nano Devkit Artificial Intelligence Computer is developed for spraying and fertilization operations performed by Agricultural Unmanned Aerial Vehicles (UAVs). Three different image processing algorithms (\"RGB Filter Method\", \" Pixelwise Classification Method\" and \"HSV Range Filter Method\") were tested on 4000 agricultural field images in order to accurately analyze the snapshots obtained from UAVs. Solution time and solution reliability (green capture rate) were considered as two different objectives in this system where the images should be evaluated instantaneously and the amount of pesticide spraying should be changed. According to the image processing results, the working principle of the spraying system, which was created according to 3 different levels (low-medium-high level) and \"Pulse Width Modulation\" and \"Pulse Width Modulation\" techniques, was simulated through the \"Proteus\" simulation programme and transferred to the real system. Results: As a result of the analysis, it was determined that the \"RGB Filter Method\" is the ideal algorithm that simultaneously meets the objectives of solution time and solution reliability. In the spraying system, the amount of pesticide to be sprayed per second was determined for 3 stages. Finally, it was decided to take an image every 6 seconds from the camera on the APC and to spray accordingly. Conclusion: Thanks to the proposed decision support system, agricultural areas can be sprayed at dynamic levels according to the level of plant needs. In today's world of global warming, soil erosion and water scarcity, the study is expected to make a positive contribution to smart agricultural practices.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010192",
+   "title": "Wind Estimation of a Quadrotor Unmanned Aerial Vehicle",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010203",
+   "title": "Wheat Yield and Protein Estimation with Handheld and Unmanned Aerial Vehicle-Mounted Sensors",
+   "abstract": "Accurate sensor-based prediction of crop yield and grain quality in-season would enable growers to adjust nitrogen (N) fertilizer management for optimized production. This study assessed the feasibility (and compared the accuracy) of wheat (Triticum aestivum L.) yield, grain N uptake, and protein content prediction with in-season crop spectral reflectance measurements (Normalized Difference Vegetative Index, NDVI) obtained with a handheld GreenSeeker (GS) sensor and an Unmanned Aerial Vehicle (UAV)-mounted sensor. A strong positive correlation was observed between GS NDVI and UAV NDVI at Feekes 5 (R2 = 0.78) and Feekes 10 (R2 = 0.70). At Feekes 5, GS NDVI and UAV NDVI explained 42% and 43% of wheat yield, respectively. The correlation was weaker at Feekes 10 (R2 of 0.34 and 0.25 for GS NDVI and UAV NDVI, respectively). The accuracy of wheat grain N uptake prediction was comparable to that of yield: the R2 values for GS NDVI and UAV NDVI were 0.53 and 0.37 at Feekes 5 and 0.13 and 0.20 at Feekes 10. We found that neither GS NDVI nor UAV NDVI in-season data were useful in prediction of wheat grain protein content. In conclusion, wheat yield and grain N uptake can be estimated at Feekes 5 using either handheld or aerial based NDVI with comparable accuracy.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010224",
+   "title": "Crop-Weed Detection, Depth Estimation and Disease Diagnosis Using YOLO and Darknet for Agribot: A Precision Farming Robot",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010241",
+   "title": "The assessment and management of plant invasions with Unmanned Aerial Vehicles. The Yucca gloriosa case, Italy",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010275",
+   "title": "A deep learning-based keypoint detection of crop-row on aerial images for waypoint path generation in geodetic system",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010288",
+   "title": "Quantitative Estimation of Wheat Stripe Rust Disease Index Using Unmanned Aerial Vehicle Hyperspectral Imagery and Innovative Vegetation Indices",
+   "abstract": "This study aimed to identify and assess vegetation indices (VIs) and their optimal band combinations using unmanned aerial vehicle (UAV) hyperspectral imagery for the quantitative inversion of wheat stripe rust. This would offer guidance for selecting rust-resistant phenotypes and facilitate large-scale disease monitoring using aerial and spaceborne remote sensing images. The experimental design encompassed 960 wheat varieties (strains) in agricultural fields. Hyperspectral imagery was acquired at 100m altitude during different disease stages, and disease index (DI) was investigated per plot. A custom program explored VIs with two, three, and four bands using 30 calculation methods and 3,463,790 band combinations. Regression models employed three-fold cross-validation and multilayer perceptron (MLP) algorithms, with the mean R2value indicating optimal index and band combinations. The results revealed that the chosen VIs were effective in inverting the DI. Selected two-band VIs included MGRVI (531, 571), with R2=0.746±0.01618; the optimal three-band VIs was ARI2 (531, 550±10, 640±25), with R2=0.755±0.00896; and the best four-band VIs was DBSI (531, 551, 750, 799), with R2=0.778±0.01300, which was comparable to full-band modeling (R2=0.775±0.01508). The models’ performance improved with an increasing number of bands in the VIs. This study demonstrated that appropriate multi-VIs modeling enhances performance compared to single-VIs modeling, e.g., six combinations of VIs achieved R2=0.790±0.01141. These findings underscore the potential of integrating machine learning algorithms and vegetation indices for quantifying wheat rust diseases, laying the foundation for developing airborne and spaceborne imaging sensors for large-scale wheat rust monitoring.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010305",
+   "title": "Exploring consumers’ environmental ethical preferences in the context of unmanned aerial vehicle utilization for plant protection",
+   "abstract": "AbstractThe use of unmanned aerial vehicles (UAVs) has increased agricultural productivity, achieved food security, and eased the pressure associated with environmental degradation and population growth. However, consumer sentiment remains unclear. The results show that pressures regarding food safety, production safety, and ecological safety have different degrees of positive impact on perceived benefits but no significant impact on perceived barriers. They strongly influence both perceived benefits to the adoption of UAV plant protection agricultural products. Perceived benefits demonstrated a mediating role between the three safety pressures and the adoption of UAVs. Lay beliefs showed a positive moderating effect on perceived benefits and obstacles to the adoption of UAV-based plant protection products. Based on these findings, this paper concludes that consumers are developing new consumer ethics that integrate concepts of food safety, safe production, and regional environmental protection with their acceptance of new technology, which is directly dependent on the combined effect of environmental and consumer ethics. To promote sustainable development, policies must be further optimized on this original basis.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010309",
+   "title": "Unmanned aerial system and satellite: Which one is a better platform for monitoring of the peanut crops?",
+   "abstract": "AbstractRemote sensing tools are helpful in monitoring and managing crop production. However, each remote sensing technology responds to crop variability differently. In this way, the objective of this work was to compare sensors on airborne and orbital platforms and to observe which one has the best quality to determine the behavior of the peanut (Arachis hypogaea L.) crop variability. The experimental design followed the premises of the statistical quality control (SQC), with samples collected over time. The experimental area was composed of 30 sampling points spaced every 50 m. The multispectral images were acquired with an unmanned aerial system (UAS) consisting of a DJI Matrice quad‐copter and a Micasense RedEdge multispectral camera and with the PlanetScope multispectral imaging satellites. It was verified that in all periods evaluated for spectral bands and vegetation indices (VI), satellite images presented better process quality. The enhanced vegetation index (EVI) and normalized difference vegetation index (NDVI) generated from satellite images were able to detect the peanut maturation variation better. The behavior of the bands and the VIs generated from the Planet images show quality for peanut crop monitoring. While UAS showed sensitivity to detect the saturation of the bands, making it difficult to visualize the temporal variability.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010360",
+   "title": "Analysis of droplet deposition and maize (Zea mays L.) growth control: Application of ethephon by small unmanned aerial vehicle and electric knapsack sprayer",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010481",
+   "title": "Analysis of modern unmanned aerial vehicles equipped with a laser scanning system",
+   "abstract": "Aim. To conduct a critical analysis of modern scientific achievements using helicopter-type unmanned aerial vehicles (UAVs) and scanning systems (LIDAR), to state the advantages and disadvantages of the proposed technologies and to develop a classification of the considered technologies. Method. Application of analysis and classification as general scientific methods of cognition. The results. As a result of the analyzed literary sources related to scanning systems installed on unmanned aerial vehicles, their practical application, normative and legal documents regulating their use and technologies for technology improvement were determined. Practical value. The presented analysis of literary sources will be used in the future to improve the method of processing the scanning system installed on the DJI S1000 octocopter.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010497",
+   "title": "Smallholder oil palm plantation sustainability assessment using multi-criteria analysis and unmanned aerial vehicles",
+   "abstract": "Abstract Oil palm agriculture has caused extensive land cover and land use changes that have adversely affected tropical landscapes and ecosystems. However, monitoring and assessment of oil palm plantation areas to support sustainable management is costly and labour-intensive. This study used an unmanned aerial vehicles (UAV) to map smallholder farms and applied multi-criteria analysis to data generated from orthomosaics, to provide a set of sustainability indicators for the farms. Images were acquired from a UAV, with structure from motion (SfM) photogrammetry then used to produce orthomosaics and digital elevation models of the farm areas. Some of the inherent problems using high spatial resolution imagery for land cover classification were overcome by using texture analysis and geographic object-based image analysis (OBIA). Six spatially explicit environmental metrics were developed using multi-criteria analysis and used to generate sustainability indicator layers from the UAV data. The SfM and OBIA approach provided an accurate, high-resolution (~5 cm) image-based reconstruction of smallholder farm landscapes, with an overall classification accuracy of 89%. The multi-criteria analysis highlighted areas with lower sustainability values, which should be considered targets for adoption of sustainable management practices. The results of this work suggest that UAVs are a cost-effective tool for sustainability assessments of oil palm plantations, but there remains the need to plan surveys and image processing workflows carefully. Future work can build on our proposed approach, including the use of additional and/or alternative indicators developed through consultation with the oil palm industry stakeholders, to support certification schemes such as the Roundtable on Sustainable Palm Oil (RSPO).",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010523",
+   "title": "Unmanned Aerial Vehicle (UAV) and Spectral Datasets in South Africa for Precision Agriculture",
+   "abstract": "Remote sensing data play a crucial role in precision agriculture and natural resource monitoring. The use of unmanned aerial vehicles (UAVs) can provide solutions to challenges faced by farmers and natural resource managers due to its high spatial resolution and flexibility compared to satellite remote sensing. This paper presents UAV and spectral datasets collected from different provinces in South Africa, covering different crops at the farm level as well as natural resources. UAV datasets consist of five multispectral bands corrected for atmospheric effects using the PIX4D mapper software to produce surface reflectance images. The spectral datasets are filtered using a Savitzky–Golay filter, corrected for Multiplicative Scatter Correction (MSC). The first and second derivatives and the Continuous Wavelet Transform (CWT) spectra are also calculated. These datasets can provide baseline information for developing solutions for precision agriculture and natural resource challenges. For example, UAV and spectral data of different crop fields captured at spatial and temporal resolutions can contribute towards calibrating satellite images, thus improving the accuracy of the derived satellite products.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010541",
+   "title": "Estimating Relative Chlorophyll Content in Rice Leaves Using Unmanned Aerial Vehicle Multi-Spectral Images and Spectral–Textural Analysis",
+   "abstract": "Leaf chlorophyll content is crucial for monitoring plant growth and photosynthetic capacity. The Soil and Plant Analysis Development (SPAD) values are widely utilized as a relative chlorophyll content index in ecological agricultural surveys and vegetation remote sensing applications. Multi-spectral cameras are a cost-effective alternative to hyperspectral cameras for agricultural monitoring. However, the limited spectral bands of multi-spectral cameras restrict the number of vegetation indices (VIs) that can be synthesized, necessitating the exploration of other options for SPAD estimation. This study evaluated the impact of using texture indices (TIs) and VIs, alone or in combination, for estimating rice SPAD values during different growth stages. A multi-spectral camera was attached to an unmanned aerial vehicle (UAV) to collect remote sensing images of the rice canopy, with manual SPAD measurements taken immediately after each flight. Random forest (RF) was employed as the regression method, and evaluation metrics included coefficient of determination (R2) and root mean squared error (RMSE). The study found that textural information extracted from multi-spectral images could effectively assess the SPAD values of rice. Constructing TIs by combining two textural feature values (TFVs) further improved the correlation of textural information with SPAD. Utilizing both VIs and TIs demonstrated superior performance throughout all growth stages. The model works well in estimating the rice SPAD in an independent experiment in 2022, proving that the model has good generalization ability. The results suggest that incorporating both spectral and textural data can enhance the precision of rice SPAD estimation throughout all growth stages, compared to using spectral data alone. These findings are of significant importance in the fields of precision agriculture and environmental protection.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010654",
+   "title": "Estimating rice flower intensity using flower spectral information from unmanned aerial vehicle (UAV) hyperspectral images",
+   "abstract": "Growth monitoring of rice is of great significance to food security of human society. Rice flowering is an important growing stage for grain formation, and flower intensity is the dominant factor in determining rice yield. The estimation of flower intensity helps us to know the rice yield in advance. This research proposed a series of the flower index (FI) to monitor status of rice flowers by developing flower intensity estimation models using stepwise multiple linear regression (SMLR) and random forest (RF), and their performance was compared to the models developed by vegetation indices (VI) of some key growth stages. The FI that in types of normalization (NDFI), ratio (RFI) and differences (DFI) were tested. The involved FIs in the FI-based models were those in type of difference (DFI) that obtained by difference of reflectance before and after flowering (DR) and their first derivative (DR’). The FIs of ten consecutive days during the flowering were obtained and their correlations with flower intensity showed that FIs of the late flowering (the 8th day, 9th day and 10th day) were more significantly correlated to flower intensity than those at the early or mid-flowering, with the maximum correlation coefficient of 0.702 given by FIs in difference type formed by DR’. The accuracy assessment of flower intensity estimation models showed that FI-based models had the equivalent accuracies to VI-based models, especially for the SMLR model that based on four FIs, which had R2 = 0.707, MAPE = 10.54%, rRMSE = 11.39%, was comparable to the model that developed by three VIs of the booting, heading and jointing stages (R2 = 0.751, MAPE = 8.99%, rRMSE = 10.31%). The promising results of FIs in estimating flower intensity make the simple data acquisition possible and provide an alternative way to get information about rice yield.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010655",
+   "title": "Remote sensing of rice phenology and physiology via absorption coefficient derived from unmanned aerial vehicle imaging",
+   "abstract": null,
+   "abstract_effectively_null": true,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010676",
+   "title": "A double-layer model for improving the estimation of wheat canopy nitrogen content from unmanned aerial vehicle multispectral imagery",
+   "abstract": "The accurate and rapid estimation of canopy nitrogen content (CNC) in crops is the key to optimizing in-season nitrogen fertilizer application in precision agriculture. However, the determination of CNC from field sampling data for leaf area index (LAI), canopy photosynthetic pigments (CPP; including chlorophyll a, chlorophyll b and carotenoids) and leaf nitrogen concentration (LNC) can be time-consuming and costly. Here we evaluated the use of high-precision unmanned aerial vehicle (UAV) multispectral imagery for estimating the LAI, CPP and CNC of winter wheat over the whole growth period. A total of 23 spectral features (SFs; five original spectrum bands, 17 vegetation indices and the gray scale of the RGB image) and eight texture features (TFs; contrast, entropy, variance, mean, homogeneity, dissimilarity, second moment, and correlation) were selected as inputs for the models. Six machine learning methods, i.e., multiple stepwise regression (MSR), support vector regression (SVR), gradient boosting decision tree (GBDT), Gaussian process regression (GPR), back propagation neural network (BPNN) and radial basis function neural network (RBFNN), were compared for the retrieval of winter wheat LAI, CPP and CNC values, and a double-layer model was proposed for estimating CNC based on LAI and CPP. The results showed that the inversion of winter wheat LAI, CPP and CNC by the combination of SFs+TFs greatly improved the estimation accuracy compared with that by using only the SFs. The RBFNN and BPNN models outperformed the other machine learning models in estimating winter wheat LAI, CPP and CNC. The proposed double-layer models (R2=0.67-0.89, RMSE=13.63-23.71 mg g−1, MAE=10.75-17.59 mg g−1) performed better than the direct inversion models (R2=0.61-0.80, RMSE=18.01-25.12 mg g−1, MAE=12.96-18.88 mg g−1) in estimating winter wheat CNC. The best winter wheat CNC accuracy was obtained by the double-layer RBFNN model with SFs+TFs as inputs (R2=0.89, RMSE=13.63 mg g−1, MAE=10.75 mg g−1). The results of this study can provide guidance for the accurate and rapid determination of winter wheat canopy nitrogen content in the field.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010691",
+   "title": "Unmanned Aerial Vehicle Direct Seeding Versus Ground Seeding Mechanization Services in Smallholder Farming Systems of North West IGP on Energy Use Efficiency and Quality of Rice Culture: A Review",
+   "abstract": "Various sectors use AI technologies to increase output and productivity. AI in agriculture also enables farmers to boost productivity while minimizing harmful environmental effects. AI is transforming the food-processing industry, where agricultural emissions have dropped by 20%. Mechanization is once again one of the top development policy targets for changing the smallholder agricultural system in the north west IGP. To support public investment or company development programs, however, previous and ongoing efforts frequently suffer from a lack of scientific data on end-user effective demand for various sorts of mechanical improvements. Rice production involves intricate agronomic procedures. Seeding, fertilizing, and pesticide application are labour- and time-intensive tasks that have low automation efficiency. Currently, a lot of research focuses on the single UAV operation on rice, but there aren't many applications that cover the entire process of sowing, fertilizing, and applying pesticides. Based on the intelligent operating platform, a mUAV was created to oversee the planting of rice. This aircraft accomplished three tasks on the same flight platform: seeding, fertilizer application, and pesticide application. Machine design was carried out using simulations of CFD. The cultivation patterns of mechanical rice direct seeder, mechanical rice transplanter, and mUAV seeding were compared to perform a comparative evaluation of the entire process. With improved rice automation, fewer labour inputs, and lower costs, it is intended that this evaluation will offer new machinery for rice farming patterns in various conditions.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010701",
+   "title": "An investigation on the best-fit models for sugarcane biomass estimation by linear mixed-effect modelling on unmanned aerial vehicle-based multispectral images: A case study of Australia",
+   "abstract": "Due to the worldwide population growth and the increasing needs for sugar-based products, accurate estimation of sugarcane biomass is critical to the precise monitoring of sugarcane growth. This research aims to find the imperative predictors correspond to the random and fixed effects to improve the accuracy of wet and dry sugarcane biomass estimations by integrating ground data and multi-temporal images from Unmanned Aerial Vehicles (UAVs). The multispectral images and biomass measurements were obtained at different sugarcane growth stages from 12 plots with three nitrogen fertilizer treatments. Individual spectral bands and different combinations of the plots, growth stages, and nitrogen fertilizer treatments were investigated to address the issue of selecting the correct fixed and random effects for the modelling. A model selection strategy was applied to obtain the optimum fixed effects and their proportional contribution. The results showed that utilizing Green, Blue, and Near Infrared spectral bands on models rather than all bands improved model performance for wet and dry biomass estimates. Additionally, the combination of plots and growth stages outperformed all the candidates of random effects. The proposed model outperformed the Multiple Linear Regression (MLR), Generalized Linear Model (GLM), and Generalized Additive Model (GAM) for wet and dry sugarcane biomass, with coefficients of determination (R2) of 0.93 and 0.97, and Root Mean Square Error (RMSE) of 12.78 and 2.57 t/ha, respectively. This study indicates that the proposed model can accurately estimate sugarcane biomasses without relying on nitrogen fertilizers or the saturation/senescence problem of Vegetation Indices (VIs) in mature growth stages.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  },
+  {
+   "screening_id": "SCI-010724",
+   "title": "A Comparison of Different Data Fusion Strategies’ Effects on Maize Leaf Area Index Prediction Using Multisource Data from Unmanned Aerial Vehicles (UAVs)",
+   "abstract": "The leaf area index (LAI) is an important indicator for crop growth monitoring. This study aims to analyze the effects of different data fusion strategies on the performance of LAI prediction models, using multisource images from unmanned aerial vehicles (UAVs). For this purpose, maize field experiments were conducted to obtain plants with different growth status. LAI and corresponding multispectral (MS) and RGB images were collected at different maize growth stages. Based on these data, different model design scenarios, including single-source image scenarios, pixel-level multisource data fusion scenarios, and feature-level multisource data fusion scenarios, were created. Then, stepwise multiple linear regression (SMLR) was used to design LAI prediction models. The performance of models were compared and the results showed that (i) combining spectral and texture features to predict LAI performs better than using only spectral or texture information; (ii) compared with using single-source images, using a multisource data fusion strategy can improve the performance of the model to predict LAI; and (iii) among the different multisource data fusion strategies, the feature-level data fusion strategy performed better than the pixel-level fusion strategy in the LAI prediction models. Thus, a feature-level data fusion strategy is recommended for the creation of maize LAI prediction models using multisource UAV images.",
+   "abstract_effectively_null": false,
+   "moderation_redacted": null,
+   "moderation_terms": null,
+   "source_batch": null
+  }
+ ]
+}

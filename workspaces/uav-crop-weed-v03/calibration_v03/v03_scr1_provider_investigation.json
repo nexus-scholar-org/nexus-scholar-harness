@@ -1,0 +1,129 @@
+{
+ "investigation": "SCR1_provider_quality_exclusion_rate_deep_dive",
+ "corpus_source": "v03_r3e_20261017_deduped.json",
+ "sci_id_mapping_verified": "SCI-N == documents[N-1] (checked against pack_0001 record SCI-000046)",
+ "corpus_by_provider": {
+  "crossref": 12799,
+  "openalex": 1330,
+  "semanticscholar": 11,
+  "arxiv": 5,
+  "pubmed": 5
+ },
+ "lane_totals_rebuilt": {
+  "mutual_exclude": 12357,
+  "mutual_pending": 391,
+  "mutual_include": 588
+ },
+ "provider_rates": {
+  "crossref": {
+   "corpus": 12799,
+   "mutual_include": 69,
+   "mutual_pending": 259,
+   "mutual_exclude": 0,
+   "include_rate_per_1000": 5.39,
+   "n_no_abstract": 1968
+  },
+  "openalex": {
+   "corpus": 1330,
+   "mutual_include": 513,
+   "mutual_pending": 130,
+   "mutual_exclude": 0,
+   "include_rate_per_1000": 385.71,
+   "n_no_abstract": 39
+  },
+  "semanticscholar": {
+   "corpus": 11,
+   "mutual_include": 3,
+   "mutual_pending": 2,
+   "mutual_exclude": 0,
+   "include_rate_per_1000": 272.73,
+   "n_no_abstract": 2
+  },
+  "arxiv": {
+   "corpus": 5,
+   "mutual_include": 2,
+   "mutual_pending": 0,
+   "mutual_exclude": 0,
+   "include_rate_per_1000": 400.0,
+   "n_no_abstract": 0
+  },
+  "pubmed": {
+   "corpus": 5,
+   "mutual_include": 1,
+   "mutual_pending": 0,
+   "mutual_exclude": 0,
+   "include_rate_per_1000": 200.0,
+   "n_no_abstract": 0
+  }
+ },
+ "exclude_reason_codes_by_provider": {
+  "crossref": {
+   "WRONG_TASK": 10578,
+   "WRONG_PLATFORM": 584,
+   "WRONG_REPORT_TYPE": 508,
+   "MODERATION_TITLE_ONLY_EXCLUDE": 141,
+   "OUTSIDE_DATE_LANGUAGE": 93
+  },
+  "openalex": {
+   "WRONG_REPORT_TYPE": 253,
+   "WRONG_TASK": 156,
+   "WRONG_PLATFORM": 35,
+   "OUTSIDE_DATE_LANGUAGE": 2
+  },
+  "pubmed": {
+   "WRONG_TASK": 2,
+   "WRONG_PLATFORM": 1,
+   "WRONG_REPORT_TYPE": 1
+  },
+  "semanticscholar": {
+   "WRONG_TASK": 2,
+   "WRONG_PLATFORM": 1
+  }
+ },
+ "no_abstract_share_by_provider": {
+  "openalex": {
+   "n": 39,
+   "pct": 2.9
+  },
+  "crossref": {
+   "n": 1968,
+   "pct": 15.4
+  },
+  "arxiv": {
+   "n": 0,
+   "pct": 0.0
+  },
+  "semanticscholar": {
+   "n": 2,
+   "pct": 18.2
+  },
+  "pubmed": {
+   "n": 0,
+   "pct": 0.0
+  }
+ },
+ "harvest_raw_volumes_r3e": {
+  "v03_r3e_20261017_union_hydrated.json": {
+   "documents": 14413,
+   "by_provider": {
+    "crossref": 12944,
+    "openalex": 1343,
+    "pubmed": 76,
+    "arxiv": 37,
+    "semanticscholar": 13
+   }
+  }
+ },
+ "include_provider_counter": {
+  "openalex": 513,
+  "crossref": 69,
+  "semanticscholar": 3,
+  "arxiv": 2,
+  "pubmed": 1
+ },
+ "pending_provider_counter": {
+  "crossref": 259,
+  "openalex": 130,
+  "semanticscholar": 2
+ }
+}

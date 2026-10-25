@@ -1,0 +1,516 @@
+{
+  "batch_id": "batch_0134",
+  "session": "UAV-SCREEN-SCR1-20261018",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+  "model_id": "opencode/glm-5.3-flash-free",
+  "temperature": 0.1,
+  "n_records": 50,
+  "moderation_notice": "Records flagged moderation_redacted have withheld text: the original is in the immutable batch file; decide PENDING unless the visible title clearly leaves the review domain.",
+  "records": [
+    {
+      "screening_id": "SCI-003564",
+      "title": "Relevance Vector Machine and Particle Filter for Unmanned Aerial Vehicle Battery Prognostics",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.2514/6.2021-1584",
+      "arxiv_id": null,
+      "abstract": "View Video Presentation: https://doi.org/10.2514/6.2021-1584.vid The future prospects of Unmanned Aerial Vehicles (UAV) transitioning to effectively transport people makes safety an essential matter. Batteries are critical components of these vehicles power system, the failure of which could lead to catastrophic consequences. As the technologies driving batteries forward has evolved, a variety of modern metrics have become prevalent. The most important estimators of the age and remaining discharge time are the State of Health and the State of Charge, respectively. Therefore, a reliable assessment of these parameters, and the detection of possible future failures in advance, are fundamental to the safe operation of the vehicles involved. This paper analyses two well-known methods, Relevance Vector Machine and Particle Filter, for the monitoring and prediction of the aforementioned indicators. These methods will not only predict the End of Discharge and End of Life of the battery, but will also provide a measure of the uncertainty of the result. The final objective is to successfully predict the remaining flight time in Unmanned Aerial Vehicles and assess the range of confidence of the obtained result. The latter is especially important in these systems, since the external disturbances can have a significant impact on the flight performance.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-002565",
+      "title": "DEVELOPMENT OF NON-LINEAR KALMAN FILTER WITH PARAMETERS IDENTIFICATION FOR NAVIGATION SYSTEMS OF UNMANNED AERIAL VEHICLE",
+      "year": 2020,
+      "providers": "crossref",
+      "doi": "10.48023/2411-7943_2020_8_3_4_134",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-005049",
+      "title": "Advanced Technologies of UAV Application in Crop Pest, Disease and Weed Control",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.3389/978-2-8325-1179-4",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-011927",
+      "title": "WeedScan, a weed reporting system for Australia using an image classification model for identification",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.1017/inp.2024.19",
+      "arxiv_id": null,
+      "abstract": "AbstractFast and efficient identification is critical for reducing the likelihood of weed establishment and for appropriately managing established weeds. Traditional identification tools require either knowledge of technical morphological terminology or time-consuming image matching by the user. In recent years, deep learning computer vision models have become mature enough to enable automatic identification. The major remaining bottlenecks are the availability of a sufficient number of high-quality, reliably identified training images and the user-friendly, mobile operationalization of the technology. Here, we present the first weed identification and reporting app and website for all of Australia. It includes an image classification model covering more than 400 species of weeds and some Australian native relatives, with a focus on emerging biosecurity threats and spreading weeds that can still be eradicated or contained. It links the user to additional information provided by state and territory governments, flags species that are locally reportable or notifiable, and allows the creation of observation records in a central database. State and local weed officers can create notification profiles to be alerted of relevant weed observations in their area. We discuss the background of the WeedScan project, the approach taken in design and software development, the photo library used for training the WeedScan image classifier, the model itself and its accuracy, and technical challenges and how these were overcome.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-012758",
+      "title": "Application of Unmanned Aerial Vehicle 3D Reconstruction for Quantitative Measurements of the Tailing Pond Dry Beach",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.3390/app15042014",
+      "arxiv_id": null,
+      "abstract": "Dry beach parameters are important indicators for measuring the safe operation of tailings ponds. The Unmanned Aerial Vehicle (UAV) is widely used in construction, disaster monitoring, and agriculture. In this paper, a new semi-automatic method is proposed that measures the length and slope of the dry beach in a tailings pond using the point cloud obtained through the 3D reconstruction of UAVs. The programs of dry beach boundary identification, point cloud profile denoising, dry beach length, and slope measurement were established. The proposed method was applied to a case study to monitor the length and slope of a tailings pond dry beach. The results show that the maximum error of the dry beach length measurement is 2.25%, and the error of the slope measurement is 2.67%. The error is within a reasonable range, which can be accepted in practical applications, demonstrating the reliability and accuracy of the proposed method. Compared with traditional methods and image-based dry-beach-monitoring methods, the point cloud model provides comprehensive coverage of the entire dry beach. It enables the measurement of the length and slope of the dry beach at any point while offering an intuitive representation of its surface morphology and topographic features.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-012144",
+      "title": "Automation of conceptual design and modification of aircraft type unmanned aerial vehicles using multidisciplinary optimization and evolutionary algorithms. Part 1: Methods and models",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.18287/2541-7533-2024-23-3-42-57",
+      "arxiv_id": null,
+      "abstract": "This paper proposes a method for selecting rational parameters for large-size aircraft-type unmanned aerial vehicles at the initial design stages using an optimization algorithm of differential evolution and numerical mathematical modeling of aerodynamic problems. The method assumes implementation of weight and aerodynamic balance in the main flight modes, it can consider aircraft-type unmanned aerial vehicles with one or two lifting surfaces, applies parallel calculations, and automatically generates a three-dimensional geometric model of the aircraft appearance based on the optimization results. A method for accelerating by more than three times the process of solving the problem of optimizing aircraft takeoff weight parameters by introducing the target function into the set of design variables is proposed and demonstrated. The results of assessing the reliability of the mathematical models used for aerodynamics and the correct calculation of the target function are presented, taking into account various constraints. A comprehensive check of the operability and effectiveness of the method were considered by solving demonstration problems by optimizing more than ten main design parameters of the appearance of two existing heavy-class unmanned aerial vehicles with known characteristics from open sources. Examples of using the optimization results to modify prototypes are provided.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-006347",
+      "title": "YOLO-DroneMS: Multi-Scale Object Detection Network for Unmanned Aerial Vehicle (UAV) Images",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.3390/drones8110609",
+      "arxiv_id": null,
+      "abstract": "In recent years, research on Unmanned Aerial Vehicles (UAVs) has developed rapidly. Compared to traditional remote-sensing images, UAV images exhibit complex backgrounds, high resolution, and large differences in object scales. Therefore, UAV object detection is an essential yet challenging task. This paper proposes a multi-scale object detection network, namely YOLO-DroneMS (You Only Look Once for Drone Multi-Scale Object), for UAV images. Targeting the pivotal connection between the backbone and neck, the Large Separable Kernel Attention (LSKA) mechanism is adopted with the Spatial Pyramid Pooling Factor (SPPF), where weighted processing of multi-scale feature maps is performed to focus more on features. And Attentional Scale Sequence Fusion DySample (ASF-DySample) is introduced to perform attention scale sequence fusion and dynamic upsampling to conserve resources. Then, the faster cross-stage partial network bottleneck with two convolutions (named C2f) in the backbone is optimized using the Inverted Residual Mobile Block and Dilated Reparam Block (iRMB-DRB), which balances the advantages of dynamic global modeling and static local information fusion. This optimization effectively increases the model’s receptive field, enhancing its capability for downstream tasks. By replacing the original CIoU with WIoUv3, the model prioritizes anchoring boxes of superior quality, dynamically adjusting weights to enhance detection performance for small objects. Experimental findings on the VisDrone2019 dataset demonstrate that at an Intersection over Union (IoU) of 0.5, YOLO-DroneMS achieves a 3.6% increase in mAP@50 compared to the YOLOv8n model. Moreover, YOLO-DroneMS exhibits improved detection speed, increasing the number of frames per second (FPS) from 78.7 to 83.3. The enhanced model supports diverse target scales and achieves high recognition rates, making it well-suited for drone-based object detection tasks, particularly in scenarios involving multiple object clusters.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-012094",
+      "title": "Unmanned Aerial Vehicle (UAV)-Based Pavement Image Stitching Without Occlusion, Crack Semantic Segmentation, and Quantification",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.1109/tits.2024.3424525",
+      "arxiv_id": null,
+      "abstract": "Unmanned Aerial Vehicle (UAV)-based pavement distress detection offers efficient and safe advantages. However, obstructions from road vehicles and the slender shape of cracks in UAV images challenge accuracy. To address this, this study established specific flight parameters, proposed the Historical Best Matching Image (HBMI) approach for data loss due to obstructions, and created the UAV-Crack500 dataset with 500 finely annotated crack images. Three algorithms with different loss functions were investigated, finding that the U-Net network combined with our Completely Asymmetric Loss (CAL) achieved the best performance, resolving the issue of class imbalance. Morphological analysis of the semantically segmented images provided precise crack morphology features. In complex scenarios, errors in features like crack area, length, mean width, and maximum width remained within 16%. This study establishes a comprehensive UAV-based pavement distress detection system, overcoming obstructions for accurate assessment.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-010778",
+      "title": "RETRACTED ARTICLE: Obstacles Uncovering System for Slender Pathways Using Unmanned Aerial Vehicles with Automatic Image Localization Technique",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.1007/s44196-023-00344-0",
+      "arxiv_id": null,
+      "abstract": "AbstractIn this study, unidentified flying machines are built with real-time monitoring in mid-course settings for obstacle avoidance in mind. The majority of the currently available methods are implemented as comprehensive monitoring systems, with significant success in monitored applications like bridges, railways, etc. So, the predicted model is developed exclusively for specific monitoring settings, as opposed to the broad conditions that are used by the current approaches. Also, in the design model, the first steps are taken by limiting the procedure to specific heights, and the input thrust that is provided for take up operation is kept to a minimum. Due to the improved altitudes, the velocity and acceleration units have been cranked up on purpose, making it possible to sidestep intact objects. In addition, Advanced Image Mapping Localization (AIML) is used to carry out the implementation process, which identifies stable sites at the correct rotation angle. Besides, Cyphal protocol integration improves the security of the data-gathering process by transmitting information gathered from sensing devices. The suggested system is put to the test across five different case studies, where the designed Unmanned aerial vehicle can able to detect 25 obstacles in the narrow paths in considered routs but existing approach can able to identify only 14 obstacle in the same routes.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-011674",
+      "title": "Rapid monitoring of the spatial distribution of soil organic matter using unmanned aerial vehicle imaging spectroscopy",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.1080/19475683.2024.2360213",
+      "arxiv_id": null,
+      "abstract": "An existing technique for quickly obtaining the spatial distribution data of soil organic matter (SOM) involves combining an unmanned aerial vehicle (UAV) platform and imaging spectroscopy technology; this technique is suitable for precision agricultural management and real-time monitoring. In this study, the average spectral data were first extracted via circular regions of interest (ROIs) of different radii and modelled using the measured SOM to determine the optimal extraction range for the spectral data. Partial least-squares regression (PLSR) and support vector machine (SVM) models were constructed based on the raw spectra, standard normal transform spectra, multiple scattering-corrected spectra, and first-order differential spectra. The difference index, ratio index, and normalized index were calculated and analysed for their correlation with SOM content, and the spectral indices were screened to establish the SOM prediction model. Finally, the accuracy of the model was evaluated, and we selected the optimal model to map the spatial distribution of SOM. The results of our study show that 1) the radius of the ROI significantly affects the model’s accuracy; 2) the accuracy of the nonlinear SVM model is much higher than that of the linear PLSR model; 3) the prediction model based on spectral indices is better than full-band model. This study can serve as a model for the application of UAV imaging spectroscopy technology to field-scale SOM estimations and rapid monitoring, as well as provide technical support for precision agriculture and climate change studies.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-013394",
+      "title": "UAV Equipped with SDR-Based Doppler Localization Sensor for Positioning Tactical Radios",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.3390/drones9100698",
+      "arxiv_id": null,
+      "abstract": "The accurate localization of radio frequency (RF) emitters plays a critical role in spectrum monitoring, public safety, and defense applications, particularly in environments where global navigation satellite systems are limited. This study investigates the feasibility of a single unmanned aerial vehicle (UAV) equipped with a Doppler-based software-defined radio sensor to localize modern RF sources without the need for external infrastructure or multiple UAVs. A custom-designed localization system was developed and tested using the L3Harris AN/PRC-152A tactical radio, which represents a class of real-world, dual-use emitters with lower frequency stability than laboratory signal generators. The approach was validated through both emulation studies and extensive field experiments under realistic conditions. The results show that the proposed system can localize RF emitters with an average error below 50 m in 80% of cases even when the transmitter is more than 600 m away. Performance was evaluated across different carrier frequencies and acquisition times, demonstrating the influence of signal parameters on localization accuracy. These findings confirm the practical applicability of Doppler-based single-UAV localization methods and provide a foundation for further development of lightweight, autonomous RF emitter tracking systems for critical infrastructure protection, spectrum analysis, and tactical operations.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-012658",
+      "title": "A Review on Anomaly Detection Using Machine Learning Techniques for Unmanned Aerial Vehicles (UAVs)",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.1007/978-981-96-5781-0_13",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-010635",
+      "title": "Automatic identification of building structure types using unmanned aerial vehicle oblique images and deep learning considering facade prior knowledge",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.1080/17538947.2023.2247390",
+      "arxiv_id": null,
+      "abstract": "Building structural type information is the foundation for seismic risk assessment and management since it reflects the behavior of buildings under seismic load. However, in earthquake-prone regions, most of this information is out-of-date or nonexistent. This paper proposes a deep learning-based method for automatically identifying building structural types from unmanned aerial vehicle (UAV) oblique images. The method consists of four steps: (1) collect facades of buildings with different structural types by web crawler technology as a sample set; (2) construct a convolutional neural network with a facade prior knowledge attention branch and train the model using the sample set; (3) extract building facades from UAV oblique images based on the georeferencing results of feature points as the test set; (4) identify building structural types by inputting the test set into the trained model. Three cases have been selected to verify the feasibility and applicability of the method. The average recall rate of 85% and the average F1 score of 83% have been achieved in areas with regular building distribution. This method integrates multidisciplinary knowledge to provide a solution for rapid collection of building vulnerability information, and expands the role of oblique photography data in urban management and disaster prevention planning.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-001158",
+      "title": "Transforming Agriculture: Tech-Driven Solutions for Sustainable Chemical Reduction and Environmental Stewardship",
+      "year": 2026,
+      "providers": "openalex",
+      "doi": "10.1007/978-3-032-23211-3_5",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-013805",
+      "title": "面向边缘计算的单点多视角无人机视觉定位方法（特邀）",
+      "year": 2026,
+      "providers": "crossref",
+      "doi": "10.3788/lop260983",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-008929",
+      "title": "Perry Canyon, Nevada. Acid Mine Drainage and UAS remote sensing",
+      "year": 2022,
+      "providers": "crossref",
+      "doi": "10.4211/hs.730be8a9e2b34d8dbaa70680c50e8831",
+      "arxiv_id": null,
+      "abstract": "Weathering and transport of potentially acid generating material (PAGM) at abandoned mines can degrade downstream environments and contaminate water resources. Monitoring the thousands of abandoned mine lands (AMLs) for exposed PAGM using ﬁeld surveys is time intensive. Here, we explore the use of Remotely Piloted Aerial Systems (RPASs) as a complementary remote sensing platform to map the spatial and temporal changes of PAGM across a mine waste rock pile on an AML. We focus on testing the ability of established supervised and unsupervised classiﬁcation algorithms to map PAGM on imagery with very high spatial resolution, but low spectral sampling. At the Perry Canyon, NV, USA AML, we carried out six ﬂights over a 29-month period, using a RPAS equipped with a 5-band multispectral sensor measuring in the visible to near infrared (400–1000 nm). We built six different 3 cm resolution orthorectiﬁed reﬂectance maps, and our tests using supervised and unsupervised classiﬁcations revealed beneﬁts to each approach. Supervised classiﬁcation schemes allowed accurate mapping of classes that lacked published spectral libraries, such as acid mine drainage (AMD) and efﬂorescent mineral salts (EMS). The unsupervised method produced similar maps of PAGM, as compared to supervised schemes, but with little user input. Our classiﬁed multi-temporal maps, validated with multiple ﬁeld and lab-based methods, revealed persistent and slowly growing ‘hotspots’ of jarosite on the mine waste rock pile, whereas EMS exhibit more rapid ﬂuctuations in extent. The mapping methods we detail for a RPAS carrying a broadband multispectral sensor can be applied extensively to AMLs. Our methods show promise to increase the spatial and temporal coverage of accurate maps critical for environmental monitoring and reclamation efforts over AMLs.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-011461",
+      "title": "Conventional versus Reinforced Additive Manufacturing in Unmanned Aerial Vehicle Design",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.1109/eeite61750.2024.10654436",
+      "arxiv_id": null,
+      "abstract": "Additive manufacturing has significantly impacted the research and development of Unmanned Aerial Vehicles, enabling rapid prototyping and fast production. A framework for designing and manufacturing parts of specialized multirotor UAVs is considered, incorporating the process of mechanical testing of 3D printed specimens. Based on material testing, it is possible to construct parts with the required mechanical properties while retaining a lightweight and low-cost airframe. Tests were conducted on five series of specimens that were 3D printed with a different combination of technologies, materials, and parameters. The results are shown graphically, and mechanical properties can be compared for further testing and use in aircraft design.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-010101",
+      "title": "Compact Unmanned Aerial Vehicle with Carbon Fibre Frame and Propellor for Underground Application : An Approach",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.32628/ijsrset2310118",
+      "arxiv_id": null,
+      "abstract": "[ABSTRACT WITHHELD BY PROVIDER MODERATION - original retained in the immutable batch file; screen on the visible title only; mark PENDING unless the title already clearly leaves the review domain]",
+      "abstract_effectively_null": true,
+      "moderation_redacted": true,
+      "moderation_terms": [
+        "military"
+      ]
+    },
+    {
+      "screening_id": "SCI-002808",
+      "title": "Unmanned Aerial Vehicles Identification and Tracking Based on Video Data Analysis",
+      "year": 2020,
+      "providers": "crossref",
+      "doi": "10.1109/dspa48919.2020.9213287",
+      "arxiv_id": null,
+      "abstract": "The proposed method implements automatic capture, tracking and identification of unmanned aerial vehicles (UAVs) in video sequence frames under the following conditions. The scene has a moving background, which in general can be highly detailed (complex background), or smooth; the size of objects of interest from 8×8 to 100×100 pixels; speed of movement from zero to 10 elements per frame; several objects move within the frame, including the object of interest; objects can be both artificial and natural. The proposed method at the stage of segmentation and tracking allows to implement segmentation for objects of interest with a size up to 5 blocks with a random error less than 15% and for objects of larger sizes 3-5%. Systematic error less than 13%. At the identification step, the balanced accuracy metric is 0.83. The novelty of the presented work is that for the first time the design approach and research results of a comprehensive UAV detection, tracking and identification procedure for various surveillance conditions and with a significant change in the size of the object in the frame during tracking are described.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-007788",
+      "title": "Machine Learning-Enhanced Secure Cryptographic System for Resource-Constrained Unmanned Aerial Vehicles Communication",
+      "year": 2026,
+      "providers": "crossref",
+      "doi": "10.1016/j.procs.2026.06.209",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-003857",
+      "title": "Closed Loop Performance Analysis of Classical PID and Robust H-infinity Controller for VTOL Unmanned Quad Tiltrotor Aerial Vehicle",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.46300/9104.2021.15.25",
+      "arxiv_id": null,
+      "abstract": "Unmanned Aerial Vehicles (UAVs) guidance, control and navigation have directed the attention of many researchers in both aerospace engineering as well as control theory. Due to the unique rotor structure of Tiltrotor hybrid UAVs, they exhibit special application value. Quad Tiltrotor UAVs set up a distinctive platform that satisfies the needs of the varying mission requirements by combining the conventional features of high-speed cruise capabilities of an aircraft and hovering capabilities of a helicopter and by tilting its four rotors. The aim of this research article is to control the attitude and altitude of the UAV in the presence of uncertainty using two different control techniques. This paper addresses the comparative analysis of the robust H-infinity controller with classical PID control designs for the transition manoeuvre of a hybrid UAV: the VTOL Tiltrotor UAV. The proposed controllers achieve hover to cruise mode transition and vice-versa. The main idea behind the design of controller is to model and analyze the UAV’s position and attitude dynamics. The desired flight trajectory and the transition manoeuvre is achieved by controlling the tilt angle in 15° intervals from 90° to 0° and vice-versa. Performance index subjected to IAE is estimated and compared for both the controllers in the presence of noise, disturbances and uncertainties. The results of simulation illustrate that the robust H-infinity controller achieves better transition, good adaptability, robust performance and robust stability for the whole flight envelope when compared with the PID controller.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-012987",
+      "title": "Optimization of CSRT tracker parameters in unmanned aerial vehicles tracking system",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.21177/1998-4502-2025-17-2-834-845",
+      "arxiv_id": null,
+      "abstract": "Introduction. Modern tracking systems for unmanned aerial vehicles (UAVs) face the challenge of ensuring stability and accuracy in tracking dynamic objects under conditions of limited computational resources and external disturbances. Purpose of the research. The aim of the work is to optimize the key parameters of the CSRT (Channel and Spatial Reliability Tracker) tracker within a hybrid “YOLO-CSRT” system to enhance the accuracy and reliability of autonomous real-time target tracking for UAVs. Materials and methods. A hybrid approach was used, combining the YOLO detector for initial object detection and the CSRT tracker for its stable tracking. The methodology involved parametric search and systematic analysis based on the Intersection over Union (IoU) metric to evaluate the overlap of bounding boxes. The influence of CSRT parameters (padding, kernel_sigma, λ, template_size, etc.) on tracking quality was experimentally studied during UAV approach to a target at speeds of 120–250 km/h. Results. Optimal adaptive ranges for CSRT parameters were experimentally determined for different tracking phases (long-range detection up to 400 m and close contact 0–50 m). The optimized tracker demonstrated an average IoU of 92% (compared to 48% for the baseline version) and resistance to occlusions of up to 35% of the object area, improving tracking accuracy by 25–40%. Discussion. The results confirm that adaptive tuning of CSRT parameters achieves a significant improvement in tracking quality without increasing computational load, which is critical for onboard systems. Conclusion. The proposed CSRT parameter optimization method effectively solves the problem of accurate and stable real-time tracking of dynamic objects for UAVs. Resume. The developed approach provides a balance between high accuracy and low computational requirements. Suggestions for practical applications and directions for future research. The research results can be useful in creating UAV autonomous guidance systems, developing intelligent video surveillance systems, and constructing robotic complexes with computer vision. Future work is related to the integration of the algorithm into multimodal machine vision systems and improving robustness in complex observation conditions.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-005235",
+      "title": "THE GROUND STATION FOR LONG-RANGE MONITORING, FLIGHT CONTROL, AND OPERATIONAL DATA TELEMETRY OF UNMANNED AERIAL VEHICLES",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.46585/pc.2023.1.2454",
+      "arxiv_id": null,
+      "abstract": "The rapid advancement of technology in the field of unmanned aerial vehicles (UAVs) has created new possibilities for their application in numerous fields. For every unmanned aerial system it is essential to contain a ground control station (GCS), which must comply with mission-specific requirements. This paper presents the results of our research on optimizing the hardware and software components of radio communication for an UAV prototype with hybrid propulsion and integrating them into one comprehensive control station, enabling long-range operation and universal applicability to other unmanned aircraft. Our approach includes a unique solution to separate flight control from propulsion unit monitoring due to the experimental nature of the propulsion system. Flight safety was also enhanced by equipping the GCS with a system that provides information about nearby air traffic and secures the operational area against unauthorized UAV flights. Our system is capable of detecting intruders and determining their location based on intercepting UAV radio signals. Additionally, we conducted research on radio jamming as a means of interrupting the flight of a UAV that is violating a restricted airspace. Overall, our research provides insights and recommendations for the development of effective and user-friendly GCSs for UAV systems, addressing the critical need for safe and secure UAV operations.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-009654",
+      "title": "Deep Learning-Based Unmanned Aerial Vehicle Control with Hand Gesture and Computer Vision",
+      "year": 2022,
+      "providers": "crossref",
+      "doi": "10.23919/ascc56756.2022.9828347",
+      "arxiv_id": null,
+      "abstract": "Human drone Interaction is the subfield of Human-robot interaction (HRI), which deals with human interaction with drones; Drones are conventionally controlled by joysticks, onboard computers, mobile applications, and remote controllers. Drones controlled by conventional methods are affected by electromagnetic wave interference due to an unreliable connection between the drone and the controller. Special care is needed when working with drones in close vicinity to humans. In this proposed work, we have developed an agentless and non-wearable communication system between the drone and the user. The proposed system consists of two modules, i.e., the hand recognition module and drone controlling module. The hand recognition model is further subdivided into two modules, i.e., hand detection and gesture recognition. After the landmarks (palm and hand detection) are detected, they are given to the TensorFlow-based Deep learning model for classification among different hand gestures. The classified hand movement is further converted into actionable drone movements such as take-off, hovering, and landing. Experimentation was done on Parrot Mambo Drone, and it was concluded that there should be no more than 121.92cm distance between user and webcam for working system effectively.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-007029",
+      "title": "Research on UAV Low Altitude Logistics Emergency Scheduling Mechanism for Urban Incidents",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.1109/leficlu65987.2025.11297235",
+      "arxiv_id": null,
+      "abstract": "With the rapid expansion of the low-altitude economy, drones have become a critical component of urban logistics and emergency transportation. However, existing scheduling mechanisms often fail to provide efficient and reliable emergency response under multi-task concurrency and dynamic constraints. To address this challenge, this paper proposes a computationally optimized UAV emergency scheduling mechanism for low-altitude urban logistics. The proposed framework integrates an emergency priority determination model, multi-task fusion scheduling, and a two-level path planning algorithm. A hybrid Genetic Algorithm–Deep Reinforcement Learning (GA–DRL) optimization strategy is introduced to enhance global search and real-time decision-making efficiency, while an edge–cloud collaborative computing architecture accelerates task allocation through GPU-enabled parallel processing. Experiments based on real-world mission data from Shenzhen’s central urban area demonstrate that the proposed mechanism reduces average computation time by 38%, shortens response time by 45%, and increases task completion rate to 95.8%, significantly outperforming baseline scheduling methods. The results validate the system’s adaptability and robustness in complex urban environments. This study contributes a scalable and high-performance computational framework that advances both drone dispatch optimization and intelligent computing for urban emergency logistics.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-005476",
+      "title": "Variations in Finite-Time Multi-Surface Sliding Mode Control for Multirotor Unmanned Aerial Vehicle Payload Delivery with Pendulum Swinging Effects",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.3390/machines11090899",
+      "arxiv_id": null,
+      "abstract": "Multi-surface sliding mode control addresses the limitations of traditional sliding mode control by employing multiple sliding surfaces to handle uncertainties, disturbances, and nonlinearities. The design process involves developing sliding surfaces, designing switching logic, and deriving control laws for each surface. In this paper, first, a robust finite-time multi-surface sliding mode controller will be presented and its performance analyzed by applying it to a multirotor subjected to a suspended payload, modeled in the form of a single pendulum, itself defined as a spatial (3D) dynamic model. Next, an adaptive finite-time multi-surface sliding mode controller will be derived—adding a variable adaptive parameter to the existing sliding surfaces of the robust finite-time control—and applied to the same system. It will be shown that the adaptive controller, with an adaptive parameter that adjusts itself based on the present value of the multi-surface sliding mode parameter, creates an improved fast finite-time convergence by obtaining an optimal settling time and minimizing undershoot of the multirotor state vector. Empirical verification of the effectiveness of the adaptive control will be carried out by presenting the control performances against a step response. It is also shown that the control may be utilized to approximate external disturbances—represented by the pendulum—and that with the application of control, the vehicle’s motion may be stabilized and the payload swing suppressed. Lyapunov stability theory-based stability proofs for the controllers’ designs are developed, showing the asymptotic stability of the output and uniform boundedness of the errors in the system dynamics. It is verified that the multi-surface sliding mode control can account for system uncertainties—both matched and mismatched—in addition to changes in internal dynamics and disturbances to the system, where the single pendulum payload is representative of the changes in dynamics that may occur to the system. Numerical simulations and characteristics are presented to validate the performance of the controllers.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-009376",
+      "title": "Aerial Grasping and Transport Using an Unmanned Aircraft (UA) Equipped with an Industrial Suction Gripper",
+      "year": 2022,
+      "providers": "crossref",
+      "doi": "10.1007/978-3-030-74032-0_8",
+      "arxiv_id": null,
+      "abstract": "AbstractDuetotheavailabilityof highly efficient unmanned aircraft (UA) and the advancement of the necessary technologies, the use of UA for object manipulation and cargo transport is becoming a more and more relevant research area. A reliable identification and localization of cargo and interaction objects as well as maintaining the required flight precision are essential to guarantee a successful object handling. Within this paper we demonstrate the successful application of an autonomous UA equipped with a lightweight suction gripper for object interaction. We discuss the approach used for precise localization as well as the identification and pose estimation of individual gripping objects. Concluding, the overall system performance is evaluated within an industrial-oriented use case.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-004938",
+      "title": "Ghaf Tree Detection from Unmanned Aerial Vehicle Imagery Using Convolutional Neural Networks",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.1109/isncc58260.2023.10323713",
+      "arxiv_id": null,
+      "abstract": "The Ghaf is a drought-resilient tree native to some parts of Asia and the Indian Subcontinent, including the United Arab Emirates (UAE). To the UAE, the Ghaf is a national tree, and it is regarded as a symbol of stability and peace due to its historical and cultural importance. Due to increased urbanization and infrastructure development in the UAE, the Ghaf is currently considered an endangered tree, requiring protection. Utilization of modern-day aerial surveillance technologies in combination with Artificial Intelligence (AI) can particularly be useful in keeping count of the Ghaf trees in a particular area, as well as continuously monitoring unauthorized use to feed animals and to monitor their health status, thereby aiding in their preservation. In this paper, we utilize one of the best Convolutional Neural Networks (CNN), YOLO-V5, based model to effectively detect Ghaf trees in images taken by cameras onboard light-weight, Unmanned Aircraft Vehicles (UAV), i.e. drones, in some areas of the UAE. We utilize a dataset of over 3200 drone captured images partitioned into data-subsets to be used for training (60%), validation (20%), and testing (20%). Four versions of YOLO-V5 CNN architecture are trained using the training data subset. The validation data subset was used to fine tune the trained models in order to realize the best Ghaf tree detection accuracy. The trained models are finally evaluated on the reserved test data subset not utilized during training. The object detection results of the Ghaf tree detection models obtained by the use of four different sub-versions of YOLO-V5 are compared quantitatively and qualitatively. YOLO-V5x model produced the highest average detection accuracy of 81.1%. In addition, YOLO-V5x can detect and locate Ghaf trees of different sizes moreover in complex natural environments and in areas with sparse distributions of Ghaf trees. The promising results presented in this work offer fundamental grounds for AI-driven UAV applications to be used for monitoring the Ghaf tree in real-time, and thus aiding in its preservation.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-010105",
+      "title": "Research on Unmanned Aerial Vehicles Landing Site Selection for Collaborative Delivery with Non-Motorized Vehicle under Cross-Regional Conditions",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.12677/mos.2023.124368",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-010576",
+      "title": "Localization of Cracks in Concrete Structures Lacking Reference Objects and Feature Points Using an Unmanned Aerial Vehicle",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.3390/app13179918",
+      "arxiv_id": null,
+      "abstract": "Information on the location of cracks in concrete structures is an important factor enabling appropriate maintenance or reinforcement measures to be taken. Most studies related to concrete cracks are limited to crack detection and identification, and studies related to crack location information are insufficient. The novelty of this study is to develop application technology related to crack localization by proposing a methodology that can estimate the location of concrete cracks even when reference objects or feature points are lacking using an unmanned aerial vehicle and image processing techniques. For the development and verification of the proposed method, aerial photography and image acquisition were performed using mounting a laser pointer model on an unmanned aerial vehicle. To build the analysis data, image distortion correction and feature point extraction were performed using the homography matrix and scale-invariant feature transform algorithm. Spatial information was established using the point cloud technique and image stitching technique, and crack localization was estimated using generating crack expression data via layer merging. The proposed method was validated using comparison with field-measured data. In the future, the proposed methodology can be utilized for supplementing and improving the conventional methods for visual inspection of infrastructures and facilities.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-011775",
+      "title": "Methodology and Uncertainty Analysis of Methane Flux Measurement for Small Sources Based on Unmanned Aerial Vehicles",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.3390/drones8080366",
+      "arxiv_id": null,
+      "abstract": "The top–down emission rate retrieval algorithm (TERRA) method for calculating the net flux out of a box has been employed by other researchers to assess large sources of methane release. This usually requires a manned aircraft drone with powerful performance to fly over the boundary layer. Few studies have focused on low-altitude box sampling mass balance methods for small sources of methane release, such as at maximum flight altitudes of less than 100 m. The accuracy and sources of uncertainty in such a method still need to be determined as they differ from the conditions of large sources. Nineteen flights were conducted to detect methane emissions from Chinese oil field well sites using a measurement system consisting of a quadcopter and methane, wind speed, wind direction, air pressure, and temperature sensors. The accuracy and uncertainty of the method are discussed. The average absolute relative error of the measurement is 18.5%, with an average uncertainty of 55.75%. The uncertainty is mainly caused by the wind speed and direction, and the background CH4 concentration. The main paths to reduce uncertainty and improve accuracy for low-altitude box sampling include subtracting the background concentration during flux retrieval, enhancing the accuracy of methane measurements, selecting a period of downwind dominant or wind direction change of less than 30 degrees, and ensuring a maximum flight height greater than 50 m with a horizontal distance from the pollution source center of less than 75 m. The results show that TERRA-based low-altitude box sampling is suitable for quantifying methane release rates from small sources.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-009174",
+      "title": "Experience of Studying the Turbulent Structure of the Atmospheric Boundary Layer Using an Unmanned Aerial Vehicle",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.1134/s0001433821050042",
+      "arxiv_id": null,
+      "abstract": "Abstract The growing relevance of the use of unmanned aerial vehicles (UAVs) for studying turbulence in the atmospheric boundary layer (ABL) is associated with the need to obtain new observational data at different heights in the boundary layer, as well as over heterogeneous landscapes. Such new data is needed for developing turbulence models for spatially inhomogeneous and unsteady conditions. This paper describes the new Tsimlyanin UAV and its meteorological payload, developed specifically for studying the turbulent structure of the ABL. Tsimlyanin differs from similar vehicles by its hybrid scheme, which combines the possibility of vertical take-off and landing and horizontal flight in airplane mode. The meteorological payload includes specially designed measuring devices, namely, a multihole air pressure probe and a low-inertia resistance thermometer. Also, analog-to-digital converters for several sensors, as well as the onboard data-acquisition system, are newly developed. This paper presents the results of measurements carried out using the UAV during test flights in Tsimlyansk in August 2020. A good agreement between UAV observations with respect to vertical profiles of air temperature, wind speed and direction, dispersion of vertical speed with the data of observations of other complexes (acoustic anemometers, an automatic meteorological station, sodars, and a temperature profiler) was obtained. The results demonstrate the high potential of this UAV for studying turbulence in the ABL.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-003880",
+      "title": "Immersion and invariance control for Euler angles of a fixed‐wing unmanned aerial vehicle",
+      "year": 2022,
+      "providers": "crossref",
+      "doi": "10.1002/asjc.2558",
+      "arxiv_id": null,
+      "abstract": "AbstractIn this paper, an asymptotically stabilizing, nonlinear flight controller design via immersion and invariance (I&I) approach for a fixed‐wing unmanned aerial vehicle is presented. The objective is to adjust pitch, roll, and yaw angles with the control inputs aileron, elevator, and rudder deflections. The important issues in designing a controller for fixed‐wing unmanned aerial vehicles (UAVs) are to cope with its nonlinear dynamics and to obtain a controller that can deal with various disturbances. Existing linear controllers cannot deal well with the nonlinear dynamics of the UAVs and that can not guarantee stability outside of the considered operating point. On the other hand, widely used nonlinear controllers have some weaknesses. Such as sliding mode controllers are robust to disturbances but suffer from the chattering phenomenon, and the backstepping controllers are not very robust to disturbances. The proposed controller ensures global stability with smooth and precise reference tracking and also yields significant disturbance attenuation without the chattering phenomenon. I&I approach also enables us to directly assign closed‐loop dynamics. Thus, tuning of the proposed controller is straightforward. Most of the other nonlinear methods do not have straightforward tuning of control parameters to assign desired dynamics to a closed‐loop system. The superior performance of the proposed controller is shown via simulations for various disturbances in comparison with the sliding mode controllers; the one with standard control law and the one with modified control law that eliminate the chattering phenomenon.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-010297",
+      "title": "Object Detection for Rescue Operations by High-Altitude Infrared Thermal Imaging Collected by Unmanned Aerial Vehicles",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.1007/978-3-031-36616-1_39",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-003407",
+      "title": "Teleoperated aerial manipulator and its avatar. Communication, system's interconnection, and virtual world",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.1109/icuas51884.2021.9476884",
+      "arxiv_id": null,
+      "abstract": "The tasks that an aerial manipulator can perform are incredibly diverse. However, nowadays the technology is not entirely developed to achieve complex tasks autonomously. That is why we propose a human-in-the-loop system that can control a semi-autonomous aerial manipulator to accomplish these kinds of tasks. Furthermore, motivated by the growing trend of virtual reality systems, together with teleoperation, we develop a system composed of: an aerial manipulator model programmed in PX4 and modeled in Gazebo, a virtual reality immersion with an interactive controller, and the interconnection between the systems above via the Internet. This research is the first part of a broader project. In this part, we present experiments in the software in the loop simulation. The code of this work is available on our GitHub page. Also, a video shows the conducted experiments.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-003083",
+      "title": "Development of a hybrid vertical take-off and landing unmanned aerial vehicle for maritime application",
+      "year": 2020,
+      "providers": "crossref",
+      "doi": "10.1063/5.0001359",
+      "arxiv_id": null,
+      "abstract": "An unmanned aerial vehicle (UAV) that is able to take-off and land on a medium sized ship, have greater endurance and range as compared to the previous iteration, and the ability to achieve all three flight modes - vertical, transition and horizontal flight modes is to be designed, built and tested. In this paper a comprehensive review is given on various VTOL planform configuration and a tilt-rotor configuration is selected for Minerva 2.0 for its high stability and increased efficiency. This paper covers the selection analysis of different vertical take-off and landing (VTOL) airframe as well as mechanical and electronic hardware design with the intention of increasing flight efficiency for surveillance purposes on wide sea area. This paper presents Minerva 2.0, a novel aerial platform with VTOL capabilities. Numerical and analytical analysis results are discussed. The previous iteration, Minerva 1.0 was built and tested as a QuadPlane configuration and an increased efficiency of 25 to 58.7% is achieved in this paper.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-004609",
+      "title": "Correlation Filters for Unmanned Aerial Vehicle-Based Aerial Tracking: A Review and Experimental Evaluation",
+      "year": 2022,
+      "providers": "crossref",
+      "doi": "10.1109/mgrs.2021.3072992",
+      "arxiv_id": null,
+      "abstract": "Aerial tracking, which has received widespread attention and exhibited excellent performance, is one of the most active applications in the remote sensing field. In particular, an unmanned aerial vehicle (UAV)-based remote sensing system equipped with visual tracking has been widely used in aviation, navigation, agriculture, transportation, public security, and so on. The UAV-based aerial tracking platform has gradually developed from the research stage to the stage of practical application, establishing itself as one of the main aerial remote sensing technologies of the future. However, due to severe real-world situations, e.g., harsh external challenges, the vibration of a UAV’s mechanical structure (especially under strong wind conditions), its maneuvering flight in complex environments, and its limited onboard computational resources as well as its accuracy, robustness, and high efficiency are all crucial for onboard tracking methods.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-008371",
+      "title": "The use of unmanned aerial vehicles in flood hazard assessment",
+      "year": 2020,
+      "providers": "crossref",
+      "doi": "10.1111/jfr3.12622",
+      "arxiv_id": null,
+      "abstract": "AbstractFlood inundation models are central components of any flood risk analysis system because they transform the bulk discharge outputs from flood‐frequency analyses or rainfall‐runoff models into distributed predictions of flood hazard in terms of water depth, inundation extent, and flow velocity. The accuracy of flood hazard maps depends on the availability of distributed observations of inundation outlines. Unfortunately, the acquisition of aerial photographs or satellite images is costly and in addition, their temporal resolution is strongly limited by weather conditions. Remote sensing based on unmanned aerial vehicles (UAV) is becoming increasingly popular due its flexibility and quickly decreasing costs. In particular, UAV can provide precise up to date georeferenced information about the location of a river shorelines, channel geometry, and vegetation. This information is particularly useful for the calibration and validation of distributed flood routing models. The application of cheap, well georeferenced UAV images of river shorelines is an unprecedented source of distributed observations. The aim of this article is to present a procedure for the updating of boundary conditions of the hydrodynamic model, based on UAV‐born data. The approach proposed is also a very effective means of on‐line updating of flood risk maps and their verification.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-003034",
+      "title": "Ambient Carbon Dioxide in Industrial and Commercial Area Measured by Unmanned Aerial Vehicle (UAV)",
+      "year": 2020,
+      "providers": "crossref",
+      "doi": "10.1088/1755-1315/448/1/012035",
+      "arxiv_id": null,
+      "abstract": "Abstract The CO2 gas is a gas produced from various activities related to industrial activities and people activities in residential or commercial areas. Conventionally, measurements of CO2 concentrations are carried out using the NDIR method with stationary devices. Still, the tool has a disadvantage that is difficult to do in locations that are difficult to reach with height. So this research is intended to measure ambient CO2 in the Industrial Estate and Commercial area using Unmanned Aerial Vehicle (UAV) technology. We sampled in 10 sites at each location. The output of measurements were then plotted with Surfer software to know the spatial distribution. The results of the study show the CO2 concentrations varied between sites. CO2 concentration was higher at industrial area than at commercial area. At Industrial and Commercial area the transport sector may the main causes of high ambient CO2.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-005056",
+      "title": "Evaluasi Geometri Jalan Menggunakan Unmanned Aerial Vehicle (UAV) pada Jalan Lingkar Dramaga Bogor",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.29244/jsil.8.03.183-192",
+      "arxiv_id": null,
+      "abstract": "Di Indonesia umumnya evaluasi geometri jalan dilakukan dengan cara konvensional seperti menggunakan theodolite atau total station. Kegiatan evaluasi merupakan bagian dari monitoring untuk memantau setiap perubahan kondisi jalan baik profil, kepadatan kendaraan dan lalu lintas. Penelitian ini bertujuan untuk melakukan evaluasi kondisi eksisting geometri jalan menggunakan UAV serta menganalisis ketelitian fotogrametri. Lokasi yang diambil dalam penelitian ini bertempat di Jalan Lingkar Dramaga. Kegiatan dilakukan dengan pengambilan foto udara menggunakan UAV bereferensi Titik Kontrol Bantu BIG pada beberapa Ground Control Point (GCP). Evaluasi dilakukan terhadap alinyemen horizontal dan alinyemen vertikal jalan. Evaluasi ini dilakukan setelah dilakukan proses orthophoto terhadap hasil foto udara. Alinyemen horizontal yang dievaluasi berupa sudut belokan, radius belokan, panjang belokan, dan sisipan antar dua tikungan. Evaluasi alinyemen vertikal berupa panjang lengkung dan kelandaian jalan. Hasil uji akurasi berdasarkan kondisi eksisting jalan sebesar 99.2% untuk orthophoto tanpa koreksi dan 99.6% untuk orthophoto terkoreksi ground control point. Berdasarkan hasil evaluasi terhadap kondisi eksisting jalan, alinyemen horizontal jalan telah memenuhi SNI T-14-2004 sedangkan pada alinyemen vertikal terdapat nilai kelandaian yang melebihi pada segmen A1-A2 sehingga dilakukan rekomendasi perbaikan berupa penambahan elevasi sebesar 0.50 m pada STA 0+390 berupa penambahan lapisan perkerasan.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-003907",
+      "title": "Asymptotic tracking control of an underactuated tilt trirotor unmanned aerial vehicle",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.1016/j.ymssp.2021.107729",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-006512",
+      "title": "YOLO-SMUG: An Efficient and Lightweight Infrared Object Detection Model for Unmanned Aerial Vehicles",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.3390/drones9040245",
+      "arxiv_id": null,
+      "abstract": "To tackle the high computational demands and accuracy limitations in UAV-based infrared object detection, this study proposes YOLO-SMUG, a lightweight detection algorithm optimized for small object identification. The model incorporates an enhanced backbone architecture that integrates the lightweight Shuffle_Block algorithm and the Multi-Scale Dilated Attention (MSDA) mechanism, enabling effective small object feature extraction while significantly reducing parameter size and computational cost without compromising detection accuracy. Additionally, a lightweight inverted bottleneck structure, C2f_UIB, along with the GhostConv module, replaces the conventional C2f and standard convolutional layers. This modification decreases computational complexity while maintaining the model’s ability to capture and integrate essential feature information across multiple scales. Furthermore, the standard CIoU loss is substituted with MPDIoU loss, improving object localization accuracy and enhancing overall positioning precision in infrared imagery. Experimental results on the HIT-UAV dataset, which consists of infrared imagery collected by UAV platforms, demonstrate that YOLO-SMUG outperforms the baseline YOLOv8s, achieving a 3.58% increase in accuracy, a 6.49% improvement in the F1-score, a 57.04% reduction in computational cost, and a 64.38% decrease in parameter count. These findings underscore the efficiency and effectiveness of YOLO-SMUG, making it a promising solution for UAV-based infrared small object detection in complex environments.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-003685",
+      "title": "A survey of safe landing zone detection techniques for autonomous unmanned aerial vehicles (UAVs)",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.1016/j.eswa.2021.115091",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-011802",
+      "title": "Research on the Collision Risk of Fusion Operation of Manned Aircraft and Unmanned Aircraft at Zigong Airport",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.3390/s24154842",
+      "arxiv_id": null,
+      "abstract": "Low-altitude airspace is developing rapidly, but the utilization rate of airspace resources is low. Therefore, in order to solve the problem of the safe operation of the fusion of large UAVs and manned aircraft in the same airspace, this paper analyzes the theoretical calculation of the collision risk of the fusion operation of manned aircraft and UAVs at Feng Ming Airport in Zigong, verifying that while assessing the safety spacing of 10 km in the lateral direction, it further simulates the possibility of calculating the theoretical smaller safety spacing. The study will propose a new theory of error spacing safety margin and improve it according to the traditional Event collision risk model, combining the error spacing safety margin to establish an improved collision model more suitable for the fusion operation of manned and unmanned aircraft and reduce the redundancy of calculation. The error factors affecting manned and unmanned aircraft at Zigong Airport are analyzed, and theoretical calculations are analyzed by combining the actual data of Zigong Airport. Finally, the Monte Carlo simulation method is used to solve the error, substitute the calculation results, and simulate a section of the trajectory of the fusion operation for the reverse argument. The theoretical calculation results show that the collision risk from 10 km to 8 km satisfies the lateral target safety level (TSL) specified by ICAO under both traditional and improved models. The collision risk calculated by the improved model incorporating the error spacing safety margin is smaller, which enhances the safety of the model calculations. The results of the study can provide theoretical references for the fusion operation of manned and unmanned aircraft.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-005897",
+      "title": "Design of a Multi-Purpose Vertical Take-Off and Landing Unmanned Aerial Vehicle",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.56753/asrel.2024.2.3",
+      "arxiv_id": null,
+      "abstract": "Bu çalışma, engebeli arazilerde çalışabilen çok amaçlı bir Dikey Kalkış ve İniş (VTOL) İnsansız Hava Aracının (İHA) kavramsal ve detaylı tasarımına odaklanmaktadır. Son yıllarda VTOL teknolojisindeki hızlı gelişmeler, tarım, lojistik ve savunma gibi sektörlerde geleneksel sistemlere kıyasla daha az alan gerektiren ve çok yönlü yeteneklere sahip hava araçlarına olan talebi artırmıştır. Operasyonel yükü rahat şekilde değiştirilen VTOL hava araçları günümüzde mühimmat bırakma, tarımsal ilaçlama, arama kurtarma, yangın söndürme gibi birçok sektörde kullanılabilmektedir. VTOL İHA'lar hibrit konseptleri sayesinde dar alanlarda kalkış ve iniş yapabilme, havada sabit kalabilme ve yatay uçuş moduna geçiş sağlayarak önemli operasyonel avantajlar sunmaktadır. Bu çalışmada tasarlanan İHA, 20 m/s seyir hızı, 100-500 metre arasında değişen maksimum irtifa aralığı ve 0,5 kg faydalı yük kapasitesiyle zorlu görevler için optimize edilmiştir. Hava aracı çeşitli görev aygıtları ile konfigüre edilerek veri toplama, yük taşıma ve gözlem gibi görev profillerini desteklemektedir, NACA 4412 kanat profili, ters V kuyruk konfigürasyonu ve modüler bileşenler gibi aerodinamik ve yapısal özellikler göz önünde bulundurularak geliştirilmiştir. Tasarım sürecinde XFLR5 ve OpenVSP gibi analiz araçları modelleme içinse Solidworks kullanılarak aerodinamik parametreler doğrulanmış, tasarımın uçuş stabilitesi ve performans gerekliliklerini karşıladığı onaylanmıştır. Bu İHA, hem savunma hem de ticari uygulamalar için maliyet etkin, yüksek performanslı ve güvenilir bir çözüm sunmaktadır. Ayrıca modüler yapısı sayesinde farklı görev senaryolarına kolayca uyum sağlayabilmektedir. Önerilen tasarım, günümüzün karmaşık operasyonel ihtiyaçlarını karşılamak ve İHA teknolojilerinde yenilikçi çözümler geliştirmek için önemli bir katkı sunmaktadır. Sonuç olarak, bu çalışma, VTOL hava araçlarının kullanım potansiyelini artırmaya yönelik yeni yaklaşımlar sunmakta ve çeşitli operasyonel senaryolar için çözümler önermektedir.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-006067",
+      "title": "Global Navigation Satellite System (GNSS) Independent Navigation for Unmanned Aerial Vehicles (UAV)",
+      "year": 2024,
+      "providers": "crossref",
+      "doi": "10.51785/jar.1370785",
+      "arxiv_id": null,
+      "abstract": "The ability of Unmanned Aerial Vehicles (UAV) to perform autonomous navigation depends on the accurate determination of their positions provided by the Global Navigation Satellite System (GNSS). For position determination and environmental orientation during flight, UAVs are usually equipped with electronic equipment such as GNSS, Inertial Measurement Unit (IMU), gyroscope and accelerometer. However, the GNSS signal may be lost or distorted due to poor weather, obstacles or terrain, the unfavorable position of satellites, spoofing and jamming. In such cases of GNSS signal loss or deterioration, the IMU alone becomes unable to provide reliable UAV location information. Especially in cases where there is not enough visibility and the UAV cannot be brought to the take-off point by manual operation, the loss of the GNSS signal causes great losses. In this paper, GNSS independent flight and navigation studies are included. It is seen that the use of hybrid navigation solutions has great importance in GNSS independent UAV flights.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-007472",
+      "title": "Fixed-time encirclement control of moving target tracking for UAV formation",
+      "year": 2026,
+      "providers": "crossref",
+      "doi": "10.1016/b978-0-44-340433-7.00013-6",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-003934",
+      "title": "Unmanned Aerial Vehicle Position and Attitude Estimation Using Computer Vision",
+      "year": 2021,
+      "providers": "crossref",
+      "doi": "10.20906/sbai.v1i1.2547",
+      "arxiv_id": null,
+      "abstract": "This work proposes the computer vision application for the position and attitude estimation of an unmanned aerial vehicle (UAV) quadrotor navigating in an indoor Global Positioning System (GPS) denied environment. The system, composed of the quadrotor and one camera fixed outside the vehicle, was simulated in a 3D virtual environment. The results showed that computer vision improved the attitude and position estimation of the quadrotor.",
+      "abstract_effectively_null": false
+    },
+    {
+      "screening_id": "SCI-007063",
+      "title": "LiteFlex-YOLO:A lightweight small target detection network for maritime unmanned aerial vehicles",
+      "year": 2025,
+      "providers": "crossref",
+      "doi": "10.1016/j.pmcj.2025.102064",
+      "arxiv_id": null,
+      "abstract": null,
+      "abstract_effectively_null": true
+    },
+    {
+      "screening_id": "SCI-010688",
+      "title": "Nonsingular Fast Terminal Sliding Mode Neural Network Decentralized Control of a Quadrotor Unmanned Aerial Vehicle",
+      "year": 2023,
+      "providers": "crossref",
+      "doi": "10.1155/2023/3288944",
+      "arxiv_id": null,
+      "abstract": "A nonsingular terminal sliding mode decentralized controller that can ensure the tracking errors of the trajectories and attitude rapid convergence in finite time is proposed for an insufficient driven and strongly coupled nonlinear four-rotor unmanned aerial vehicle (UAV). The total lift of the UAV system is decomposed into three virtual drive separation forces corresponding to the three positions. The insufficient drive UAV system is transformed into a virtual full-drive model for research. The three position states and the three attitude states of UAV are placed correspondingly to the six subsystems by variable substitution. The model uncertainty and unknown disturbance term for each subsystem serves as total coupling terms among the subsystems. The upper bounds of the total coupling terms are considered as unknown ordinary higher order polynomials varying with the six states of the system under the action of time change. With the help of Cauchy inequality, the estimates of the upper bounds are obtained from the approximation performance of the RBF neural network. Finally, the decentralized controller is designed for each attitude subsystem and the virtual decentralized controller for each position subsystem. It is also mapped to the tracking total lift controller by using the virtual decentralized position controller. The controller design process uses the nonsingular terminal sliding mode control technology to ensure that the quadrotor attitude and position variables can quickly converge to the desired value in a short time. Simulation experiments verify that the proposed control method is effective and feasible.",
+      "abstract_effectively_null": false
+    }
+  ]
+}

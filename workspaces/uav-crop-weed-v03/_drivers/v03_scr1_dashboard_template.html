@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SCR1 Pass-1 review dashboard (suggestions only, not decisions)</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#f5f6f8;color:#1b2733}
+header{background:#123a5e;color:#fff;padding:10px 20px}
+header h1{font-size:18px;margin:0}
+header .note{font-size:12px;color:#ffd98a;margin-top:4px}
+#controls{display:flex;gap:10px;flex-wrap:wrap;padding:10px 20px;background:#fff;border-bottom:1px solid #ddd}
+#controls select,#controls input{padding:6px 8px;border:1px solid #bbb;border-radius:4px}
+main{padding:14px 20px}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:13px}
+th,td{border:1px solid #e2e6ea;padding:4px 8px;text-align:left;vertical-align:top}
+th{background:#eef2f6;position:sticky;top:0}
+.state-both{background:#e0f2e9}.state-A1,.state-A2{background:#fff3dd}.state-pending{background:#f3f0ff}
+.dec-INC{background:#e0f2e9;font-weight:600}.dec-PEND{background:#fff3dd}.dec-one{background:#ffe9ec}
+#status{font-size:13px;color:#445;margin:8px 0}
+.bar{display:inline-block;height:10px;background:#123a5e}
+#detail{margin-top:14px}
+.pill{display:inline-block;font-size:11px;border-radius:10px;padding:1px 7px;margin-right:3px;background:#dde7f0}
+.summary{font-size:12px;color:#345;margin-top:6px}
+.kpis{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}
+.kpi{background:#fff;border:1px solid #dbe2e8;border-radius:6px;padding:8px 14px;font-size:13px}
+.kpi b{font-size:16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>SCR1 · Pass-1 review dashboard — UAV crop-weed harvest (14,150 reps)</h1>
+  <div class="note">PASS-1 SUGGESTIONS ONLY under Option C. Nothing here is an included/excluded study until the human research lead confirms the line item (and the blinded Zertal/Djenba sample runs).</div>
+</header>
+<div id="kpis"></div>
+<div id="controls">
+  <select id="fBatch"><option value="">All batches</option></select>
+  <select id="fState">
+    <option value="">any state</option><option value="both">both agents decided</option>
+    <option value="one">one agent decided</option><option value="pending">not yet scored</option>
+  </select>
+  <select id="fDec">
+    <option value="">any decision pair</option>
+    <option value="mut">mutual INCLUDE</option>
+    <option value="one">one-sided INCLUDE</option>
+    <option value="pend">any PENDING</option>
+    <option value="exc">mutual EXCLUDE</option>
+  </select>
+  <select id="fProv"><option value="">any provider</option></select>
+  <input id="fSearch" type="search" placeholder="title search…" style="min-width:200px">
+</div>
+<main>
+<div id="status"></div>
+<table id="tbl">
+<thead><tr><th>batch</th><th>state</th><th>n</th><th>mut-IN</th><th>A1-IN</th><th>A2-IN</th><th>PEND</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+<div id="detail"></div>
+</main>
+<script>
+const BATCHES=__BATCHES__;
+const RECORDS=__RECORDS__;
+const defs = {
+  openalex:"OpenAlex (strict boolean, exhaustive primary)", crossref:"Crossref (r3+r3c+r3d sweeps, complete leg)",
+  arxiv:"arXiv (compaction)", pubmed:"PubMed", semanticscholar:"Semantic Scholar (cached r2 reuse)"};
+const $=id=>document.getElementById(id);
+const batchIdx={}; RECORDS.forEach(r=>{(batchIdx[r.b]=batchIdx[r.b]||[]).push(r)});
+function kpis(){
+  const both=BATCHES.filter(b=>b.state==="both"), one=BATCHES.filter(b=>b.state!=="both"&&b.state!=="pending");
+  const mutInc=BATCHES.reduce((s,b)=>s+b.mutual_inc,0), recs=RECORDS.length;
+  const pend=RECORDS.filter(r=>r.a1==="PENDING"||r.a2==="PENDING").length;
+  $("kpis").innerHTML=
+   `<div class="kpi">batches scored by both: <b>${both.length}</b> / one: <b>${one.length}</b> / unscored: <b>${BATCHES.length-both.length-one.length}</b></div>`+
+   `<div class="kpi">records: <b>${recs}</b></div>`+
+   `<div class="kpi">mutual INCLUDE: <b>${mutInc}</b></div>`+
+   `<div class="kpi">any-PENDING: <b>${pend}</b></div>`;
+}
+function provs(){const s=new Set();RECORDS.forEach(r=>(r.p||"").split(",").forEach(p=>p&&s.add(p)));return [...s].sort();}
+function fillBatches(){BATCHES.forEach(b=>{const o=document.createElement("option");o.value=b.n;o.text=`batch ${String(b.n).padStart(4,"0")} (${b.state})`;$("fBatch").appendChild(o)});}
+function fillProvs(){provs().forEach(p=>{const o=document.createElement("option");o.value=p;o.text=defs[p]||p;$("fProv").appendChild(o)});}
+function filt(){
+  const fb=$("fBatch").value,fs=$("fState").value,fd=$("fDec").value,fp=$("fProv").value,q=$("fSearch").value.toLowerCase();
+  const rows=[];
+  for(const b of BATCHES){
+    if(fb&&b.n!=fb)continue;
+    if(fs){if(fs==="pending"&&b.state!=="pending")continue;if(fs==="one"&&b.state==="both")continue;if(fs==="both"&&b.state!=="both")continue;}
+    if(fp){const inB=batchIdx[b.n].some(r=>r.p.includes(fp));if(!inB)continue;}
+    if(q&&!batchIdx[b.n].some(r=>r.t.toLowerCase().includes(q))&&!String(b.n).includes(q))continue;
+    rows.push(b);
+  }
+  $("tbody").innerHTML=rows.map(b=>`<tr class="state-${b.state}"><td>${String(b.n).padStart(4,"0")}</td><td>${b.state}</td><td>${b.records}</td><td>${b.mutual_inc}</td><td>${b.inc_a1}</td><td>${b.inc_a2}</td><td>${b.pend}</td></tr>`).join("");
+  $("status").textContent=`${rows.length} batch row(s) shown`;
+}
+$("tbody").addEventListener("click",e=>{
+  const tr=e.target.closest("tr");if(!tr)return;const n=+tr.children[0].textContent.trim();
+  const recs=batchIdx[n]||[];const done=BATCHES.find(b=>b.n===n).state;
+  $("detail").innerHTML=`<h3>batch ${String(n).padStart(4,"0")} — ${recs.length} records (state: ${done})</h3>
+  <table><thead><tr><th>screening_id</th><th>title / year</th><th>providers</th><th>A1</th><th>A2</th></tr></thead><tbody>
+  ${recs.map(r=>{
+    const a1=r.a1, a2=r.a2; let cls=""; if(a1==="INCLUDE"&&a2==="INCLUDE")cls="dec-INC"; else if(a1==="PENDING"||a2==="PENDING")cls="dec-PEND"; else if(a1!==a2)cls="dec-one";
+    return `<tr><td>${r.id}</td><td>${r.t} (${r.y??"?"})${r.an?" <span class=pill title='handler: abstract missing'>no-abstract</span>":""}</td><td>${(r.p||"").split(",").map(p=>`<span class="pill">${p}</span>`).join("")}</td><td class="${a1==="INCLUDE"?"dec-INC":a1==="PENDING"?"dec-PEND":""}">${a1??"pending"}</td><td class="${a2==="INCLUDE"?"dec-INC":a2==="PENDING"?"dec-PEND":""}">${a2??"pending"}</td></tr>`}).join("")}
+  </tbody></table>`;
+  window.scrollTo({top:$("detail").offsetTop-60,behavior:"smooth"});
+});
+fillBatches();fillProvs();kpis();filt();
+for(const el of ["fBatch","fState","fDec","fProv"]) $(el).onchange=filt; $("fSearch").oninput=filt;
+</script>
+</body>
+</html>

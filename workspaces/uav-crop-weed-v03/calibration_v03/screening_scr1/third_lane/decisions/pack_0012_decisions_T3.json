@@ -1,0 +1,566 @@
+{
+  "screener_id": "T3",
+  "pack": "pack_0012",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "prompt_template_sha256": "0c7f129dde1d9f8165735914870c6297eab034ee80a4c4ababd0f9a91784d16d",
+  "pass": 1,
+  "decision_type": "SUGGESTION_ONLY_OPTION_C",
+  "decisions": [
+    {
+      "screening_id": "SCI-008425",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title-only: maize biomass used for land-damage assessment near coal mining; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.8,
+      "one_line_support": "title-only: maize biomass used for land-damage assessment near coal mining"
+    },
+    {
+      "screening_id": "SCI-008432",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV hyperspectral chlorophyll/nutritional-status estimation of potato crops; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV hyperspectral chlorophyll/nutritional-status estimation of potato crops"
+    },
+    {
+      "screening_id": "SCI-008499",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAS LiDAR identification of peach tree trunks (orchard inventory); no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAS LiDAR identification of peach tree trunks (orchard inventory)"
+    },
+    {
+      "screening_id": "SCI-008538",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title-only: UAV SfM photogrammetry vs total station for a deformed slope (geodetic); no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.95,
+      "one_line_support": "title-only: UAV SfM photogrammetry vs total station for a deformed slope (geodetic)"
+    },
+    {
+      "screening_id": "SCI-008573",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV vision navigation/GPS visual servo control for precision pesticide spraying; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.8,
+      "one_line_support": "abstract: UAV vision navigation/GPS visual servo control for precision pesticide spraying"
+    },
+    {
+      "screening_id": "SCI-008654",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title: spray drift and environmental impact from an agricultural UAV sprayer; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "title: spray drift and environmental impact from an agricultural UAV sprayer"
+    },
+    {
+      "screening_id": "SCI-008676",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title: UAV hyperspectral leaf chlorophyll estimation of crops at multi-scales; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "title: UAV hyperspectral leaf chlorophyll estimation of crops at multi-scales"
+    },
+    {
+      "screening_id": "SCI-008681",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title: early detection of bacterial wilt in peanut via leaf hyperspectral/UAV data (disease); no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "title: early detection of bacterial wilt in peanut via leaf hyperspectral/UAV data (disease)"
+    },
+    {
+      "screening_id": "SCI-008691",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: aerial seeding system design/testing for rapeseed with crop-protection UAV; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.95,
+      "one_line_support": "abstract: aerial seeding system design/testing for rapeseed with crop-protection UAV"
+    },
+    {
+      "screening_id": "SCI-008711",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV canopy traits of olive germplasm bank trees for breeding selection; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV canopy traits of olive germplasm bank trees for breeding selection"
+    },
+    {
+      "screening_id": "SCI-008768",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV oblique imaging estimating rapeseed above-ground biomass; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV oblique imaging estimating rapeseed above-ground biomass"
+    },
+    {
+      "screening_id": "SCI-008796",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title-only: maize/soybean height estimation from UAV LiDAR; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.85,
+      "one_line_support": "title-only: maize/soybean height estimation from UAV LiDAR"
+    },
+    {
+      "screening_id": "SCI-008814",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-03: title/abstract: review of agricultural UAV spraying technologies for plant protection; review/overview-type record, not a primary empirical method or dataset report.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": [
+        "EXC-03"
+      ],
+      "confidence": 0.95,
+      "one_line_support": "title/abstract: review of agricultural UAV spraying technologies for plant protection"
+    },
+    {
+      "screening_id": "SCI-008834",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV 3D canopy architecture reconstruction for maize phenotyping; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV 3D canopy architecture reconstruction for maize phenotyping"
+    },
+    {
+      "screening_id": "SCI-008843",
+      "decision": "PENDING",
+      "reason": "PENDING: abstract: AutoML crop/weed classification; imaging platform unstated; imaging platform unstated - cannot verify separable UAV crop/weed mapping evidence (INC-01).",
+      "reason_code": "PENDING_PLATFORM_NOT_EVIDENT",
+      "criterion_refs": [
+        "INC-01",
+        "INC-02",
+        "INC-03"
+      ],
+      "confidence": 0.5,
+      "one_line_support": "abstract: AutoML crop/weed classification; imaging platform unstated"
+    },
+    {
+      "screening_id": "SCI-008851",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-01: abstract: rice field agronomy/herbicide treatment trial; no UAV or imaging evidence; no separable UAV crop/weed mapping evidence from the visible record.",
+      "reason_code": "WRONG_PLATFORM",
+      "criterion_refs": [
+        "EXC-01"
+      ],
+      "confidence": 0.85,
+      "one_line_support": "abstract: rice field agronomy/herbicide treatment trial; no UAV or imaging evidence"
+    },
+    {
+      "screening_id": "SCI-008861",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-03: abstract: introductory comparative overview of agricultural UAV systems 'clear to the neophytes'; review/overview-type record, not a primary empirical method or dataset report.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": [
+        "EXC-03"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: introductory comparative overview of agricultural UAV systems 'clear to the neophytes'"
+    },
+    {
+      "screening_id": "SCI-008884",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV RGB vegetation indices assessing dicamba/2,4D injury on soybean; herbicide damage, not crop/weed mapping; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: UAV RGB vegetation indices assessing dicamba/2,4D injury on soybean; herbicide damage, not crop/weed mapping"
+    },
+    {
+      "screening_id": "SCI-008886",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: CPUAS spraying parameters and control of wheat aphids/powdery mildew/head blight; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: CPUAS spraying parameters and control of wheat aphids/powdery mildew/head blight"
+    },
+    {
+      "screening_id": "SCI-008931",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV phenotyping of canola flowering and seed-yield estimation; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV phenotyping of canola flowering and seed-yield estimation"
+    },
+    {
+      "screening_id": "SCI-008962",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV multispectral/RGB assessment of vineyard water status; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV multispectral/RGB assessment of vineyard water status"
+    },
+    {
+      "screening_id": "SCI-008999",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV delivery of Trichogramma natural enemies for biological pest control in corn; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.95,
+      "one_line_support": "abstract: UAV delivery of Trichogramma natural enemies for biological pest control in corn"
+    },
+    {
+      "screening_id": "SCI-009020",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title: droplet deposition optimization in rice fields by rotary UAVs; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "title: droplet deposition optimization in rice fields by rotary UAVs"
+    },
+    {
+      "screening_id": "SCI-009023",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV fractional vegetation cover estimation of soybean; no crop/weed discrimination; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: UAV fractional vegetation cover estimation of soybean; no crop/weed discrimination"
+    },
+    {
+      "screening_id": "SCI-009035",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: energy-optimal UAV data collection in agricultural wireless sensor networks; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: energy-optimal UAV data collection in agricultural wireless sensor networks"
+    },
+    {
+      "screening_id": "SCI-009079",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV hyperspectral LAI estimation for sunflower/maize at late growth stage; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV hyperspectral LAI estimation for sunflower/maize at late growth stage"
+    },
+    {
+      "screening_id": "SCI-009126",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title/abstract: UAV identification of high-Andean natural plant communities and wetlands; Spanish abstract; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.85,
+      "one_line_support": "title/abstract: UAV identification of high-Andean natural plant communities and wetlands; Spanish abstract"
+    },
+    {
+      "screening_id": "SCI-009129",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: moderation title-only: UAV abnormal-telemetry data detection via ZB-ResNet; clearly non-agricultural; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task. Judged on visible title only; moderation_redacted record.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.85,
+      "one_line_support": "moderation title-only: UAV abnormal-telemetry data detection via ZB-ResNet; clearly non-agricultural"
+    },
+    {
+      "screening_id": "SCI-009131",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title-only: UAV chlorophyll estimation of wheat in coal subsidence area; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.85,
+      "one_line_support": "title-only: UAV chlorophyll estimation of wheat in coal subsidence area"
+    },
+    {
+      "screening_id": "SCI-009133",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title-only: determination of spring barley lodging area with UAV (lodging); no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "title-only: determination of spring barley lodging area with UAV (lodging)"
+    },
+    {
+      "screening_id": "SCI-009136",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: title-only: UAV transfer-learning stem detection/counting for potato phenotyping; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "title-only: UAV transfer-learning stem detection/counting for potato phenotyping"
+    },
+    {
+      "screening_id": "SCI-009160",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAS water deficit index/evapotranspiration mapping for winter wheat irrigation; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAS water deficit index/evapotranspiration mapping for winter wheat irrigation"
+    },
+    {
+      "screening_id": "SCI-009180",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV-sprayed picarbutrazox residue dissipation/distribution on Chinese cabbage; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV-sprayed picarbutrazox residue dissipation/distribution on Chinese cabbage"
+    },
+    {
+      "screening_id": "SCI-009197",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV multimodal LAI estimation of maize with ML/DNN; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV multimodal LAI estimation of maize with ML/DNN"
+    },
+    {
+      "screening_id": "SCI-009276",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV YOLOv4 rice ear detection producing density prescription maps; crop ear counting, no weed task; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.65,
+      "one_line_support": "abstract: UAV YOLOv4 rice ear detection producing density prescription maps; crop ear counting, no weed task"
+    },
+    {
+      "screening_id": "SCI-009277",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV multispectral modeling of maize net primary production; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV multispectral modeling of maize net primary production"
+    },
+    {
+      "screening_id": "SCI-009280",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV vegetation-index biomass estimation of pineapple across forcing stages; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV vegetation-index biomass estimation of pineapple across forcing stages"
+    },
+    {
+      "screening_id": "SCI-009287",
+      "decision": "PENDING",
+      "reason": "PENDING: abstract: CNN weed/crop species classification; imaging platform unstated; imaging platform unstated - cannot verify separable UAV crop/weed mapping evidence (INC-01).",
+      "reason_code": "PENDING_PLATFORM_NOT_EVIDENT",
+      "criterion_refs": [
+        "INC-01",
+        "INC-02",
+        "INC-03"
+      ],
+      "confidence": 0.5,
+      "one_line_support": "abstract: CNN weed/crop species classification; imaging platform unstated"
+    },
+    {
+      "screening_id": "SCI-009290",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-03: abstract: overview article on UAV agricultural land monitoring applications/procedures; review/overview-type record, not a primary empirical method or dataset report.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": [
+        "EXC-03"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: overview article on UAV agricultural land monitoring applications/procedures"
+    },
+    {
+      "screening_id": "SCI-009292",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: automated orchard tree-crown delineation and plant population from UAV imagery; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: automated orchard tree-crown delineation and plant population from UAV imagery"
+    },
+    {
+      "screening_id": "SCI-009307",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV multispectral/thermal winter wheat yield prediction under water stress; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV multispectral/thermal winter wheat yield prediction under water stress"
+    },
+    {
+      "screening_id": "SCI-009374",
+      "decision": "PENDING",
+      "reason": "PENDING: title-only: 'UAV images in machine learning for agave detection'; detection target/task ambiguous, abstract null; abstract null, title alone insufficient.",
+      "reason_code": "PENDING_TITLE_ONLY_AMBIGUOUS",
+      "criterion_refs": [
+        "INC-01",
+        "INC-02",
+        "INC-03"
+      ],
+      "confidence": 0.5,
+      "one_line_support": "title-only: 'UAV images in machine learning for agave detection'; detection target/task ambiguous, abstract null"
+    },
+    {
+      "screening_id": "SCI-009391",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV pesticide/herbicide sprayer hardware design/testing with surveillance camera; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV pesticide/herbicide sprayer hardware design/testing with surveillance camera"
+    },
+    {
+      "screening_id": "SCI-009407",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV SVM/RF monitoring of armyworm pest damage in summer corn; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.95,
+      "one_line_support": "abstract: UAV SVM/RF monitoring of armyworm pest damage in summer corn"
+    },
+    {
+      "screening_id": "SCI-009414",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV deep learning for intra-field rice yield variation detection; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAV deep learning for intra-field rice yield variation detection"
+    },
+    {
+      "screening_id": "SCI-009443",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV hyperspectral early detection of basal stem rot disease in oil palm; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.95,
+      "one_line_support": "abstract: UAV hyperspectral early detection of basal stem rot disease in oil palm"
+    },
+    {
+      "screening_id": "SCI-009482",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: MACA radiometric correction of multiflight UAV cropland images; preprocessing, no crop/weed task; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: MACA radiometric correction of multiflight UAV cropland images; preprocessing, no crop/weed task"
+    },
+    {
+      "screening_id": "SCI-009496",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-03: moderation title-only: 'A Comprehensive Review for Typical Applications Based Upon UAV Platform'; general UAV review; review/overview-type record, not a primary empirical method or dataset report. Judged on visible title only; moderation_redacted record.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "criterion_refs": [
+        "EXC-03"
+      ],
+      "confidence": 0.8,
+      "one_line_support": "moderation title-only: 'A Comprehensive Review for Typical Applications Based Upon UAV Platform'; general UAV review"
+    },
+    {
+      "screening_id": "SCI-009509",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAV hyperspectral cropland/fragmented-farm multielement land-cover classification; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.7,
+      "one_line_support": "abstract: UAV hyperspectral cropland/fragmented-farm multielement land-cover classification"
+    },
+    {
+      "screening_id": "SCI-009512",
+      "decision": "EXCLUDE",
+      "reason": "Anchor EXC-02: abstract: UAS photogrammetry 3D mapping of grapevine/apple canopies for inputs management; no separable UAV crop/weed detection/segmentation/classification or spatial weed-mapping task.",
+      "reason_code": "WRONG_TASK",
+      "criterion_refs": [
+        "EXC-02"
+      ],
+      "confidence": 0.9,
+      "one_line_support": "abstract: UAS photogrammetry 3D mapping of grapevine/apple canopies for inputs management"
+    }
+  ]
+}
