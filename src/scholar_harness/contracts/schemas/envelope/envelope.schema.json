@@ -1,0 +1,408 @@
+{
+  "$defs": {
+    "EnvelopeCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "expected": {
+          "minimum": 0,
+          "title": "Expected",
+          "type": "integer"
+        },
+        "produced": {
+          "minimum": 0,
+          "title": "Produced",
+          "type": "integer"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected",
+        "produced",
+        "unit"
+      ],
+      "title": "EnvelopeCoverage",
+      "type": "object"
+    },
+    "EnvelopeInputRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "role_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Version"
+        },
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "sha256"
+      ],
+      "title": "EnvelopeInputRef",
+      "type": "object"
+    },
+    "EnvelopeOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": true,
+          "title": "Data",
+          "type": "object"
+        },
+        "schema": {
+          "minLength": 1,
+          "title": "Schema",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "data"
+      ],
+      "title": "EnvelopeOutput",
+      "type": "object"
+    },
+    "EnvelopeParentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "minLength": 1,
+          "title": "Artifact",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact",
+        "sha256"
+      ],
+      "title": "EnvelopeParentRef",
+      "type": "object"
+    },
+    "EnvelopeProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "enum": [
+            "opencode",
+            "in-process"
+          ],
+          "title": "Adapter",
+          "type": "string"
+        },
+        "adapter_version": {
+          "minLength": 1,
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "blinded_from": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blinded From",
+          "type": "array"
+        },
+        "duration_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Ms"
+        },
+        "isolation": {
+          "enum": [
+            "none",
+            "directory",
+            "redacted-input"
+          ],
+          "title": "Isolation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapter",
+        "adapter_version",
+        "isolation"
+      ],
+      "title": "EnvelopeProvenance",
+      "type": "object"
+    },
+    "EnvelopeRefusal": {
+      "additionalProperties": false,
+      "properties": {
+        "alternatives": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alternatives"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "codes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Codes",
+          "type": "array"
+        },
+        "detail": {
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "missing": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Missing"
+        },
+        "unsupported": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unsupported"
+        },
+        "validation_findings": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Validation Findings"
+        }
+      },
+      "required": [
+        "code",
+        "detail"
+      ],
+      "title": "EnvelopeRefusal",
+      "type": "object"
+    },
+    "EnvelopeStatus": {
+      "description": "Closed status algebra (spec 02 §3). No free strings.",
+      "enum": [
+        "OK",
+        "PARTIAL",
+        "BLOCKED_INPUT",
+        "BLOCKED_AMBIGUOUS_TASK",
+        "BLOCKED_CANONICAL_REPO",
+        "BLOCKED_BASELINE_DRIFT",
+        "REFUSED",
+        "PROVIDER_TRANSIENT",
+        "INVALID_OUTPUT",
+        "GATE_FAILED"
+      ],
+      "title": "EnvelopeStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://nexus-scholar.org/schemas/envelope/v1/envelope.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "``Envelope@1`` — the transport layer for every role boundary.",
+  "properties": {
+    "arm": {
+      "anyOf": [
+        {
+          "enum": [
+            "A",
+            "B"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Arm"
+    },
+    "coverage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EnvelopeCoverage"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "envelope": {
+      "const": 1,
+      "title": "Envelope",
+      "type": "integer"
+    },
+    "envelope_id": {
+      "title": "Envelope Id",
+      "type": "string"
+    },
+    "human_action_required": {
+      "title": "Human Action Required",
+      "type": "boolean"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/EnvelopeInputRef"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "output": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EnvelopeOutput"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "output_sha256": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Output Sha256"
+    },
+    "parents": {
+      "items": {
+        "$ref": "#/$defs/EnvelopeParentRef"
+      },
+      "title": "Parents",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/EnvelopeProvenance"
+    },
+    "refusal": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EnvelopeRefusal"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+    },
+    "role": {
+      "minLength": 1,
+      "title": "Role",
+      "type": "string"
+    },
+    "role_version": {
+      "minLength": 1,
+      "title": "Role Version",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/EnvelopeStatus"
+    },
+    "task_id": {
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "envelope",
+    "envelope_id",
+    "role",
+    "role_version",
+    "task_id",
+    "created_at",
+    "status",
+    "retryable",
+    "human_action_required",
+    "provenance"
+  ],
+  "title": "Envelope",
+  "type": "object"
+}

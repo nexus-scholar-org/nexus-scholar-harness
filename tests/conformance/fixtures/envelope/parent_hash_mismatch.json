@@ -1,0 +1,36 @@
+{
+  "envelope": 1,
+  "envelope_id": "ENV-93f1138ba1f6ad90",
+  "role": "orchestrator",
+  "role_version": "2.0.0",
+  "task_id": "T-SC-014",
+  "arm": null,
+  "created_at": "2026-10-23T10:15:00Z",
+  "status": "INVALID_OUTPUT",
+  "retryable": false,
+  "human_action_required": false,
+  "refusal": {
+    "code": "PARENT_HASH_MISMATCH",
+    "detail": "parents[0].sha256 stale vs disk: SCREENING_CRITERIA.md was edited after the run; silent re-binding rejected",
+    "validation_findings": [
+      "parents[0].sha256 stale vs disk"
+    ]
+  },
+  "coverage": null,
+  "inputs": [],
+  "parents": [
+    {
+      "artifact": "SCREENING_CRITERIA.md",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "output": null,
+  "output_sha256": null,
+  "provenance": {
+    "adapter": "in-process",
+    "adapter_version": "1.4.0",
+    "isolation": "none",
+    "blinded_from": [],
+    "duration_ms": null
+  }
+}
