@@ -1,0 +1,72 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "TASK_IMPLEMENTED",
+      "TASK_BLOCKED"
+    ]
+  },
+  "deny_glob": [
+    "workspaces/{ws}/audit/journal.jsonl",
+    ".git/**"
+  ],
+  "id": "coder",
+  "independence": {
+    "blinded_from": [
+      "reviewer",
+      "tester"
+    ],
+    "isolation": "directory"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "TaskPacket@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "ChangeSet@1",
+      "write_glob": "runs/{task_id}/coder_report.json"
+    }
+  ],
+  "purpose": "Bounded implementation agent for Nexus Scholar harness, contract, workspace, distribution, and kit-integration tasks with an explicit task packet and acceptance gate.",
+  "read_glob": [
+    "**"
+  ],
+  "refusal_codes": [
+    "BLOCKED_AMBIGUOUS_TASK",
+    "BLOCKED_BASELINE_DRIFT",
+    "BLOCKED_CANONICAL_REPO",
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "workspace-manager"
+  ],
+  "stop_conditions": [
+    "the packet omits a required section",
+    "a required input path does not exist",
+    "a forbidden path would have to be edited",
+    "the frozen contract baseline check fails"
+  ],
+  "title": "Coder",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill",
+    "task"
+  ],
+  "version": "2.0.0"
+}

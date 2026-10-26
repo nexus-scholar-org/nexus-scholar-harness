@@ -1,0 +1,85 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "TASK_DISPATCHED",
+      "VERDICT_RECORDED",
+      "GATE_BLOCKED"
+    ]
+  },
+  "deny_glob": [
+    "workspaces/{ws}/audit/journal.jsonl",
+    ".git/**"
+  ],
+  "id": "orchestrator",
+  "independence": {
+    "blinded_from": [],
+    "isolation": "none"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ExecutionPlan@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "WorkspaceState@1"
+    },
+    {
+      "from": "reviewer",
+      "required": false,
+      "schema": "ReviewVerdict@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "primary",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "TaskPacket@1",
+      "write_glob": "runs/{task_id}/packet.json"
+    },
+    {
+      "required": true,
+      "schema": "Verdict@1",
+      "write_glob": "runs/{task_id}/verdict.json"
+    }
+  ],
+  "purpose": "Primary Nexus Scholar development orchestrator. Converts the active spec into bounded task packets, coordinates coder-reviewer-tester gates, and preserves contract, toolkit, and scientific audit invariants.",
+  "read_glob": [
+    "**"
+  ],
+  "refusal_codes": [
+    "BLOCKED_AMBIGUOUS_TASK",
+    "BLOCKED_BASELINE_DRIFT",
+    "BLOCKED_CANONICAL_REPO",
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "pull-request-gate"
+  ],
+  "stop_conditions": [
+    "a named dependency is unmerged or its executable evidence is absent",
+    "the task packet cannot be completed from the governing documents",
+    "a reviewer or tester gate is still open",
+    "the frozen contract baseline check fails"
+  ],
+  "title": "Orchestrator",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill",
+    "task"
+  ],
+  "version": "2.0.0"
+}

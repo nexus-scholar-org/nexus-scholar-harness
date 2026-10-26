@@ -1,7 +1,16 @@
 ---
-description: Tester/QA subagent for the Nexus Scholar dev loop. Runs targeted tests during development and full suite only at phase completion. Reports pass/fail per task with minimal overhead.
+description: "Tester/QA subagent for the Nexus Scholar dev loop. Runs targeted tests during development and full suite only at phase completion. Reports pass/fail per task with minimal overhead."
+kind: role
 mode: subagent
-permission: allow
+permission:
+  bash: allow
+  edit: deny
+  glob: allow
+  grep: allow
+  list: allow
+  read: allow
+  skill: deny
+  task: deny
 ---
 
 ## AUTONOMOUS MODE

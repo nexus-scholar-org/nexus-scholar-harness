@@ -1,0 +1,86 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "CRITIQUE_SUBMITTED",
+      "CRITIQUE_REFUSED"
+    ]
+  },
+  "bash_approval": "ask",
+  "deny_glob": [
+    "workspaces/{ws}/SCREENING_CRITERIA.md",
+    "workspaces/{ws}/audit/**",
+    "workspaces/{ws}/critique/screening/*.prior.json",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/protocol.json",
+    ".git/**"
+  ],
+  "id": "screening-critic",
+  "independence": {
+    "blinded_from": [
+      "adjudicator"
+    ],
+    "isolation": "directory"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ScreeningBatch@1"
+    },
+    {
+      "from": "screener",
+      "required": true,
+      "schema": "ScreeningDecisions@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "Protocol@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "ScreeningCritique@1",
+      "write_glob": "workspaces/{ws}/critique/screening/{batch}.{role}.json",
+      "written_by": "adapter"
+    }
+  ],
+  "purpose": "Artifact-read-only adversarial critic for screening decisions, checking criteria fidelity, unresolved-state honesty, identity coverage, and lineage.",
+  "read_glob": [
+    "workspaces/{ws}/SCREENING_CRITERIA.md",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/protocol.json"
+  ],
+  "refusal_codes": [
+    "BATCH_ID_MISMATCH",
+    "BATCH_INCOMPLETE",
+    "BLOCKED_INPUT",
+    "CRITERIA_HASH_MISMATCH",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "critic-contract"
+  ],
+  "stop_conditions": [
+    "decision coverage is below 100% of the batch records",
+    "criteria_sha256 does not match the protocol fingerprint",
+    "the batch_id in the decisions differs from the batch file"
+  ],
+  "title": "Screening Critic",
+  "tools": [
+    "bash",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill"
+  ],
+  "version": "2.0.0"
+}

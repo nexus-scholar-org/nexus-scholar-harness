@@ -1,0 +1,116 @@
+{
+  "roles": {
+    "adjudicator": {
+      "bash": "ask",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "deny"
+    },
+    "coder": {
+      "bash": "allow",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "allow"
+    },
+    "extraction-critic": {
+      "bash": "ask",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "deny"
+    },
+    "extractor-a": {
+      "bash": "ask",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "deny"
+    },
+    "extractor-b": {
+      "bash": "ask",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "deny"
+    },
+    "inception-agent": {
+      "bash": "allow",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "allow"
+    },
+    "orchestrator": {
+      "bash": "allow",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "allow"
+    },
+    "reviewer": {
+      "bash": "ask",
+      "edit": "deny",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "deny",
+      "task": "deny"
+    },
+    "screener": {
+      "bash": "ask",
+      "edit": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "deny"
+    },
+    "screening-critic": {
+      "bash": "ask",
+      "edit": "deny",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "allow",
+      "task": "deny"
+    },
+    "tester": {
+      "bash": "allow",
+      "edit": "deny",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "read": "allow",
+      "skill": "deny",
+      "task": "deny"
+    }
+  },
+  "schema": "ExpectedAgentPermissions@1",
+  "source": "Hand-authored from specs/agent-layer-portability/01_role_model.md section 6 plus D2's bash_approval field (seven roles are approval-gated, bash: ask); never copied from generated output."
+}

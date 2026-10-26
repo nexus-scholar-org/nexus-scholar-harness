@@ -1,5 +1,6 @@
 ---
 description: "Bounded implementation agent for Nexus Scholar harness, contract, workspace, distribution, and kit-integration tasks with an explicit task packet and acceptance gate."
+kind: role
 mode: subagent
 permission: allow
 ---

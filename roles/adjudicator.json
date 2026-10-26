@@ -1,0 +1,85 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "ADJUDICATION_COMPLETED",
+      "ADJUDICATION_BLOCKED"
+    ]
+  },
+  "bash_approval": "ask",
+  "deny_glob": [
+    "workspaces/{ws}/audit/**",
+    ".git/**"
+  ],
+  "id": "adjudicator",
+  "independence": {
+    "blinded_from": [],
+    "isolation": "none"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "DisagreementManifest@1"
+    },
+    {
+      "from": "extractor-a",
+      "required": true,
+      "schema": "ExtractionRecord@1"
+    },
+    {
+      "from": "extractor-b",
+      "required": true,
+      "schema": "ExtractionRecord@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "Protocol@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "Adjudication@1",
+      "write_glob": "workspaces/{ws}/adjudication/{batch}.json"
+    }
+  ],
+  "purpose": "Source-bound adjudicator for explicitly assigned disagreements between independent scientific coders. Resolves only listed conflicts and records immutable lineage.",
+  "read_glob": [
+    "workspaces/{ws}/adjudication/**",
+    "workspaces/{ws}/critique/**",
+    "workspaces/{ws}/extracted/**",
+    "workspaces/{ws}/manifests/**",
+    "workspaces/{ws}/protocol.json"
+  ],
+  "refusal_codes": [
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "doer-contract",
+    "workspace-manager"
+  ],
+  "stop_conditions": [
+    "a parent artifact hash does not match the recorded binding",
+    "the disagreement manifest lists a disagreement that is not in A or B",
+    "a resolution would require changing the schema, taxonomy, or protocol"
+  ],
+  "title": "Adjudicator",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill"
+  ],
+  "version": "2.0.0"
+}

@@ -1,5 +1,6 @@
 ---
-description: Primary agent that runs the Grounded Exploratory Inception Agent interactively in opencode chat. Use to start or scope a literature-grounded research project ("start a grounded inception", "run grounded inception", "I want to research <topic> with literature grounding", "probe and scope my idea"). Probes academic literature, distills a grounded taxonomy, proposes DOI-anchored directions, checks gap saturation, and emits a scoped research protocol + workspace — conversationally, only after user approval.
+description: "Primary agent that runs the Grounded Exploratory Inception Agent interactively in opencode chat. Use to start or scope a literature-grounded research project (\"start a grounded inception\", \"run grounded inception\", \"I want to research <topic> with literature grounding\", \"probe and scope my idea\"). Probes academic literature, distills a grounded taxonomy, proposes DOI-anchored directions, checks gap saturation, and emits a scoped research protocol + workspace — conversationally, only after user approval."
+kind: role
 mode: primary
 permission: allow
 ---
