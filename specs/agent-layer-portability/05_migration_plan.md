@@ -74,7 +74,7 @@ Any Phase-A packet issued before this decision returns `BLOCKED_BASELINE_DRIFT`.
 - `Envelope@1` pydantic model + JSON schema (transport only; no Contract v1 payload changes)
 - `scholar_harness.contracts.envelope` with `validate`, `diff`, `verify_parents`
 - Refusal registry as a frozen enum + generated docs
-- Fixtures: one `OK`, one `PARTIAL`, one `BLOCKED_INPUT`, one `REFUSED`, one `INVALID_OUTPUT`, one `PARENT_HASH_MISMATCH`
+- Fixtures: one `OK`, one `PARTIAL`, one `BLOCKED_INPUT`, one `REFUSED`, one `PROVIDER_TRANSIENT`, one `INVALID_OUTPUT`, one `PARENT_HASH_MISMATCH`
 - Orchestrator emits envelopes for dispatched packets; roles return them
 
 **Acceptance criteria**

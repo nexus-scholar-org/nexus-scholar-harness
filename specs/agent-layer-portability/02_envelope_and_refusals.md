@@ -80,6 +80,7 @@ An envelope may carry a `ScreeningDecisions@1` payload. It may never add fields 
 | `BLOCKED_CANONICAL_REPO` | no | External repo/sync obligation cannot be met | `refusal.detail` naming the repo and evidence |
 | `BLOCKED_BASELINE_DRIFT` | no | Frozen baseline failed `--check` | `refusal.detail` with the failing command |
 | `REFUSED` | no | Policy refusal, including declared-unsupported (`E1`/`E2`/`E3`) | `refusal.code` from registry |
+| `PROVIDER_TRANSIENT` | no | The model or data provider could not be reached, was rate-limited, timed out, or overflowed context | `refusal.code = PROVIDER_TRANSIENT`; `retryable = true`; `human_action_required = false` |
 | `INVALID_OUTPUT` | yes | Payload produced but failed validation | `refusal.detail` with validator findings; payload retained for forensics |
 | `GATE_FAILED` | n/a | A harness gate (test/review) rejected the change | `refusal.detail` + gate evidence |
 
@@ -90,10 +91,21 @@ OK            ⇒ output ≠ null ∧ validates ∧ coverage.produced == coverag
 PARTIAL       ⇒ output ≠ null ∧ validates ∧ coverage.produced < coverage.expected
 BLOCKED_*     ⇒ output == null ∧ refusal ≠ null ∧ human_action_required == true
 REFUSED       ⇒ output == null ∧ refusal.code ∈ registry
+PROVIDER_TRANSIENT ⇒ output == null ∧ refusal.code = PROVIDER_TRANSIENT ∧ retryable ∧ ¬human_action_required
 INVALID_OUTPUT⇒ output ≠ null ∧ validation_findings non-empty
 ```
 
 A `BLOCKED_INPUT` that ships a partial payload is a defect: it invites downstream use of data the role did not stand behind. The validator rejects it.
+
+### Transient provider failures
+
+**The principle: provider failure is not empty success.** A rate limit, a timeout, a dropped connection, or a context overflow means the role's records are exactly as unresolved as before the call. Nothing is written, nothing is counted, and no batch decision silently moves from `PENDING` to `EXCLUDED`.
+
+- Provider failure is `PROVIDER_TRANSIENT`, never `BLOCKED_INPUT` (no artifact is missing) and never `REFUSED` (nothing prohibited happened). Mislabelling it is how "the model was down" becomes "the batch passed".
+- **The role never retries.** Backoff policy, budget ceilings, and per-provider limits are factory concerns. A role that retries is a role whose audit record shows fewer attempts than actually happened, which is a stronger form of unattributable than a slow run. The adapter retries with exponential backoff up to a cap; on exhaustion it surfaces one final envelope with the refusal detail carrying the attempt count.
+- **Retries preserve identity.** `envelope_id` excludes timing, so the same request against the same inputs produces the same logical envelope whether it succeeded on the first attempt or the fourth. The journal records every physical attempt; the logical envelope records the outcome.
+- **Partially completed batches are `PARTIAL`, not `PROVIDER_TRANSIENT`.** A batch that finished 47 of 50 records before the connection dropped is `PARTIAL` over the 47, with `missing` naming the 3. The 3 stay `PENDING` and are re-dispatched. Discarding the 47 wastes work and hides coverage; guessing about the 3 is worse.
+- **Other codes are never auto-retried.** `BLOCKED_INPUT`, `REFUSED`, `SCOPE_VIOLATION`, and hash mismatches re-produce themselves; a retry loop over them is a customer paying for the same failure by the minute.
 
 ## 4. Hashing and identity
 
@@ -133,6 +145,7 @@ Closed set. Adding a code requires editing this list and the role that may emit 
 | `BLOCKED_CANONICAL_REPO` | coder, orchestrator | Toolkit sync obligation unmet |
 | `BLOCKED_BASELINE_DRIFT` | coder, orchestrator, reviewer | Frozen baseline check failed |
 | `REFUSED_UNSUPPORTED` | any | Declared-unsupported operation (`E1`/`E2`/`E3`) |
+| `PROVIDER_TRANSIENT` | adapter (any role) | Model/data provider unreachable, rate-limited, timed out, or context overflow. Retried by the adapter, never by the role; retry-exhaustion surfaces to the human with the attempt count |
 | `INVALID_OUTPUT` | any | Schema or invariant violation |
 | `PARENT_HASH_MISMATCH` | any consumer | Lineage broken |
 | `SCOPE_VIOLATION` | any | Attempted read/write outside `read_glob`/`write_glob` |
