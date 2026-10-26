@@ -1,0 +1,91 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "EXTRACTION_COMPLETED",
+      "EXTRACTION_BLOCKED"
+    ]
+  },
+  "bash_approval": "ask",
+  "deny_glob": [
+    "workspaces/{ws}/adjudication/**",
+    "workspaces/{ws}/audit/**",
+    "workspaces/{ws}/critique/**",
+    "workspaces/{ws}/extracted/A/**",
+    ".git/**"
+  ],
+  "id": "extractor-b",
+  "independence": {
+    "blinded_from": [
+      "extractor-a",
+      "extraction-critic",
+      "adjudicator"
+    ],
+    "isolation": "redacted-input"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ExtractionBatch@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "SourceDocument@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "ExtractionSchema@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "ExtractionRecord@1",
+      "write_glob": "workspaces/{ws}/extracted/B/{stu}.json"
+    }
+  ],
+  "purpose": "Independent second structured-data extractor for dual-coded study batches. Produces a blind B artifact under the same frozen contract.",
+  "read_glob": [
+    "workspaces/{ws}/extracted/**",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/manifests/**",
+    "workspaces/{ws}/pdfs/**",
+    "workspaces/{ws}/protocol.json"
+  ],
+  "refusal_codes": [
+    "ABSENCE_UNCLASSIFIED",
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "LOCATOR_UNRESOLVED",
+    "PARENT_HASH_MISMATCH",
+    "QUOTE_NOT_IN_SOURCE",
+    "SCOPE_VIOLATION",
+    "SOURCE_MISSING"
+  ],
+  "requires_skill": [
+    "doer-contract",
+    "workspace-manager"
+  ],
+  "stop_conditions": [
+    "a required source, identity, or parent hash is missing",
+    "the extraction schema is not frozen and fingerprinted",
+    "the assigned batch is incomplete"
+  ],
+  "title": "Extractor B",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill"
+  ],
+  "version": "2.0.0"
+}

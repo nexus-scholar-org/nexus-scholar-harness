@@ -1,0 +1,723 @@
+{
+  "generated_by": "scripts/generate_agent_roles.py",
+  "roles": {
+    "adjudicator": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "ADJUDICATION_COMPLETED",
+          "ADJUDICATION_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/**",
+        ".git/**"
+      ],
+      "id": "adjudicator",
+      "independence": {
+        "blinded_from": [],
+        "isolation": "none"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "Adjudication@1",
+          "write_glob": "workspaces/{ws}/adjudication/{batch}.json"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/adjudication/**",
+        "workspaces/{ws}/critique/**",
+        "workspaces/{ws}/extracted/**",
+        "workspaces/{ws}/manifests/**",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "doer-contract",
+        "workspace-manager"
+      ],
+      "title": "Adjudicator",
+      "version": "2.0.0",
+      "write_glob": [
+        "workspaces/{ws}/adjudication/{batch}.json"
+      ]
+    },
+    "coder": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "TASK_IMPLEMENTED",
+          "TASK_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/journal.jsonl",
+        ".git/**"
+      ],
+      "id": "coder",
+      "independence": {
+        "blinded_from": [
+          "reviewer",
+          "tester"
+        ],
+        "isolation": "directory"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ChangeSet@1",
+          "write_glob": "runs/{task_id}/coder_report.json"
+        }
+      ],
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "allow"
+      },
+      "read_glob": [
+        "**"
+      ],
+      "refusal_codes": [
+        "BLOCKED_AMBIGUOUS_TASK",
+        "BLOCKED_BASELINE_DRIFT",
+        "BLOCKED_CANONICAL_REPO",
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "workspace-manager"
+      ],
+      "title": "Coder",
+      "version": "2.0.0",
+      "write_glob": [
+        "runs/{task_id}/coder_report.json"
+      ]
+    },
+    "extraction-critic": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "CRITIQUE_SUBMITTED",
+          "CRITIQUE_REFUSED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/adjudication/**",
+        "workspaces/{ws}/audit/**",
+        "workspaces/{ws}/extracted/**",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/pdfs/**",
+        "workspaces/{ws}/protocol.json",
+        ".git/**"
+      ],
+      "id": "extraction-critic",
+      "independence": {
+        "blinded_from": [
+          "adjudicator"
+        ],
+        "isolation": "directory"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ExtractionCritique@1",
+          "write_glob": "workspaces/{ws}/critique/extraction/{stu}.json"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/extracted/**",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/pdfs/**",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "LOCATOR_UNRESOLVED",
+        "PARENT_HASH_MISMATCH",
+        "QUOTE_NOT_IN_SOURCE",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "critic-contract"
+      ],
+      "title": "Extraction Critic",
+      "version": "2.0.1",
+      "write_glob": [
+        "workspaces/{ws}/critique/extraction/{stu}.json"
+      ]
+    },
+    "extractor-a": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "EXTRACTION_COMPLETED",
+          "EXTRACTION_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/**",
+        "workspaces/{ws}/critique/**",
+        "workspaces/{ws}/extracted/B/**",
+        ".git/**"
+      ],
+      "id": "extractor-a",
+      "independence": {
+        "blinded_from": [
+          "extractor-b",
+          "extraction-critic",
+          "adjudicator"
+        ],
+        "isolation": "directory"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ExtractionRecord@1",
+          "write_glob": "workspaces/{ws}/extracted/A/{stu}.json"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/extracted/**",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/manifests/**",
+        "workspaces/{ws}/pdfs/**",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "ABSENCE_UNCLASSIFIED",
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "LOCATOR_UNRESOLVED",
+        "PARENT_HASH_MISMATCH",
+        "QUOTE_NOT_IN_SOURCE",
+        "SCOPE_VIOLATION",
+        "SOURCE_MISSING"
+      ],
+      "requires_skill": [
+        "doer-contract",
+        "workspace-manager"
+      ],
+      "title": "Extractor A",
+      "version": "2.0.0",
+      "write_glob": [
+        "workspaces/{ws}/extracted/A/{stu}.json"
+      ]
+    },
+    "extractor-b": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "EXTRACTION_COMPLETED",
+          "EXTRACTION_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/adjudication/**",
+        "workspaces/{ws}/audit/**",
+        "workspaces/{ws}/critique/**",
+        "workspaces/{ws}/extracted/A/**",
+        ".git/**"
+      ],
+      "id": "extractor-b",
+      "independence": {
+        "blinded_from": [
+          "extractor-a",
+          "extraction-critic",
+          "adjudicator"
+        ],
+        "isolation": "redacted-input"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ExtractionRecord@1",
+          "write_glob": "workspaces/{ws}/extracted/B/{stu}.json"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/extracted/**",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/manifests/**",
+        "workspaces/{ws}/pdfs/**",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "ABSENCE_UNCLASSIFIED",
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "LOCATOR_UNRESOLVED",
+        "PARENT_HASH_MISMATCH",
+        "QUOTE_NOT_IN_SOURCE",
+        "SCOPE_VIOLATION",
+        "SOURCE_MISSING"
+      ],
+      "requires_skill": [
+        "doer-contract",
+        "workspace-manager"
+      ],
+      "title": "Extractor B",
+      "version": "2.0.0",
+      "write_glob": [
+        "workspaces/{ws}/extracted/B/{stu}.json"
+      ]
+    },
+    "inception-agent": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "PROJECT_INITIALIZED",
+          "GENESIS"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/journal.jsonl",
+        ".git/**"
+      ],
+      "id": "inception-agent",
+      "independence": {
+        "blinded_from": [],
+        "isolation": "none"
+      },
+      "mode": "primary",
+      "network": "allow",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "Protocol@1",
+          "write_glob": "workspaces/{ws}/protocol.json"
+        },
+        {
+          "required": true,
+          "schema": "IntentPacket@1",
+          "write_glob": "workspaces/{ws}/intent.json"
+        },
+        {
+          "required": true,
+          "schema": "ProjectManifest@1",
+          "write_glob": "workspaces/{ws}/project.json"
+        },
+        {
+          "required": true,
+          "schema": "WorkspaceIndex@1",
+          "write_glob": "workspaces/{ws}/INDEX.md"
+        },
+        {
+          "required": true,
+          "schema": "ScreeningCriteria@1",
+          "write_glob": "workspaces/{ws}/SCREENING_CRITERIA.md"
+        },
+        {
+          "required": true,
+          "schema": "ReconContext@1",
+          "write_glob": "workspaces/{ws}/audit/recon_context.json"
+        }
+      ],
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "allow"
+      },
+      "read_glob": [
+        "{repo}/.agents/skills/**",
+        "{repo}/.cache/inception_recon/**",
+        "{repo}/.mcp.json",
+        "workspaces/{ws}/**"
+      ],
+      "refusal_codes": [
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "REFUSED_UNSUPPORTED",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "inception-agent",
+        "workspace-manager"
+      ],
+      "title": "Grounded Inception Agent",
+      "version": "2.0.0",
+      "write_glob": [
+        "workspaces/{ws}/protocol.json",
+        "workspaces/{ws}/intent.json",
+        "workspaces/{ws}/project.json",
+        "workspaces/{ws}/INDEX.md",
+        "workspaces/{ws}/SCREENING_CRITERIA.md",
+        "workspaces/{ws}/audit/recon_context.json"
+      ]
+    },
+    "orchestrator": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "TASK_DISPATCHED",
+          "VERDICT_RECORDED",
+          "GATE_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/journal.jsonl",
+        ".git/**"
+      ],
+      "id": "orchestrator",
+      "independence": {
+        "blinded_from": [],
+        "isolation": "none"
+      },
+      "mode": "primary",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "TaskPacket@1",
+          "write_glob": "runs/{task_id}/packet.json"
+        },
+        {
+          "required": true,
+          "schema": "Verdict@1",
+          "write_glob": "runs/{task_id}/verdict.json"
+        }
+      ],
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "allow"
+      },
+      "read_glob": [
+        "**"
+      ],
+      "refusal_codes": [
+        "BLOCKED_AMBIGUOUS_TASK",
+        "BLOCKED_BASELINE_DRIFT",
+        "BLOCKED_CANONICAL_REPO",
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "pull-request-gate"
+      ],
+      "title": "Orchestrator",
+      "version": "2.0.0",
+      "write_glob": [
+        "runs/{task_id}/packet.json",
+        "runs/{task_id}/verdict.json"
+      ]
+    },
+    "reviewer": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "REVIEW_SUBMITTED",
+          "REVIEW_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/journal.jsonl",
+        ".git/**"
+      ],
+      "id": "reviewer",
+      "independence": {
+        "blinded_from": [
+          "coder"
+        ],
+        "isolation": "redacted-input"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ReviewVerdict@1",
+          "write_glob": "runs/{task_id}/review.json",
+          "written_by": "adapter"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "deny",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "deny",
+        "task": "deny"
+      },
+      "read_glob": [
+        "**"
+      ],
+      "refusal_codes": [
+        "BLOCKED_BASELINE_DRIFT",
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "REQUIREMENT_UNTRACEABLE",
+        "SCOPE_VIOLATION",
+        "VERDICT_CHANGES_REQUESTED"
+      ],
+      "requires_skill": [],
+      "title": "Reviewer",
+      "version": "2.0.0",
+      "write_glob": [
+        "runs/{task_id}/review.json"
+      ]
+    },
+    "screener": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "SCREENING_COMPLETED",
+          "SCREENING_BLOCKED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/**",
+        ".git/**"
+      ],
+      "id": "screener",
+      "independence": {
+        "blinded_from": [],
+        "isolation": "redacted-input"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ScreeningDecisions@1",
+          "write_glob": "workspaces/{ws}/literature/screening/{batch}_decisions_{arm}.json"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/INDEX.md",
+        "workspaces/{ws}/SCREENING_CRITERIA.md",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/project.json",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "BATCH_ID_MISMATCH",
+        "BATCH_INCOMPLETE",
+        "BLOCKED_INPUT",
+        "CRITERIA_HASH_MISMATCH",
+        "IDENTITY_AMBIGUOUS",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "doer-contract",
+        "workspace-manager"
+      ],
+      "title": "Screener",
+      "version": "2.0.0",
+      "write_glob": [
+        "workspaces/{ws}/literature/screening/{batch}_decisions_{arm}.json"
+      ]
+    },
+    "screening-critic": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "CRITIQUE_SUBMITTED",
+          "CRITIQUE_REFUSED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/SCREENING_CRITERIA.md",
+        "workspaces/{ws}/audit/**",
+        "workspaces/{ws}/critique/screening/*.prior.json",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/protocol.json",
+        ".git/**"
+      ],
+      "id": "screening-critic",
+      "independence": {
+        "blinded_from": [
+          "adjudicator"
+        ],
+        "isolation": "directory"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "ScreeningCritique@1",
+          "write_glob": "workspaces/{ws}/critique/screening/{batch}.{role}.json",
+          "written_by": "adapter"
+        }
+      ],
+      "permission": {
+        "bash": "ask",
+        "edit": "deny",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/SCREENING_CRITERIA.md",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "BATCH_ID_MISMATCH",
+        "BATCH_INCOMPLETE",
+        "BLOCKED_INPUT",
+        "CRITERIA_HASH_MISMATCH",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [
+        "critic-contract"
+      ],
+      "title": "Screening Critic",
+      "version": "2.0.0",
+      "write_glob": [
+        "workspaces/{ws}/critique/screening/{batch}.{role}.json"
+      ]
+    },
+    "tester": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "TEST_GATE_RUN",
+          "TEST_GATE_RESULT"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/journal.jsonl",
+        ".git/**"
+      ],
+      "id": "tester",
+      "independence": {
+        "blinded_from": [
+          "coder"
+        ],
+        "isolation": "directory"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "TestReport@1",
+          "write_glob": "runs/{task_id}/test_report.json",
+          "written_by": "adapter"
+        }
+      ],
+      "permission": {
+        "bash": "allow",
+        "edit": "deny",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "read": "allow",
+        "skill": "deny",
+        "task": "deny"
+      },
+      "read_glob": [
+        "**"
+      ],
+      "refusal_codes": [
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "TEST_GATE_FAILED"
+      ],
+      "requires_skill": [],
+      "title": "Tester",
+      "version": "2.0.0",
+      "write_glob": [
+        "runs/{task_id}/test_report.json"
+      ]
+    }
+  },
+  "schema": "AgentPermissions@1"
+}

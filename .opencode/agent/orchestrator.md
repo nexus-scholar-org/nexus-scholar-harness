@@ -1,5 +1,6 @@
 ---
 description: "Primary Nexus Scholar development orchestrator. Converts the active spec into bounded task packets, coordinates coder-reviewer-tester gates, and preserves contract, toolkit, and scientific audit invariants."
+kind: role
 mode: primary
 permission: allow
 ---

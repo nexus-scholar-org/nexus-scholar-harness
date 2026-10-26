@@ -1,0 +1,84 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "SCREENING_COMPLETED",
+      "SCREENING_BLOCKED"
+    ]
+  },
+  "bash_approval": "ask",
+  "deny_glob": [
+    "workspaces/{ws}/audit/**",
+    ".git/**"
+  ],
+  "id": "screener",
+  "independence": {
+    "blinded_from": [],
+    "isolation": "redacted-input"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ScreeningBatch@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "Protocol@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "ScreeningCriteria@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "ScreeningDecisions@1",
+      "write_glob": "workspaces/{ws}/literature/screening/{batch}_decisions_{arm}.json"
+    }
+  ],
+  "purpose": "Independent protocol-bound screener for one assigned literature batch. Produces canonical decisions without inventing evidence or collapsing unresolved cases.",
+  "read_glob": [
+    "workspaces/{ws}/INDEX.md",
+    "workspaces/{ws}/SCREENING_CRITERIA.md",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/project.json",
+    "workspaces/{ws}/protocol.json"
+  ],
+  "refusal_codes": [
+    "BATCH_ID_MISMATCH",
+    "BATCH_INCOMPLETE",
+    "BLOCKED_INPUT",
+    "CRITERIA_HASH_MISMATCH",
+    "IDENTITY_AMBIGUOUS",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "doer-contract",
+    "workspace-manager"
+  ],
+  "stop_conditions": [
+    "the workspace, the batch, or the rendered criteria are missing",
+    "criteria_sha256 does not match the protocol fingerprint",
+    "the task packet does not supply the decision enum"
+  ],
+  "title": "Screener",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill"
+  ],
+  "version": "2.0.0"
+}

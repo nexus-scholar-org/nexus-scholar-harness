@@ -1,0 +1,67 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "TEST_GATE_RUN",
+      "TEST_GATE_RESULT"
+    ]
+  },
+  "deny_glob": [
+    "workspaces/{ws}/audit/journal.jsonl",
+    ".git/**"
+  ],
+  "id": "tester",
+  "independence": {
+    "blinded_from": [
+      "coder"
+    ],
+    "isolation": "directory"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "TaskPacket@1"
+    },
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ValidationCommands@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "TestReport@1",
+      "write_glob": "runs/{task_id}/test_report.json",
+      "written_by": "adapter"
+    }
+  ],
+  "purpose": "Tester/QA subagent for the Nexus Scholar dev loop. Runs targeted tests during development and full suite only at phase completion. Reports pass/fail per task with minimal overhead.",
+  "read_glob": [
+    "**"
+  ],
+  "refusal_codes": [
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "TEST_GATE_FAILED"
+  ],
+  "requires_skill": [],
+  "stop_conditions": [
+    "the dispatch omits an exact command or a definition-of-done item",
+    "a declared gate command fails",
+    "the test count regresses below the recorded baseline"
+  ],
+  "title": "Tester",
+  "tools": [
+    "bash",
+    "glob",
+    "grep",
+    "list",
+    "read"
+  ],
+  "version": "2.0.0"
+}

@@ -1,0 +1,87 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "CRITIQUE_SUBMITTED",
+      "CRITIQUE_REFUSED"
+    ]
+  },
+  "bash_approval": "ask",
+  "deny_glob": [
+    "workspaces/{ws}/adjudication/**",
+    "workspaces/{ws}/audit/**",
+    "workspaces/{ws}/extracted/**",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/pdfs/**",
+    "workspaces/{ws}/protocol.json",
+    ".git/**"
+  ],
+  "id": "extraction-critic",
+  "independence": {
+    "blinded_from": [
+      "adjudicator"
+    ],
+    "isolation": "directory"
+  },
+  "inputs": [
+    {
+      "from": "extractor-a",
+      "required": true,
+      "schema": "ExtractionRecord@1"
+    },
+    {
+      "from": "extractor-b",
+      "required": true,
+      "schema": "ExtractionRecord@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "SourceDocument@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "ExtractionCritique@1",
+      "write_glob": "workspaces/{ws}/critique/extraction/{stu}.json"
+    }
+  ],
+  "purpose": "Adversarial critic for extracted scientific records, testing schema, lineage, quotations, locators, uncertainty states, and row integrity. Writes only its assigned critique artifact; edits to the extraction, literature, protocol, and PDF artifacts it judges are denied by contract.",
+  "read_glob": [
+    "workspaces/{ws}/extracted/**",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/pdfs/**",
+    "workspaces/{ws}/protocol.json"
+  ],
+  "refusal_codes": [
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "LOCATOR_UNRESOLVED",
+    "PARENT_HASH_MISMATCH",
+    "QUOTE_NOT_IN_SOURCE",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "critic-contract"
+  ],
+  "stop_conditions": [
+    "a parent hash does not match the source of record",
+    "a sampled value has no resolvable locator",
+    "required fields or row cardinality are absent"
+  ],
+  "title": "Extraction Critic",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill"
+  ],
+  "version": "2.0.1"
+}

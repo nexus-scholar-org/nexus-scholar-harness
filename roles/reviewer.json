@@ -1,0 +1,77 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "REVIEW_SUBMITTED",
+      "REVIEW_BLOCKED"
+    ]
+  },
+  "bash_approval": "ask",
+  "deny_glob": [
+    "workspaces/{ws}/audit/journal.jsonl",
+    ".git/**"
+  ],
+  "id": "reviewer",
+  "independence": {
+    "blinded_from": [
+      "coder"
+    ],
+    "isolation": "redacted-input"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "TaskPacket@1"
+    },
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ChangeSet@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "Diff@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "ReviewVerdict@1",
+      "write_glob": "runs/{task_id}/review.json",
+      "written_by": "adapter"
+    }
+  ],
+  "purpose": "Read-only adversarial reviewer for a bounded Nexus Scholar diff or scientific artifact, with requirement traceability, negative-path review, and explicit ship verdict.",
+  "read_glob": [
+    "**"
+  ],
+  "refusal_codes": [
+    "BLOCKED_BASELINE_DRIFT",
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "REQUIREMENT_UNTRACEABLE",
+    "SCOPE_VIOLATION",
+    "VERDICT_CHANGES_REQUESTED"
+  ],
+  "requires_skill": [],
+  "stop_conditions": [
+    "the task packet or governing specification is missing",
+    "the diff cannot be separated from pre-existing user changes",
+    "an acceptance clause has no executable evidence"
+  ],
+  "title": "Reviewer",
+  "tools": [
+    "bash",
+    "glob",
+    "grep",
+    "list",
+    "read"
+  ],
+  "version": "2.0.0"
+}

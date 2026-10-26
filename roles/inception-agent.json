@@ -1,0 +1,104 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "PROJECT_INITIALIZED",
+      "GENESIS"
+    ]
+  },
+  "deny_glob": [
+    "workspaces/{ws}/audit/journal.jsonl",
+    ".git/**"
+  ],
+  "id": "inception-agent",
+  "independence": {
+    "blinded_from": [],
+    "isolation": "none"
+  },
+  "inputs": [
+    {
+      "from": "written-input",
+      "required": true,
+      "schema": "ChatIntent@1"
+    },
+    {
+      "from": "workspace",
+      "required": false,
+      "schema": "IntentPacket@1"
+    },
+    {
+      "from": "workspace",
+      "required": false,
+      "schema": "ReconPool@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "primary",
+  "network": "allow",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "Protocol@1",
+      "write_glob": "workspaces/{ws}/protocol.json"
+    },
+    {
+      "required": true,
+      "schema": "IntentPacket@1",
+      "write_glob": "workspaces/{ws}/intent.json"
+    },
+    {
+      "required": true,
+      "schema": "ProjectManifest@1",
+      "write_glob": "workspaces/{ws}/project.json"
+    },
+    {
+      "required": true,
+      "schema": "WorkspaceIndex@1",
+      "write_glob": "workspaces/{ws}/INDEX.md"
+    },
+    {
+      "required": true,
+      "schema": "ScreeningCriteria@1",
+      "write_glob": "workspaces/{ws}/SCREENING_CRITERIA.md"
+    },
+    {
+      "required": true,
+      "schema": "ReconContext@1",
+      "write_glob": "workspaces/{ws}/audit/recon_context.json"
+    }
+  ],
+  "purpose": "Primary agent that runs the Grounded Exploratory Inception Agent interactively in opencode chat. Use to start or scope a literature-grounded research project (\"start a grounded inception\", \"run grounded inception\", \"I want to research <topic> with literature grounding\", \"probe and scope my idea\"). Probes academic literature, distills a grounded taxonomy, proposes DOI-anchored directions, checks gap saturation, and emits a scoped research protocol + workspace — conversationally, only after user approval.",
+  "read_glob": [
+    "{repo}/.agents/skills/**",
+    "{repo}/.cache/inception_recon/**",
+    "{repo}/.mcp.json",
+    "workspaces/{ws}/**"
+  ],
+  "refusal_codes": [
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "REFUSED_UNSUPPORTED",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [
+    "inception-agent",
+    "workspace-manager"
+  ],
+  "stop_conditions": [
+    "a proposed concept or direction has no anchor DOI",
+    "the user has not approved emission",
+    "the recon pool is saturated and the direction is prompt-echo"
+  ],
+  "title": "Grounded Inception Agent",
+  "tools": [
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "list",
+    "read",
+    "skill",
+    "task"
+  ],
+  "version": "2.0.0"
+}
