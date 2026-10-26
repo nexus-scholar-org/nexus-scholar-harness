@@ -1,0 +1,33 @@
+{
+  "envelope": 1,
+  "envelope_id": "ENV-36a2f02c3bcdd2db",
+  "role": "inception-agent",
+  "role_version": "2.0.0",
+  "task_id": "T-SC-014",
+  "arm": null,
+  "created_at": "2026-10-23T10:15:00Z",
+  "status": "REFUSED",
+  "retryable": false,
+  "human_action_required": true,
+  "refusal": {
+    "code": "REFUSED_UNSUPPORTED",
+    "detail": "E2: PDF acquisition for records without DOI or arXiv id is not supported by scholar-pdf-kit",
+    "unsupported": "E2",
+    "alternatives": [
+      "supply the PDF manually",
+      "exclude with logged reason"
+    ]
+  },
+  "coverage": null,
+  "inputs": [],
+  "parents": [],
+  "output": null,
+  "output_sha256": null,
+  "provenance": {
+    "adapter": "opencode",
+    "adapter_version": "1.4.0",
+    "isolation": "none",
+    "blinded_from": [],
+    "duration_ms": null
+  }
+}
