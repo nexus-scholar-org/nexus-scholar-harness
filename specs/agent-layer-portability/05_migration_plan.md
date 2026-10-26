@@ -20,10 +20,10 @@ The role model expresses that precisely:
 
 ```json
 "tools": ["read", "grep", "glob", "list", "bash"],
-"outputs": [{ "schema": "ReviewVerdict@1", "write_glob": "runs/{task_id}/review.json" }]
+"outputs": [{ "schema": "ReviewVerdict@1", "write_glob": "runs/{task_id}/review.json", "written_by": "adapter" }]
 ```
 
-`bash` present (no prompts for `git diff`), `edit` absent (no file modification), one declared write path. That satisfies the operational motive and removes the contradiction, without granting the reviewer the ability to repair what it judges.
+`bash` present (no prompts for `git diff`), `edit` absent (no file modification), and the verdict is persisted by the harness rather than the role. That satisfies the operational motive and removes the contradiction, without granting the reviewer the ability to repair what it judges.
 
 Any Phase-A packet issued before this decision returns `BLOCKED_BASELINE_DRIFT`.
 
@@ -42,7 +42,7 @@ Any Phase-A packet issued before this decision returns `BLOCKED_BASELINE_DRIFT`.
 
 | Defect | How |
 |---|---|
-| `screening-critic` `edit: allow` vs "only write is the critique" | `edit` derived from `write_glob` |
+| `screening-critic` `edit: allow` vs "only write is the critique" | `edit` granted only when `edit` is in `tools` **and** an output is `written_by: role` |
 | `reviewer.md` self-contradiction | Same |
 | `tester.md` can edit what it verifies | `tools` excludes `edit` |
 | `git_workflow.md` loaded as an agent | `kind: doc` rejected by loader |
@@ -152,7 +152,7 @@ Any Phase-A packet issued before this decision returns `BLOCKED_BASELINE_DRIFT`.
 4. Journal entries carry adapter-stamped actor, role version, and input/output hashes.
 5. Dev mode documents its residual risk in the adapter docstring and README; it does not claim app-grade enforcement.
 
-**Negative cases:** role reads a denied path; role writes to `audit/**`; blinded role attempts to list the parent run directory; role claims `isolation: none` when `arm` is set.
+**Negative cases:** role writes a denied path; role writes to `audit/**`; blinded role attempts to list the parent run directory; role claims `isolation: none` when `arm` is set.
 
 **Effort:** ~2 days. **Lane:** `RELEASE`.
 
@@ -189,7 +189,7 @@ Any Phase-A packet issued before this decision returns `BLOCKED_BASELINE_DRIFT`.
 
 ## 8. Open questions
 
-1. **Reviewer autonomy.** Resolved by §0's recommendation (grant `bash`, deny `edit`) unless the owner wants the reviewer able to repair. Needs an explicit decision before Phase A.
+1. **Reviewer autonomy.** Resolved 2026-10-25 for Phase A by reverting `reviewer.md` to `edit: deny` + `bash: ask`. Whether to upgrade `bash: ask` to `allow` (removing approval prompts on `git diff` and tests) remains an **open owner decision**; Phase A deliberately did not change it.
 2. **`arm` placement.** Kept in the envelope, not the payload, so payload schemas stay frozen. Confirm this does not complicate existing `ScreeningDecisions@1` consumers.
 3. **Confirmation scope in the product.** The signing party should be the customer's lead reviewer, not the operator. This changes the export narrative and should be settled before Phase C ships.
 4. **Model selection.** Deliberately excluded. Roles must not encode a model, or portability breaks at the first provider change.

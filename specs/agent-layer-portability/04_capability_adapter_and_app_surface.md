@@ -43,7 +43,7 @@ Be explicit about the split rather than pretending one is the other. The dev loo
 | Guarantee | Mechanism | Failure if absent |
 |---|---|---|
 | Write boundary | Role's output is staged into `runs/{task_id}/out/`, validated against `write_glob`, then promoted. Writes elsewhere fail at the filesystem layer. | Critics editing the artifact they judge |
-| Read boundary | Run view contains only `read_glob` matches, minus `deny_glob`. | Blind arm reads the other arm |
+| Read boundary | Run view contains only `read_glob` matches. `deny_glob` is a **write** denylist and never subtracts from the read view (see `01_role_model.md` R4). | Blind arm reads the other arm |
 | Blinding | `isolation: directory` — separate materialised dirs per arm. `redacted-input` — identifying fields stripped before the view is built. | Dual coding collapses to single coding |
 | Network | Per-role egress policy; `deny` means no sockets. | A judge reaches the web mid-verdict |
 | Audit attribution | Adapter writes the journal; roles never can. Actor, role version, input/output hashes stamped by the adapter. | Generic actor names, unverifiable provenance |
