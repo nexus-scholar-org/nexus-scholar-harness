@@ -1,8 +1,11 @@
 ---
 name: methodology-copilot
-description: Interactive Socratic advisor that guides researchers through epistemological paradigm selection, question refinement, rigor criteria formulation, and automated project workspace inception.
+description: Socratic methodology guidance from paradigm selection to rigor criteria.
+applies_to: [inception-agent]
+variables: [CLI, PY, SKILL_DIR, WORKSPACE]
+returns: prose
+layer: procedure
 ---
-
 # `methodology-copilot` Skill Instructions
 
 You are an expert PhD advisor and methodological architect. When a researcher presents a raw, unrefined, or early-stage idea, you engage in a Socratic conversational loop to transform that idea into a rigorous research protocol and scaffold a dedicated project workspace.
@@ -26,7 +29,7 @@ wizard that compiles via `scholar-protocol-kit` and scaffolds via the
 `workspace-manager` script:
 
 ```bash
-uv run scholar-harness inception --root <repo-root>
+{CLI:harness} inception --root <repo-root>
 # --no-scaffold  -> run the interview only; write nothing
 # --grounded     -> literature-grounded variant (recon first, then the interview)
 # --auto-select / --direction-id N -> headless grounded picks (no interactive prompt)
@@ -36,7 +39,7 @@ It implements the 4-stage Socratic interview (latent paradigm mining, the 4-way
 refraction grid, the boundary grill, then emission): writes `intent.json`,
 compiles `protocol.json` (canonical bytes; fingerprint via
 `scholar-protocol fingerprint`), renders `SCREENING_CRITERIA.md`, scaffolds
-`workspaces/<slug>/`, and records a `GENESIS` audit event. For scripted /
+`{WORKSPACE}/`, and records a `GENESIS` audit event. For scripted /
 hermetic use, drive `scholar_harness.inception.run_wizard`
 (`src/scholar_harness/inception/wizard.py`) with an injected responder. When
 interactive, prefer the wizard over hand-authoring the `intent.json` below.
@@ -63,7 +66,7 @@ and handoffs documented in `specs/inception-ecosystem/`):
   unanchored concept into `core_concepts`.
 - **Classic mode:** when the user starts directly with an idea (no grounding
   request), this skill owns the whole flow below.
-- **Fast path:** run the wizard (`uv run scholar-harness inception --root <repo>`;
+- **Fast path:** run the wizard (`{CLI:harness} inception --root <repo>`;
   `--grounded` for a literature-grounded session) unless the user explicitly
   wants the human conversation. Both are interfaces to the same 4-stage Socratic
   lifecycle — same `intent.json` schema, same compile + fingerprint convention.
@@ -99,7 +102,7 @@ Engage the researcher to align on:
 Once the user confirms the paradigm and questions, scaffold the project workspace
 (`title` is positional — there is no `--title` flag):
 ```bash
-uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project Title>" \
+{PY} {SKILL_DIR:workspace-manager}/scripts/init_project.py "<Project Title>" \
   --slug "<project-slug>" \
   --paradigm "<Selected Paradigm>" \
   --rq "RQ1: <Question 1>" \
@@ -108,7 +111,7 @@ uv run python .agents/skills/workspace-manager/scripts/init_project.py "<Project
 ```
 
 ### Step 4: Emit `intent.json` and Compile `protocol.json`
-Write `workspaces/<project-slug>/intent.json` adhering to the `IntentPacket` specification:
+Write `{WORKSPACE}/intent.json` adhering to the `IntentPacket` specification:
 ```json
 {
   "protocol_id": "proto-20260901-<project-slug>",
@@ -159,13 +162,13 @@ Then compile and render the canonical artifacts (both print to stdout, so
 redirect to persist — neither command takes `-i`, `-o`, or `--fingerprint`):
 ```bash
 # Compile canonical protocol (canonical bytes to stdout)
-uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
+{CLI:protocol} compile {WORKSPACE}/intent.json > {WORKSPACE}/protocol.json
 
 # Fingerprint the compiled protocol
-uv run scholar-protocol fingerprint workspaces/<project-slug>/protocol.json
+{CLI:protocol} fingerprint {WORKSPACE}/protocol.json
 
 # Render human-readable screening criteria (markdown to stdout)
-uv run scholar-protocol render-criteria workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+{CLI:protocol} render-criteria {WORKSPACE}/protocol.json > {WORKSPACE}/SCREENING_CRITERIA.md
 ```
 
 ---
@@ -186,10 +189,10 @@ uv run scholar-protocol render-criteria workspaces/<project-slug>/protocol.json 
   exists, log `GENESIS` (carrying the `recon_context` provenance in grounded mode).
   Use only supported `log_event.py` flags:
   ```bash
-  uv run python .agents/skills/workspace-manager/scripts/log_event.py <project-slug> \
+  {PY} {SKILL_DIR:workspace-manager}/scripts/log_event.py <project-slug> \
     --action GENESIS --agent scholar-harness/inception --status SUCCESS \
     --description "<what was emitted>" \
-    --inputs workspaces/<slug>/intent.json \
+    --inputs {WORKSPACE}/intent.json \
     --outputs protocol.json SCREENING_CRITERIA.md
   ```
   The CLI has no `--metrics` flag; pass metrics via the Python kwarg
@@ -211,9 +214,24 @@ interfaces only and anticipates no refactor behavior.
 
 ---
 
-## Detailed References
+## Preflight
+
+- `{CLI:protocol} --help` succeeds (`compile`, `fingerprint`, `render-criteria` all print to stdout, no `-i`/`-o` flags); otherwise stop with `BLOCKED_INPUT`.
+- Emission scripts resolve: `{SKILL_DIR:workspace-manager}/scripts/init_project.py` and `{SKILL_DIR:workspace-manager}/scripts/log_event.py`.
+- `{WORKSPACE}` resolves before emission (`intent.json` → `protocol.json` → `SCREENING_CRITERIA.md` are read/written under `{WORKSPACE}/`; `project.json` carries the recorded `registered_workspace_id`).
+- Reference specs are readable if cited in a task: `specs/inception-ecosystem/02_handoffs.md`.
+
+## Refusals
+
+- A corrupt or non-conforming recorded `registered_workspace_id` → typed refusal (fail closed); never re-mint a fresh identity over recorded state.
+- Unconfirmed emission (`--no-scaffold`, or a declined final confirm) → nothing is scaffolded or written; no `PROJECT_INITIALIZED`/`GENESIS` event is logged.
+- Unanchored concepts/synonyms in grounded mode → refused entry into `core_concepts` before compile.
+- Missing `{CLI:protocol}`/`{CLI:harness}` or workspace-manager scripts in preflight → `BLOCKED_INPUT`.
+
+## Pointers
 
 - [Paradigm Refraction Guide](references/paradigm_refraction_guide.md): Deep-dive into Positivist, Interpretivist, Pragmatist, and Design Science stances and vocabulary rules.
 - [Socratic Interview Framework](references/socratic_interview_framework.md): Questioning strategies and protocol generation steps.
 - [Intent Generator Specification](references/intent_generator_spec.md): Standard schema formatting for `intent.json`.
 - [Criteria Generator Specification](references/criteria_generator_spec.md): Structure and rendering conventions for `SCREENING_CRITERIA.md`.
+- Stack boundaries + emission handoffs: `specs/inception-ecosystem/01_skill_boundaries.md`, `specs/inception-ecosystem/02_handoffs.md`.

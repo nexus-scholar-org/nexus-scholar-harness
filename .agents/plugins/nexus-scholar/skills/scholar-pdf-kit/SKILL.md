@@ -1,8 +1,12 @@
 ---
 name: scholar-pdf-kit
-description: Instructions for using the scholar-pdf-kit Python API and CLI to discover, download, validate, and extract Open Access PDFs with YAML frontmatter.
+description: Open Access discovery, resilient download, magic-byte validation, and fulltext extraction with YAML frontmatter.
+applies_to: [extractor-a, extractor-b]
+requires: [scholar-pdf]
+variables: [CLI, CONFIG, KIT_ROOT, SKILL_DIR, WORKSPACE]
+returns: files
+layer: domain
 ---
-
 # `scholar-pdf-kit` Skill Instructions
 
 You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit automatically resolves DOIs to legal Open Access PDFs via a multi-stage cascade (OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns → optional institutional-proxy rewrite), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
@@ -25,7 +29,7 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 `AcquisitionRunConfig`, `AcquisitionBatchOutcome`; parent-binding helpers in
 `scholar_pdf.contract_parents`).
 
-**CLI:** `uv run scholar-pdf acquire <config.json> --audit-logger <path-to-log_event.py>`
+**CLI:** `{CLI:pdf} acquire <config.json> --audit-logger <path-to-log_event.py>`
 — a serializable
 `AcquisitionRunConfig` in, a standard operation envelope out. JSON envelope on stdout;
 `--human` adds a rendered table; exit code mapped from `OperationStatus`. API and CLI
@@ -72,9 +76,9 @@ Contract v1 **candidate**. **API/CLI only — not available on MCP.**
 `ArtifactRecordProjection`; the Contract v1 candidate builder in
 `scholar_pdf.contract_candidate.build_document_manifest_candidate`).
 
-**CLI:** `uv run scholar-pdf extract-run <config.json> --audit-logger <path-to-log_event.py>`
+**CLI:** `{CLI:pdf} extract-run <config.json> --audit-logger <path-to-log_event.py>`
 — a serializable run config in, a standard operation envelope out. The legacy
-`uv run scholar-pdf extract` (positional raw path, CLI engines `docling|grobid` only)
+`{CLI:pdf} extract` (positional raw path, CLI engines `docling|grobid` only)
 remains as a non-authoritative convenience; **the parent-bound path is `extract-run`**.
 
 - **The candidate is non-authoritative.** The kit stamps
@@ -123,7 +127,7 @@ actually consumes. It adds no second gate — it hands the candidate to the froz
 `scholar_harness.extraction_adapter.accept_extraction_candidate`, which owns acceptance,
 the registry entry, the published path, the rejection record, and idempotency.
 
-**CLI:** `uv run scholar-harness extract <status|publish|index> <workspace>` (also
+**CLI:** `{CLI:harness} extract <status|publish|index> <workspace>` (also
 `python src/scholar_harness/agent_extract.py ...`).
 
 - **Trusted context, never the candidate.** The `AcceptanceContext` limbs are derived
@@ -178,7 +182,7 @@ Acceptance evidence: `tests/e2e/test_extraction_runtime_acceptance.py`.
 
 ## Quick CLI Cheat-Sheet
 
-All commands should be executed via `uv run`. Route per task:
+All commands run through the `{CLI:pdf}` / `{CLI:harness}` picker. Route per task:
 discovery download → `references/resolution_and_download.md`; naming/ingest/export →
 `references/naming_and_ingestion.md`; legacy extraction engines → `references/fulltext_extraction.md`;
 end-to-end search→download→extract → `references/pipeline_integration.md`;
@@ -186,34 +190,34 @@ authoritative E1/E2 boundaries → the sections above (not the refs).
 
 ```bash
 # 1. Download by Single DOI
-uv run scholar-pdf download --doi 10.1371/journal.pbio.3000246 --output downloads/
+{CLI:pdf} download --doi 10.1371/journal.pbio.3000246 --output downloads/
 
 # 2. Bulk Download from Screening Output
 #    NOTE: validated bytes land content-addressed (DOC-<32hex>.pdf);
 #    --smart-names is accepted but does not rename the final file.
-uv run scholar-pdf download \
-  --input workspaces/<project-slug>/literature/included.json \
-  --output workspaces/<project-slug>/pdfs/ \
+{CLI:pdf} download \
+  --input {WORKSPACE}/literature/included.json \
+  --output {WORKSPACE}/pdfs/ \
   --export json
 
 # 3. Extract Section-Aware Markdown (legacy raw-path CLI; engines: docling | grobid only)
-uv run scholar-pdf extract \
-  workspaces/<project-slug>/pdfs/ \
-  --output workspaces/<project-slug>/extracted/ \
+{CLI:pdf} extract \
+  {WORKSPACE}/pdfs/ \
+  --output {WORKSPACE}/extracted/ \
   --engine docling
 # NOTE: positional PDF file/dir path — there is NO --input flag and NO --engine pymupdf
 #       (PyMuPDF is the API/MCP default; the CLI only offers docling/grobid).
 #       This legacy command is NOT the parent-bound path — that is `extract-run` (#7).
 
 # 4. Ingest an Existing PDF Manually
-uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/35057062
+{CLI:pdf} ingest my_paper.pdf --doi 10.1038/35057062
 # NOTE: like download, ingest promotes validated bytes to DOC-<32hex>.pdf.
 
 # 5. Download Through an Institutional Proxy (Cloudflare/WAF bypass)
 #    attempt 3 automatically re-runs OA + direct-PDF candidates through the proxy
-uv run scholar-pdf download \
-  --input workspaces/<project-slug>/literature/included.json \
-  --output workspaces/<project-slug>/pdfs/ \
+{CLI:pdf} download \
+  --input {WORKSPACE}/literature/included.json \
+  --output {WORKSPACE}/pdfs/ \
   --proxy https://www.sndl1.arn.dz \
   --proxy-style subdomain      # auto | subdomain | ezproxy | prefix
 
@@ -221,25 +225,25 @@ uv run scholar-pdf download \
 #    Parent-bound, fail-closed acquisition publishing a deterministic
 #    pdf-acquisition-manifest-v1 (ACQ-<32hex>), bound to accepted
 #    corpus_snapshot + screening_decisions parents.
-uv run scholar-pdf acquire workspaces/<project-slug>/acquisition_run.json \
-  --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
+{CLI:pdf} acquire {WORKSPACE}/acquisition_run.json \
+  --audit-logger {SKILL_DIR:workspace-manager}/scripts/log_event.py
 
 # 7. WP01-E2 Extracted-Text Boundary (API/CLI only; NOT on MCP)
 #    Parent-bound, fail-closed extraction of committed PDF bytes. Publishes a
 #    pdf-extraction-manifest-v1 (EXT-<32hex>) sidecar plus a NON-AUTHORITATIVE
 #    document_manifest candidate; only the harness adapter
 #    (scholar_harness.extraction_adapter.accept_extraction_candidate) can accept it.
-uv run scholar-pdf extract-run workspaces/<project-slug>/extraction_run.json \
-  --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
+{CLI:pdf} extract-run {WORKSPACE}/extraction_run.json \
+  --audit-logger {SKILL_DIR:workspace-manager}/scripts/log_event.py
 
 # 8. Harness runtime acceptance of the E2 output (E2-RUNTIME-ACCEPTANCE-ADOPTION)
 #    Accepts the Stage 5 committed extraction through the FROZEN adapter and
 #    publishes the Contract v1 document_manifest Stage 6 consumes. Fail-closed:
 #    a stub, a short body, a mismatched frontmatter, or a missing accepted
 #    screening parent refuses and publishes nothing.
-uv run scholar-harness extract status  workspaces/<project-slug>
-uv run scholar-harness extract publish workspaces/<project-slug> --index
-uv run scholar-harness extract index  workspaces/<project-slug>
+{CLI:harness} extract status  {WORKSPACE}
+{CLI:harness} extract publish {WORKSPACE} --index
+{CLI:harness} extract index  {WORKSPACE}
 ```
 
 ---
@@ -258,7 +262,7 @@ async def main():
     # 1. Initialize Downloader (add proxy_url/proxy_style to append
     #    proxied candidates; optional pypdf gate via structural_validation=True)
     downloader = AsyncPDFDownloader(
-        output_dir=Path("workspaces/my-project/pdfs"),
+        output_dir=Path("{WORKSPACE}/pdfs"),
         proxy_url="https://www.sndl1.arn.dz",
         proxy_style="subdomain",      # auto | subdomain | ezproxy | prefix
         structural_validation=True,
@@ -273,7 +277,7 @@ async def main():
             # 3. Extract Markdown with YAML Frontmatter
             md_path = PyMuPDFEngine.extract_markdown(
                 res.file_path,
-                output_dir=Path("workspaces/my-project/extracted"),
+                output_dir=Path("{WORKSPACE}/extracted"),
                 metadata={"doi": res.doi, "workspace_id": "SCI-000001"}
             )
             print(f"Extracted Markdown: {md_path}")
@@ -301,7 +305,7 @@ if __name__ == "__main__":
   extraction_engine_version|extraction_requested_engine|extraction_status|
   content_status|extracted_sha256`) and requires 12 bound keys on every committed
   file — see `FRONTMATTER_KEYS` / `REQUIRED_BOUND_KEYS` in
-  `tools/scholar-pdf-kit/src/scholar_pdf/frontmatter.py`.
+  `{KIT_ROOT:pdf}/src/scholar_pdf/frontmatter.py`.
 - **MCP `nexus_extract_pdf` passes heuristic path-derived metadata** (it does not
   drop it): the tool derives `title` from the filename stem, `doi` via a DOI regex
   on the stem, and `workspace_id` via an `SCI-` pattern on the path, and forwards
@@ -317,7 +321,7 @@ if __name__ == "__main__":
 - **Env**: `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
   `PROXY_URL`/`PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
   `ENABLE_PUBLISHER_DIRECT_PATTERNS` (pydantic-settings names; the `Settings` fields
-  are lowercase equivalents in `tools/scholar-pdf-kit/src/scholar_pdf/config.py`).
+  are lowercase equivalents in `{KIT_ROOT:pdf}/src/scholar_pdf/config.py`).
 - **PyMuPDF is imported as `fitz`** (function-local, like all heavy engine imports).
   `pyyaml` and `pypdf` are **declared** dependencies; `docling` ships only with the
   `[extract]` extra and `scholar-search-kit` only with the `[search]` extra.
@@ -330,3 +334,34 @@ if __name__ == "__main__":
 
 - **Paywall Recognition**: Not all academic literature is Open Access. If resolution reports no legal OA copy (`success=False` with `access_status=UNRESOLVED`, legacy `was_oa=False`), clearly inform the user that no legal Open Access copy is available. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
 - **Frontmatter Preservation**: Always ensure extracted markdown contains YAML frontmatter (`workspace_id`, `doi`, `title`, `year`) before handing off to `scholar-rag-kit` for chunking and vector indexing.
+
+## Preflight
+
+- `{CLI:pdf} --help` resolves on the target surface; if it does not, stop with `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves to an existing canonical research workspace (contains `project.json` / `protocol.json`).
+- Nakamura/magic-byte validation prerequisite: input PDFs live under `{WORKSPACE}/pdfs/` and carry valid `%PDF-` magic bytes before any extraction or promotion is trusted.
+- `{CONFIG}` (the kit pin manifest recording the pinned `scholar-pdf-kit` revision) resolves.
+
+## Refusals
+
+Codes this kit's existing content surfaces upstream:
+
+- `PATH_OUTSIDE_WORKSPACE` — output path escapes the canonical workspace root (`..`, absolute, drive, separator, or symlink).
+- `UNRESOLVED` — no legal OA copy found (fail-closed; never an empty success or a fabricated restricted confirmation).
+- `UNSUPPORTED_ARTIFACT_TYPE` — kit-owned manifests (`pdf_acquisition_manifest`, `pdf_extraction_manifest`) passed to the frozen harness acceptance/chain registries.
+- `UNSUPPORTED_CAPABILITY` — MCP surface refusal for acquire/extract (declared unsupported; use CLI/API).
+- `OperationStatus=FAILED` — all-failure batches still publish a manifest with `records=[]` (distinguishable from a missing manifest).
+- `NEEDS_OCR` / `FAILED` — no usable extracted text (never an empty success).
+- `STALE_EXTRACTED_BODY` — republishing an accepted record with edited body bytes.
+- `DOCUMENT_MANIFEST_NOT_ACCEPTED` — indexing attempted before the manifest was accepted.
+- Skips (disclosed, not refusals): `OTHER_GENERATION`, `ACCEPTED_ARTIFACT_UNREADABLE`, `CORPUS_SNAPSHOT_INVALID`.
+- `PROVIDER_TRANSIENT` — provider/indexer failures are typed refusals or `FAILED`, never empty successes.
+
+## Pointers
+
+- Discovery download: `{SKILL_DIR:scholar-pdf-kit}/references/resolution_and_download.md`
+- Naming / ingest / export: `{SKILL_DIR:scholar-pdf-kit}/references/naming_and_ingestion.md`
+- Legacy extraction engines: `{SKILL_DIR:scholar-pdf-kit}/references/fulltext_extraction.md`
+- End-to-end pipeline: `{SKILL_DIR:scholar-pdf-kit}/references/pipeline_integration.md`
+- Conformance: `tests/conformance/test_e1_acquired_document_boundary.py`, `tests/conformance/test_e2_extraction_boundary.py`
+- Acceptance evidence: `tests/e2e/test_extraction_runtime_acceptance.py`

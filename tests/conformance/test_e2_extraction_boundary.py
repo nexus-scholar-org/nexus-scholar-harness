@@ -1940,9 +1940,24 @@ def test_agent_skill_documents_declare_the_mcp_mechanism(doc: Path) -> None:
 
 @pytest.mark.parametrize("doc", PDF_SKILL_DOCS, ids=lambda p: p.name if p else "")
 def test_pdf_skill_documents_name_the_supported_alternatives(doc: Path) -> None:
-    text = doc.read_text(encoding="utf-8")
+    # Phase D (spec 03): skill sources carry only the ``{CLI:pdf}`` placeholder;
+    # the literal invocation is the dev-loop *rendering* of that placeholder.
+    text = _rendered_skill_body(doc)
     assert "scholar-pdf extract-run" in text, f"{doc} does not name the CLI alternative"
     assert "scholar_pdf.extraction" in text, f"{doc} does not name the API alternative"
+
+
+def _rendered_skill_body(doc: Path) -> str:
+    """Phase D helper: resolve the skill's placeholders under the dev preamble."""
+    from scholar_harness.skills_portability import (
+        Preamble,
+        parse_frontmatter,
+        render,
+    )
+
+    text = doc.read_text(encoding="utf-8")
+    _contract, body = parse_frontmatter(text, doc)
+    return render(body, Preamble.dev(repo_root=Path(__file__).resolve().parents[2]))
 
 
 def test_surface_matrix_declares_api_cli_only_with_no_parity_claim() -> None:

@@ -1,8 +1,12 @@
 ---
 name: scholar-protocol-kit
-description: Instructions for using the scholar-protocol-kit Python API and CLI to compile, validate, fingerprint, render criteria, and build dynamic extraction models from research protocols.
+description: Deterministic research-protocol compilation, validation, fingerprinting, and criteria rendering.
+applies_to: [inception-agent, screener]
+requires: [scholar-protocol]
+variables: [CLI, CONFIG, KIT_ROOT, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-protocol-kit` Skill Instructions
 
 You are the research protocol and methodology compiler specialist of the Nexus Scholar Suite. Your role is to compile frozen researcher intent packets into canonical, deterministic `protocol.json` contracts, validate protocols against standard JSON schemas, calculate SHA-256 integrity fingerprints, render human-readable `SCREENING_CRITERIA.md`, and dynamically compile Pydantic models for downstream RAG matrix extraction.
@@ -27,38 +31,38 @@ You are the research protocol and methodology compiler specialist of the Nexus S
 
 ## CLI Usage
 
-All commands are executed via `uv run`:
+All commands are executed via `{CLI:protocol}`:
 
 ### 1. Compile Intent Packet to Protocol
 ```bash
 # Compile intent.json into canonical protocol.json (always fingerprints; prints bytes to STDOUT)
-uv run scholar-protocol compile workspaces/<project-slug>/intent.json > workspaces/<project-slug>/protocol.json
+{CLI:protocol} compile {WORKSPACE}/intent.json > {WORKSPACE}/protocol.json
 ```
 
 ### 2. Validate Protocol Schema & Fingerprint
 ```bash
 # Validate conformance (structural + cross-field; --strict promotes warnings to errors)
-uv run scholar-protocol validate workspaces/<project-slug>/protocol.json
-uv run scholar-protocol validate workspaces/<project-slug>/protocol.json --strict
+{CLI:protocol} validate {WORKSPACE}/protocol.json
+{CLI:protocol} validate {WORKSPACE}/protocol.json --strict
 
 # Calculate and display SHA-256 canonical hash
-uv run scholar-protocol fingerprint workspaces/<project-slug>/protocol.json
+{CLI:protocol} fingerprint {WORKSPACE}/protocol.json
 ```
 
 ### 3. Render Human-Readable Screening Criteria
 ```bash
 # Render markdown criteria (prints to STDOUT; there is no -o flag)
-uv run scholar-protocol render-criteria \
-  workspaces/<project-slug>/protocol.json > workspaces/<project-slug>/SCREENING_CRITERIA.md
+{CLI:protocol} render-criteria \
+  {WORKSPACE}/protocol.json > {WORKSPACE}/SCREENING_CRITERIA.md
 ```
 
 ### 4. Export Dynamic Extraction Schemas
 ```bash
 # Export dynamic JSON schema for matrix extraction
-uv run scholar-protocol extraction-schema workspaces/<project-slug>/protocol.json
+{CLI:protocol} extraction-schema {WORKSPACE}/protocol.json
 
 # Export formatted LLM system extraction prompt fragment
-uv run scholar-protocol extraction-prompt workspaces/<project-slug>/protocol.json
+{CLI:protocol} extraction-prompt {WORKSPACE}/protocol.json
 ```
 
 ### 5. Golden Seeds for Search Validation
@@ -140,8 +144,8 @@ ExtractionModel = build_extraction_model(protocol)
 
 ## Verified surface, MCP mapping & knowledge
 
-- **Pinned rev** `4e10f25c25a1b150ce518348d211c7771683a9b7` (`scholar-protocol-kit`
-  vendored at `tools/scholar-protocol-kit/`; canonical repo
+- pin: see `{CONFIG}` (`scholar-protocol-kit`
+  vendored at `{KIT_ROOT:protocol}/`; canonical repo
   `nexus-scholar-org/scholar-protocol-kit` owns runtime). Matrix protocol rows are
   references only.
 - **CLI never writes files** — `compile`, `validate` (+ `--strict`), `fingerprint`, `canon`,
@@ -180,3 +184,24 @@ ExtractionModel = build_extraction_model(protocol)
   `scholar-rag-kit` skill; MCP front-door (`nexus_*`) → `scholar-agent-kit` skill.
 - **Integration**: `build_extraction_model` (dynamic Pydantic, `extraction.py:17-66`) feeds matrix extraction in
   `scholar-rag-kit`; `nexus_matrix_extract` imports it.
+
+## Preflight
+
+- `{CLI:protocol} --help` resolves on the target surface; if it does not, stop with `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves to an existing canonical research workspace (contains `project.json` / `intent.json`).
+- `{CONFIG}` (the kit pin manifest recording the pinned `scholar-protocol-kit` revision) resolves.
+
+## Refusals
+
+Codes this kit's existing content surfaces upstream:
+
+- `BLOCKED_INPUT` — CLI fails to resolve or the required input files under `{WORKSPACE}` are missing.
+- `INVALID` / `ERROR` — protocol validation outcomes (structural + cross-field rules fail); `--strict` additionally promotes warnings to errors.
+- Legacy protocol detection: a non-canonical or legacy/custom `protocol.json` (missing `$schema`, unparsable, or pre-v1 shape) is detected and classified explicitly — never silently coerced into the canonical contract.
+- Golden-fixture gates: golden `.sha256` fixtures gate serializer/preset/model changes (a preset change is a non-patch).
+
+## Pointers
+
+- Matrix extraction downstream: `scholar-rag-kit` skill (`build_extraction_model` → matrix extraction; `nexus_matrix_extract`).
+- Search recall validation: `scholar-search-kit` skill (`golden_seeds` + `validate-query`).
+- MCP front-door: `scholar-agent-kit` skill (`nexus_*`).

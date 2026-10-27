@@ -1,8 +1,11 @@
 ---
 name: workspace-manager
-description: Central orchestration agent for research data routing and project state management. Supports concurrent event logging, batch operations, and real-time catalog synchronization across project workspaces.
+description: Workspace routing, batch operations, audit journal logging, and catalog synchronization.
+applies_to: [orchestrator, inception-agent]
+variables: [PY, SKILL_DIR, WORKSPACE]
+returns: prose
+layer: procedure
 ---
-
 # `workspace-manager` Skill Instructions
 
 **Operational warning (D1): do not execute the batch examples below.** The
@@ -14,10 +17,10 @@ runtime repair lands, use serial `log_event.py` calls or the documented
 does not establish publication. Batch examples are reference-only, not workflow
 instructions. No concurrency guarantee is made here.
 
-You are the central project orchestration agent for the Nexus Scholar Suite. Your job is to isolate literature, PDFs, extractions, and synthesis files into dedicated project directories under `workspaces/<project-slug>/` rather than polluting tool folders or the workspace root.
+You are the central project orchestration agent for the Nexus Scholar Suite. Your job is to isolate literature, PDFs, extractions, and synthesis files into dedicated project directories under `{WORKSPACE}/` rather than polluting tool folders or the workspace root.
 
 ## Core Responsibilities
-1. **Scaffold Projects**: Initialize standardized research project workspaces inside `workspaces/<project-slug>/`.
+1. **Scaffold Projects**: Initialize standardized research project workspaces inside `{WORKSPACE}/`.
 2. **Resolve Active Project**: Detect the active research project or prompt the user to choose or create one.
 3. **Enforce Canonical Tool Paths**: Direct all toolkit commands (`scholar-protocol`, `scholar-search`, `scholar-pdf`, `scholar-graph`, `scholar-rag`, etc.) to read from and write to the active project folder.
 4. **Maintain State & Manifests**: Efficiently update `project.json` stats, `protocol.json`, and `audit/journal.jsonl` as research progresses; record `GENESIS` (+ `recon_context` provenance sidecar for grounded inception) at protocol compile.
@@ -31,7 +34,7 @@ You are the central project orchestration agent for the Nexus Scholar Suite. You
 ```bash
 # Scaffold a new research project with automated INDEX.md.
 # `title` is positional (init_project.py:184); --slug/--paradigm/--rq verified below.
-uv run python .agents/skills/workspace-manager/scripts/init_project.py \
+{PY} {SKILL_DIR:workspace-manager}/scripts/init_project.py \
   "Multispectral Weed Segmentation in Agriculture" \
   --slug multispectral-weeds \
   --paradigm "Design Science" \
@@ -47,36 +50,36 @@ and `INDEX.md`; the remaining layout below appears via later pipeline stages.
 ### Log Events (Single & Batch)
 ```bash
 # Single event
-uv run python .agents/skills/workspace-manager/scripts/log_event.py multispectral-weeds \
+{PY} {SKILL_DIR:workspace-manager}/scripts/log_event.py multispectral-weeds \
   --action DISCOVERY_SEARCH \
   --agent scholar-search-kit \
   --description "Federated search across 5 query clusters" \
-  --outputs workspaces/multispectral-weeds/literature/raw_search.json
+  --outputs {WORKSPACE}/literature/raw_search.json
 
 # Batch events (efficient append to journal)
-uv run python .agents/skills/workspace-manager/scripts/batch_log.py multispectral-weeds --events-file events.jsonl
+{PY} {SKILL_DIR:workspace-manager}/scripts/batch_log.py multispectral-weeds --events-file events.jsonl
 ```
 
 ### Query Project State
 ```bash
 # Get current project stats
-uv run python .agents/skills/workspace-manager/scripts/query_project.py multispectral-weeds --stats
+{PY} {SKILL_DIR:workspace-manager}/scripts/query_project.py multispectral-weeds --stats
 
 # Retrieve event history (last N events)
-uv run python .agents/skills/workspace-manager/scripts/query_project.py multispectral-weeds --events --limit 10
+{PY} {SKILL_DIR:workspace-manager}/scripts/query_project.py multispectral-weeds --events --limit 10
 
 # Export audit trail for compliance
-uv run python .agents/skills/workspace-manager/scripts/query_project.py multispectral-weeds --audit-export audit_trail.json
+{PY} {SKILL_DIR:workspace-manager}/scripts/query_project.py multispectral-weeds --audit-export audit_trail.json
 ```
 
 ---
 
 ## Canonical Project Structure
 
-Every project in `workspaces/<project-slug>/` adheres to this layout:
+Every project in `{WORKSPACE}/` adheres to this layout:
 
 ```text
-workspaces/<project-slug>/
+{WORKSPACE}/
 ├── INDEX.md                   # Master human-readable index and status catalog
 ├── intent.json                # Socratic LLM intent packet
 ├── protocol.json              # Canonical deterministic research protocol contract
@@ -110,12 +113,12 @@ workspaces/<project-slug>/
 After executing any major step (Search, Dedup, Verify, Screen, PDF Download, Extraction, Graph, Matrix, Synthesis), log the action:
 
 ```bash
-uv run python .agents/skills/workspace-manager/scripts/log_event.py <project-slug> \
+{PY} {SKILL_DIR:workspace-manager}/scripts/log_event.py <project-slug> \
   --action DISCOVERY_SEARCH \
   --agent scholar-search-kit \
   --description "Federated search across 5 query clusters" \
-  --inputs workspaces/<PROJECT>/protocol.json \
-  --outputs workspaces/<PROJECT>/literature/raw_search.json \
+  --inputs {WORKSPACE}/protocol.json \
+  --outputs {WORKSPACE}/literature/raw_search.json \
   --status SUCCESS
 ```
 `log_event.py` has no `--metrics` CLI flag (verified `log_event.py --help`:
@@ -133,7 +136,7 @@ importable `workspace_manager` module — never hand-append to `journal.jsonl`.
 
 ```bash
 # Batch events from a JSONL file (one process, one append, one INDEX.md refresh)
-uv run python .agents/skills/workspace-manager/scripts/batch_log.py <project-slug> \
+{PY} {SKILL_DIR:workspace-manager}/scripts/batch_log.py <project-slug> \
   --events-file events.jsonl
 # events.jsonl = one event object per line (schema below); run <N> appends N rows
 ```
@@ -171,6 +174,26 @@ plus a bounded inline summary (direction, anchors, cache key, confidence). See
 - `references/audit_trace_spec.md` — journal schema, INDEX.md format.
 - `references/tool_routing_matrix.md` — workspace-relative tool paths.
 - `references/performance_concurrency.md` — batch-first throughput within committed flags.
-- `specs/inception-ecosystem/01_skill_boundaries.md`, `02_handoffs.md` — stack ownership + emission chain.
+
+## Preflight
+
+- `{WORKSPACE}` resolves: the target workspace contains `project.json` (and `audit/journal.jsonl` when logging); scaffold only under `{WORKSPACE}/`, never the repo root or kit folders.
+- Scripts resolve: `{SKILL_DIR:workspace-manager}/scripts/log_event.py`, `batch_log.py`, `query_project.py`, `init_project.py` (frontmatter declares no `requires`).
+- Known-broken gate (`batch_log.py`): the D1 defect noted above — use serial `log_event.py` calls; check the actual journal rows, never trust an exit code.
+
+## Refusals
+
+- No importable `workspace_manager` module — all writes go through `log_event.py`/`batch_log.py`; hand-appending to `journal.jsonl` is refused.
+- `batch_log.py` is inoperative today (unsupported `refresh_index=` passed to `log_project_event`); batch CLI flags are not evidence of execution — use serial events.
+- `--metrics` does not exist on `log_event.py` — metrics only via a `batch_log.py` events-file object or the Python `log_project_event(..., metrics={...})` kwarg (only keys already in `project.json` `stats` merge).
+- A workspace without a recorded `registered_workspace_id` is pre-registration and fails closed; a corrupt/non-conforming recorded id is a typed refusal, never silently re-minted.
+- Emission beyond the driver's confirmation gate (inception-agent Stage 6 / methodology-copilot pre-write check) is refused.
+
+## Pointers
+
+- `references/project_schema.md` — workspace identity (§1.1 `registered_workspace_id`).
+- `references/audit_trace_spec.md` §2 — event schema, INDEX.md format.
+- `references/tool_routing_matrix.md`, `references/performance_concurrency.md`.
+- Stack ownership + emission chain: `specs/inception-ecosystem/01_skill_boundaries.md`, `specs/inception-ecosystem/02_handoffs.md` (§2.1 confirmation gate, §2.2 `recon_context` provenance).
 
 > HCM-02/05 revisit note: human-capability-model refinements are out of scope for this refresh. This doc documents only the committed helper behavior above and does not anticipate HCM refactor behavior; revisit after the HCM packet lands.

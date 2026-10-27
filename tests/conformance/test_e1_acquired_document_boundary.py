@@ -464,9 +464,24 @@ def test_agent_skill_documents_declare_the_mcp_mechanism(doc: Path):
     assert "nexus_pdf_acquire" in text, f"{doc} does not name the registered tool"
 
 
+def _rendered_skill_body(doc: Path) -> str:
+    """Phase D helper: resolve the skill's placeholders under the dev preamble."""
+    from scholar_harness.skills_portability import (
+        Preamble,
+        parse_frontmatter,
+        render,
+    )
+
+    text = doc.read_text(encoding="utf-8")
+    _contract, body = parse_frontmatter(text, doc)
+    return render(body, Preamble.dev(repo_root=REPO_ROOT))
+
+
 @pytest.mark.parametrize("doc", PDF_SKILL_DOCS, ids=lambda p: p.name if p else "")
 def test_pdf_skill_documents_name_the_supported_alternatives(doc: Path):
-    text = doc.read_text(encoding="utf-8")
+    # Phase D (spec 03): skill sources carry only the ``{CLI:pdf}`` placeholder;
+    # the literal invocation is the dev-loop *rendering* of that placeholder.
+    text = _rendered_skill_body(doc)
     assert "scholar-pdf acquire" in text, f"{doc} does not name the CLI alternative"
     assert "scholar_pdf.acquisition" in text, f"{doc} does not name the API alternative"
 

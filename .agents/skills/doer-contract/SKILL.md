@@ -1,8 +1,11 @@
 ---
 name: doer-contract
-description: Execute one bounded scientific-workflow role and write one assigned artifact with schema validation, source anchoring, uncertainty handling, parent binding, and audit provenance. Use for screening, extraction, adjudication, verification, analysis, or reporting doers; do not use for critics.
+description: Perform exactly the assigned pipeline node. The task packet must name the workspace, role scope, immutable inputs, one owned output path, governing schema/profile, parent artifacts, validation command, and audit action. If any is missing, stop with `BLOCKED_INPUT`
+applies_to: [screener, extractor-a, extractor-b, adjudicator]
+variables: [SKILL_DIR]
+returns: prose
+layer: policy
 ---
-
 # Scientific Doer Contract
 
 Perform exactly the assigned pipeline node. The task packet must name the workspace, role scope, immutable inputs, one owned output path, governing schema/profile, parent artifacts, validation command, and audit action. If any is missing, stop with `BLOCKED_INPUT`.

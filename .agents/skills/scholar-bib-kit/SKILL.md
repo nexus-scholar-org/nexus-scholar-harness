@@ -1,8 +1,12 @@
 ---
 name: scholar-bib-kit
-description: Instructions for using the scholar-bib-kit Python API and CLI to parse, lint, merge, deduplicate, and resolve BibTeX bibliography databases.
+description: Bibliography parse, lint, merge, dedup, and DOI/reference resolution for BibTeX databases.
+applies_to: [inception-agent]
+requires: [scholar-bib]
+variables: [CLI, CONFIG, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-bib-kit` Skill Instructions
 
 You are the bibliographic management and BibTeX curation specialist of the Nexus Scholar Suite. Your role is to parse raw BibTeX databases, lint formatting and protect title capitalization with braces, merge disparate `.bib` files, deduplicate DOI/title duplicates, and enrich incomplete entries against the Crossref API.
@@ -23,33 +27,33 @@ You are the bibliographic management and BibTeX curation specialist of the Nexus
 
 ## CLI Usage
 
-All commands are executed via `uv run`:
+All commands are executed via `{CLI:bib}`:
 
 ### 1. Lint and Protect BibTeX Database
 ```bash
 # Lint database and wrap titles in braces (case protection, idempotent)
-uv run scholar-bib lint references.bib --output clean_references.bib
+{CLI:bib} lint references.bib --output clean_references.bib
 
 # Standardize citation keys to AuthorYear format
-uv run scholar-bib lint references.bib --generate-keys --output standardized.bib
+{CLI:bib} lint references.bib --generate-keys --output standardized.bib
 ```
 
 ### 2. Merge Multiple BibTeX Files
 ```bash
 # Merge multiple libraries and deduplicate automatically
-uv run scholar-bib merge library1.bib library2.bib library3.bib --output merged.bib
+{CLI:bib} merge library1.bib library2.bib library3.bib --output merged.bib
 ```
 
 ### 3. Deduplicate a Single BibTeX File
 ```bash
 # Deduplicate records by DOI and title similarity
-uv run scholar-bib dedup references.bib --output deduped.bib
+{CLI:bib} dedup references.bib --output deduped.bib
 ```
 
 ### 4. Resolve Incomplete Entries via Crossref API
 ```bash
 # Resolve missing metadata and DOIs against Crossref
-uv run scholar-bib resolve raw_entries.bib --output resolved.bib
+{CLI:bib} resolve raw_entries.bib --output resolved.bib
 ```
 
 ---
@@ -66,7 +70,7 @@ from scholar_bib.resolver import BibResolver
 
 async def main():
     # 1. Load BibTeX Library
-    library = BibParser.load(Path("workspaces/my-project/synthesis/references.bib"))
+    library = BibParser.load(Path("{WORKSPACE}/synthesis/references.bib"))
 
     # 2. Lint and format titles
     linted = BibLinter.lint(library, generate_keys=True)
@@ -79,7 +83,7 @@ async def main():
     await resolver.resolve_library(deduped)
 
     # 5. Save curated database
-    BibParser.save(deduped, Path("workspaces/my-project/synthesis/references.bib"))
+    BibParser.save(deduped, Path("{WORKSPACE}/synthesis/references.bib"))
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -96,7 +100,7 @@ if __name__ == "__main__":
 - **`nexus_bib_clean` (MCP) runs the full clean pipeline**: `BibLinter.lint(...,
   generate_keys=True)` then `BibDeduplicator.dedup(...)`, saved to the output path
   (still in-place by default) (`server.py:1051-1052`). It does **not** run Crossref
-  `resolve` — use `uv run scholar-bib resolve` / `BibResolver` for enrichment.
+  `resolve` — use `{CLI:bib} resolve` / `BibResolver` for enrichment.
 - **Dedup identity**: cleaned-DOI match first, then cleaned-title (`_clean_string`:
   lower + alnum-only, e.g. `attentionisallyouneed`); the survivor is the
   first occurrence with missing fields grafted onto it (`deduplicator.py:5-7,28-40`).
@@ -113,8 +117,20 @@ if __name__ == "__main__":
 ## Agent Guidelines & Best Practices
 
 - **Routing**: use MCP `nexus_bib_clean` for a quick in-place clean + keys + dedup; use
-  `uv run scholar-bib lint/merge/dedup` when you need `--output` control or `--no-dedup`;
-  use `uv run scholar-bib resolve` / `BibResolver` only when Crossref enrichment is needed
+  `{CLI:bib} lint/merge/dedup` when you need `--output` control or `--no-dedup`;
+  use `{CLI:bib} resolve` / `BibResolver` only when Crossref enrichment is needed
   (network-bound, slow, `print()`-noisy) — MCP clean never resolves.
 - **Companion References in RAG**: When indexing extracted literature with `scholar-rag-kit`, ensure the companion `references.bib` has been linted and deduplicated with `scholar-bib-kit` for clean metadata enrichment.
-- **Handoff to Workspace Exports**: Save curated project bibliographies to `workspaces/<project-slug>/synthesis/references.bib` or `workspaces/<project-slug>/exports/references.bib`.
+- **Handoff to Workspace Exports**: Save curated project bibliographies to `{WORKSPACE}/synthesis/references.bib` or `{WORKSPACE}/exports/references.bib`.
+
+## Preflight
+
+- `{CLI:bib} --help` succeeds → else `BLOCKED_INPUT`.
+- The input `.bib` files exist and `{WORKSPACE}` resolves (`{WORKSPACE}/synthesis/references.bib`, `{WORKSPACE}/exports/references.bib`); `lint`, `dedup` and `resolve` overwrite the input in place when `--output` is omitted.
+- `{CONFIG}` path — the pin manifest is the only place the kit revision is read; this file does not restate it.
+- `{CLI:bib} resolve` is network-bound (Crossref, polite pool 10/s); `lint`/`merge`/`dedup` are offline.
+
+## Refusals
+
+- `BLOCKED_INPUT` — required `.bib` input missing/unreadable, or `{WORKSPACE}` unresolved.
+- `PROVIDER_TRANSIENT` — Crossref is unreachable during `resolve`: the resolver swallows per-entry failures (`None`) and leaves entries unchanged; report enriched-so-far as unresolved, never as a complete enrichment.

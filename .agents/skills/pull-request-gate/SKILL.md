@@ -1,8 +1,10 @@
 ---
 name: pull-request-gate
-description: Enforce the fork + pull-request contribution gate for the Nexus Scholar Harness. Use whenever the user asks to git push, git commit, merge, branch, pull request, PR, push to origin/github, fork, or make (or ask to prepare / prepare and push) a change to the repo. Remembers the 2026-09-11 decision: all improvements ship through the personal fork and a PR to nexus-scholar-org/nexus-scholar-harness — never by direct push to origin.
+description: Direct pushes of feature/improvement branches to `origin` are **forbidden**
+variables: [PY, SKILL_DIR]
+returns: prose
+layer: policy
 ---
-
 # Pull-request-gate
 
 ## The decision (binding, 2026-09-11)
@@ -23,10 +25,10 @@ go through the fork+PR flow) may be pushed directly. Never bypass this gate.
 ## Non-negotiable rules
 
 1. **Never push a feature branch to `origin`.** Create the branch, commit, select
-   the required gate with `uv run python scripts/select_test_gate.py` per
+   the required gate with `{PY} scripts/select_test_gate.py` per
    `docs/architecture/test_gate_policy.md` (documentation-only changes take the
    light gate; executable changes keep their mapped or full suite), run the
-   selected commands (must pass) and `uv run ruff check scripts/`, then push to
+   selected commands (must pass) and `{PY} -m ruff check scripts/`, then push to
    `fork` and open a PR to `origin`.
 2. **Never force-push** to `origin`. If a history rewrite is essential, do it
    on the fork, never on the canonical repo.
@@ -41,9 +43,9 @@ go through the fork+PR flow) may be pushed directly. Never bypass this gate.
 git switch -c feat/your-improvement main
 
 # 2. Change + verify (gate selected per docs/architecture/test_gate_policy.md)
-uv run python scripts/select_test_gate.py --path <changed-file> --stage inner  # prints required commands
+{PY} scripts/select_test_gate.py --path <changed-file> --stage inner  # prints required commands
 <run the printed commands>  # must pass (light gate for prose-only, full suite for executable)
-uv run ruff check scripts/
+{PY} -m ruff check scripts/
 
 # 3. Commit to the branch
 git add <paths>

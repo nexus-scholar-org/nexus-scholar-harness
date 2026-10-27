@@ -1,15 +1,19 @@
 ---
 name: scholar-rag-kit
-description: Instructions for using scholar-rag-kit Python API and CLI for structural AST chunking, methodology tagging, hybrid graph-boosted retrieval, and grounded synthesis over scientific literature.
+description: Structural AST chunking, methodology tagging, hybrid graph-boosted retrieval, and grounded synthesis.
+applies_to: [extractor-a, extractor-b]
+requires: [scholar-rag]
+variables: [CLI, CONFIG, KIT_ROOT, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-rag-kit` Skill Instructions
 
 You are the retrieval-augmented generation and synthesis specialist of the Nexus Scholar Suite: you index extracted literature through the **typed E3 service**, run **hybrid graph-boosted retrieval**, and generate **grounded synthesis** with atomic citation tokens. Similarity scores are never verification.
 
 ## Pinned surface
 
-- Kit `scholar-rag-kit` **0.1.0** (`tools/scholar-rag-kit/pyproject.toml:7`), canonical rev `15a7a5a50a0394ed87b9b8b3c153081e10ec36ad` (vendored `tools/scholar-rag-kit/`, sync commit `45304e1`).
+- Kit `scholar-rag-kit` **0.1.0** ({KIT_ROOT:rag}/pyproject.toml:7); pin: see `{CONFIG}`; vendored snapshot `{KIT_ROOT:rag}/`.
 - Entrypoints: CLI `scholar-rag` (`index|query|synthesize|consensus|matrix|stats|extract`, `cli.py`); Python API `scholar_rag.index_service.index_workspace` (`index_service.py:752`) over `IndexServiceRequest` (`index_service.py:400`); MCP `nexus_rag_query` / `nexus_rag_synthesize` / `nexus_matrix_extract` only — **indexing has no MCP parity** (see Boundaries).
 - `scholar-protocol-kit` is a declared dependency (`pyproject.toml:33`), resolved from its pinned commit for `matrix.py`.
 
@@ -32,7 +36,7 @@ Read the ref for the task at hand; do not load all three by default.
 
 ```bash
 # Typed index: 1 positional + 10 required options, none minted or discovered
-uv run scholar-rag index extracted/ \
+{CLI:rag} index extracted/ \
   --parent-view <ws>/parent-view.json \
   --journal run-reports/rag-index.jsonl \
   --workspace-root <ws> \
@@ -44,17 +48,17 @@ uv run scholar-rag index extracted/ \
 # exits: 0 SUCCESS / 2 REFUSED / 3 PARTIAL / 4 FAILED (index_service.py:223)
 
 # Hybrid retrieval with sectional slicing and graph boost
-uv run scholar-rag query "<query>" --section-category methodology \
+{CLI:rag} query "<query>" --section-category methodology \
   --graph <ws>/literature/graph.json --alpha 0.25 --beta 0.15 --limit 5
 
 # Grounded synthesis (+ claim ledger for consensus)
-uv run scholar-rag synthesize "<research question>" --rq-id RQ1 \
+{CLI:rag} synthesize "<research question>" --rq-id RQ1 \
   --output <ws>/synthesis/literature_review.md \
   --output-claims <ws>/synthesis/claims.json
 
 # Protocol matrix (dynamic dims) or 7-dimension methodology matrix (no --protocol)
-uv run scholar-rag matrix --protocol <ws>/protocol.json --output-dir <ws>/literature/
-uv run scholar-rag consensus <ws>/synthesis/claims.json --rq-id RQ1 \
+{CLI:rag} matrix --protocol <ws>/protocol.json --output-dir <ws>/literature/
+{CLI:rag} consensus <ws>/synthesis/claims.json --rq-id RQ1 \
   --output-json <ws>/synthesis/consensus.json --output-md <ws>/synthesis/consensus.md
 ```
 
@@ -93,3 +97,22 @@ synthesis = GroundedSynthesisEngine(retriever=retriever).synthesize("...", rq_id
 - Shipped package `0.1.0`; golden `producer.version 0.2.0` is the producing-kit version stamped inside the frozen golden manifest bytes, not the installed version.
 - Status: E3 adopted (qualified closure with recorded debt; see docs/architecture/wp01/README.md and docs/architecture/wp01/README.md). Live harness rows (incl. `E3-POS-005` golden parity) proven; ledger completeness `MISSING == ()` (`tests/conformance/test_e3_index_lineage_boundary.py:2079,:2355`). Do not claim acceptance semantics this kit does not publish.
 - Auxiliary only (never the publication path): `NumpyBackend` (in-memory test backend), `LLMExtractor`/`PIIRedactor` and the `scholar-rag extract` command (Gemini `gemini-pro` extraction with heuristic fallback + PII redaction), and `gemini` embedding (`text-embedding-004`, 768-d). Details in refs; `index` has **no** `--api-key` flag.
+
+## Preflight
+
+- `{CLI:rag} --help` succeeds → else `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves: the typed index needs the extracted corpus (`{WORKSPACE}/extracted/`), the accepted parent view JSON, and an explicit journal path — never inferred; `query`/`synthesize` need an indexed corpus at an explicitly stated `{WORKSPACE}`-rooted Chroma store (`--db-path`, CWD-relative default), and `{WORKSPACE}/literature/graph.json` when boosting.
+- An indexed corpus exists: a successful E3 index run has already published its manifest sidecar and run report (audit journal / accepting adapter), which is a precondition for retrieval and synthesis.
+- `{CONFIG}` path — the pin manifest is the only place the kit revision is read ("Pinned surface" above).
+
+## Refusals
+
+- `BLOCKED_INPUT` — extracted corpus, accepted parent view, or journal missing: the typed run exits `2` (`REFUSED`) with a closed-vocabulary code; the agent layer reports `BLOCKED_INPUT`, never infers the missing input.
+- `REFUSED_UNSUPPORTED` (E1/E2/E3) — MCP `nexus_rag_index` is declared unsupported (`rag_indexing`, `mcp_supported: false`); every call returns zero I/O with one non-retryable `UNSUPPORTED_CAPABILITY` error. Use the `index` CLI or the `index_workspace` API.
+- `PROVIDER_TRANSIENT` — embedder/provider failure is never an empty successful result.
+
+## Pointers
+
+- `{SKILL_DIR:scholar-rag-kit}/references/typed_index.md` — indexing flags, request assembly, exits, journal rule, manifest + R1–R7.
+- `{SKILL_DIR:scholar-rag-kit}/references/retrieval_synthesis.md` — `query` / `synthesize` / `consensus` / `matrix` / `stats`, hybrid formula, citation tokens.
+- `{SKILL_DIR:scholar-rag-kit}/references/mcp_and_boundaries.md` — MCP availability, declared-unsupported envelope, audit events, legacy-vs-current, identity rules.

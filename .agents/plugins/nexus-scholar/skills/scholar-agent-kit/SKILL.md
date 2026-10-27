@@ -1,27 +1,41 @@
 ---
 name: scholar-agent-kit
-description: Instructions for using the scholar-agent-kit MCP front-door (25 tools at pinned rev 79ffe42): discovery, screening, non-authoritative PDF convenience, retrieval/synthesis, graph, verification, recon — plus the three declared-unsupported refusals (E1/E2/E3) and path/return conventions.
+description: The MCP front-door to the eight kit CLIs: discovery, screening hand-off, retrieval, verification, and recon — with declared-unsupported refusals.
+applies_to: [orchestrator, inception-agent]
+requires: [scholar-agent]
+variables: [CACHE, CLI, CONFIG, KIT_ROOT, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-agent-kit` Skill Instructions
 
 MCP front-door for most Nexus Scholar surfaces — **not** every API/CLI capability.
 25 tools: 22 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 25 registered tools; parity
 enforced by `tests/conformance/test_mcp_tool_parity.py`). Pinned source:
-`tools/scholar-agent-kit/src/scholar_agent/server.py` (tool list/signatures,
-`_resolve_path`, refusals) + `capabilities.py` (registry) at kit rev
-`79ffe421dfea2a2b6e4c02fdff651e6d23ce9b92` (`plugins.json`). Detail pointers
-below route to `--help`, the surface matrix, and those two files — this page
-stays the small-footprint entrypoint.
+`{KIT_ROOT:agent}/src/scholar_agent/server.py` (tool list/signatures,
+`_resolve_path`, refusals) + `capabilities.py` (registry; pin: see `{CONFIG}`).
+Detail pointers below route to `--help`, the surface matrix, and those two
+files — this page stays the small-footprint entrypoint.
+
+## Preflight
+- `MCP nexus_*` availability, or `{CLI:agent} --help` resolves (lists all 25 registered tools) → else `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves — `protocol.json`/`project.json` where the tools require workspace input; `literature/extraction/merged/records.json` + `phase4/_manifest.json` for #19/#20.
+- `{CONFIG}` present (the pin manifest).
+
+## Refusals
+- `E1` / `E2` / `E3` declared-unsupported refusals (§3): JSON envelope with `code="UNSUPPORTED_CAPABILITY"`, `status="FAILED"`, `retryable=false`.
+
+## Pointers
+- `docs/kits_surface_matrix.md` (agent-kit section, E1/E2/E3 boundaries).
 
 ## 1. Launch & path anchoring
 
 ```bash
-uv run --directory tools/scholar-agent-kit scholar-agent [--workspace <ws>]
-uv run --directory tools/scholar-agent-kit scholar-agent --help  # lists all 25 registered tools
+{CLI:agent} [--workspace <ws>]
+{CLI:agent} --help  # lists all 25 registered tools
 ```
 
-- Server CWD is `tools/scholar-agent-kit/`; `mcp_config.json` ships no `env`/cwd.
+- Server CWD is `{KIT_ROOT:agent}/`; `mcp_config.json` ships no `env`/cwd.
 - Relative file/dir args are anchored by `_resolve_path` (`server.py:255`) to
   `NEXUS_MCP_WORKSPACE` when set, else the harness repo root (nearest `.git`
   ancestor) — **not** the kit checkout. Absolute paths and inline-JSON payloads
@@ -88,13 +102,13 @@ claim. The envelope is operation-envelope vocabulary, **not** a Contract v1
 
 - **E1 — `nexus_pdf_acquire`** (`pdf_acquisition`, `mcp_supported=false`, owner
   `nexus-scholar-org/scholar-pdf-kit`): every call →
-  `operation="acquire_pdf"` refusal. Use instead: `uv run scholar-pdf acquire
+  `operation="acquire_pdf"` refusal. Use instead: `{CLI:pdf} acquire
   <config.json> --audit-logger <path-to-log_event.py>` CLI or the
   `scholar_pdf.acquisition` Python API (same PDF-kit domain service).
 - **E2 — `nexus_pdf_extraction`** (`pdf_extraction`, `mcp_supported=false`,
   owner `nexus-scholar-org/scholar-pdf-kit`; separate from E1, neither broadens
   it): every call → `operation="extract_pdf"` refusal, before any engine
-  import/read/write. Use instead: `uv run scholar-pdf extract-run <config.json>
+  import/read/write. Use instead: `{CLI:pdf} extract-run <config.json>
   --audit-logger <path-to-log_event.py>` CLI or the
   `scholar_pdf.extraction.PDFExtractionService` API. The legacy
   `scholar-pdf extract` / `scholar_pdf.extract` path is explicitly
@@ -105,7 +119,7 @@ claim. The envelope is operation-envelope vocabulary, **not** a Contract v1
   directory read, or filesystem/audit I/O. The retired path (hard-coded
   CWD-relative `db_path`, silent `project.json` identity substitution, no
   parent/embedder/`PARTIAL`, free text) was non-authoritative and is removed,
-  not kept. Use instead: the T-90 `uv run scholar-rag index <docs_path>
+  not kept. Use instead: the T-90 `{CLI:rag} index <docs_path>
   --parent-view … --journal … --workspace-root … --run-id … --created-at …
   --producer-version … --producer-commit … --embedder-provider …
   --embedder-model … --embedder-dimension …` CLI or the
@@ -141,10 +155,9 @@ Conformance: `test_e1_acquired_document_boundary.py`,
   front-door. Interactive terminal or a known-broken MCP path → the direct kit
   CLIs (`scholar-search`, `scholar-pdf`, `scholar-rag`, `scholar-graph`,
   `scholar-verify`, `scholar-protocol`).
-- **Direct CLI fallbacks**: `uv run scholar-graph build --input
-  <ws>/literature/included.json` (real client, same as #15 builds); `uv run
-  scholar-bib lint --generate-keys` + `dedup`/`merge --dedup` for the full bib
-  pipeline behind #16; `uv run scholar-verify <stream> --workspace <ws>` mirrors #19.
+- **Direct CLI fallbacks**: `{CLI:graph} build --input
+  <ws>/literature/included.json` (real client, same as #15 builds); `{CLI:bib} lint --generate-keys` + `dedup`/`merge --dedup` for the full bib
+  pipeline behind #16; `{CLI:verify} <stream> --workspace <ws>` mirrors #19.
 - **Screening contract**: #6/#7 are heuristic/LLM-checklist screening that
   persist the 5 PRISMA files; the harness agent-in-the-loop batch handoff
   (`agent_screen.py` `batch_NNN.json` → `batch_NNN_decisions.json`) is a
@@ -158,7 +171,7 @@ Conformance: `test_e1_acquired_document_boundary.py`,
 - Sources: `server.py` tool defs/docstrings (signatures above), `capabilities.py`
   registry + rejection messages, `scholar-agent --help` (25-line registry),
   `docs/kits_surface_matrix.md` (agent-kit section, E1/E2/E3 boundaries,
-  findings 1–10), `plugins.json` pin `79ffe42…`.
+  findings 1–10), pin: see `{CONFIG}`.
 - Limits kept, not erased: only `retraction` hits the network (#19);
   per-provider search exceptions are swallowed (empty ≠ error); `consensus`
   verdicts count studies; `scholar-verify-kit` is an undeclared MCP-side dep

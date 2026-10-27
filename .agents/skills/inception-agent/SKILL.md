@@ -1,11 +1,15 @@
 ---
 name: inception-agent
-description: Runs the Grounded Exploratory Inception Agent interactively in opencode chat. Probes the academic literature, distills a grounded taxonomy, proposes DOI-anchored research directions, checks gaps for saturation, and emits a scoped research protocol + workspace. Use when the user wants to start a literature-grounded research project or scope/refine a topic conversationally ("start a grounded inception", "I want to research X with literature grounding", "probe and scope my idea", "grounded wizard").
+description: Grounded exploratory inception: probe the literature, distill directions, and scaffold a protocol-bound workspace.
+applies_to: [inception-agent]
+requires: [scholar-agent]
+variables: [CACHE, CLI, CONFIG, KIT_ROOT, PY, SKILL_DIR, WORKSPACE]
+returns: prose
+layer: procedure
 ---
-
 # `inception-agent` Skill Instructions
 
-You run the **Grounded Exploratory Inception Agent** as a chat conversation. You are the interviewer: instead of the interactive terminal wizard (`uv run scholar-harness inception --grounded`), you drive the same lifecycle — probe → distill → propose anchored directions → refine (gap check) → validate → emit — turn by turn in opencode, so the human steers everything and nothing is emitted without their explicit approval.
+You run the **Grounded Exploratory Inception Agent** as a chat conversation. You are the interviewer: instead of the interactive terminal wizard (`{CLI:harness} inception --grounded`), you drive the same lifecycle — probe → distill → propose anchored directions → refine (gap check) → validate → emit — turn by turn in opencode, so the human steers everything and nothing is emitted without their explicit approval.
 
 This is **not** a re-implementation. You reuse the real machinery:
 
@@ -45,13 +49,13 @@ Ask, in chat (only what's not already obvious):
 recon_probe(topic="<STAGE1.topic>", semantic=True, start_year=<year>, limit=10)
 ```
 
-Signature (server surface only): `topic` required; `session_id` optional (omit for a new `rec_<hex>` session, pass back to extend); `start_year` default 2020; `limit` default 10 (pool capped at 25); `semantic` default False. Report to the user: `session_id`, `cache_key` (lineage; note the `/m/semantic/` segment if semantic), `pool_path`, `n_docs`. If a provider rate-limits, the engine degrades gracefully — say so, don't treat it as failure. If `status:"error"` is returned, echo the message and ask the user to refine the topic. Record the recon root actually used in the `recon_context` lineage so a later audit can find the session. Legacy sessions may exist under `tools/scholar-agent-kit/.cache/inception_recon` from before the root fix; treat them as stale.
+Signature (server surface only): `topic` required; `session_id` optional (omit for a new `rec_<hex>` session, pass back to extend); `start_year` default 2020; `limit` default 10 (pool capped at 25); `semantic` default False. Report to the user: `session_id`, `cache_key` (lineage; note the `/m/semantic/` segment if semantic), `pool_path`, `n_docs`. If a provider rate-limits, the engine degrades gracefully — say so, don't treat it as failure. If `status:"error"` is returned, echo the message and ask the user to refine the topic. Record the recon root actually used in the `recon_context` lineage so a later audit can find the session. Legacy sessions may exist under `{KIT_ROOT:agent}/.cache/inception_recon` from before the root fix; treat them as stale.
 
 ### Stage 3 — Distill + grounded directions (parity helper)
 
 ```text
 recon_distill(session_id="<STAGE2.session_id>")
-uv run python .agents/skills/inception-agent/scripts/grounded_directions.py \
+{PY} {SKILL_DIR:inception-agent}/scripts/grounded_directions.py \
   --terms <terms_path> --topic "<STAGE1.topic>" --pool <STAGE2.pool_path>
 ```
 
@@ -100,19 +104,19 @@ Then emit **only after the user's explicit confirmation** (ask, mirroring the wi
 ```bash
 # 1. Scaffold the workspace (workspace-manager). Title is positional;
 #    slug/description/paradigm/rq/keyword/root stay optional flags.
-uv run python .agents/skills/workspace-manager/scripts/init_project.py \
+{PY} {SKILL_DIR:workspace-manager}/scripts/init_project.py \
   "<Title>" --slug <project-slug> \
   --paradigm "<Paradigm>" --rq "RQ1: <Q1>" --rq "RQ2: <Q2>"
 
 # 2. intent.json (methodology-copilot IntentPacket schema)
 #    GENESIS logs recon_context as a provenance sidecar + bounded inline summary (step 4)
 # 3. Compile + render canonical artifacts (both print to STDOUT, redirect to persist)
-uv run scholar-protocol compile workspaces/<slug>/intent.json > workspaces/<slug>/protocol.json
-uv run scholar-protocol render-criteria workspaces/<slug>/protocol.json > workspaces/<slug>/SCREENING_CRITERIA.md
+{CLI:protocol} compile {WORKSPACE}/intent.json > {WORKSPACE}/protocol.json
+{CLI:protocol} render-criteria {WORKSPACE}/protocol.json > {WORKSPACE}/SCREENING_CRITERIA.md
 
 # 4. Audit ledger (hard convention): GENESIS with recon_context.
 #    The CLI takes the slug positionally plus action/agent/description/outputs/status flags.
-uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> \
+{PY} {SKILL_DIR:workspace-manager}/scripts/log_event.py <slug> \
   --action GENESIS --agent scholar-harness/inception --status SUCCESS \
   --description "<description> recon_context={bounded summary json}" \
   --outputs audit/recon_context.json protocol.json SCREENING_CRITERIA.md
@@ -122,7 +126,7 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> \
 
 **`recon_context` (must be in the GENESIS event):** take the helper's `recon_context` (`anchor_dois`, `direction`, `concept`, `default_concepts`, `anchored_terms`) and add the session lineage from the MCP replies: `session_id`, `cache_keys` (all probe/distill keys), `pool_sizes` (all pool sizes).
 
-**Write path (Windows argv safety):** write the **full** `recon_context` verbatim to `workspaces/<slug>/audit/recon_context.json` — that sidecar is the provenance of record and goes in `--outputs`. Embed only a **bounded inline summary** in the `--description` (`session_id`, `cache_keys`, `pool_sizes`, `direction`, `concept`, `anchor_dois`, `default_concepts`, `anchored_term_count`, `provenance_file`). Never embed the raw dict in the argv — a rich pool's anchored-term map is hundreds of entries and overflows the Windows command line; `log_genesis` in `src/scholar_harness/inception/genesis.py` implements exactly this contract (50-per-list inline cap from `display._bounded`, full dict on disk). Only emit when the workspace is scaffolded; if the user declines or wants a dry run, write nothing and say so.
+**Write path (Windows argv safety):** write the **full** `recon_context` verbatim to `{WORKSPACE}/audit/recon_context.json` — that sidecar is the provenance of record and goes in `--outputs`. Embed only a **bounded inline summary** in the `--description` (`session_id`, `cache_keys`, `pool_sizes`, `direction`, `concept`, `anchor_dois`, `default_concepts`, `anchored_term_count`, `provenance_file`). Never embed the raw dict in the argv — a rich pool's anchored-term map is hundreds of entries and overflows the Windows command line; `log_genesis` in `src/scholar_harness/inception/genesis.py` implements exactly this contract (50-per-list inline cap from `display._bounded`, full dict on disk). Only emit when the workspace is scaffolded; if the user declines or wants a dry run, write nothing and say so.
 
 ---
 
@@ -131,13 +135,13 @@ uv run python .agents/skills/workspace-manager/scripts/log_event.py <slug> \
 1. **Anchoring** — every proposal, `core_concept`, and `synonym` carries real evidence (≥ 2 anchor DOIs for a direction; ≥ 1 DOI for a concept/synonym before compiling). No evidence → no concept. If nothing anchors, tell the user plainly (the wizard hard-aborts; you explain instead).
 2. **Human gate** — emission (workspace scaffold, intent, protocol, GENESIS) happens only after the user confirms in chat. Interactive default stays intact.
 3. **Byte-identical discipline** — you only run this flow when the user asks for grounded inception; you never change default-facing behavior of the CLIs/MCP tools.
-4. **Placement** — all project output under `workspaces/<slug>/`; recon state under the canonical `.cache/inception_recon/` root (gitignored; `NEXUS_RECON_ROOT` override, repo-anchored default — never launch-dependent). Never dump into the repo root or `tools/`.
+4. **Placement** — all project output under `{WORKSPACE}/`; recon state under the canonical `.cache/inception_recon/` root (gitignored; `NEXUS_RECON_ROOT` override, repo-anchored default — never launch-dependent). Never dump into the repo root or any kit install tree.
 5. **Audit trail** — GENESIS (with `recon_context`: full provenance sidecar `audit/recon_context.json` + bounded inline summary) is mandatory and records only work actually done; log intermediate probes/distills only as generic ledger entries when the user wants the full ledger. Generic entries never substitute for the GENESIS publication event and never imply acceptance.
 6. **Tools first** — prefer the MCP recon tools and the parity helper over computing taxonomy scoring by hand or re-deriving wizard logic.
 
 ## Tooling fallback
 
-If the MCP recon tools are unavailable in the session, fall back to the headless CLI seam (same engine): `uv run scholar-harness inception --grounded --auto-select` (best/only direction) or `--direction-id <N>` (specific 1-based direction) — deterministic, cached, no blocked prompts. `--root` selects the repo root; `--no-scaffold` runs the interview with no writes. Read its output back into the chat conversation.
+If the MCP recon tools are unavailable in the session, fall back to the headless CLI seam (same engine): `{CLI:harness} inception --grounded --auto-select` (best/only direction) or `--direction-id <N>` (specific 1-based direction) — deterministic, cached, no blocked prompts. `--root` selects the repo root; `--no-scaffold` runs the interview with no writes. Read its output back into the chat conversation.
 
 ## HCM revisit note
 
@@ -148,9 +152,29 @@ This skill describes the committed interfaces only. HCM-02 must revisit the Stag
 - Wizard lifecycle: `src/scholar_harness/inception/wizard.py` (`run_wizard`, `inception_command`, `init_command`).
 - Grounded recon + anchors: `src/scholar_harness/inception/grounded.py` (`_run_grounded_recon`, `_grounded_directions_for_terms`, `_grounded_default_concepts`, `_enforce_grounded_anchors`).
 - Emission + identity: `src/scholar_harness/inception/genesis.py` (`scaffold_project`, `compile_protocol_files`, `log_genesis`, `mint_registered_workspace_id`, `recorded_or_minted_workspace_id`); inline cap `display._INLINE_LIST_CAP` (50).
-- Parity helper CLI: `.agents/skills/inception-agent/scripts/grounded_directions.py` (`--terms` + `--topic` required; `--pool`, `--direction`, `--max-default-concepts` optional).
-- Emission CLIs: `.agents/skills/workspace-manager/scripts/init_project.py` (positional title; `--slug/--description/--paradigm/--rq/--keyword/--root` optional); `.agents/skills/workspace-manager/scripts/log_event.py` (positional project; `--action/--agent/--description/--inputs/--outputs/--status`; the metrics field is a Python keyword argument only).
-- Protocol CLIs: `tools/scholar-protocol-kit/src/scholar_protocol/cli.py` (`compile <intent>`, `render-criteria <protocol>`, both positional-input plus stdout).
+- Parity helper CLI: `{SKILL_DIR:inception-agent}/scripts/grounded_directions.py` (`--terms` + `--topic` required; `--pool`, `--direction`, `--max-default-concepts` optional).
+- Emission CLIs: `{SKILL_DIR:workspace-manager}/scripts/init_project.py` (positional title; `--slug/--description/--paradigm/--rq/--keyword/--root` optional); `{SKILL_DIR:workspace-manager}/scripts/log_event.py` (positional project; `--action/--agent/--description/--inputs/--outputs/--status`; the metrics field is a Python keyword argument only).
+- Protocol CLIs: `{KIT_ROOT:protocol}/src/scholar_protocol/cli.py` (`compile <intent>`, `render-criteria <protocol>`, both positional-input plus stdout).
+
+## Preflight
+
+- `{CLI:agent} --help` succeeds (frontmatter `requires: [scholar-agent]`); otherwise stop with `BLOCKED_INPUT`.
+- The MCP recon tools (`recon_probe`, `recon_distill`, `recon_delta`) are callable in this session; if not, the headless fallback is `{CLI:harness} inception --grounded`.
+- The parity helper resolves: `{SKILL_DIR:inception-agent}/scripts/grounded_directions.py`.
+- Emission CLIs resolve: `{SKILL_DIR:workspace-manager}/scripts/init_project.py` and `log_event.py`.
+- `{WORKSPACE}` resolves before emission (the scaffold mints `project.json`; `protocol.json` is compiled from `{WORKSPACE}/intent.json` at Stage 6).
+
+## Refusals
+
+- `recon_probe` returns `status:"error"` → echo the message and ask the user to refine the topic (no typed code surfaces at this seam).
+- Provider rate-limiting degrades gracefully — a degradation signal, not a refusal or failure.
+- `--direction "<validated label>"` not matching a proposed direction exactly → the parity helper exits 2; re-run with an exact label.
+- No ≥ 2-anchor direction / no anchors for a concept → the wizard hard-aborts and emission is refused; explain in chat instead of inventing concepts.
+- User declines emission or wants a dry run → nothing is written (human gate).
+- Missing `requires` (unresolvable `{CLI:agent}`) in preflight → `BLOCKED_INPUT`.
+
+## Pointers
+
 - Evaluation gates (pool sufficiency, purity, saturation): `specs/exploratory-grounding-agent/13_evaluation.md`.
 - Agent loops + seams: `specs/exploratory-grounding-agent/14_agent_loops.md`.
-- Classic interview/intent packet: `.agents/skills/methodology-copilot/SKILL.md`.
+- Classic interview/intent packet: `{SKILL_DIR:methodology-copilot}/SKILL.md`.
