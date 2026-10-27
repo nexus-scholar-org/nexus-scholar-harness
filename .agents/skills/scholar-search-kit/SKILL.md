@@ -1,11 +1,32 @@
 ---
 name: scholar-search-kit
-description: Instructions for using the scholar-search-kit Python API and CLI to search, snowball, verify, deduplicate, screen, and export academic literature across OpenAlex, Semantic Scholar, Crossref, PubMed, arXiv, and bioRxiv.
+description: Federated academic search, deduplication, verification, screening batches, and export across OpenAlex, Crossref, PubMed, arXiv, and bioRxiv.
+applies_to: [screener, inception-agent]
+requires: [scholar-search]
+variables: [CACHE, CLI, CONFIG, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-search-kit` Skill Instructions
 
 You are an expert academic research agent equipped with `scholar-search-kit`. This toolkit is the discovery, deduplication, verification, and screening backbone of the Nexus Scholar Suite.
+
+## Preflight
+- `{CLI:search} --help` resolves → else `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves — `protocol.json` for `--protocol`/screening commands; `literature/…` for export and handoff artifacts.
+- `{CONFIG}` present (the pin manifest).
+- `SCHOLAR_MAILTO` set (polite pool); `GEMINI_API_KEY` needed for `nexus_screen_llm` (`LLMBatchScreener`).
+
+## Refusals
+- `BLOCKED_INPUT` — a preflight requirement is missing (e.g. `protocol.json` absent where `--protocol` is required).
+- `PROVIDER_TRANSIENT` — a provider could not be reached/rate-limited/timed out before results; retryable (per-provider empty results are a valid outcome, not this code).
+- `CRITERIA_HASH_MISMATCH` — screening `criteria_sha256` ≠ protocol fingerprint.
+- `BATCH_INCOMPLETE` — decision coverage < 100%.
+- `BATCH_ID_MISMATCH` — `batch_id` disagrees between batch and decisions.
+
+## Pointers
+- `docs/kits_surface_matrix.md` (search-kit section).
+- `references/providers.md`, `references/search_and_snowballing.md`, `references/verification_and_dedup.md`, `references/io_and_pipeline.md` (see Task routing below).
 
 ## Core Capabilities
 1. **Protocol-Driven Federated Academic Search**: Compiles `protocol.json.search_strategy` into targeted queries across `OpenAlex`, `Semantic Scholar`, `Crossref`, `PubMed`, `arXiv`, and `bioRxiv`.
@@ -19,46 +40,46 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 
 ## Quick CLI Cheat-Sheet
 
-All commands should be run within the project context via `uv run`:
+All commands should use the `{CLI:search}` placeholders below (preflight: `{CLI:search} --help` must resolve):
 
 ```bash
 # 1. Search Literature (Protocol-Driven or Query String)
-uv run scholar-search search --protocol workspaces/<project-slug>/protocol.json --output raw_search.json
-uv run scholar-search search "transformer attention mechanism" --limit 30 --output results.json
+{CLI:search} search --protocol {WORKSPACE}/protocol.json --output raw_search.json
+{CLI:search} search "transformer attention mechanism" --limit 30 --output results.json
 
 # 2. 2-Tier Deduplication & Canonical Workspace ID Assignment
 # (dedup takes a positional input file and only --output/--format — no --export/--csv-output)
-uv run scholar-search dedup raw_search.json --output deduped.json
+{CLI:search} dedup raw_search.json --output deduped.json
 
 # 3. Verify Authenticity & Hydrate Rich Abstracts
-uv run scholar-search verify deduped.json --output verified.json --enrich
+{CLI:search} verify deduped.json --output verified.json --enrich
 
 # 4. PRISMA 2020 Systematic Screening
-uv run scholar-search screen \
+{CLI:search} screen \
   --input verified.json \
-  --protocol workspaces/<project-slug>/protocol.json \
-  --output-dir workspaces/<project-slug>/literature/
+  --protocol {WORKSPACE}/protocol.json \
+  --output-dir {WORKSPACE}/literature/
 
 # 5. Citation Snowballing (Forward = Citing Papers, Backward = References)
-uv run scholar-search snowball W2741809807 --provider openalex --direction forward --output citing.json
-uv run scholar-search snowball W2741809807 --provider openalex --direction backward --output references.json
+{CLI:search} snowball W2741809807 --provider openalex --direction forward --output citing.json
+{CLI:search} snowball W2741809807 --provider openalex --direction backward --output references.json
 # Multi-hop BFS chaining: traverse references FORWARD (citing) and/or BACKWARD (references) up to --depth N
-uv run scholar-search chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward --direction forward --output chain.json --edges-output chain_edges.json
+{CLI:search} chain W2741809807 W290382718 --provider openalex --depth 2 --direction backward --direction forward --output chain.json --edges-output chain_edges.json
 
 # 6. Export for Reference Managers (export takes INPUT + OUTPUT positionals — no --output flag)
-uv run scholar-search export results.json results.ris --format ris
+{CLI:search} export results.json results.ris --format ris
 
 # 7. Export to CSV / JSONL
-uv run scholar-search export results.json results.csv --format csv
-uv run scholar-search export results.json results.jsonl --format jsonl
+{CLI:search} export results.json results.csv --format csv
+{CLI:search} export results.json results.jsonl --format jsonl
 
 # 8. Compare Screening Runs
-uv run scholar-search screen-compare run_a.json run_b.json
-uv run scholar-search screen-compare run_a.json run_b.json -o report.md
+{CLI:search} screen-compare run_a.json run_b.json
+{CLI:search} screen-compare run_a.json run_b.json -o report.md
 
 # 9. Validate Search Query Recall
-uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
-uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
+{CLI:search} validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
+{CLI:search} validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
 ```
 
 ### RIS Export
@@ -90,8 +111,8 @@ no `--output` flag. Do not invent one.
 Compare two screening runs for inter-rater reliability.
 
 ```bash
-uv run scholar-search screen-compare run_a.json run_b.json
-uv run scholar-search screen-compare run_a.json run_b.json -o report.md
+{CLI:search} screen-compare run_a.json run_b.json
+{CLI:search} screen-compare run_a.json run_b.json -o report.md
 ```
 
 **Output:** Markdown report with agreement rate, transition matrix, and discrepancies.
@@ -101,8 +122,8 @@ uv run scholar-search screen-compare run_a.json run_b.json -o report.md
 Validate search query recall against golden seed DOIs.
 
 ```bash
-uv run scholar-search validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
-uv run scholar-search validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
+{CLI:search} validate-query "machine learning" --seed 10.1000/test1 --seed 10.1000/test2
+{CLI:search} validate-query "NLP" --seed 10.1000/a --seed 10.1000/b -o results.json
 ```
 
 **Options:**
@@ -140,7 +161,7 @@ from scholar_search.screening import evaluate_heuristic_screening, partition_scr
 
 async def main():
     # 1. Compile Query from Protocol
-    query, providers = compile_protocol_search(Path("workspaces/my-project/protocol.json"))
+    query, providers = compile_protocol_search(Path("{WORKSPACE}/protocol.json"))
 
     # 2. Federated Search Across Academic Providers (Async)
     # NOTE: compile_protocol_search returns provider NAME strings, but
@@ -173,7 +194,7 @@ async def main():
 
     # 5. Export for downstream PDF harvesting and graph building
     exporter = Exporter()
-    exporter.json(processed_docs, "workspaces/my-project/literature/verified.json")
+    exporter.json(processed_docs, "{WORKSPACE}/literature/verified.json")
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,19 +1,23 @@
 ---
 name: scholar-verify-kit
-description: Instructions for using the scholar-verify-kit Python API and CLI to verify corpus trustworthiness — retraction status (OpenAlex/Crossref), open-science DAS/CAS artifact scanning, conflict-of-interest audit aggregation, and deterministic QUADAS-2/PROBAST risk-of-bias scoring.
+description: Retraction status, open-science DAS/CAS scanning, COI audit, and QUADAS-2/PROBAST risk-of-bias scoring.
+applies_to: [extraction-critic]
+requires: [scholar-verify]
+variables: [CLI, CONFIG, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-verify-kit` Skill Instructions
 
 You are the post-screening trust-verification specialist of the Nexus Scholar Suite. After a corpus is screened and extracted, your role is to certify that the evidence base feeding a synthesis is safe to quote: no retracted records, reproducible data/code where claimed, conflicts of interest surfaced, and reporting/verifiability risk scored per study.
 
-> Verified against pinned `scholar-verify-kit` `44a8d63cc0a11694bbcb7a355a53f73c3f93145c` (`plugins.json` `default_rev`) and `docs/kits_surface_matrix.md` verify rows + findings 6/10/11 (resolved bridge, Phase-4 MCP, CLI import fix). See that matrix for the full API↔CLI↔MCP map; this file is the operational subset.
+> Verified against pinned `scholar-verify-kit` (pin: see `{CONFIG}`) and `docs/kits_surface_matrix.md` verify rows + findings 6/10/11 (resolved bridge, Phase-4 MCP, CLI import fix). See that matrix for the full API↔CLI↔MCP map; this file is the operational subset.
 
 ## Routing — choose the surface first
 
 | Task | Use |
 | :--- | :--- |
-| Workspace run that persists `phase4/*.json\|.md` | CLI `uv run scholar-verify <stream> --workspace <ws>` |
+| Workspace run that persists `phase4/*.json\|.md` | CLI `{CLI:verify} <stream> --workspace <ws>` |
 | Hermetic join / import in Python | `scholar_verify` APIs (same functions the CLI calls) |
 | Agent front-door (no shell) | MCP `nexus_verify_claims` / `nexus_verify_phase4` / `nexus_critique_methodology` |
 | Full map, failure modes, cross-kit contracts | `docs/kits_surface_matrix.md` verify section |
@@ -31,18 +35,18 @@ You are the post-screening trust-verification specialist of the Nexus Scholar Su
 ## CLI Usage
 
 ```bash
-uv run scholar-verify retraction --workspace workspaces/<project-slug>        # network (OpenAlex + Crossref); needs literature/included.json
-uv run scholar-verify retraction --workspace <ws> --dry-run                  # validate plumbing only
-uv run scholar-verify open-science --workspace workspaces/<project-slug>      # needs literature/extraction/merged/records.json + extracted/*.md
-uv run scholar-verify coi --workspace workspaces/<project-slug>               # needs phase4/_manifest.json + phase4/_agent_results/coi_chunk_*.json
-uv run scholar-verify risk-of-bias --workspace workspaces/<project-slug>      # needs records.json + phase4/_manifest.json
-uv run scholar-verify all --workspace workspaces/<project-slug> --skip-retraction   # 4 core streams, offline
-uv run scholar-verify trust-context --workspace workspaces/<project-slug>  # annotate synthesis/consensus.json with Phase-4 context (hermetic)
-uv run scholar-verify trust-context --workspace workspaces/<project-slug> --rq-id RQ1  # scope to clusters whose claims belong to RQ1 (writes trust_consensus_RQ1.json/.md)
-uv run scholar-verify verbatim-claims \
-  --claims workspaces/<project-slug>/synthesis/claims.json \
-  --extracted workspaces/<project-slug>/extracted/ \
-  --output workspaces/<project-slug>/phase4/verbatim_claims.json    # verbatim quote verification (threshold 0.90)
+{CLI:verify} retraction --workspace {WORKSPACE}        # network (OpenAlex + Crossref); needs literature/included.json
+{CLI:verify} retraction --workspace <ws> --dry-run                  # validate plumbing only
+{CLI:verify} open-science --workspace {WORKSPACE}      # needs literature/extraction/merged/records.json + extracted/*.md
+{CLI:verify} coi --workspace {WORKSPACE}               # needs phase4/_manifest.json + phase4/_agent_results/coi_chunk_*.json
+{CLI:verify} risk-of-bias --workspace {WORKSPACE}      # needs records.json + phase4/_manifest.json
+{CLI:verify} all --workspace {WORKSPACE} --skip-retraction   # 4 core streams, offline
+{CLI:verify} trust-context --workspace {WORKSPACE}  # annotate synthesis/consensus.json with Phase-4 context (hermetic)
+{CLI:verify} trust-context --workspace {WORKSPACE} --rq-id RQ1  # scope to clusters whose claims belong to RQ1 (writes trust_consensus_RQ1.json/.md)
+{CLI:verify} verbatim-claims \
+  --claims {WORKSPACE}/synthesis/claims.json \
+  --extracted {WORKSPACE}/extracted/ \
+  --output {WORKSPACE}/phase4/verbatim_claims.json    # verbatim quote verification (threshold 0.90)
 ```
 
 Notes:
@@ -124,3 +128,19 @@ Per-RQ claim pools (`synthesis/claims_rq<N>.json`) are auto-loaded to attribute 
 
 - `coi` needs the 8 analyst chunk files; without them it refuses (`SystemExit`) rather than inventing coverage. `risk-of-bias` refuses (`SystemExit`) when manifest ids lack records. `open-science` degrades to `missing_extractions` listing. `trust-context` treats absent Phase-4 streams as absent coverage.
 - Retraction lookups that do not resolve are `unresolved_lookups` / `{"_status": …}` sentinels, not errors; provider failure is never reported as an empty successful result.
+
+## Preflight
+
+- `{CLI:verify} --help` succeeds → else `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves: `retraction` needs `literature/included.json`; `open-science` needs `literature/extraction/merged/records.json` + `{WORKSPACE}/extracted/`; `coi` needs `phase4/_manifest.json` + `phase4/_agent_results/coi_chunk_1..8.json`; `risk-of-bias` needs records.json + the manifest; `trust-context` needs `synthesis/consensus.json` + the four `phase4/*.json`. Every `--workspace` stream also requires `protocol.json` or `INDEX.md` in `{WORKSPACE}`.
+- Corpus trust inputs are present: canonical merged records.json (`workspace_id` join key) and the audited manifest roster (`[{workspace_id, title, year}]`).
+- `{CONFIG}` path — the pin manifest is the only place the kit revision is read.
+
+## Refusals
+
+- `BLOCKED_INPUT` — missing manifest, records, or COI chunk files (`coi` raises `SystemExit` rather than inventing coverage); the workspace guard fails when neither `protocol.json` nor `INDEX.md` exists.
+- `PROVIDER_TRANSIENT` — only `retraction` is network-bound (OpenAlex + Crossref); unresolved lookups come back as `unresolved_lookups` / `{"_status": 404|400|422}` sentinels, never an empty successful result.
+
+## Pointers
+
+- `docs/kits_surface_matrix.md` — verify rows + findings 6/10/11; the full API↔CLI↔MCP map and cross-kit contracts.

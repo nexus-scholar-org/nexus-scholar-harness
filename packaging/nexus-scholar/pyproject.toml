@@ -101,8 +101,22 @@ packages = []
 "../../tools/scholar-graph-kit/src/scholar_graph" = "scholar_graph"
 "../../tools/scholar-agent-kit/src/scholar_agent" = "scholar_agent"
 "../../tools/scholar-verify-kit/src/scholar_verify" = "scholar_verify"
-# Whole-tree skills bundle (14 skills incl. pull-request-gate). The mirror
-# reporter excludes pull-request-gate by design (repo-policy-only); the wheel
-# ships it anyway so every init'd workspace carries the full skill catalog.
-"../../.agents/skills" = "scholar_harness_data/skills"
+# Whole-tree skills bundle — dev-only pull-request-gate EXCLUDED (spec 03 §9:
+# the contribution workflow must never ship in a customer-facing package).
+"../../.agents/skills/critic-contract" = "scholar_harness_data/skills/critic-contract"
+"../../.agents/skills/doer-contract" = "scholar_harness_data/skills/doer-contract"
+"../../.agents/skills/inception-agent" = "scholar_harness_data/skills/inception-agent"
+"../../.agents/skills/methodology-copilot" = "scholar_harness_data/skills/methodology-copilot"
+"../../.agents/skills/scholar-agent-kit" = "scholar_harness_data/skills/scholar-agent-kit"
+"../../.agents/skills/scholar-bib-kit" = "scholar_harness_data/skills/scholar-bib-kit"
+"../../.agents/skills/scholar-graph-kit" = "scholar_harness_data/skills/scholar-graph-kit"
+"../../.agents/skills/scholar-pdf-kit" = "scholar_harness_data/skills/scholar-pdf-kit"
+"../../.agents/skills/scholar-protocol-kit" = "scholar_harness_data/skills/scholar-protocol-kit"
+"../../.agents/skills/scholar-rag-kit" = "scholar_harness_data/skills/scholar-rag-kit"
+"../../.agents/skills/scholar-search-kit" = "scholar_harness_data/skills/scholar-search-kit"
+"../../.agents/skills/scholar-verify-kit" = "scholar_harness_data/skills/scholar-verify-kit"
+"../../.agents/skills/workspace-manager" = "scholar_harness_data/skills/workspace-manager"
+# Spec 03 §6 fix #1 (preferred): force-include the referenced doc so the
+# three skill pointers resolve where the skill ships.
+"../../docs/kits_surface_matrix.md" = "scholar_harness_data/docs/kits_surface_matrix.md"
 "nexus_scholar_pins.json" = "nexus_scholar_pins.json"

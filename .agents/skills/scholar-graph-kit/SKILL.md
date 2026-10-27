@@ -1,19 +1,23 @@
 ---
 name: scholar-graph-kit
-description: Instructions for using the scholar-graph-kit Python API and CLI to construct citation knowledge networks, compute normalized PageRank scores, and render interactive PyVis HTML graphs.
+description: Citation knowledge networks, normalized PageRank, and interactive HTML graphs.
+applies_to: [inception-agent]
+requires: [scholar-graph]
+variables: [CLI, CONFIG, SKILL_DIR, WORKSPACE]
+returns: json
+layer: domain
 ---
-
 # `scholar-graph-kit` Skill Instructions
 
 You are the citation network analysis and bibliometric graph specialist of the Nexus Scholar Suite. Your role is to construct directed citation networks from Open Access DOIs using OpenAlex, compute normalized **PageRank** importance metrics to boost downstream semantic RAG retrieval, and generate interactive force-directed HTML network maps.
 
-> Verified against pinned `scholar-graph-kit` `646b84cec215ebd9b7b449448bca879492e78492` (`plugins.json` `default_rev`) and `docs/kits_surface_matrix.md` graph rows + finding 2 (RESOLVED real client). See that matrix for the full API↔CLI↔MCP map; this file is the operational subset.
+> Verified against pinned `scholar-graph-kit` (pin: see `{CONFIG}`) and `docs/kits_surface_matrix.md` graph rows + finding 2 (RESOLVED real client). See that matrix for the full API↔CLI↔MCP map; this file is the operational subset.
 
 ## Routing — choose the surface first
 
 | Task | Use |
 | :--- | :--- |
-| Build graph + visualize from screening/DOIs, persists `graph.html` + `graph.json` | CLI `uv run scholar-graph build …` / `pagerank` |
+| Build graph + visualize from screening/DOIs, persists `graph.html` + `graph.json` | CLI `{CLI:graph} build …` / `pagerank` |
 | Hermetic join / import in Python | `scholar_graph.builder.CitationGraphBuilder` + `visualizer.GraphVisualizer` with a real `AcademicHttpClient` |
 | Agent front-door (no shell) | MCP `nexus_graph_build` (real client) / `nexus_graph_narrative` (`synthesis/visual_synthesis.md`) |
 | Full map, failure modes, cross-kit contracts | `docs/kits_surface_matrix.md` graph section + finding 2 |
@@ -39,15 +43,15 @@ You are the citation network analysis and bibliometric graph specialist of the N
 ### 1. Build Citation Graph from Screening Results
 ```bash
 # Build network and export both interactive HTML visualization and PageRank JSON
-uv run scholar-graph build \
-  --input workspaces/<project-slug>/literature/included.json \
-  --output workspaces/<project-slug>/literature/knowledge_graph.html \
-  --json-output workspaces/<project-slug>/literature/knowledge_graph.json
+{CLI:graph} build \
+  --input {WORKSPACE}/literature/included.json \
+  --output {WORKSPACE}/literature/knowledge_graph.html \
+  --json-output {WORKSPACE}/literature/knowledge_graph.json
 ```
 
 ### 2. Build Graph from Specific DOIs
 ```bash
-uv run scholar-graph build \
+{CLI:graph} build \
   --doi 10.1038/s41586-024-0001 \
   --doi 10.1038/s41586-024-0002 \
   --output graph.html
@@ -55,7 +59,7 @@ uv run scholar-graph build \
 
 ### 3. Inspect PageRank Rankings
 ```bash
-uv run scholar-graph pagerank workspaces/<project-slug>/literature/knowledge_graph.json
+{CLI:graph} pagerank {WORKSPACE}/literature/knowledge_graph.json
 ```
 
 > **Sidecar:** `build` always writes JSON — `--json-output <path>` when given, else `<output-stem>.json` beside the HTML (e.g. `knowledge_graph.json`). `pagerank <graph.json>` needs that file's top-level `"pagerank"` key.
@@ -126,3 +130,19 @@ asyncio.run(main())
 - **HTML is hybrid (local PyVis bindings + CDN vis.js)** — not standalone-offline; the
   vendored `lib/` (pyvis `0.3.2`) materializes in the run CWD. Unbounded per-DOI
   concurrency; OpenAlex only.
+
+## Preflight
+
+- `{CLI:graph} --help` succeeds → else `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves: `build` reads `{WORKSPACE}/literature/included.json` (or explicit `--doi` lists); `pagerank` needs the build-produced sidecar graph.json.
+- OpenAlex client configuration: a real `AcademicHttpClient` is mandatory (rate_limit=10); uniform PageRank `1.0` with `0 edges` is the failure fallback — check DOIs/client before trusting ranks.
+- `{CONFIG}` path — the pin manifest is the only place the kit revision is read.
+
+## Refusals
+
+- `BLOCKED_INPUT` — input has no DOIs (MCP: `Error: No DOIs found in <input>`; CLI prints `No DOIs provided`), or the input/included.json is missing.
+- `PROVIDER_TRANSIENT` — OpenAlex fetch failures fall back to `None`, then to the 0-edge/`pagerank=1.0` fallback; a provider-unreachable run may never be reported as an empty successful result.
+
+## Pointers
+
+- `docs/kits_surface_matrix.md` — graph rows + finding 2; the full API↔CLI↔MCP map, failure modes, cross-kit contracts.

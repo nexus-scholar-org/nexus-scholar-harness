@@ -547,12 +547,60 @@ def install_workspace_support_files(target: Path) -> dict:
             console.print(f"   [dim]skill {rec['name']}: kept existing[/dim]")
     env = write_env_example(target)
     mcp = write_mcp_json(target)
+    # Phase D (spec 03 §5): regenerate ``SKILL.meta.json`` per installed skill
+    # from the pin manifest — the manifest is the only source of pins, and the
+    # workspace copy binds the pin it was vendored under (timing metadata only).
+    skill_meta = _generate_skill_meta_records(target, skills_root)
     return {
         "skills_source": skills_root,
         "skill_records": records,
+        "skill_meta": skill_meta,
         "env_example": env,
         "mcp_config": mcp,
     }
+
+
+def _generate_skill_meta_records(target: Path, skills_root: Path | None) -> dict:
+    """Emit ``SKILL.meta.json`` per workspace skill; never fails the scaffold.
+
+    Manifest priority: the repo ``plugins.json`` (dev loop) → the bundled
+    ``nexus_scholar_pins.json`` (wheel) → no manifest (``rev: null`` states the
+    unknown honestly rather than inventing one).
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    from scholar_harness.skills_portability import generate_skill_meta
+
+    destination = target / ".agents" / "skills"
+    manifest: _Path | None = None
+    candidates = [
+        _Path(__file__).resolve().parents[4]
+        / ".agents"
+        / "plugins"
+        / "nexus-scholar"
+        / "plugins.json",
+    ]
+    try:
+        import importlib.resources as _resources
+
+        with _resources.as_file(
+            _resources.files("scholar_harness").joinpath("..")
+        ) as _pkg_parent:
+            candidates.append(_pkg_parent / "nexus_scholar_pins.json")
+    except Exception:  # pragma: no cover — importlib.resources always available
+        pass
+    for candidate in candidates:
+        if candidate.is_file():
+            manifest = candidate
+            break
+    if skills_root is None or manifest is None:
+        return {"manifest": None, "generated": 0}
+    try:
+        created = generate_skill_meta(destination, manifest)
+    except Exception:  # pragma: no cover — meta generation must not block init
+        return {"manifest": str(manifest), "generated": 0}
+    return {"manifest": str(manifest), "generated": len(created)}
 
 
 def _scaffold_only_intent(title: str, slug: str, genesis_timestamp: str) -> dict:

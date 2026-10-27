@@ -1,8 +1,11 @@
 ---
 name: critic-contract
-description: Adversarially review one scientific-workflow artifact against its schema, immutable sources, parent lineage, and role scope. Use for screening, extraction, verification, analysis, or reporting critics; do not use for doers or remediation.
+description: Review one assigned artifact without modifying it. The only permitted write is the task packet's critique artifact. Never repair the reviewed artifact, change the protocol, or perform the doer's role
+applies_to: [screening-critic, extraction-critic, reviewer]
+variables: [SKILL_DIR]
+returns: prose
+layer: policy
 ---
-
 # Scientific Critic Contract
 
 Review one assigned artifact without modifying it. The only permitted write is the task packet's critique artifact. Never repair the reviewed artifact, change the protocol, or perform the doer's role.
