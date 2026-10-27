@@ -898,9 +898,38 @@ def export(
         "--pipeline",
         help="PipelineSpec id (in <ws>/.harness-console/pipelines) or path (format 'pipeline-sh')",
     ),
+    claim_confirmed: bool = typer.Option(
+        False,
+        "--claim-confirmed",
+        help=(
+            "Narrate the export as 'confirmed by a person'. Refuses unless a "
+            "valid, non-retrospective literature/screening/HUMAN_CONFIRMATION.json "
+            "exists whose artifact hashes verify against the workspace now "
+            "(agent-layer Phase C spec 06 §4)."
+        ),
+    ),
 ):
     """Export synthesized research findings and bibliographies to external tools."""
     workspace_path = workspace.resolve()
+
+    if claim_confirmed:
+        from .contracts.confirmation.api import ConfirmationRefusalError, export_gate
+
+        try:
+            confirmation_model = export_gate(workspace_path)
+        except ConfirmationRefusalError as exc:
+            from .contracts.envelope.registry import RefusalCode as _RC
+
+            console.print(
+                "[bold red]❌ Export refused "
+                f"({str(_RC(exc.refusal_code))}): {exc.detail}[/bold red]"
+            )
+            raise typer.Exit(1) from exc
+        console.print(
+            f"[bold]Human confirmation:[/bold] signed by "
+            f"{confirmation_model.reviewer.name} "
+            f"({confirmation_model.reviewer.affiliation}, lead_reviewer)"
+        )
     synth_file = workspace_path / "synthesis" / "literature_review.md"
     bib_file = workspace_path / "literature" / "references.bib"
     if not bib_file.exists():

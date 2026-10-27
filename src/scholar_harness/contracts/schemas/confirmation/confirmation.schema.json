@@ -1,0 +1,227 @@
+{
+  "$defs": {
+    "ArtifactRef": {
+      "additionalProperties": false,
+      "description": "One decision artifact the reviewer saw, hashed over its raw bytes.",
+      "properties": {
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "label"
+      ],
+      "title": "ArtifactRef",
+      "type": "object"
+    },
+    "ConfirmationProvenance": {
+      "additionalProperties": false,
+      "description": "Tool provenance; ``created_at`` is timing metadata, never identity.",
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "tool": {
+          "minLength": 1,
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "created_at"
+      ],
+      "title": "ConfirmationProvenance",
+      "type": "object"
+    },
+    "ConfirmationSummary": {
+      "additionalProperties": false,
+      "description": "Counts over ``decisions``; the invariant step ties them to the rows.",
+      "properties": {
+        "changed": {
+          "minimum": 0,
+          "title": "Changed",
+          "type": "integer"
+        },
+        "confirmed": {
+          "minimum": 0,
+          "title": "Confirmed",
+          "type": "integer"
+        },
+        "considered": {
+          "minimum": 0,
+          "title": "Considered",
+          "type": "integer"
+        },
+        "deferred": {
+          "minimum": 0,
+          "title": "Deferred",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "considered",
+        "confirmed",
+        "changed",
+        "deferred"
+      ],
+      "title": "ConfirmationSummary",
+      "type": "object"
+    },
+    "DecisionRow": {
+      "additionalProperties": false,
+      "description": "One study-level judgement: confirmed, changed, or deferred.",
+      "properties": {
+        "amended": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amended"
+        },
+        "defer_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Defer Reason"
+        },
+        "rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rationale"
+        },
+        "study_id": {
+          "minLength": 1,
+          "title": "Study Id",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "confirmed",
+            "changed",
+            "deferred"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "study_id",
+        "verdict"
+      ],
+      "title": "DecisionRow",
+      "type": "object"
+    },
+    "Reviewer": {
+      "additionalProperties": false,
+      "description": "The named person who reviewed the artifacts (spec `06` owner decision).",
+      "properties": {
+        "affiliation": {
+          "minLength": 1,
+          "title": "Affiliation",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "signing_capacity": {
+          "const": "lead_reviewer",
+          "title": "Signing Capacity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "affiliation",
+        "signing_capacity"
+      ],
+      "title": "Reviewer",
+      "type": "object"
+    }
+  },
+  "$id": "https://nexus-scholar.org/schemas/confirmation/v1/confirmation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "``HumanConfirmation@1`` — \"who decided this?\", answered with bytes.",
+  "properties": {
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactRef"
+      },
+      "minItems": 1,
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/DecisionRow"
+      },
+      "title": "Decisions",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/ConfirmationProvenance"
+    },
+    "retrospective": {
+      "default": false,
+      "title": "Retrospective",
+      "type": "boolean"
+    },
+    "reviewer": {
+      "$ref": "#/$defs/Reviewer"
+    },
+    "schema": {
+      "const": "HumanConfirmation@1",
+      "default": "HumanConfirmation@1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/ConfirmationSummary"
+    }
+  },
+  "required": [
+    "reviewer",
+    "artifacts",
+    "decisions",
+    "summary",
+    "provenance"
+  ],
+  "title": "HumanConfirmation",
+  "type": "object"
+}
