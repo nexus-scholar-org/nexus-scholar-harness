@@ -191,9 +191,9 @@ Any Phase-A packet issued before this decision returns `BLOCKED_BASELINE_DRIFT`.
 
 1. **Reviewer autonomy.** Resolved 2026-10-25 for Phase A by reverting `reviewer.md` to `edit: deny` + `bash: ask`. Whether to upgrade `bash: ask` to `allow` (removing approval prompts on `git diff` and tests) remains an **open owner decision**; Phase A deliberately did not change it.
 2. **`arm` placement.** Kept in the envelope, not the payload, so payload schemas stay frozen. Confirm this does not complicate existing `ScreeningDecisions@1` consumers.
-3. **Confirmation scope in the product.** The signing party should be the customer's lead reviewer, not the operator. This changes the export narrative and should be settled before Phase C ships.
+3. **Confirmation scope in the product.** **Resolved 2026-10-26 by the owner:** the signing party is the **customer's named reviewer**, not the operator. Normative schema and gates in `06_human_confirmation.md`.
 4. **Model selection.** Deliberately excluded. Roles must not encode a model, or portability breaks at the first provider change.
-5. **Retrospective backfill.** Whether the existing calibration corpus gets a backfilled confirmation at all, or stays labelled "agent-mutual". Recommendation: label, do not backfill.
+5. **Retrospective backfill.** **Resolved 2026-10-26 by the owner:** label only, no backfill. The existing calibration corpus stays agent-mutual without a confirmation artifact; retrospective export reliance is refused by the Phase C gate.
 
 ## 9. Definition of done
 
