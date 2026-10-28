@@ -992,6 +992,26 @@ def relative_posix(path: Path, root: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
+def iter_read_files(root: Path, pattern: str) -> list[Path]:
+    """Files under ``root`` matched by one root-relative Phase-A read glob.
+
+    ``Path.glob`` changed semantics in 3.13: before it, a trailing ``**``
+    component matched **directories only**, so ``**`` and
+    ``workspaces/{ws}/literature/**`` silently matched *no files at all* on
+    3.11/3.12 — both in the CI matrix. Appending ``/*`` enumerates the entries
+    of every matched directory at any depth, which is exactly the documented
+    3.13+ file set (verified against 3.12 and 3.14), and leaves every pattern
+    without a trailing ``**`` segment untouched. Directories are filtered out
+    by the caller-visible contract of this helper: it returns files only.
+    """
+    normalized = pattern.rstrip("/")
+    if not normalized:
+        return []
+    if normalized == "**" or normalized.endswith("/**"):
+        normalized += "/*"
+    return [path for path in root.glob(normalized) if path.is_file()]
+
+
 def hash_inputs(
     root: Path, inputs: Sequence[str], *, boundary: str = "run root"
 ) -> list[tuple[str, str]]:
@@ -1650,9 +1670,7 @@ def materialise_view(
     view_dir.mkdir(parents=True)
     matched: list[Path] = []
     for pattern in policy.read_glob:
-        for path in root.glob(pattern):
-            if path.is_file():
-                matched.append(path.resolve())
+        matched.extend(path.resolve() for path in iter_read_files(root, pattern))
     seen: set[Path] = set()
     for path in sorted(matched):
         if path in seen:

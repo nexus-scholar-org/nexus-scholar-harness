@@ -51,6 +51,7 @@ from scholar_harness.capabilities.adapter import (
     KIT_MODULES,
     KIT_SHORTS,
     glob_matches,
+    iter_read_files,
     load_role_policy,
     run_request_policy,
 )
@@ -75,6 +76,7 @@ from scholar_harness.contracts.envelope.model import (
     EnvelopeRefusal,
     EnvelopeStatus,
 )
+from scholar_harness.workspace.loader import resolve_skills_root
 
 ROOT = Path(__file__).resolve().parents[2]
 ROLES_DIR = ROOT / "roles"
@@ -620,6 +622,96 @@ def test_empty_out_dir_left_after_scope_violation(tmp_path: Path) -> None:
         adapter.run(_request(), lambda s: s.write("../../audit/forged.jsonl", "x"))
     out_dir = workspace / "runs" / "t-1" / "out"
     assert not out_dir.exists() or not any(out_dir.iterdir())
+
+
+# ---------------------------------------------------------------------------
+# Read-glob semantics on every supported interpreter (py<3.13 trailing ``**``)
+# ---------------------------------------------------------------------------
+
+
+def test_iter_read_files_is_interpreter_independent(tmp_path: Path) -> None:
+    """A root-relative read glob must match the same *files* on 3.11 and 3.13+.
+
+    ``Path.glob`` changed in 3.13: before it, a trailing ``**`` component
+    matched directories only, so ``**`` and ``workspaces/{ws}/literature/**``
+    returned **no files at all** on 3.11/3.12 — the two versions in the CI
+    matrix. The run view is built from these patterns, so the regression is
+    silent: every role with a trailing-``**`` read glob gets an empty view.
+    This test pins the helper's file set rather than the stdlib's, so it fails
+    on any interpreter that reintroduces the divergence.
+    """
+    for rel in (
+        "a/f.txt",
+        "a/deep/x.json",
+        "a/deep/er/y.json",
+        "b.txt",
+        "c/z.txt",
+    ):
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x", encoding="utf-8")
+
+    def files(pattern: str) -> list[str]:
+        return sorted(
+            iter_read_files(tmp_path, pattern)
+        )
+
+    assert files("**") == [
+        tmp_path / "a/deep/er/y.json",
+        tmp_path / "a/deep/x.json",
+        tmp_path / "a/f.txt",
+        tmp_path / "b.txt",
+        tmp_path / "c/z.txt",
+    ]
+    assert files("a/**") == [
+        tmp_path / "a/deep/er/y.json",
+        tmp_path / "a/deep/x.json",
+        tmp_path / "a/f.txt",
+    ]
+    assert files("a/**/*") == files("a/**")
+    assert files("c/*.txt") == [tmp_path / "c/z.txt"]
+    # Directories are never part of a read view (``**`` matches them on 3.13+).
+    assert all(path.is_file() for path in iter_read_files(tmp_path, "**"))
+    # A missing base is empty, never an error: read globs are optional inputs.
+    assert iter_read_files(tmp_path, "nope/**") == []
+
+
+def test_screener_view_includes_deeply_nested_literature_files(
+    tmp_path: Path,
+) -> None:
+    """Criterion 2 premise: the real screener's ``literature/**`` glob is live.
+
+    On 3.11/3.12 the trailing ``**`` returned directories only, so the view was
+    empty and *every* blinding assertion passed for the wrong reason. A file
+    three directories deep must be listed and readable in the view.
+    """
+    root, workspace = _seed_screener_workspace(tmp_path)
+    nested = workspace / "literature" / "screening" / "archive" / "2026"
+    nested.mkdir(parents=True)
+    (nested / "historic.json").write_text(
+        json.dumps({"batch_id": "historic"}), encoding="utf-8"
+    )
+    adapter = _screener_adapter(root, workspace)
+    seen: list[str] = []
+    read_back: list[dict[str, object]] = []
+
+    def handler(session: RoleSession) -> None:
+        seen.extend(session.list())
+        read_back.append(
+            json.loads(
+                session.read(
+                    f"workspaces/{_WS}/literature/screening/archive/2026/historic.json"
+                )
+            )
+        )
+
+    adapter.run(_screener_request("t-scr-nested", arm="A"), handler)
+
+    assert any(
+        entry.endswith("literature/screening/archive/2026/historic.json")
+        for entry in seen
+    ), seen
+    assert read_back == [{"batch_id": "historic"}]
 
 
 # ---------------------------------------------------------------------------
@@ -3652,11 +3744,43 @@ def _shipped_skill_names() -> tuple[str, ...]:
     )
 
 
-def _expected_env_keys() -> set[str]:
+def _skill_names_for_surface(surface: str, workspace: Path) -> set[str]:
+    """The ``SKILL_DIR`` vocabulary the documented surface owns.
+
+    The two surfaces resolve skills differently (``ENV_BINDING_TABLE``):
+    the application prefers a workspace-local copy and otherwise uses the
+    project's one resolution order (``NEXUS_SKILLS_SRC`` → wheel bundle → repo
+    checkout), so a wheel-only install legitimately omits the dev-only
+    ``pull-request-gate`` skill; the dev-loop surface always reads the repo
+    checkout. Deriving the expectation from the same documented roots — rather
+    than from ``ROOT/.agents/skills`` alone — is what makes the assertion
+    valid in both environments.
+    """
+    roots: list[Path] = []
+    if surface == "opencode":
+        roots.append(ROOT / ".agents" / "skills")
+    else:
+        roots.append(workspace / ".agents" / "skills")
+        fallback = resolve_skills_root()
+        if fallback is not None:
+            roots.append(fallback)
+    names: set[str] = set()
+    for root in roots:
+        if not root.is_dir():
+            continue
+        names |= {
+            entry.name
+            for entry in root.iterdir()
+            if entry.is_dir() and (entry / "SKILL.md").is_file()
+        }
+    return names
+
+
+def _expected_env_keys(surface: str, workspace: Path) -> set[str]:
     """The exact key set an adapter env must carry (never a subset check)."""
     keys = {f"CLI:{short}" for short in CLI_SHORT_NAMES}
     keys |= {f"KIT_ROOT:{short}" for short in KIT_SHORT_NAMES}
-    keys |= {f"SKILL_DIR:{skill}" for skill in _shipped_skill_names()}
+    keys |= {f"SKILL_DIR:{skill}" for skill in _skill_names_for_surface(surface, workspace)}
     return keys | {"WORKSPACE", "CACHE", "CONFIG", "PY"}
 
 
@@ -3711,13 +3835,13 @@ def test_resolve_env_binds_the_exact_key_set(surface: str, tmp_path: Path) -> No
 
     env = _resolve_env(surface, workspace, config)
 
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys(surface, workspace)
     assert all(isinstance(value, str) and value for value in env.values())
     assert env["WORKSPACE"] == str(workspace)
     assert env["CONFIG"] == str(config)
     for short in KIT_SHORT_NAMES:
         assert Path(env[f"KIT_ROOT:{short}"]).is_dir(), (surface, short)
-    for skill in _shipped_skill_names():
+    for skill in _skill_names_for_surface(surface, workspace):
         assert Path(env[f"SKILL_DIR:{skill}"]).is_dir(), (surface, skill)
     if surface == "in-process":
         assert env["CLI:harness"] == "scholar-harness"
@@ -3749,8 +3873,11 @@ def test_kit_root_binds_the_resolved_package_not_a_hardcoded_path(
         else:
             # Dev binds the vendored checkout, the single shared template.
             assert bound == ROOT / DEV_KIT_ROOT_TEMPLATE.replace("{{kit}}", short)
-            if package_dir.is_relative_to(ROOT):
-                # An editable kit is imported from inside that checkout.
+            # pytest's ``pythonpath`` imports editable kits from inside the
+            # vendored checkout; a wheel/venv install (even the repo's own
+            # ``.venv``) is not a checkout import and is not constrained by
+            # this dev binding.
+            if package_dir.is_relative_to(ROOT / "tools"):
                 assert package_dir.is_relative_to(bound), (short, package_dir, bound)
 
 
@@ -3884,7 +4011,7 @@ def test_workspace_local_skill_dir_wins(tmp_path: Path) -> None:
     env = _resolve_env("in-process", workspace, tmp_path / "plugins.json")
 
     assert env["SKILL_DIR:workspace-manager"] == str(local)
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys("in-process", workspace)
 
 
 def test_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
@@ -3902,7 +4029,7 @@ def test_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
     env = adapter.resolve_env(workspace=workspace, config=config)
 
     assert env["CACHE"] == "/pinned/cache"
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys("in-process", workspace)
 
 
 def test_opencode_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
@@ -3919,4 +4046,4 @@ def test_opencode_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
 
     assert env["WORKSPACE"] == "/pinned/ws"
     assert env["CACHE"] == "/pinned/cache"
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys("opencode", workspace)
