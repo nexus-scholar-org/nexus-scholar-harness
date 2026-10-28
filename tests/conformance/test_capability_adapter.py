@@ -76,6 +76,7 @@ from scholar_harness.contracts.envelope.model import (
     EnvelopeRefusal,
     EnvelopeStatus,
 )
+from scholar_harness.workspace.loader import resolve_skills_root
 
 ROOT = Path(__file__).resolve().parents[2]
 ROLES_DIR = ROOT / "roles"
@@ -3743,11 +3744,43 @@ def _shipped_skill_names() -> tuple[str, ...]:
     )
 
 
-def _expected_env_keys() -> set[str]:
+def _skill_names_for_surface(surface: str, workspace: Path) -> set[str]:
+    """The ``SKILL_DIR`` vocabulary the documented surface owns.
+
+    The two surfaces resolve skills differently (``ENV_BINDING_TABLE``):
+    the application prefers a workspace-local copy and otherwise uses the
+    project's one resolution order (``NEXUS_SKILLS_SRC`` → wheel bundle → repo
+    checkout), so a wheel-only install legitimately omits the dev-only
+    ``pull-request-gate`` skill; the dev-loop surface always reads the repo
+    checkout. Deriving the expectation from the same documented roots — rather
+    than from ``ROOT/.agents/skills`` alone — is what makes the assertion
+    valid in both environments.
+    """
+    roots: list[Path] = []
+    if surface == "opencode":
+        roots.append(ROOT / ".agents" / "skills")
+    else:
+        roots.append(workspace / ".agents" / "skills")
+        fallback = resolve_skills_root()
+        if fallback is not None:
+            roots.append(fallback)
+    names: set[str] = set()
+    for root in roots:
+        if not root.is_dir():
+            continue
+        names |= {
+            entry.name
+            for entry in root.iterdir()
+            if entry.is_dir() and (entry / "SKILL.md").is_file()
+        }
+    return names
+
+
+def _expected_env_keys(surface: str, workspace: Path) -> set[str]:
     """The exact key set an adapter env must carry (never a subset check)."""
     keys = {f"CLI:{short}" for short in CLI_SHORT_NAMES}
     keys |= {f"KIT_ROOT:{short}" for short in KIT_SHORT_NAMES}
-    keys |= {f"SKILL_DIR:{skill}" for skill in _shipped_skill_names()}
+    keys |= {f"SKILL_DIR:{skill}" for skill in _skill_names_for_surface(surface, workspace)}
     return keys | {"WORKSPACE", "CACHE", "CONFIG", "PY"}
 
 
@@ -3802,13 +3835,13 @@ def test_resolve_env_binds_the_exact_key_set(surface: str, tmp_path: Path) -> No
 
     env = _resolve_env(surface, workspace, config)
 
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys(surface, workspace)
     assert all(isinstance(value, str) and value for value in env.values())
     assert env["WORKSPACE"] == str(workspace)
     assert env["CONFIG"] == str(config)
     for short in KIT_SHORT_NAMES:
         assert Path(env[f"KIT_ROOT:{short}"]).is_dir(), (surface, short)
-    for skill in _shipped_skill_names():
+    for skill in _skill_names_for_surface(surface, workspace):
         assert Path(env[f"SKILL_DIR:{skill}"]).is_dir(), (surface, skill)
     if surface == "in-process":
         assert env["CLI:harness"] == "scholar-harness"
@@ -3840,8 +3873,11 @@ def test_kit_root_binds_the_resolved_package_not_a_hardcoded_path(
         else:
             # Dev binds the vendored checkout, the single shared template.
             assert bound == ROOT / DEV_KIT_ROOT_TEMPLATE.replace("{{kit}}", short)
-            if package_dir.is_relative_to(ROOT):
-                # An editable kit is imported from inside that checkout.
+            # pytest's ``pythonpath`` imports editable kits from inside the
+            # vendored checkout; a wheel/venv install (even the repo's own
+            # ``.venv``) is not a checkout import and is not constrained by
+            # this dev binding.
+            if package_dir.is_relative_to(ROOT / "tools"):
                 assert package_dir.is_relative_to(bound), (short, package_dir, bound)
 
 
@@ -3975,7 +4011,7 @@ def test_workspace_local_skill_dir_wins(tmp_path: Path) -> None:
     env = _resolve_env("in-process", workspace, tmp_path / "plugins.json")
 
     assert env["SKILL_DIR:workspace-manager"] == str(local)
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys("in-process", workspace)
 
 
 def test_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
@@ -3993,7 +4029,7 @@ def test_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
     env = adapter.resolve_env(workspace=workspace, config=config)
 
     assert env["CACHE"] == "/pinned/cache"
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys("in-process", workspace)
 
 
 def test_opencode_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
@@ -4010,4 +4046,4 @@ def test_opencode_resolve_env_constructor_overrides_win(tmp_path: Path) -> None:
 
     assert env["WORKSPACE"] == "/pinned/ws"
     assert env["CACHE"] == "/pinned/cache"
-    assert set(env) == _expected_env_keys()
+    assert set(env) == _expected_env_keys("opencode", workspace)
