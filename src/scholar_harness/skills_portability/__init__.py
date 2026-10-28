@@ -25,6 +25,9 @@ record). Nothing here returns a silent empty result.
 """
 
 from .variables import (
+    CLI_SHORTS,
+    DEV_KIT_ROOT_TEMPLATE,
+    KIT_SHORTS,
     Preamble,
     REGISTRY,
     VARIABLE_PATTERN,
@@ -42,6 +45,9 @@ from .frontmatter import (
 from .meta import generate_skill_meta
 
 __all__ = [
+    "CLI_SHORTS",
+    "DEV_KIT_ROOT_TEMPLATE",
+    "KIT_SHORTS",
     "Preamble",
     "REGISTRY",
     "VARIABLE_PATTERN",

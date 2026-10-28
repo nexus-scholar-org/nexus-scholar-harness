@@ -29,6 +29,12 @@ class RunRequest:
     inputs: tuple[Path, ...]
     params: Mapping[str, str]        # {ws}, {batch}, {stu}, ...
     arm: str | None = None           # triggers isolation when set
+    # Positional, same order as `inputs`. The caller states the schema of each
+    # hashed input; the adapter verifies every name is declared by the role
+    # record and never guesses a schema from position or file content. Added
+    # 2026-10-28: `inputs` alone cannot carry a schema, so an adapter that
+    # inferred one would attest a schema it cannot know.
+    input_schemas: tuple[str, ...] = ()
 ```
 
 | Implementation | Used by | Enforcement |
