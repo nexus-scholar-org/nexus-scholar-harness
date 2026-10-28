@@ -51,6 +51,7 @@ from scholar_harness.capabilities.adapter import (
     KIT_MODULES,
     KIT_SHORTS,
     glob_matches,
+    iter_read_files,
     load_role_policy,
     run_request_policy,
 )
@@ -620,6 +621,96 @@ def test_empty_out_dir_left_after_scope_violation(tmp_path: Path) -> None:
         adapter.run(_request(), lambda s: s.write("../../audit/forged.jsonl", "x"))
     out_dir = workspace / "runs" / "t-1" / "out"
     assert not out_dir.exists() or not any(out_dir.iterdir())
+
+
+# ---------------------------------------------------------------------------
+# Read-glob semantics on every supported interpreter (py<3.13 trailing ``**``)
+# ---------------------------------------------------------------------------
+
+
+def test_iter_read_files_is_interpreter_independent(tmp_path: Path) -> None:
+    """A root-relative read glob must match the same *files* on 3.11 and 3.13+.
+
+    ``Path.glob`` changed in 3.13: before it, a trailing ``**`` component
+    matched directories only, so ``**`` and ``workspaces/{ws}/literature/**``
+    returned **no files at all** on 3.11/3.12 — the two versions in the CI
+    matrix. The run view is built from these patterns, so the regression is
+    silent: every role with a trailing-``**`` read glob gets an empty view.
+    This test pins the helper's file set rather than the stdlib's, so it fails
+    on any interpreter that reintroduces the divergence.
+    """
+    for rel in (
+        "a/f.txt",
+        "a/deep/x.json",
+        "a/deep/er/y.json",
+        "b.txt",
+        "c/z.txt",
+    ):
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x", encoding="utf-8")
+
+    def files(pattern: str) -> list[str]:
+        return sorted(
+            iter_read_files(tmp_path, pattern)
+        )
+
+    assert files("**") == [
+        tmp_path / "a/deep/er/y.json",
+        tmp_path / "a/deep/x.json",
+        tmp_path / "a/f.txt",
+        tmp_path / "b.txt",
+        tmp_path / "c/z.txt",
+    ]
+    assert files("a/**") == [
+        tmp_path / "a/deep/er/y.json",
+        tmp_path / "a/deep/x.json",
+        tmp_path / "a/f.txt",
+    ]
+    assert files("a/**/*") == files("a/**")
+    assert files("c/*.txt") == [tmp_path / "c/z.txt"]
+    # Directories are never part of a read view (``**`` matches them on 3.13+).
+    assert all(path.is_file() for path in iter_read_files(tmp_path, "**"))
+    # A missing base is empty, never an error: read globs are optional inputs.
+    assert iter_read_files(tmp_path, "nope/**") == []
+
+
+def test_screener_view_includes_deeply_nested_literature_files(
+    tmp_path: Path,
+) -> None:
+    """Criterion 2 premise: the real screener's ``literature/**`` glob is live.
+
+    On 3.11/3.12 the trailing ``**`` returned directories only, so the view was
+    empty and *every* blinding assertion passed for the wrong reason. A file
+    three directories deep must be listed and readable in the view.
+    """
+    root, workspace = _seed_screener_workspace(tmp_path)
+    nested = workspace / "literature" / "screening" / "archive" / "2026"
+    nested.mkdir(parents=True)
+    (nested / "historic.json").write_text(
+        json.dumps({"batch_id": "historic"}), encoding="utf-8"
+    )
+    adapter = _screener_adapter(root, workspace)
+    seen: list[str] = []
+    read_back: list[dict[str, object]] = []
+
+    def handler(session: RoleSession) -> None:
+        seen.extend(session.list())
+        read_back.append(
+            json.loads(
+                session.read(
+                    f"workspaces/{_WS}/literature/screening/archive/2026/historic.json"
+                )
+            )
+        )
+
+    adapter.run(_screener_request("t-scr-nested", arm="A"), handler)
+
+    assert any(
+        entry.endswith("literature/screening/archive/2026/historic.json")
+        for entry in seen
+    ), seen
+    assert read_back == [{"batch_id": "historic"}]
 
 
 # ---------------------------------------------------------------------------
