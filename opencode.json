@@ -6,23 +6,5 @@
       "command": ["uv", "run", "--directory", "tools/scholar-agent-kit", "scholar-agent"],
       "enabled": true
     }
-  },
-  "agents": {
-    "orchestrator": {
-      "file": ".opencode/agent/orchestrator.md",
-      "permissionRef": ".opencode/agent/_generated/permissions.json#/roles/orchestrator"
-    },
-    "coder": {
-      "file": ".opencode/agent/coder.md",
-      "permissionRef": ".opencode/agent/_generated/permissions.json#/roles/coder"
-    },
-    "tester": {
-      "file": ".opencode/agent/tester.md",
-      "permissionRef": ".opencode/agent/_generated/permissions.json#/roles/tester"
-    },
-    "reviewer": {
-      "file": ".opencode/agent/reviewer.md",
-      "permissionRef": ".opencode/agent/_generated/permissions.json#/roles/reviewer"
-    }
   }
 }
