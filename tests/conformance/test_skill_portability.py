@@ -13,8 +13,12 @@ from pathlib import Path
 
 import pytest
 
+from scholar_harness.capabilities import InProcessAdapter, OpencodeAdapter
 from scholar_harness.skills_portability import (
+    CLI_SHORTS,
+    KIT_SHORTS,
     Preamble,
+    VARIABLE_PATTERN,
     audit_text,
     generate_skill_meta,
     parse_frontmatter,
@@ -33,6 +37,17 @@ RESEARCH_FACING = [
     for d in sorted(SKILLS_DIR.iterdir())
     if d.is_dir() and (d / "SKILL.md").is_file() and d.name != "pull-request-gate"
 ]
+
+#: Every skill directory present in this checkout, including the dev-only
+#: ``pull-request-gate``, which the wheel excludes
+#: (``packaging/nexus-scholar/pyproject.toml``). It is a vocabulary key in the
+#: dev loop and in a checkout-backed app, not a claim about wheel contents.
+SKILL_DIRS_PRESENT = [
+    d.name
+    for d in sorted(SKILLS_DIR.iterdir())
+    if d.is_dir() and (d / "SKILL.md").is_file()
+]
+
 
 #: Docs force-included in the wheel beside the skills (spec 03 §6, packaging
 #: ``pyproject.toml`` force-include table). One authoritative copy.
@@ -122,54 +137,214 @@ def test_skeleton_sections(skill: str) -> None:
 
 
 def _app_preamble() -> Preamble:
-    """Simulated application preamble (spec 03 §4, right-hand column)."""
-    return Preamble(
-        cli="nexus {{kit}}",  # the app's command alias
-        kit_root="/opt/app/kits/scholar-{{kit}}",
-        workspace="/data/projects/demo",
-        cache="/data/cache",
-        config="/data/config/plugins.json",
-        py="/usr/bin/python3",
-        skill_dirs={"scholar-search-kit": "/opt/app/skills/scholar-search-kit"},
-    )
+    """Simulated application preamble, generated from the vocabulary.
+
+    Every typed key comes from the registry (``CLI_SHORTS``/``KIT_SHORTS``) or
+    from the skill directories present in this checkout, so this fixture cannot
+    drift from the placeholders the skills actually use.
+    """
+    env = {f"CLI:{short}": f"nexus {short}" for short in CLI_SHORTS}
+    env |= {
+        f"KIT_ROOT:{short}": f"/opt/app/kits/scholar-{short}" for short in KIT_SHORTS
+    }
+    env |= {
+        f"SKILL_DIR:{skill}": f"/opt/app/skills/{skill}" for skill in SKILL_DIRS_PRESENT
+    }
+    env |= {
+        "WORKSPACE": "/data/projects/demo",
+        "CACHE": "/data/cache",
+        "CONFIG": "/data/config/plugins.json",
+        "PY": "/usr/bin/python3",
+    }
+    return Preamble.from_env(env)
+
+
+def _adapter_envs(workspace: Path, config: Path) -> dict[str, dict[str, str]]:
+    """The two adapter surfaces' binding maps (spec 04 §1 ``resolve_env``)."""
+    return {
+        "in-process": InProcessAdapter(
+            root=ROOT, workspace=workspace, roles_dir=ROLES_DIR
+        ).resolve_env(workspace=workspace, config=config),
+        "opencode": OpencodeAdapter(
+            workspace=workspace, roles_dir=ROLES_DIR
+        ).resolve_env(workspace=workspace, config=config),
+    }
+
+
+def _body(skill: str) -> str:
+    path = SKILLS_DIR / skill / "SKILL.md"
+    _contract, body = parse_frontmatter(path.read_text(encoding="utf-8"), path)
+    return body
+
+
+def _assert_fully_bound(skill: str, preamble: Preamble) -> str:
+    resolved = render(_body(skill), preamble)
+    assert not VARIABLE_PATTERN.search(resolved), [
+        m.group(0) for m in VARIABLE_PATTERN.finditer(resolved)
+    ]
+    return resolved
 
 
 @pytest.mark.parametrize("skill", RESEARCH_FACING)
 def test_dev_preamble_resolves(skill: str) -> None:
-    from scholar_harness.skills_portability import VARIABLE_PATTERN
-
-    path = SKILLS_DIR / skill / "SKILL.md"
-    text = path.read_text(encoding="utf-8")
-    _contract, body = parse_frontmatter(text, path)
-    resolved = render(body, Preamble.dev())
-    # Nothing stays half-bound in the dev loop.
-    assert not VARIABLE_PATTERN.search(resolved), [
-        m.group(0) for m in VARIABLE_PATTERN.finditer(resolved)
-    ]
-
-
-def _app_preamble() -> Preamble:
-    """Simulated application preamble (spec 03 §4, right-hand column)."""
-    return Preamble(
-        cli="nexus {{kit}}",  # the app's command alias
-        kit_root="/opt/app/kits/scholar-{{kit}}",
-        workspace="/data/projects/demo",
-        cache="/data/cache",
-        config="/data/config/plugins.json",
-        py="/usr/bin/python3",
-        skill_dirs={"scholar-search-kit": "/opt/app/skills/scholar-search-kit"},
-    )
+    # Both surfaces must resolve the same body: one vocabulary, two preambles.
+    assert _assert_fully_bound(skill, Preamble.dev())
+    assert _assert_fully_bound(skill, _app_preamble())
+    # The dev ``{KIT_ROOT:<short>}`` must name the vendored checkout, not
+    # ``tools/scholar-<short>`` (which does not exist): "no placeholder
+    # survives" alone cannot catch a wrong-but-renderable template.
+    dev = Preamble.dev()
+    for short in KIT_SHORTS:
+        rendered = render("{KIT_ROOT:" + short + "}", dev)
+        assert Path(rendered).is_dir(), (short, rendered)
+        assert Path(rendered).name == f"scholar-{short}-kit", rendered
 
 
-@pytest.mark.parametrize("skill", ["scholar-search-kit"])
+@pytest.mark.parametrize("skill", RESEARCH_FACING)
 def test_app_preamble_resolves(skill: str) -> None:
-    from scholar_harness.skills_portability import VARIABLE_PATTERN
+    assert _assert_fully_bound(skill, _app_preamble())
 
-    path = SKILLS_DIR / skill / "SKILL.md"
-    text = path.read_text(encoding="utf-8")
-    _contract, body = parse_frontmatter(text, path)
-    resolved = render(body, _app_preamble())
-    assert not VARIABLE_PATTERN.search(resolved), "a placeholder failed to bind"
+
+# ---------------------------------------------------------------------------
+# The adapter env is the app/dev preamble source (spec 04 §1 + spec 03 §4)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("surface", ["in-process", "opencode"])
+@pytest.mark.parametrize("skill", SKILL_DIRS_PRESENT)
+def test_adapter_env_renders_every_shipped_skill(
+    skill: str, surface: str, tmp_path: Path
+) -> None:
+    """Criterion 2: all 14 skills resolve from both adapter envs (28 cases)."""
+    workspace = tmp_path / "workspaces" / "demo"
+    workspace.mkdir(parents=True)
+    env = _adapter_envs(workspace, tmp_path / "plugins.json")[surface]
+    preamble = Preamble.from_env(env)
+
+    # The env is the preamble's own key spelling: a round trip is identity.
+    assert preamble.env_keys() == frozenset(env)
+    resolved = _assert_fully_bound(skill, preamble)
+
+    if surface == "in-process":
+        # The application never shells out to ``uv``.
+        assert "uv run" not in resolved
+
+
+def test_adapter_env_cli_and_kit_root_bindings_per_surface(tmp_path: Path) -> None:
+    """Criterion 3: dev says ``uv run scholar-search``; app says
+    ``scholar-search`` with no ``uv run``; both ``{KIT_ROOT:*}`` exist."""
+    workspace = tmp_path / "workspaces" / "demo"
+    workspace.mkdir(parents=True)
+    envs = _adapter_envs(workspace, tmp_path / "plugins.json")
+
+    dev = Preamble.from_env(envs["opencode"])
+    app = Preamble.from_env(envs["in-process"])
+    assert render("{CLI:search}", dev) == "uv run scholar-search"
+    assert render("{CLI:search}", app) == "scholar-search"
+    assert "uv run" not in render("{CLI:search} {CLI:harness}", app)
+    assert render("{CLI:harness}", dev) == "uv run scholar-harness"
+
+    for surface, preamble in (("opencode", dev), ("in-process", app)):
+        for short in KIT_SHORTS:
+            rendered = render("{KIT_ROOT:" + short + "}", preamble)
+            assert Path(rendered).is_dir(), (surface, short, rendered)
+
+
+def test_kit_root_pyproject_resolves_in_dev_but_not_in_app(tmp_path: Path) -> None:
+    """Boundary (open contract decision): the app ``KIT_ROOT`` is a package dir.
+
+    A shipped body composes ``{KIT_ROOT:rag}/pyproject.toml``; that idiom is
+    checkout-shaped. Under the dev preamble it names a real file, under the
+    in-process adapter (installed package directory) it does not. This test
+    documents the gap rather than pretending the app column is resolved.
+    """
+    workspace = tmp_path / "workspaces" / "demo"
+    workspace.mkdir(parents=True)
+    app_env = _adapter_envs(workspace, tmp_path / "plugins.json")["in-process"]
+
+    dev_file = Path(render("{KIT_ROOT:rag}/pyproject.toml", Preamble.dev()))
+    app_file = Path(render("{KIT_ROOT:rag}/pyproject.toml", Preamble.from_env(app_env)))
+
+    assert dev_file.is_file(), dev_file
+    assert not app_file.exists(), app_file
+    # The package directory itself exists; the checkout idioms below it do not.
+    assert Path(render("{KIT_ROOT:rag}", Preamble.from_env(app_env))).is_dir()
+    assert not Path(
+        render("{KIT_ROOT:rag}/src/scholar_rag", Preamble.from_env(app_env))
+    ).exists()
+
+
+def test_missing_py_binding_is_a_named_value_error(tmp_path: Path) -> None:
+    """Criterion 4: a missing ``PY`` is a loud ``ValueError`` naming it."""
+    workspace = tmp_path / "workspaces" / "demo"
+    workspace.mkdir(parents=True)
+    env = dict(_adapter_envs(workspace, tmp_path / "plugins.json")["in-process"])
+    env.pop("PY")
+    preamble = Preamble.from_env(env)
+    assert "PY" not in preamble.env_keys()
+
+    body = "{WORKSPACE}/protocol.json\n{PY} -m pytest\n"
+    with pytest.raises(ValueError) as excinfo:
+        render(body, preamble)
+    assert not isinstance(excinfo.value, KeyError)
+    assert "{PY}" in str(excinfo.value)
+
+    # The same body renders completely once the binding exists: the failing
+    # call above could never return a half-bound string.
+    bound = render(body, Preamble.from_env({**env, "PY": "python"}))
+    assert "{PY}" not in bound
+    assert bound.endswith("python -m pytest\n")
+
+
+def test_missing_skill_dir_binding_is_a_named_value_error() -> None:
+    """A skill directory that does not exist is absent, not invented."""
+    preamble = Preamble.from_env({"WORKSPACE": "/data/projects/demo"})
+    with pytest.raises(ValueError) as excinfo:
+        render("{SKILL_DIR:no-such-skill}/scripts/run.py", preamble)
+    assert "{SKILL_DIR:no-such-skill}" in str(excinfo.value)
+
+
+def test_preamble_from_env_round_trips_and_ignores_foreign_keys() -> None:
+    """Only vocabulary keys are read; everything else is ignored."""
+    preamble = _app_preamble()
+    env = preamble.bindings()
+    assert Preamble.from_env(env).bindings() == env
+
+    noise = {
+        **env,
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/someone",
+        "CLI": "not-a-typed-key",
+        "FOO:bar": "ignored",
+        "SKILL_DIR": "not-a-typed-key",
+    }
+    assert Preamble.from_env(noise).bindings() == env
+
+
+def test_from_env_ignores_unregistered_typed_names_symmetrically() -> None:
+    """Accepting a key is the same decision as ``bindings()`` emitting it.
+
+    ``from_env`` must not bind ``CLI:bogus`` / ``KIT_ROOT:bogus`` /
+    ``SKILL_DIR:no-such-skill``: ``bindings()`` iterates the registry (and the
+    bound skill dirs), so the old unconditional acceptance rendered a
+    placeholder that the same preamble could never re-emit.
+    """
+    bound = _app_preamble().bindings()
+    env = {
+        **bound,
+        "CLI:bogus": "x",
+        "KIT_ROOT:bogus": "/tmp/not-a-kit",
+        "SKILL_DIR:no-such-skill": "/tmp/not-a-skill",
+        "SKILL_DIR": "/tmp/bare-key",
+    }
+    preamble = Preamble.from_env(env)
+
+    assert preamble.bindings() == bound
+    for placeholder in ("{CLI:bogus}", "{KIT_ROOT:bogus}", "{SKILL_DIR:no-such-skill}"):
+        with pytest.raises(ValueError) as excinfo:
+            render(placeholder, preamble)
+        assert placeholder in str(excinfo.value)
+        assert not isinstance(excinfo.value, KeyError)
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +357,19 @@ def test_rewrite_is_idempotent() -> None:
     once = rewrite_text(sample)
     twice = rewrite_text(once)
     assert once == twice
+
+
+def test_rewrite_maps_both_kit_root_spellings() -> None:
+    """The vendored checkout form (``tools/scholar-rag-kit/``) rewrites too.
+
+    ``tools/scholar-rag/`` (still used by spec 03 §4's example) and the real
+    ``tools/scholar-rag-kit/`` both map to the same placeholder, and the result
+    is a fixed point.
+    """
+    for form in ("tools/scholar-rag/", "tools/scholar-rag-kit/"):
+        rewritten = rewrite_text(form + "src/scholar_rag/indexer.py")
+        assert rewritten == "{KIT_ROOT:rag}/src/scholar_rag/indexer.py"
+        assert rewrite_text(rewritten) == rewritten
 
 
 def test_negative_reintroduced_invocation() -> None:

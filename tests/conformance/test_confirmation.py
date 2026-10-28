@@ -193,6 +193,28 @@ def test_enforce_coverage_accepts_explicit_list(tmp_path: Path) -> None:
     assert enforce_coverage(covered, ws) == covered
 
 
+def test_discovery_includes_arm_tagged_decisions(tmp_path: Path) -> None:
+    """Arm-tagged dual-screen artifacts are covered; informal side files are not."""
+    ws = _ws(tmp_path)
+    screening = ws / "literature" / "screening"
+    for name in (
+        "batch_001_decisions_A.json",
+        "batch_001_decisions_B.json",
+        "batch_001_decisions_notes.json",
+    ):
+        (screening / name).write_text(json.dumps(BATCH_DECISIONS), encoding="utf-8")
+    discovered = discover_decision_artifacts(ws)
+    assert "literature/screening/batch_001_decisions_A.json" in discovered
+    assert "literature/screening/batch_001_decisions_B.json" in discovered
+    assert "literature/screening/batch_001_decisions_notes.json" not in discovered
+    assert discovered == [
+        "literature/screening/batch_001_decisions.json",
+        "literature/screening/batch_001_decisions_A.json",
+        "literature/screening/batch_001_decisions_B.json",
+    ]
+    assert enforce_coverage(discovered, ws) == discovered
+
+
 def test_enforce_coverage_refuses_partial_and_unknown(tmp_path: Path) -> None:
     ws = _ws(tmp_path)
     _add_screener2(ws)

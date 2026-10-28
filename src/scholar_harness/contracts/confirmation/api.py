@@ -264,6 +264,11 @@ def verify_artifacts(
 DECISION_GLOBS = (
     "batch_*_decisions.json",
     "batch_*_decisions_screener2.json",
+    # Arm-tagged dual-screen artifacts (spec 04 §4: ``…_decisions_A.json`` /
+    # ``…_decisions_B.json``). Deliberately explicit: a bare
+    # ``batch_*_decisions_*.json`` would also bless informal side files.
+    "batch_*_decisions_A.json",
+    "batch_*_decisions_B.json",
     "_adjudication_resolved_group_*.json",
 )
 
