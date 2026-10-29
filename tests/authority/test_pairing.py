@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import threading
 from datetime import UTC, datetime
 from pathlib import Path
@@ -991,3 +992,33 @@ def test_pairing_file_lock_contention_refuses_locked(tmp_path: Path) -> None:
     assert result["operator_identity"] == OPERATOR
     assert pairing_status(workspace, 1)["state"] == PAIRING_STATE_CONSUMED
     assert not lock_path.exists()  # released after the mint
+
+
+def test_pairing_lock_permission_error_refuses_locked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Windows access-denied on the lock path is contention, not a crash.
+
+    The pairing mirror of ``generations._acquire_lock`` must map
+    ``PermissionError`` (Windows: existing directory / exclusively opened
+    file) to the same typed ``PAIRING_LOCKED`` refusal instead of letting the
+    exception escape.
+    """
+    from scholar_harness.authority import pairing as pairing_mod
+    from scholar_harness.authority.pairing import PAIRING_LOCKED
+
+    workspace = tmp_path / "ws"
+    lock_path = pairing_mod._pairing_lock_path(workspace)
+    real_open = os.open
+
+    def deny_lock(path, flags, *args, **kwargs):
+        if Path(path) == lock_path:
+            raise PermissionError(13, "Access is denied", str(path))
+        return real_open(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", deny_lock)
+    with pytest.raises(AuthorityRefused) as excinfo:
+        pairing_mod._acquire_pairing_lock(workspace, 0.05)
+    assert excinfo.value.code == PAIRING_LOCKED
+    assert "access denied" in excinfo.value.message.lower()
+    assert not lock_path.exists()

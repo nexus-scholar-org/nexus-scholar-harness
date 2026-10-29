@@ -154,14 +154,26 @@ def _acquire_pairing_lock(workspace_dir: Path, timeout_s: float) -> None:
             finally:
                 os.close(fd)
             return
-        except FileExistsError:
+        except (FileExistsError, PermissionError) as exc:
             if _time.monotonic() >= deadline:
+                if isinstance(exc, PermissionError):
+                    detail = (
+                        "the pairing lock could not be acquired (access denied); "
+                        "on Windows an existing directory or an exclusively opened "
+                        "lock file reports this instead of 'already exists' — "
+                        "refusing to mix redemptions; inspect the lock path and "
+                        "retry once no live writer remains"
+                    )
+                else:
+                    detail = (
+                        "another redeemer holds the pairing lock; refusing to mix "
+                        "redemptions (retry once no live writer remains)"
+                    )
                 raise _invalid(
                     PAIRING_LOCKED,
-                    "another redeemer holds the pairing lock; refusing to mix "
-                    "redemptions (retry once no live writer remains)",
+                    detail,
                     lock_path=str(lock_path),
-                )
+                ) from exc
             _time.sleep(0.02)
 
 

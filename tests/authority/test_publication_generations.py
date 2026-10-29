@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import threading
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -814,6 +815,34 @@ def test_competing_writers_held_lock_refuses(tmp_path: Path) -> None:
     assert generations.COLLECT_LOCK_FILENAME in recovered["removed"]
     result, _ = _publish(ws, content, record, snapshot, binding)
     assert not result.idempotent
+
+
+def test_lock_permission_error_refuses_locked_not_crash(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Windows reports ``ERROR_ACCESS_DENIED`` for a contended lock path.
+
+    ``os.open(O_CREAT | O_EXCL)`` raises ``FileExistsError`` on POSIX whenever
+    the path exists, but Windows raises ``PermissionError`` when the path is an
+    existing directory or a file another process holds without sharing. An
+    unhandled ``PermissionError`` would crash the publisher before the named
+    refusal; the acquisition must treat it as contention and end in
+    ``GENERATION_LOCKED`` within the timeout.
+    """
+    lock_path = tmp_path / generations.COLLECT_LOCK_FILENAME
+    real_open = os.open
+
+    def deny_lock(path, flags, *args, **kwargs):
+        if Path(path) == lock_path:
+            raise PermissionError(13, "Access is denied", str(path))
+        return real_open(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", deny_lock)
+    with pytest.raises(AuthorityRefused) as excinfo:
+        generations._acquire_lock(lock_path, 0.05)
+    assert excinfo.value.code == GENERATION_LOCKED
+    assert "access denied" in excinfo.value.message.lower()
+    assert not lock_path.exists()
 
 
 def test_competing_writers_tampered_second_writer_refuses(tmp_path: Path) -> None:
