@@ -8,8 +8,9 @@ UI-05 and UI-07 are merged. Check live main/PRs before answering current-status
 questions.
 
 Product direction: [individual researcher application](architecture/decisions/individual-researcher-product.md).
-Priority: freeze and close the UAV pilot (human gates), then use its labels for
-AG-05; keep WP-06/WP-13 parked until a harvest or migration asks for them.
+Priority: close the UAV pilot screening (human gates) and start UI-06, then use
+the pilot labels for AG-05; keep WP-06/WP-13 parked until a harvest or migration
+asks for them.
 
 | Track | Current state | Next step | Blocker / dependency | Governing document |
 | :-- | :-- | :-- | :-- | :-- |
@@ -74,7 +75,7 @@ Its dated defect claims require live verification before task selection.
 | F2–F5 | Deferred follow-ups | Audit; no broad test-deletion campaign |
 | F6 | KEEP | Public-surface evidence insufficient for replacement |
 | Kit ownership note | Recorded in this documentation candidate | Sample shows no demonstrated duplication; kit move deferred |
-| UAV pilot | Preliminary delivered; **close-out open** | PR #123: two preliminary sources, zero accepted charting; protocol v0.3 is `PROVISIONAL_NOT_FROZEN`; researcher freeze + confirmations remain |
+| UAV pilot | Protocol v0.3 **FROZEN** 2026-10-29 (delegated decision; `f81e6c58…f755`, criteria `9ae1f97d…b86f`); screening **unconfirmed** | Resolve 1,223 PENDING rows → human confirmation over all 566 decision files → repair PRISMA counts → report. INC-03 accepted limitation: protocol-text export blocked until reviewer consent or name redaction. Charting frozen with F1 (no state↔content coupling): no charting rows accepted until repaired. See `workspaces/uav-crop-weed-v03/AMENDMENTS.md` §v0.3 freeze |
 
 This inventory is a routing aid, not a new packet audit. At close-out, update the
 affected row with its merge/evidence and next action. An index links here rather

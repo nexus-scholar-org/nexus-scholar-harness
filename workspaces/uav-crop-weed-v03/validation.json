@@ -23,14 +23,20 @@
     "schema_metacheck": "PASS (draft 2020-12)",
     "synthetic_positive_cases": 1,
     "synthetic_negative_cases": 6,
-    "negative_cases_rejected": ["short verbatim quote (<5)", "malformed setting_id", "non-hex STU id", "out-of-window primary year", "unknown additional property"],
+    "negative_cases_rejected": [
+      "short verbatim quote (<5)",
+      "malformed setting_id",
+      "non-hex STU id",
+      "out-of-window primary year",
+      "unknown additional property"
+    ],
     "finding_f1_conditional_integrity_gap": {
       "severity": "major (pre-freeze)",
       "detail": "v0.3 draft charting schema does NOT couple evidence_state to content: a row with evidence_state=not_reported and fully populated values/provenance validates. The pilot v0.2 sidecar enforces state->value/evidence/note conditional invariants. Import the v0.2 cell logic into the v0.3 schema before freeze, or consciously accept the weaker binding in the freeze decision."
     }
   },
   "guardrail_suffix_check": "13/13 matrix dimension descriptions end with the exact v0.2 guardrail sentence",
-  "semantic_status": "PROVISIONAL_NOT_FROZEN",
+  "semantic_status": "FROZEN",
   "search_executed": false,
   "source_version": "c10d2819e92556cabd8124e918a1bb672504c9ec",
   "limitations": [
@@ -38,6 +44,39 @@
     "Charting reference anchors (BAWSeg / WeedsGalore / Ludena) are UNVERIFIED-DRAFT abstract-level transcriptions; verify against retrieved full texts before any dual-coding pilot.",
     "INC-03 embeds Option C screening design and reviewer names (consent gates unchanged; relocation pending researcher decision).",
     "Pilot v0.2 charting sidecar remains normative in the parent workspace until this workspace's charting pair is researcher-frozen.",
-    "5-file search-kit patch in the demo clone is excluded from this workspace's provenance (canonical-repo stream parked)."
-  ]
+    "5-file search-kit patch in the demo clone is excluded from this workspace's provenance (canonical-repo stream parked).",
+    "FROZEN 2026-10-29: INC-03 flaw and unconsented reviewer names ship as an accepted limitation; protocol-text export is blocked until consent or redaction.",
+    "FROZEN 2026-10-29: charting schema F1 (state<->content coupling) accepted for freeze; charting acceptance is blocked until repaired."
+  ],
+  "freeze": {
+    "frozen_at": "2026-10-29T12:13:31.678081+00:00",
+    "protocol_revision": "0.3",
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "charting_schema_sha256": "02eaf2cee7af43390ab91b11e1831a4d98fdb0c7f99b9ef113abd69111cace85",
+    "authority": "delegated researcher decision under explicit user instruction 2026-10-29; mechanical record, not authenticated human approval",
+    "basis_event": "EVT-20261017191328-03266a (FREEZE-PATH AUTHORIZATION, step 2)",
+    "gates_reverified": {
+      "compile_determinism": "intent.json -> protocol.json byte-identical on 2026-10-29",
+      "strict_validate": "VALID - 0 error(s), 0 warning(s) [strict mode]",
+      "fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+      "identity": "PRT-f81e6c58aefb3159cb679ca87c4a8338 (scholar-protocol-kit 1.0.0, producer commit 4e10f25c25a1b150ce518348d211c7771683a9b7)"
+    },
+    "render_parity": {
+      "verdict": "STALE-BY-ONE-BLANK-LINE",
+      "detail": "A fresh `scholar-protocol render-criteria` on the frozen protocol produces 5350 bytes; the stored SCREENING_CRITERIA.md is 5349 bytes and differs only by one trailing blank line after the verification block. Eligibility text is identical. The frozen artifact is the stored bytes (criteria_sha256 9ae1f97d...b86f) because the 566 existing decision files attest that hash. The stored file was NOT re-rendered."
+    },
+    "decisions": {
+      "cutoff": "2026-10-17T23:59:59Z (last executed search/harvest day, R3/r3d lineage)",
+      "inc_03": "ACCEPTED LIMITATION - bytes frozen as-is. INC-03 mixes workflow administration into an eligibility criterion and names two reviewers whose consent is not recorded. Freezing as-is preserves the criteria hash that 566 decision files attest. Publication/export of the protocol text is blocked until consent is recorded or the names are redacted (editorial amendment, no re-screen).",
+      "charting": "v0.3 draft charting.schema.json FROZEN as the v0.3 instrument WITH accepted limitation F1 (no evidence_state<->content coupling). No charting rows may be accepted for the v0.3 pilot until F1 is repaired; charting pilots continue on the v0.2 sidecar in the parent workspace.",
+      "reviewers": "Option C design retained; consent NOT obtained; independent human review NOT claimed. Protocol freeze does not imply screening confirmation."
+    },
+    "outstanding_after_freeze": [
+      "Resolve 1,223 PENDING decision rows.",
+      "Run scripts/confirm_screening.py over all 566 decision files (human act; not performed here).",
+      "Repair PRISMA counts from the re-derived 14,150 / 283-batch / 28,300-row figures.",
+      "Record reviewer consent or redact INC-03 names before the protocol text is published."
+    ]
+  }
 }

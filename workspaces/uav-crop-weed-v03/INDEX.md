@@ -1,7 +1,7 @@
 # Project Index: Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace
 
 - **Project Slug**: `uav-crop-weed-v03`
-- **Last Updated**: `2026-10-19 14:24:52 UTC`
+- **Last Updated**: `2026-10-29 12:13:36 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -26,10 +26,10 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-10-19 14:24 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-10-19 12:23 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-10-19 14:24 | Active |
-| `synthesis/literature_review.md` | Synthesis document & literature review | 2026-10-17 15:06 | In Progress |
+| `project.json` | Project manifest, metadata, and research questions | 2026-10-29 12:13 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-10-29 12:13 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-10-29 12:13 | Active |
+| `synthesis/literature_review.md` | Synthesis document & literature review | 2026-10-28 13:30 | In Progress |
 
 ---
 *Note: This file is automatically maintained by the `workspace-manager` event logger.*

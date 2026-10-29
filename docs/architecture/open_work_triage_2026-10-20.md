@@ -4,9 +4,11 @@
 > A–E are merged (PRs #149–#159: roles, `Envelope@1`, `HumanConfirmation@1`,
 > skill portability, capability adapters, plus the Windows lock repair and the
 > app-mode residual-limits record). **No PRs are open.** The queue below is
-> unchanged except: the pilot close-out is still **open and human-only**
-> (protocol v0.3 is `PROVISIONAL_NOT_FROZEN`), WP-06/WP-13 remain the only
-> genuinely open WP rows, and the paperwork reconciliation is now recorded in
+> unchanged except: **protocol v0.3 is now FROZEN** (delegated decision,
+> 2026-10-29; fingerprint `f81e6c58…f755`) while screening confirmation,
+> the 1,223 PENDING rows and the PRISMA count repair remain open and
+> human-only; WP-06/WP-13 remain the only genuinely open WP rows; and the
+> paperwork reconciliation is now recorded in
 > [`UPCOMING_WORK.md`](../UPCOMING_WORK.md), the HCM track README, and
 > `specs/agent-layer-portability/README.md`.
 
