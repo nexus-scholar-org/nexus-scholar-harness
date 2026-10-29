@@ -23,9 +23,9 @@ staged runs. What it **cannot** guarantee, unlike InProcessAdapter:
 3. **Run views are advisory.** The per-arm view directories are materialised
    the same way, but a dev agent is not confined to them; blinding relies on
    the phase protocol rather than the filesystem.
-4. **Audit attribution is performed by the shared helpers`` (adapter-stamped
-   actor, role version, hashes)`` but the journal can also be appended by
-   other dev tooling.**
+4. **Audit attribution is performed by the shared helpers
+   (adapter-stamped actor, role version, hashes), but the journal can also be
+   appended by other dev tooling.**
 
 App-grade enforcement lives in
 :class:`scholar_harness.capabilities.inprocess.InProcessAdapter`; any
