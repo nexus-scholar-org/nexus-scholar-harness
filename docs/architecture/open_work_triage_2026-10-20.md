@@ -5,10 +5,14 @@
 > skill portability, capability adapters, plus the Windows lock repair and the
 > app-mode residual-limits record). **No PRs are open.** The queue below is
 > unchanged except: **protocol v0.3 is now FROZEN** (delegated decision,
-> 2026-10-29; fingerprint `f81e6c58…f755`) while screening confirmation,
-> the 1,223 PENDING rows and the PRISMA count repair remain open and
-> human-only; WP-06/WP-13 remain the only genuinely open WP rows; and the
-> paperwork reconciliation is now recorded in
+> 2026-10-29; fingerprint `f81e6c58…f755`) and the **screening backlog is now
+> resolved as agent decisions** — 14,150 records screened into 644 included /
+> 13,506 excluded (346 of them *not retrieved*, deviation DEV-01), emitted as
+> `literature/included.json`, `excluded.json` and the PRISMA pair in
+> `workspaces/uav-crop-weed-v03/`. `HumanConfirmation@1` is still **unsigned**,
+> so human screening confirmation and the reviewer-consent/redaction item
+> remain open (they are not blocking the UI track); WP-06/WP-13 remain the only
+> genuinely open WP rows; and the paperwork reconciliation is now recorded in
 > [`UPCOMING_WORK.md`](../UPCOMING_WORK.md), the HCM track README, and
 > `specs/agent-layer-portability/README.md`.
 
@@ -38,7 +42,7 @@ because the work is already done and nobody reconciled the paperwork.
 
 | # | Item | Time | Why it can't wait |
 |---|---|---|---|
-| **1** | **Pilot close-out**: freeze the protocol, confirm ~1,197 records, repair the counts, write the report honestly | 1 day | The corpus exists and is paid for. The confirmations are yours alone and are what AG-05's independent labels need. |
+| **1** | **Pilot close-out**: freeze the protocol, resolve the screening backlog, repair the counts, write the report honestly | done except human confirmation | The corpus exists and is paid for. Freeze + agent screening are done (644 included / 13,506 excluded, PRISMA emitted). What remains is the part only you can give: confirming decisions for AG-05's independent labels. |
 | **2** | **K0 — repair + land the search-kit tree** | half a day + review | The kit is red and unpinned. It blocks B-D1 and every kit-side item. |
 | ~~**3**~~ | ~~**UI CI job**~~ | 30 min | **DONE 2026-10-20** — see below. |
 | **4** | **Fix the staged false claims** in `workspaces/uav-pilot-demo/` (`project.json` + `README.md` say "no search executed"; 2,165 records are staged for commit) | 5 min | It is queued for commit right now. |
