@@ -1,5 +1,15 @@
 # Open work triage — 2026-10-20
 
+> **Update 2026-10-29 (post-agent-layer).** The agent-layer portability phases
+> A–E are merged (PRs #149–#159: roles, `Envelope@1`, `HumanConfirmation@1`,
+> skill portability, capability adapters, plus the Windows lock repair and the
+> app-mode residual-limits record). **No PRs are open.** The queue below is
+> unchanged except: the pilot close-out is still **open and human-only**
+> (protocol v0.3 is `PROVISIONAL_NOT_FROZEN`), WP-06/WP-13 remain the only
+> genuinely open WP rows, and the paperwork reconciliation is now recorded in
+> [`UPCOMING_WORK.md`](../UPCOMING_WORK.md), the HCM track README, and
+> `specs/agent-layer-portability/README.md`.
+
 **Purpose.** One page that answers: *what is actually open?*
 Everything else in this repo that reads like a backlog (the tracker, the packets
 draft, the lessons backlog) is superseded by this file for triage purposes.

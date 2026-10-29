@@ -134,6 +134,37 @@ def test_mcp_server_without_type_is_rejected(tmp_path: Path) -> None:
     assert any("type" in message for message in messages)
 
 
+def test_v2_nested_servers_are_accepted(tmp_path: Path) -> None:
+    """OpenCode V2 nests servers under ``mcp.servers``; that shape is valid."""
+    root = _write_root(
+        tmp_path,
+        opencode={
+            "mcp": {
+                "nexus-scholar": {"type": "local", "command": ["uv"]},
+                "servers": {"serena": {"type": "local", "command": ["serena"]}},
+            }
+        },
+    )
+    assert MODULE.check(root) == []
+
+
+def test_v2_nested_server_without_type_is_rejected(tmp_path: Path) -> None:
+    root = _write_root(
+        tmp_path,
+        opencode={"mcp": {"servers": {"serena": {"command": ["serena"]}}}},
+    )
+    messages = _messages(root)
+    assert messages
+    assert any("'serena'" in message and "type" in message for message in messages)
+
+
+def test_v2_nested_servers_must_be_an_object(tmp_path: Path) -> None:
+    root = _write_root(tmp_path, opencode={"mcp": {"servers": []}})
+    messages = _messages(root)
+    assert messages
+    assert any("mcp.servers" in message for message in messages)
+
+
 def test_agents_md_above_budget_is_rejected(tmp_path: Path) -> None:
     root = _write_root(tmp_path, agents_words=MODULE.AGENTS_MD_WORD_BUDGET + 1)
     messages = _messages(root)
