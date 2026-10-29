@@ -737,22 +737,23 @@ def test_refusal_codes_are_in_the_closed_registry() -> None:
         )
 
 
-def test_opencode_json_has_no_agent_permission_keys() -> None:
+def test_opencode_json_carries_no_decorative_agent_block() -> None:
+    """opencode.json configures the MCP server only.
+
+    The former ``agents`` block registered four roles with a harness-internal
+    ``permissionRef`` pointer that opencode never read: agents are discovered
+    from ``.opencode/agent/*.md``, whose frontmatter is generated from the role
+    records. Keeping the block implied a permission surface that did not exist,
+    so it was removed rather than left as decoration.
+    """
     config = json.loads((ROOT / "opencode.json").read_text(encoding="utf-8"))
-    fragment = json.loads(PERMISSIONS_FILE.read_text(encoding="utf-8"))
-    agents = config["agents"]
-    assert agents, "opencode.json must still register the dev-loop agents"
-    for name, entry in agents.items():
-        assert "permission" not in entry, f"{name} hand-authors a permission map"
-        for key, value in entry.items():
-            assert value not in {"allow", "ask", "deny"}, (
-                f"{name}.{key} is a hand-authored permission"
-            )
-        pointer = entry["permissionRef"]
-        prefix, _, role_id = pointer.partition("#/roles/")
-        assert prefix == ".opencode/agent/_generated/permissions.json"
-        assert role_id in fragment["roles"], f"{pointer} does not resolve"
-        assert (ROOT / entry["file"]).is_file()
+    assert "agents" not in config
+    assert "permissionRef" not in json.dumps(config)
+    assert "permission" not in config
+    for role_id in EXPECTED_ROLES:
+        assert (AGENT_DIR / f"{role_id}.md").is_file(), (
+            f"{role_id} has no discovery surface"
+        )
 
 
 def test_generated_bodies_are_byte_identical_to_prompt_sources() -> None:

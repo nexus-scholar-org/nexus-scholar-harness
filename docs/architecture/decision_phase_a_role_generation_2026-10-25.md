@@ -165,6 +165,12 @@ and does **not** read this `agents` block; opencode discovers agents from
 app-side pointer map, and must not be mistaken for working opencode permission
 config.
 
+**Addendum (2026-10-28, PR #156 follow-up):** no code ever read that pointer map.
+The decorative `agents` block was removed from `opencode.json`; agents are
+discovered solely from `.opencode/agent/*.md`, and
+`tests/conformance/test_agent_role_permissions.py` now asserts the config carries
+no agent-registration or permission surface.
+
 **D6 — `{arm}` is a path parameter.** The original R2 closed set was
 `{ws, batch, task_id, role, stu}`, but the specification's own screening write
 glob is `workspaces/{ws}/literature/screening/{batch}_decisions_{arm}.json`. The
