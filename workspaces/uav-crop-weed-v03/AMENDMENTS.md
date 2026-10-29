@@ -57,3 +57,69 @@ Gates re-verified on 2026-10-29:
 Not done here (and deliberately so): no screening confirmation, no `PENDING`
 resolution, no reviewer consent, no protocol-text export. The freeze authorizes
 scope; it does not validate results.
+
+## v0.3 screening finalization (2026-10-29)
+
+**Status: FINAL AGENT DECISIONS — NOT HUMAN-CONFIRMED.** No protocol byte,
+criteria byte, or charting byte changed; the frozen instrument and the
+`9ae1f97d…b86f` criteria hash that all 566 decision files attest are untouched.
+
+Authority: explicit user instruction 2026-10-29 delegating the outstanding
+researcher decisions ("i approve your decision so take them instead of me and
+finish the freeze"), plus the follow-up screening instruction. Recorded as a
+**delegated mechanical decision**, not authenticated human approval.
+`HumanConfirmation@1` remains **unsigned**.
+
+### Resolution rule (deterministic, applied by `_drivers/v03_scr1_finalize.py`)
+
+| # | Lane condition | Final decision | Rows |
+|---|---|---|---:|
+| 1 | A1 == A2 == INCLUDE | INCLUDE (`mutual_include`) | 588 |
+| 2 | A1 == A2 == EXCLUDE | EXCLUDE (`mutual_exclude`) | 12,357 |
+| 3 | arms disagree → third lane terminal | as the third lane ruled (`third_lane`) | 814 (40 INC / 641 EXC / 133 PENDING) |
+| 4 | still PENDING, usable abstract present | pass-2 re-screen (`pass2`) | 178 (16 INC / 162 EXC) |
+| 5 | still PENDING, no usable abstract | **EXCLUDE, `NO_USABLE_ABSTRACT_NOT_RETRIEVED`** (`not_retrieved`) | 346 |
+
+Result: 14,150 records screened → **644 INCLUDE / 13,506 EXCLUDE**, of which
+346 are *not retrieved* (no usable abstract). PRISMA: 14,413 identified − 263
+duplicates = 14,150 screened.
+
+### DEV-01 — no-abstract exclusion (recorded deviation)
+
+The researcher instruction was: re-screen the undecided records that have
+abstracts, record those as final, and exclude the rest with a note. Applied
+literally, this excludes 346 records that have no usable abstract instead of
+leaving them `PENDING`. That **deviates** from INC-02/EXC-03 ("an incomplete
+provider abstract or failure to retrieve full text is not an exclusion") and
+from the Pass-1 guardrail. The deviation is disclosed here, carried as
+`deviation: DEV-01` on every affected record, counted separately in
+`prisma_report.json` (`records_not_retrieved`), and *not* buried in the
+substantive exclusion reasons. Removing DEV-01 would return those 346 records to
+`PENDING`; nothing else in the corpus depends on it.
+
+### Residual imperfections (recorded, not repaired)
+
+- One mutual-EXCLUDE record (`SCI-003479`) carries no machine-readable reason
+  code in either arm; it is counted as `UNSPECIFIED` rather than back-filled by
+  inference.
+- 373 A1/A2 INCLUDE-vs-EXCLUDE disagreements were settled by the third lane, not
+  by a human adjudicator.
+- `OUT_OF_SCOPE` (9), `BOUNDARY_AMBIGUOUS_PLATFORM` (4), and
+  `MODERATION_TITLE_ONLY_EXCLUDE` (145) are screener vocabulary that falls
+  outside the four protocol exclusion criteria; they are reported verbatim.
+- This is **not** a Contract-v1 published generation: there is no
+  `MANIFEST.json`, no `verified.json` with `workspace_id`, no corpus snapshot,
+  and no `publication_approval.json`. The artifacts are pilot outputs written
+  directly by the driver and labeled `FINAL_AGENT_UNCONFIRMED`.
+
+### Artifacts
+
+| File | Content |
+|---|---|
+| `literature/included.json` | 644 included records (document + screening) |
+| `literature/excluded.json` | 13,506 excluded records, provenance per row |
+| `literature/screening/final_decisions.json` | all 14,150 final decisions |
+| `literature/screening/summary.json` | counts, lanes, reasons, deviations |
+| `literature/prisma_report.json` | PRISMA counts (incl. not retrieved) |
+| `literature/prisma_screening_report.md` | human-readable report + Mermaid |
+| `calibration_v03/screening_scr1/final_lane/decisions_pass2.json` | pass-2 re-screen, 178 rows |

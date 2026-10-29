@@ -5,7 +5,7 @@
   "title": "Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace",
   "description": "Dedicated host for protocol v0.3: keeps pilot v0.2 inputs byte-preserved; hosts intent v0.3, compiled protocol, rendered criteria, v0.3 charting drafts, and amendment lineage. Provenance: amendment of workspaces/uav-crop-weed-reliability protocol fingerprint sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451",
   "created_at": "2026-10-17T15:06:33.337622+00:00",
-  "updated_at": "2026-10-29T12:13:36.445667+00:00",
+  "updated_at": "2026-10-29T12:30:43.927370+00:00",
   "status": "active",
   "protocol_status": "FROZEN",
   "protocol_revision": "0.3",
@@ -45,5 +45,50 @@
     "verified_papers": 0,
     "downloaded_pdfs": 0,
     "extracted_markdowns": 0
+  },
+  "screening_status": "FINAL_AGENT_UNCONFIRMED",
+  "human_confirmation": "UNSIGNED",
+  "screening": {
+    "session": "UAV-SCREEN-SCR1-20261018",
+    "finalized_at": "2026-10-29T12:30:43.927370+00:00",
+    "finalized_by": "orchestrator agent (delegated researcher decision 2026-10-29)",
+    "authority": "delegated mechanical decision; NOT authenticated human approval",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "totals": {
+      "screened": 14150,
+      "included": 644,
+      "excluded": 13506,
+      "not_retrieved": 346,
+      "identified": 14413,
+      "duplicates_removed": 263
+    },
+    "lanes": {
+      "mutual_include": 588,
+      "mutual_exclude": 12357,
+      "third_lane": {
+        "records": 814,
+        "include": 40,
+        "exclude": 641,
+        "pending": 133
+      },
+      "pass2": {
+        "records": 178,
+        "include": 16,
+        "exclude": 162
+      },
+      "not_retrieved": 346
+    },
+    "deviations": [
+      "DEV-01"
+    ],
+    "artifacts": [
+      "literature/included.json",
+      "literature/excluded.json",
+      "literature/screening/final_decisions.json",
+      "literature/screening/summary.json",
+      "literature/prisma_report.json",
+      "literature/prisma_screening_report.md"
+    ],
+    "contract_status": "NOT_A_CONTRACT_V1_PUBLISHED_GENERATION"
   }
 }

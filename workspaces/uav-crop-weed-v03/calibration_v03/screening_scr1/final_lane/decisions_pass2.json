@@ -1,0 +1,1254 @@
+{
+ "lane": "pass2",
+ "model_id": "opencode/deepseek-v4.1-flash-free",
+ "temperature": 0,
+ "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+ "decisions": [
+  {
+   "screening_id": "SCI-000010",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.9,
+   "one_line_support": "UAV imagery used for weed detection, classification and spatial distribution in rice fields"
+  },
+  {
+   "screening_id": "SCI-000056",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.8,
+   "one_line_support": "UAV-based smart weed detector and herbicide sprayer"
+  },
+  {
+   "screening_id": "SCI-000097",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.85,
+   "one_line_support": "livestock/IoT farm management; no crop-weed mapping"
+  },
+  {
+   "screening_id": "SCI-000123",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.75,
+   "one_line_support": "semi-natural grassland plant-community mapping; not crop/weed"
+  },
+  {
+   "screening_id": "SCI-000134",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.9,
+   "one_line_support": "review of site-specific weed management techniques"
+  },
+  {
+   "screening_id": "SCI-000169",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.7,
+   "one_line_support": "drone-based detection and geo-mapping of weeds in plants"
+  },
+  {
+   "screening_id": "SCI-000241",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.7,
+   "one_line_support": "native grassland weed dataset; not managed agricultural land"
+  },
+  {
+   "screening_id": "SCI-000270",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "drone-rover platform for weed removal/spraying, not detection-mapping"
+  },
+  {
+   "screening_id": "SCI-000305",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.75,
+   "one_line_support": "UAV adaptive path planning driven by weed detection"
+  },
+  {
+   "screening_id": "SCI-000376",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.6,
+   "one_line_support": "segmentation model for mobile weeders; UAV imagery not shown"
+  },
+  {
+   "screening_id": "SCI-000405",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "agricultural field-boundary segmentation, not crop/weed mapping"
+  },
+  {
+   "screening_id": "SCI-000485",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "compares weed-mapping protocols; UAV imaging called impractical"
+  },
+  {
+   "screening_id": "SCI-000558",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.85,
+   "one_line_support": "ground delta-robot for weed control"
+  },
+  {
+   "screening_id": "SCI-000597",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "invasive weeds in alpine grassland; non-agricultural"
+  },
+  {
+   "screening_id": "SCI-000598",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.75,
+   "one_line_support": "reviews weed detection techniques and datasets"
+  },
+  {
+   "screening_id": "SCI-000601",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "generic weed/crop DL; UAV only mentioned in passing"
+  },
+  {
+   "screening_id": "SCI-000612",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.6,
+   "one_line_support": "dashboard/robots; no separable UAV weed mapping"
+  },
+  {
+   "screening_id": "SCI-000614",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.6,
+   "one_line_support": "corn weed model for edge devices; no UAV imagery"
+  },
+  {
+   "screening_id": "SCI-000643",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "real-time weed detector; no UAV"
+  },
+  {
+   "screening_id": "SCI-000652",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "edge AI paddy weeding; no UAV"
+  },
+  {
+   "screening_id": "SCI-000660",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "YOLOv8n edge weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-000676",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "cornfield weed detection model; no UAV"
+  },
+  {
+   "screening_id": "SCI-000681",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.65,
+   "one_line_support": "weed segmentation on high-resolution aerial imagery of a sugar-beet field"
+  },
+  {
+   "screening_id": "SCI-000684",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "weed/crop classification; platform unspecified, no UAV evidence"
+  },
+  {
+   "screening_id": "SCI-000690",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.85,
+   "one_line_support": "residential yard weeds; non-agricultural and no UAV"
+  },
+  {
+   "screening_id": "SCI-000700",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "mixed field-camera/drone images; UAV separability not shown"
+  },
+  {
+   "screening_id": "SCI-000713",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "Mask R-CNN weed recognition; no UAV"
+  },
+  {
+   "screening_id": "SCI-000744",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.65,
+   "one_line_support": "aerial-imagery sugar-beet weed segmentation (duplicate report of same study)"
+  },
+  {
+   "screening_id": "SCI-000777",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "AEL-YOLOv8 weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-000808",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "maize weed detection by image processing; no UAV"
+  },
+  {
+   "screening_id": "SCI-000835",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.6,
+   "one_line_support": "student project proposal for drone weed monitoring; no completed study"
+  },
+  {
+   "screening_id": "SCI-000837",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "CNN paddy weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-000840",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "IoT weed/pest management system; no UAV"
+  },
+  {
+   "screening_id": "SCI-000854",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.85,
+   "one_line_support": "plant classification for agricultural robots"
+  },
+  {
+   "screening_id": "SCI-000855",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "generic ML/DL weed control; no UAV"
+  },
+  {
+   "screening_id": "SCI-000867",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "illicit poppy detection; not agricultural crop/weed mapping"
+  },
+  {
+   "screening_id": "SCI-000868",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "wheat crop/soil data descriptor; no weed mapping"
+  },
+  {
+   "screening_id": "SCI-000884",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "YOLO ensemble weed recognition in paddy; no UAV"
+  },
+  {
+   "screening_id": "SCI-000894",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "foundation model for herbicide trials; no UAV"
+  },
+  {
+   "screening_id": "SCI-000905",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "soybean weed transfer learning; no UAV"
+  },
+  {
+   "screening_id": "SCI-000932",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "spray-nozzle efficacy study in wheat; no UAV crop/weed mapping"
+  },
+  {
+   "screening_id": "SCI-000945",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.65,
+   "one_line_support": "low-cost quadcopter aerial monitoring platform for weed/pest localisation"
+  },
+  {
+   "screening_id": "SCI-000946",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.75,
+   "one_line_support": "vegetation-index spraying; not crop/weed detection-mapping"
+  },
+  {
+   "screening_id": "SCI-000976",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.85,
+   "one_line_support": "vineyard growth change detection with LiDAR; no weed mapping"
+  },
+  {
+   "screening_id": "SCI-001027",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.55,
+   "one_line_support": "aerospace imagery texture masks; UAV platform not established"
+  },
+  {
+   "screening_id": "SCI-001029",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.55,
+   "one_line_support": "canola decision support; no UAV evidence abstract"
+  },
+  {
+   "screening_id": "SCI-001051",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.85,
+   "one_line_support": "UAV mapping of weed dominance in cassava fields"
+  },
+  {
+   "screening_id": "SCI-001104",
+   "decision": "INCLUDE",
+   "reason_code": "INC-02",
+   "confidence": 0.8,
+   "one_line_support": "UAV orthomosaic dataset for weed/crop segmentation (oats, part 2)"
+  },
+  {
+   "screening_id": "SCI-001105",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "edge platform for plant phenotyping"
+  },
+  {
+   "screening_id": "SCI-001114",
+   "decision": "INCLUDE",
+   "reason_code": "INC-02",
+   "confidence": 0.8,
+   "one_line_support": "UAV orthomosaic dataset for weed/crop segmentation (oats, B4)"
+  },
+  {
+   "screening_id": "SCI-001135",
+   "decision": "INCLUDE",
+   "reason_code": "INC-02",
+   "confidence": 0.8,
+   "one_line_support": "UAV orthomosaic dataset for weed/crop segmentation (barley, K5)"
+  },
+  {
+   "screening_id": "SCI-001136",
+   "decision": "INCLUDE",
+   "reason_code": "INC-02",
+   "confidence": 0.8,
+   "one_line_support": "UAV orthomosaic dataset for weed/crop segmentation (barley, K2)"
+  },
+  {
+   "screening_id": "SCI-001143",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.85,
+   "one_line_support": "review of ML/DL across smart agriculture"
+  },
+  {
+   "screening_id": "SCI-001207",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "general smart-agriculture architecture; no crop/weed mapping"
+  },
+  {
+   "screening_id": "SCI-001355",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "UAV crop growth monitoring; not weed mapping"
+  },
+  {
+   "screening_id": "SCI-001418",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.85,
+   "one_line_support": "UAV rice-area estimation for crop insurance"
+  },
+  {
+   "screening_id": "SCI-001480",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.55,
+   "one_line_support": "sorghum crop-weed classification; no UAV imagery evidence"
+  },
+  {
+   "screening_id": "SCI-001565",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "ground WEED-IT sensor weed detection; abstract text unusable"
+  },
+  {
+   "screening_id": "SCI-001671",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "crop-row/k-means detection on ground imagery"
+  },
+  {
+   "screening_id": "SCI-001753",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "ground pea/weed segmentation dataset"
+  },
+  {
+   "screening_id": "SCI-001959",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.7,
+   "one_line_support": "plant-community species classification; not crop/weed mapping"
+  },
+  {
+   "screening_id": "SCI-001989",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.9,
+   "one_line_support": "overview of RNN/CNN weed detection"
+  },
+  {
+   "screening_id": "SCI-001997",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.5,
+   "one_line_support": "publisher boilerplate abstract; no weed-mapping evidence"
+  },
+  {
+   "screening_id": "SCI-002093",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.55,
+   "one_line_support": "GAN augmentation for crop/weed segmentation; no UAV evidence"
+  },
+  {
+   "screening_id": "SCI-002273",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "grassland weed-control scenario simulation; no UAV imagery"
+  },
+  {
+   "screening_id": "SCI-002288",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "generic AI pest/weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-002441",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.95,
+   "one_line_support": "manned/unmanned aerial combat efficiency analysis"
+  },
+  {
+   "screening_id": "SCI-002639",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "encoder-decoder crop/weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-002885",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "crop-type mapping from LiDAR/Sentinel-2"
+  },
+  {
+   "screening_id": "SCI-003204",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.95,
+   "one_line_support": "general drone-technology article"
+  },
+  {
+   "screening_id": "SCI-003621",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "fuzzy-clustering weed detection on crop images; no UAV"
+  },
+  {
+   "screening_id": "SCI-004011",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.9,
+   "one_line_support": "UAV overview article"
+  },
+  {
+   "screening_id": "SCI-004150",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.6,
+   "one_line_support": "general flora species identification; no crop/weed mapping"
+  },
+  {
+   "screening_id": "SCI-004206",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "federated weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-004317",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "satellite/aerial R-CNN crop-weed classification"
+  },
+  {
+   "screening_id": "SCI-004537",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "soybean weed DNN; no UAV"
+  },
+  {
+   "screening_id": "SCI-004728",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "class-imbalanced weed recognition; no UAV"
+  },
+  {
+   "screening_id": "SCI-004824",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "robotic crop/weed instance segmentation"
+  },
+  {
+   "screening_id": "SCI-004840",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "maize weed identification for robotic spraying"
+  },
+  {
+   "screening_id": "SCI-004879",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.9,
+   "one_line_support": "UAV swarm formation study"
+  },
+  {
+   "screening_id": "SCI-005041",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.55,
+   "one_line_support": "crop/weed attention segmentation; UAV imagery not evidenced"
+  },
+  {
+   "screening_id": "SCI-005058",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.55,
+   "one_line_support": "duplicate report of the attention-segmentation study; no UAV evidence"
+  },
+  {
+   "screening_id": "SCI-005096",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.7,
+   "one_line_support": "UAS multitemporal segmentation for hemp crop detection"
+  },
+  {
+   "screening_id": "SCI-005223",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "partially-annotated crop/weed segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-005226",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "fuzzy-transform crop/weed segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-005318",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.6,
+   "one_line_support": "comparative CNN crop/weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-005327",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.9,
+   "one_line_support": "UAV test and evaluation system (military)"
+  },
+  {
+   "screening_id": "SCI-005360",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "YOLO crop/weed benchmarking on ground datasets"
+  },
+  {
+   "screening_id": "SCI-005638",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.9,
+   "one_line_support": "review of UAV target detection for surveillance/military"
+  },
+  {
+   "screening_id": "SCI-005657",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.9,
+   "one_line_support": "UAV swarm-intelligence algorithms"
+  },
+  {
+   "screening_id": "SCI-005808",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "ResNet crop-health/weed detection on brinjal field images"
+  },
+  {
+   "screening_id": "SCI-005825",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "wheat weed detection; ground imagery"
+  },
+  {
+   "screening_id": "SCI-005904",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "CNN-BiLSTM crop/weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-005907",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "optimised DL crop-weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-005935",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "YOLOv8 crop-weed segmentation on standard datasets"
+  },
+  {
+   "screening_id": "SCI-005992",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "crop/weed density segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-005994",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "YOLOv8 crop/weed object detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-006007",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "U-Net weed segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-006046",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "cotton weed detection YOLO/Faster R-CNN; field cameras"
+  },
+  {
+   "screening_id": "SCI-006070",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.8,
+   "one_line_support": "robotic crop/weed instance segmentation (duplicate)"
+  },
+  {
+   "screening_id": "SCI-006105",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "soybean ensemble weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-006281",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "DL architecture comparison for crop/weed seedlings"
+  },
+  {
+   "screening_id": "SCI-006330",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "CNN crop-vs-weed real-time; no UAV"
+  },
+  {
+   "screening_id": "SCI-006791",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "YOLOv7 crop/weed detection; field imagery"
+  },
+  {
+   "screening_id": "SCI-006938",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.9,
+   "one_line_support": "review of UAV technology evolution"
+  },
+  {
+   "screening_id": "SCI-007003",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "YOLOv8s crop/weed detection; no UAV"
+  },
+  {
+   "screening_id": "SCI-007076",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.5,
+   "one_line_support": "agricultural UAV object detection; crop/weed task not evidenced"
+  },
+  {
+   "screening_id": "SCI-007077",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "U-Net regularisation for crop/weed segmentation; ground"
+  },
+  {
+   "screening_id": "SCI-007138",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "AgriSeg disease/fruit/crop-weed segmentation; ground"
+  },
+  {
+   "screening_id": "SCI-007165",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "MobileNet/DenseNet weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-007201",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "YOLO multi-class crop/weed detection; field images"
+  },
+  {
+   "screening_id": "SCI-007293",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "PSPEdgeWeedNet peanut segmentation; edge/ground"
+  },
+  {
+   "screening_id": "SCI-007547",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "vision-language crop/weed detectors; no UAV"
+  },
+  {
+   "screening_id": "SCI-007561",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "WinterCropWeedDB ground image classification"
+  },
+  {
+   "screening_id": "SCI-007621",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.6,
+   "one_line_support": "yield forecasting and weed classification review-style case study"
+  },
+  {
+   "screening_id": "SCI-007665",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.6,
+   "one_line_support": "field spectral reflectance of crop/weed; not UAV imaging"
+  },
+  {
+   "screening_id": "SCI-007684",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "YOLOv11 crop/weed detector; ground imagery"
+  },
+  {
+   "screening_id": "SCI-007688",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "lightweight CNN on CWD30 ground dataset"
+  },
+  {
+   "screening_id": "SCI-007701",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "XAI YOLOv10 crop-weed classification; ground"
+  },
+  {
+   "screening_id": "SCI-007725",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "image-resolution study for crop/weed segmentation; ground"
+  },
+  {
+   "screening_id": "SCI-007763",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "comparative CNN/ViT crop-weed classification; ground datasets"
+  },
+  {
+   "screening_id": "SCI-007798",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.65,
+   "one_line_support": "crop/weed detection in aerial field photography (classical vs quantum)"
+  },
+  {
+   "screening_id": "SCI-007799",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "distilled crop-weed segmentation for field devices; no UAV"
+  },
+  {
+   "screening_id": "SCI-007855",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "FuzionNet weed/crop classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-007856",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "distilled segmentation ensemble; no UAV"
+  },
+  {
+   "screening_id": "SCI-007859",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "RetinaNet tobacco weed detection; field imagery"
+  },
+  {
+   "screening_id": "SCI-007863",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "hybrid CNN-RF crop-weed classification"
+  },
+  {
+   "screening_id": "SCI-007891",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "UNET-SA weed management segmentation"
+  },
+  {
+   "screening_id": "SCI-007916",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "few-shot crop/weed object detection"
+  },
+  {
+   "screening_id": "SCI-007941",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "vision-language crop-weed detection (duplicate report)"
+  },
+  {
+   "screening_id": "SCI-007980",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.6,
+   "one_line_support": "DL crop/weed classification on field pictures; no UAV evidence"
+  },
+  {
+   "screening_id": "SCI-007984",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "CWMamba crop-weed segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-008065",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "bok choy weed detection; ground imagery"
+  },
+  {
+   "screening_id": "SCI-008067",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "adversarial robustness on SorghumWeedDataset; ground"
+  },
+  {
+   "screening_id": "SCI-008068",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "TLCp-SNN weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-008205",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "Laws texture carrot crop/weed discrimination; digital images"
+  },
+  {
+   "screening_id": "SCI-008283",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "encoder-decoder crop/weed segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-008328",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.6,
+   "one_line_support": "UAV optical-range crop plant identification methods"
+  },
+  {
+   "screening_id": "SCI-008843",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "AutoML crop/weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-009287",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "CNN weed identification; no UAV"
+  },
+  {
+   "screening_id": "SCI-009598",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_REPORT_TYPE",
+   "confidence": 0.9,
+   "one_line_support": "book chapter on UAV future trends"
+  },
+  {
+   "screening_id": "SCI-009628",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.9,
+   "one_line_support": "UAV environmental gas-leak risk assessment"
+  },
+  {
+   "screening_id": "SCI-010010",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "cGAN augmentation for maize crop/weed; no UAV"
+  },
+  {
+   "screening_id": "SCI-010180",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "optimised CNN crop/weed classification"
+  },
+  {
+   "screening_id": "SCI-010425",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "W-shaped CNN crop/weed classification"
+  },
+  {
+   "screening_id": "SCI-010523",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.6,
+   "one_line_support": "UAV/spectral dataset for broad precision agriculture; no weed task"
+  },
+  {
+   "screening_id": "SCI-010541",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.8,
+   "one_line_support": "UAV chlorophyll estimation in rice"
+  },
+  {
+   "screening_id": "SCI-010584",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "sunflower/sugarbeet crop/weed detection; ground datasets"
+  },
+  {
+   "screening_id": "SCI-010704",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.7,
+   "one_line_support": "opium poppy detection; illegal-crop monitoring"
+  },
+  {
+   "screening_id": "SCI-010739",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.85,
+   "one_line_support": "generic UAV small-target recognition"
+  },
+  {
+   "screening_id": "SCI-010771",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.65,
+   "one_line_support": "conformal prediction for crop/weed classification"
+  },
+  {
+   "screening_id": "SCI-010774",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "vineyard flora classification with CNNs; ground"
+  },
+  {
+   "screening_id": "SCI-010783",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "MobileNetV2 crop vs weed seedlings"
+  },
+  {
+   "screening_id": "SCI-011012",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.5,
+   "one_line_support": "weed identification from field crop images; publisher boilerplate"
+  },
+  {
+   "screening_id": "SCI-011328",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.75,
+   "one_line_support": "CNN weed detection in alfalfa; ground"
+  },
+  {
+   "screening_id": "SCI-011423",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "ensemble crop/weed segmentation; no UAV"
+  },
+  {
+   "screening_id": "SCI-011429",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.6,
+   "one_line_support": "general UAV agricultural-land monitoring; no weed mapping"
+  },
+  {
+   "screening_id": "SCI-011446",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "RGB vs multispectral weed/crop detection; ground platform"
+  },
+  {
+   "screening_id": "SCI-011475",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "IoT sensors + DL crop/weed discrimination"
+  },
+  {
+   "screening_id": "SCI-011621",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.5,
+   "one_line_support": "crop/weed classification; publisher boilerplate, no UAV signal"
+  },
+  {
+   "screening_id": "SCI-012258",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "straw-mulched maize targeted-sprayer weed detection; ground"
+  },
+  {
+   "screening_id": "SCI-012264",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "ADL-YOLOv8 field weed detector; no UAV"
+  },
+  {
+   "screening_id": "SCI-012350",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "optimised ML crop/weed species classification"
+  },
+  {
+   "screening_id": "SCI-012396",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "ML crop/weed image classification; ground images"
+  },
+  {
+   "screening_id": "SCI-012694",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "hierarchical loss for herbicide-trial phenotyping; ground"
+  },
+  {
+   "screening_id": "SCI-012775",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "synthetic patches for field crop/weed segmentation"
+  },
+  {
+   "screening_id": "SCI-012824",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "wheat weed detection DL; no UAV"
+  },
+  {
+   "screening_id": "SCI-012877",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "CNN weed detection in crop fields"
+  },
+  {
+   "screening_id": "SCI-013091",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "fuzzy rank fusion weed identification; groundnut field images"
+  },
+  {
+   "screening_id": "SCI-013272",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "CPD-WeedNet field weed instance segmentation"
+  },
+  {
+   "screening_id": "SCI-013279",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_TASK",
+   "confidence": 0.6,
+   "one_line_support": "dual-UAV colour correction; no crop/weed mapping task"
+  },
+  {
+   "screening_id": "SCI-013314",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "attention fusion crop/weed segmentation"
+  },
+  {
+   "screening_id": "SCI-013349",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "SVM/VGG16 crop/weed classification; RGB texture data"
+  },
+  {
+   "screening_id": "SCI-013453",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "chilli weed classification; no UAV"
+  },
+  {
+   "screening_id": "SCI-013877",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "Weedformer spot-spraying perception; ground platform"
+  },
+  {
+   "screening_id": "SCI-013911",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "RT-BMTR crop/weed detection; field images"
+  },
+  {
+   "screening_id": "SCI-013970",
+   "decision": "INCLUDE",
+   "reason_code": "INC-01",
+   "confidence": 0.6,
+   "one_line_support": "aerial crop classification with mislabel correction"
+  },
+  {
+   "screening_id": "SCI-013984",
+   "decision": "EXCLUDE",
+   "reason_code": "WRONG_PLATFORM",
+   "confidence": 0.7,
+   "one_line_support": "MBP-RTDETR field weed detection"
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+  "session": "UAV-SCREEN-SCR1-20261018",
+  "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+  "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+  "decision_status": "FINAL_AGENT_UNCONFIRMED",
+  "human_confirmation": "PENDING (HumanConfirmation@1 unsigned)",
+  "totals": {
+    "records": 14150,
+    "included": 644,
+    "excluded": 13506,
+    "not_retrieved": 346
+  },
+  "lanes": {
+    "mutual_exclude:EXCLUDE": 12357,
+    "mutual_include:INCLUDE": 588,
+    "not_retrieved:EXCLUDE": 346,
+    "pass2:EXCLUDE": 162,
+    "pass2:INCLUDE": 16,
+    "third_lane:EXCLUDE": 641,
+    "third_lane:INCLUDE": 40
+  },
+  "exclusion_reasons": {
+    "BOUNDARY_AMBIGUOUS_PLATFORM": 4,
+    "MODERATION_TITLE_ONLY_EXCLUDE": 145,
+    "NO_USABLE_ABSTRACT_NOT_RETRIEVED": 346,
+    "OUTSIDE_DATE_LANGUAGE": 103,
+    "OUT_OF_SCOPE": 9,
+    "UNSPECIFIED": 1,
+    "WRONG_PLATFORM": 757,
+    "WRONG_REPORT_TYPE": 888,
+    "WRONG_TASK": 11253
+  },
+  "deviations": {
+    "DEV-01": "Records without a usable abstract are excluded with NO_USABLE_ABSTRACT_NOT_RETRIEVED instead of staying PENDING (researcher instruction 2026-10-29, delegated). This deviates from INC-02/EXC-03 and the Pass-1 guardrail; the subset is reported separately as 'not retrieved'."
+  },
+  "sources": {
+    "mutual_exclude": "decisions/{batch}_decisions_A1.json (A1 == A2 == EXCLUDE)",
+    "mutual_include": "decisions/{batch}_decisions_A1.json (A1 == A2 == INCLUDE)",
+    "third_lane": "third_lane/decisions/pack_*_decisions_T3.json",
+    "pass2": "final_lane/decisions_pass2.json (model opencode/deepseek-v4.1-flash-free, temperature 0)",
+    "not_retrieved": "v03_scr1_finalize.py resolution branch 5 (no usable abstract after the third lane and the pass-2 re-screen)"
+  }
+}

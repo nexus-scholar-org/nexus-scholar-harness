@@ -75,7 +75,7 @@ Its dated defect claims require live verification before task selection.
 | F2–F5 | Deferred follow-ups | Audit; no broad test-deletion campaign |
 | F6 | KEEP | Public-surface evidence insufficient for replacement |
 | Kit ownership note | Recorded in this documentation candidate | Sample shows no demonstrated duplication; kit move deferred |
-| UAV pilot | Protocol v0.3 **FROZEN** 2026-10-29 (delegated decision; `f81e6c58…f755`, criteria `9ae1f97d…b86f`); screening **unconfirmed** | Resolve 1,223 PENDING rows → human confirmation over all 566 decision files → repair PRISMA counts → report. INC-03 accepted limitation: protocol-text export blocked until reviewer consent or name redaction. Charting frozen with F1 (no state↔content coupling): no charting rows accepted until repaired. See `workspaces/uav-crop-weed-v03/AMENDMENTS.md` §v0.3 freeze |
+| UAV pilot | Protocol v0.3 **FROZEN** 2026-10-29 (delegated decision; `f81e6c58…f755`, criteria `9ae1f97d…b86f`); screening **FINAL_AGENT_UNCONFIRMED** (14,150 screened → 644 included / 13,506 excluded, of which 346 *not retrieved* per DEV-01; `HumanConfirmation@1` unsigned) | Human confirmation over the 566 decision files (optional for pilot close-out, needed for AG-05 labels); reviewer consent or name redaction for INC-03 (protocol-text export blocked); charting F1 repair before any charting row is accepted. See `workspaces/uav-crop-weed-v03/AMENDMENTS.md` §v0.3 freeze + §v0.3 screening finalization |
 
 This inventory is a routing aid, not a new packet audit. At close-out, update the
 affected row with its merge/evidence and next action. An index links here rather
