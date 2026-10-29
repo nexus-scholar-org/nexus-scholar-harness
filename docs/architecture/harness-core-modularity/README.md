@@ -8,8 +8,28 @@ without behaviour change.
 | Document | Role |
 |---|---|
 | [`harness_core_modularity_roadmap.md`](./harness_core_modularity_roadmap.md) | **Plan/roadmap** for the track (packet order, deferrals, handoff). |
-| [`hcm_05_mcp_recon_adapter_characterization.md`](./hcm_05_mcp_recon_adapter_characterization.md) | Current close-out packet (ADOPTED; next is HCM-06 gating). |
+| [`hcm_05_mcp_recon_adapter_characterization.md`](./hcm_05_mcp_recon_adapter_characterization.md) | HCM-05 characterization (ADOPTED; PR #107). |
+| [`hcm-02-disposition.md`](./hcm-02-disposition.md) | HCM-02 evidence disposition (IMPLEMENTED, qualified; see close-out below). |
 | HCM-06 read presentation API | Merged (PR #133, `6575209`): 8 read-only GET routes with generation-currentness + loopback CORS; UI-04 live wiring. |
+
+## Close-out record (2026-10-29)
+
+HCM is **closed as a qualified track**: the neutral services and the two
+presentation APIs are delivered, while HCM-03/04 remain partial and are not
+claimed as whole-packet closure. No further HCM implementation is scheduled.
+
+| Packet | Disposition | Evidence / limit |
+|---|---|---|
+| HCM-01 | Characterization recorded | 17 characterization tests; three defects recorded as observed behaviour, not policy |
+| HCM-02 | **Implemented (qualified)** | `workspace/audit.py` is the neutral writer; direct callers migrated; the one genuine job-runner bypass was migrated in PR #134. OQ-H1 (failure contract) and OQ-H2 (test count) remain recorded in the disposition. |
+| HCM-03 | **Partial** | `console/api/pipelines.py` delegates models/validation to `scholar_harness.pipeline`; the console transport module still exists, so "pipeline models fully out of transport" is not claimed. |
+| HCM-04 | **Partial / subpacket** | Stage coordinators exist under `src/scholar_harness/pipeline/`; HCM-04e identity policy (bridge-or-refuse) is implemented. No packet-level closure of every stage extraction is claimed. |
+| HCM-05 | **Adopted** | Harness adapter + canonical agent-kit integration (PR #107); pins and vendored snapshot synchronized at the time of delivery. |
+| HCM-06 | **Merged** | PR #133 (`6575209`): 8 read-only GET routes, generation-currentness, loopback CORS; consumed by the UI-04 live wiring. |
+
+Next-step statement for this track: **none scheduled**. Reopen only with a new
+packet that names the transport removal (HCM-03) or an uncovered orchestration
+stage (HCM-04); do not infer whole-packet completion from the partial rows.
 
 ## Completion record
 

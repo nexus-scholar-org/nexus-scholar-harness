@@ -170,6 +170,26 @@ def _check_repository_layout(root: Path, failures: list[str]) -> None:
         )
 
 
+def _check_mcp_entries(
+    entries: dict[str, object], label: str, failures: list[str]
+) -> bool:
+    """Validate one mapping of name -> server config; return False when empty."""
+    if not isinstance(entries, dict) or not entries:
+        failures.append(f"opencode.json {label} must be a non-empty object of MCP servers")
+        return False
+    for name, config in entries.items():
+        if not isinstance(config, dict):
+            failures.append(f"opencode.json MCP server '{name}' must be an object")
+            continue
+        kind = config.get("type")
+        if kind not in MCP_SERVER_TYPES:
+            failures.append(
+                f"opencode.json MCP server '{name}' must declare type "
+                f"{' or '.join(repr(item) for item in MCP_SERVER_TYPES)} (found {kind!r})"
+            )
+    return True
+
+
 def _check_opencode_config(root: Path, failures: list[str]) -> None:
     path = root / "opencode.json"
     if not path.is_file():
@@ -197,16 +217,20 @@ def _check_opencode_config(root: Path, failures: list[str]) -> None:
     if not isinstance(servers, dict) or not servers:
         failures.append("opencode.json 'mcp' must be a non-empty object of MCP servers")
         return
-    for name, config in servers.items():
-        if not isinstance(config, dict):
-            failures.append(f"opencode.json MCP server '{name}' must be an object")
-            continue
-        kind = config.get("type")
-        if kind not in MCP_SERVER_TYPES:
-            failures.append(
-                f"opencode.json MCP server '{name}' must declare type "
-                f"{' or '.join(repr(item) for item in MCP_SERVER_TYPES)} (found {kind!r})"
-            )
+    # OpenCode V2 nests servers under ``mcp.servers``; earlier configs list them
+    # directly under ``mcp`` (still read by V2). Both shapes are accepted, but
+    # ``servers`` is a container, never an MCP server itself.
+    flat = {name: config for name, config in servers.items() if name != "servers"}
+    nested = servers.get("servers")
+    present = False
+    if flat:
+        present = True
+        _check_mcp_entries(flat, "'mcp'", failures)
+    if nested is not None:
+        present = True
+        _check_mcp_entries(nested, "'mcp.servers'", failures)
+    if not present:
+        failures.append("opencode.json 'mcp' must be a non-empty object of MCP servers")
 
 
 def _check_agents_md(root: Path, failures: list[str]) -> None:
