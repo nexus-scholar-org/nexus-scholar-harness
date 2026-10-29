@@ -25,9 +25,13 @@ from scholar_harness.contracts.confirmation.api import (
     validate,
     verify_artifacts,
 )
+from scholar_harness.contracts.envelope import envelope_id, output_sha256
+from scholar_harness.contracts.envelope import validate as validate_envelope
+from scholar_harness.contracts.envelope.api import EnvelopeRefusalError
 from scholar_harness.contracts.envelope.registry import RefusalCode
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+ROLES = ROOT / "roles"
 
 BATCH_DECISIONS = {
     "decisions": [
@@ -497,3 +501,77 @@ def test_cli_module_renders_schema() -> None:
 
     rendered = render_confirmation_schema()
     assert "HumanConfirmation@1" in rendered
+
+
+# ---------------------------------------------------------------------------
+# Envelope@1 wrapping (packet T-ALP-C criterion 8, D11 schema-name authority)
+# ---------------------------------------------------------------------------
+
+
+def _envelope_for(record: dict[str, Any], *, schema: str = "HumanConfirmation@1"):
+    """A human-confirm OK envelope whose payload is ``record``."""
+    raw: dict[str, Any] = {
+        "envelope": 1,
+        "envelope_id": "ENV-0000000000000000",
+        "role": "human-confirm",
+        "role_version": "1.0.0",
+        "task_id": "T-ALP-C",
+        "arm": None,
+        "created_at": "2026-10-27T09:00:00Z",
+        "status": "OK",
+        "retryable": False,
+        "human_action_required": False,
+        "refusal": None,
+        "coverage": {"expected": 1, "produced": 1, "unit": "artifacts"},
+        "inputs": [
+            {
+                "schema": "ScreeningDecisions@1",
+                "path": "literature/screening/batch_001_decisions.json",
+                "sha256": record["artifacts"][0]["sha256"],
+                "role_version": None,
+            }
+        ],
+        "parents": [],
+        "output": {"schema": schema, "data": record},
+        "provenance": {
+            "adapter": "in-process",
+            "adapter_version": "1.0.0",
+            "isolation": "none",
+            "blinded_from": [],
+            "duration_ms": 1,
+        },
+    }
+    raw["output_sha256"] = output_sha256(raw)
+    raw["envelope_id"] = envelope_id(raw)
+    return raw
+
+
+def test_envelope_wraps_a_confirmation_payload(tmp_path: Path) -> None:
+    """A confirmation is a registered payload, so the envelope binds it."""
+    record = _record(_ws(tmp_path))
+    model = validate_envelope(_envelope_for(record), roles_dir=ROLES)
+    assert model.output is not None
+    assert model.output.schema_ == "HumanConfirmation@1"
+    assert model.output.data["reviewer"]["name"] == "A. Reviewer"
+
+
+def test_envelope_refuses_a_near_miss_confirmation_schema(tmp_path: Path) -> None:
+    """D11: a schema-name typo must name both names, never travel unvalidated."""
+    record = _record(_ws(tmp_path))
+    raw = _envelope_for(record, schema="HumanConfirmation@2")
+    with pytest.raises(EnvelopeRefusalError) as info:
+        validate_envelope(raw, roles_dir=ROLES)
+    assert info.value.refusal_code is RefusalCode.INVALID_OUTPUT
+    assert "output.schema 'HumanConfirmation@2'" in info.value.detail
+    assert "declared: ['HumanConfirmation@1']" in info.value.detail
+
+
+def test_envelope_refuses_a_shape_invalid_confirmation(tmp_path: Path) -> None:
+    """The registered payload model runs: an absent reviewer cannot slip through."""
+    record = _record(_ws(tmp_path))
+    record["reviewer"] = {"name": "", "affiliation": "", "signing_capacity": "no"}
+    raw = _envelope_for(record)
+    with pytest.raises(EnvelopeRefusalError) as info:
+        validate_envelope(raw, roles_dir=ROLES)
+    assert info.value.refusal_code is RefusalCode.INVALID_OUTPUT
+    assert "failed its Contract v1 schema" in info.value.detail

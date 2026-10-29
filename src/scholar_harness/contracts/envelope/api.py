@@ -26,6 +26,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from ..canonical import canonical_json_bytes
+from ..confirmation.model import HumanConfirmation
 from ..models import (
     ClaimEvidenceData,
     CorpusSnapshotData,
@@ -59,6 +60,10 @@ PAYLOAD_MODELS: dict[str, type] = {
     "CorpusSnapshot@1": CorpusSnapshotData,
     "DocumentManifest@1": DocumentManifestData,
     "ClaimsLedger@1": ClaimEvidenceData,
+    # Phase C: the confirmation record is itself the payload artifact (it has no
+    # separate ``data`` wrapper), so its model keeps the ``schema`` field. The
+    # contraband check below is alias-aware for exactly this shape.
+    "HumanConfirmation@1": HumanConfirmation,
 }
 
 
@@ -199,7 +204,7 @@ def _declared_schemas(record: dict[str, Any], field: str) -> set[str]:
     """Schemas a role record declares under ``outputs``/``inputs``.
 
     An empty return means the record declares *nothing* under ``field`` (field
-    absent, non-list, or no entry carrying a string ``schema``). All eleven
+    absent, non-list, or no entry carrying a string ``schema``). All twelve
     shipped role records declare both fields; for a record that does not, the
     legacy behaviour holds — the name travels opaquely (D11), we do not guess.
     """
@@ -392,6 +397,9 @@ def _validate_payload_schema(envelope: Envelope) -> None:
     # strictly against the fields the frozen schema defines, while nested
     # forward-compat fields keep flowing under the frozen policy.
     declared = set(model.model_fields)
+    declared |= {
+        field.alias for field in model.model_fields.values() if field.alias
+    }
     contraband = sorted(set(envelope.output.data) - declared)
     if contraband:
         raise EnvelopeRefusalError(

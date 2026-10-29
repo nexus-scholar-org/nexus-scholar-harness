@@ -121,6 +121,7 @@ EXPECTED_ROLES = {
     "extraction-critic",
     "extractor-a",
     "extractor-b",
+    "human-confirm",
     "inception-agent",
     "orchestrator",
     "reviewer",
@@ -424,7 +425,7 @@ def _stage_synthetic(tmp_path: Path, *roles: dict) -> Path:
 # --------------------------------------------------------------------------- #
 
 
-def test_role_catalogue_is_the_eleven_agents() -> None:
+def test_role_catalogue_is_the_twelve_agents() -> None:
     roles = gen.load_roles(ROOT)
     assert set(roles) == EXPECTED_ROLES
     assert len(roles) == len(EXPECTED_ROLES)
@@ -452,14 +453,14 @@ def test_every_output_declares_a_write_glob() -> None:
 
 
 def test_all_shipped_globs_still_validate() -> None:
-    """RR11 acceptance: every shipped record still validates, 88 globs in all.
+    """RR11 acceptance: every shipped record still validates, 95 globs in all.
 
     The case-folding comparison and the non-canonical-segment rejection must not
     over-reject the declared catalogue, including its upper-case filenames
     (``INDEX.md``, ``SCREENING_CRITERIA.md``) and ``extracted/A/``.
     """
     roles = gen.load_roles(ROOT)
-    assert len(roles) == 11
+    assert len(roles) == 12
     total = 0
     for role_id, role in roles.items():
         pairs = [
@@ -472,7 +473,7 @@ def test_all_shipped_globs_still_validate() -> None:
                 gen.validate_glob(glob, ROLES_DIR / f"{role_id}.json", field) == glob
             ), (role_id, field, glob)
         total += len(pairs)
-    assert total == 88
+    assert total == 95
 
 
 def test_read_only_descriptions_exclude_write_capabilities() -> None:
@@ -618,7 +619,7 @@ def test_every_role_denies_the_audit_journal_and_git_history() -> None:
     roles that never write under ``audit/``.
     """
     roles = gen.load_roles(ROOT)
-    assert len(roles) == len(EXPECTED_ROLES) == 11
+    assert len(roles) == len(EXPECTED_ROLES) == 12
     for role_id, role in roles.items():
         assert any(
             gen.glob_within(gen.AUDIT_JOURNAL, deny_glob)
@@ -1347,7 +1348,7 @@ def test_shipped_globs_use_only_permitted_characters() -> None:
                 "documented permitted set (and the alias rules) deliberately"
             )
             total += 1
-    assert total == 88
+    assert total == 95
 
 
 @pytest.mark.parametrize(

@@ -57,7 +57,7 @@ that rejects a claim must state what it rejects.
 | F8 | `opencode.json` uses the `mcp` key with `"type": "local"`. `mcpServers` is not an OpenCode key. | `opencode.json` |
 | F9 | `tools/scholar-agent-kit/.venv` holds **43,272 files / 1,397,817,885 bytes** (≈1.30 GiB). It is gitignored (`tools/scholar-agent-kit/.gitignore:1`, confirmed by `git check-ignore -v`) but sits **inside a tracked kit tree**. | `tools/scholar-agent-kit/.gitignore:1`; measurement taken 2026-10-20 |
 | F10 | The MCP front door exposes **25 tools** (22 `nexus_*` + 3 `recon_*`) at a pinned rev. | `docs/kits_surface_matrix.md`; `.agents/plugins/nexus-scholar/plugins.json` |
-| F11 | `.opencode/agent/` holds **11 agent definitions** (frontmatter generated from `roles/*.json`, instruction bodies preserved verbatim) plus a generated `_generated/permissions.json`. The former non-agent workflow note now lives at `docs/architecture/git_workflow.md`, outside the agent directory. | `.opencode/agent/*.md`; `.opencode/agent/_generated/permissions.json`; `scripts/generate_agent_roles.py`; `docs/architecture/git_workflow.md`; `tests/conformance/test_agent_role_permissions.py` |
+| F11 | `.opencode/agent/` holds **12 agent definitions** (frontmatter generated from `roles/*.json`, instruction bodies preserved verbatim) plus a generated `_generated/permissions.json`. The former non-agent workflow note now lives at `docs/architecture/git_workflow.md`, outside the agent directory. | `.opencode/agent/*.md`; `.opencode/agent/_generated/permissions.json`; `scripts/generate_agent_roles.py`; `docs/architecture/git_workflow.md`; `tests/conformance/test_agent_role_permissions.py` |
 
 ## What this repo already implements
 
@@ -73,7 +73,7 @@ things that are already present here under different names.
 | Bounded reading set | Packet-size rule (capsule, ≤4 stable sources, exact line ranges) | `docs/architecture/agent_context_protocol.md` §Packet-size rule |
 | Targeted test gates | `FAST` / `STANDARD` / `RELEASE` lanes with machine-readable gate selection | `docs/architecture/test_gate_policy.md`; `docs/architecture/test_gate_manifest.json`; `scripts/select_test_gate.py` |
 | Evidence reuse | Documented reuse conditions for a recorded executable result | `docs/architecture/test_gate_policy.md` §Evidence reuse |
-| Subagent roles with narrow permissions | 11 agent definitions; reviewer is `edit: deny`, `bash: ask`, `read: allow` | `.opencode/agent/*.md`; `tests/conformance/test_opencode_dev_agents.py` |
+| Subagent roles with narrow permissions | 12 agent definitions; reviewer is `edit: deny`, `bash: ask`, `read: allow` | `.opencode/agent/*.md`; `tests/conformance/test_opencode_dev_agents.py` |
 | Ignored heavy artifacts | Repo-level and kit-level ignore rules for `.venv/`, caches, PDFs, `chroma_db`, vendored JS | `.gitignore`; `tools/scholar-agent-kit/.gitignore` |
 | MCP server configuration | Typed local MCP server under the valid `mcp` key | `opencode.json` |
 | MCP front door | 25-tool front door with declared-unsupported boundaries | `.agents/plugins/nexus-scholar/mcp_config.json`; `docs/kits_surface_matrix.md` |

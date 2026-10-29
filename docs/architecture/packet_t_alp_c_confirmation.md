@@ -1,10 +1,27 @@
 # Task packet — T-ALP-C: human confirmation (`HumanConfirmation@1`)
 
-**Status:** specification frozen 2026-10-26
+**Status:** delivered 2026-10-28; specification frozen 2026-10-26
 **Owner surface:** harness
 **Governing spec:** `specs/agent-layer-portability/06_human_confirmation.md` (new, orchestrator-owned) + the Phase C section of `05_migration_plan.md` §3
 **Delivery lane:** `STANDARD`
 **Phases shipped:** A (`#149`), B (`#150`, `3bf3bb4`)
+
+## 0. Delivery record (2026-10-28)
+
+- `scholar_harness.contracts.confirmation` (`model`, `api`, `schema`, `cli`)
+  with `validate`, `verify_artifacts`, `enforce_coverage`, `export_gate` and
+  `confirmation_fingerprint`; `HumanConfirmation@1` registered in the envelope
+  payload map so Phase B D11 role/schema checks cover it.
+- `scripts/confirm_screening.py` (`--interactive`, `--from-queue`,
+  `--retrospective`), write-time hash re-verification, coverage-first refusals,
+  audit event.
+- `scholar-harness export --claim-confirmed` export gate only (no other CLI
+  change).
+- `roles/human-confirm.json` + prompt body, generated frontmatter/permissions.
+- Docs: [`confirmation.md`](./confirmation.md),
+  [`decision_phase_c_confirmation_2026-10-26.md`](./decision_phase_c_confirmation_2026-10-26.md).
+- Gates: confirmation/envelope suites, role-generation suite, contract
+  baseline `--check`, context-policy `--check`, scoped ruff.
 
 ## 1. Objective
 

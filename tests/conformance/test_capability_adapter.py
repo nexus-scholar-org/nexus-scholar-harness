@@ -3246,9 +3246,9 @@ def test_three_action_role_journals_its_last_action_for_a_failed_run(
 
 
 def test_shipped_roles_declare_distinct_first_and_last_emit_actions() -> None:
-    """P2-2: the first/last convention holds for all eleven shipped records."""
+    """P2-2: the first/last convention holds for all twelve shipped records."""
     records = sorted(ROLES_DIR.glob("*.json"))
-    assert len(records) == 11
+    assert len(records) == 12
     for path in records:
         record = json.loads(path.read_text(encoding="utf-8"))
         actions = record["audit"]["emit"]

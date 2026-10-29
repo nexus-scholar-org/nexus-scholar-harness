@@ -1,0 +1,67 @@
+{
+  "audit": {
+    "actor": "{role}@{version}",
+    "emit": [
+      "HUMAN_CONFIRMATION",
+      "HUMAN_CONFIRMATION_REFUSED"
+    ]
+  },
+  "deny_glob": [
+    "workspaces/{ws}/audit/**",
+    ".git/**"
+  ],
+  "id": "human-confirm",
+  "independence": {
+    "blinded_from": [],
+    "isolation": "none"
+  },
+  "inputs": [
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "ScreeningDecisions@1"
+    },
+    {
+      "from": "workspace",
+      "required": true,
+      "schema": "Protocol@1"
+    }
+  ],
+  "kind": "role",
+  "mode": "subagent",
+  "network": "deny",
+  "outputs": [
+    {
+      "required": true,
+      "schema": "HumanConfirmation@1",
+      "write_glob": "workspaces/{ws}/literature/screening/HUMAN_CONFIRMATION.json",
+      "written_by": "adapter"
+    }
+  ],
+  "purpose": "Read-only signing surface for the named human reviewer. Binds every screening decision artifact the reviewer actually saw to a HumanConfirmation record, preserving overrides and deferrals, and never signs on the reviewer's behalf.",
+  "read_glob": [
+    "workspaces/{ws}/INDEX.md",
+    "workspaces/{ws}/literature/**",
+    "workspaces/{ws}/project.json",
+    "workspaces/{ws}/protocol.json"
+  ],
+  "refusal_codes": [
+    "BLOCKED_INPUT",
+    "INVALID_OUTPUT",
+    "PARENT_HASH_MISMATCH",
+    "REFUSED_UNSUPPORTED",
+    "SCOPE_VIOLATION"
+  ],
+  "requires_skill": [],
+  "stop_conditions": [
+    "a decision artifact under the screening directory is not covered by the confirmation",
+    "an artifact hash changed after the reviewer saw it",
+    "the reviewer identity was not supplied explicitly by the person signing",
+    "a changed row carries no rationale or a deferred row carries no reason"
+  ],
+  "title": "Human Confirmation",
+  "tools": [
+    "read"
+  ],
+  "version": "1.0.0"
+}

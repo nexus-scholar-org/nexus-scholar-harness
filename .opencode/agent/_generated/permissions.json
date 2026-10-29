@@ -325,6 +325,63 @@
         "workspaces/{ws}/extracted/B/{stu}.json"
       ]
     },
+    "human-confirm": {
+      "audit": {
+        "actor": "{role}@{version}",
+        "emit": [
+          "HUMAN_CONFIRMATION",
+          "HUMAN_CONFIRMATION_REFUSED"
+        ]
+      },
+      "deny_glob": [
+        "workspaces/{ws}/audit/**",
+        ".git/**"
+      ],
+      "id": "human-confirm",
+      "independence": {
+        "blinded_from": [],
+        "isolation": "none"
+      },
+      "mode": "subagent",
+      "network": "deny",
+      "outputs": [
+        {
+          "required": true,
+          "schema": "HumanConfirmation@1",
+          "write_glob": "workspaces/{ws}/literature/screening/HUMAN_CONFIRMATION.json",
+          "written_by": "adapter"
+        }
+      ],
+      "permission": {
+        "bash": "deny",
+        "edit": "deny",
+        "glob": "deny",
+        "grep": "deny",
+        "list": "deny",
+        "read": "allow",
+        "skill": "deny",
+        "task": "deny"
+      },
+      "read_glob": [
+        "workspaces/{ws}/INDEX.md",
+        "workspaces/{ws}/literature/**",
+        "workspaces/{ws}/project.json",
+        "workspaces/{ws}/protocol.json"
+      ],
+      "refusal_codes": [
+        "BLOCKED_INPUT",
+        "INVALID_OUTPUT",
+        "PARENT_HASH_MISMATCH",
+        "REFUSED_UNSUPPORTED",
+        "SCOPE_VIOLATION"
+      ],
+      "requires_skill": [],
+      "title": "Human Confirmation",
+      "version": "1.0.0",
+      "write_glob": [
+        "workspaces/{ws}/literature/screening/HUMAN_CONFIRMATION.json"
+      ]
+    },
     "inception-agent": {
       "audit": {
         "actor": "{role}@{version}",

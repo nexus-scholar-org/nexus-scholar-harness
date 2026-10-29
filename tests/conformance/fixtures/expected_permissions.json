@@ -50,6 +50,16 @@
       "skill": "allow",
       "task": "deny"
     },
+    "human-confirm": {
+      "bash": "deny",
+      "edit": "deny",
+      "glob": "deny",
+      "grep": "deny",
+      "list": "deny",
+      "read": "allow",
+      "skill": "deny",
+      "task": "deny"
+    },
     "inception-agent": {
       "bash": "allow",
       "edit": "allow",
