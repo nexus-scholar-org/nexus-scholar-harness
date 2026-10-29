@@ -586,15 +586,27 @@ def _acquire_lock(lock_path: Path, timeout_s: float) -> None:
             finally:
                 os.close(fd)
             return
-        except FileExistsError:
+        except (FileExistsError, PermissionError) as exc:
             if time.monotonic() >= deadline:
+                if isinstance(exc, PermissionError):
+                    detail = (
+                        f"{lock_path.name} could not be acquired (access denied); "
+                        "on Windows an existing directory or an exclusively opened "
+                        "lock file reports this instead of 'already exists' — "
+                        "refusing to mix generations; inspect the path and remove "
+                        "a stale lock only once no live writer remains"
+                    )
+                else:
+                    detail = (
+                        f"another publisher holds {lock_path.name}; refusing to mix "
+                        "generations (remove the stale lock via recover_partial and "
+                        "re-collect once no live writer remains)"
+                    )
                 raise AuthorityRefused(
                     GENERATION_LOCKED,
-                    f"another publisher holds {lock_path.name}; refusing to mix "
-                    "generations (remove the stale lock via recover_partial and "
-                    "re-collect once no live writer remains)",
+                    detail,
                     lock_path=str(lock_path),
-                )
+                ) from exc
             time.sleep(0.02)
 
 
