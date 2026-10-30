@@ -176,7 +176,10 @@ def _count_json(path: Path) -> int:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(payload, dict):
-            for key in ("items", "papers", "studies", "records"):
+            # `decisions` is the wrapper key the console's own decision writer
+            # emits (and agent_screen's collect accepts); without it every
+            # canonical decisions sidecar counted as a single item.
+            for key in ("items", "papers", "studies", "records", "decisions"):
                 if key in payload and isinstance(payload[key], list):
                     return len(payload[key])
             return 1

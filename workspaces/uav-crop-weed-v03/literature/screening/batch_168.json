@@ -1,0 +1,532 @@
+{
+  "batch_index": 168,
+  "total_batches": 283,
+  "batch_size": 50,
+  "status": "DONE",
+  "protocol": {
+    "title": "Reliability and Generalization in UAV Crop-Weed Mapping: A Scoping Review",
+    "research_questions": [
+      {
+        "id": "RQ1",
+        "text": "How do UAV crop-weed mapping studies define and evaluate reliability under spectral degradation, sensor differences, and temporal shift?",
+        "target_facet": "reliability_evaluation",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ2",
+        "text": "Which datasets, sensors, dates, fields, and split units support the reported generalization claims?",
+        "target_facet": "evaluation_independence",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ3",
+        "text": "How are uncertainty, calibration, missing evidence, and failed transfer reported?",
+        "target_facet": "uncertainty_and_failure",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ4",
+        "text": "Which evidence gaps remain after separating dataset diversity, model mechanisms, and demonstrated external validation?",
+        "target_facet": "evidence_gaps",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      }
+    ],
+    "screening_criteria": {
+      "inclusion": [
+        {
+          "id": "INC-01",
+          "criterion": "Uses UAV-acquired imagery for crop/weed detection, segmentation, classification, or spatial weed mapping in an agricultural context (arable row crops, broadacre cereals, vegetables, or managed perennial orchards, vineyards, and pastures); UAV results must be separable in mixed-platform studies.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-02",
+          "criterion": "Primary empirical method study or dataset/benchmark report describing a UAV crop/weed mapping method, experiment, or annotated dataset. Journal, conference, and substantive preprint reports are eligible (linked into study families). In-window method studies (2020-2026) evaluated on pre-2020 UAV datasets (e.g., WeedMap 2018) are eligible. Missing evaluation details are charted as not reported; records with missing abstracts matching UAV+weed title heuristics and inaccessible full texts remain pending retrieval/audit rather than auto-excluded.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-03",
+          "criterion": "Published from 2020 through the recorded final search cutoff, inclusive; English full text in scope. Older foundational UAV datasets remain background/provenance sources unless a logged amendment expands eligibility. Screened under Option C (single lead reviewer Mouadh Bekhouche confirming all agent triage suggestions, with independent ~10% random sample plus boundary-exclude verification by Soumia Zertal and Fadhila Djenba).",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        }
+      ],
+      "exclusion": [
+        {
+          "id": "EXC-01",
+          "criterion": "Satellite-only, ground-robot-only (including studies framed around field weed mapping that evaluate exclusively on proximal/ground datasets such as Sugar Beets 2016, CWFID, or DeepWeeds without UAV data), handheld, or laboratory/pot imaging with no separable eligible UAV mapping evidence.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_PLATFORM"
+        },
+        {
+          "id": "EXC-02",
+          "criterion": "UAV navigation/SLAM, yield estimation only, crop disease/pest damage, wildlife crop damage, crop lodging, phenotyping, or non-agricultural vegetation mapping (e.g., invasive aquatic weeds such as water hyacinth, forestry/wildfire, urban turfgrass) without a separable agricultural crop/weed localization, classification, or mapping task.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_TASK"
+        },
+        {
+          "id": "EXC-03",
+          "criterion": "Confirmed review (systematic, scoping, narrative, or bibliometric), editorial, commentary, protocol-only report, or standalone abstract with no associated substantive primary report. An incomplete search-provider abstract (abstract=null) or failure to retrieve full text is not this exclusion; retain useful reviews as background for citation chasing.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_REPORT_TYPE"
+        },
+        {
+          "id": "EXC-04",
+          "criterion": "Outside the frozen publication date (published before 2020 or after the recorded final search cutoff date) or non-English full text after bibliographic/full-text verification.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "OUTSIDE_DATE_LANGUAGE"
+        }
+      ],
+      "two_tier_screening": true
+    }
+  },
+  "papers": [
+    {
+      "workspace_id": "SCI-006650",
+      "title": "The effect of blade crop and skew on the interaction tones produced by a contra-rotating unmanned aerial vehicle rotor system",
+      "abstract": "Contra-rotating rotor systems are commonly used on unmanned aerial vehicles (UAVs). The periodic unsteady loading on the blades of these rotor systems due to their interaction with the flow field of the adjacent rotor produces a multitude of interaction tones. Skewing the blades has been shown to reduce the amplitude of these interaction tones in part due to the de-phasing of the unsteady loading along the blade span which results from the skewed geometry. Cropping, or reducing the diameter of the downstream rotor, has also been shown to reduce the amplitude of the interaction tones due to the cropped downstream rotor having minimal interaction with the tip vortices shed from the top rotor. This paper investigates the effect of combining both features to reduce the level of the interaction tones. Computational fluid dynamics simulations and semi-analytical models were used to determine the flow through a number of different rotor systems and the resulting unsteady loading on the rotor blades. Acoustic analogy methods were then used to calculate the level of the interaction tones at various observer locations. Predictions of the sound pressure levels of interaction tones at different observer locations are compared with experimental data and show generally good agreement. The overall A-weighted sound power level is also calculated for each rotor system. It is observed that cropping and skewing the rotor blades both produce reductions in the noise level. The physical mechanisms which cause this reduction are explored.",
+      "doi": "10.1016/j.ast.2025.110521",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-000486",
+      "title": "Advancements in weed mapping: A systematic review",
+      "abstract": "Weed mapping plays a critical role in precision management by providing accurate and timely data on weed distribution, enabling targeted control and reduced herbicide use. This minimizes environmental impacts, supports sustainable land management, and improves outcomes across agricultural and natural environments. Recent advances in weed mapping leverage ground-vehicle Red Green Blue (RGB) cameras, satellite and drone-based remote sensing combined with sensors such as spectral, Near Infra-Red (NIR), and thermal cameras. The resulting data are processed using advanced techniques including big data analytics and machine learning, significantly improving the spatial and temporal resolution of weed maps and enabling site-specific management decisions. Despite a growing body of research in this domain, there is a lack of comprehensive literature reviews specifically focused on weed mapping. In particular, the absence of a structured analysis spanning the entire mapping pipeline, from data acquisition to processing techniques and mapping tools, limits progress in the field. This review addresses these gaps by systematically examining state-of-the-art methods in data acquisition (sensor and platform technologies), data processing (including annotation and modelling), and mapping techniques (such as spatiotemporal analysis and decision support tools). In the data processing stage, weed detection was identified as a critical enabling component of the mapping pipeline; accordingly, dedicated sections were included to systematically review state-of-the-art methods. Following PRISMA guidelines, we critically evaluate and synthesize key findings from the literature to provide a holistic understanding of the weed mapping landscape. This review serves as a foundational reference to guide future research and support the development of efficient, scalable, and sustainable weed management systems.",
+      "doi": "10.1016/j.eja.2026.127992",
+      "year": 2026,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-001196",
+      "title": "Revolutionizing Farming: Leveraging Computer Vision for Intelligent Automation in Agriculture",
+      "doi": "10.2139/ssrn.5285186",
+      "year": 2025,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-012588",
+      "title": "Robust UDA for Crop and Weed Segmentation: Multi-scale Attention and Style-Adaptive Techniques",
+      "doi": "10.1007/978-3-031-91835-3_19",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002632",
+      "title": "Weed identification and removal using machine learning techniques and unmanned ground vehicles",
+      "abstract": "This paper presents the use of unmanned ground vehicle (UGV) and machine learning techniques for the identification removal of weeds in lettuce crop. In recent years, breakthroughs in deep learning, computer vision, and miniaturization of electronic devices have paved the way for use of unmanned systems and machine learning techniques for applications that are dull, dirty, and dangerous for humans including agricultural applications. Unmanned systems and machine learning techniques have potential to transform and modernize how the crops are grown and cared. One of the problems every farmer encounters is invasive weeds that can kill or hinder the growth of crops by stealing water, nutrients, and sunlight from the plants. Herbicides are used to kill and stop the growth of weeds. However, use of herbicides increases the cost of production, is labor intensive, and exposes human to dangerous chemicals. Manually removing the weeds is also very labor intensive. Using machine learning techniques and UGVs for the identification and removal of weeds will reduce the cost of production, human exposure to dangerous chemicals, and dependence on human labor. Models were trained using YOLO, Faster R-CNN, and SSD Mobile object detection techniques. For the training of machine learning models, images of the weeds in an experimental lettuce plot was collected throughout the growing season. Validation of the developed models was performed using different data sets than the training data sets in the same plot as well as a different plot. The identified weeds were then removed using the UGV through teleoperation.",
+      "doi": "10.1117/12.2557625",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002580",
+      "title": "INTELLECTUALIZED CONTROL SYSTEM FOR UNMANNED AERIAL VEHICLE",
+      "abstract": "The paper presents an intellectualized control system for unmanned aerial vehicles. It is based on the use of the fuzzy logic, implementation of which in the Controller of the unmanned aerial device allowed to track and control the trajectory of its movement. The experimental researches prove the efficiency of the device application of fuzzy logic for control of the drone in conditions of external influences implementation. To construct an intellectualized control system of unmanned aerial vehicles, their structure was considered. The base of the system is used for quadunmanned aerial vehicle, which includes four screws, located symmetrically around the central building. The peculiarity of the drone is that its adjacent screws must spin the opposite one from each other. This requirement is explained by the need to prevent system rotation around its own central axis. Depending on the required trajectory, an important aspect was the ability to set different values of the power of the drone engines. Despite the fact that the simplicity of its structure are characterized, they are able to implement a large set of motion models together with a demonstration of high maneuverability. It is reached the presence of six degrees of freedom, which consist of three progressive and three rotating components to set the trajectory of a movement. In order to solve this problem, it was possible to solve the apparatus of fuzzy logic as the basis of the mathematical model of the system. This allowed to ensure a vague logical control of the fog, and, in turn, intellectualize the behavior of drone in the air in the conditions of external influences on the change of a predetermined trajectory of its movement. At the heart of the Intellectualized unmanned Aerial vehicle control system, two fuzzy controllers were involved in the production of control signals for the command of a UAV flight height and an angle of inclination.",
+      "doi": "10.31891/csit-2020-1-3",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013398",
+      "title": "Impact of herbicide application on weed flora, yield attributes and soil microbial population in Rabi maize (Zea mays L.)",
+      "abstract": "Maize plays a vital role in India’s food and livelihood security. Despite its significance, maize productivity in regions like Odisha remains moderate, partly due to severe early-season weed competition. While herbicides offer effective control, their excessive use poses serious threats to soil microbial health and long-term sustainability. Based on this, a field experiment was conducted during the Rabi season of 2024-25 at the post graduate research farm of M. S. Swaminathan School of Agriculture, Centurion University of Technology and Management, Paralakhemundi, Odisha to assess the impact of herbicide application on weed flora, yield attributes and soil microbial population in Rabi Maize. The study involved ten treatments, including pre-emergence (PE), post-emergence (PoE), and sequential applications of atrazine, mesotrione, tembotrione, and topramezone, along with hand weeding (HW) and a weedy check, which were evaluated using maize hybrid Bayer DKC-9217 in a randomised block design. The lowest weed density, weed dry matter were recorded under HW at 20 and 40 DAS, followed by atrazine + mesotrione (ready-mix) 875 g/ha PoE at 20 DAS and atrazine 1000 g/ha PE fb topramezone 30 g/ha PoE at 20 days after sowing (DAS). The weedy check showed a 54.58% yield loss. Growth parameters, yield attributes and yield were significantly highest in HW at 20 and 40 DAS and statistically comparable with the two best-performing herbicidal treatments. Atrazine + mesotrione (ready-mix) 875 g/ha PoE at 20 DAS improved soil microbial and PGPR populations, comparable to the atrazine 1000 g/ha PE fb topramezone 30 g/ha PoE at 20 DAS, suggesting both treatments as eco-friendly and sustainable weed management options for Rabi maize.",
+      "doi": "10.31830/2454-1761.2025.cr-1041",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004190",
+      "title": "Multi-Sensor System for Pipe Inspection using an Autonomous Hybrid Aerial Robot",
+      "abstract": "The use of aerial robots for the inspection of Oil&Gas production plants has considerably evolved in recent years. This article presents an aerial hybrid robotic system with the ability to autonomously land on the pipe to be inspected, so it can deploy a satellite crawler robot for accurate inspections. In order to ensure safe autonomous navigation in unknown environments, the aircraft is equipped with a redundant localization system. A sensor fusion of multiple pose estimation sources is performed to estimate the aircraft pose in a robust and efficient manner. Regarding the detection of the pipe to land on, its position is estimated by using the point cloud of an on-board camera. This paper presents both the localization and the pipe detection modules. Finally, successful experimental results carried out in an indoor environment are shown, being all computations performed on board the aerial platform. A video of the results including a fully autonomous mission can be accessed at https://youtu.be/N3ZGVuDy1qA.",
+      "doi": "10.1109/icuas54217.2022.9836225",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009945",
+      "title": "Predicting Visual Differentiability for Unmanned Aerial Vehicle Gestures",
+      "abstract": "Unmanned Aerial Vehicles (UAVs) are increasingly integrated into diverse human interaction domains that require robust human-robot communication systems. Visual communication techniques have shown promise in their ability to communicate concrete information to observers. Such techniques, often described as a UAV ‘gesture,’ may be especially useful in the domain of unmanned aerial flight as they can be integrated as a stand-alone software solution in contrast to light or sound-based systems that often require additional hardware and add weight to a vehicle. Gestures may also be useful in contexts where long distance operation reduces the effectiveness of sound-based communication strategies. As gesture is a visual communication technique, it is critical that gestures are designed to optimize an observer’s ability to visually perceive the shape of a gesture’s motion. Factors such as low visual differentiability between gestures within a set may reduce an observer’s ability to classify the shape of a gestural motion. In this letter, we discuss the results from multiple gesture perception surveys. We also develop and evaluate techniques to predict, in advance, how participants may perceive a UAV gesture. We demonstrate that participant gesture classification accuracy correlates to trajectory distance measures and present a method for evaluating high-differentiabilty gesture sets. This letter will enable gesture designers to create gesture sets that are differentiable with high-confidence.",
+      "doi": "10.1109/lra.2022.3180414",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009751",
+      "title": "Round-trip path planning for unmanned aerial vehicle based on improved RRT* algorithm",
+      "abstract": "This study proposes a round-trip UAV path planning method that completely incorporates the asymmetric qualities of information during departure and return to solve the problem of path planning in low altitude and complex unknown environments for UAVs. The departure planning algorithm continually updates environmental information through real-time detection of airborne devices and generates the departure path using an upgraded B-RRT* algorithm combined with rolling planning. In terms of return planning, the centralized sampling is limited to the elliptic subset determined by the init point and goal points, and the cubic B-spline interpolation algorithm is used to smooth the planned path to generate the return path. The simulation results show that the improved algorithm can effectively realize departure and return path planning. Finally, a quad-rotor UAV platform was built for obstacle avoidance flight experiments to verify the proposed algorithm’s effectiveness.",
+      "doi": "10.1360/sst-2021-0431",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009464",
+      "title": "A Review on Innovation of Remote Sensing Technology Based on Unmanned Aerial Vehicle for Sugarcane Production in Tropical Region",
+      "doi": "10.1007/978-981-19-0213-0_12",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001621",
+      "title": "Review for \"Semi‐automatic identification of discontinuity parameters in rock masses based on Unmanned Aerial Vehicle photography\"",
+      "doi": "10.1002/gj.4905/v1/review2",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008911",
+      "title": "A Monitoring Method Integrating Terrestrial Laser Scanning and Unmanned Aerial Vehicles for Different Landslide Deformation Patterns",
+      "abstract": "The three-dimensional deformation monitoring of landslides is very complex due to the uncertainty of movement direction and the difficulty in searching the corresponding points before and after deformation. In this study, a landslide deformation monitoring method based on the integration of Terrestrial Laser Scanning (TLS) and Unmanned Aerial Vehicles (UAVs) is presented. This method can quickly obtain high-precision and large-scale terrain information in the absence of sufficient ground control points (GCPs), and can accurately describe the real movement of landslides. The Real-Time Kinematic (RTK) and Post Processed Kinematic (PPK) are applied to localize the initial positions of TLS and UAV, respectively. The Iterative Closest Point (ICP) algorithm is applied to register the TLS and UAV point cloud data. Then, the RTK-based GCPs and TLS-based GCPs are obtained to improve the accuracy of UAV data. After that, 3D deformation analyses based on Shortest Distance (SD) method and horizontal deformation based on Difference of Orthophotos (DOO) are applied through point clouds and orthophotos. The proposed method is demonstrated by the monitoring a reactivated ancient landslide (Aniangzhai) in Danba County, Southwest China. The real deformation of the landslide has been validated with the registered TLS data. The results indicate that the downcutting of the riverbed and erosion to the slope toe caused by the dam break flood are the main reasons for the reactivation.",
+      "doi": "10.1109/jstars.2021.3117946",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-000195",
+      "title": "Drone-Assisted Deep Learning Framework for Aquatic Weed Detection and Water Quality Assessment",
+      "abstract": "This research presents a novel deep learning frame-work for evaluating water quality through automated detection of aquatic vegetation in unmanned aerial vehicle (UAV) imagery. Seven aquatic plant species—Water Hyacinth, Duckweeds, and Water Lettuce among others—served as biological indicators of water conditions. A comprehensive dataset comprising 1,778 aerial photographs was utilized to train and validate multiple object detection architectures, including YOLOv8, Faster R- CNN with MobileNetV2 backbone, Faster R-CNN with ResNet50 backbone, and InceptionV3. Performance evaluation encom- passed mean Average Precision (mAP), processing velocity, and computational efficiency metrics. Experimental findings revealed YOLOv8 as the optimal solution, delivering superior accuracy- performance equilibrium (0.42 mAP at 44.4 FPS), whereas Faster R-CNN with ResNet50 achieved enhanced precision (0.84 mAP) at increased computational cost. The investigation established a comprehensive correlation methodology connecting vegetation characteristics—presence, density, and spatial patterns—to physicochemical water parameters including pH, dissolved oxy- gen concentration, nutrient content, and contamination mark- ers. Comparative validation with conventional water analysis methods yielded robust correlation coefficients ($0.78-0.91$). This methodology represents a dependable, non-destructive technique for comprehensive spatiotemporal water quality surveillance, enabling gradient visualization and temporal trend analysis.",
+      "doi": "10.1109/iccike67021.2025.11318298",
+      "year": 2025,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-004810",
+      "title": "Algorithm for Calculating the Flight Time of an Unmanned Aerial Vehicle for Aerial Photography",
+      "abstract": "The paper shows the possibility of using unmanned aerial vehicles with additional outboard equipment for aerial photography. It is noted that some parameters of the drone and additional suspension equipment are not taken into account by the software when calculating the drone flight time for one battery charge. (Research purpose) To develop an algorithm for calculating the flight time of an unmanned aerial vehicle with installed outboard equipment. (Materials and methods) The technical characteristics of DJI Phantom 4 pro and DJI Matrice 200v2 were studied, as well as the specifications of Parrot Sequoia, MicaSense Altum multispectral cameras mounted on the drone. The existing research results are used to calculate the flight mission time depending on the route length and the battery capacity. (Results and discussion) It is found that the maximum flight time of a drone with additional outboard equipment is reduced due to the additional equipment mass, increased power consumption, the preflight preparation time, the need to return to the take-off point and the necessity to preserve the battery life and save the flight load. The maximum flight time calculated for DJI Phantom 4 pro and DJI Matrice 200v2 with multispectral cameras Parrot Sequoia, MicaSense Altum is 8 minutes and 18 minutes, respectively, with a minimum flight load. A method for calculating the number of batteries for aerial photography with additional outboard equipment is determined. (Conclusions) An algorithm for calculating the flight time of an unmanned aerial vehicle with additional outboard equipment is developed, the parameters ignored by the standard software in the flight time calculation are taken into account.",
+      "doi": "10.22314/2073-7599-2023-17-1-35-40",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010306",
+      "title": "Three-Dimensional Trajectory Design for Unmanned Aerial Vehicle-Based Secure and Energy-Efficient Data Collection",
+      "abstract": "Fixed-wing unmanned aerial vehicles (UAVs) provide a practical means for data collection in many Internet-of-Things (IoT) applications. Secrecy and energy efficiency are crucial to the data collection, but have never been well addressed in the lack of appropriate propulsion energy models for three-dimensional (3D) flights of fixed-wing UAVs. This paper delivers a new approach to the joint optimization of the 3D flight trajectory and data collection schedule of a fixed-wing UAV for secure and energy-efficient data collection under an eavesdropping attack. A critical aspect is that we derive a new propulsion energy model for fixed-wing UAVs flying 3D trajectories. By using equivalent transformation, difference-of-convex techniques, and successive convex approximation, we convexify the model and demonstrate its viability to the design of energy-efficient 3D trajectories. Another key aspect is that we further optimize the trajectory and schedule of the UAV for secure and energy-efficient collection of secret data from sensor nodes on the ground. This is non-trivial due to the convexification of the non-smooth secrecy constraints in addition to the new 3D propulsion energy model. Simulations validate the new model and demonstrate considerable energy saving of 3D trajectories, compared to two-dimensional (2D) trajectories optimized based on the state-of-the-art 2D propulsion energy model.",
+      "doi": "10.1109/tvt.2022.3203714",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007981",
+      "title": "ANALISIS HUBUNGAN NILAI SPAD DAN INDEKS VEGETASI BERBASIS CITRA MULTISPEKTRAL UNMANNED AERIAL VEHICLE VERTICAL TAKE-OFF AND LANDING (UAV-VTOL) PADA TANAMAN PEPAYA",
+      "abstract": "Monitoring kandungan klorofil daun tanaman secara spasial penting dalam pertanian presisi, namun pengukuran konvensional memiliki keterbatasan cakupan dan efisiensi. Penelitian ini bertujuan menganalisis hubungan nilai SPAD dengan tiga indeks vegetasi berbasis citra multispectral (NDVI, GNDVI, NDRE) pada tanaman pepaya (Carica papaya L.) varietas California. Data diperoleh dari citra multispectral UAV dan pengukuran SPAD pada 95 titik sampel di kebun pepaya komersial di Sleman, Yogyakarta. Analisis meliputi evaluasi distribusi data, korelasi Pearson dan Spearman, regresi linear sederhana, serta sensitivitas berdasarkan kemiringan regresi. Hasil menunjukkan nilai SPAD memiliki rentang 18.46–77.78, mencerminkan variabilitas kandungan klorofil tanaman di area penelitian. NDVI mengalami saturasi pada nilai tinggi (skewness = −1.35), sedangkan GNDVI dan NDRE memiliki distribusi lebih normal. Analisis korelasi menunjukkan NDRE memiliki hubungan paling kuat dengan SPAD (r = 0.73; R² = 0.54), diikuti GNDVI (r = 0.72; R² = 0.52) dan NDVI (r = 0.54; R² = 0.29). NDRE juga menghasilkan nilai error prediksi terendah (MAE = 6.42; RMSE = 8.15). Temuan ini menunjukkan bahwa NDRE merupakan indeks vegetasi paling optimal untuk monitoring klorofil tanaman pepaya berbasis citra multispectral UAV, sehingga berpotensi mendukung pengembangan sistem pemantauan nutrisi tanaman dalam kerangka pertanian presisi.",
+      "doi": "10.35760/jpp.2026.v10i1.261",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005348",
+      "title": "A Trajectory Generation Method Based on Control Points and Improved Whale Algorithm Optimization Algorithm for Solving Unmanned Aerial Vehicle Path Planning Problems",
+      "doi": "10.2139/ssrn.4519768",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009438",
+      "title": "A flight path for low energy consumption using minimum sink rate glide for solar powered unmanned aerial vehicle",
+      "abstract": "A solar-powered unmanned aerial vehicle (UAV) is powered by solar cells installed onboard which capture solar energy during daylight. Such generated power is supplied to the motor to propel the aircraft and other electronics or to recharge the battery on board. Solar-powered UAVs are used for long-term service missions at very low costs. This paper presents the generation of the low energy flight path for a small 5.5 kg hand-launchable low-altitude long-endurance (LALE) solar-powered UAV. The goal of the proposed work is to decrease the energy consumption of aircraft to increase endurance by using the optimal climb angle and the minimum sink rate glide. A climb and glide phase energy optimization with the validation of surplus solar energy to satisfy the energy consumption has been proposed.",
+      "doi": "10.1063/5.0116450",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004989",
+      "title": "Real Time Implementation of Amphibious Unmanned Aerial Vehicle System for Horticulture",
+      "abstract": "Automating the tasks that require manpower has been considered as an area of active research in science and technology. Challenges in designing such systems include accuracy in the parameters of performance, minimal hardware, cost-efficiency, and security. The efficiency of drones designed for replacing humans is often evaluated using their weight, flying time, and power consumption. Herein, the prototypebased Drone model has been designed and discussed for horticulture applications. In this model, a horticulture drone has been designed for structuring and cutting of plants in street interstates. This methodology focuses on automation engineering that is utilized for cutting the plants in less time and less power, thereby diminishing the contamination that may happen by utilizing fuels. The epic part of this plan includes the less weight drone predesigned using Computer-Aided Three-Dimensional Interactive Application (CATIA) V5 Software. The throttle for the motors is adjusted at 50% to get the required thrust for the Unmanned Aerial Vehicle (UAV) to fly. Experimental results show that the horticulture drone has comparatively more flying time and less power consumption.",
+      "doi": "10.24425/ijet.2023.144341",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006795",
+      "title": "Comparison of Orthomosaic Accuracy Based on Unmanned Aerial Vehicle (UAV) Real Time Kinematic (RTK) Radio and RTK NTRIP in Padang City, West Sumatra",
+      "abstract": "UAVs with RTK technology offer high-accuracy aerial mapping, with RTK Radio and RTK NTRIP as two correction methods affecting orthomosaic precision. While previous studies compared these methods in terrestrial surveys, their impact on UAV-based orthomosaics remains underexplored. This research evaluates and compares the accuracy of UAV-derived orthomosaics using RTK Radio and RTK NTRIP to provide practical guidance for optimal mapping applications. This research combined UAV RTK photogrammetry and GIS to produce high-precision aerial maps in two areas of Padang City with different topographies. Data were collected using DJI Mavic 3 Enterprise RTK with RTK Radio and RTK NTRIP techniques, supported by GCPs, BMs, and satellite imagery, then processed into orthomosaics for analysis. Accuracy was assessed using ICPs and statistical measures like RMSE to compare the spatial precision of both correction methods under varying terrain conditions. The results show a difference in mapping accuracy between RTK Radio and RTK NTRIP aerial photographs, with RTK Radio achieving 0.683 accuracy and 0.450 RMSE, while RTK NTRIP reached 0.563 accuracy and 0.371 RMSE. RTK Radio is more suitable for areas lacking CORS access but still requires GCP verification. RTK NTRIP performs better in urban areas with strong CORS networks. Combining both methods with adequate GCPs provides an effective solution for mapping in varied or densely vegetated terrains.",
+      "doi": "10.24114/jg.v17i2.68287",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013586",
+      "title": "Correction of Refraction Effects on Unmanned Aerial Vehicle Structure-from-Motion Bathymetric Survey for Coral Reef Roughness Characterisation",
+      "abstract": "Coral reefs play a crucial role in tropical coastal ecosystems, even though these environments are difficult to monitor due to their diversity and morphological complexity and due to their shallowness in some cases. This study used two approaches for acquiring very-high-resolution bathymetric data: underwater structure-from-motion (SfM) photogrammetry collected from a low-cost platform and unmanned/uncrewed aerial vehicle (UAV)-based SfM photogrammetry. While underwater photogrammetry avoids the distortions caused by refraction at air/water interface, it remains limited in spatial coverage (about 0.04 ha in 1 h of survey). In contrast, UAV photogrammetry allows for covering extensive areas (more than 20 ha/h) but requires applying refraction correction in order to accurately compute bathymetry and roughness values. An analytical approach based on Snell laws and an empirical approach based on linear regression (calibrated using a batch of points whose depths are representative of the depth range of the surveyed areas) are tested to correct the apparent depth on the raw UAV digital elevation model (DEM). Comparison to underwater photogrammetry shows that correcting refraction reduces the root mean square error (RMSE) by more than 50% (up to 62%) on bathymetric models, with RMSE lower than 0.13 m for the analytical approach and down to 0.09 m for the regression method. The linear-regression-based refraction correction proved most effective in restoring accurate seabed roughness, with a mean error on roughness lower than 17% (vs. 30% for analytical refraction correction and 48% for apparent bathymetry).",
+      "doi": "10.3390/rs17233846",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003430",
+      "title": "A Review of Airborne Landmine Detection Technologies: Unmanned Aerial Vehicle-Based Approach",
+      "abstract": "The rapid development of Unmanned Aerial Vehicles (UAVs) leads to expand the application of such technologies in various fields. The detection and mapping of landmines are one of the challenging and critical areas. The provision of efficient airborne detection technologies will save the lives of thousands of civilians and even workers involved in such dangerous missions. The objective of this paper is to provide a brief review of the state-of-the-art airborne landmine detection studies for researchers to further explore. We have also proposed a promising direction for future research towards a reliable, efficient, and integrated UAV-based landmine detection system.",
+      "doi": "10.1109/icoten52080.2021.9493528",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009441",
+      "title": "Effects of tank‐mix adjuvants on physicochemical properties and dosage delivery at low dilution ratios for unmanned aerial vehicle application in paddy fields",
+      "abstract": "Abstract BACKGROUND Unmanned aerial vehicles (UAVs) have been developed to improve the efficiency of pesticide applications, and they are now widely utilized in Asia. The deposition and retention periods of pesticides on plant surfaces present serious challenges for modern precision agriculture, as these factors directly affect pesticide bioavailability, efficacy, and loss. Tank‐mix adjuvants have been utilized to improve pesticide performance, but their effects on physicochemical properties and dosage delivery at low dilutions are not well understood. RESULTS We found that different tank‐mix adjuvants affected droplet impact behavior, the wetting and spreading of spray dilutions, and pesticide deposition on rice leaves by changing the physicochemical properties of spray dilutions. The adjuvant methyl oxirane polymer with oxirane, mono (3,5,5‐trimethylhexyl) ether (adjuvant c) significantly reduced the dynamic surface tension of the spray dilution and inhibited the rebound of large droplets ( D 0 = 2 ± 0.2 mm) and spray droplets (0.2 MPa with a LU‐01 nozzle) on rice leaves, and improved the wetting and spreading performance of the spray dilution on rice leaves. Field tests showed that adjuvant c could significantly increase the deposition of chlorantraniliprole on rice leaves. CONCLUSION Overall, the use of appropriate tank‐mix adjuvants at low dilution ratios for UAV application in paddy fields can improve the performance of spray dilutions, increase the effective deposition and wetting spread of pesticides on rice leaves, further reduce the dosage of pesticide products and improve pesticide utilization. © 2022 Society of Chemical Industry",
+      "doi": "10.1002/ps.6777",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009401",
+      "title": "Aerodynamic Optimization and Analysis of Low Reynolds Number Propeller with Gurney Flap for Ultra-High-Altitude Unmanned Aerial Vehicle",
+      "abstract": "Ultra-high-altitude unmanned aerial vehicles have created a high demand for the performance of propellers under low Reynolds numbers, while the efficiency of such propellers by the existing design framework has reached a bottleneck. This paper explores the possibility of extending the Gurney flap on low Reynolds number propellers to achieve efficiency breakthrough. An iterative optimization strategy for propellers with Gurney flaps is established, in which cross-sectional airfoils can be continuously optimized under updated Reynolds numbers and lift coefficients. A computational fluid dynamics (CFD) simulation based on the γ-Reθ model was used as an aerodynamic analysis method. Propellers with and without Gurney flaps were optimized successively. Optimal results were analyzed using the CFD method. Results showed that an optimal propeller with a Gurney flap can achieve an efficiency of 82.0% in cruising conditions, which is 1.8% higher than an optimal propeller without a Gurney flap. Compared with the latter, the consumed power of the optimal propeller with a Gurney flap can be reduced by 2.2% with the same advance speed. Furthermore, the variation of the improvement by the Gurney flap propeller, along with its Reynolds number, was studied. A wind tunnel test indicates that the performance of the propellers obtained by the CFD method are in good agreement with the test results.",
+      "doi": "10.3390/app12063195",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011545",
+      "title": "Testing and Assessment of Small Unmanned Aerial Vehicle Susceptibility to Environmental Radio Frequency Interference",
+      "abstract": "Electromagnetic compatibility is a crucial factor to consider for reducing potential safety concerns while designing and operating unmanned aerial vehicles (UAVs). Radio frequency (RF) signals transmitted by nearby electronic systems, such as Wi-Fi hotspots or cellphone and television broadcast base stations, may interfere with a small UAV's command and control (C2) links, subsystems, and sensors. The interference comes through communication pathways or coupling of the RF electric field. We conducted various tests using two different UAVs to assess the impacts of radio frequency interference (RFI) on their functionality and operational safety. We used software-defined radios to generate RFI signals spanning from 60 MHz to 6 GHz. We established the signal-to-noise ratio thresholds for stable, unstable, and disrupted C2 link connections for both models operating at 2.4–2.5 GHz and identified in-band and adjacent-band RFI scenarios in which the C2 links of one UAV model may be disturbed. We also discovered that RFI signals emitted at very high frequency (VHF) bands utilized by television broadcasting channels had adverse effects on both UAVs. We identified the VHF bands and electric field strengths that adversely affected the UAV's C2 link connection and compass. We conducted flight and shielding experiments to further confirm our findings, and finally, we provide recommendations for reducing the UAV's vulnerability to RFI.",
+      "doi": "10.1109/temc.2024.3382576",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008765",
+      "title": "Location Intelligence Powered by Machine Learning Automation for Mapping Malaria Mosquito Habitats Employing an Unmanned Aerial Vehicle (UAV) for Implementing “Seek and Destroy” for Commercial Roadside Ditch Foci and Real Time Larviciding Rock Pit Quarry Habitats in Peri-Domestic Agro-Pastureland Ecosystems in Northern Uganda",
+      "doi": "10.1007/978-3-030-71998-2_8",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005045",
+      "title": "Study on an Optimization Algorithm for Unmanned Aerial Vehicle Surveying and Mapping Paths along the Coast",
+      "abstract": "Topographic surveying and mapping is the basic operation of the waterway shoreline, which plays an important role in the collection of surface features, observation of renovation buildings, and accumulation of waterway evolution analysis data for waterway maintenance observation. At present, the surveying and mapping technology of drones is very mature, but there are still bottlenecks in flight time, surveying power consumption, and avoidance of flying obstacles, which affect the surveying and mapping results of the waterway shoreline. To extend the surveying and mapping time of the waterway shoreline, this paper proposes a dynamic programming algorithm. Firstly, based on the surveying and mapping operations of shoals, reefs, height differences, and siltation sections in the Yangtze River waterway, dynamic planning algorithm analysis is conducted based on the surveying and mapping routes of unmanned aerial vehicles. Divide the surveying and mapping path into three segments: start, process, and end. Refine the surveying and mapping path of each segment into four dynamic items, and construct a dynamic planning algorithm. Secondly, analyze and integrate each dynamic term to eliminate unsolvable eigenvalues, and obtain the optimal mapping path for effectiveness verification. The results indicate that the dynamic programming algorithm dynamically analyzes each segment of the mapping path, reduces the direction of path changes, improves the flight time of unmanned aerial vehicles, shortens the length of the mapping path, and reduces overall flight power consumption by adjusting the threshold in the mapping process.",
+      "doi": "10.1109/icftic59930.2023.10455790",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008989",
+      "title": "Method and algorithm for determining the geographic coordinates of ground objects from an unmanned aerial vehicle",
+      "abstract": "Introduction: As practice shows, the accuracy of determining the coordinates of objects is influenced by many factors associated with the presence of errors in measuring the angular coordinates of the optical system, the distance to the object and the presence of an inhomogeneous terrain. Purpose: Improving the accuracy of determining the geographic coordinates of ground objects from an unmanned aerial vehicle. Results: A method and an algorithm for determining geographic coordinates based on the use of a digital terrain model and optimization methods have been developed. The accuracy of calculating the coordinates of the object is increased by minimizing the error in measuring the declination angle, azimuth to the target and slant range. To confirm the analytical calculations, a field experiment was carried out with a car on the ground. At a considerable distance, at which the slant range was 900 m, several data freeze frames were taken. As a result of calculations, the geographical coordinates of the car were obtained in two ways (traditional and developed). Ultimately, the accuracy of calculating coordinates using the developed method is 4.8 times higher. Practical relevance: The method and algorithms for information processing proposed in the work will make it possible to create a number of hardware and software solutions for guidance and target designation systems.",
+      "doi": "10.31799/1684-8853-2021-3-19-28",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009957",
+      "title": "DETERMINATION OF THE CENTER OF GRAVITY OF AN UNMANNED AERIAL VEHICLE OF A TİLTROTOR TYPE",
+      "abstract": "The article analyzes research work in the direction of the correct location of the load center,centering and gravity of the aircraft at the design and manufacturing stage in order to improve theefficiency and safety of flights, as well as the characteristics of existing methods and means, and,using the example of a tiltrotor unmanned aerial vehicle, a methodology for using the known the\"scale-graph\" method, which is widely used in determining the center of gravity of an aircraft.When determining the mass of the tiltrotor-type unmanned aerial vehicle designed and developedby us and calculating the coordinates of the center of gravity, an analysis of the standard deviationand probable error was carried out. The characteristics and possibilities of practical applicationof mobile electronic scales as the main means of measuring the load of an unmanned aerialvehicle in stationary conditions, as well as direct weighing, which makes it possible to determinethe center of gravity, are considered. A method developed for determining the center of gravity ofan aircraft with increased accuracy is described, and a model for constructing the proposedsystem is presented. The results of theoretical and experimental studies carried out to determine the mass and center of gravity of an unmanned aerial vehicle are analyzed. To do this, inaccordance with the methodology, the plane of the laboratory table was brought to ahorizontal position with a level gauge and the measurement errors of digital measuringscales were checked according to the results of measuring the reference load. Themeasurements were repeated by changing the position of the scales clockwise. According tothe measurement results, since the center of gravity of the aircraft was taken differently onboth axes, and the intermediate point fell outside the central axis (to the right or left, front toback), repeated measurements were taken by shifting the load in the appropriate direction toensure centering during measurements. According to the final results, center of gravitydiagrams were constructed based on the calculated values of the coordinates of the points ofintersection of the diagonals and random slope values were determined. Based on thediagrams constructed using the program, the final graph was obtained with the root-meansquareerror of the deviation of the aircraft from the axis of symmetry, equal to σ=0.047 sm",
+      "doi": "10.18522/2311-3103-2022-5-258-268",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013491",
+      "title": "Dynamic Modelling and System Identification of a Quadrotor Unmanned Aerial Vehicle Using GyroscopicBased Test Stand",
+      "abstract": "System identification plays a crucial role in developing accurate mathematical models for dynamic systems, which are essential for designing high-performance controllers. This study presents a novel gyroscope-based dynamic test rig developed specifically for quadrotor-type unmanned aerial vehicle (UAV) system identification. Unlike conventional outdoor testing, the proposed platform provides a controlled, repeatable, and vibration-minimized environment for capturing roll, pitch, and yaw dynamics, ensuring high data fidelity and safety. Using Mission Planner and LabVIEW grey box optimization, the research successfully identified continuous-time state space models that accurately characterize the UAV attitude behavior. The identified models achieved a mean squared error (MSE) below 0.002, indicating strong agreement between predicted and measured responses. These validated models formed the basis for tuning a PID controller, significantly enhancing flight stability and responsiveness. The proposed framework, which combines rig design, precise data acquisition, and data-driven modeling, provides a practical and scalable solution for UAV developers to perform pre-flight validation, reduce tuning time, and improve operational safety and control performance.",
+      "doi": "10.30880/paat.2025.05.02.004",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002346",
+      "title": "Vision in micro-aerial vehicles",
+      "abstract": "A micro-aerial vehicle (MAV) is a kind of minor version of unmanned aerial vehicles (UAVs), which has a size restriction. MAVs have a wide range of applications in commercial, research, government, and military purposes. UAVs are valuable tools due to some of their useful advantages such as safety, fl exibility, relatively low cost of ownership, and ease of operation. Bio-inspired robots have been presented that can both fly and move on land, either by jumping or walking. One of the most critical parts of such vehicles (MAVs) is the vision (visual perception) system. In this chapter, different technologies for designing the vision systems for bio-inspired MAVs will be reviewed.",
+      "doi": "10.1049/pbce120f_ch8",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004997",
+      "title": "Potato Leaf Area Index Estimation Using Multi-Sensor Unmanned Aerial Vehicle (UAV) Imagery and Machine Learning",
+      "abstract": "Potato holds significant importance as a staple food crop worldwide, particularly in addressing the needs of a growing population. Accurate estimation of the potato Leaf Area Index (LAI) plays a crucial role in predicting crop yield and facilitating precise management practices. Leveraging the capabilities of UAV platforms, we harnessed their efficiency in capturing multi-source, high-resolution remote sensing data. Our study focused on estimating potato LAI utilizing UAV-based digital red–green–blue (RGB) images, Light Detection and Ranging (LiDAR) points, and hyperspectral images (HSI). From these data sources, we computed four sets of indices and employed them as inputs for four different machine-learning regression models: Support Vector Regression (SVR), Random Forest Regression (RFR), Histogram-based Gradient Boosting Regression Tree (HGBR), and Partial Least-Squares Regression (PLSR). We assessed the accuracy of individual features as well as various combinations of feature levels. Among the three sensors, HSI exhibited the most promising results due to its rich spectral information, surpassing the performance of LiDAR and RGB. Notably, the fusion of multiple features outperformed any single component, with the combination of all features of all sensors achieving the highest R2 value of 0.782. HSI, especially when utilized in calculating vegetation indices, emerged as the most critical feature in the combination experiments. LiDAR played a relatively smaller role in potato LAI estimation compared to HSI and RGB. Additionally, we discovered that the RFR excelled at effectively integrating features.",
+      "doi": "10.3390/rs15164108",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003158",
+      "title": "Unmanned aerial vehicle pilot training",
+      "abstract": "The paper titled \"Unmanned aerial vehicle pilot training\" is focused on the analysis of unmanned aerial vehicle pilot training and the importance of using an unmanned flight simulator during the practical training of unmanned aerial vehicle pilots. For the realization of the paper, we used a device that served to measure the mental workload of unmanned aerial vehicle pilots during simulated and practical flight. Our experiment involved 5 unmanned aerial vehicle pilots in training who had zero or minimal flying experience. The aim of this work was to investigate to what extent mental workload acts on UAV pilots during simulated and practical flights. The measurements and their analysis showed that a much greater load is exerted on the pilots of unmanned aerial vehicles during practical flight. Through a primary experiment of already experienced pilots, we concluded that the majority of respondents would welcome the opportunity to use an unmanned flight simulator during their training. The paperconcludes with a summary of the individual measurement results, graphical representations of the respondents' answers, as well as an implementation design that could be applied to the training of UAV pilots.",
+      "doi": "10.26552/pas.z.2021.2.38",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-014084",
+      "title": "Development of a performance-matched oxaziclomefone nanosuspension based on the hydrophobic surface characteristics of barnyardgrass for unmanned aerial vehicle sprayers to improve herbicidal activity in direct-seeded rice fields",
+      "abstract": "The performance-matched oxaziclomefone nanosuspension (NS) with excellent physical stability suitable for low-volume spraying by unmanned aerial vehicles was prepared based on the hydrophobic surface characteristics of barnyardgrass. The NS can significantly decrease the percentage of fine droplets and reduce the potential of droplet drift. The NS exhibited superior interface performance and remarkably enhanced the uptake and translocation of oxaziclomefone in barnyardgrass. Field trials showed that NS could significantly improve the control efficacy of oxaziclomefone against barnyardgrass in direct-seeded rice fields. The explosive increase of unmanned aerial vehicle (UAV) sprayers put forward new requirements for pesticide formulations, and there is an imperative necessity to develop targeted, precise, and efficient pesticide formulations based on the surface characteristics of targets to meet the demand for low-volume spraying by UAV. Herein, the performance-matched oxaziclomefone nanosuspension (NS) was constructed based on the hydrophobic surface characteristics of barnyardgrass for UAV sprayers. The results showed that the solid surface free energy of the adaxial and abaxial surfaces of barnyardgrass at different growth stages ranged from 23.73 mJ m -2 to 28.00 mJ m -2 , and was dominated by dispersive components. The average sizes of micro-nanostructures on the barnyardgrass surfaces ranged from 251.7 nm to 266.8 nm, and the oxaziclomefone nanoparticles in NS can suitably be embedded into the micro-nanostructures of barnyardgrass surface. The atomization test showed that NS can significantly decrease the percentage of spray droplet size < 100 μm, thereby reducing the potential of droplet drift. Due to the precise regulation of the formulation components, NS exhibited superior wetting, spreading, and adhesion performance on the barnyardgrass surface. Moreover, the NS remarkably enhanced the uptake and translocation of oxaziclomefone in barnyardgrass. Field trials showed that compared to commercial formulation, NS could significantly improve the control efficacy against barnyardgrass in direct-seeded rice fields while demonstrating acceptable safety for rice. Our research provides a novel, promising, and feasible strategy for the development of pesticide formulation based on target surface characteristics and improving the physicochemical properties of dilutions, which is valuable for enhancing the dosage delivery efficiency and improving the control efficiency against pests of UAV sprayers.",
+      "doi": "10.1016/j.jia.2025.08.003",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011042",
+      "title": "Intelligent system for monitoring forest plantations condition using unmanned aerial technologies",
+      "abstract": "The article defines the relevance of using unmanned aerial vehicles to monitor the processes occurring in forestry areas. Forestry can have vast areas with different levels of overgrowth, terrain and other objects or factors that make it difficult to regularly traverse the area to assess the condition of forest plantations. The use of unmanned aerial vehicles (UAVs) makes it possible to monitor changes in the condition of objects by providing launch points, modes of operation, and frequency of flights. The use of such vehicles in connection with an intelligent system provides objective monitoring of the state of objects of observation, the formation of a system of recommendations to improve the state of the ecosystem, prevent events and reduce the level of unfavorable impact on it. This determines the relevance of the work carried out. The paper presents the hardware-software structure of such a system with a description of the functional capabilities of each of its links. The developed architecture provides data processing in different modes of operation, their storage and provision to the user at his request.",
+      "doi": "10.1051/bioconf/202414504033",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006340",
+      "title": "Observer-based Control of an Unmanned Aerial Vehicle in a Non-inertial Reference Frame",
+      "abstract": "Unmanned Aerial Vehicle (UAV) control in a non-inertial reference frame is of great importance. Its applications expand to several examples such as target tracking, landing on moving platforms, and flying inside moving vessels. The latter is specifically more challenging as it prevents the use of GPS. Therefore, the UAV cannot be controlled in the geostationary frame and needs to be controlled directly in the non-inertial frame of the vessel. In this paper, we present the model of the UAV in a non-inertial reference frame and propose an observer-based control strategy to track a desired trajectory in the non-inertial frame. Two sliding mode controllers are designed for relative position and attitude tracking, and a super-twisting sliding mode observer is used to estimate the relative linear velocities while accounting for the model uncertainties introduced by the non-inertial frame motion. The finite time convergence of the observer allows to satisfy the separation principle and ensures the overall convergence of the system. Numerical simulations are performed to evaluate the effectiveness of the proposed method.",
+      "doi": "10.1109/ccta60707.2024.10666561",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010796",
+      "title": "Research on Unmanned Aerial Vehicle Flight Attitude Control Method Based on Sparrow Search Algorithm and PID Optimization",
+      "abstract": "In order to improve the adjustment speed of quadrotor unmanned aerial vehicle (UAV) flight attitude under disturbance, a sparrow search algorithm (SSA) is combined with proportional-integral-derivative (PID) control to design an SSA-based PID controller for precise and stable flight control of UAVs and to address control accuracy and robustness issues during flight. This paper focuses on the quadrotor UAV as the research object, first briefly introduces its structure and working principle, then designs the controller based on the system model, and finally verifies the effectiveness of the control algorithm using MATLAB/Simulink simulation. By comparing the adjustment time of pitch angle control between SSA-PID and traditional PID controllers, the simulation results show that the SSA-based PID controller can more stably control quadrotor UAVs than the traditional PID controller.",
+      "doi": "10.1145/3607834.3616565",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004862",
+      "title": "Automatic Identification of a Modular Unmanned Aerial System (UAS) with Experimental Verification",
+      "abstract": "View Video Presentation: https://doi.org/10.2514/6.2023-2160.vid In a modular robotic system, with the possible multiple configurations of potentially an arbitrary number of modules, knowledge about the configuration of the system is essential. In this paper, we consider the problem of identifying the configuration of a modular aerial robotic system. In particular, we consider the case when positions of the modules in the assembly structure are unknown. We propose an automatic identification approach which consists of two parts: a calibration motion, and an identification algorithm, which are analyzed in detail. We verify our approach experimentally; we apply the proposed approach to a novel modular unmanned aerial system (UAS), namely a fractal tetrahedron assembly.",
+      "doi": "10.2514/6.2023-2160",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008284",
+      "title": "Hybrid PD-Fuzzy and PD Controllers for Trajectory Tracking of a Quadrotor Unmanned Aerial Vehicle: Autopilot Designs and Real-Time Flight Tests",
+      "abstract": "This paper presents a hybrid nonlinear control system, comprising of a conventional proportional-differential (PD) controller and a PD-type fuzzy logic autopilot for the trajectory tracking of a quadcopter drone. Given the inherent nature of traditional control, which is model-based, and the essence of fuzzy logic control, which is knowledge-based, the proposed hybrid controllers can provide a more robust solution in the face of uncertainties. Both controllers operate in a parallel incremental form to improve the transient performance and the robustness of the closed-loop control system. Through extensive computer simulations supported by real-time flight tests, this paper highlights the efficacy of the proposed hybrid control system in the presence of some parameter variations, nonlinear aerodynamic models, and some external disturbances (e.g., wind gusts). The Dryden and 1-cos turbulence models are employed to represent the effects of wind gusts under realistic flight environments. The stability analysis of the closed-loop control system is conducted using Lyapunov's indirect method.",
+      "doi": "10.1109/tsmc.2019.2906320",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008588",
+      "title": "Formation Control for Underactuated Surface Vessel Networks",
+      "abstract": "Abstract Developing distributed control algorithms for multi-agent systems is difficult when each agent is modeled as a nonlinear dynamical system. Moreover, the problem becomes far more complex if the agents do not have sufficient number of actuators to track any arbitrary trajectory. In this paper, we present the first fully decentralized approach to formation control for networks of underactuated surface vessels. The vessels are modeled as three degree of freedom planar rigid bodies with two actuators. Algebraic graph theory is used to model the network as a directed graph and employing a leader-follower model. We take advantage of the cascade structure of the combined nonlinear kinematic and dynamic model of surface vessels and develop a reduced-order error dynamic model using a state transformation definition. The error dynamics and consequently all system states are then stabilized using sliding mode control approach. It is shown that the stabilization of the reduced-order error dynamics guarantees uniform global asymptotic stability of the closed-loop system subject to bounded uncertainties. The proposed control method can be implemented in directed time-invariant communication networks without the availability of global position measurements for any of the vehicles participating in the network. An example of a a network of five surface vessels is simulated to verify the effective performance of the proposed control approach.",
+      "doi": "10.1115/dscc2020-3178",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006116",
+      "title": "Unmanned aerial vehicle (UAV) flight assignment method for intensive equipment inspection in converter station",
+      "abstract": "Conventional UAV flight assignment methods mainly use two-dimensional directed acyclic graph to generate flight task integration matrix, which is easily influenced by the time sequence of flight tasks, resulting in long task assignment time. Therefore, it is necessary to design a new UAV flight assignment method for dense equipment in converter stations. That is to say, the UAV flight task assignment model is constructed for the inspection of dense equipment in converter station, and the UAV flight task assignment algorithm is designed, thus realizing the UAV flight task assignment. The experimental results show that the designed UAV flight task assignment method has a good assignment effect, and the task assignment time under different task numbers is short, which is efficient and has certain application value, and has made certain contributions to improving the efficiency and ensuring the safety of UAV inspection.",
+      "doi": "10.1117/12.3028962",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009241",
+      "title": "Mapping of Subtidal and Intertidal Seagrass Meadows via Application of the Feature Pyramid Network to Unmanned Aerial Vehicle Orthophotos",
+      "abstract": "Seagrass meadows are one of the blue carbon ecosystems that continue to decline worldwide. Frequent mapping is essential to monitor seagrass meadows for understanding change processes including seasonal variations and influences of meteorological and oceanic events such as typhoons and cyclones. Such mapping approaches may also enhance seagrass blue carbon strategy and management practices. Although unmanned aerial vehicle (UAV) aerial photography has been widely conducted for this purpose, there have been challenges in mapping accuracy, efficiency, and applicability to subtidal water meadows. In this study, a novel method was developed for mapping subtidal and intertidal seagrass meadows to overcome such challenges. Ground truth seagrass orthophotos in four seasons were created from the Futtsu tidal flat of Tokyo Bay, Japan, using vertical and oblique UAV photography. The feature pyramid network (FPN) was first applied for automated seagrass classification by adjusting the spatial resolution and normalization parameters and by considering the combinations of seasonal input data sets. The FPN classification results ensured high performance with the validation metrics of 0.957 overall accuracy (OA), 0.895 precision, 0.942 recall, 0.918 F1-score, and 0.848 IoU, which outperformed the conventional U-Net results. The FPN classification results highlighted seasonal variations in seagrass meadows, exhibiting an extension from winter to summer and demonstrating a decline from summer to autumn. Recovery of the meadows was also detected after the occurrence of Typhoon No. 19 in October 2019, a phenomenon which mainly happened before summer 2020.",
+      "doi": "10.3390/rs13234880",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011548",
+      "title": "First Principle Modeling of a Morphable Unmanned Aerial-Aquatic Vehicle: Mirs-Alioth",
+      "abstract": "This paper establishes a hybrid system model for a morphable unmanned aerial-aquatic vehicle (UAAV), named Mirs-Alioth, incorporating hydrodynamic parameters through the first principle. Unlike other current UAAVs, variable thrust tilt angles make Mirs-Alioth's model mutable. Thus, this paper directly employs geometric features of the vehicle, integrating a morphing model into a comprehensive dynamics of the vehicle and switching models between different media triggered by depth. The comprehensive model parameters including the rigid body part and the hydrodynamic part is then identified through experiments and computational fluid dynamic (CFD) methods.",
+      "doi": "10.1109/icca62789.2024.10591869",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002047",
+      "title": "Object Detection in Unmanned Aerial Vehicle (UAV) Images using YOLOv5 with Supervised Spatial Attention Module",
+      "abstract": "There have been various object detection models developed recently that have enabled better results in object detection. Object detection has gradually increased in computer vision with further development of application areas. Unmanned aerial vehicle (UAV) images feature smaller and more fragmented objects, as opposed to landscape images where objects occupy more space. Furthermore, rotational and measuremental factors reduce object detection accuracy. In this paper, an improved object detection framework based on YOLOv5 is proposed in order to resolve these issues. As such, this study proposes SSAM-Darknet for the detection of UAV images based on objects. SSAM-Darknet and Bi-FPN are used to extract multiscale and multilevel features from the input images. Additionally, dilated convolution and the Ada-bound optimizer are employed to enhance the proposed model in detecting the objects from UAV images. This experiment evaluates the accuracy of object detection by using VisDrone-DET. AP (Average Precision) and AR (Average Recall) metrics are proposed as a quantitative way of evaluating detection performance. The proposed model achieves an average precision of 34.32 making an increase in detection accuracy by 10% compared to other detectors.",
+      "doi": "10.1109/icecaa55415.2022.9936382",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001330",
+      "title": "Farming for solutions: Perennial plants and native prairie show promise for sustainability, climate goals",
+      "abstract": "While flying home from a vacation in Mexico, Iowa farmer Eric Hoien glanced out the window. Looking down at the gulf, he was struck by the miles and miles of muddy waters at the mouth of the Mississippi River. “It looked like a huge mud puddle, the same dirty brown color that I remember as a kid stomping in the puddles in our driveway,” he says. River deltas are naturally muddy, but agricultural practices can contribute contaminants and churn up additional sediments. The ways in which agriculture affects waterways is something Hoien has thought about a lot. Improved water quality is just one advantage of a farming practice he and other farmers in the US Midwest have begun to embrace by creating small ribbons of native prairie among their regular crops, creating what are called prairie strips. The practice not only benefits yields and water quality but also improves soil, reduces erosion, and benefits biodiversity, including for wild pollinator species critical for healthy crops. Prairie strips are not only beneficial. They are also beautiful, says Hoien, who notes their pleasing aesthetics such as wildflowers blooming throughout the growing season and the sounds of pheasants cackling. “I especially like to see all the songbirds flitting around when I go for walks through the prairie grasses,” he says. A beekeeping neighbor started a hive in close proximity to the strips, Hoien adds. “She was astounded at the honey production in the first bee season, not to mention the fantastic taste of the honey due to the variety of wildflowers. Plus, it brings prairie back into the landscape in a land where prairies were predominant.” A prairie strip grows alongside a soybean field in Grundy County, Iowa. Photograph: Courtesy of Iowa State University. Indeed, very little remains of the native prairie that once covered thousands of square miles across a swath of North America's middle. Most of that land was converted to intensive agriculture beginning in the 1800s as settlers migrated west, displacing Indigenous people of the plains from their traditional lands. Now, though, in the United States, multiple drivers are pushing for changes to Midwest agricultural lands. The Biden administration's climate agenda calls on agriculture to reduce greenhouse gas emissions and increase carbon sequestration on cropland, measures seen as necessary for the country to meet its obligations under the Paris Climate Accord. At the same time, multinational companies including Walmart, PepsiCo, and the food conglomerate Unilever have pledged to increase their supply chain sustainability through the Midwest Row Crop Collaborative, an initiative that promotes and fosters the adoption of agricultural practices that will improve environmental conditions in the Mississippi River Basin. Across the Midwest, researchers, farmers, and industry alike are exploring innovative solutions agriculture can contribute to a planet in crisis. The most widespread farming practices in the Midwest, including the use of chemical fertilizer, pesticides, and monocultures (with particular reliance on just two crops—corn and soybeans), have diminished biodiversity and polluted water, as has been documented in studies from the University of Iowa, the University of Minnesota, and others. These practices also rely heavily on fossil fuel use for farm equipment and contribute additional carbon emissions through annual tilling. With millions of acres of cropland in the Midwest, researchers see agriculture as a sector where climate-focused changes, such as expanding cover crops, can reap significant rewards. About every 5 years, the US Congress reauthorizes the massive farm bill, which includes conservation as one of its core sections. The concept of a national law supporting conservation practices on farmland goes back to the Dust Bowl period of the 1930s, in which drought, severe dust storms, and farming practices led to a devastating loss of viable farmland. From about 1930 to 1936, the federal government recognized the need to support new farming techniques that would prevent the soil nutrient depletion that led to the widespread losses across the Great Plains. Put simply, the government helped some farmers get back into business as long as they agreed to farm differently. Since then, conservation has evolved, and the federal supports available have varied. The notion of conservation compliance requires owners of highly erodible land and wetlands to agree to certain conditions if they want to participate in particular farm support programs, but for many Midwest farms, conservation remains entirely voluntary. Through land-grant university research programs, which are publicly funded projects aimed at supporting local agriculture, and, increasingly, through interdisciplinary teams working on climate and ecology, studies are revealing a variety of options for improving agriculture's environmental footprint beyond reduced tillage and cover crops. One promising effort, developed at Iowa State University, to convert small areas of farmland from crops to native prairie plants, proved so successful in research trials that it is now a recognized conservation practice authorized under the farm bill's federal Conservation Reserve Program (CRP). A team at Michigan State University has harnessed publicly available satellite imagery and farm productivity data to produce maps that allow a landowner to evaluate the cost effectiveness of planting crops in different areas of their fields. Some field areas consistently cost the operation money because of insufficient yields failing to offset production costs. Once they are identified, those small areas can be targeted for conversion to a perennial bioenergy crop or conservation planting. Those allow the farmer to save money on seeds, fertilizer, and other inputs such as herbicides. Perennial plants help prevent erosion, improve soil health, cleanse water, and provide habitat for birds and pollinators. Eventually, bioenergy markets could mean some of those perennial plants also become a cash crop. Some call it sustainable; others call it regenerative agriculture. There are subtle differences, but both terms convey the need to begin moving away from what has been the standard practice, especially in the Midwest, where corn and soybeans dominate, thousands of acres often fall under the control of one family, and millions of total acres are in play. Lisa Schulte Moore leads a team at Iowa State University that has spent years exploring ways to make better farming feasible and to encourage farmers to try new methods. One solution developed over the past 15 years is creating prairie strips. Schulte Moore, a professor of natural resource ecology and management, pioneered a project, with colleagues, to show that perennial native plants will help prevent erosion by taking up water as it ventures down slopes, a process that can also leach nutrients into ditches, streams, and—eventually—rivers. During dry years, native prairie plant roots reach deep into the soil, accessing water deep down. Their flowers attract bees, birds, and butterflies. Perennial cover also nourishes soil because microbial communities are active all year round. Beginning with the earliest studies the Iowa State group conducted at the Neal Smith National Wildlife Refuge in Prairie City, Iowa, prairie strips have proven their mettle. Although Schulte Moore and her colleagues first tested their idea on public land, their ultimate goal was to generate enough data to demonstrate to farmers that it could work on commercial farms. The plants’ natural resilience helped make their case. Even a small patch of native prairie species on the edge of a corn or soybean field has helped farms succeed. “If you have a cool year, if you have a wet year, if you have a drought year, that diversity conveys resilience,” Schulte Moore says. “You have some of those plants that are going to do well regardless of the kind of weather conditions that Mother Nature is throwing at it,” she says, adding that monocultures are less resilient than diverse polycultures. Still, Schulte Moore and her colleagues, as well as crop advisers and agronomists from Iowa State Extension and the US Department of Agriculture's (USDA) Natural Resource Conservation Service, understood that farmers would need to reduce the financial risk of replacing even a small area of cash crops with prairie plants. By 2017, Schulte Moore's team studying prairie strips had enough results to show how real-world conditions compared with their “absolutely beautiful” experimental data, she says. Publishing those results in the Proceedings of the National Academy of Sciences, they showed that soil loss fell by 95%, phosphorus loss dropped by 77%, and nitrogen loss was down 70%. Nitrate loss with groundwater dropped by 72%, which she notes is a significant finding, given the concerns about nitrogen fertilizer contributing to polluted waterways and the hypoxic dead zone in the Gulf of Mexico. The Iowa State team also analyzed the agronomic and economic impacts of prairie strips, with their evidence helping farmers see potential benefits. New England aster and goldenrod growing together in a prairie strip. Photograph: Corinn Rutkoski. “We see no evidence of competition for either nutrients or water between the prairie strips and the crops,” Schulte Moore says. Their early results also showed no negative impact on yield. In addition, the strips showed no signs they would contribute weeds to the adjacent crops, which Schulte Moore says is another concern farmers initially raised. The scientists also learned from farmer survey data collected by Iowa State sociologists and from conservation practice adoption rates tallied by the Natural Resource Conservation Service that even the farmers most interested in trying something new to improve their environmental impact often rely on federal programs to reduce out-of-pocket expenses. For most, that means using innovations allowed in the farm bill conservation programs. After prairie strips succeeded on the first few early-adopter farms in Iowa and the surrounding states, staffers from the USDA noticed and got involved. In the 2018 farm bill, prairie strips were added as an official conservation practice. “We were exceptionally excited,” Schulte Moore says. “Most scientists don't get an opportunity to see the fruits of their research end up influencing federal law.” Almost 2000 acres of prairie strips were planted in the United States in 2020, the first year they were available as a CRP practice. By 2022, that number had grown to just over 15,000 acres in 12 states (Illinois, Indiana, Iowa, Kansas, Michigan, Minnesota, Nebraska, North Dakota, Ohio, South Dakota, Tennessee, and Wisconsin). “I'm astounded by the level of adoption that we've seen,” Schulte Moore says. Prairie strips also caught the attention of other scientists looking for ways that ecological improvements might pair with efforts to make agriculture more sustainable. One of the places where those goals are being pursued together is the Kellogg Biological Station, affiliated with Michigan State University. That is where Nick Haddad conducts his work. Haddad, a Michigan State University integrative biology professor, conducts prairie strip planting experiments on fields at the Kellogg research station, near Kalamazoo, Michigan. In his mind, the difference between sustainable and regenerative agriculture is that the latter term recognizes the need to replenish soil that has been depleted for decades. Iowa State University and University of Northern Iowa researchers meet with participants at a prairie strip field day in Iowa. Photograph: Courtesy of Iowa State University. “We've degraded [it] so badly that, to have a sustainable system, we have to restore soil health, [and] carbon stocks,” he says. That's where perennial ground cover comes in—whether with prairie strips or other perennial plants. Ideally, he says, there would be something growing on the fields all year. In the current system, fields are often left bare after the fall harvest until spring planting begins. Extending green cover increases the carbon stocks in the soil, which both improves soil health and contributes to the climate goal of sequestering more carbon. The growing interest in improving agricultural production techniques dovetails with a broader ecological theme in Haddad's work. He has been studying how small but connected patches of habitat can provide corridors for wildlife, especially insects such as butterflies and bees. Prairie strips potentially offer one type of corridor. And, he says, an area of native prairie on the edge of a crop field has a positive effect beyond its immediate acres, because the mini ecosystem of prairie plants spills over into the crop fields. For example, pollinators take up residence in new perennial plants and then often pollinate nearby crops. Beneficial beetles that find habitat in the perennials may prevent aphids from attacking the crops. Patches of native plants, he says, may also create habitat for soil microorganisms or nematodes, which are important for soil health. If enough farms plant prairie strips or other perennials, such as switchgrass or miscanthus, there's potential for “a connected landscape that is able to sustain populations of biodiversity,” Haddad says. “That's my dream, or vision—that we will have a connected landscape for nature,” he says, one compatible with and benefitting the agricultural lands hosting those natural areas. The benefits of perennial plantings on agricultural lands also extend to what does not happen. When farmers take acres out of crop production, they may not need to spray pesticides or apply nitrogen fertilizer. The commercial fertilizer most often used on Midwest farms, he says, is produced from fossil fuels, often shipped around the world, and sometimes applied from airplanes flying overhead. If 1% of Midwest agriculture no longer needs it, Haddad says, “the impact on greenhouse gas emissions is huge.” Haddad used a 2022–2023 sabbatical year to work with the Natural Capital Project, at Stanford University, a collaboration that allowed him to calculate the carbon emissions impact of reducing fertilizer use. Haddad is also part of a 5-year project with Michigan State colleague Bruno Basso using satellite imagery and remote sensing to present landowners with detailed maps predicting where perennials might make sense. Through ongoing discussions with farmers, Basso learned that the yield data from monitors built into their combines provided details about the success of crops on a very granular level. Farmers asking Basso how they could best use those data was his impetus for generating maps to show precisely which field areas consistently cost the farmer money—where there was no profit once they accounted for the cost of inputs, seeds, equipment, and labor. Basso developed and tested his idea with proprietary data from farmers and agricultural companies, then extended the effort using publicly available satellite imagery. He uses the term digital agriculture to describe the marriage of digital data analysis with traditional agronomy. Michigan State University professor Bruno Basso walks along a crop field as a drone collects data. Photograph: Ruben Ulbirch. For this work, Basso taps satellite imagery taken before the plants get so tall that the canopy closes. At that stage, the differences are most distinct, and he can see weak plants or bare soil patches. Basso discovered that these images revealed a mixed crop health signal. “There were areas where you could tell that they were doing well and areas where they were still behind or you could see more soil.” Comparing satellite-derived maps with maps made using yield monitor data convinced him that public data provided sufficient detail. Now, he devises “yield stability maps” for 13 states from the Dakotas to Mississippi. When farmers can identify exactly where their fields are unstable—or where cash crops are consistently underperforming—they are more likely to consider taking those acres out of corn and soybeans and planting something else, such as a prairie strip or perennial crops, such as switchgrass suitable for bioenergy production, explains Basso. Haddad agrees. Even for fields planted in a switchgrass monoculture, he says, there are still environmental benefits compared with annual crops. The reason, Haddad explains, is that switchgrass fields, even if they are planted as a monoculture, have remarkable plant diversity. “So, although the goal might be in a of the can be not he says. a for biodiversity and ecosystem even still for an agricultural which is says That is promising because the new for may help for fuel or production in the Midwest across an with benefits not only supporting an away from fossil but also supporting Schulte Moore is now a with of the at Iowa with at the University of The Nature in and other part of a project led by of That project, A for and Natural has an from the for In the has to more than projects Schulte Moore calls this a significant increase in the to at she says, the climate has been just enough to at sufficient and of their commercial this for climate research in agriculture as potentially to evaluate what the is of in terms of and the of farmers to participate and make may also help identify which of farms are most likely to Corinn soil in a prairie strip at Kellogg Biological Station, in Michigan, which is a both of the US and of the US one other in New part of both as was in a Photograph: Michigan State University professor Nick Haddad among the prairie plants in a strip at the Kellogg Biological Station, in Michigan. Photograph: Courtesy of Kellogg Biological and other agricultural a soil health field day at the Kellogg Biological Photograph: The is also an opportunity to and changes, such as how from prairie strips would their as a conservation practice, especially if the farmers want to to their Schulte Moore says. may around crop which farmers may want for perennials, that companies and their need to be in the discussions she University of who the for and says the potential for prairie plants, or other perennials to improve the environmental footprint of agriculture in the United States be Farmers need to and the that the and produce or fuel will also likely rely on government as with the and use to for butterflies in the prairie strips at the Kellogg Biological Station, in Michigan. Photograph: Prairie strips in the federal Conservation Reserve Program now cover 15,000 acres in 12 Photograph: Courtesy of Iowa State University. The US for has of its for Although has the called for more of the fuel to from such as or by In the Midwest, could be produced from the and left on fields after corn is With federal the a between the South and the multinational and developed the and production plants in and Iowa and though, those ventures because there was not sufficient produced for the period of 5 to in the Midwest, says, but the is that the companies for adding to the fuel supply away from and produced from the different says, companies could to when not meet their Still, she remains that the or changes to could help the country more and viable Midwest perennials could be a in the but says she has to see economic research exactly what would work. sustainable Midwest crop agriculture will rely on farmers who are in taking on their land to their In to in for such changes, researchers have learned that farmers need both financial and from other farmers that by agronomists or researchers can on their farms. and supporting early fields become the and who become is into the work of Haddad, and Schulte They are with and farm to up beyond Prairie strips are one of how research the many of that from it can to on farm fields and in federal teams to improve the sustainability of Midwest agriculture, additional options may to help more landowners and farm reduce their carbon improve their soil health, and take their practices to the is a in the who spent years agriculture in the Midwest as a at Iowa",
+      "doi": "10.1093/biosci/biad061",
+      "year": 2023,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-009762",
+      "title": "Fault-Tolerant Strategy Design for Quadrotor Unmanned Aerial Vehicle in the Presence of Actuator Fault",
+      "abstract": "The unmanned aerial vehicle (UAV) is required to have fault-tolerant capability in the purpose of being able to complete mission in the case of fault. Different from traditional fault-tolerant control (FTC) methods, this paper proposes a novel fault-tolerant strategy for quadrotor UAV in the presence of actuator fault. Assuming the task is to fly from starting point to destination point without collision in the desired mission time. The fault-tolerant strategy is achieved by trajectory re-planning based on radau pseudospectral method, which can be regarded as an optimal control problem with the objective of the shortest flight distance. For the severe actuator fault, two operations are designed when the fault is detected: 1) the desired mission time and optimization objective are kept constant, and the trajectory re-planning is carried out by radau pseudospectral method; 2) the expected mission time is extended to the maximum time allowed by the task with the idea of performance degradation, and the original optimization objective is replaced by the minimum sum of mission time and flight distance, and then using radau pseudospectral method to replan the reference trajectory. Simulation results for quadrotor UAV are given to demonstrate the effectiveness of the proposed strategy.",
+      "doi": "10.23919/ccc55666.2022.9901645",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009212",
+      "title": "Simulated Photorealistic Deep Learning Framework and Workflows to Accelerate Computer Vision and Unmanned Aerial Vehicle Research",
+      "abstract": "Deep learning (DL) is producing state-of-the-art results in a number of unmanned aerial vehicle (UAV) tasks from low level signal processing to object detection, 3D mapping, tracking, fusion, autonomy, control, and beyond. However, barriers exist. For example, most DL algorithms re-quire big data, but supervised ground truth is a bottle-neck, fueling topics like self-supervised learning. While it is well-known that hardware and data augmentation plays a significant role in performance, it is not well understood which data augmentations or what real data need be collected. Furthermore, existing datasets do not have sufficient ground truth nor variety to support adequate con-trolled experimental research into understanding and mitigating limitations in DL algorithms, models, data, and biases. In this article, we address the combination of photo-realistic simulation, open source libraries, and high quality content (models, materials, and environments) to develop workflows to mitigate the above challenges and accelerate DL-enabled computer vision research. Herein, examples are provided relative to data collection, detection, passive ranging, and human-robot teaming. Online video tutorials are also provided at https://github.com/MizzouINDFUL/UEUAVSim.",
+      "doi": "10.1109/iccvw54120.2021.00435",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005047",
+      "title": "Pemetaan Batas Wilayah desa Menggunakan Teknologi Unmanned Aerial Vehicle (UAV) di Desa Pamarunan",
+      "abstract": "Peta adalah salah satu bahan dasar dalam perencanaan pembangunan. Dalam peta ditunjukkan data dan informasi yang diperlukan, khususnya pembagian wilayah dalam perencanaan pembangunan. Dengan peta, wilayah desa akan mengalami kelancaran perencanaan pembangunan, karena lokasi pembangunan dapat dianalisis persebaran ruangnya, dimana dan berapa jumlahnya. Karena pentingnya peta wilayah desa tersebut maka diadakanlah Kegiatan Pemetaan Batas Wilayah Desa Menggunakan Teknologi Unmanned Aerial Vehicle (UAV) di Desa Pamarunan. Tujuan kegiatan Pengabdian Kepada Masyarakat Stimulus (PKMS) ini antara lain untuk memetakan batas wilayah desa di Desa Pamarunan, melakukan edukasi serta meningkatkan keahlian masyarakat dalam mengenali kondisi dan potensi yang terdapat pada wilayah kerja desa, dan membuat pemetaan batas wilayah desa sebagai data dasar dalam mendukung perencanaan pembangunan desa. Fungsi Unmanned Aerial Vehicle (UAV) dalam pemetaan menggunakan UAV/drone adalah untuk mengambil foto udara. Selanjutnya foto akan diolah dan dianalisis tergantung kebutuhan data yang ingin dihasilkan. Foto udara dari drone ini juga bisa disebut sebagai Fotogrametri. Keberadaan peta desa yang dibuat berdasarkan Teknologi Unmanned Aerial Vehicle (UAV) dalam kegiatan ini diharapkan mampu menjadi solusi informasi terkait potensi dan permasalahan yang ada di desa. Hasil dari pengukuran dan pemetaan fotogrametri berbentuk gambar peta atau model 3D dari beberapa objek di permukaan bumi",
+      "doi": "10.36873/diteksi.v1i1.8978",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004055",
+      "title": "Review of Agricultural Unmanned Aerial Vehicles (UAV) Obstacle Avoidance System",
+      "abstract": "The objective of this paper is to review existing capabilities and ongoing studies to overcome difficulties associated with the deployment of agricultural unmanned aerial vehicle in obstacle rich farms for pesticides and fertilizer application. By review of various literature, it is apparent that the potential for real time and near real-time obstacle avoidance system exists but the development of technology for quality imagery and rapid processing leading to real-time response is needed. The Infrared, Time of flight and Millimeter wavelength radar sensors for detecting farm and flight environment obstacles appear promising. However, the Autonomous Mental Development algorithm, and the Simultaneous Localization and Mapping technology are ahead of others in achieving autonomous identification of obstacles and real-time obstacle avoidance. They are therefore found fit for further studies and development for deployment on agricultural unmanned aerial vehicles on missions in obstacle rich farms.",
+      "doi": "10.1109/nigercon54645.2022.9803184",
+      "year": 2022,
+      "provider": "crossref"
+    }
+  ],
+  "derived_export": {
+    "kind": "DERIVED_EXPORT",
+    "decision_status": "FINAL_AGENT_UNCONFIRMED",
+    "human_confirmation": "PENDING (HumanConfirmation@1 unsigned)",
+    "source_batches": "calibration_v03/screening_scr1/batch_NNN.json",
+    "source_decisions": "calibration_v03/screening_scr1/decisions",
+    "source_final_decisions": "literature/screening/final_decisions.json",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+    "artifact_registry": null,
+    "accepted_parent_artifact": false,
+    "note": "Derived export of the v0.3 calibration screening for console/UI reading. Not a new screening run, not a Contract-v1 published generation, and not a human confirmation. The canonical dual-codefiles under calibration_v03/screening_scr1/ remain the authoritative record."
+  }
+}

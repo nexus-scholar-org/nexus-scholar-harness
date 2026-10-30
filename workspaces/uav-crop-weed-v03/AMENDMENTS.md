@@ -123,3 +123,57 @@ substantive exclusion reasons. Removing DEV-01 would return those 346 records to
 | `literature/prisma_report.json` | PRISMA counts (incl. not retrieved) |
 | `literature/prisma_screening_report.md` | human-readable report + Mermaid |
 | `calibration_v03/screening_scr1/final_lane/decisions_pass2.json` | pass-2 re-screen, 178 rows |
+
+## v0.3 canonical screening export for the console and UI (2026-10-30)
+
+### What was added
+
+The finalized corpus was readable through the contract reads
+(`literature/included.json`, `literature/excluded.json`) but the console's
+*screening* surface and the Research UI's live screening screen read the
+harness's canonical batch layout, which this pilot never produced: its dual-code
+decision files live under `calibration_v03/screening_scr1/` in the calibration
+schema (`records` / `screening_id`), not as `batch_NNN.json` + `batch_NNN_decisions.json`.
+
+A deterministic driver,
+`_drivers/v03_canonical_screening_export.py`, now writes that derived view into
+`literature/screening/`:
+
+| File | Content |
+|---|---|
+| `MANIFEST.json` | 283 batches, 14,150 papers, run id `UAV-SCREEN-SCR1-20261018` |
+| `batch_001.json` … `batch_283.json` | 50 screened records each, in source batch order |
+| `batch_001_decisions.json` … `batch_283_decisions.json` | one final decision per record |
+
+### What this is not
+
+- **Not a new screening run.** No record was re-screened. Each decision is copied
+  from `literature/screening/final_decisions.json`; each paper from the source
+  batch's `records`; identifiers, criteria references, lane and reason code are
+  copied, never re-derived.
+- **Not a Contract-v1 published generation.** The export has no artifact
+  registry, no accepted corpus snapshot, no `verified.json`, and no publication
+  approval. The console therefore reports batch coverage as
+  `WORKER_PARENT_UNRESOLVED` (no accepted parent artifact) and the publication
+  status stays `LEGACY_UNVERIFIED`. The earlier statement in this file that "there
+  is no `MANIFEST.json`" describes the finalization event of 2026-10-29; this
+  derived export did not exist then and authorizes nothing.
+- **Not a human confirmation.** `decision_status` remains
+  `FINAL_AGENT_UNCONFIRMED`; `HumanConfirmation@1` is still unsigned.
+
+### Provenance carried by every emitted file
+
+Each batch, each decisions sidecar, and `MANIFEST.json` carry a
+`derived_export` block naming the source directory, the criteria hash
+(`9ae1f97d…b86f`), the protocol fingerprint (`sha256:f81e6c58…f755`), the
+decision status, and `accepted_parent_artifact: false`.
+
+### Reversibility
+
+`git rm -r --cached` + deletion of the generated files returns the workspace to
+its 2026-10-29 state; nothing else references them. Re-generating is a single
+deterministic command:
+
+```
+uv run python workspaces/uav-crop-weed-v03/_drivers/v03_canonical_screening_export.py --force
+```

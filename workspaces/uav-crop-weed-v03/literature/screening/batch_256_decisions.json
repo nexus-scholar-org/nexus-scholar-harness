@@ -1,0 +1,669 @@
+{
+  "batch": 256,
+  "decisions": [
+    {
+      "workspace_id": "SCI-001017",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-03 WRONG_REPORT_TYPE: Explicitly a review of smart and sustainable agriculture approaches (AI, IoT, robots, UAVs); secondary synthesis with no primary crop/weed detection or mapping study.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-013902",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Fixed-time Stackelberg-game docking control of UAV-UGV systems; aerial-ground robotics control with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-002619",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Traffic congestion detection from fixed-wing UAV video streaming with YOLO vehicle detection; traffic monitoring with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-011764",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: UAV path planning for automatic acceptance inspection of overhead transmission lines; power-line inspection planning with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-006022",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Wing design and CFD/CAE analysis for UAVs (airfoil comparison, materials); aircraft structural design with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-013102",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Numerical study of water-entry impact of a bionic unmanned aerial-underwater vehicle; hydrodynamic vehicle design with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-007300",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Cloud-edge-end collaborative framework for UAV-based power supply intelligent inspection; power-infrastructure inspection architecture with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-000795",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Multi-level object-oriented segmentation of Camellia oleifera plantation canopy from UAV LiDAR and visible imagery; precision-forestry canopy parameter extraction with weeds only a background class to remove.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-002524",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Model predictive landing control of a UAV via partial feedback linearization; flight-control engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-012580",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Land use/cover classification of a Mediterranean site (urban, agricultural, natural classes) from UAV imagery with MLC and MDC; general LULC mapping with no crop/weed-specific detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-002629",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Experimental and numerical study of quadcopter descent flow effects on a small floating body (drone docking over water); fluid-structure study with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-006306",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Mission planning for long-endurance UAVs integrated with heterogeneous ground-control resource allocation; operations-research task allocation with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-004155",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Field trial of natural farming components on wheat+gram intercropping yield, soil health and nutrient uptake; agronomy trial with no imagery-based detection or mapping.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-003279",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Delay-energy balance analysis for information transmission in UAV wireless networks; communications engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-003954",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: UAV application for slope mapping at a matriculation college campus (abstract null); title clearly indicates geotechnical/civil slope mapping with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-010041",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Low-profile dual-band directional antenna design for UAV remote-control units; antenna/electromagnetic engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-013372",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Field experiment on crop establishment and herbicide weed management effects on direct-seeded rice economics; agronomic management/economics trial with no imagery-based detection or mapping.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-004846",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Self-adaptive fuzzy-logic trajectory optimization for UAV-assisted mobile edge computing; computational offloading/trajectory optimization with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-004573",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Building extraction from UAV imagery using Mask R-CNN CNN (village building-distribution mapping); built-environment extraction with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-011554",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Image-based time-varying contact force control of an aerial manipulator using an impedance filter; manipulation/control engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-007835",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-03 WRONG_REPORT_TYPE: Explicit PRISMA systematic review of economics and adoption of site-specific weed management; secondary synthesis, not a primary crop/weed detection or mapping study.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-007628",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: DAIMYO dynamic design architecture for hybrid unmanned aerial system development (sim-to-real codesign); aircraft design methodology with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-012968",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Mechanical properties of roving-fibre/polyester composites for UAV applications (tensile tests, vacuum bagging); materials engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-002768",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Deep reinforcement learning for air-confrontation decision-making in manned/unmanned aerial vehicle cooperative systems; combat decision-making simulation with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-001701",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Passivity-based controller design and flight experiments for a dual tilt rotor UAV in helicopter mode; flight-control engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-006917",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Multi-objective genetic algorithm for UAV waste-collection tour planning in smart cities; logistics/routing optimization with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-009547",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Finite-element and structural evaluation of a UAV wing made from fibre/wood-dust epoxy composite; airframe materials engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-010694",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Comparison of boat-based smartphone SfM, UAS and Pléiades imagery for coastal cliff-face monitoring; coastal geohazard monitoring with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-002832",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Accuracy assessment of small-UAV photogrammetry for traffic accident scene 3D reconstruction in extreme conditions; forensic/traffic photogrammetry with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-009299",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: UAV pesticide application trial on cowpea comparing thrips control efficacy and operator exposure vs knapsack spraying; spraying application/exposure study with no detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-006752",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Interoperability analysis of wireless power transfer systems for electric vehicles and UAVs; power-electronics engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-007982",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Cooperative route planning and target detection for UAVs and autonomous surface vehicles in robotics networks (abstract null); title clearly indicates heterogeneous robotics cooperation with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-011915",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Field trial of glyphosate alone and in mixtures for weed control selectivity in RF cotton (herbicide efficacy, RCBD); agronomic herbicide trial with no imagery-based detection or mapping.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-001139",
+      "decision": "INCLUDE",
+      "confidence": 0.95,
+      "matched_inclusion_criteria": [
+        "INC-01"
+      ],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [],
+      "screening_reasoning": "",
+      "reason_code": "INC-01",
+      "lane": "mutual_include"
+    },
+    {
+      "workspace_id": "SCI-004158",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: UAV (Parrot Bebop 2) imagery with QGIS supervised classification to monitor river pollution sources; waterway pollution monitoring with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-004745",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Nonlinear control of a quadrotor UAV with a suspended load on an elastic rope (swing suppression); flight-control engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-004986",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Securing UAV networks for dense urban areas (abstract null); title clearly indicates communications security with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-010331",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Optimal UAV routing jointly optimizing goods delivery and in-situ sensing tasks (task-time graph, Bellman-Ford); delivery/sensing routing optimization with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-007375",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Correlation of soil carbon stock with RGB vegetation indices from UAV orthomosaics across wetland, pasture and forest; soil carbon monitoring with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-014051",
+      "decision": "EXCLUDE",
+      "confidence": 1.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [],
+      "relevant_rqs": [],
+      "screening_reasoning": "no usable abstract; metadata insufficient to assess eligibility (DEV-01)",
+      "reason_code": "NO_USABLE_ABSTRACT_NOT_RETRIEVED",
+      "lane": "not_retrieved",
+      "deviation": "DEV-01"
+    },
+    {
+      "workspace_id": "SCI-011500",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Red Fox algorithm for task assignment in heterogeneous UAV swarms (energy and distance metrics); swarm optimization with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-001620",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-03 WRONG_REPORT_TYPE: Peer-review report for a review article on UAV navigation in underground structure inspection (abstract null); peer-review material, not a primary empirical study.",
+      "reason_code": "WRONG_REPORT_TYPE",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-005282",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Digital topographic mapping and modelling using low-altitude UAV (abstract null); title clearly indicates topographic surveying with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-011271",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Deep-learning surface crack classification and segmentation (CrackClassCNN, SAM) in UAV-assisted infrastructure inspection; structural defect detection with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-004570",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Resilient UAV flight control using a radial basis function neural network and disturbance observer; flight-control engineering with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-008497",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Detection of GPS spoofing attacks on UAV systems via GPS/IMU information fusion; cybersecurity of navigation with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-002679",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Secure broadcast protocol with key management for leader-follower UAV swarms; communication security with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-008521",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: Real-time visual tracking of moving targets by a low-cost UAV with a 3-axis gimbal (KCF tracker, RSTA applications); target tracking/surveillance with no crop/weed detection or mapping task.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-007774",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "EXC-02 WRONG_TASK: UAV design for firefighting on high-rise structures (stereo-camera fire detection, water ejection); emergency-response vehicle design with no crop/weed content.",
+      "reason_code": "WRONG_TASK",
+      "lane": "mutual_exclude"
+    },
+    {
+      "workspace_id": "SCI-003002",
+      "decision": "EXCLUDE",
+      "confidence": 0.0,
+      "matched_inclusion_criteria": [],
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "relevant_rqs": [],
+      "screening_reasoning": "MODERATION_TITLE_ONLY_EXCLUDE: Abstract withheld by moderation; the visible title (computational engineering analysis of external geometrical modifications on an MQ-1 unmanned aerial vehicle) clearly leaves the review domain — aerodynamic analysis of a military aircraft, no crop/weed detection or mapping.",
+      "reason_code": "MODERATION_TITLE_ONLY_EXCLUDE",
+      "lane": "mutual_exclude"
+    }
+  ],
+  "reviewed_by": "v03-canonical-export (agent; derived)",
+  "timestamp": "2026-10-29T12:29:22.902089+00:00",
+  "derived_export": {
+    "kind": "DERIVED_EXPORT",
+    "decision_status": "FINAL_AGENT_UNCONFIRMED",
+    "human_confirmation": "PENDING (HumanConfirmation@1 unsigned)",
+    "source_batches": "calibration_v03/screening_scr1/batch_NNN.json",
+    "source_decisions": "calibration_v03/screening_scr1/decisions",
+    "source_final_decisions": "literature/screening/final_decisions.json",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+    "artifact_registry": null,
+    "accepted_parent_artifact": false,
+    "note": "Derived export of the v0.3 calibration screening for console/UI reading. Not a new screening run, not a Contract-v1 published generation, and not a human confirmation. The canonical dual-codefiles under calibration_v03/screening_scr1/ remain the authoritative record."
+  }
+}

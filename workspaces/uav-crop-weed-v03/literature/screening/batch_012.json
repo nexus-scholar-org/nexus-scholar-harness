@@ -1,0 +1,529 @@
+{
+  "batch_index": 12,
+  "total_batches": 283,
+  "batch_size": 50,
+  "status": "DONE",
+  "protocol": {
+    "title": "Reliability and Generalization in UAV Crop-Weed Mapping: A Scoping Review",
+    "research_questions": [
+      {
+        "id": "RQ1",
+        "text": "How do UAV crop-weed mapping studies define and evaluate reliability under spectral degradation, sensor differences, and temporal shift?",
+        "target_facet": "reliability_evaluation",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ2",
+        "text": "Which datasets, sensors, dates, fields, and split units support the reported generalization claims?",
+        "target_facet": "evaluation_independence",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ3",
+        "text": "How are uncertainty, calibration, missing evidence, and failed transfer reported?",
+        "target_facet": "uncertainty_and_failure",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ4",
+        "text": "Which evidence gaps remain after separating dataset diversity, model mechanisms, and demonstrated external validation?",
+        "target_facet": "evidence_gaps",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      }
+    ],
+    "screening_criteria": {
+      "inclusion": [
+        {
+          "id": "INC-01",
+          "criterion": "Uses UAV-acquired imagery for crop/weed detection, segmentation, classification, or spatial weed mapping in an agricultural context (arable row crops, broadacre cereals, vegetables, or managed perennial orchards, vineyards, and pastures); UAV results must be separable in mixed-platform studies.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-02",
+          "criterion": "Primary empirical method study or dataset/benchmark report describing a UAV crop/weed mapping method, experiment, or annotated dataset. Journal, conference, and substantive preprint reports are eligible (linked into study families). In-window method studies (2020-2026) evaluated on pre-2020 UAV datasets (e.g., WeedMap 2018) are eligible. Missing evaluation details are charted as not reported; records with missing abstracts matching UAV+weed title heuristics and inaccessible full texts remain pending retrieval/audit rather than auto-excluded.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-03",
+          "criterion": "Published from 2020 through the recorded final search cutoff, inclusive; English full text in scope. Older foundational UAV datasets remain background/provenance sources unless a logged amendment expands eligibility. Screened under Option C (single lead reviewer Mouadh Bekhouche confirming all agent triage suggestions, with independent ~10% random sample plus boundary-exclude verification by Soumia Zertal and Fadhila Djenba).",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        }
+      ],
+      "exclusion": [
+        {
+          "id": "EXC-01",
+          "criterion": "Satellite-only, ground-robot-only (including studies framed around field weed mapping that evaluate exclusively on proximal/ground datasets such as Sugar Beets 2016, CWFID, or DeepWeeds without UAV data), handheld, or laboratory/pot imaging with no separable eligible UAV mapping evidence.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_PLATFORM"
+        },
+        {
+          "id": "EXC-02",
+          "criterion": "UAV navigation/SLAM, yield estimation only, crop disease/pest damage, wildlife crop damage, crop lodging, phenotyping, or non-agricultural vegetation mapping (e.g., invasive aquatic weeds such as water hyacinth, forestry/wildfire, urban turfgrass) without a separable agricultural crop/weed localization, classification, or mapping task.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_TASK"
+        },
+        {
+          "id": "EXC-03",
+          "criterion": "Confirmed review (systematic, scoping, narrative, or bibliometric), editorial, commentary, protocol-only report, or standalone abstract with no associated substantive primary report. An incomplete search-provider abstract (abstract=null) or failure to retrieve full text is not this exclusion; retain useful reviews as background for citation chasing.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_REPORT_TYPE"
+        },
+        {
+          "id": "EXC-04",
+          "criterion": "Outside the frozen publication date (published before 2020 or after the recorded final search cutoff date) or non-English full text after bibliographic/full-text verification.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "OUTSIDE_DATE_LANGUAGE"
+        }
+      ],
+      "two_tier_screening": true
+    }
+  },
+  "papers": [
+    {
+      "workspace_id": "SCI-000121",
+      "title": "Invasive weed mapping: A framework for precision weed management",
+      "abstract": "Invasive vegetation mapping framework developed during a 2025 summer internship research project with River Partners. The project integrated field-based vegetation surveys with multispectral drone imagery to support precision weed management and ecological restoration monitoring. The original interactive ArcGIS StoryMap covered invasive plant management challenges, study site background, remote sensing fundamentals for biologists and ecologists, drone image processing workflows, vegetation indices, and future directions including spectral library development and machine learning classification.",
+      "doi": "10.5281/zenodo.20265102",
+      "year": 2025,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-000630",
+      "title": "Deep Learning-Based Weed–Crop Recognition for Smart Agricultural Equipment: A Review",
+      "abstract": "Weeds and crops engage in a relentless battle for the same resources, leading to potential reductions in crop yields and increased agricultural costs. Traditional methods of weed control, such as heavy herbicide use, come with the drawback of promoting weed resistance and environmental pollution. As the demand for pollution-free and organic agricultural products rises, there is a pressing need for innovative solutions. The emergence of smart agricultural equipment, including intelligent robots, unmanned aerial vehicles and satellite technology, proves to be pivotal in addressing weed-related challenges. The effectiveness of smart agricultural equipment, however, hinges on accurate detection, a task influenced by various factors, like growth stages, environmental conditions and shading. To achieve precise crop identification, it is essential to employ suitable sensors and optimized algorithms. Deep learning plays a crucial role in enhancing weed recognition accuracy. This advancement enables targeted actions such as minimal pesticide spraying or precise laser excision of weeds, effectively reducing the overall cost of agricultural production. This paper provides a thorough overview of the application of deep learning for crop and weed recognition in smart agricultural equipment. Starting with an overview of intelligent agricultural tools, sensors and identification algorithms, the discussion delves into instructive examples, showcasing the technology’s prowess in distinguishing between weeds and crops. The narrative highlights recent breakthroughs in automated technologies for precision plant identification while acknowledging existing challenges and proposing prospects. By marrying cutting-edge technology with sustainable agricultural practices, the adoption of intelligent equipment presents a promising path toward efficient and eco-friendly weed management in modern agriculture.",
+      "doi": "10.3390/agronomy14020363",
+      "year": 2024,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-013001",
+      "title": "Temporal-Sequence Offline Reinforcement Learning for Transition Control of a Novel Tilt-Wing Unmanned Aerial Vehicle",
+      "abstract": "A newly designed tilt-wing unmanned aerial vehicle (Tilt-wing UAV) requires a unified control strategy across rotary-wing, fixed-wing, and transition modes, introducing significant challenges. Existing control strategies typically rely on accurate modeling or extensive parameter tuning, which limits their adaptability to dynamically changing flight configurations. Although online reinforcement learning algorithms offer adaptability, they depend on real-world exploration, posing considerable safety and cost risks for safety-critical UAV applications. To address this challenge, we propose Temporal Sequence Constrained Q-learning (TSCQ), an offline RL framework that integrates an encoder–decoder with recurrent networks to capture temporal dependencies. The policy is further constrained within an offline dataset collected via hardware-in-the-loop simulation using a variational autoencoder, and a sequence-level prediction mechanism is introduced to ensure temporal consistency across action trajectories, thereby mitigating extrapolation error while preserving data fidelity. Experimental results demonstrate that TSCQ significantly outperforms gain scheduling, Model Predictive Control (MPC), and Batch-Constrained Q-learning (BCQ), reducing the RMSE of pitch angle by up to 53.3% and vertical velocity RMSE by approximately 33%. These findings underscore the potential of data-driven, safety-aware offline RL paradigms to enable robust and generalizable control strategies for tilt-wing UAVs.",
+      "doi": "10.3390/aerospace12050435",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-012924",
+      "title": "The Joint Resource Optimization Scheme for Phased Array Radar Networking in Unmanned Aerial Vehicle Swarm Combat Scenarios",
+      "abstract": "This paper proposes a phased radar network power allocation optimization scheme for tracking unmanned aerial vehicle (UAV) swarms, which enables higher-precision tracking of UAV swarms under given resource budget. First, considering the characteristics of dense UAV quantities and spatial proximity, the scheme employs a Gaussian process-based three-dimensional extended target tracking method to model the swarm's spatial configuration. Second, based on the estimated shape and positional coordinates of the UAV swarm, a collaborative phased array radar network illumination strategy is formulated. Finally, the posterior Cramér-Rao lower bound (PCRLB) under the threedimensional framework is derived as a performance metric to construct and solve the optimization model. Simulation results demonstrate that the proposed scheme significantly enhances the tracking accuracy of networked radar systems for UAV swarms.",
+      "doi": "10.1109/icet64964.2025.11103220",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004032",
+      "title": "Identification of mulberry silkworm (Bombyx mori L.) foundation crosses ideal for temperate climatic conditions of North West India",
+      "doi": "10.22271/09746315.2022.v18.i1.1543",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006881",
+      "title": "IoT-Based Realtime Battery Monitoring System for Unmanned Aerial Vehicles (UAVs)",
+      "abstract": "Unmanned Aerial Vehicles (UAVs) have become increasingly important in applications such as logistics, agriculture, surveillance, disaster management, and smart city services. Reliable battery performance is essential to ensure mission success and flight safety, yet most small- to mediumscale UAVs still rely on manual checks or proprietary battery systems that are costly, closed-source, and not optimized for weight and energy constraints. This research addresses these limitations by developing a low-cost and open-source IoT-based battery monitoring system utilizing the ESP8266 microcontroller. The system employs a voltage divider network and TP4056 module for safe lithium-ion battery integration, while leveraging ESP8266 Wi-Fi capabilities to transmit realtime voltage data to the Blynk platform. UAV operators can monitor both raw voltage and estimated battery percentage through an intuitive mobile interface. Performance testing across 30 trials demonstrated an average error of 2.52% and accuracy of 97.48% compared with calibrated multimeter readings, classifying the system as highly reliable. The modular architecture allows for scalability and potential commercialization as an affordable add-on for UAVs, while also supporting sustainable practices through improved battery lifecycle management.",
+      "doi": "10.1109/icsgteis68532.2025.11284351",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013290",
+      "title": "Designated-Time Tracking Strategy for Quadrotor Unmanned Aerial Vehicle Subject to Disturbances",
+      "abstract": "This article focuses on tackling tracking control for quadrotor unmanned aerial vehicles (UAVs): ensuring the expected tracking precision within a designated time framework between the quadrotor's attitude/position and the reference signal. The challenge in developing control strategies for the quadrotor UAVs is to compensate multiple unknown external disturbances effectively during the whole-time operation. Based on a series of new time-dependent constraint functions defined by tracking precision and stopping time, we design a bounded continuous control scheme by integrating several compound functions associated with the constraint boundaries. In contrast to current tracking methods for quadrotor UAVs, the proposed technique drives the tracking error to a prespecified compact set within a predesignated time instant, while maintaining closed-loop signals' global boundedness. Three sets of comparative simulations for quadrotor UAVs are conducted to demonstrate the effectiveness/superiority of our scheme.",
+      "doi": "10.1109/taes.2025.3546189",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007287",
+      "title": "ОРГАНИЗАЦИЯ ОБНАРУЖЕНИЯ ЛЕСНЫХ ПОЖАРОВ С ИСПОЛЬЗОВАНИЕМ БЕСПИЛОТНЫХ ЛЕТАТЕЛЬНЫХ АППАРАТОВ",
+      "abstract": "Проанализированы возможности и экономическая эффективность замены самолетов на беспилотные летательные аппараты при организации авиапатрулирования. Установлено, что себестоимость охраны лесов от пожаров во многом зависит от марки беспилотного летательного аппарата, правильности выбора маршрутов патрулирования и зоны охраны. Патрулирование лесов в зоне наземного патрулирования существенно отличается от такового в зоне авиационного патрулирования. Последнее свидетельствует о необходимости расчета результативности и экономической эффективности использования беспилотных летательных аппаратов (БПЛА) отдельно по зонам патрулирования. Расходы на проведение авиационного патрулирования с применением дешевых БПЛА соизмеримы с расходами на проведение авиационного патрулирования с привлечением пилотной авиации. Внедрение в систему мониторинга БПЛА в наземной зоне патрулирования позволит увеличить осматриваемость площади лесфонда Нижегородской области с 59 до 93 %, при этом ожидается, что доля обнаруженных пожаров увеличится с 66 до 87 %. Указанное позволит сократить количество маршрутов наземного патрулирования на 44,2 % и сэкономить средства в размере 4561,46 тыс. руб. С экономической точки зрения проведение мониторинга с использованием БПЛА в наземной зоне более чем в 5,6 раза экономичнее наземного патрулирования. Отсутствие практического опыта применения БПЛА в целях мониторинга пожарной опасности вызывает необходимость проведения комплекса испытательных работ в различных регионах, инфраструктурных, экономических и природно-климатических условиях для подтверждения заявленных характеристик и установления факторов, влияющих на проведение работ по мониторингу. The article analyzes the possibilities and economic efficiency of replacing airplanes with unmanned aerial vehicles when organizing aerial patrols. It has been established that the cost of protecting forests from fires largely depends on the brand of the unmanned aerial vehicle, the correctness of the choice of patrol routes and protection zones. Patrolling forests in the ground patrol zone differs significantly from that in the aerial patrol zone. The latter indicates the need to calculate the effectiveness and economic efficiency of using unmanned aerial vehicles (UAVs) separately for patrol zones. The costs of conducting aerial patrols using cheap UAVs are comparable to the costs of conducting aerial patrols using pilot aircraft. The introduction of UAVs into the ground patrol zone monitoring system will increase the visibility of the forest fund area of the Nizhny Novgorod region from 59 to 93 %, while it is expected that the share of detected fires will increase from 66 to 87 %. This will reduce the number of ground patrol routes by 44,2 % and save funds in the amount of 4561,46 thousand rubles. From an economic point of view, monitoring using UAVs in the ground zone is more than 5.6 times more economical than ground patrols. The lack of practical experience in using UAVs for fire hazard monitoring necessitates a range of testing activities in various regions, infrastructural, economic and natural-climatic conditions to confirm the declared characteristics and establish the factors influencing the monitoring activities. Keywords: forest fire, aerial patrol, unmanned aerial vehicle, fire hazard monitoring",
+      "doi": "10.51318/fret.2025.95.4.008",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013953",
+      "title": "Structure synchronized dynamic event-triggered control for USV-UAV under maritime sector search mission",
+      "doi": "10.1007/s11071-026-12503-x",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002243",
+      "title": "Unmanned Aerial Vehicle Path Planning for Exploration Mapping",
+      "abstract": "This paper presents a new path planner for the exploration of previously unknown environments. The proposed algorithm uses a Next-Best-View (NBV) fashion to decide the movements ahead. A Rapidly-Exploring Random Tree (RRT) is built and the node with the highest gain is the next configuration to execute, based on the amount of unmapped volume in the field of view (FoV) of the sensor employed. The proposed planner is able to send online a 3D occupancy map of the volume and work with a variety of different depth sensors. The performance is analyzed in various challenging simulations, such as exploration of a city street or a narrow tunnel. Moreover, real experiments indoor and outdoor were conducted to further validate the proposed approach results. In cases with large scale volumes, it can cover a wide range in affordable flight time.",
+      "doi": "10.1109/nir50484.2020.9290232",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004764",
+      "title": "Improving inadequate coverage of an unmanned aerial vehicle base station: mobility strategies and delay-tolerant service requests",
+      "doi": "10.1007/s11235-022-00958-3",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001346",
+      "title": "Evaluation of water hyacinth (Eichhornia crassipes) response to herbicides using unmanned aerial system imagery",
+      "abstract": "Abstract Water hyacinth is a highly invasive aquatic species in the southern United States that requires intensive management through frequent herbicide applications. Quantifying management success in large-scale operations is challenging with traditional survey methods that rely on boat-based teams and can be time-consuming and labor-intensive. In contrast, an unmanned aerial system (UAS) allows a single operator to survey a waterbody more efficiently and rapidly, enhancing both coverage and data collection. Therefore, the objective of this research was to develop remote sensing techniques to assess herbicide efficacy for water hyacinth control in an outdoor mesocosm study. Experiments were conducted in spring and summer 2023 to compare and correlate data from visual evaluations of herbicide efficacy against nine vegetation indices (VIs) derived from UAS-based red-green-blue imagery. Penoxsulam, carfentrazone, diquat, 2,4-D, florpyrauxifen-benzyl, and glyphosate were applied at two rates, and experimental units were evaluated for 6 wk. The carotenoid reflectance index (CRI) had the highest Spearman’s correlation coefficient with visually evaluated efficacy for 2,4-D, diquat, and florpyrauxifen benzyl (> −0.77). The visible atmospherically resistance index (VARI) had the highest correlation with carfentrazone and penoxsulam treatments (> −0.70), and the excess greenness minus redness index had the highest correlation for glyphosate treatments (> −0.83). CRI had the highest correlation coefficient with the most herbicide treatments, and it was the only VI tested that did not include the red band. These VIs were satisfactory predictors of mid-range visually evaluated herbicide efficacy values but were poorly correlated with extremely low and high values, corresponding to nontreated and necrotic plants. Future research should focus on applying findings to real-world (nonexperimental) field conditions and testing imagery with spectral bands beyond the visible range.",
+      "doi": "10.1017/wet.2025.28",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007824",
+      "title": "Impact of Herbicide Spray Volume Through Unmanned Aerial Vehicle on Soil Properties and Nutrient Status under Rabi Maize",
+      "abstract": "Agrochemical application using knapsack sprayers requires more time, labour, energy, and water. Agricultural drones (UAVs) offer a low-volume, uniform spraying alternative with higher spray concentration and greater operational efficiency. A field experiment conducted during the rabi seasons of 2023-24 and 2024-25 at the Water Technology Centre, PJTAU, Hyderabad, evaluated the effects of UAV-based low-volume herbicide application on soil physico-chemical properties and available nutrient status after maize harvest. The study comprised two main-plot irrigation methods, I1- surface ridge and furrow irrigation and I2- surface drip irrigation, and six subplot weed management practices: W1-W3 included varying UAV spray fluid volumes (20, 40 and 60 L ha-1); W4 was conventional knapsack spraying; and W5–W6 were checks, i.e., the weed-free and unweeded controls. The results revealed that herbicide spray volume applied via UAV and irrigation methods did not have a statistically significant effect on soil pH, electrical conductivity (EC), organic carbon (OC), and bulk density (BD) in either year. Post-harvest soil pH ranged from 7.97 to 8.11 under UAV treatments, comparable to the conventional spray (7.95-8.15) and the unweeded control (8.01-8.07). Electrical conductivity remained safe (0.31-0.36 dS m-1), confirming no salinity build-up. Soil organic carbon (0.82-0.90%) and bulk density (1.51-1.58 g cm-3) were similarly unaffected across UAV treatments. Furthermore, available nitrogen (181.23-197.90 kg ha-1), phosphorus (29.28-30.87 kg ha-1 P2O5) and potassium (308.00-331.93 kg ha-1 K2O) under UAV spray volumes showed no significant variation compared with conventional spraying. While the weed-free treatment recorded numerically higher nutrient levels due to eliminated weed-crop competition, the unweeded control exhibited lower available nutrients owing to severe weed uptake. Overall, reducing spray fluid volume via UAV technology proved safe for soil health, maintaining soil fertility while facilitating efficient weed management in rabi maize.",
+      "doi": "10.9734/ajsspn/2026/v12i3741",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011768",
+      "title": "Design and Development of Controller for the Stability Improvement of Unmanned aerial vehicles System",
+      "abstract": "Quadrotors, with their versatility and maneuverability, have garnered significant interest in various fields ranging from aerial photography to search and rescue operations. However, ensuring stable flight control remains a challenging task due to the inherent complexities of their dynamics and environmental uncertainties. This paper proposes an innovative approach utilizing a Fuzzy Logic Controller (FLC) to enhance the stability and control of quadrotor flight. The implementation of FLC offers a flexible and robust solution to address the nonlinearities and uncertainties present in quadrotor dynamics. By leveraging linguistic variables and fuzzy rule-based systems, the FLC adapts dynamically to varying operating conditions, thereby improving control performance in real-time. The fuzzy logic framework allows for intuitive modeling of complex relationships between input variables such as pitch, roll, yaw rates, and control outputs, enabling effective stabilization and maneuverability. Applications, including autonomous navigation, surveillance, and aerial manipulation tasks.",
+      "doi": "10.1109/icees61253.2024.10776930",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001107",
+      "title": "APPLICATION OF ARTIFICIAL INTELLIGENCE AND AUTOMATION TECHNOLOGIES IN MODERN AGRICULTURAL MACHINERY",
+      "abstract": "The rapid development of artificial intelligence (AI), robotics, computer vision, Internet of Things (IoT), satellite navigation, remote sensing, and autonomous control systems is transforming the design and operation of modern agricultural machinery. Agricultural machinery is increasingly evolving from conventional mechanical equipment into intelligent cyber-physical systems capable of sensing field conditions, processing large volumes of data, making operational decisions, and executing agricultural tasks with limited human intervention. This article examines the application of artificial intelligence and automation technologies in tractors, harvesters, sprayers, robotic platforms, unmanned aerial vehicles, and other agricultural machinery. The study is based on a systematic analysis of scientific publications, international institutional reports, and documented agricultural technology adoption data. Particular attention is given to autonomous navigation, machine vision, precision spraying, variable-rate application, crop monitoring, yield prediction, robotic weeding, harvesting, and safety systems. Evidence from the United States demonstrates substantial growth in precision-agriculture adoption: automated guidance systems were used on more than half of the acreage planted to several major crops, while in 2023 guidance autosteering was used by 52 percent of midsize farms and 70 percent of large-scale crop-producing farms. Scientific literature also demonstrates the growing role of machine learning in yield estimation, nitrogen management, disease detection, and robotic perception. However, high acquisition costs, inadequate rural connectivity, data governance issues, cybersecurity, technical complexity, and safety risks remain significant barriers. The study concludes that AI-enabled agricultural machinery can contribute to higher operational efficiency, more precise input application, reduced operator fatigue, improved resource management, and greater agricultural sustainability, provided that technological development is accompanied by appropriate infrastructure, human-capacity development, interoperability standards, and safety regulation.",
+      "doi": "10.5281/zenodo.23255982",
+      "year": 2026,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-005028",
+      "title": "Multi-Perspective Investigations Based Design Framework of an Electric Propulsion System for Small Electric Unmanned Aerial Vehicles",
+      "abstract": "Numerous attempts have been made to extend the endurance of small unmanned aerial vehicles (UAVs) by improving their propulsion system. However, due to their non-linear setup, no study has been conducted on small electric UAVs’ architecture framework. This study established a novel propulsion system framework model by analyzing 42 existing UAV electric propulsion systems. The proposed framework-based complicated model includes a new torque factor used to determine the operating current and voltage of the system. This innovative approach improved the model accuracy for the non-linear behavioral nature-based electrical and mechanical systems. The findings include a reduced electrical current usage of up to 84% and an average reduction of 26%. In addition, the investigation also found that the durability of the propulsion systems improved by 53% on average. Similarly, improvements in the trust-to-weight ratio were also established. As a result, a method of propeller matching is presented to facilitate the broad implementation of the proposed framework. The performance of the existing propulsion system was enhanced by using the proposed framework.",
+      "doi": "10.3390/drones7030184",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-000156",
+      "title": "Stakeholder mapping of precision weeding commercialization ecosystem in California",
+      "abstract": "Precision weeding, a sector of agricultural technology in which drones and/or automated weeders use chemical, mechanical, or thermal means to eradicate weeds, has moved from academic research settings to commercialization. Because of labor shortage pressures, the push to gain competitive advantages, and the environmental impacts of excessive chemical inputs, many California growers have been interested in adopting precision weeding technologies in their operations. Using semi-structured qualitative interviews, this study investigated the viewpoints of three key stakeholder groups involved in the diffusion and adoption of precision weeding technologies: California growers, precision weeding startups, and agricultural technology venture capital firms. With the supplemental viewpoints of large agricultural firms and their corporate venture capital arms and government agencies, this study seeks to understand the compatible motivations between stakeholders, current collaborative models between stakeholders and their limitations, and the user journey for growers adopting precision weeding technology. We conducted 17 semi-structured qualitative interviews with diverse stakeholders in the precision weeding sector to gather textual data and gain high data saturation. Data collection balanced rigorous criteria for participant selection with adaptive interview questions to ensure depth and relevance. The analysis procedure involved coding and thematic framework development, complemented by grounded theory for iterative data examination and stakeholder map creation for distilling cross-organizational insights and stakeholder dynamics. The results indicated that compatible motivations include addressing current labor issues, reducing costs, and the potential of precision weeding to transform agriculture. Less cited but still popular motivations included having more weeding options, meeting specific field needs, and environmental sustainability. The individual and stakeholder group cognitive maps demonstrated that concerns such as startup longevity, the high expenses of precision weeding machinery, and some startups lacking a direct connection to growers commonly limit the growers' adoption of precision weeding technologies. The procedure and cognitive mapping presented in this study can be applied to other emerging agtech technologies and ecosystems. • Precision weeding is moving from research to market, helping growers address labor and environmental concerns. • Study investigated the shared interests/concerns and dynamics between California growers, startups, and venture capitalists. • Coded and created stakeholder maps to analyze 17 semi-structured interviews, distilling stakeholder dynamics. • Shared interests: labor, cost reduction, transformative potential. Concerns: startup longevity, startup-grower relationships. • Qualitative cognitive mapping can be applied to other emerging agtech technologies and ecosystems.",
+      "doi": "10.1016/j.agsy.2024.104152",
+      "year": 2024,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-013047",
+      "title": "TMBO-AOD: Transparent Mask Background Optimization for Accurate Object Detection in Large-Scale Remote-Sensing Images",
+      "abstract": "Recent advancements in deep-learning and computer vision technologies, coupled with the availability of large-scale remote-sensing image datasets, have accelerated the progress of remote-sensing object detection. However, large-scale remote-sensing images typically feature extensive and complex backgrounds with small and sparsely distributed objects, which pose significant challenges to detection performance. To address this, we propose a novel framework for accurate object detection, termed transparent mask background optimization for accurate object detection (TMBO-AOD), which incorporates a clear focus module and an adaptive filtering framework. The clear focus module constructs an empirical background pool using a Gaussian distribution and introduces transparent masks to prepare for subsequent optimization stages. The adaptive filtering framework can be applied to anchor-based or anchor-free models. It dynamically adjusts the number of candidates generated based on background flags, thereby optimizing the label assignment process. This approach not only alleviates the imbalance between positive and negative samples but also enhances the efficiency of candidate generation. Furthermore, we introduce a novel separated loss function that strengthens both foreground and background consistencies. Specifically, it focuses the model’s attention on foreground objects while enabling it to learn the consistency of background features, thus improving its ability to distinguish objects from the background. We employ YOLOv8 combined with our proposed optimizations to evaluate our model in many datasets, demonstrating improvements in both accuracy and efficiency. Additionally, we validate the effectiveness of our adaptive filtering framework in both anchor-based and anchor-free methods. When implemented with YOLOv5 (anchor based), the framework reduces the candidate generation time by 48.36%, while the YOLOv8 (anchor-free) implementation achieves a 46.81% reduction, both with maintained detection accuracy.",
+      "doi": "10.3390/rs17101762",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013294",
+      "title": "Ship emission monitoring with a joint mode of motherships and unmanned aerial vehicles",
+      "doi": "10.1016/j.cor.2025.107012",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003540",
+      "title": "A Method for Managing the Route of an Unmanned Aerial Vehicle",
+      "abstract": "Abstract This paper describes a special method for managing the route of an unmanned aerial vehicle and a complex for implementing it. The idea behind the methodology being proposed is to ensure the safe movement of helicopter-type unmanned aerial vehicles intended for use on preset routes at a specific facility.",
+      "doi": "10.3103/s1068799821010190",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003549",
+      "title": "Aerodynamic characterization of an Albatross wing for Bio-inspired unmanned aerial vehicle",
+      "abstract": "Abstract The aerodynamic efficiency of any flying object depends largely on the shape of its wing. Albatross, the largest flying bird in terms of the aerodynamic efficiency, is researching the wing structure of birds. The wing of a flange is first modelled and comparable with other influenced wing types as well as to the conventional geometric shapes which includes the delta, elliptical and rectangular wing types. These studies will help to understand the effect of wing shape on aerodynamic efficiency of the UAVs. Airfoil and flight speed analyses are carried out under the same terms, taking into account the same aspect ratio (AR), span of the wing and its area. There is now growing need for UAVs with different military and civil capabilities for a fixed-wing aircraft. The novel ideas and concepts for developing the Unmanned Aerial Systems is gaining a lot of attention on the current era of development includes the autonomous missions, such as maritime and spatial exploration. It is important to note this will help to provide the pathways for production of an efficient drone with high aerodynamic efficiency.",
+      "doi": "10.1016/j.matpr.2020.07.182",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008978",
+      "title": "Unmanned aerial vehicle technology to assess the state of threatened biogenic formations: The vermetid reefs of mediterranean intertidal rocky coasts",
+      "abstract": "Abstract Vermetid bioconstructions are biogenic formations, built by sessile gastropod molluscs belonging to the family Vermetidae worldwide distributed, occurring in the intertidal and upper subtidal in the rocky shores. In the Mediterranean basin, they occur in complex and tridimensional structures that enhance the local biodiversity, allowing to qualify the structuring species as ecosystem engineers. Due to their ecological relevance and considerable extension along the coasts, we assessed their structural complexity using unmanned aerial vehicle (UAV) technology, as tool of littoral cartography analysis of these bioconstructions, and plaster hemispheres dissolution as a descriptor index of the water movement on them. We adopted an UAV to produce a very high spatial resolution map along 830m of rocky coast where these vermetid gastropods occur. Through an orthophoto with a GSD (Ground Sample Distance) of 1 cm, different complexity values of indentation degree (or roughness profiles) of the reef boundaries were detected, corroborating literature data carried out with traditional measurement techniques (e.g., tape measure). Our results indicate that the most complex zone of reef is the outer edge, facing the open sea, with a decreasing trend toward the inner edge. Concerning the experimental approach conducted using plaster hemispheres placed along the platform, it reveals that water movement is a structuring factor of the vermetid reef complexity along the rocky coast. Overall, the application of UAV technique allows an appropriate approach to analyze different zones of the vermetid reefs with a high-accuracy on a large spatial scale, greatly reducing sampling effort, and generating important implications for future monitoring and conservation programs.",
+      "doi": "10.1016/j.ecss.2021.107228",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005024",
+      "title": "Study on Remote Identification and Integrated Information Management Technology for Unmanned Aerial Vehicles",
+      "abstract": "As many unmanned aerial vehicles(UAVs) are applied in various industries and services, concerns about the illegal use of UAVs are highly increasing. Accordingly, the importance of remote identification and information management technology for UAVs is emphasized. The equipment mounted on the UAV periodically transmits identification information, which is remotely received by the ground receiving equipment. The identification information of the UAV is collected and managed in the information integrated management system. Furthermore, the UAV identification technology can be applied to build an enhanced 3-step counter-UAV system consisting of detection, remote identification, and neutralization. For this purpose, a linked process between the detection, remote identification, and neutralization systems is presented.",
+      "doi": "10.1109/icccn58024.2023.10230213",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013568",
+      "title": "Deep Learning Based Precision Agriculture System for Automated Crop Disease Detection and Classification Using Drone Imagery",
+      "abstract": "The rise in agricultural sector requires novel approaches to overcome the challenges of crop disease detection which has a great impact on the productivity and sustainability. In this study, the researcher hypothesizes a Deep Learning-Based Precision Agriculture System, which will combine drone image with sophisticated Convolutional Neural Networks (CNNs) to identify and classify crop diseases automatically. Unmanned Aerial Vehicles (UAVs) were used to take high-resolution aerial images with an RGB and multispectral camera. Several deep learning models (AlexNet, VGG16, ResNet50 and EfficientNetB0) were preprocessed and augmented and trained and tested. EfficientNetB0 was the most accurate with 97.5, surpassing the classical machine learning algorithms (SVM and Random Forest). Real-time accuracy was seen in the field deployment of 95.8, inference time of 0.45 seconds per image and a 28 percent decrease in the use of pesticides. The suggested system will allow identifying diseases at an initial stage, reducing human intervention, and facilitate a data-driven decision-making in farming. The combination of deep learning with UAV technology can provide scalability, cost, and sustainability of smart farming. This paper concludes that the system has the potential of greatly enhancing the efficiency of crop management and it becomes the foundation of further studies on the integration of IoT and predictive analytics to carry out large scale agriculture monitoring.",
+      "doi": "10.1109/icaaic64647.2025.11330335",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004105",
+      "title": "Pengukuran Thrust dan RPM Propeller Motor Brushless pada Unmanned Aerial Vehicle (UAV)",
+      "abstract": "Salah satu komponen terpenting dari Unmanned Aerial Vehicle (UAV) adalah brushless motor dan propeller, mayoritas produsen komponen RC (baterai, ESC, dan propeller) tidak mencantumkan pengukuran kinerja empiris yang akurat. Tujuan penelitian ini adalah untuk dapat mengukur thrust dan RPM pada saat proses perancangan Unmanned Aerial Vehicle (UAV) agar dapat menyesuaikan kekuatan propeller dengan kebutuhan dari UAV tersebut. Metode yang digunakan adalah metode research and development, yaitu menghasilkan produk dan menguji keefektifan produk tersebut. pengujian dilakukan dengan menggunakan propeller APC Electric 9x6 dengan mengambil data pada 10 RPM yang berbeda kemudian data tersebut akan dibandingkan dengan data dari hasil analisis CFD sebagai validasi. Hasil pengujian dari propeller APC Electric 9x6 dengan analisis CFD mempunyai grafik completely agree yang artinya bisa disimpulkan hasil dari alat uji ini sudah tervalidasi.",
+      "doi": "10.54147/langitbiru.v15i01.513",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008144",
+      "title": "Rapidly-exploring random tree Star algorithm based on collinear guidance strategy for unmanned aerial vehicle path planning in complex environments",
+      "doi": "10.1016/j.engappai.2026.115814",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007752",
+      "title": "Aerial Visual Place Recognition in Antarctica: Towards Robust Monitoring in Extreme Environments",
+      "abstract": "Visual Place Recognition (VPR) is widely considered a mature field, yet most benchmarks are constrained to visually similar environments, predominantly urban or road scenes, leaving its performance in extreme environments largely unexplored. We address this gap by introducing a challenging benchmark built from Antarctic imagery, characterized by vast textureless areas covered by snow and ice, severe visual aliasing, and aerial perspectives from downward-facing drone cameras. We curate a GNSS-based ground truth refined with feature matching to establish a reliable evaluation protocol. Additionally, we propose several adaptations to VPR methods to operate effectively under such conditions: we introduce rotation-robust VPR to accommodate aerial downward-facing viewpoints and propose a proxy to discard visually uninformative images. Finally, we present VPR-LAB, the most comprehensive pipeline to date for VPR benchmarking, enabling systematic evaluation across both conventional and unconventional datasets. Experiments demonstrate significant performance improvements for VPR in polar environments, directly enabling autonomous monitoring protocols essential for Antarctic ecosystem conservation and multi-season ecological surveys in previously inaccessible regions.",
+      "doi": "10.1109/icuas69441.2026.11598716",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008259",
+      "title": "Unmanned Aerial System (UAS) observations of water surface elevation in a small stream: Comparison of radar altimetry, LIDAR and photogrammetry techniques",
+      "abstract": "Abstract Water Surface Elevation (WSE) is an important hydrometric observation, useful to calibrate hydrological models, predict floods, and assess climate change. However, the number of in-situ gauging stations is in decline worldwide. Satellite altimetry, including the recently launched satellite missions (e.g. the radar altimetry missions Cryosat 2, Jason 3, Sentinel 3A/B and the LIDAR mission ICESat-2), can determine WSE only in rivers which are more than ca. 100 m wide. WSE measurements in small streams currently remain limited to the few existing in-situ stations or to time-consuming in-situ surveys. Unmanned Aerial Systems (UAS) can acquire real-time WSE observations during periods of hydrological interest (but with flight limitations in extreme weather conditions), within short survey times and with automatic or semi-automatic flight operations. UAS-borne photogrammetry is a well-known technique that can estimate land elevation with an accuracy as high as a few cm, similarly UAS-borne LIDAR can estimate land elevation but without requiring Ground Control Points (GCPs). However, both techniques face limitations in estimating WSE: water transparency and lack of stable visual key points on the Water Surface (WS) complicate the UAS-borne photogrammetric estimates of WSE, while the LIDAR reflection from the water surface is generally not strong enough to be captured by most of the UAS-borne LIDAR systems currently available on the market. Thus, LIDAR and photogrammetry generally require extraction of the elevation of the “water-edge” points, i.e. points at the interface between land and water, for identifying the WSE. We demonstrate highly accurate WSE observations with a new radar altimetry solution, which comprises a 77 GHz radar chip with full waveform analysis and an accurate dual frequency differential Global Navigation Satellite System (GNSS) system. The radar altimetry solution shows the lowest standard deviation (σ) and RMSE on WSE estimates, ca. 1.5 cm and ca. 3 cm respectively, whilst photogrammetry and LIDAR show a σ and an RMSE at decimetre level. Radar altimetry also requires a significantly shorter survey and processing time compared to LIDAR and especially to photogrammetry.",
+      "doi": "10.1016/j.rse.2019.111487",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002451",
+      "title": "Real World Object Detection Dataset for Quadcopter Unmanned Aerial Vehicle Detection",
+      "abstract": "Recent years have shown a noticeable rise in the number of incidents with drones, related to both civilian and military installations. While drone neutralization techniques have become increasingly effective, detection most often relies on professional equipment, which is too expensive to be used for all critical nodes and applications. Therefore, there is a need for drone detection systems that could work on low performance hardware. Its critical component consists of an object detection system. In this article, we introduce a new object detection dataset, built entirely to train computer vision based object detection machine learning algorithms for a task of binary object detection to enable automated, industrial camera based detection of multiple drone objects using camera feed. The dataset expands existing multiclass image classification and object detection datasets (ImageNet, MS-COCO, PASCAL VOC, anti-UAV) with a diversified dataset of drone images. In order to maximize the effectiveness of the model, real world footage was utilized, transformed into images and hand-labelled to create a custom set of 56821 images and 55539 bounding boxes. Additionally, semi-automated labelling was proposed, tested and proved to be very useful for object detection applications. The dataset was divided into train and test subsets for further processing and used to generate 603 easily deployable Haar Cascades as well as 819 high performing Deep Neural Networks based models. They were used to test different object detection methods to determine the long term feasibility of a large scale drone detection system utilizing machine learning algorithms. The study has shown that Haar Cascade can be used as the Minimum Viable Product model for mediocre performance but fails to scale up effectively for a larger dataset compared to the Deep Neural Network model.",
+      "doi": "10.1109/access.2020.3026192",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004797",
+      "title": "Parthenium a Noxious Weed: A Review on the Allelopathic Impact on Crop Plants and Their Management",
+      "abstract": "Allelopathy is a chemical interaction between higher plants in which allelochemicals generated by donor plants can significantly alter – and in some cases, hinder – the development of recipient (test) plants. Allelopathy is thought to have a significant role in their fast spread. This is particularly true of invasive alien species (IAS) such as Ambrosia artemisiifolia and Sorghum halepense. Only a few weed species are known to have an allelopathic inhibitory effect among these dominant weeds. Parthenium hysterophorus L. is world's worst weed. Although it originated in tropical America, it has now spread quickly to Asia, Africa, Australia, and Europe. It can be controlled by herbicides, but their use adversely affects the environment and human health. It has been shown that extracts, residues and essential oils of many allelopathic plant species effectively control the germination and growth of Parthenium.",
+      "doi": "10.5958/2320-3161.2022.00015.3",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003487",
+      "title": "Design and Implementation of a Mechatronic System for Unmanned Aerial Vehicles (UAVS)",
+      "abstract": "The design and implementation of mechatronic systems for unmanned aerial vehicles (UAVs) have gained significant attention in recent years. Mechatronics combines mechanical, electrical, and computer engineering principles to create integrated systems with enhanced functionality and performance. This paper presents a comprehensive study on the design and implementation of a mechatronic system specifically tailored for UAVs, with a focus on improving their flight capabilities, autonomy, and overall operational efficiency.The development of UAVs has revolutionized various industries, including aerial surveillance, disaster management, agriculture, and delivery services. However, there are several challenges associated with their design and operation. This research aims to address these challenges by proposing a mechatronic system that integrates advanced sensing, actuation, and control technologies. This research presents a comprehensive approach to the design and implementation of a mechatronic system for UAVs. The integration of mechanical, electrical, and computer engineering principles enables the development of enhanced flight capabilities, autonomy, and operational efficiency. The proposed system addresses the challenges associated with UAV design and operation, making significant contributions to the field of unmanned aerial vehicles. Future work can focus on further optimizing the mechatronic system and exploring additional applications in different domains.",
+      "doi": "10.17762/msea.v70i1.2491",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006257",
+      "title": "Hardware Impairments Effects on Over the Air System Assisted by Unmanned Aerial Vehicle",
+      "abstract": "Unmanned aerial vehicles (UAVs) can efficiently serve as fusion centers (FCs) to assist in over-the-air computation (OAC) for rapid data aggregation from massive sensors. However, hardware impairments (HWIs) and imperfect channel state information (CSI) pose challenges to OAC. While previous studies assume ideal hardware and perfect CSI, this letter investigates the joint impact of HWIs and imperfect CSI on the mean square error (MSE) of OAC. This work presents a mathematical framework for average MSE, revealing the negative impact of HWIs and channel estimation error. The results demonstrate the necessity for designs that can improve system performance.",
+      "doi": "10.1109/lcomm.2024.3395439",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009523",
+      "title": "Robust leaderless time-varying formation control for unmanned aerial vehicle swarm system with Lipschitz nonlinear dynamics and directed switching topologies",
+      "abstract": "This paper tackles the robust leaderless Time-Varying Formation (TVF) control problem for the Unmanned Aerial Vehicle (UAV) swarm system with Lipschitz nonlinear dynamics, external disturbances and directed switching topologies. In comparison with the previous achievements on formation control problems, the UAV swarm system with Lipschitz nonlinear dynamics can accomplish the pre-designed TVF while tracking a pre-given trajectory which is produced by a virtual leader UAV in the presence of external disturbances. Firstly, by applying the consensus theory, a TVF controller is developed with the local neighborhood status information, the errors of real time status of all UAVs, the expected formation configuration and the pre-given trajectory under directed switching topologies. Secondly, through a certain matrix variable substitution, the UAV swarm system formation control issue is transformed into a lower dimensional asymptotically stable control issue. Thirdly, by introducing the minimum dwell time, the design steps of formation control algorithm are further acquired. In the meantime, the stability of the UAV swarm system is analyzed through the construction of a piecewise continuous Lyapunov functional and via the Linear Matrix Inequalities (LMIs) method. Finally, the comparison results of a numerical simulation are elaborated to verify the validity of the proposed approach.",
+      "doi": "10.1016/j.cja.2021.05.017",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010295",
+      "title": "UAV-LiDAR and Terrestrial Laser Scanning for Automatic Extraction of Forest Inventory Parameters",
+      "doi": "10.1007/978-3-031-19309-5_26",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007933",
+      "title": "Autonomous control and integrated navigation system for quadrotor unmanned aerial vehicles",
+      "abstract": "This paper presents an autonomous control and integrated navigation system for quadrotor unmanned aerial vehicles (UAVs). To enhance autonomy and precision, an Active Disturbance Rejection Control (ADRC) strategy is designed for robust control, while an Extended Kalman Filter (EKF) based algorithm is implemented for multi-source integrated navigation. The system is deployed on an STM32F407 and uC/OS-III embedded platform. Results demonstrate superior tracking precision and navigation reliability compared to traditional methods, meeting the requirements for intelligent unmanned systems and autonomous control.",
+      "doi": "10.1117/12.3121251",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005148",
+      "title": "Integration UAS-imagery and a commercial-size sprayer to implement site-specific weed control in corn",
+      "abstract": "Abstract. Corn is a major crop for the state of North Dakota, with an annual planted area of around 2.9 million acres in 2022. The most common approach used by growers to control weeds is by doing pre-emergence and post-emergence herbicide applications. The post-emergence application is usually done as a blanket application across the whole field, not taking in consideration the spatial distribution of weeds in the field. The objectives of this study were 1) to use sensors mounted on an unmanned aerial system (UAS) to map the weeds across a corn field; and 2) use the imagery to create a prescription map to be uploaded to a commercial size sprayer to implement site-specific weed control in corn. The study was carried out in a corn field (around 20 hectares) at the NDSU Carrington Research Extension Center (CREC), Carrington, ND, USA. After preliminary flights to evaluate different hardware combinations, a DJI Matrice 300 fitted with a MicaSense AltumPT camera, flying at 61 ft above ground level (AGL), was chosen to collect imagery from the corn field to map the weeds. Images for the study were collected in June 28, stitched with Pix4dFields from Pix4D, and the orthomosaic was further processed in ArcGIS Pro to map the weeds and to generate the layer used to create the Rx map. The field was sprayed on July 1 using a Case IH Patriot 4440 sprayer equipped with AIM command FLEX system. The idea was to have the sprayer going down in the field and shut the nozzles off where there were no weeds. The workflow described on this study was able to successfully segment out corn plants and weeds in the field. The weed map distribution was used to create a prescription map that reduced the area to be sprayed by 50%. The proposed method for site-specific weed control is an efficient method to control weeds in corn, since it provides similar level of weed control than a blanket application across the whole field.",
+      "doi": "10.13031/aim.202301086",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011518",
+      "title": "Intelligent Packet Priority Module for a Network of Unmanned Aerial Vehicles Using Manhattan Long Short-Term Memory",
+      "abstract": "Unmanned aerial vehicles (UAVs) are becoming more common in wireless communication networks. Using UAVs can lead to network problems. An issue arises when the UAVs function in a network-access-limited environment with nodes causing interference. This issue could potentially hinder UAV network connectivity. This paper introduces an intelligent packet priority module (IPPM) to minimize network latency. This study analyzed Network Simulator–3 (NS-3) network modules utilizing Manhattan long short-term memory (MaLSTM) for packet classification of critical UAV, ground control station (GCS), or interfering nodes. To minimize network latency and packet delivery ratio (PDR) issues caused by interfering nodes, packets from prioritized nodes are transmitted first. Simulation results and evaluation show that our proposed intelligent packet priority module (IPPM) method outperformed previous approaches. The proposed IPPM based on MaLSTM implementation for the priority packet module led to a lower network delay and a higher packet delivery ratio. The performance of the IPPM averaged 62.2 ms network delay and 0.97 packet delivery ratio (PDR). The MaLSTM peaked at 97.5% accuracy. Upon further evaluation, the stability of LSTM Siamese models was observed to be consistent across diverse similarity functions, including cosine and Euclidean distances.",
+      "doi": "10.3390/drones8050183",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010546",
+      "title": "Eagle-YOLO: An Eagle-Inspired YOLO for Object Detection in Unmanned Aerial Vehicles Scenarios",
+      "abstract": "Object detection in images taken by unmanned aerial vehicles (UAVs) is drawing ever-increasing research interests. Due to the flexibility of UAVs, their shooting altitude often changes rapidly, which results in drastic changes in the scale size of the identified objects. Meanwhile, there are often many small objects obscured from each other in high-altitude photography, and the background of their captured images is also complex and variable. These problems lead to a colossal challenge with object detection in UAV aerial photography images. Inspired by the characteristics of eagles, we propose an Eagle-YOLO detection model to address the above issues. First, according to the structural characteristics of eagle eyes, we integrate the Large Kernel Attention Module (LKAM) to enable the model to find object areas that need to be focused on. Then, in response to the eagle’s characteristic of experiencing dramatic changes in its field of view when swooping down to hunt at high altitudes, we introduce a large-sized feature map with rich information on small objects into the feature fusion network. The feature fusion network adopts a more reasonable weighted Bi-directional Feature Pyramid Network (Bi-FPN). Finally, inspired by the sharp features of eagle eyes, we propose an IoU loss named Eagle-IoU loss. Extensive experiments are performed on the VisDrone2021-DET dataset to compare it with the baseline model YOLOv5x. The experiments showed that Eagle-YOLO outperformed YOLOv5x by 2.86% and 4.23% in terms of the mAP and AP50, respectively, which demonstrates the effectiveness of Eagle-YOLO for object detection in UAV aerial image scenes.",
+      "doi": "10.3390/math11092093",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004446",
+      "title": "Unmanned aerial vehicles (UAVs) for disaster management",
+      "doi": "10.1016/b978-0-323-91166-5.00013-6",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-012543",
+      "title": "Attitude Safety Control of the Receiver Aircraft in Autonomous Aerial Refueling",
+      "doi": "10.1007/978-981-96-3552-8_22",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013511",
+      "title": "Comparative analysis of UAV and electric backpack sprayers for herbicide efficacy and crop-weed nutrient dynamics in direct-seeded rice",
+      "abstract": "Weeds represent a significant obstacle to direct-seeded rice (DSR) cultivation by impeding crop growth and nutrient uptake. Conventional use of electric backpack sprayers (EBS) for herbicide application is labour intensive, uneven distribution, and poses health hazards. This study evaluates the efficiency of uncrewed aerial vehicles (UAVs) in weed management through herbicide application, as well as its impact on the nutrient dynamics between crops and weeds. An experiment was conducted at Tamil Nadu Agricultural University, Coimbatore, India, during the kharif (2022) and rabi (2022-2023) seasons to test the pre-emergence (PE), early post-emergence (EPOE) and post-emergence (POE) herbicides using UAVs and EBS. Single EPOE applications had limited effectiveness, resulting in higher weed biomass, reducing crop growth and 23-31% of yield loss. Plots treated with PE pretilachlor fb POE bispyribac sodium, effectively controlled broad spectrum weeds, leading to higher weed control efficiency and herbicide efficacy index. However, no significant difference was observed between the UAV and EBS methods. Nevertheless, the UAV treatment required lesser carrier volume (by 88-94%), recharging time (by 94%) and number of battery swaps (by 67%) compared to EBS treatment. Furthermore, UAV application resulted in 25-57% lower input energy compared to the EBS application. Additionally, UAV application decreased application cost, time and improved energy use efficiency and work efficiency (3.34-6.85). UAV adoption helps reduce the risk of venomous snakebites, minimize direct exposure to pesticides and lessens the overall labor burden. UAV application of herbicides, particularly the combination of PE pretilachlor fb POE bispyribac sodium effectively controlled weeds, improved nutrient uptake, energy use efficiency, work efficiency and enhanced crop growth. UAVs offer a viable alternative to conventional spraying systems for herbicide application in DSR systems.",
+      "doi": "10.1016/j.jafr.2025.102307",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005966",
+      "title": "Comprehensive review of unmanned aerial vehicle application to safety mining management",
+      "abstract": "The increasing interest of users in unmanned aerial vehicle (UAV) technology has developed new fields of application for it. Presently, UAVs are working in so many areas and the mining industry has shown grown interest in the use of UAVs for routine operations in surface, underground mines, and mine waste dumps. In this paper, a thorough review has been performed on the application of UAVs in mine safety management. Systematic reviews were conducted to summarize the results of over 60 papers published during the 2010-2021 period. The study offers a review of the most common applications involving mine safety, the styles of flying control, and the UAV types exploited. The paper also contributes to the identification of prevalent data acquired by sensors and points out the most popular processing techniques of aerial imagery. The obtained results revealed that UAVs are used at mining sites for safety purposes including mine surface displacements, stability monitoring, working environment, coal fire identification, drill and blast, and mine waste dump operations. This research hopes to provide a technical reference, expanding the knowledge and recognition of UAV monitoring to manage mine safety, as well as an assessment of applications in mining activities.",
+      "doi": "10.12775/eq.2024.049",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004050",
+      "title": "PERANCANGAN PROTOTYPE UNMANNED AERIAL VEHICLE (UAV) BERBASIS QUADCOPTER SEBAGAI SISTEM KEAMANAN GEDUNG",
+      "abstract": "Penelitian ini bertujuan untuk menghasilkan prototype Unmanned Aerial Vehicle (pesawat tanpa awak) berbasis quadcopter sebagai sistem pemantau keamanan gedung. Alat ini dirancang dan dibuat untuk membantu perusahaan / organisasi dalam menjaga sistem keamanan gedung. Penelitian ini merupakan jenis penelitian Research and Development (R&D) dengan menggunakan model Analysis, Design, Development, Implementation, and Evaluation (ADDIE). Perancangan alat ini dilaksanakan dalam 5 (lima) tahapan, yaitu : analisis kebutuhan prototype UAV, menentukan desain UAV, merancang prototype UAV, ujicoba prototype UAV dan implementasi prototype UAV. Adapun yg diujikan dalam uji coba prototype UAV ini adalah koneksi pesawat ke remote, koneksi kamera ke virtual reality, durability, manuver dan aerodinamis. Kata Kunci : Unmanned Aerial Vehicle, Quadcopter, Sistem Keamanan",
+      "doi": "10.24252/instek.v7i1.28866",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007820",
+      "title": "YOLO-Based Structure Optimization for Small-Object Detection of Unmanned Aerial Vehicles",
+      "abstract": "With the increasing and widespread deployment of unmanned aerial vehicles (UAVs), also known as drones, one critical challenge is how to identify and track target objects rapidly and precisely. However, due to the limited computation and communication capacity, lightweight deep learning models for edge devices, e.g., drones, become promising solutions. This paper studies and optimizes the YOLO-based object-recognition model structure. Based on our experimental results using the VisDrone2019 dataset, the proposed model called MIX-YOLO can improve 12.25% precision, 11.88% recall, 12.21% F1-score, 12.23% parameters, and 10.56% model size.",
+      "doi": "10.1109/icct-pacific69083.2026.11518587",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003930",
+      "title": "Illumination Correction of Multi-Time RGB Images Obtained with an Unmanned Aerial Vehicle",
+      "abstract": "The goal of this research was to study and optimize multi-temporal RGB images obtained by a UAV (unmanned aerial vehicle). A digital camera onboard the UAV allows obtaining data with a high temporal and spatial resolution of ground objects. In the case considered by us, the object of study is agricultural fields, for which, based on numerous images covering the agricultural field, image mosaics (orthomosaics) are constructed. The acquisition time for each orthomosaic takes at least several hours, which imposes a change in the illuminance of each image, when considered separately. Orthomosaics obtained in different periods of the year (several months) will also differ from each other in terms of illuminance. For a comparative analysis of different parts of the field (orthomosaic), obtained in the same time interval or comparison of areas for different periods of time, their alignment by illumination is required. Currently, the majority of alignment approaches rely rather on colour (RGB) methods, which cannot guarantee finding efficient solutions, especially when it is necessary to obtain a quantitative result. In the paper, a new method is proposed that takes into account the change in illuminance during the acquisition of each image. The general formulation of the problem of light correction of RGB images in terms of assessing the colour vegetation index Greenness is considered. The results of processing real measurements are presented.",
+      "doi": "10.33383/2020-038",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002985",
+      "title": "VEGETATION INDEX BASED IN UNMANNED AERIAL VEHICLE (UAV) TO IMPROVE THE MANAGEMENT OF INVASIVE PLANTS IN PROTECTED AREAS, SOUTHERN BRAZIL",
+      "abstract": "Abstract. The biological invasion is considered the second largest global threat to the maintenance and conservation of natural ecosystems biodiversity. Strategies and actions that guide the control and monitoring of invasive species in protected areas are still a challenge on the management of these areas. Remote sensing is potential tool to detect and monitoring these species, gaining a timeline scale and allowing the adoption of more effective control methods. In this study, search to evaluate the vegetation index potential by using multispectral images acquired by UAV as a support on detection and monitoring of invasive plants in Quarta Colônia State Park located on the Brazil’s southern region. A sampling area with a density of invasive plants above 80% was evaluated, with predominance of Psidium guajava and Ligustrum lucidum, generating a large data set from the extracted indexes. Among the evaluated index, the ones that showed the most potential in this study were Green Normalized Difference Vegetation Index (GNDVI), Plant Senescence Reflectance Index (PSRI) and Red Green Ratio Index (RGRI). Believe us that the use of UAVs platforms will be an important tool for the management of invasive species in protected areas.",
+      "doi": "10.5194/isprs-archives-xlii-3-w12-2020-521-2020",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008830",
+      "title": "Assessing tree height and density of a young forest using a consumer unmanned aerial vehicle (UAV)",
+      "doi": "10.1007/s11056-020-09827-w",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009776",
+      "title": "Assessment of Marine Debris on Hard-to-Reach Places Using Unmanned Aerial Vehicles and Segmentation Models Based on a Deep Learning Approach",
+      "abstract": "It is difficult to assess the characteristics of marine debris, especially on hard-to-reach places such as uninhabited islands, rocky coasts, and seashore cliffs. In this study, to overcome the difficulties, we developed a method for marine debris assessment using a segmentation model and images obtained by UAVs. The method was tested and verified on an uninhabited island in Korea with a rocky coast and a seashore cliff. Most of the debris was stacked on beaches with low slopes and/or concave shapes. The number of debris items on the whole coast estimated by the mapping was 1295, which was considered to be the actual number of coastal debris items. However, the number of coastal debris items estimated by conventional monitoring method-based statistical estimation was 6741 (±1960.0), which was severely overestimated compared with the mapping method. The segmentation model shows a relatively high F1-score of ~0.74 when estimating a covered area of ~177.4 m2. The developed method could provide reliable estimates of the class of debris density and the covered area, which is crucial information for coastal pollution assessment and management on hard-to-reach places in Korea.",
+      "doi": "10.3390/su14148311",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007019",
+      "title": "On the Aerodynamic Performance of a Blended-Wing-Body, Low-Mach Number Unmanned Aerial Vehicle",
+      "abstract": "A study on aerodynamic design studies of a blended wing–body (BWB) unmanned aerial vehicle (UAV) operating at low Mach numbers is presented. First, a parametric investigation based on analytical equations is carried out to identify the range of the necessary wetted area for the UAV to maximize endurance at a Mach number close to 0.1. A base-of-reference configuration is designed, and its aerodynamic performance is evaluated by utilizing a panel method in Xflr5. An optimization algorithm is then incorporated to trim the UAV and produce the ‘clean’ configuration. Computational fluid dynamics (CFD) simulations are performed within the OpenFoam environment to produce first the updated drag polars, and then, to analyze the integration of the nacelle and the pair of electric ducted fans (EDFs) used for the propulsion system. In particular, when examining the integration of the nacelle with a spinning electric ducted fan (EDF) standing as the propulsion system of the vehicle, a rotating, sliding mesh computational approach is adopted. Results indicate that the clean configuration is characterized by strong longitudinal stability so that the UAV has the potential to fly trimmed at very low speeds. Mounting EDFs on the back of the fuselage is conducive to higher loading with minimal drag penalty. An increased lift-to-drag ratio is achieved. Reduced wake mixing due to the EDF’s jet flow is observed. The spanwise flow that is conducive to pitch brake and loss of stability is also weak, as the suction produced by the EDF diverts the flow inboard.",
+      "doi": "10.3390/fluids10030054",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001274",
+      "title": "Genomics and phenomics enabled prebreeding improved early-season chilling tolerance in Sorghum",
+      "abstract": "In temperate climates, earlier planting of tropical-origin crops can provide longer growing seasons, reduce water loss, suppress weeds, and escape post-flowering drought stress. However, chilling sensitivity of sorghum, a tropical-origin cereal crop, limits early planting, and over 50 years of conventional breeding has been stymied by coinheritance of chilling tolerance (CT) loci with undesirable tannin and dwarfing alleles. In this study, phenomics and genomics-enabled approaches were used for prebreeding of sorghum early-season CT. Uncrewed aircraft systems (UAS) high-throughput phenotyping platform tested for improving scalability showed moderate correlation between manual and UAS phenotyping. UAS normalized difference vegetation index values from the chilling nested association mapping population detected CT quantitative trait locus (QTL) that colocalized with manual phenotyping CT QTL. Two of the 4 first-generation Kompetitive Allele Specific PCR (KASP) molecular markers, generated using the peak QTL single nucleotide polymorphisms (SNPs), failed to function in an independent breeding program as the CT allele was common in diverse breeding lines. Population genomic fixation index analysis identified SNP CT alleles that were globally rare but common to the CT donors. Second-generation markers, generated using population genomics, were successful in tracking the donor CT allele in diverse breeding lines from 2 independent sorghum breeding programs. Marker-assisted breeding, effective in introgressing CT allele from Chinese sorghums into chilling-sensitive US elite sorghums, improved early-planted seedling performance ratings in lines with CT alleles by up to 13-24% compared to the negative control under natural chilling stress. These findings directly demonstrate the effectiveness of high-throughput phenotyping and population genomics in molecular breeding of complex adaptive traits.",
+      "doi": "10.1093/g3journal/jkad116",
+      "year": 2023,
+      "provider": "openalex"
+    }
+  ],
+  "derived_export": {
+    "kind": "DERIVED_EXPORT",
+    "decision_status": "FINAL_AGENT_UNCONFIRMED",
+    "human_confirmation": "PENDING (HumanConfirmation@1 unsigned)",
+    "source_batches": "calibration_v03/screening_scr1/batch_NNN.json",
+    "source_decisions": "calibration_v03/screening_scr1/decisions",
+    "source_final_decisions": "literature/screening/final_decisions.json",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+    "artifact_registry": null,
+    "accepted_parent_artifact": false,
+    "note": "Derived export of the v0.3 calibration screening for console/UI reading. Not a new screening run, not a Contract-v1 published generation, and not a human confirmation. The canonical dual-codefiles under calibration_v03/screening_scr1/ remain the authoritative record."
+  }
+}

@@ -1,0 +1,524 @@
+{
+  "batch_index": 223,
+  "total_batches": 283,
+  "batch_size": 50,
+  "status": "DONE",
+  "protocol": {
+    "title": "Reliability and Generalization in UAV Crop-Weed Mapping: A Scoping Review",
+    "research_questions": [
+      {
+        "id": "RQ1",
+        "text": "How do UAV crop-weed mapping studies define and evaluate reliability under spectral degradation, sensor differences, and temporal shift?",
+        "target_facet": "reliability_evaluation",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ2",
+        "text": "Which datasets, sensors, dates, fields, and split units support the reported generalization claims?",
+        "target_facet": "evaluation_independence",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ3",
+        "text": "How are uncertainty, calibration, missing evidence, and failed transfer reported?",
+        "target_facet": "uncertainty_and_failure",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      },
+      {
+        "id": "RQ4",
+        "text": "Which evidence gaps remain after separating dataset diversity, model mechanisms, and demonstrated external validation?",
+        "target_facet": "evidence_gaps",
+        "synthesis_type": "Descriptive evidence map and narrative comparison",
+        "required_evidence_type": "Primary empirical study or dataset/benchmark report with source-linked methods"
+      }
+    ],
+    "screening_criteria": {
+      "inclusion": [
+        {
+          "id": "INC-01",
+          "criterion": "Uses UAV-acquired imagery for crop/weed detection, segmentation, classification, or spatial weed mapping in an agricultural context (arable row crops, broadacre cereals, vegetables, or managed perennial orchards, vineyards, and pastures); UAV results must be separable in mixed-platform studies.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-02",
+          "criterion": "Primary empirical method study or dataset/benchmark report describing a UAV crop/weed mapping method, experiment, or annotated dataset. Journal, conference, and substantive preprint reports are eligible (linked into study families). In-window method studies (2020-2026) evaluated on pre-2020 UAV datasets (e.g., WeedMap 2018) are eligible. Missing evaluation details are charted as not reported; records with missing abstracts matching UAV+weed title heuristics and inaccessible full texts remain pending retrieval/audit rather than auto-excluded.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        },
+        {
+          "id": "INC-03",
+          "criterion": "Published from 2020 through the recorded final search cutoff, inclusive; English full text in scope. Older foundational UAV datasets remain background/provenance sources unless a logged amendment expands eligibility. Screened under Option C (single lead reviewer Mouadh Bekhouche confirming all agent triage suggestions, with independent ~10% random sample plus boundary-exclude verification by Soumia Zertal and Fadhila Djenba).",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": null
+        }
+      ],
+      "exclusion": [
+        {
+          "id": "EXC-01",
+          "criterion": "Satellite-only, ground-robot-only (including studies framed around field weed mapping that evaluate exclusively on proximal/ground datasets such as Sugar Beets 2016, CWFID, or DeepWeeds without UAV data), handheld, or laboratory/pot imaging with no separable eligible UAV mapping evidence.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_PLATFORM"
+        },
+        {
+          "id": "EXC-02",
+          "criterion": "UAV navigation/SLAM, yield estimation only, crop disease/pest damage, wildlife crop damage, crop lodging, phenotyping, or non-agricultural vegetation mapping (e.g., invasive aquatic weeds such as water hyacinth, forestry/wildfire, urban turfgrass) without a separable agricultural crop/weed localization, classification, or mapping task.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_TASK"
+        },
+        {
+          "id": "EXC-03",
+          "criterion": "Confirmed review (systematic, scoping, narrative, or bibliometric), editorial, commentary, protocol-only report, or standalone abstract with no associated substantive primary report. An incomplete search-provider abstract (abstract=null) or failure to retrieve full text is not this exclusion; retain useful reviews as background for citation chasing.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "WRONG_REPORT_TYPE"
+        },
+        {
+          "id": "EXC-04",
+          "criterion": "Outside the frozen publication date (published before 2020 or after the recorded final search cutoff date) or non-English full text after bibliographic/full-text verification.",
+          "maps_to_rqs": [
+            "RQ1",
+            "RQ2",
+            "RQ3",
+            "RQ4"
+          ],
+          "reason_category": "OUTSIDE_DATE_LANGUAGE"
+        }
+      ],
+      "two_tier_screening": true
+    }
+  },
+  "papers": [
+    {
+      "workspace_id": "SCI-002058",
+      "title": "Design of a Plant Protection Unmanned Aerial Vehicle Centrifugal Atomizing System",
+      "abstract": ": A centrifugal atomizing system has been designed for plant protection unmanned aerial vehicles (UAVs) with the centrifugal atomizing principle with the aim to ensure good prevention and treatment effect of the plant protection UAV and reduce power consumption. It consists of a pesticide tank, an electromagnetic valve, a dispenser, a pesticide transport pipe, an atomizer and a mounting track. SolidWorks is used for virtual design and simulation analysis to produce a 3D model and performs finite element analysis on the mounting rack to optimize the structure, verify motion reliability of the atomizer and the atomizing effect. The prototype test results show that the system can complete atomization of the pesticide liquid without pressurization, which not only achieves a good atomization effect, but also saves electricity. This system features a simple structure, low manufacturing cost, safe and reliable use, easy maintenance, and low failure rate and thus boasts of broad promotion value in UAV plant protection.",
+      "doi": "10.38007/proceedings.0000880",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010976",
+      "title": "Development of Unmanned Aerial Vehicle for Payload Analysis",
+      "doi": "10.1007/978-981-97-2027-9_11",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-000758",
+      "title": "Towards Data-efficient Weed Detection via Fine-Tuning Grounding DINO",
+      "doi": "10.2139/ssrn.6643046",
+      "year": 2026,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-001504",
+      "title": "Weed management with ready-mix herbicides in wet seeded rice",
+      "doi": "10.22271/09746315.2021.v17.i1.1441",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-000237",
+      "title": "Deep Learning-Based Weed Classification, Detection, and Segmentation in Precision Agriculture: a Bibliometric and Comprehensive Review",
+      "doi": "10.1007/s10343-026-01424-9",
+      "year": 2026,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-004228",
+      "title": "Modeling and Analysis of Unmanned Aerial Vehicle System Leveraging Systems Modeling Language (SysML)",
+      "abstract": "The use of unmanned aerial vehicles (UAVs) has seen a significant increase over time in several industries such as defense, healthcare, and agriculture to name a few. Their affordability has made it possible for industries to venture and invest in UAVs for both research and commercial purposes. In spite of their recent popularity; there remain a number of difficulties in the design representation of UAVs, including low image analysis, high cost, and time consumption. In addition, it is challenging to represent systems of systems that require multiple UAVs to work in cooperation, sharing resources, and complementing other assets on the ground or in the air. As a means of compensating for these difficulties; in this study; we use a model-based systems engineering (MBSE) approach, in which standardized diagrams are used to model and design different systems and subsystems of UAVs. SysML is widely used to support the design and analysis of many different kinds of systems and ensures consistency between the design of the system and its documentation through the use of an object-oriented model. In addition, SysML supports the modeling of both hardware and software, which will ease the representation of both the system’s architecture and flow of information. The following paper will follow the Magic Grid methodology to model a UAV system across the SysML four pillars and integration of SysML model with external script-based simulation tools, namely, MATLAB and OpenMDAO. These pillars are expressed within standard diagram views to describe the structural, behavior, requirements, and parametric aspect of the UAV. Finally, the paper will demonstrate how to utilize the simulation capability of the SysML model to verify a functional requirement.",
+      "doi": "10.3390/systems10060264",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005507",
+      "title": "Fruit tree-based agroforestry in the sloping uplands: Productivity, soil conservation, profitability, tree-crop performance, spatial variation and weed management",
+      "doi": "10.54612/a.5cjj68621c",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003869",
+      "title": "Design of autonomous navigation system for electric patrol Unmanned Aerial Vehicle Based on Beidou Positioning and satellite based enhancement",
+      "abstract": "Abstract In order to reduce the deviation of automatic inspection of transmission tower UAV and improve the efficiency of inspection work, the design of autonomous navigation system of electric power inspection UAV Based on Beidou Positioning and satellite based enhancement is proposed. On the basis of Beidou Positioning and satellite based enhancement, the automatic inspection projector and automatic inspection navigator of transmission tower UAV are designed, and the hardware design of the system is completed. This paper analyzes the endurance of UAV, calculates the coordinates of the best shooting point of UAV, and completes the planning of automatic inspection path of transmission tower UAV according to the horizontal offset coordinates of UAV in the process of transmission tower inspection. Combined with the automatic inspection algorithm of transmission tower UAV, the system software design is completed to realize the automatic inspection of transmission tower UAV. The simulation results show that compared with the traditional inspection system, the deviation of the designed UAV automatic inspection system for transmission tower is significantly reduced.",
+      "doi": "10.1088/1742-6596/2005/1/012093",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010559",
+      "title": "On-Board Real-Time Pedestrian Detection for Micro Unmanned Aerial Vehicles Based on YOLO-v8",
+      "abstract": "Nowadays, allowing unmanned aerial vehicles (UAVs) to accompany humans in daily life has become a hot topic. Pedestrian detection plays an important role on this application with its accuracy and real-time detection. In this paper, we design an on-board real-time pedestrian detection method for micro UAVs based on YOLO-v8 network. More specifically, several custom network models of small scales are fine-tuned based on YOLO-v8 to detect pedestrians in real-time. Besides, our detection methods are implemented and deployed on a custom micro UAV. Through simulation and real-world experiments, the results show that the custom detection network models based on YOLO-v8 can accurately detect pedestrians at up to 34 FPS on Jetson Xavier NX.",
+      "doi": "10.1109/mlccim60412.2023.00042",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008384",
+      "title": "Application of Web 3D GIS to Display Urban Model and Solar Energy Analysis using The Unmanned Aerial Vehicle (UAV) Data (Case Study: National Cheng Kung University Buildings)",
+      "abstract": "Abstract Nowadays, the era encompasses everything smart, whether they are smartphones, smart people, or smart cities. The term ‘Smart Cities’ refers to an advanced urban town that has well-connected infrastructure and communication through data centers and automated networks, unless for the energy system. Solar energy is one kind of renewable energy. It is a clean, sustainable, and free energy source both for the public and governments. With the rapidly growing technology, the yield of solar energy increases, while its cost reduces. Thus, it gains importance and becomes widespread. Presently, the increasing importance of solar power makes a hot topic. We are currently facing a global warming issue where one of the leading causes is the use of fossil energies. Non-fossil energy, or better known as renewable energy, is an option to reduce the use of fossil energy as an effort to minimize the impacts of global warming. In this study, we collected the data from The Unmanned Aerial Vehicle (UAV) that is combined with GPS and IMU technology to get the 3D campus model in National Cheng Kung University (NCKU), Taiwan. The output of the data is true ortho-image, digital surface model (DSM), and building footprint. The building footprint was processed using the Autodesk Insight 360 and Autodesk Revit to get better 3d campus model. All three data were processed using ArcGIS Pro using Calculate Solar Radiation plugin. The result of this step is reaching the solar energy potential of NCKU. The final step is to show it into the Web 3D GIS to display the result. From the Web 3D GIS, everyone can access the information of NCKU solar energy potential using computer and also smartphones.",
+      "doi": "10.1088/1755-1315/520/1/012017",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013567",
+      "title": "Development of an optoelectronic image segmentation method from unmanned aerial vehicles based on the ant colony optimization algorithm under the influence of salt-and-pepper noise",
+      "abstract": "The object of research is the process of segmenting an image from an unmanned aerial vehicle based on the ant algorithm under the influence of salt-and-pepper noise. “Salt”-and-“pepper” noise occurs due to data transmission errors, failures of digital camera sensors or malfunctions during recording/reading of information. It is characterized by the random appearance of individual pixels in the image, the value of which is equal to the minimum (“pepper”) or maximum (“salt”) brightness level. Unlike the known ones, the method of segmenting an optoelectronic image based on the ant algorithm provides image segmentation under the influence of salt-and-pepper noise and involves: – initialization of initial parameters; – calculation of the length of the path segment of agents; – calculation of the attractiveness of the route for the agent; – updating the pheromone concentration; – calculation of the probability of transition of agents; – calculation of the objective function; – movement of agents; – determination of the best route of agents. Experimental studies have shown that the segmentation method based on the ant algorithm provides a reduction in segmentation errors of the first kind on average: – in the absence of salt-and-pepper noise – 4%; – at the intensity of salt-and-pepper noise σ = 5–21%; – at the intensity of salt-and-pepper noise σ = 15–10%. The segmentation method based on the ant algorithm provides a reduction in segmentation errors of the second kind on average: – in the absence of salt-and-pepper noise – 3%; – at the intensity of salt-and-pepper noise σ = 5–15%; – at the intensity of salt-and-pepper noise σ = 15–6%. The practical significance of the segmentation method based on the ant algorithm is to ensure high-quality image segmentation under the influence of salt-and-pepper noise.",
+      "doi": "10.15587/2706-5448.2025.344562",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008313",
+      "title": "The Use of Unmanned Aerial Vehicles in the Monitoring of Forest Fires",
+      "doi": "10.1007/978-3-030-34397-2_15",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009120",
+      "title": "Transformer: A Multifunctional Fast Unmanned Aerial Vehicles–Unmanned Surface Vehicles Coupling System",
+      "abstract": "With the continuous development of the maritime economy, the maritime unmanned surface vehicles (USVs) and unmanned aerial vehicles (UAVs) have become important parts of the maritime transportation system. Unmanned vehicles play a pivotal role in water safety management, offshore patrol and maritime rescue. Consequently, this article researches and develops an unmanned aerial vehicle–unmanned surface vehicle (UAV-USV) coupling system with multiple functions. The ship body module, the deformation module and the UAV module are designed by using the modular analysis method, then volume of fluid (VOF) technology and STAR-CCM+ software are applied to analyze the ship resistance before and after deformation and optimize it. The results show that the Transformer has high speed before deformation and stable navigation ability after deformation, and it can navigate in high winds and waves. It has a large reconnaissance range and some radar stealth capability, which can fulfill different tasks, such as maritime patrol, military strike and maritime rescue.",
+      "doi": "10.3390/machines9080146",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003455",
+      "title": "Investigation of Unmanned Aerial Vehicle Gesture Perceptibility and Impact of Viewpoint Variance",
+      "abstract": "Unmanned Aerial Vehicle (UAV) flight paths have been shown to communicate meaning to human observers, similar to human gestural communication. This paper presents the results of a UAV gesture perception study designed to assess how observer viewpoint perspective may impact how humans perceive the shape of UAV gestural motion. Robot gesture designers have demonstrated that robots can indeed communicate meaning through gesture; however, many of these results are limited to an idealized range of viewer perspectives and do not consider how the perception of a robot gesture may suffer from obfuscation or self-occlusion from some viewpoints. This paper presents the results of three online user-studies that examine participants' ability to accurately perceive the intended shape of two-dimensional UAV gestures from varying viewer perspectives. We used a logistic regression model to characterize participant gesture classification accuracy, demonstrating that viewer perspective does impact how participants perceive the shape of UAV gestures. Our results yielded a viewpoint angle threshold from beyond which participants were able to assess the intended shape of a gesture's motion with 90% accuracy. We also introduce a perceptibility score to capture user confidence, time to decision, and accuracy in labeling and to understand how differences in flight paths impact perception across viewpoints. These findings will enable UAV gesture systems that, with a high degree of confidence, ensure gesture motions can be accurately perceived by human observers.",
+      "doi": "10.1109/icra48506.2021.9561094",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007206",
+      "title": "Defense-Focused Autonomous Unmanned Aerial Vehicle System Using Ensemble Model of ResNetV8 and ResDQN",
+      "abstract": "Navigation of Unmanned Aerial Vehicles (UAVs) is fraught with difficulties due to dynamic obstacles, narrow passages, and the presence or absence of GPS signals. To traverse such environments, one needs adaptable and intelligent control architecture that can make real-time decisions with some uncertainty involved. This paper proposes an all-encompassing AI control system that integrates ideas from Deep Learning and Deep Reinforcement Learning for autonomous navigation of UAVs. Key improvements include external 3D maps and customized drone assets integrated into the AirSim simulator thereby creating a very realistic testing environment. We included an enemy tracking module which allows visual prediction, enabling the drone to detect, track, and evade dynamic threats. Also, a voice command interface allows human operators to take real-time control, thus enhancing interoperability and flexibility in missions. The navigation strategy comprises a dual hybrid ensemble model that integrates ResNet8-based a path planning algorithm and DQN-based an obstacle avoidance algorithm. Furthermore, ResNet8 and CNN are integrated for preliminary object detection tasks, whereby CNN assigns a confidence score to the object detection, and if this confidence is high, then a request is made to ResDQN, without reconfirmation by ResNet8. Such integrated approaches have assured stable flight performance in complex environments while ensuring efficiency as well as high performance. Experimental results have illustrated the robustness and applicability of our system for navigating through tightly cluttered indoor environments containing static and dynamic hazards. This work, therefore, pushes intelligent UAV applications in time-sensitive missions such as search-and-rescue, surveillance, and reconnaissance.",
+      "doi": "10.1109/iccubea65967.2025.11284229",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008038",
+      "title": "Comparative assessment of satellite and unmanned aerial vehicles data for landslide susceptibility mapping",
+      "abstract": "Remote sensing methods enable the rapid study of large, hard-to-reach areas prone to hazardous gravitational geological processes (landslides, rockfalls). Regional mapping of high-risk landslide areas based on satellite remote sensing data is already well-developed. In recent decades, the theory and practice of using unmanned aerial vehicle (UAV) technologies for remote sensing have rapidly evolved. In both cases, multispectral survey data and digital elevation models are used to analyze geological risks. The purpose of the presented research is to compare the results of landslide susceptibility mapping based on available satellite data and unmanned aerial vehicles data and to identify the advantages and limitations of both methods. The key predictors for satellite data (slope angles, profile curvature, normalized difference vegetation index, wetness index and length-slope factor) were derived from ALOS AW3D30 digital evaluation models and Sentinel-2 data. Unmanned aerial vehicle data were obtained using a photogrammetric method with multispectral cameras. To determine the weights of factors, the analytical hierarchy process was used through pairwise comparisons. Landslide susceptibility maps were generated for the same area using QGIS. The comparative analysis has clearly demonstrated how differences in input data resolution and survey methodology impact the predictive value of the results. The major finding is that due to resolution generalization (in the case of satellite imagery) small, unstable rock blocks can artificially increase the vulnerability of adjacent slopes, on the other hand, some small, but hazardous rocks can remain completely unnoticed. At the same time, it is shown that high-resolution data from unmanned aerial vehicles do not replace satellite remote sensing data, but rather complement it. The methods serve different spatial scales and research objectives. The results confirm that satellite data and data from unmanned aerial vehicles should be complementary. Satellite data are suitable for regional landslide susceptibility mapping, while data from unmanned aerial vehicles are essential for detailed studies of individual areas identified using satellite data. Therefore, a hybrid methodology is recommended: satellite data for the initial zoning of hazardous areas, and data from unmanned aerial vehicles for the detailed study of hazardous areas.",
+      "doi": "10.21285/2686-9993-2026-49-1-8",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013445",
+      "title": "Enhancing the weed segmentation in diverse crop fields using computationally effective concatenated attention U-Net with convolutional block attention module",
+      "abstract": "Abstract Weeds are one of the primary factors that reduce crop productivity by competing for nutrients and water, causing the plant to lose weight and resulting in reduced grain yield. Traditional agricultural practices often rely on uniform herbicide application, which can contaminate soil and raise costs. On agricultural land, selective weed treatment are an efficient and cost-effective way to control weeds that require a deep learning-based crop and weed segmentation system. Many existing crop and weed segmentation research works focus on achieving precise crop and weed segmentation results, rather than building lightweight models to deploy on edge devices. To attain this, we develop an effective and efficient convolutional neural network, namely the Concatenated Attention U-Net with Convolutional Block Attention Module (CAUC). By integrating Linear Concatenated Blocks (LCB), Attention Gate (AG) connections, and Convolutional Block Attention Module (CBAM), the proposed model efficiently utilizes feature maps among its architectural components to achieve superior performance. Depth-wise convolution layers and 1 × 1 convolution layers in LCBs reduce computational complexity. To enable the proposed model to identify the weed portions in multiple crop fields, we integrated three datasets in this research work, namely the Crop/Weed Field Image Dataset (CWFID), Sugar Beet, and Sunflower datasets. Experimental results on carrot, sugar beet, and sunflower crop datasets demonstrate high Accuracy (99.09%), MIoU (81.02%), and F1-score (99.06%), with a modest model size (5.6 MB) and computational parameters (0.377 million). We developed a lightweight computer vision application (13.7 MB) to demonstrate the model’s efficacy on low-computational devices.",
+      "doi": "10.1038/s41598-025-31285-7",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003623",
+      "title": "Investigating the Applicability of Unmanned Aerial Vehicles (UAV) Photogrammetry for the Estimation of the Volume of Stockpiles",
+      "abstract": "Abstract Accurately estimating the volume of earthworks is very important in mining engineering and construction. This estimation can be difficult because of the morphological condition of the stockpiles, hence, devising simpler, yet accurate methods of stockpile volume estimation is still a research problem in mining. Two non-invasive survey methods were compared in this research: the conventional ground-based and UAV-approach, for the survey of a twin-stockpile of gravel using Leica TS06 Total Station and DJI Mavic Air UAV, respectively. About 128 images of the area were acquired at 50 m flying height and 75% overlap during the flight mission. The images were processed using Agisoft Metashape Pro; a digital photogrammetric software, and the DEM obtained was used for the volume estimation. The total station data was also processed in ArcGIS to generate a TIN-model from which the volume was also estimated. The volume estimated from the TIN-model was compared with the volume estimated from the UAV-based DEM, using the volume obtained from the mill-machine as the standard. The obtained result shows that while 2750 m3 was obtained as the cumulative volume from the mill machine, the UAV approach yielded 2686.252 m3 and the ground survey approach gave 2830.713 m3. The percentage difference between the two methods compared to the actual volume is 2.94% and −2.31%, respectively. These results, and the result of the processing time analysis show that UAV approach is both accurate and time economical, which attests to the potentials of low-cost UAVs to provide robust alternative to the time-consuming and rigorous ground survey approach.",
+      "doi": "10.2478/quageo-2021-0002",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-004194",
+      "title": "STRUCTURAL DRAFTING OF CONVERTIPLANE-TYPE UNMANNED AERIAL VEHICLE",
+      "doi": "10.25791/aviakosmos.6.2022.1281",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013904",
+      "title": "Deep Learning-Based Weed Detection and Classification in Wheat Fields from UAV Imagery",
+      "abstract": "Weed infestation significantly threatens crop productivity and quality, highlighting the need for accurate and scalable monitoring approaches. Recent advances in unmanned aerial vehicle (UAV) remote sensing and deep learning provide promising tools for field-scale weed detection. This study evaluates and compares two state-of-the-art instance segmentation models, Mask R-CNN and YOLOv8, for species-level weed detection in wheat fields under Mongolian agro-ecological conditions. The experiment was conducted in a 4 ha wheat field in Tuv Province, Mongolia, using high-resolution RGB imagery acquired from UAV flights in July 2025. Three dominant weed species were annotated and analyzed. Model performance was evaluated using mAP@0.5:0.95, Precision, Recall, F1-score, and mask IoU. At IoU thresholds of 0.25 and 0.5, both models demonstrated moderate detection performance (IoU = 0.25: Precision 0.49–0.76, Recall 0.20–0.77, F1-score 0.32–0.75; IoU = 0.5: Precision 0.42–0.67, Recall 0.18–0.75, F1-score 0.28–0.69), with variation among weed species. Mask R-CNN achieved higher Recall and more precise boundary delineation, improving weed coverage estimation, whereas YOLOv8 provided faster inference (≈11 ms per image, ~90 FPS) and higher precision, making it more suitable for large-area and near-real-time monitoring. These findings demonstrate the potential of UAV-based instance segmentation for weed detection in Mongolia and provide practical guidance for model selection in precision agriculture applications.",
+      "doi": "10.20944/preprints202604.0402.v1",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006701",
+      "title": "Research on Path Planning for Unmanned Aerial Vehicle Foundation Pit Inspection under Light Adaptability",
+      "doi": "10.52202/081497-0232",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010141",
+      "title": "Estimation of state of charge for hybrid unmanned aerial vehicle Li-ion power battery for considering rapid temperature change",
+      "abstract": "State of Charge (SOC) estimation of power battery is essential for hybrid Unmanned Aerial Vehicle (UAV) systems. During the flight of a hybrid UAV, the ambient temperature changes rapidly. The battery parameters also change with the temperature, which deteriorates the accuracy of SOC estimation. Given the above problems, this paper proposes a bipolar equivalent circuit model of a Li-ion battery and its R, C parameter identification method based on the particle swarm optimization algorithm, considering the impact of rapid changes in ambient temperature on battery parameters during the flight of a hybrid UAV. On this basis, a Fast Temperature Correction Adaptive Particle Filter (FTC-APF) SOC estimation method is proposed. This method not only considers the rapid change of temperature to update the actual capacity, Open Circuit Voltage (OCV), and Dual Polarization (DP) model parameters in real time but also weakens the impact of the uncertainty noise generated by external disturbances or sensors on the SOC estimation of Li-ion battery by predicting the process noise and updating the observation noise. The experimental results show that, compared with the existing research, the proposed method effectively achieves the accurate estimation of SOC of the hybrid UAV lithium-ion battery under the condition of rapid temperature change.",
+      "doi": "10.1016/j.est.2022.106479",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-012457",
+      "title": "Ecological approaches to sustainable soybean production with sequential herbicide applications and their impact on weed dynamics and crop yield",
+      "abstract": "Soybean is an important legume crop which is adversely affected by prolonged weed infestation.With the objective to combat this issue over two consecutive years (2022 and 2023), field experiments were conducted at the Agronomic Research Farm, Department of Agronomy, University of Agriculture Faisalabad.The study contains 11 treatments, sole and sequential application of pre-emergence and post-emergence herbicides including s-metolachlor + pendimethalin; s-metolachlor; fluazifop-p-butyl; haloxyfop-p-ethyl; s-metolachlor + pendimethalin and fluazifop-p-butyl; s-metolachlor + pendimethalin and haloxyfop-p-ethyl; s-metolachlor and fluazifop-p-butyl; s-metolachlor and haloxyfop-p-ethyl; weed-free; weedy check and two hand hoeing (at 30 and 45 days after sowing) replicated three times in a randomized complete block design.Growth parameters, weed-related factors and crop yield were meticulously assessed using standard procedures.The study showed that sequential application of herbicide s-metolachlor + pendimethalin as PRE and fluazifop-p-butyl as POST resulted in increased crop vigor scores (7.70 and 7.83), cumulative leaf area duration (197.86 and 195.86 days), net assimilation rate (2.79 and 2.75 g•m -2 •day -1 ), leaf area index (4.75 and 4.78 m 2 •m -2 ), total dry matter (531.492022 and 544.65 g•m -2 ), reduced weed cover scores (2.40 and 2.10), lower weed counts (35.67 and 28.67), higher plant population (32.00 and 32.33 m -2 ), taller plant height (45.00 and 47.00 cm), higher number of pods plant -1 (42.60 and 43.37), improved seed yield (1784.84 and 1784.84 kg•ha -1 ), harvest index (36.12%and 37.04%), higher protein content (35.78% and 36.97%),oil content (20.33% and 20.90%), oil yield (386.96 and 402.08 kg•ha -1 ) and effective weed control percentage (44.59% to 75.65% at 45 days after spray), with weed control efficiency (88.62% and 89.16%), weed index showed that it reduced minimum (11.43% and 7.19%) soybean yield, herbicide efficiency index (8.83%and 11.38%) in 2022 and 2023 respectively.So, it is recommended that sequential application of s-metolachlor + pendimethalin as a pre-emergence followed by fluazifop-p-butyl as a post-emergence herbicide optimize soybean growth parameters, yield attributes and quality parameters.",
+      "doi": "10.12911/22998993/196673",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006113",
+      "title": "Novel Hybrid Deep Optimized Machine Learning Model for Energy Efficient Cluster Selection in Unmanned Aerial Vehicle Networks",
+      "abstract": "Unmanned Aerial Vehicles (UAVs) have grown into a more powerful type of data transmission due to this rapid progress of evolution of wireless communication technology. In addition, UAVs have been proven to be effective in a variety of applications, including intelligent transport, disaster risk management, surveillance, and environmental monitoring. When UAVs are deployed randomly, however, they can effectively accomplish challenging tasks because of the UAVs’ has low battery capacity, quick mobility, and dynamic in nature orientation. Due to this reason, a new technique must be designed for an optimal energy efficient UAV clustering as well as data routing protocols. In this work proposes a new hybrid model of Emperor penguin-based Generalized Approximate Reasoning Based Intelligent Control (EP-GARIC) cluster-based network topology. Furthermore, the optimal routing function is achieved by the proposed Artificial Jellyfish Optimization (AJO). The implementation of this research is carried out using Network Simulator (NS2). The simulation results displays the effective performance of the suggested approach in terms of reduced energy consumption, improved packet delivery ratio, reduced loss, and so on over compared to the conventional approaches.",
+      "doi": "10.52783/jes.2690",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-010965",
+      "title": "Deep-Learning- and Unmanned Aerial Vehicle-Based Structural Crack Detection in Concrete",
+      "abstract": "Deep-learning- and unmanned aerial vehicle (UAV)-based methods facilitate structural crack detection for tall structures. However, contemporary datasets are generally established using images taken with handheld or vehicle-mounted cameras. Thus, these images might be different from those taken by UAVs in terms of resolution and lighting conditions. Considering the difficulty and complexity of establishing a crack image dataset, making full use of the current datasets can help reduce the shortage of UAV-based crack image datasets. Therefore, the performance evaluation of existing crack image datasets in training deep neural networks (DNNs) for crack detection in UAV images is essential. In this study, four DNNs were trained with different architectures based on a publicly available dataset and tested using a small UAV-based crack image dataset with 648 +pixel-wise annotated images. These DNNs were first tested using the four indices of precision, recall, mIoU, and F1, and image tests were also conducted for intuitive comparison. Moreover, a field experiment was carried out to verify the performance of the trained DNNs in detecting cracks from raw UAV structural images. The results indicate that the existing dataset can be useful to train DNNs for crack detection from UAV images; the TransUNet achieved the best performance in detecting all kinds of structural cracks.",
+      "doi": "10.3390/buildings13123114",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005607",
+      "title": "Evaluating the Feasibility and Potential of Unmanned Aerial Vehicles to Monitor Implementation of Forestry Best Management Practices in the Southeastern United States",
+      "doi": "10.2139/ssrn.4442098",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007771",
+      "title": "Autonomous Ground Vehicle for Precision Weed Detection and Targeted Pesticide Spraying Using Deep Learning",
+      "abstract": "Efficient and targeted weed management remains a significant challenge in modern agriculture, as conventional blanket pesticide application increases chemical consumption, operational cost, and environmental impact. This paper presents an autonomous ground vehicle for precision weed control that integrates perception, navigation, and actuation within a single platform. The system employs a Light Detection and Ranging (LiDAR) sensor for autonomous navigation across uneven agricultural terrain. Simultaneously, a real-time weed detection and classification pipeline is implemented using the YOLO (You Only Look Once) deep learning framework integrated with a camera-based vision system. The proposed framework continuously captures field imagery along an autonomously generated navigation path and performs real-time object detection to identify and classify weed species. Detected weeds are spatially localized with high inference speed and evaluated using standard performance metrics, including mean Average Precision (mAP) and Intersection over Union (IoU). Based on the classification output, control commands are generated to actuate a localized pesticide spraying mechanism, ensuring chemical application is restricted exclusively to detected weed regions. Experimental results demonstrate the feasibility of combining deep learningbased object detection with autonomous agricultural vehicles for accurate and scalable precision spraying. The proposed system reduces unnecessary pesticide usage and off-target spraying, contributing to more sustainable and environmentally responsible weed management practices.",
+      "doi": "10.1109/southeastcon63549.2026.11475990",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-012084",
+      "title": "Transportation Path Planning Model for Multi-Constraint Unmanned Aerial Vehicle in Healthcare",
+      "abstract": "In response to the path planning problem of using Unmanned Aerial Vehicle (UAV) for blood transportation, with the objective of minimizing the total distance travelled by the UAV, a multi-constraint drone blood transportation path planning model is established. Taking into account the limited number of drone take-off and landing platforms and the safety time intervals for continuous drone take-off and landing, a drone take-off scheduling strategy is designed to reduce the total time spent by UAV completing transportation tasks. Additionally, an Imperial Competition Algorithm based on Imperialist Competitive Algorithm is proposed to solve this problem. This algorithm introduces a sine disturbance strategy and adds Imperial Reform stages to improve the search accuracy of the algorithm. It utilizes acceptance criteria related to solution quality to maintain the diversity of the population. Validation is conducted using benchmark examples and instances of drone blood transportation. The results indicate that the proposed algorithm can provide transportation solutions for drone blood transportation tasks that meet various constraints without any conflicts in drone take-off and landing. The drone take-off scheduling strategy effectively reduces the total time spent by UAV in completing tasks.",
+      "doi": "10.1109/ihcsp63227.2024.10960004",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-008802",
+      "title": "NEW SYSTEM OF TERMS: THE WAYS OF FORMATION (BASED ON THE UNMANNED AERIAL VEHICLES TERMINOLOGY)",
+      "abstract": "Рецензируемые научные журналы МГОУ. Журналы МГОУ входящие в перечень ВАК: География, История, Международные отношения, Политология, Лингвистика, Педагогика, Психология, Филология, Физика-математика, Философия, Экономика, Юриспруденция",
+      "doi": "10.18384/2310-712x-2021-4-13-20",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007871",
+      "title": "UAV-SAR: Simultaneous Radar-Based Odometry and Synthetic-Array Sensing for Unmanned Aerial Vehicles",
+      "abstract": "Unmanned aerial vehicles (UAVs) require accurate odometry—i.e., estimating the position and velocity of the vehicle over time—as well as high-resolution sensing to safely and effectively operate in complex environments. Traditionally, GPS, cameras, and/or lidar sensors have been used to perform these functions. However, GPS can be jammed in contested environments while cameras and lidars fail in visually degraded conditions, limiting UAV operations in these scenarios. In this work, we present UAV-SAR, a unified architecture that utilizes mmWave radars to simultaneously achieve precise odometry measurements and perform high-resolution synthetic-array sensing. Here, UAV-SAR measures a UAV’s altitude and velocity from downward- and outward-facing radars and fuses these measurements within a commercially available flight controller to produce accurate odometry estimates. These odometry estimates are then used to dynamically construct synthetic arrays by coherently integrating multiple radar frames together over a duration of 0.5 s, improving the angular resolution by an order of magnitude compared to the physical array alone. Finally, a lightweight deep learning model is utilized to convert high-resolution range-angle responses into 2D point clouds suitable for downstream perception tasks. UAV-SAR is validated on a custom UAV prototype where it is integrated with ROS2 and the PX4 autopilot to demonstrate stable flight, reliable odometry, and high-resolution radar sensing in indoor environments.",
+      "doi": "10.1109/icra57385.2026.11696373",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011485",
+      "title": "A Fault Detection Method for Power Transmission Lines Using Aerial Images",
+      "abstract": "It is necessary to regularly detect faults to maintain the safety and stability of power lines. Insulators are one of the important electrical components in high-voltage transmission lines. It is extremely necessary to check the working status of insulators regularly. Traditional manual inspection is inefficient because it requires a significant amount of labor costs. In this paper, a method for detecting insulators' missing defect based on aerial images is proposed to address the issue by unmanned aerial vehicle (UAV). Firstly, the improved Faster R-CNN (region-based convolutional neural network) is used to identify and locate insulators in aerial images. Secondly, the U-Net image segmentation network segments insulators from the images. The adaptive threshold segmentation method completely separates the insulator from the background. Then the binary image of the insulator is obtained. Finally, the binary image is converted into a fault curve which is used for determining the missing insulators based on the distribution of the fault curve. By using collected insulator datasets on a 330kV overhead transmission line using a DJI M300 UAV platform and an onboard H20T camera/sensor, the detection accuracy of glass insulators is as high as 0.98 with the proposed algorithm. The positioning accuracy of the proposed algorithm is also higher than other algorithms. This method has high detection accuracy for missing defects in insulators. The experimental results show that compared with similar algorithms, this method has higher accuracy and efficiency.",
+      "doi": "10.1109/icuas60882.2024.10556891",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013600",
+      "title": "Corrigendum to “The search for small intrusions of the Stepnyak gold-bearing type within the Akmola region of Kazakhstan: A multi-geophysical technique and unmanned aerial vehicle approach” [Phys. Chem. Earth, Parts A/B/C, 140, (October 2025), 103988 https://doi.org/10.1016/j.pce.2025.103988]",
+      "doi": "10.1016/j.pce.2025.104046",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001910",
+      "title": "Deep Learning Method for Wetland Segmentation in Unmanned Aerial Vehicle Multispectral Imagery",
+      "abstract": "This study highlights the importance of unmanned aerial vehicle (UAV) multispectral (MS) imagery for the accurate delineation and analysis of wetland ecosystems, which is crucial for their conservation and management. We present an enhanced semantic segmentation algorithm designed for UAV MS imagery, which incorporates thermal infrared (TIR) data to improve segmentation outcomes. Our approach, involving meticulous image preprocessing, customized network architecture, and iterative training procedures, aims to refine wetland boundary delineation. The algorithm demonstrates strong segmentation results, including a mean pixel accuracy (MPA) of 90.35% and a mean intersection over union (MIOU) of 73.87% across different classes, with a pixel accuracy (PA) of 95.42% and an intersection over union (IOU) of 90.46% for the wetland class. The integration of TIR data with MS imagery not only enriches the feature set for segmentation but also, to some extent, helps address data imbalance issues, contributing to a more refined ecological analysis. This approach, along with the development of a comprehensive dataset that reflects the diversity of wetland environments and advances the utility of remote sensing technologies in ecological monitoring. This research lays the groundwork for more detailed and informative UAV-based evaluations of wetland health and integrity.",
+      "doi": "10.3390/rs16244777",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009970",
+      "title": "Lessons Learned: Monitoring Dam Infrastructure Assets Using Unmanned Aerial Vehicles (UAVs)",
+      "doi": "10.1007/978-3-031-20241-4_35",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013021",
+      "title": "Using unmanned aerial vehicle monitoring for the landslide and dammed lake: a case study of the Xiuluan area in Taiwan",
+      "doi": "10.1007/s10064-025-04361-5",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-007823",
+      "title": "MDOLF：Framework for Multi-Target Detection and OnlineLocalization of Ground Objects Based on Aerial Imagery inthe Vehicle-UAV Collaboration Scenario",
+      "abstract": "Traditional methods for drone-based ground target localization are largely designed for offline operation and suffer from limitations such as insufficient real-time performance, low coordinate accuracy across diverse target categories, or reliance on extensive feature matching. This paper presents a lightweight, lowcost vehicle-UAV cooperative framework for online multi-target localization on the ground. We introduce SFB-YOLO, a real-time object detection model that enhances the accuracy and robustness of small target detection by integrating improved feature fusion networks, convolutional blocks, and detection head modules. Onboard the UAV, a multi-layer coordinate projection scheme transforms target pixel coordinates, while the vehicle obtains reference points via Vehicle-to-Vehicle (V2V) communication. Using target risk data and an approach inspired by point cloud registration, the vehicle performs coordinate matching and refinement. A data-driven multi-target risk quantification model is also developed, enabling the UAV to transmit detection results in order of risk priority. This supports rapid vehicle-side awareness of high-risk targets and accelerates target matching during localization refinement. Experimental results validate theframework’s effectiveness. On the VisDrone dataset, the detection model achieves an mAP@0.5 of 46.4%, representing a 7.8% improvement over the baseline YOLOv11 and outperforming several current mainstream algorithms. Moreover, the framework consistently achieves accurate real-time detection and localization across various flight altitudes and camera angles. After vehicle-side refinement, the average localization error remains below 2 m under diverse aerial viewpoints and scenarios, demonstrating high reliability and engineering feasibility",
+      "doi": "10.2139/ssrn.6332123",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-011027",
+      "title": "PROSPECTS OF USING UNMANNED AERIAL VEHICLES FOR RADIATION MONITORING AND CONTROL IN UKRAINE",
+      "abstract": "The article explores the prospects of using unmanned aerial vehicles (UAVs) for radiation monitoring and control in Ukraine. It describes modern mobile platforms, their advantages and disadvantages, and the main challenges faced when using UAVs for radiation monitoring. The article highlights the experience of employing UAVs during the aftermath of nuclear accidents. It provides an analysis of current ionizing radiation detection technologies and presents examples of successful UAV applications for mapping contaminated areas. Additionally, the article discusses the prospects for the development of radiation monitoring in Ukraine using UAVs, emphasizing the need for further research in this field to ensure effective radiation risk management.",
+      "doi": "10.32689/maup.it.2024.2.12",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-000551",
+      "title": "Weed detection in soybean fields using improved YOLOv7 and evaluating herbicide reduction efficacy",
+      "abstract": "With the increasing environmental awareness and the demand for sustainable agriculture, herbicide reduction has become an important goal. Accurate and efficient weed detection in soybean fields is the key to test the effectiveness of herbicide application, but current technologies and methods still have some problems in terms of accuracy and efficiency, such as relying on manual detection and poor adaptability to some complex environments. Therefore, in this study, weeding experiments in soybean fields with reduced herbicide application, including four levels, were carried out, and an unmanned aerial vehicle (UAV) was utilized to obtain field images. We proposed a weed detection model—YOLOv7-FWeed—based on improved YOLOv7, adopted F-ReLU as the activation function of the convolution module, and added the MaxPool multihead self-attention (M-MHSA) module to enhance the recognition accuracy of weeds. We continuously monitored changes in soybean leaf area and dry matter weight after herbicide reduction as a reflection of soybean growth at optimal herbicide application levels. The results showed that the herbicide application level of electrostatic spraying + 10% reduction could be used for weeding in soybean fields, and YOLOv7-FWeed was higher than YOLOv7 and YOLOv7-enhanced in all the evaluation indexes. The precision of the model was 0.9496, the recall was 0.9125, the F1 was 0.9307, and the mAP was 0.9662. The results of continuous monitoring of soybean leaf area and dry matter weight showed that herbicide reduction could effectively control weed growth and would not hinder soybean growth. This study can provide a more accurate, efficient, and intelligent solution for weed detection in soybean fields, thus promoting herbicide reduction and providing guidance for exploring efficient herbicide application techniques.",
+      "doi": "10.3389/fpls.2023.1284338",
+      "year": 2024,
+      "provider": "openalex"
+    },
+    {
+      "workspace_id": "SCI-007179",
+      "title": "Enhancing security of mobile crowd sensing in unmanned aerial vehicle ecosystems",
+      "abstract": "The rapid expansion of mobile devices with enhanced sensing and computing capabilities has driven the growth of mobile crowd sensing (MCS), enabling applications that collect large datasets from sources like smartphones and smartwatches. However, this data aggregation raises substantial security and privacy concerns, especially when MCS integrates with unmanned aerial vehicles (UAVs), where potential risks are further amplified. This study identifies and analyzes specific security and privacy threats in UAV-based MCS through the framework of the confidentiality, integrity, and availability (CIA) triad. We categorize potential vulnerabilities and propose comprehensive countermeasures targeting hardware, software, and communication models. Our findings outline strategic and actionable countermeasures to mitigate identified risks, thus ensuring data integrity and reliable functionality within MCS systems. Additionally, we present a security scenario involving mitigation suggested for data integrity and recovery. This work underscores the critical need for robust security frameworks in UAV-enhanced MCS applications, offering a holistic approach to mitigate emerging security threats.",
+      "doi": "10.3389/frcmn.2025.1443592",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-009375",
+      "title": "Unmanned Aerial Vehicle Path Planning Based on Disturbed Fluid and Sparrow Search Algorithm",
+      "doi": "10.1007/978-981-19-6203-5_54",
+      "year": 2022,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013665",
+      "title": "Unmanned Aerial Vehicle Following Flight Based on Reinforcement Learning",
+      "doi": "10.1007/978-981-95-1106-8_27",
+      "year": 2026,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-013144",
+      "title": "Stochastical redesign of a mini unmanned aerial vehicle for best performance",
+      "abstract": "Abstract In this research, article stochastical redesign of a mini unmanned aerial vehicle (MUAV) is considered. For this purpose, its flight control system (FCS), its battery mass, and its propeller pitch are evaluated in order to enhance both its autonomous flight performance and its general flight performance. A MUAV is produced in Ankara Yıldırım Bayezit University Drone Laboratory and called as AYBU-MUAV for this research. Its FCS parameters those are PID coefficients, its battery mass, and its engine propeller pitch are simultaneously and stochastically revised in order to maximize both autonomous flight performance and endurance by applying a specific stochastical optimization approach. Obtained revision results are used during autonomous flight simulation of MUAV. The first important contribution of this research article is implementation of stochastical revision methodology for finding optimum values of FCS parameters, battery mass, and propeller pitch. Another substantial contribution of this research article is benefitting SPSA (simultaneous perturbation stochastical approximation) optimization strategy for previously stated purpose. These important contributions also cause much less energy consumption and green environment. In addition, approximately 49% improvement in total cost index, 50% improvement in autonomous cost index, and 100% improvement in endurance are obtained for this relevant battery powered electrical MUAV with respect to the situation where stochastical revision idea is not applied.",
+      "doi": "10.1007/s40430-025-05738-z",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-002340",
+      "title": "Stored Grain Pest Identification Using an Unmanned Aerial Vehicle (UAV)‐Assisted Pest Detection Model",
+      "abstract": "Detecting pests in stored grain (SG) accurately is a major issue in the current scenario. It is very much essential to monitor the SG in order to take preventive measures to cease the further growth of pests in the SG. This can be done by capturing the images of SG with the help of UAVs, high-definition drones, cameras, sensors, and so on. Many methods have been introduced to detect the pests in the SG. However, no method is fully efficient in each and every situation. In this chapter, a UAV-assisted pest detection model is proposed in order to track the pests in the SG. This proposed model consists of four phases, such as data acquisition, edge detection (ED), feature extraction, and pest identification. In this model, we have only focused on the ED part by analyzing the data (pest in the SG images). Many standard ED (SED) methods, such as Sobel, Prewitt, Roberts, Morphological, Laplacian of Gaussian (LoG), Canny, are used to track the shape, location, and quantity of pests in SG. The implementation of the methods are performed using MATLAB R2015b and evaluated using signal to noise ratio (SNR), peak SNR (PSNR), and processing time (PT).",
+      "doi": "10.1002/9781119682042.ch3",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005145",
+      "title": "Adversarial Data-Augmented Resilient Intrusion Detection System for Unmanned Aerial Vehicles",
+      "abstract": "With the growing adoption of unmanned aerial vehicles (UAVs) across various domains, the security of their operations is paramount. UAVs, heavily dependent on GPS navigation, are at risk of jamming and spoofing cyberattacks, which can severely jeopardize their performance, safety, and mission integrity. Intrusion detection systems (IDSs) are typically employed as defense mechanisms, often leveraging traditional machine learning techniques. However, these IDSs are susceptible to adversarial attacks that exploit machine learning models by introducing input perturbations. In this work, we propose a novel IDS for UAVs to enhance resilience against such attacks using generative adversarial networks (GAN). We also comprehensively study several evasion-based adversarial attacks and utilize them to compare the performance of the proposed IDS with existing ones. The resilience is achieved by generating synthetic data based on the identified weak points in the IDS and incorporating these adversarial samples in the training process to regularize the learning. The evaluation results demonstrate that the proposed IDS is significantly robust against adversarial machine learning-based attacks compared to the state-of-the-art IDSs while maintaining a low false positive rate.",
+      "doi": "10.1109/bigdata59044.2023.10386140",
+      "year": 2023,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001402",
+      "title": "Field Report: Integration of a Parachute Rescue System into an Existing Unmanned Aerial Vehicle",
+      "abstract": "In many parts of the world, such as Europe, the operation of drones requires the approval of a competent authority if the intended operation could pose a risk to third parties. The possible risks are determined, for example, by the size of the drone, whether the operation is planned in the vicinity of people or beyond the line of sight of a pilot. The permit may, among others, be achieved with the SORA process, that is proposed by JARUS and accepted by EASA as acceptable means of compliance. During this process, the risks of operation are determined and the requirements that the operator must fulfill in order to fly the drone are assessed. The risks in the air and on the ground as well as possible remedial measures specific to this operation are examined and compared. A possible mitigation to reduce the estimated ground risk is a reduction of the effects in case the drone impacts the ground. One way to implement this mitigation is to integrate a parachute in the drone and show that the parachute is applicable to cover all failure cases of the drone and reduces the impact energy in a case of crash. This paper presents a way how we developed, tested and integrated a parachute rescue system in an already existing research drone prototype which only exists once. Therefore, tests to evaluate the parachute and its functionality which are likely to destroy the drone were not possible. An applicable parachute system was not available, so one was developed and evaluated in representative airflow exposition on a driving testbed and laboratory tests. Finally, we will give some advice that we have learned during this work and that may also help other working groups if they are also planning a drone mission with a parachute rescue system.",
+      "doi": "10.1109/icuas60882.2024.10556952",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003387",
+      "title": "Oil Pipelines Detection Based on Unmanned Aerial Vehicle Pipeline Patrol Image",
+      "abstract": "Target detection of oil pipeline for the perspective of Unmanned Aerial Vehicle (UAV) is one of the important topics of UAV oil pipeline patrol. The existing methods have limitations for the image with complex background, and can only identify the location of the pipeline, but cannot obtain the specific geometric information and width characteristics of the oil pipeline. In this paper, an oil pipeline detection and extraction algorithm based on UAV pipeline patrol is proposed. Wavelet multi-scale edge detection is used to improve the robustness of pipeline edge detection in complex background. Based on the stroke width transform, the specific geometric information of the oil pipeline is obtained. The pipeline position information can be obtained based on Hough linear detection. On this basis, the pipeline detection algorithm process is proposed and tested. The method can obtain more information about the pipeline more accurately, which is the necessary prerequisite for locating pipeline deformation in the process of UAV oil pipeline patrol.",
+      "doi": "10.1145/3497623.3497643",
+      "year": 2021,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-005758",
+      "title": "NUTRIENT REMOVAL BY CROP AND WEEDS AS INFLUENCED BY NONCHEMICAL METHODS OF WEED MANAGEMENT IN KODO MILLET (PASPALUM SCROBICULATUM L.)",
+      "abstract": "A field experiment was conducted at Research Institute of Organic Farming field unit, University of Agricultural Sciences, Gandhi Krishi Vignan Kendra, Bengaluru during Kharif (rainy season) of 2021 to evaluate different non-chemical methods of weed management in irrigated kodo millet (Paspalum scrobiculatum L.).The experiment was laid out in randomized complete block design with 12 treatments, replicated 3 times.Among various methods, hand weeding at 20 and 40 DAS recorded significantly lower weed density, lower weed dry weight, lower weed index and higher weed control efficiency.Stale seed bed technique fb inter cultivation twice at 25 and 45 DAS and Kodo millet + fodder cowpea as intercrop with in-situ mulching at 35 DAS fb 1 intercultivation at 40 DAS prevented excess growth of weeds which resulted in reduced removal of nutrients from soil by weeds but increased in uptake of nutrient by crop.",
+      "doi": "10.51470/plantarchives.2025.v25.supplement-1.064",
+      "year": 2024,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-001489",
+      "title": "Online Hybrid Motion Planning for Unmanned Aerial Vehicles in Planar Environments",
+      "abstract": "Motion planning for unmanned aerial vehicles (UAVs) in an obstacle-cluttered environment for target interception/rendezvous has been a problem of growing importance. Several offline deterministic and sampling-based planners have been presented in literature to address this issue. However, online motion planners gained paramount importance due to their inherent feedback mechanism. Following this, several guidance algorithms and collision avoidance algorithms have been presented in literature. But, very few literature have merged them to come up with a holistic online motion planner. Even among them, realistic turn capabilities of UAVs have been largely ignored. Also, they rely on the near-collision-course geometry between the UAV and the target. To obviate these limitations, this paper presents an online hybrid motion planner for a constant-speed UAV in a 2-D obstacle-cluttered environment that combines a global planner with local planners for online collision avoidance with obstacles. Specifically, this paper investigates the performance of combinations of the most widely studied guidance, proportional navigation, as global planner with three seminal local planners for collision avoidance based on the potential field, velocity obstacle and collision cone concepts. Extensive simulation studies help elucidate the performance comparison of these three hybrid motion planning algorithms in terms of four crucial measures of effectiveness (MOEs) - target interception time, minimum obstacle distance, overall control effort and computational cycle time. Discussion about the effectiveness of these three online hybrid algorithms under different considerations of these MOEs exhibits their potential in real-time motion planning and control for real-life UAV applications.",
+      "doi": "10.1109/icuas48674.2020.9213866",
+      "year": 2020,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-006997",
+      "title": "Meta-Transfer-Learning-Based Multimodal Human Pose Estimation for Lower Limbs",
+      "abstract": "Accurate and reliable human pose estimation (HPE) is essential in interactive systems, particularly for applications requiring personalized adaptation, such as controlling cooperative robots and wearable exoskeletons, especially for healthcare monitoring equipment. However, continuously maintaining diverse datasets and frequently updating models for individual adaptation are both resource intensive and time-consuming. To address these challenges, we propose a meta-transfer learning framework that integrates multimodal inputs, including high-frequency surface electromyography (sEMG), visual-inertial odometry (VIO), and high-precision image data. This framework improves both accuracy and stability through a knowledge fusion strategy, resolving the data alignment issue, ensuring seamless integration of different modalities. To further enhance adaptability, we introduce a training and adaptation framework with few-shot learning, facilitating efficient updating of encoders and decoders for dynamic feature adjustment in real-time applications. Experimental results demonstrate that our framework provides accurate, high-frequency pose estimations, particularly for intra-subject adaptation. Our approach enables efficient adaptation to new individuals with only a few new samples, providing an effective solution for personalized motion analysis with minimal data.",
+      "doi": "10.3390/s25051613",
+      "year": 2025,
+      "provider": "crossref"
+    },
+    {
+      "workspace_id": "SCI-003737",
+      "title": "Hardware in the Loop Simulation of Aircraft Inspection by an Unmanned Aerial System",
+      "abstract": "Inspection of commercial aircrafts, wind turbines, bridges and other infrastructure elements is done manually in many cases. Therefore, today's maintenance mostly is time-consuming and cost-intensive. The goal of the joint project AI inspection drone is the holistic system design of an unmanned aerial system (UAS) for the damage detection and assessment of airliners. The technical design should be based on current maintenance requirements and the overall system should be able to anticipate its own flight, evaluate the inspection data AI-based, and draw automatic conclusions. In this paper we describe the structure of the announced and partly already realized process chain. The focus is on the required interfaces between the individual components, the control engineering challenges to the UAS and the mapping of the entire process chain in a simulation environment, which also enables a hardware in the loop test of the different sensors and the carrier system itself. Based on this simulation which also includes the mapping of the technical and operational environment, different movement strategies with regard to energy requirements and flight time as well as an efficient sensor data fusion should be investigated. The results obtained are, as far as possible, validated by simulation and real experiments.",
+      "doi": "10.1109/icara51699.2021.9376532",
+      "year": 2021,
+      "provider": "crossref"
+    }
+  ],
+  "derived_export": {
+    "kind": "DERIVED_EXPORT",
+    "decision_status": "FINAL_AGENT_UNCONFIRMED",
+    "human_confirmation": "PENDING (HumanConfirmation@1 unsigned)",
+    "source_batches": "calibration_v03/screening_scr1/batch_NNN.json",
+    "source_decisions": "calibration_v03/screening_scr1/decisions",
+    "source_final_decisions": "literature/screening/final_decisions.json",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+    "artifact_registry": null,
+    "accepted_parent_artifact": false,
+    "note": "Derived export of the v0.3 calibration screening for console/UI reading. Not a new screening run, not a Contract-v1 published generation, and not a human confirmation. The canonical dual-codefiles under calibration_v03/screening_scr1/ remain the authoritative record."
+  }
+}
