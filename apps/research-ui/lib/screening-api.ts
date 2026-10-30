@@ -117,6 +117,61 @@ export interface CriterionRefs {
   missing: MissingEntry[];
 }
 
+/**
+ * The workspace status read (`GET /api/v1/workspace/status`).
+ *
+ * Only the fields the corpus screen presents are typed here. The counts are
+ * computed by the Python harness from the workspace files; the browser copies
+ * them, it never derives them from a rendered list.
+ */
+export interface WorkspaceStatus {
+  workspace: string;
+  title?: string;
+  phase?: string;
+  discovered_count?: number;
+  deduped_count?: number;
+  verified_count?: number;
+  included_count?: number;
+  excluded_count?: number;
+}
+
+/**
+ * One record of the screening corpus, exactly as `literature/included.json`
+ * and `literature/excluded.json` store it.
+ *
+ * These files are the harness's own screening output. The shape is therefore
+ * read, not negotiated: an absent field stays absent and the screen says so,
+ * rather than filling it from a fixture.
+ */
+export interface CorpusScreening {
+  workspace_id: string;
+  decision: string;
+  confidence?: number;
+  screening_reasoning?: string;
+  matched_inclusion_criteria?: string[];
+  violated_exclusion_criteria?: string[];
+  document_title?: string;
+  doi?: string | null;
+}
+
+export interface CorpusProvenance {
+  lane?: string;
+  reason_code?: string;
+  criteria_sha256?: string;
+  deviation?: string | null;
+}
+
+export interface CorpusRecord {
+  workspace_id: string;
+  title?: string | null;
+  year?: number | null;
+  provider?: string | null;
+  doi?: string | null;
+  abstract?: string | null;
+  screening: CorpusScreening;
+  screening_provenance?: CorpusProvenance;
+}
+
 export interface ReviewState {
   shape: "ui07.review-state-v1";
   batch_index: number;
@@ -261,6 +316,32 @@ export function getPublicationOutput(
 
 export function getScreeningBatches(origin: string, signal?: AbortSignal): Promise<ScreeningBatches> {
   return readJson<ScreeningBatches>("/api/v1/screening/ui/batches", normalizeConsoleOrigin(origin), signal);
+}
+
+/**
+ * The harness-computed corpus counts (`GET /api/v1/workspace/status`).
+ *
+ * The console parses the workspace's literature files to answer this, so the
+ * numbers on screen come from the same bytes the harness writes - the page
+ * never counts the rows it happens to have loaded.
+ */
+export function getWorkspaceStatus(origin: string, signal?: AbortSignal): Promise<WorkspaceStatus> {
+  return readJson<WorkspaceStatus>("/api/v1/workspace/status", normalizeConsoleOrigin(origin), signal);
+}
+
+/**
+ * The stored corpus (`GET /api/v1/literature/included|excluded`).
+ *
+ * The included set is read when the live source opens; the excluded set is
+ * large and is read only when the reader asks for it, so opening the screen
+ * does not pull megabytes nobody asked for.
+ */
+export function getCorpusRecords(
+  kind: "included" | "excluded",
+  origin: string,
+  signal?: AbortSignal,
+): Promise<CorpusRecord[]> {
+  return readJson<CorpusRecord[]>(`/api/v1/literature/${kind}`, normalizeConsoleOrigin(origin), signal);
 }
 
 export function getBatchRows(

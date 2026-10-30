@@ -306,6 +306,36 @@ minimal separately-reviewed operations remain in [`UI-07_ACTION_SPEC.md`](./UI-0
 
 **Gate:** Contract review, threat review, fixture examples, then implementation in a separate packet.
 
+## UI-08 — Screening corpus (included and excluded records)
+
+**Implemented 2026-10-30.** Route `/[locale]/corpus`, presented as **Corpus** in
+the primary navigation. Reads `GET /api/v1/workspace/status` (harness-computed
+counts and phase), `GET /api/v1/ui/publication-status` (currentness), and
+`GET /api/v1/literature/included`; the excluded set is fetched only after the
+reader asks for it (`GET /api/v1/literature/excluded`), because the file is
+large and opening the screen must not pay for it (measured on the pilot
+workspace: 27 MB and ~8 s over loopback).
+
+**Scope:** one read-only screen over the screening output the harness already
+wrote. No decision is made, changed, or published from this route.
+
+**Deliverable:** included and excluded record lists with the stored decision,
+reason code and criterion; counts labelled as harness-computed; a filter that
+narrows only the loaded rows; explicit loading, empty, refused/error and
+"excluded not loaded yet" states; demonstration fixtures under
+`lib/mock-corpus.ts` for the default source.
+
+**Negative cases:** the page must never count its own loaded rows and present
+that as the corpus total; must never infer a reason a record does not carry;
+must never claim human confirmation; must not fetch the excluded set on open;
+must issue GET only.
+
+**Known gap:** committed Chromium captures for the corpus route are not yet in
+`screenshots/` — the local machine lacks the Chromium system libraries
+(`libnspr4.so`), so `tests-browser/screenshots.spec.ts` was not extended. The
+route is covered in-process (component, i18n, keyboard, axe) and by
+`npm run build`.
+
 ## Prompt for a small UI agent
 
 ```text

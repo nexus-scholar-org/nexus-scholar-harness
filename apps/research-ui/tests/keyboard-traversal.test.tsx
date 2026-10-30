@@ -50,6 +50,8 @@ function expectedTabStops(locale: Locale): string[] {
     // this line is where it was converted back to green. `nav.evidence` and
     // `nav.audit` still contribute no stop; they are text, not anchors.
     `a:${CATALOGS[locale]["nav.screening"]}`,
+    // Packet UI-08 routed the corpus surface, so it is a real link too.
+    `a:${CATALOGS[locale]["nav.corpus"]}`,
     `button:${CATALOGS[locale]["a11y.openMainNavigation"]}`,
     ...SUPPORTED_LOCALES.map((code) => `a:${LOCALE_METADATA[code].endonym}`),
   ];

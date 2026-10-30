@@ -49,6 +49,7 @@ export interface PrimaryNavItem {
 export const PRIMARY_NAV_ITEMS: readonly PrimaryNavItem[] = [
   { id: "overview", label: "Overview", href: "/" },
   { id: "screening", label: "Screening", href: "/screening" },
+  { id: "corpus", label: "Corpus", href: "/corpus" },
   { id: "evidence", label: "Evidence" },
   { id: "audit", label: "Audit" },
 ];
