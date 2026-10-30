@@ -107,6 +107,36 @@ def test_screening_batches(tmp_path):
     assert b.json()["items"] == {"items": [{"workspace_id": "a"}]}
 
 
+def test_screening_batches_counts_canonical_decision_wrapper(tmp_path):
+    """A §7 decisions wrapper counts its decisions, not the wrapper itself.
+
+    The console's own writer emits `{"batch": n, "decisions": [...]}`; before
+    this regression every canonical sidecar reported `decisions_count == 1`
+    (the fallback for an unrecognised object), so a 50-record batch read as
+    1/50 in the dashboard.
+    """
+    ws = _bootstrap(tmp_path)
+    sdir = ws / "literature" / "screening"
+    (sdir / "batch_001_decisions.json").write_text(
+        json.dumps(
+            {
+                "batch": 1,
+                "decisions": [
+                    {"workspace_id": "a", "decision": "INCLUDE"},
+                    {"workspace_id": "b", "decision": "EXCLUDE"},
+                ],
+                "reviewed_by": "test",
+                "timestamp": "2026-09-01T00:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = TestClient(create_app(ws))
+    body = client.get("/api/v1/screening/batches").json()
+    assert body["batches"][0]["decisions_count"] == 2
+    assert body["batches"][0]["items"] == 1
+
+
 def test_missing_literature_file_returns_404(tmp_path):
     ws = _bootstrap(tmp_path)
     (ws / "literature" / "included.json").unlink()
