@@ -135,6 +135,34 @@ const ar: Record<MessageKey, string> = {
     "التسجيل معطّل: هذا العرض التوضيحي لا يملك واجهة برمجية للقرارات، فلا يُرسَل أي قرار ولا يُحفظ ولا يُحتسب.",
   "screening.noPersistence":
     "لا يُكتب شيء في هذه الصفحة إلى مساحة عمل ولا إلى ملف ولا إلى هذا المتصفح.",
+  "nav.corpus": "المجموعة",
+  "corpus.eyebrow": "مجموعة الفرز",
+  "corpus.heading": "الدراسات المُدرجة والمُستبعدة",
+  "corpus.lede":
+    "كل سجل قرّرته مرحلة الفرز، مع السبب الذي حفظته المنصة. الأعداد تأتي من المنصة؛ وهذه الصفحة لا تقرّر شيئًا.",
+  "corpus.countsHeading": "أعداد المجموعة",
+  "corpus.includedLabel": "مُدرجة",
+  "corpus.excludedLabel": "مُستبعدة",
+  "corpus.includedHeading": "السجلات المُدرجة",
+  "corpus.excludedHeading": "السجلات المُستبعدة",
+  "corpus.filterLabel": "تصفية هذه الصفوف",
+  "corpus.filterHint":
+    "تُصفّي فقط الصفوف المحمّلة في هذه الصفحة؛ ولا تستعلم من مساحة العمل.",
+  "corpus.emptyIncluded": "لا تبلغ المنصة عن أي سجل مُدرج.",
+  "corpus.emptyExcluded": "لا تبلغ المنصة عن أي سجل مُستبعد.",
+  "corpus.loadExcluded": "تحميل السجلات المُستبعدة",
+  "corpus.loadExcludedHint":
+    "مجموعة السجلات المُستبعدة كبيرة، ولذلك لا تُقرأ من المنصة إلا عند طلبها.",
+  "corpus.showMore": "عرض مزيد من السجلات",
+  "corpus.reasonLabel": "السبب",
+  "corpus.noReason": "لا سبب محفوظ",
+  "corpus.criterionLabel": "المعيار",
+  "corpus.agentNote":
+    "كل قرار في هذه الصفحة سجّلته مرحلة الفرز وليس تأكيدًا بشريًا. وتُقرأ حالة النشر من المنصة.",
+  "corpus.noMatch": "لا يوجد صف يطابق هذه التصفية.",
+  "corpus.fixtureLede": "مجموعة عرض توضيحي: الصفوف أدناه أمثلة وليست مساحة عمل.",
+  "corpus.liveUnavailable": "تعذّر جلب البيانات المباشرة",
+  "corpus.liveEmpty": "لا تبلغ المنصة عن أي مجموعة فرز لهذه المساحة.",
 };
 
 export default ar;

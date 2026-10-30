@@ -150,6 +150,36 @@ const fr: Record<MessageKey, string> = {
     "L'inscription est désactivée : cette démonstration n'a pas d'API de décision, aucune décision n'est envoyée, enregistrée ni comptée.",
   "screening.noPersistence":
     "Rien sur cette page n'est écrit dans un espace de travail, dans un fichier ni dans ce navigateur.",
+  "nav.corpus": "Études",
+  "corpus.eyebrow": "Corpus de sélection",
+  "corpus.heading": "Études incluses et exclues",
+  "corpus.lede":
+    "Chaque notice décidée par la sélection, avec la raison que le harnais a enregistrée. Les totaux viennent du harnais ; cette page ne décide rien.",
+  "corpus.countsHeading": "Totaux du corpus",
+  "corpus.includedLabel": "Incluses",
+  "corpus.excludedLabel": "Exclues",
+  "corpus.includedHeading": "Notices incluses",
+  "corpus.excludedHeading": "Notices exclues",
+  "corpus.filterLabel": "Filtrer ces lignes",
+  "corpus.filterHint":
+    "Ne filtre que les lignes déjà chargées sur cette page ; aucune requête n'est envoyée à l'espace de travail.",
+  "corpus.emptyIncluded": "Le harnais ne signale aucune notice incluse.",
+  "corpus.emptyExcluded": "Le harnais ne signale aucune notice exclue.",
+  "corpus.loadExcluded": "Charger les notices exclues",
+  "corpus.loadExcludedHint":
+    "L'ensemble exclu est volumineux ; il n'est lu depuis la console que si vous le demandez.",
+  "corpus.showMore": "Afficher plus de notices",
+  "corpus.reasonLabel": "Raison",
+  "corpus.noReason": "Aucune raison enregistrée",
+  "corpus.criterionLabel": "Critère",
+  "corpus.agentNote":
+    "Chaque décision de cette page a été enregistrée par l'étape de sélection et ne constitue pas une confirmation humaine. L'état de publication est lu depuis la console.",
+  "corpus.noMatch": "Aucune ligne ne correspond à ce filtre.",
+  "corpus.fixtureLede":
+    "Corpus de démonstration : les lignes ci-dessous sont des exemples, pas un espace de travail.",
+  "corpus.liveUnavailable": "Données en direct indisponibles",
+  "corpus.liveEmpty":
+    "La console ne signale aucun corpus de sélection pour cet espace de travail.",
 };
 
 export default fr;

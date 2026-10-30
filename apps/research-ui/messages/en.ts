@@ -1,7 +1,7 @@
 /**
  * The English catalog — structural source of truth (D-I18N-03).
  *
- * This file defines the 93 keys that `fr.ts` and `ar.ts` must mirror exactly
+ * This file defines the 117 keys that `fr.ts` and `ar.ts` must mirror exactly
  * (compile-time via `Record<MessageKey, string>` and runtime via
  * `tests/i18n-catalog.test.ts`). A key added, removed, or misspelled here
  * cascades as a `tsc` error in the translations and a test failure in the
@@ -175,6 +175,35 @@ export const en = {
     "Recording is disabled: this demonstration has no decision API, so no decision is sent, saved, or counted.",
   "screening.noPersistence":
     "Nothing on this page is written to a workspace, a file, or this browser.",
+  "nav.corpus": "Corpus",
+  "corpus.eyebrow": "Screening corpus",
+  "corpus.heading": "Included and excluded studies",
+  "corpus.lede":
+    "Every record the screening decided, with the reason the harness stored for it. The counts come from the harness; this page decides nothing.",
+  "corpus.countsHeading": "Corpus counts",
+  "corpus.includedLabel": "Included",
+  "corpus.excludedLabel": "Excluded",
+  "corpus.includedHeading": "Included records",
+  "corpus.excludedHeading": "Excluded records",
+  "corpus.filterLabel": "Filter these rows",
+  "corpus.filterHint":
+    "Filters only the rows already loaded on this page; it does not query the workspace.",
+  "corpus.emptyIncluded": "The harness reports no included records.",
+  "corpus.emptyExcluded": "The harness reports no excluded records.",
+  "corpus.loadExcluded": "Load excluded records",
+  "corpus.loadExcludedHint":
+    "The excluded set is large, so it is read from the console only when you ask for it.",
+  "corpus.showMore": "Show more records",
+  "corpus.reasonLabel": "Reason",
+  "corpus.noReason": "No reason stored",
+  "corpus.criterionLabel": "Criterion",
+  "corpus.agentNote":
+    "Every decision on this page was recorded by the screening step and is not a claim of human confirmation. Publication status is read from the console.",
+  "corpus.noMatch": "No row matches this filter.",
+  "corpus.fixtureLede":
+    "Demonstration corpus: the rows below are fixtures, not a workspace.",
+  "corpus.liveUnavailable": "Live data unavailable",
+  "corpus.liveEmpty": "The console reports no screening corpus for this workspace.",
 } as const;
 
 export type MessageKey = keyof typeof en;

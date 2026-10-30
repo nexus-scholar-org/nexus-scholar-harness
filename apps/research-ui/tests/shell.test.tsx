@@ -239,14 +239,14 @@ describe("application shell (UI-01)", () => {
   });
 
   it("offers exactly the links that exist, in every locale", () => {
-    // The only six links on the route: the skip link, the two routes that
-    // exist since packet UI-04 (overview and screening), and the three locale
-    // links. Anything else would be a dead-route fiction or a locale link
+    // The only seven links on the route: the skip link, the three routes that
+    // exist (overview and screening since packet UI-04, corpus since packet
+    // UI-08), and the three locale links. Anything else would be a dead-route fiction or a locale link
     // outside the header.
     //
-    // The rendered Overview href is `/${locale}` and the rendered Screening href
-    // is `/${locale}/screening`, both computed at render from the item's
-    // declared suffix, while `PRIMARY_NAV_ITEMS[0].href` stays the frozen
+    // The rendered Overview href is `/${locale}` and the rendered Screening and
+    // Corpus hrefs are `/${locale}/screening` and `/${locale}/corpus`, all
+    // computed at render from the item's declared suffix, while `PRIMARY_NAV_ITEMS[0].href` stays the frozen
     // sentinel `"/"` — see the frozen-field table in `UI-01D_WORK_PACKET.md`
     // §4.1. Asserting all three locales here is what stops the sentinel from
     // shipping as a bare root link that silently drops the reader's language,
@@ -262,6 +262,7 @@ describe("application shell (UI-01)", () => {
         `#${MAIN_CONTENT_ID}`,
         `/${locale}`,
         `/${locale}/screening`,
+        `/${locale}/corpus`,
         ...SUPPORTED_LOCALES.map((code) => `/${code}`),
       ]);
 
@@ -286,7 +287,7 @@ describe("application shell (UI-01)", () => {
   it("lists every packet surface and nothing invented", () => {
     renderRoute();
 
-    expect(PRIMARY_NAV_ITEMS.map((item) => item.label)).toEqual(["Overview", "Screening", "Evidence", "Audit"]);
+    expect(PRIMARY_NAV_ITEMS.map((item) => item.label)).toEqual(["Overview", "Screening", "Corpus", "Evidence", "Audit"]);
     for (const item of PRIMARY_NAV_ITEMS) {
       expect(screen.getAllByText(item.label).length).toBeGreaterThan(0);
     }
