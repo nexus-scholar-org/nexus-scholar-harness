@@ -50,6 +50,12 @@ console's port, and the console's GET-only CORS policy stays as reviewed.
 `?console=http://127.0.0.1:8765` is a test-only override for pointing a live
 screen at a console directly; it is not part of normal use.
 
+Each live screening row can record a draft decision. That posts one record to
+the console's sanctioned draft writer (merged by workspace id, so siblings are
+untouched) and the page re-reads the batch. A saved draft is **not** an
+approval: coverage, pairing, approval and publication still run separately, and
+saving never publishes.
+
 ## Visual direction
 
 [`VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md) is the design system of record for

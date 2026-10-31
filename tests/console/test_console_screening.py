@@ -122,6 +122,113 @@ def test_post_screening_decisions_atomic(tmp_path):
     assert manifest["updated_at"]
 
 
+def test_screening_decisions_partial_post_merges_and_preserves_the_rest(tmp_path):
+    """A one-record browser draft must not truncate the batch.
+
+    The route is the sanctioned draft writer, and the UI saves one record at a
+    time. Replacing the file (the old behaviour) silently discarded every other
+    review in the batch; merging by workspace_id keeps them, and only the
+    fields the request actually set are overwritten.
+    """
+    ws = _bootstrap(tmp_path)
+    client = TestClient(create_app(ws))
+    url = "/api/v1/screening/batch/1/decisions"
+
+    full = client.post(
+        url,
+        json={
+            "batch": 1,
+            "reviewed_by": "agent",
+            "decisions": [
+                {
+                    "workspace_id": "SCI-000001",
+                    "decision": "INCLUDE",
+                    "confidence": 0.9,
+                    "matched_inclusion_criteria": ["INC-01"],
+                    "screening_reasoning": "matches",
+                },
+                {
+                    "workspace_id": "SCI-000002",
+                    "decision": "EXCLUDE",
+                    "confidence": 0.6,
+                    "violated_exclusion_criteria": ["EXC-02"],
+                },
+            ],
+        },
+    )
+    assert full.status_code == 200
+
+    partial = client.post(
+        url,
+        json={
+            "batch": 1,
+            "reviewed_by": "researcher-draft",
+            "decisions": [
+                {
+                    "workspace_id": "SCI-000001",
+                    "decision": "EXCLUDE",
+                    "screening_reasoning": "reconsidered",
+                }
+            ],
+        },
+    )
+    assert partial.status_code == 200
+    assert partial.json()["decisions_written"] == 1
+    assert partial.json()["decisions_total"] == 2
+
+    payload = json.loads(
+        (ws / "literature" / "screening" / "batch_001_decisions.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["reviewed_by"] == "researcher-draft"
+    assert [r["workspace_id"] for r in payload["decisions"]] == [
+        "SCI-000001",
+        "SCI-000002",
+    ]
+
+    updated = payload["decisions"][0]
+    assert updated["decision"] == "EXCLUDE"
+    assert updated["screening_reasoning"] == "reconsidered"
+    # Fields the request did not set survive the merge.
+    assert updated["confidence"] == 0.9
+    assert updated["matched_inclusion_criteria"] == ["INC-01"]
+
+    sibling = payload["decisions"][1]
+    assert sibling["decision"] == "EXCLUDE"
+    assert sibling["confidence"] == 0.6
+    assert sibling["violated_exclusion_criteria"] == ["EXC-02"]
+
+    journal = [
+        json.loads(line)
+        for line in (ws / "audit" / "journal.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    assert journal[-1]["action"] == "SCREEN_DECISIONS"
+    assert journal[-1]["metrics"] == {"included": 0, "excluded": 2, "total": 2}
+    assert journal[-1]["parameters"]["posted"] == 1
+
+
+def test_screening_decisions_refuses_to_overwrite_an_unreadable_draft(tmp_path):
+    ws = _bootstrap(tmp_path)
+    client = TestClient(create_app(ws))
+    broken = ws / "literature" / "screening" / "batch_001_decisions.json"
+    broken.write_text("{not json", encoding="utf-8")
+
+    response = client.post(
+        "/api/v1/screening/batch/1/decisions",
+        json={
+            "batch": 1,
+            "decisions": [{"workspace_id": "SCI-000001", "decision": "INCLUDE"}],
+        },
+    )
+
+    assert response.status_code == 422
+    assert "unreadable" in response.json()["detail"]
+    # The corrupt file is left exactly as found; nothing was replaced.
+    assert broken.read_text(encoding="utf-8") == "{not json"
+
+
 def test_screening_decisions_validation(tmp_path):
     ws = _bootstrap(tmp_path)
     client = TestClient(create_app(ws))

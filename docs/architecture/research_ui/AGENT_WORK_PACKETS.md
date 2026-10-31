@@ -312,7 +312,18 @@ stop for CI.
 ## UI-07 — Presentation API specification
 
 **Implemented — read side merged (PR #133); protected action API merged (PR #134, `aa6e2f0`).** Read-only presentation shapes: [`UI-07_PRESENTATION_SPEC.md`](./UI-07_PRESENTATION_SPEC.md) implemented as 8 read-only GET routes with generation-currentness + loopback CORS and UI-04 live wiring;
-minimal separately-reviewed operations remain in [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md) (not implemented here).
+minimal separately-reviewed operations remain in [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md).
+
+**Draft capture implemented 2026-10-31 (PR after #165).** Each live screening
+row offers INCLUDE/EXCLUDE only, requires a reason, and posts one record to
+`POST /api/v1/screening/batch/{n}/decisions` through the UI-09 proxy with
+`reviewed_by: "researcher-draft"`. The console **merges by `workspace_id`**:
+sibling decisions and fields the request did not set are preserved, so a
+one-row save cannot truncate the batch (it previously replaced the file). The
+page then re-reads the batch instead of folding the response into its own
+copy. `Unclear` is not offered because the console rejects it. Saving is a
+draft only — coverage, approval and publication gates still run at approve and
+collect, and the pairing/defer/publish panel is unchanged.
 
 **Scope:** documentation and typed API schemas before Python implementation.
 

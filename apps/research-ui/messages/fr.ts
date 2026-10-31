@@ -204,6 +204,13 @@ const fr: Record<MessageKey, string> = {
   "audit.noAgent": "Aucun agent consigné",
   "audit.noDescription": "Aucune description consignée",
   "audit.noStatus": "Aucun résultat consigné",
+  "screening.draftOpen": "Consigner une décision provisoire",
+  "screening.draftReasonHint":
+    "Obligatoire. Enregistré tel quel comme motif de sélection du brouillon.",
+  "screening.draftNote":
+    "Enregistré comme brouillon de recherche, et non comme une approbation. Les contrôles de couverture et de publication restent exécutés à l'approbation et au collect.",
+  "screening.draftSaved": "Brouillon enregistré pour cette notice.",
+  "screening.draftError": "Brouillon non enregistré.",
 };
 
 export default fr;
