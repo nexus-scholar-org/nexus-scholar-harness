@@ -1,6 +1,8 @@
 # PRISMA-ScR screening report — UAV crop-weed mapping (protocol v0.3)
 
-**Status:** FINAL AGENT DECISIONS, **NOT HUMAN-CONFIRMED**.
+**Status:** Agent-made decisions (`FINAL_AGENT_UNCONFIRMED` provenance), **human-confirmed**
+2026-10-31 by Mouadh BEKHOUCHE over 283 artifacts / 14,150 decisions
+(`literature/screening/HUMAN_CONFIRMATION.json`).
 Protocol fingerprint `sha256:f81e6c58…f755`; criteria `9ae1f97d…b86f`.
 
 ```mermaid
