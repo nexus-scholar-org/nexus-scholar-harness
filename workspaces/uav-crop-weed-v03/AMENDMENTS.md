@@ -181,3 +181,15 @@ deterministic command:
 ```
 uv run python workspaces/uav-crop-weed-v03/_drivers/v03_canonical_screening_export.py --force
 ```
+
+## Open draft proposals (2026-10-31, not applied)
+
+Two open items now have a written proposal under `proposals/`. Neither changes
+the frozen instrument, the criteria, the 283 decision artifacts, or the signed
+`HumanConfirmation@1`; both need a researcher decision before anything is
+applied.
+
+| Proposal | Open decision | Governing constraint |
+| :--- | :--- | :--- |
+| [`proposals/INC-03_redaction_amendment.md`](proposals/INC-03_redaction_amendment.md) | consent (**A**) vs redacted publication rendering (**B**, recommended) for the unconsented co-reviewer names inside INC-03 | the names are embedded in every hashed batch file; editing the instrument would invalidate the signature |
+| [`proposals/F1_evidence_state_repair.md`](proposals/F1_evidence_state_repair.md) | freeze a v0.3.1 charting schema that couples `evidence_state` to content/provenance | no charting row may be accepted until F1 is repaired |
