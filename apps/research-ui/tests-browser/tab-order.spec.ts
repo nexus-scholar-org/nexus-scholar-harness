@@ -97,19 +97,19 @@ test.describe("rendered tab order", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   });
 
-  test("1440px: the mobile disclosure is display:none, so the ring is [skip, Overview, Screening, Corpus, three locales]", async ({
+  test("1440px: the mobile disclosure is display:none, so the ring is [skip, Overview, Screening, Corpus, Audit, three locales]", async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
 
-    const ring = await measureTabRing(page, 9, "en");
+    const ring = await measureTabRing(page, 10, "en");
     const order = ring.map(describeStop);
     report(`1440px/en tab ring = ${JSON.stringify(order)}`);
 
-    // Three of the five nav entries are links: packet UI-04 routed the
-    // screening surface and packet UI-08 routed the corpus surface;
-    // `Evidence` and `Audit` are still deliberately non-interactive "not yet
-    // available" spans, so the next stop after `Corpus` is the selector's
+    // Four of the five nav entries are links: packet UI-04 routed the
+    // screening surface, packet UI-08 the corpus surface and packet UI-06 the
+    // audit surface; `Evidence` is still a deliberately non-interactive "not
+    // yet available" span, so the next stop after `Audit` is the selector's
     // first language link. The mobile disclosure is `display: none` at this
     // width and therefore absent from the ring entirely.
     expect(order).toEqual([
@@ -117,6 +117,7 @@ test.describe("rendered tab order", () => {
       `a:${CATALOGS.en["nav.overview"]}`,
       `a:${CATALOGS.en["nav.screening"]}`,
       `a:${CATALOGS.en["nav.corpus"]}`,
+      `a:${CATALOGS.en["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
     ]);
     expect(ring.some((stop) => stop.inMobileDisclosure)).toBe(false);
@@ -128,7 +129,7 @@ test.describe("rendered tab order", () => {
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
 
-    const ring = await measureTabRing(page, 9, "ar");
+    const ring = await measureTabRing(page, 10, "ar");
     const order = ring.map(describeStop);
     report(`1440px/ar tab ring = ${JSON.stringify(order)}`);
 
@@ -137,6 +138,7 @@ test.describe("rendered tab order", () => {
       `a:${CATALOGS.ar["nav.overview"]}`,
       `a:${CATALOGS.ar["nav.screening"]}`,
       `a:${CATALOGS.ar["nav.corpus"]}`,
+      `a:${CATALOGS.ar["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
     ]);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -154,12 +156,12 @@ test.describe("rendered tab order — the screening workspace", () => {
   const RADIO = "input:screening-decision-include";
   const REASON = "textarea:screening-reason";
 
-  test("1440px/en: [skip, Overview, Screening, Corpus, three locales, include radio, reason field]", async ({
+  test("1440px/en: [skip, Overview, Screening, Corpus, Audit, three locales, include radio, reason field]", async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
 
-    const ring = await measureTabRing(page, 11, "en", "/screening");
+    const ring = await measureTabRing(page, 12, "en", "/screening");
     const order = ring.map((stop) => (stop.focusId === "" ? describeStop(stop) : `${stop.tag}:${stop.focusId}`));
     report(`1440px/en/screening tab ring = ${JSON.stringify(ring.map(describeStop))}`);
 
@@ -168,6 +170,7 @@ test.describe("rendered tab order — the screening workspace", () => {
       `a:${CATALOGS.en["nav.overview"]}`,
       `a:${CATALOGS.en["nav.screening"]}`,
       `a:${CATALOGS.en["nav.corpus"]}`,
+      `a:${CATALOGS.en["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
       RADIO,
       REASON,

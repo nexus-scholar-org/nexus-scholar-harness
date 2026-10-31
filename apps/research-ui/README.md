@@ -27,6 +27,29 @@ record of what it measured and what is still open.
 
 Do not commit `node_modules/` or `.next/`; both are ignored.
 
+## Live data and the console proxy
+
+Every screen defaults to labelled demonstration data and performs no request.
+Append `?source=live` to read the local Harness Console instead:
+
+```powershell
+# terminal 1 — the backend
+uv run scholar-harness serve --workspace workspaces/uav-crop-weed-v03 --port 8765
+# terminal 2 — the product surface
+cd apps/research-ui && npm run dev
+# then open http://localhost:3000/en/screening?source=live
+```
+
+Reads and the allowlisted screening POSTs go to this application's own origin
+at `/api/console/...`; the route handler
+`app/api/console/[...path]/route.ts` forwards them server-side. Set
+`NEXUS_CONSOLE_URL` to move that upstream (it must be a plain loopback
+`http(s)` origin; default `http://127.0.0.1:8765`). The browser never sees the
+console's port, and the console's GET-only CORS policy stays as reviewed.
+
+`?console=http://127.0.0.1:8765` is a test-only override for pointing a live
+screen at a console directly; it is not part of normal use.
+
 ## Visual direction
 
 [`VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md) is the design system of record for

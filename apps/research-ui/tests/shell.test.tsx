@@ -239,13 +239,14 @@ describe("application shell (UI-01)", () => {
   });
 
   it("offers exactly the links that exist, in every locale", () => {
-    // The only seven links on the route: the skip link, the three routes that
+    // The only eight links on the route: the skip link, the four routes that
     // exist (overview and screening since packet UI-04, corpus since packet
-    // UI-08), and the three locale links. Anything else would be a dead-route fiction or a locale link
-    // outside the header.
+    // UI-08, audit since packet UI-06), and the three locale links. Anything
+    // else would be a dead-route fiction or a locale link outside the header.
     //
-    // The rendered Overview href is `/${locale}` and the rendered Screening and
-    // Corpus hrefs are `/${locale}/screening` and `/${locale}/corpus`, all
+    // The rendered Overview href is `/${locale}` and the rendered Screening,
+    // Corpus and Audit hrefs are `/${locale}/screening`, `/${locale}/corpus`
+    // and `/${locale}/audit`, all
     // computed at render from the item's declared suffix, while `PRIMARY_NAV_ITEMS[0].href` stays the frozen
     // sentinel `"/"` — see the frozen-field table in `UI-01D_WORK_PACKET.md`
     // §4.1. Asserting all three locales here is what stops the sentinel from
@@ -263,6 +264,7 @@ describe("application shell (UI-01)", () => {
         `/${locale}`,
         `/${locale}/screening`,
         `/${locale}/corpus`,
+        `/${locale}/audit`,
         ...SUPPORTED_LOCALES.map((code) => `/${code}`),
       ]);
 

@@ -1,7 +1,7 @@
 /**
  * The English catalog — structural source of truth (D-I18N-03).
  *
- * This file defines the 117 keys that `fr.ts` and `ar.ts` must mirror exactly
+ * This file defines the 137 keys that `fr.ts` and `ar.ts` must mirror exactly
  * (compile-time via `Record<MessageKey, string>` and runtime via
  * `tests/i18n-catalog.test.ts`). A key added, removed, or misspelled here
  * cascades as a `tsc` error in the translations and a test failure in the
@@ -204,6 +204,30 @@ export const en = {
     "Demonstration corpus: the rows below are fixtures, not a workspace.",
   "corpus.liveUnavailable": "Live data unavailable",
   "corpus.liveEmpty": "The console reports no screening corpus for this workspace.",
+  "audit.eyebrow": "Audit activity",
+  "audit.heading": "What the harness recorded",
+  "audit.lede":
+    "A recorded-event feed: who acted, what was done, on which object, and with what outcome. This page prints events; it does not create, edit, reorder, or retime them.",
+  "audit.fixtureLede":
+    "Demonstration feed: the events below are examples, not a workspace journal.",
+  "audit.liveLede":
+    "Live feed: the events below were read from this workspace's audit journal through the same-origin console proxy.",
+  "audit.liveStamp": "Live console data",
+  "audit.liveUnavailable": "Live data unavailable",
+  "audit.feedHeading": "Recorded events",
+  "audit.newestNote":
+    "Newest first, exactly as the journal stored them. A line the console could not parse is skipped there and is not repaired here.",
+  "audit.countLabel": "Events in this view",
+  "audit.empty": "The journal holds no events for this view.",
+  "audit.showMore": "Show earlier events",
+  "audit.technical": "Technical provenance",
+  "audit.timestampLabel": "Timestamp",
+  "audit.eventIdLabel": "Event ID",
+  "audit.actionLabel": "Action",
+  "audit.notRecorded": "Not recorded",
+  "audit.noAgent": "No agent recorded",
+  "audit.noDescription": "No description recorded",
+  "audit.noStatus": "No status recorded",
 } as const;
 
 export type MessageKey = keyof typeof en;

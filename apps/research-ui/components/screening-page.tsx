@@ -11,7 +11,7 @@ import {
   getPublicationStatus,
   getScreeningBatches,
   isScreeningApiError,
-  normalizeConsoleOrigin,
+  consoleBase,
   postDeferBatch,
   postPairingRedeem,
   postPublishScreening,
@@ -129,7 +129,7 @@ function readLiveOrigin(): string | null {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
   if (params.get("source") !== "live") return null;
-  return params.get("console") ?? "http://127.0.0.1:8765";
+  return params.get("console") ?? "";
 }
 
 function decisionLabel(locale: Locale, decision: string): string {
@@ -557,7 +557,7 @@ export function ScreeningPage({ locale }: Readonly<{ locale: Locale }>) {
     if (rawOrigin === null) return;
     let origin: string;
     try {
-      origin = normalizeConsoleOrigin(rawOrigin);
+      origin = consoleBase(rawOrigin);
     } catch (error: unknown) {
       const failure: ScreeningApiError = error as ScreeningApiError;
       setMode({ kind: "live", origin: rawOrigin });

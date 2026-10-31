@@ -21,15 +21,18 @@ export interface PrimaryNavItem {
  * The surfaces that actually exist as packets, and nothing beyond them.
  *
  * `overview` has always carried a route (`/`, and since packet UI-01d the
- * locale-prefixed `/en`, `/fr`, `/ar`), and packet **UI-04 added the second
- * one**: `screening` now resolves to `/${locale}/screening`, so it carries an
- * `href` too and is rendered as a real link. `evidence` and `audit` are packets
- * UI-05 and UI-06; they still carry no `href` on purpose so the navigation
- * cannot present a dead route as a working link.
+ * locale-prefixed `/en`, `/fr`, `/ar`). Packet **UI-04 added the second one**:
+ * `screening` resolves to `/${locale}/screening`. Packet **UI-08 added the
+ * third**, `corpus`, and packet **UI-06 the fourth**, `audit`
+ * (`/${locale}/audit`). Each of those carries an `href` because its route
+ * exists, and is rendered as a real link.
+ *
+ * `evidence` (packet UI-05) still carries no `href` on purpose so the
+ * navigation cannot present a dead route as a working link.
  *
  * The `href` field is the "which route exists" declaration, and it is what
  * `tests/shell.test.tsx` uses to pick the no-route entries (its *absence* on
- * `evidence` and `audit`). It stays a root-relative suffix rather than a fully
+ * `evidence`). It stays a root-relative suffix rather than a fully
  * rendered URL: the rendered href is computed at render time from the locale,
  * below, and asserted for all three locales so a sentinel or a bare root link
  * can never reach the document. Every field here remains a declared surface —
@@ -51,7 +54,7 @@ export const PRIMARY_NAV_ITEMS: readonly PrimaryNavItem[] = [
   { id: "screening", label: "Screening", href: "/screening" },
   { id: "corpus", label: "Corpus", href: "/corpus" },
   { id: "evidence", label: "Evidence" },
-  { id: "audit", label: "Audit" },
+  { id: "audit", label: "Audit", href: "/audit" },
 ];
 
 /**

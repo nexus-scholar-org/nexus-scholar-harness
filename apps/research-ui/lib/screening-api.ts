@@ -240,6 +240,30 @@ export function isScreeningApiError(value: unknown): value is ScreeningApiError 
   return value instanceof ScreeningApiError;
 }
 
+/**
+ * The same-origin path the browser uses to reach the console.
+ *
+ * The Next route handler at `app/api/console/[...path]/route.ts` forwards the
+ * request to `NEXUS_CONSOLE_URL` (loopback only) and returns the console's
+ * answer unchanged. The browser therefore never learns the console's port,
+ * and the console's GET-only CORS policy stays exactly as reviewed.
+ */
+export const CONSOLE_PROXY_PREFIX = "/api/console";
+
+/**
+ * The prefix a console read is issued against.
+ *
+ * `""` is the proxy: the reader asked for live data without naming a console,
+ * so the request goes to this application's own origin and the server route
+ * resolves it. An explicit `http(s)://host` stays supported for the
+ * in-process tests and for a deliberately separate console; it is validated
+ * exactly as before.
+ */
+export function consoleBase(origin: string): string {
+  if (origin.trim() === "") return CONSOLE_PROXY_PREFIX;
+  return normalizeConsoleOrigin(origin);
+}
+
 /** The console origin under test, without a trailing mark. */
 export function normalizeConsoleOrigin(origin: string): string {
   const trimmed = origin.trim().replace(/\/+$/, "");
@@ -295,11 +319,11 @@ async function readJson<T>(path: string, origin: string, signal?: AbortSignal): 
 }
 
 export function getProjectSummary(origin: string, signal?: AbortSignal): Promise<ProjectSummary> {
-  return readJson<ProjectSummary>("/api/v1/ui/project-summary", normalizeConsoleOrigin(origin), signal);
+  return readJson<ProjectSummary>("/api/v1/ui/project-summary", consoleBase(origin), signal);
 }
 
 export function getPublicationStatus(origin: string, signal?: AbortSignal): Promise<PublicationStatus> {
-  return readJson<PublicationStatus>("/api/v1/ui/publication-status", normalizeConsoleOrigin(origin), signal);
+  return readJson<PublicationStatus>("/api/v1/ui/publication-status", consoleBase(origin), signal);
 }
 
 export function getPublicationOutput(
@@ -309,13 +333,13 @@ export function getPublicationOutput(
 ): Promise<PublicationOutput> {
   return readJson<PublicationOutput>(
     `/api/v1/ui/publication/outputs/${name}`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
 
 export function getScreeningBatches(origin: string, signal?: AbortSignal): Promise<ScreeningBatches> {
-  return readJson<ScreeningBatches>("/api/v1/screening/ui/batches", normalizeConsoleOrigin(origin), signal);
+  return readJson<ScreeningBatches>("/api/v1/screening/ui/batches", consoleBase(origin), signal);
 }
 
 /**
@@ -326,7 +350,7 @@ export function getScreeningBatches(origin: string, signal?: AbortSignal): Promi
  * never counts the rows it happens to have loaded.
  */
 export function getWorkspaceStatus(origin: string, signal?: AbortSignal): Promise<WorkspaceStatus> {
-  return readJson<WorkspaceStatus>("/api/v1/workspace/status", normalizeConsoleOrigin(origin), signal);
+  return readJson<WorkspaceStatus>("/api/v1/workspace/status", consoleBase(origin), signal);
 }
 
 /**
@@ -341,7 +365,7 @@ export function getCorpusRecords(
   origin: string,
   signal?: AbortSignal,
 ): Promise<CorpusRecord[]> {
-  return readJson<CorpusRecord[]>(`/api/v1/literature/${kind}`, normalizeConsoleOrigin(origin), signal);
+  return readJson<CorpusRecord[]>(`/api/v1/literature/${kind}`, consoleBase(origin), signal);
 }
 
 export function getBatchRows(
@@ -356,7 +380,7 @@ export function getBatchRows(
   const suffix = query.size > 0 ? `?${query.toString()}` : "";
   return readJson<ScreeningRows>(
     `/api/v1/screening/ui/batch/${batchIndex}/rows${suffix}`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
@@ -368,7 +392,7 @@ export function getBatchReview(
 ): Promise<ReviewState> {
   return readJson<ReviewState>(
     `/api/v1/screening/ui/batch/${batchIndex}/review`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
@@ -380,7 +404,7 @@ export function getCriterionRefs(
 ): Promise<CriterionRefs> {
   return readJson<CriterionRefs>(
     `/api/v1/screening/ui/batch/${batchIndex}/criterion-refs`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
@@ -398,7 +422,7 @@ export function getAuditFeed(
   const suffix = query.size > 0 ? `?${query.toString()}` : "";
   return readJson<AuditFeed>(
     `/api/v1/screening/ui/audit-feed${suffix}`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
@@ -516,7 +540,7 @@ export function getLineageTrace(
   else query.set("chunk_id", selector.chunk_id);
   return readJson<LineageTrace>(
     `/api/v1/ui/lineage?${query.toString()}`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
@@ -598,7 +622,7 @@ export interface DraftResult {
 async function postJson<T>(path: string, origin: string, body: unknown, signal?: AbortSignal): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${origin}${path}`, {
+    response = await fetch(`${consoleBase(origin)}${path}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
@@ -652,7 +676,7 @@ export function getPairingStatus(
   if (requestId !== undefined) query.set("request_id", requestId);
   return readJson<PairingStatus>(
     `/api/v1/screening/actions/pairing/status?${query.toString()}`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     signal,
   );
 }
@@ -666,7 +690,7 @@ export function postPairingRedeem(
 ): Promise<RedeemResult> {
   return postJson<RedeemResult>(
     "/api/v1/screening/actions/pairing/redeem",
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     { batch: batchIndex, code, request_id: options?.requestId ?? null },
     signal,
   );
@@ -680,7 +704,7 @@ export function postDraftDecisions(
 ): Promise<DraftResult> {
   return postJson<DraftResult>(
     `/api/v1/screening/batch/${batchIndex}/decisions`,
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     { batch: batchIndex, reviewed_by: payload.reviewed_by ?? "console", decisions: payload.decisions },
     signal,
   );
@@ -695,7 +719,7 @@ export function postDeferBatch(
 ): Promise<DeferResult> {
   return postJson<DeferResult>(
     "/api/v1/screening/actions/defer",
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     { batch: batchIndex, reason, request_id: options?.requestId ?? null },
     signal,
   );
@@ -708,7 +732,7 @@ export function postPublishScreening(
 ): Promise<PublishResult> {
   return postJson<PublishResult>(
     "/api/v1/screening/actions/publish",
-    normalizeConsoleOrigin(origin),
+    consoleBase(origin),
     { request_id: options?.requestId ?? null },
     signal,
   );

@@ -427,7 +427,7 @@ function readLiveRequest(): { origin: string; selector: LineageSelector } | null
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
   if (params.get("source") !== "live") return null;
-  const origin = params.get("console") ?? "http://127.0.0.1:8765";
+  const origin = params.get("console") ?? "";
   const claimId = params.get("claim_id") ?? "";
   const chunkId = params.get("chunk_id") ?? "";
   if (claimId !== "") return { origin, selector: { claim_id: claimId } };
