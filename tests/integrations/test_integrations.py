@@ -75,6 +75,30 @@ def test_latex_exporter(mock_workspace):
     assert "\\bibliography{references}" in content
 
 
+def test_latex_exporter_escapes_specials(tmp_path):
+    md_file = tmp_path / "review.md"
+    md_file.write_text(
+        "# Scope & Coverage\n\n"
+        "Accuracy rose 12% at p<0.05 with variable_name and {braces}.\n\n"
+        "## Details\n"
+        "See [SCI-000001#results#chk01].\n",
+        encoding="utf-8",
+    )
+    out = AcademicTypesettingExporter.export_latex(
+        md_file, tmp_path / "references.bib", tmp_path / "review.tex"
+    )
+    content = out.read_text(encoding="utf-8")
+
+    assert "\\section{Scope \\& Coverage}" in content
+    assert "12\\%" in content
+    assert "variable\\_name" in content
+    assert "\\{braces\\}" in content
+    assert "p\\textless{}0.05" in content
+    assert "\\cite{SCI_000001}" in content
+    # the generated commands themselves must not be escaped
+    assert "\\textbackslash{}section" not in content
+
+
 def test_typst_exporter(mock_workspace):
     md_file = mock_workspace / "synthesis" / "literature_review.md"
     bib_file = mock_workspace / "literature" / "references.bib"
