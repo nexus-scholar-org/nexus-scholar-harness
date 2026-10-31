@@ -92,8 +92,18 @@ function hits(files: string[], pattern: RegExp): string[] {
   return found;
 }
 
-/** `app/**` + `components/**`: the JSX-bearing source the UI ships. */
-const UI_SOURCE = [...sourceFiles("app"), ...sourceFiles("components")];
+/**
+ * `app/**` + `components/**`: the JSX-bearing source the UI ships.
+ *
+ * `app/api/**` is excluded because it holds server route handlers, not rendered
+ * UI. The console proxy there is *supposed* to reach the network (server-side,
+ * through `NEXUS_CONSOLE_URL`); the N12 rule below is about render-time client
+ * code reading a locale out of the browser or a request.
+ */
+const UI_SOURCE = [
+  ...sourceFiles("app").filter((file) => !file.startsWith("app/api/")),
+  ...sourceFiles("components"),
+];
 
 describe("direction and literal-string source guards", () => {
   it("reads the UI source it is meant to guard", () => {

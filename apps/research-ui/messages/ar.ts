@@ -163,6 +163,29 @@ const ar: Record<MessageKey, string> = {
   "corpus.fixtureLede": "مجموعة عرض توضيحي: الصفوف أدناه أمثلة وليست مساحة عمل.",
   "corpus.liveUnavailable": "تعذّر جلب البيانات المباشرة",
   "corpus.liveEmpty": "لا تبلغ المنصة عن أي مجموعة فرز لهذه المساحة.",
+  "audit.eyebrow": "نشاط التدقيق",
+  "audit.heading": "ما سجّلته المنصة",
+  "audit.lede":
+    "سجل أحداث مرتّب زمنيًا: من تصرّف، وما الذي جرى، وعلى أي كائن، وبأي نتيجة. تعرض هذه الصفحة الأحداث ولا تنشئها ولا تعدّلها ولا تعيد ترتيبها ولا تغيّر توقيتها.",
+  "audit.fixtureLede": "سجل عرض توضيحي: الأحداث أدناه أمثلة وليست سجل مساحة عمل.",
+  "audit.liveLede":
+    "سجل مباشر: قُرئت الأحداث أدناه من سجل التدقيق لهذه المساحة عبر وسيط المنصة من الأصل نفسه.",
+  "audit.liveStamp": "بيانات مباشرة من المنصة",
+  "audit.liveUnavailable": "تعذّر جلب البيانات المباشرة",
+  "audit.feedHeading": "الأحداث المسجّلة",
+  "audit.newestNote":
+    "الأحدث أولًا، كما حفظها السجل تمامًا. يُهمل الوسيط السطرَ الذي تعذّرت قراءته ولا يُصلح هنا.",
+  "audit.countLabel": "الأحداث في هذا العرض",
+  "audit.empty": "لا يحوي السجل أي حدث لهذا العرض.",
+  "audit.showMore": "عرض أحداث أقدم",
+  "audit.technical": "المصدر التقني",
+  "audit.timestampLabel": "الطابع الزمني",
+  "audit.eventIdLabel": "معرّف الحدث",
+  "audit.actionLabel": "الإجراء",
+  "audit.notRecorded": "غير مسجّل",
+  "audit.noAgent": "لا وكيل مسجّل",
+  "audit.noDescription": "لا وصف مسجّل",
+  "audit.noStatus": "لا نتيجة مسجّلة",
 };
 
 export default ar;

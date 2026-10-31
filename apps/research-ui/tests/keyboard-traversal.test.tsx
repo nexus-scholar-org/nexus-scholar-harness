@@ -47,11 +47,13 @@ function expectedTabStops(locale: Locale): string[] {
     `a:${CATALOGS[locale]["nav.overview"]}`,
     // Packet UI-04 routed the screening surface, so its nav entry is a real
     // link now — the tripwire is supposed to go red when that happens, and
-    // this line is where it was converted back to green. `nav.evidence` and
-    // `nav.audit` still contribute no stop; they are text, not anchors.
+    // this line is where it was converted back to green. `nav.evidence` still
+    // contributes no stop; it is text, not an anchor.
     `a:${CATALOGS[locale]["nav.screening"]}`,
     // Packet UI-08 routed the corpus surface, so it is a real link too.
     `a:${CATALOGS[locale]["nav.corpus"]}`,
+    // Packet UI-06 routed the audit surface, so it is a real link too.
+    `a:${CATALOGS[locale]["nav.audit"]}`,
     `button:${CATALOGS[locale]["a11y.openMainNavigation"]}`,
     ...SUPPORTED_LOCALES.map((code) => `a:${LOCALE_METADATA[code].endonym}`),
   ];
@@ -142,10 +144,10 @@ describe("keyboard traversal", () => {
       // viewport produces all of them: `primary-nav.tsx` is `hidden lg:block` and
       // `mobile-nav.tsx` is `lg:hidden`, and `display: none` removes an element
       // from the focus order. At 375px the real order is
-      // [skip, trigger, English, Français, العربية] (the `Overview` and
-      // `Screening` links are not tab stops); at >=1024px it is [skip, Overview,
-      // Screening, English, Français, العربية] (the trigger is not a tab stop).
-      // jsdom applies no stylesheet, so it reports all seven at once. See
+      // [skip, trigger, English, Français, العربية] (the route links are not tab
+      // stops); at >=1024px it is [skip, Overview, Screening, Corpus, Audit,
+      // English, Français, العربية] (the trigger is not a tab stop).
+      // jsdom applies no stylesheet, so it reports all eight at once. See
       // `GATES.md` §3.
       //
       // This union is deliberately the assertion: it is the converted tripwire, so

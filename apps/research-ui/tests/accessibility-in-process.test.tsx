@@ -3,6 +3,7 @@ import axe from "axe-core";
 import type { AxeResults, ImpactValue, Result } from "axe-core";
 import { describe, expect, it } from "vitest";
 
+import { AuditPage } from "@/components/audit-page";
 import { CorpusPage } from "@/components/corpus-page";
 import { OverviewPage } from "@/components/overview-page";
 
@@ -96,6 +97,15 @@ describe("in-process accessibility (jsdom + axe-core)", () => {
 
   it("reports zero critical and zero serious violations on the rendered corpus page", async () => {
     const { container } = render(<CorpusPage locale="en" />);
+
+    const results = await axe.run(container);
+
+    expect(results.violations.length + results.incomplete.length + results.passes.length).toBeGreaterThan(0);
+    expect(blockingViolations(results).map(describeViolation)).toEqual([]);
+  });
+
+  it("reports zero critical and zero serious violations on the rendered audit page", async () => {
+    const { container } = render(<AuditPage locale="en" />);
 
     const results = await axe.run(container);
 

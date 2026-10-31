@@ -285,6 +285,16 @@ authoritative research artifacts.
 
 ## UI-06 — Audit activity
 
+**Implemented 2026-10-31.** Route `/[locale]/audit`, presented as **Audit** in
+the primary navigation. The default source is the demonstration feed under
+`lib/mock-audit.ts`; `?source=live` reads
+`GET /api/v1/screening/ui/audit-feed` through the same-origin console proxy
+(below), newest-first exactly as the console returns it. Each row shows the
+stored action, actor, description and status verbatim; the exact timestamp and
+event id sit behind a "Technical provenance" disclosure. A missing actor,
+description or status is rendered as "not recorded" rather than inferred.
+`audit.showMore` grows the limit by 25 without reordering or merging pages.
+
 **Scope:** audit route and event presentation components.
 
 **Deliverable:** Human-readable chronological feed with actor, action, object, outcome, and expandable technical provenance.
@@ -292,6 +302,12 @@ authoritative research artifacts.
 **Negative cases:** UI does not rewrite, reorder, or append events; technical timestamps remain exact.
 
 **Gate:** Empty, mixed-outcome, and malformed-event fixtures.
+
+**Known gap:** committed Chromium captures for the audit route are not yet in
+`screenshots/` — the local machine lacks the Chromium system libraries
+(`libnspr4.so`). The route is covered in-process (component, i18n, keyboard,
+axe) and by `npm run build`; `tests-browser/tab-order.spec.ts` gains the Audit
+stop for CI.
 
 ## UI-07 — Presentation API specification
 
@@ -335,6 +351,36 @@ must issue GET only.
 (`libnspr4.so`), so `tests-browser/screenshots.spec.ts` was not extended. The
 route is covered in-process (component, i18n, keyboard, axe) and by
 `npm run build`.
+
+## UI-09 — Same-origin console proxy
+
+**Implemented 2026-10-31.** Route handler
+`app/api/console/[...path]/route.ts` forwards to `NEXUS_CONSOLE_URL`
+(default `http://127.0.0.1:8765`) so the browser never learns the console's
+port. The console's reviewed CORS policy (`allow_methods=["GET"]`) is **not**
+widened.
+
+Rules, each pinned by `tests/console-proxy.test.ts`:
+
+- upstream must be a plain loopback `http(s)` origin; a caller cannot name a
+  host, port or scheme;
+- only `/api/v1/...` paths with plain segments are forwarded (`400` otherwise);
+- GET/HEAD anywhere under that prefix; POST only for
+  `/api/v1/screening/batch/{n}/decisions` and
+  `/api/v1/screening/actions/(redeem|defer|publish)`. `/audit/events`,
+  `/jobs/start`, `/pipelines` POST and every other method are `405`;
+- the browser-only `console` query parameter is stripped, never forwarded;
+- upstream failure is a typed `502`, timeout a typed `504`.
+
+`?source=live` with no `console` parameter now means "this origin's proxy";
+an explicit `http(s)://host` stays supported for tests and a deliberately
+separate console.
+
+**Scope:** transport only. The `screening` draft/action screens still apply
+[`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md); the proxy adds no authority.
+
+**Negative cases:** no general-purpose pass-through, no browser-held pairing
+token, no direct console mutation from the browser.
 
 ## Prompt for a small UI agent
 

@@ -180,6 +180,30 @@ const fr: Record<MessageKey, string> = {
   "corpus.liveUnavailable": "Données en direct indisponibles",
   "corpus.liveEmpty":
     "La console ne signale aucun corpus de sélection pour cet espace de travail.",
+  "audit.eyebrow": "Activité du registre",
+  "audit.heading": "Ce que le harnais a consigné",
+  "audit.lede":
+    "Un flux d'événements consignés : qui a agi, ce qui a été fait, sur quel objet, et avec quel résultat. Cette page affiche les événements ; elle ne les crée pas, ne les modifie pas, ne les réordonne pas et n'en change pas l'heure.",
+  "audit.fixtureLede":
+    "Flux de démonstration : les événements ci-dessous sont des exemples, pas le journal d'un espace de travail.",
+  "audit.liveLede":
+    "Flux en direct : les événements ci-dessous ont été lus dans le journal d'audit de cet espace de travail via le relais de console de même origine.",
+  "audit.liveStamp": "Données en direct de la console",
+  "audit.liveUnavailable": "Données en direct indisponibles",
+  "audit.feedHeading": "Événements consignés",
+  "audit.newestNote":
+    "Du plus récent au plus ancien, exactement tels que le journal les a enregistrés. Une ligne illisible est ignorée par la console et n'est pas réparée ici.",
+  "audit.countLabel": "Événements dans cette vue",
+  "audit.empty": "Le journal ne contient aucun événement pour cette vue.",
+  "audit.showMore": "Afficher les événements plus anciens",
+  "audit.technical": "Provenance technique",
+  "audit.timestampLabel": "Horodatage",
+  "audit.eventIdLabel": "Identifiant d'événement",
+  "audit.actionLabel": "Opération",
+  "audit.notRecorded": "Non consigné",
+  "audit.noAgent": "Aucun agent consigné",
+  "audit.noDescription": "Aucune description consignée",
+  "audit.noStatus": "Aucun résultat consigné",
 };
 
 export default fr;
