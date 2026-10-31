@@ -15,7 +15,7 @@ Changes (v0.2 -> v0.3):
 4. Exclusion categories now carry reason codes aligned to the screening engine: EXC-01 WRONG_PLATFORM (with proximal/ground dataset list), EXC-02 WRONG_TASK (with explicit non-target tasks), EXC-03 WRONG_REPORT_TYPE (with the safeguard that abstract=null or failed retrieval is NOT this exclusion), EXC-04 OUTSIDE_DATE_LANGUAGE.
 5. INC-03 now embeds the Option C screening design (single lead reviewer confirming agent triage, ~10% random + boundary-exclude verification by two named co-reviewers). FLAGGED (orchestrator opinion, pending researcher decision): process/administrative text inside an eligibility criterion mixes eligibility with workflow administration and embeds unconsented reviewer names in an artifact headed for a public-bound branch; recommend moving that sentence to a screening-design column/section before freeze. Consent gates (demo Scene 9) are unchanged.
 6. `golden_seeds`: present in the hand-drafted v0.3 `protocol.json` but dropped by the deterministic compiler (by design); seeds carried in `SEARCH_STRATEGY.md` here + pilot calibration sentinels and consumed via `scholar-search validate-query`. A passthrough change to the compiler is a kit-repo stream (ownership gate; parked).
-7. Charting: two competing drafts exist — pilot `charting sidecar v0.2` (state-coupled envelope cells, fingerprint-const bound) and v0.3 draft hosted here (per-dimension domain-enum-rich rows, no fingerprint const, no state coupling). The v0.3 sidecar is DRAFT; pilot v0.2 sidecar remains normative for anything charted in the parent workspace. Known v0.3 draft gap: evidence_state↔content conditional coupling is NOT enforced (synthetic negative N1 accepted) — import the v0.2 cell logic before freeze or consciously accept the weaker binding.
+7. Charting: pilot `charting sidecar v0.2` (state-coupled envelope cells, fingerprint-const bound) remains normative for anything charted in the parent workspace. The v0.3 line was drafted here with per-dimension domain-enum-rich rows but no state coupling; that gap (F1) was **repaired and frozen as v0.3.1 on 2026-10-31**: `evidence_state` now governs content and provenance, the v0.2 cell logic was imported as per-dimension conditional shapes, and the negative matrix refuses every populated-under-absence case. See `validation_v031.json`.
 8. No studies were screened under v0.3, so no rescreening obligations arise. v0.2-era artifacts everywhere remain untouched and byte-preserved.
 
 Machine gate: strict validation VALID (0 errors, 0 warnings), deterministic recompile identical, canonical fingerprint recorded, canonical draft-vs-compiled divergence list recorded in `validation.json`.
@@ -39,7 +39,7 @@ Decisions taken at freeze:
 | Final cutoff | `2026-10-17T23:59:59Z` (last executed search/harvest day, R3/r3d lineage) | Window end is now recorded; `protocol.json` still says "through the recorded final search cutoff", which resolves to this date |
 | INC-03 (flagged in §5 above) | **Freeze the bytes as-is**; record the flaw as an accepted limitation | Preserves the criteria hash that the decision artifacts attest. **Resolved 2026-10-31:** both named co-reviewers consented to be published with their role, so the publication/export block on the frozen protocol text is **lifted**. Frozen bytes are unchanged; the workflow-inside-eligibility coupling remains a recorded quality limitation. See [`consent/INC-03_consent_and_conduct_record.md`](consent/INC-03_consent_and_conduct_record.md) |
 | Reviewer design | Option C **executed** per researcher attestation; consent **recorded 2026-10-31**; independent third-party review of the whole corpus **not claimed** | Protocol freeze ≠ screening confirmation. A `HumanConfirmation@1` signature exists (2026-10-31, Mouadh BEKHOUCHE, 283 artifacts / 14,150 decisions, fingerprint `e1f51ffe…f876800`); the signer is the researcher, so this records reviewed acceptance, **not** independent third-party review. Co-reviewer verification is recorded separately in [`consent/INC-03_consent_and_conduct_record.md`](consent/INC-03_consent_and_conduct_record.md) as attested, not stored as a sampling log |
-| Charting binding | v0.3 draft `charting.schema.json` frozen **with** accepted limitation F1 | F1 (no `evidence_state`↔content coupling) is unresolved: **no charting rows may be accepted for the v0.3 pilot** until repaired; charting pilots continue on the v0.2 sidecar |
+| Charting binding | v0.3.0 frozen 2026-10-29 with accepted limitation F1; **repaired in v0.3.1 on 2026-10-31** | F1 (no `evidence_state`↔content coupling) is **repaired**: the schema now couples state to values and provenance, with a 44-case matrix (13 dimensions × populated-under-absence, targeted negatives, one v0.3.0-accepted regression fixture). SHA-256 `91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42`. Charting rows may now be produced under v0.3.1 (none accepted yet) |
 | Search completeness | HTTP 429 S2 quota wall recorded; freeze r3 lineage | PRISMA-ScR search log must state the provider wall |
 
 Gates re-verified on 2026-10-29:
@@ -204,10 +204,18 @@ applied.
   be published with their role; the Option C conduct is attested as executed.
   The publication block is lifted without editing the frozen instrument. No
   hash changed.
-- **Still open:** charting F1 repair (see
-  [`proposals/F1_evidence_state_repair.md`](proposals/F1_evidence_state_repair.md)),
-  and a confirmed export with real synthesis content.
+- **Charting F1 repaired and frozen as v0.3.1.** All four design decisions were
+  taken (tri-state booleans, absence enums removed from `data_availability` /
+  `code_availability`, two anchors + narrative for `conflicting`, publication
+  type kept required). SHA-256 `91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42`; the v0.3.0 bytes are retained as
+  `audit/charting_schema_v030_superseded.json`. Record:
+  [`validation_v031.json`](validation_v031.json); matrix:
+  `audit/charting_validation_matrix_v031.json` (44/44). No charting row has been
+  charted under it yet.
+- **Still open:** a confirmed export with real synthesis content (the export gate
+  itself is proven).
 
-`validation.json` is the **2026-10-29 freeze snapshot** and still lists the
-confirmation and consent as outstanding. It is kept as-is on purpose: it records
-what was true at freeze. The resolutions above supersede it.
+`validation.json` is the **2026-10-29 protocol freeze snapshot** and still lists
+the confirmation, consent, and F1 gap as outstanding. It is kept as-is on purpose:
+it records what was true at freeze. The resolutions above supersede it, and the
+charting instrument has its own freeze record in `validation_v031.json`.

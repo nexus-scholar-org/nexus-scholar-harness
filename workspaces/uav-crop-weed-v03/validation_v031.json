@@ -1,0 +1,35 @@
+{
+  "$comment": "2026-10-29 validation.json is the protocol freeze snapshot and is deliberately unchanged. This file records the charting instrument v0.3.1 freeze that repairs limitation F1.",
+  "checked_at": "2026-10-31",
+  "instrument": "charting.schema.json",
+  "schema_version": "v0.3.1",
+  "schema_sha256": "91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42",
+  "superseded_version": "v0.3.0",
+  "superseded_sha256": "02eaf2cee7af43390ab91b11e1831a4d98fdb0c7f99b9ef113abd69111cace85",
+  "superseded_copy": "audit/charting_schema_v030_superseded.json",
+  "limitation_repaired": "F1 \u2014 evidence_state was not coupled to dimension content or provenance",
+  "decisions": {
+    "boolean_encoding": "tri-state true|false|null for the six boolean fields (null required in non-reported states)",
+    "open_science_enums": "removed the not_reported member from data_availability and code_availability; absence is carried by evidence_state",
+    "conflict_anchoring": "conflicting requires >=2 content anchors (provenance + additional_provenance) and a narrative_summary; no value may be asserted",
+    "publication_type": "study_reports.primary_publication_type stays required and non-null in every state (bibliographic metadata, not a finding)"
+  },
+  "test_matrix": {
+    "file": "audit/charting_validation_matrix_v031.json",
+    "driver": "_drivers/v031_schema_validation_matrix.py",
+    "total": 44,
+    "passed": 44,
+    "failed": 0,
+    "regression": "a row accepted by v0.3.0 is refused by v0.3.1 (R1)"
+  },
+  "unchanged": {
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
+    "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
+    "human_confirmation_fingerprint": "e1f51ffcecc00deb58816fa162a68fbc6c756dafdac920b6a639080e4f876800",
+    "charting_rows_accepted": 0
+  },
+  "outstanding": [
+    "no charting row has been produced under v0.3.1 yet; the first dual-coded rows are the acceptance test for the codebook wording",
+    "the v0.2 positive-translation check is limited to the design; no v0.2 row has been mechanically translated yet"
+  ]
+}

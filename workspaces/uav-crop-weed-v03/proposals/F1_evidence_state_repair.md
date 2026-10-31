@@ -1,9 +1,15 @@
-# Charting limitation F1 — repair design (DRAFT, NOT FROZEN)
+# Charting limitation F1 — repair design (APPLIED AS v0.3.1, 2026-10-31)
 
-**Status:** design proposal for researcher review and a new freeze. The frozen
-`charting.schema.json` (`02eaf2ce…ace85`) is unchanged, and **no charting row may
-be accepted** under this draft until it is reviewed, frozen, and its hash
-recorded.
+**Status: applied and frozen.** The four open decisions were taken on
+2026-10-31 — tri-state `null` booleans, `not_reported` removed from the
+`open_science` availability enums, two content anchors plus a narrative for
+`conflicting`, and `primary_publication_type` kept required in every state. The
+result is `charting.schema.json` v0.3.1 (SHA-256 `91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42`), with the v0.3.0 bytes
+retained as `audit/charting_schema_v030_superseded.json`. The freeze record is
+`validation_v031.json`; the 44-case matrix is
+`audit/charting_validation_matrix_v031.json`. The body below is kept as the
+design record, so its "DRAFT, NOT FROZEN" wording and "decision requested"
+sections describe the pre-freeze state.
 
 ## The defect (as recorded at freeze)
 
