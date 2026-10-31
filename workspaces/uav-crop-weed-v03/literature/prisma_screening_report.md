@@ -49,7 +49,7 @@ graph TD
 
 ## Limitations
 
-- All decisions are **agent** decisions. `HumanConfirmation@1` is unsigned; no independent human review is claimed.
+- All decisions were produced by **agents** (`FINAL_AGENT_UNCONFIRMED` provenance). `HumanConfirmation@1` was signed on 2026-10-31 by **Mouadh BEKHOUCHE** (PhD student, University of Oum El Bouaghi, lead_reviewer) over all 283 decision artifacts / 14,150 decisions; record: `literature/screening/HUMAN_CONFIRMATION.json`. The signer is the researcher: this records reviewed acceptance, not independent third-party review.
 - DEV-01: records lacking a usable abstract are excluded as *not retrieved* per a delegated researcher instruction; this deviates from INC-02/EXC-03 and is reported above rather than hidden in the exclusion total.
 - Search coverage is bounded by the recorded provider wall (Semantic Scholar HTTP 429); the corpus is the r3d union (14,413 records, 14,150 after dedup).
 - Charting is frozen with limitation F1 and produced no accepted rows.
