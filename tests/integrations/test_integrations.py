@@ -99,6 +99,67 @@ def test_latex_exporter_escapes_specials(tmp_path):
     assert "\\textbackslash{}section" not in content
 
 
+def test_latex_exporter_converts_lists_and_tables(tmp_path):
+    md_file = tmp_path / "review.md"
+    md_file.write_text(
+        "# Findings\n\n"
+        "- First item with 50% and variable_name.\n"
+        "- Second item with **bold** text.\n\n"
+        "1. Numbered one\n"
+        "2. Numbered two\n\n"
+        "- Parent item\n"
+        "  - Nested item\n\n"
+        "| Method | Accuracy | Note |\n"
+        "|:-------|---------:|:----:|\n"
+        "| RGB | 90% | baseline |\n"
+        "| NIR | 95% | **best** |\n",
+        encoding="utf-8",
+    )
+    out = AcademicTypesettingExporter.export_latex(
+        md_file, tmp_path / "missing.bib", tmp_path / "review.tex"
+    )
+    content = out.read_text(encoding="utf-8")
+
+    # Unordered list, with escaped prose and bold conversion inside the item.
+    assert "\\begin{itemize}" in content
+    assert "\\item First item with 50\\% and variable\\_name." in content
+    assert "\\item Second item with \\textbf{bold} text." in content
+    # Numbered list.
+    assert "\\begin{enumerate}" in content
+    assert "\\item Numbered one" in content
+    # Two top-level bullet lists plus one nested list.
+    assert content.count("\\begin{itemize}") == 3
+    assert "\\item Nested item" in content
+    assert content.index("\\item Parent item") < content.index("\\item Nested item")
+    # Table with alignment derived from the separator row.
+    assert "\\begin{tabular}{lrc}" in content
+    assert "Method & Accuracy & Note \\\\" in content
+    assert "RGB & 90\\% & baseline \\\\" in content
+    assert "NIR & 95\\% & \\textbf{best} \\\\" in content
+    assert "|:-------|" not in content
+
+
+def test_exporters_omit_missing_bibliography(tmp_path):
+    md_file = tmp_path / "review.md"
+    md_file.write_text(
+        "# Review\n\nA claim [SCI-000001] with 12% effect.\n", encoding="utf-8"
+    )
+    missing_bib = tmp_path / "does_not_exist.bib"
+
+    tex = AcademicTypesettingExporter.export_latex(
+        md_file, missing_bib, tmp_path / "review.tex"
+    ).read_text(encoding="utf-8")
+    assert "\\bibliography{" not in tex
+    assert "\\bibliographystyle{" not in tex
+    assert "bibliography omitted" in tex
+
+    typ = AcademicTypesettingExporter.export_typst(
+        md_file, missing_bib, tmp_path / "review.typ"
+    ).read_text(encoding="utf-8")
+    assert "#bibliography(" not in typ
+    assert "bibliography omitted" in typ
+
+
 def test_typst_exporter(mock_workspace):
     md_file = mock_workspace / "synthesis" / "literature_review.md"
     bib_file = mock_workspace / "literature" / "references.bib"
