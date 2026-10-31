@@ -5,7 +5,7 @@
   "title": "Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace",
   "description": "Dedicated host for protocol v0.3: keeps pilot v0.2 inputs byte-preserved; hosts intent v0.3, compiled protocol, rendered criteria, v0.3 charting drafts, and amendment lineage. Provenance: amendment of workspaces/uav-crop-weed-reliability protocol fingerprint sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451",
   "created_at": "2026-10-17T15:06:33.337622+00:00",
-  "updated_at": "2026-10-31T19:35:05.290484+00:00",
+  "updated_at": "2026-10-31T20:10:36.072946+00:00",
   "status": "active",
   "protocol_status": "FROZEN",
   "protocol_revision": "0.3",
@@ -41,10 +41,10 @@
     "scoping review"
   ],
   "stats": {
-    "discovered_papers": 0,
+    "discovered_papers": 14413,
     "verified_papers": 0,
-    "downloaded_pdfs": 0,
-    "extracted_markdowns": 0
+    "downloaded_pdfs": 9,
+    "extracted_markdowns": 9
   },
   "screening_status": "FINAL_AGENT_UNCONFIRMED",
   "human_confirmation": "SIGNED (HumanConfirmation@1, Mouadh BEKHOUCHE, PhD student, University of Oum El Bouaghi, lead_reviewer; 2026-10-31; 283 artifacts / 14150 decisions all confirmed; fingerprint e1f51ffcecc00deb58816fa162a68fbc6c756dafdac920b6a639080e4f876800)",
@@ -93,5 +93,32 @@
   },
   "charting_schema_version": "0.3.1",
   "charting_frozen_at": "2026-10-31T19:30:00+00:00",
-  "charting_f1_status": "repaired_2026-10-31"
+  "charting_f1_status": "repaired_2026-10-31",
+  "stats_note": "discovered = 14413 identified records (PRISMA flow); verified_papers stays 0 because verification hydration was never run as a tracked stage here (not inferred from abstracts); downloaded_pdfs and extracted_markdowns count the 2026-10-31 pilot only (9 of 644 included), not the full corpus.",
+  "post_freeze_amendments": [
+    {
+      "date": "2026-10-31",
+      "event_id": "EVT-20261031192619-e10b2a",
+      "item": "INC-03 reviewer consent",
+      "change": "Soumia Zertal and Fadhila Djenba consented (2026-10-31, email, researcher-attested) to being named with their role in the published protocol text; the publication/export block on that text is lifted.",
+      "unchanged": "frozen protocol bytes, criteria_sha256, all screening decision artifacts, HumanConfirmation@1",
+      "record": "consent/INC-03_consent_and_conduct_record.md"
+    },
+    {
+      "date": "2026-10-31",
+      "event_id": "EVT-20261031193505-550f84",
+      "item": "charting F1 repair",
+      "change": "charting.schema.json frozen as v0.3.1 (sha256 91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42); v0.3.0 retained as audit/charting_schema_v030_superseded.json. No study has been charted under v0.3.1 yet.",
+      "unchanged": "protocol, criteria, screening decisions, HumanConfirmation@1",
+      "record": "validation_v031.json"
+    },
+    {
+      "date": "2026-10-31",
+      "event_id": "EVT-20261031201006-710cfb",
+      "item": "pilot extraction and synthesis",
+      "change": "9 of 644 included studies extracted through the legacy PyMuPDF convenience path (non-authoritative; no Contract v1 screening_decisions artifact exists) and synthesized into synthesis/literature_review.md with 13 machine-verified verbatim quotes. SCI-000227 remains UNRESOLVED (downloader 404).",
+      "unchanged": "screening status FINAL_AGENT_UNCONFIRMED; no charting rows; no human review of the synthesis",
+      "record": "extracted/_pilot_manifest.json"
+    }
+  ]
 }

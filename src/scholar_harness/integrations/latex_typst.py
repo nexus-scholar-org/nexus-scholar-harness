@@ -9,6 +9,26 @@ from pathlib import Path
 class AcademicTypesettingExporter:
     """Converts grounded markdown synthesis and bibliographies into LaTeX and Typst."""
 
+    _LATEX_ESCAPES = {
+        "\\": r"\textbackslash{}",
+        "&": r"\&",
+        "%": r"\%",
+        "$": r"\$",
+        "#": r"\#",
+        "_": r"\_",
+        "{": r"\{",
+        "}": r"\}",
+        "~": r"\textasciitilde{}",
+        "^": r"\textasciicircum{}",
+        "<": r"\textless{}",
+        ">": r"\textgreater{}",
+    }
+
+    @classmethod
+    def _escape_latex(cls, text: str) -> str:
+        """Escape LaTeX specials in prose so %, _, &, # do not break compilation."""
+        return "".join(cls._LATEX_ESCAPES.get(ch, ch) for ch in text)
+
     @classmethod
     def export_latex(
         cls,
@@ -23,20 +43,44 @@ class AcademicTypesettingExporter:
 
         content = md_file.read_text(encoding="utf-8") if md_file.exists() else "# Literature Review\n\nNo synthesis found."
 
-        # 1. Transform atomic citation tokens [DOC_ID#SEC#CHK] or [SCI-XXXXXX] to \cite{...}
-        def cite_replacer(match: re.Match) -> str:
-            raw_token = match.group(1)
-            parts = raw_token.split("#")
-            cite_key = parts[0].replace("-", "_")
+        # 1. Protect citations and converted headers with placeholders, then
+        #    escape LaTeX specials in the prose, then restore. Escaping after
+        #    conversion would corrupt the commands; converting after escaping
+        #    would miss tokens that contain underscores or hashes.
+        tokens: list[str] = []
+
+        def stash_text(text: str) -> str:
+            tokens.append(text)
+            return f"\x00{len(tokens) - 1}\x00"
+
+        def stash(match: re.Match) -> str:
+            return stash_text(match.group(0))
+
+        def header_replacer(match: re.Match) -> str:
+            level = len(match.group(1))
+            command = {1: "section", 2: "subsection", 3: "subsubsection"}[level]
+            return stash_text(f"\\{command}{{{cls._escape_latex(match.group(2))}}}")
+
+        def restore(match: re.Match) -> str:
+            token = tokens[int(match.group(1))]
+            if token.startswith("\\"):
+                return token
+            if token.startswith("[SCI-") and "#" not in token:
+                return f"\\cite{{{token[1:-1]}}}"
+            cite_key = token[1:-1].split("#")[0].replace("-", "_")
             return f"\\cite{{{cite_key}}}"
 
-        latex_body = re.sub(r"\[([A-Za-z0-9\-_]+#[A-Za-z0-9\-_]+#[A-Za-z0-9\-_]+)\]", cite_replacer, content)
-        latex_body = re.sub(r"\[(SCI-\d+)\]", r"\\cite{\1}", latex_body)
-
-        # 2. Transform Markdown headers to LaTeX sections
-        latex_body = re.sub(r"^### (.*)$", r"\\subsubsection{\1}", latex_body, flags=re.MULTILINE)
-        latex_body = re.sub(r"^## (.*)$", r"\\subsection{\1}", latex_body, flags=re.MULTILINE)
-        latex_body = re.sub(r"^# (.*)$", r"\\section{\1}", latex_body, flags=re.MULTILINE)
+        latex_body = re.sub(
+            r"^(#{1,3}) (.*)$", header_replacer, content, flags=re.MULTILINE
+        )
+        latex_body = re.sub(
+            r"\[[A-Za-z0-9\-_]+#[A-Za-z0-9\-_]+#[A-Za-z0-9\-_]+\]",
+            stash,
+            latex_body,
+        )
+        latex_body = re.sub(r"\[(SCI-\d+)\]", stash, latex_body)
+        latex_body = cls._escape_latex(latex_body)
+        latex_body = re.sub(r"\x00(\d+)\x00", restore, latex_body)
 
         # 3. Transform bold/italic formatting
         latex_body = re.sub(r"\*\*(.*?)\*\*", r"\\textbf{\1}", latex_body)
