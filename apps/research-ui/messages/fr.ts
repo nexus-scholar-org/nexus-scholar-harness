@@ -187,7 +187,7 @@ const fr: Record<MessageKey, string> = {
   "audit.fixtureLede":
     "Flux de démonstration : les événements ci-dessous sont des exemples, pas le journal d'un espace de travail.",
   "audit.liveLede":
-    "Flux en direct : les événements ci-dessous ont été lus dans le journal d'audit de cet espace de travail via le relais de console de même origine.",
+    "Flux en direct : les événements ci-dessous ont été lus dans le journal d'audit de cet espace de travail via le relais de console de même origine, et s'actualisent lorsque l'espace de travail change.",
   "audit.liveStamp": "Données en direct de la console",
   "audit.liveUnavailable": "Données en direct indisponibles",
   "audit.feedHeading": "Événements consignés",

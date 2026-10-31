@@ -295,6 +295,16 @@ event id sit behind a "Technical provenance" disclosure. A missing actor,
 description or status is rendered as "not recorded" rather than inferred.
 `audit.showMore` grows the limit by 25 without reordering or merging pages.
 
+**Live tick refresh added 2026-10-31 (PR after #168).** In live mode the page
+opens one `EventSource` on `/api/v1/events/tick` through the same-origin proxy
+and re-reads the audit feed when the console reports a workspace change, so an
+agent appending to the journal appears without a manual reload. The tick is a
+hint, not authority: the re-read replaces the feed with exactly the bytes the
+console returns, newest-first. A tick that arrives before the first read is
+dropped (the read is already in flight), a failed re-read leaves the last
+successful feed on screen, and the stream is closed on unmount. The
+demonstration source opens no stream and sends no request.
+
 **Scope:** audit route and event presentation components.
 
 **Deliverable:** Human-readable chronological feed with actor, action, object, outcome, and expandable technical provenance.
