@@ -396,6 +396,19 @@ Rules, each pinned by `tests/console-proxy.test.ts`:
 - the browser-only `console` query parameter is stripped, never forwarded;
 - upstream failure is a typed `502`, timeout a typed `504`.
 
+**Streaming pass-through added 2026-10-31 (PR after #167).** The two console
+SSE routes — `GET /api/v1/jobs/{id}/stream` and `GET /api/v1/events/tick` — are
+returned to the browser as the upstream `ReadableStream` instead of being read
+with `upstream.text()`. The old behaviour buffered until the upstream closed,
+so a job stream only arrived when the job ended (and the 120 s read ceiling
+would cut it first). Stream responses now carry `cache-control: no-store` and
+`x-accel-buffering: no`, use the caller's abort signal instead of the timeout,
+and still need no CORS change and no new POST: `/jobs/start` remains `405`.
+Any upstream that answers `text/event-stream` is streamed even if the path is
+not one of the two known stream routes. Pinned by
+`tests/console-proxy.test.ts` (a never-closing upstream resolves, chunk order
+is preserved, cancellation propagates, abort signal is forwarded).
+
 `?source=live` with no `console` parameter now means "this origin's proxy";
 an explicit `http(s)://host` stays supported for tests and a deliberately
 separate console.
