@@ -14,14 +14,14 @@ src/scholar_harness/console/
 │   ├── screening.py         # batch list + decisions writer
 │   ├── pipelines.py         # PipelineSpec CRUD + dry-run
 │   └── audit.py             # journal reads + event POST
-├── runtimes/
-│   ├── job_runner.py        # asyncio subprocess wrapper
-│   └── actions.py           # Action → [command] mapping table (single source)
-└── static/                  # no-build HTML + vendored JS (lib/)
-    ├── index.html
-    ├── app.js
-    └── styles.css
+└── runtimes/
+    ├── job_runner.py        # asyncio subprocess wrapper
+    └── actions.py           # Action → [command] mapping table (single source)
 ```
+
+The console is **API-only**. The no-build SPA that lived under `static/` was
+retired on 2026-10-31; the Research UI (`apps/research-ui/`) is the product
+surface and reaches this API through its same-origin proxy.
 
 Runtime dir (never committed): `<workspace>/.harness-console/{jobs,pid,log}`.
 
@@ -33,7 +33,7 @@ uv run scholar-harness serve --workspace <path> [--port 8765] [--host 127.0.0.1]
 
 - Default bind is loopback. `--host 0.0.0.0` prints a prominent exposure warning.
 - Reads `settings`/env exactly like the kits: API keys come from the environment, never via UI.
-- Serves `/` → static console; `/api/v1/*` → JSON; `/api/v1/jobs/{id}/events` → SSE (`text/event-stream`).
+- Serves `/api/v1/*` → JSON; `/api/v1/jobs/{id}/stream` and `/api/v1/events/tick` → SSE (`text/event-stream`); `/healthz` → liveness. `/` and `/static/*` are `404` (no bundled UI).
 
 ## 3. HTTP API (seed surface, M5.1→M5.3)
 
@@ -195,18 +195,26 @@ The GUI never introduces a new schema, and the parity test (PLAN matrix §4 row 
 - Console reads never cache long-term: response functions stat + read on each request; SSE ticks push `ETag`-style reload signals on change (file mtime of `INDEX.md` is the cheap global heartbeat).
 - Two console screens/agents writing the same decision batch: last-writer-wins per file per atomic replace, but per-event journal lines append — the journal is the reconciliation record (exactly the roadmap's "collaboration-safe" argument).
 
-## 9. UI screens (static console, M5.2–M5.4)
+## 9. UI screens (retired static console → Research UI)
 
-| Screen | Purpose | Data source | Notes |
-| :-- | :-- | :-- | :-- |
-| Dashboard | Phase state, PRISMA counts, harvest/extract/index metrics, recent journal events | `/workspace/status`, `/audit/events` | mirrors `scholar-harness status` |
-| Literature | candidates/deduped/included/excluded browsable + filterable | `/literature/*` | tom-select search (vendored) |
-| Screening | batch picker, criteria panel, per-item decision radio + reason code, progress vs collect state | `/screening/*` | writes decision file + collect (M5.3) |
-| Harvest & Extract | progress, proxy config hint, per-DOI result table | job events | read-only + trigger buttons |
-| Synthesis & Trust | styled Markdown + trust badge legend, RQ scoped reports | `/synthesis/*`, `/phase4/*` | render, don't recompute |
-| Pipeline Builder | template gallery → editor → dry-run → run/export | `/pipelines`, `jobs` | M5.4; emits `PipelineSpec` |
-| Agent Exchange | per-screen "see CLI command / MCP tool" | `/agents/actions` | rendering of mapping table |
-| Audit | journal timeline, filter by action/agent, expand event JSON | `/audit/events` | append-only view + (optional) annotate |
+The static console screens listed here in M5.2–M5.4 were retired on
+2026-10-31. Their capabilities now live in `apps/research-ui/`, which consumes
+this API through a same-origin proxy and keeps the demo/live distinction
+visible:
+
+| Former static screen | Research UI route | Packet |
+| :-- | :-- | :-- |
+| Dashboard | `/[locale]` overview | UI-02 |
+| Workflow state | `/[locale]/workflow` | UI-03 |
+| Screening | `/[locale]/screening` | UI-04, UI-07 |
+| Corpus / PRISMA sets | `/[locale]/corpus` | UI-08 |
+| Evidence lineage | `/[locale]/lineage` | UI-05 |
+| Audit | `/[locale]/audit` | UI-06 |
+| Job control / pipeline builder | **API only** (`/jobs`, `/pipelines`) — deliberately not browser-driven | — |
+
+No UI code remains in this package. Do not re-add a bundled SPA here: the UI's
+transport rules (loopback-only upstream, path + method allowlist, streamed SSE,
+GET-only CORS) are pinned in `apps/research-ui/tests/console-proxy.test.ts`.
 
 ## 10. Acceptance matrix (hermetic tests)
 

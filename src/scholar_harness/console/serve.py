@@ -5,6 +5,11 @@
 dispatches mutations to kit CLIs via the job runner. All state is derived
 from the workspace or the in-memory JobRunner — the API is stateless between
 process restarts.
+
+The console is API-only. The no-build SPA that used to be mounted at `/` and
+`/static` was retired once the Research UI (`apps/research-ui`) became the
+product surface; the browser reaches this API through that app's same-origin
+proxy, never directly.
 """
 
 from __future__ import annotations
@@ -14,8 +19,6 @@ from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
 from .api import audit as audit_api
 from .api import jobs as jobs_api
@@ -24,9 +27,6 @@ from .api import screening as screening_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .runtimes.job_runner import JobRunner
-
-STATIC_DIR = Path(__file__).resolve().parent / "static"
-
 
 def create_app(workspace: str | Path) -> FastAPI:
     ws = Path(workspace).resolve()
@@ -75,13 +75,5 @@ def create_app(workspace: str | Path) -> FastAPI:
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok", "workspace": str(ws)}
-
-    # Static console (no-build SPA; vendored JS lives under static/lib/).
-    if STATIC_DIR.is_dir():
-        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-    @app.get("/")
-    def index() -> FileResponse:
-        return FileResponse(STATIC_DIR / "index.html")
 
     return app

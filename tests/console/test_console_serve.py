@@ -64,12 +64,15 @@ def _bootstrap(tmp):
 # Read endpoints (workspace as source of truth)
 # ---------------------------------------------------------------------------
 
-def test_healthz_and_index(tmp_path):
+def test_healthz_and_api_only_root(tmp_path):
     ws = _bootstrap(tmp_path)
     app = create_app(ws)
     client = TestClient(app)
     assert client.get("/healthz").json()["status"] == "ok"
-    assert client.get("/").status_code == 200
+    # The no-build SPA was retired: the Research UI is the product surface and
+    # this server serves the API only.
+    assert client.get("/").status_code == 404
+    assert client.get("/static/index.html").status_code == 404
 
 
 def test_literature_included_and_excluded(tmp_path):
