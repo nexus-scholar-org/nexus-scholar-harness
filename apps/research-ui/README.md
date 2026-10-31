@@ -40,9 +40,11 @@ cd apps/research-ui && npm run dev
 # then open http://localhost:3000/en/screening?source=live
 ```
 
-Reads and the allowlisted screening POSTs go to this application's own origin
-at `/api/console/...`; the route handler
-`app/api/console/[...path]/route.ts` forwards them server-side. Set
+Reads, event streams and the allowlisted screening POSTs go to this
+application's own origin at `/api/console/...`; the route handler
+`app/api/console/[...path]/route.ts` forwards them server-side. SSE responses
+(`/api/v1/events/tick`, `/api/v1/jobs/{id}/stream`) are streamed through, not
+buffered. Set
 `NEXUS_CONSOLE_URL` to move that upstream (it must be a plain loopback
 `http(s)` origin; default `http://127.0.0.1:8765`). The browser never sees the
 console's port, and the console's GET-only CORS policy stays as reviewed.

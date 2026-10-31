@@ -23,6 +23,13 @@ import type { NextRequest } from "next/server";
  *    generation) still run inside the console. The audit-journal writer, job
  *    start and pipeline creation are deliberately **not** reachable through
  *    the browser.
+ * 4. **Event streams stay streams.** The console's two SSE routes
+ *    (`/jobs/{id}/stream`, `/events/tick`) are returned as the upstream body, not
+ *    read to completion. Buffering them (the old `upstream.text()`) meant a
+ *    streamed job never reached the browser: the handler waited for a
+ *    connection that only ends when the job does. Those routes also carry no
+ *    120 s timeout — they are long-lived by design — and abort with the
+ *    caller's request signal instead.
  */
 
 const DEFAULT_CONSOLE_URL = "http://127.0.0.1:8765";
@@ -35,6 +42,23 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/batch\/\d+\/decisions$/,
   /^api\/v1\/screening\/actions\/(redeem|defer|publish)$/,
 ];
+
+/**
+ * The console's long-lived SSE routes. They are GET-only (no allowlist
+ * widening) but must not be read to completion or raced against a timeout.
+ */
+const STREAM_PATHS: ReadonlyArray<RegExp> = [
+  /^api\/v1\/jobs\/[A-Za-z0-9_-]+\/stream$/,
+  /^api\/v1\/events(\/tick)?$/,
+];
+
+function isStreamPath(path: string): boolean {
+  return STREAM_PATHS.some((pattern) => pattern.test(path));
+}
+
+function isEventStream(upstream: Response): boolean {
+  return (upstream.headers.get("content-type") ?? "").toLowerCase().includes("text/event-stream");
+}
 
 function typedError(status: number, code: string, message: string): Response {
   return Response.json({ detail: { code, message } }, { status });
@@ -69,7 +93,7 @@ function proxyResponse(upstream: Response): Promise<Response> {
         // 204/205/304 must not carry a body; the console uses 204 for HEAD.
         body === "" && [204, 205, 304].includes(upstream.status) ? null : body,
         {
-        status: upstream.status,
+          status: upstream.status,
           headers: {
             "content-type": contentType,
             "cache-control": "no-store",
@@ -77,6 +101,26 @@ function proxyResponse(upstream: Response): Promise<Response> {
         },
       ),
   );
+}
+
+/**
+ * Hand the upstream body straight through.
+ *
+ * `upstream.text()` waits for the stream to end; for an SSE job stream that is
+ * "when the job finishes", so the browser saw nothing until the work was over.
+ * Returning the ReadableStream is what makes the events arrive as they are
+ * produced. `x-accel-buffering: no` is for any buffering reverse proxy in
+ * front of the app; the console itself is loopback-only.
+ */
+function streamResponse(upstream: Response): Response {
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: {
+      "content-type": upstream.headers.get("content-type") ?? "text/event-stream",
+      "cache-control": "no-store",
+      "x-accel-buffering": "no",
+    },
+  });
 }
 
 async function forward(request: NextRequest, segments: string[] | undefined): Promise<Response> {
@@ -112,12 +156,18 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   query.delete("console");
   const target = `${base}/${path}${query.size > 0 ? `?${query.toString()}` : ""}`;
 
+  const stream = isStreamPath(path);
   const init: RequestInit = {
     method,
-    headers: { accept: "application/json" },
+    headers: {
+      // `EventSource` sends `text/event-stream`; everything else is JSON.
+      accept: request.headers.get("accept") ?? (stream ? "text/event-stream" : "application/json"),
+    },
     redirect: "manual",
     cache: "no-store",
-    signal: AbortSignal.timeout(120_000),
+    // A stream lives as long as the job does, and the caller's own signal is
+    // what ends it; only bounded reads get the 120 s ceiling.
+    signal: stream ? request.signal : AbortSignal.timeout(120_000),
   };
   if (method === "POST") {
     const contentType = request.headers.get("content-type");
@@ -136,6 +186,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
       error instanceof Error ? error.message : "the console could not be reached",
     );
   }
+  if (stream || isEventStream(upstream)) return streamResponse(upstream);
   return proxyResponse(upstream);
 }
 
