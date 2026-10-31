@@ -1,7 +1,7 @@
 /**
  * The English catalog — structural source of truth (D-I18N-03).
  *
- * This file defines the 137 keys that `fr.ts` and `ar.ts` must mirror exactly
+ * This file defines the 142 keys that `fr.ts` and `ar.ts` must mirror exactly
  * (compile-time via `Record<MessageKey, string>` and runtime via
  * `tests/i18n-catalog.test.ts`). A key added, removed, or misspelled here
  * cascades as a `tsc` error in the translations and a test failure in the
@@ -171,6 +171,13 @@ export const en = {
   "screening.reasonHint": "Required when the record is excluded.",
   "screening.reasonRequired": "Give a reason before excluding this record.",
   "screening.submit": "Record decision",
+  "screening.draftOpen": "Record a draft decision",
+  "screening.draftReasonHint":
+    "Required. Stored verbatim as the draft's screening reasoning.",
+  "screening.draftNote":
+    "Saved as a researcher draft, not an approval. Coverage and publication gates still run at approve and collect.",
+  "screening.draftSaved": "Draft saved for this record.",
+  "screening.draftError": "Draft not saved.",
   "screening.submitDisabledExplanation":
     "Recording is disabled: this demonstration has no decision API, so no decision is sent, saved, or counted.",
   "screening.noPersistence":

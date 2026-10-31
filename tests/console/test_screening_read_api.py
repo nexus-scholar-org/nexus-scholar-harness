@@ -377,11 +377,15 @@ def _collect_current(ws: Path):
                         "workspace_id": papers[0]["workspace_id"],
                         "decision": "INCLUDE",
                         "confidence": 0.9,
+                        # Explicit: the route merges by workspace_id and does
+                        # not default a field the caller omitted.
+                        "screening_reasoning": "include during console verification review",
                     },
                     {
                         "workspace_id": papers[1]["workspace_id"],
                         "decision": "EXCLUDE",
                         "confidence": 0.8,
+                        "screening_reasoning": "exclude during console verification review",
                     },
                 ],
             },

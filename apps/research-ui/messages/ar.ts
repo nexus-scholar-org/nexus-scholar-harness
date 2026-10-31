@@ -186,6 +186,12 @@ const ar: Record<MessageKey, string> = {
   "audit.noAgent": "لا وكيل مسجّل",
   "audit.noDescription": "لا وصف مسجّل",
   "audit.noStatus": "لا نتيجة مسجّلة",
+  "screening.draftOpen": "تسجيل قرار أولي",
+  "screening.draftReasonHint": "مطلوب. يُحفظ كما هو كسبب الفرز في المسودة.",
+  "screening.draftNote":
+    "محفوظ كمسودة باحث لا كاعتماد. تبقى بوابات التغطية والنشر تُنفَّذ عند الاعتماد والجمع.",
+  "screening.draftSaved": "حُفظت المسودة لهذا السجل.",
+  "screening.draftError": "لم تُحفظ المسودة.",
 };
 
 export default ar;

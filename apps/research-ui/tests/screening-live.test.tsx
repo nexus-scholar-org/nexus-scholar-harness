@@ -215,8 +215,10 @@ describe("live mode renders console data and never the fixture", () => {
     // Real batch data, end to end through the typed client shapes.
     expect(await screen.findByText(LIVE_ROWS.rows[0]?.citation ?? "")).toBeInTheDocument();
     expect(screen.getByText(LIVE_ROWS.rows[1]?.abstract ?? "")).toBeInTheDocument();
-    expect(screen.getByText(CATALOGS.en["screening.decision.include"])).toBeInTheDocument();
-    expect(screen.getByText(CATALOGS.en["screening.decision.exclude"])).toBeInTheDocument();
+    // Each row carries the stored decision text and its draft editor offers the
+    // same two labels, so presence is asserted rather than a unique match.
+    expect(screen.getAllByText(CATALOGS.en["screening.decision.include"]).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(CATALOGS.en["screening.decision.exclude"]).length).toBeGreaterThan(0);
 
     // Fixture/live confusion is refused in both directions: the demonstration
     // citation is gone, and the live stamp was absent in fixture mode above.

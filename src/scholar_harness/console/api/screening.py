@@ -10,7 +10,9 @@ Dual-compatibility: each decision accepts `study_id` or `workspace_id`, and
 array, so GUI-written and agent-written files stay interchangeable.
 
 All writes are atomic: `<file>.tmp-<uuid>` then `os.replace`, followed by one
-append-only audit journal event (SPECS §8).
+append-only audit journal event (SPECS §8). A posted subset is merged by
+`workspace_id`; sibling records and fields the request did not set are
+preserved, so a one-record browser draft cannot erase the rest of the batch.
 """
 
 from __future__ import annotations
@@ -141,32 +143,100 @@ def post_batch_decisions(
             detail=f"decisions reference unknown workspace_ids (not in batch {n}): {sorted(set(unknown))}",
         )
 
+    decisions_file = ws / "literature" / "screening" / f"batch_{n:03d}_decisions.json"
+
+    # Merge, never truncate. The route is the sanctioned *draft* writer
+    # (UI-07_ACTION_SPEC §1/§6) and a browser reviewer saves one record at a
+    # time; replacing the file with that single record would silently discard
+    # every other review in the batch. Posted records upsert by workspace_id
+    # and only the fields the caller actually set are overwritten, so a
+    # one-row save keeps its siblings' criteria refs and confidence intact.
+    # Posting the complete batch (the agent path) is unchanged in effect.
+    merged: list[dict[str, Any]] = []
+    if decisions_file.is_file():
+        try:
+            prior = json.loads(decisions_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"existing {decisions_file.name} is unreadable; "
+                    "refusing to overwrite it"
+                ),
+            ) from exc
+        raw_prior = prior.get("decisions") if isinstance(prior, dict) else prior
+        if not isinstance(raw_prior, list):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"existing {decisions_file.name} does not carry a decisions list; "
+                    "refusing to overwrite it"
+                ),
+            )
+        merged = [dict(entry) for entry in raw_prior if isinstance(entry, dict)]
+
+    index = {
+        str(entry.get("workspace_id", "")): position
+        for position, entry in enumerate(merged)
+        if entry.get("workspace_id")
+    }
+    mergeable = (
+        "decision",
+        "confidence",
+        "matched_inclusion_criteria",
+        "violated_exclusion_criteria",
+        "relevant_rqs",
+        "screening_reasoning",
+    )
+    for dec, record in zip(body.decisions, records):
+        workspace_id = record["workspace_id"]
+        position = index.get(workspace_id)
+        if position is None:
+            index[workspace_id] = len(merged)
+            merged.append(record)
+            continue
+        explicit = dec.model_fields_set
+        for key in mergeable:
+            if key in explicit:
+                merged[position][key] = record[key]
+
     timestamp = body.timestamp or datetime.now(UTC).isoformat()
     payload = {
         "batch": n,
-        "decisions": records,
+        "decisions": merged,
         "reviewed_by": body.reviewed_by,
         "timestamp": timestamp,
     }
 
-    decisions_file = ws / "literature" / "screening" / f"batch_{n:03d}_decisions.json"
     _atomic_write_json(decisions_file, payload)
 
-    inc = sum(1 for r in records if r["decision"] == "INCLUDE")
-    exc = len(records) - inc
+    inc = sum(1 for r in merged if r.get("decision") == "INCLUDE")
+    exc = sum(1 for r in merged if r.get("decision") == "EXCLUDE")
+    posted_inc = sum(1 for r in records if r["decision"] == "INCLUDE")
+    posted_exc = len(records) - posted_inc
     log_event(
         workspace=ws,
         action="SCREEN_DECISIONS",
-        description=f"Saved {len(records)} screening decisions for batch {n} ({inc} INCLUDE / {exc} EXCLUDE)",
+        description=(
+            f"Saved {len(records)} screening decisions for batch {n} "
+            f"({posted_inc} INCLUDE / {posted_exc} EXCLUDE); "
+            f"draft now holds {len(merged)}"
+        ),
         inputs=[batch_path.name],
         outputs=[decisions_file.name],
-        parameters={"batch": n, "reviewed_by": body.reviewed_by},
-        metrics={"included": inc, "excluded": exc, "total": len(records)},
+        parameters={
+            "batch": n,
+            "reviewed_by": body.reviewed_by,
+            "posted": len(records),
+            "merged": len(merged),
+        },
+        metrics={"included": inc, "excluded": exc, "total": len(merged)},
     )
 
     return {
         "batch": n,
         "decisions_written": len(records),
+        "decisions_total": len(merged),
         "decisions_file": decisions_file.name,
     }
 

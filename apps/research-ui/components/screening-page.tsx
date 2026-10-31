@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { formatNumber, translate, type Locale } from "@/i18n";
+import { formatNumber, translate, type Locale, type MessageKey } from "@/i18n";
 import {
   getBatchRows,
   getCriterionRefs,
@@ -13,10 +13,12 @@ import {
   isScreeningApiError,
   consoleBase,
   postDeferBatch,
+  postDraftDecisions,
   postPairingRedeem,
   postPublishScreening,
   type CriterionRefs,
   type DeferResult,
+  type DraftResult,
   type PairingStatus,
   type ProjectSummary,
   type PublicationStatus,
@@ -24,6 +26,7 @@ import {
   type RedeemResult,
   type ScreeningApiError,
   type ScreeningBatches,
+  type ScreeningRow,
   type ScreeningRows,
 } from "@/lib/screening-api";
 import { demoScreeningRecord } from "@/lib/mock-screening";
@@ -67,8 +70,11 @@ import { ScreeningForm } from "./screening-form";
  * (`ScreeningActions`): redeeming a terminal-staged pairing code, recording a
  * deferral with a reason, and triggering the gated collect are the only
  * writes the screen performs, each over loopback and each refused loudly
- * with the server typed code. The demonstration form itself stays untouched:
- * its disabled submit keeps submitting nowhere.
+ * with the server typed code. A live row can also capture a draft decision
+ * (UI-07 §3.2): it posts one record to the sanctioned draft writer, the
+ * console merges it by `workspace_id`, and the page re-reads the batch. The
+ * demonstration form itself stays untouched: its disabled submit keeps
+ * submitting nowhere.
  */
 
 /**
@@ -156,6 +162,185 @@ function LiveErrorBody({ locale, error }: { locale: Locale; error: unknown }) {
   );
 }
 
+
+/** The two writable decisions: the console accepts INCLUDE or EXCLUDE only. */
+const DRAFT_DECISIONS = [
+  { id: "include", key: "screening.decision.include" },
+  { id: "exclude", key: "screening.decision.exclude" },
+] as const satisfies readonly { id: string; key: MessageKey }[];
+
+type DraftDecision = (typeof DRAFT_DECISIONS)[number]["id"];
+
+/**
+ * One live screening row, with draft capture (packet UI-07 §3.2).
+ *
+ * The console's `POST /screening/batch/{n}/decisions` is the sanctioned
+ * *draft* writer, not an approval: saving here records the researcher's
+ * reasoning and never mints, stages or publishes anything. Three rules are
+ * load-bearing:
+ *
+ * 1. **Only INCLUDE/EXCLUDE are offered.** The demonstration form also shows
+ *    "Unclear", but the console rejects it, so presenting it as writable here
+ *    would be a button that always fails.
+ * 2. **A reason is required for both outcomes and sent verbatim.** The
+ *    console substitutes a generic sentence when reasoning is empty, which
+ *    would put words in the researcher's mouth.
+ * 3. **One row is one write.** The server merges by `workspace_id`, so saving
+ *    this row leaves every sibling decision byte-intact; the page then re-reads
+ *    the batch instead of editing its own copy into authority.
+ */
+function LiveRow({
+  locale,
+  origin,
+  batchIndex,
+  row,
+  onDraftSaved,
+}: {
+  locale: Locale;
+  origin: string;
+  batchIndex: number;
+  row: ScreeningRow;
+  onDraftSaved: () => void | Promise<void>;
+}) {
+  const stored = row.decision.trim().toUpperCase();
+  const [decision, setDecision] = useState<DraftDecision | null>(
+    stored === "INCLUDE" ? "include" : stored === "EXCLUDE" ? "exclude" : null,
+  );
+  const [reason, setReason] = useState("");
+  const [pending, setPending] = useState(false);
+  const [result, setResult] = useState<DraftResult | null>(null);
+  const [error, setError] = useState<PairingServerError | null>(null);
+  const reasonMissing = reason.trim() === "";
+  const disabled = pending || decision === null || reasonMissing;
+
+  async function save() {
+    if (decision === null || reasonMissing) return;
+    setPending(true);
+    setError(null);
+    try {
+      const saved = await postDraftDecisions(origin, batchIndex, {
+        reviewed_by: "researcher-draft",
+        decisions: [
+          {
+            workspace_id: row.workspace_id ?? row.study_id,
+            decision: decision.toUpperCase(),
+            screening_reasoning: reason.trim(),
+          },
+        ],
+      });
+      setResult(saved);
+      await onDraftSaved();
+    } catch (failure: unknown) {
+      setResult(null);
+      setError(toServerError(failure));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <li className="border-b border-rule py-4">
+      <p className="text-sm leading-6 text-ink">
+        <bdi>{row.citation ?? row.study_id}</bdi>
+      </p>
+      {row.abstract ? (
+        <p className="mt-1 text-sm leading-6 text-ink-muted">
+          <bdi>{row.abstract}</bdi>
+        </p>
+      ) : null}
+      <p className="mt-2 text-sm leading-6 text-ink-muted">
+        {decisionLabel(locale, row.decision)}
+        {row.reasons.length > 0 ? (
+          <>
+            {" — "}
+            <bdi>{row.reasons.join("; ")}</bdi>
+          </>
+        ) : null}
+      </p>
+
+      <details className="mt-3">
+        <summary className="text-sm font-medium leading-6 text-evidence underline decoration-2 underline-offset-4">
+          {translate(locale, "screening.draftOpen")}
+        </summary>
+        <fieldset className="mt-3">
+          <legend className="text-sm font-medium leading-6 text-ink">
+            {translate(locale, "screening.decisionLegend")}
+          </legend>
+          <div className="mt-2 flex flex-wrap gap-x-8 gap-y-2">
+            {DRAFT_DECISIONS.map(({ id, key }) => (
+              <label
+                key={id}
+                htmlFor={`draft-decision-${row.study_id}-${id}`}
+                className="flex items-center gap-2 text-sm leading-6 text-ink"
+              >
+                <input
+                  type="radio"
+                  id={`draft-decision-${row.study_id}-${id}`}
+                  name={`draft-decision-${row.study_id}`}
+                  value={id}
+                  checked={decision === id}
+                  onChange={() => setDecision(id)}
+                  className="size-4 accent-evidence"
+                />
+                <span>{translate(locale, key)}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="mt-4">
+          <label
+            htmlFor={`draft-reason-${row.study_id}`}
+            className="block text-sm font-medium text-ink"
+          >
+            {translate(locale, "screening.reasonLabel")}
+          </label>
+          <p
+            id={`draft-reason-hint-${row.study_id}`}
+            className="mt-1 text-sm leading-6 text-ink-muted"
+          >
+            {translate(locale, "screening.draftReasonHint")}
+          </p>
+          <textarea
+            id={`draft-reason-${row.study_id}`}
+            rows={3}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            aria-describedby={`draft-reason-hint-${row.study_id}`}
+            className="mt-2 block w-full border border-rule-strong bg-leaf px-3 py-2 text-sm leading-6 text-ink"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void save()}
+          disabled={disabled}
+          className="mt-3 border border-rule-strong bg-leaf px-3 py-2 text-sm font-medium text-ink disabled:cursor-not-allowed disabled:border-rule disabled:text-ink-faint"
+        >
+          {translate(locale, "screening.submit")}
+        </button>
+        <p className="mt-2 text-sm leading-6 text-ink-muted">
+          {translate(locale, "screening.draftNote")}
+        </p>
+        {result ? (
+          <p role="status" className="mt-2 text-sm leading-6 text-ink-muted">
+            {translate(locale, "screening.draftSaved")}
+          </p>
+        ) : null}
+        {error ? (
+          <p role="alert" className="mt-2 text-sm leading-6 text-warning">
+            {translate(locale, "screening.draftError")}
+            {" "}
+            <bdi dir="ltr">{error.code}</bdi>
+            {": "}
+            <bdi dir="ltr">{error.message}</bdi>
+          </p>
+        ) : null}
+      </details>
+    </li>
+  );
+}
+
 function LiveReadyBody({
   locale,
   origin,
@@ -165,6 +350,7 @@ function LiveReadyBody({
   publication,
   rows,
   refs,
+  onDraftSaved,
 }: {
   locale: Locale;
   origin: string;
@@ -174,6 +360,7 @@ function LiveReadyBody({
   publication: PublicationStatus;
   rows: ScreeningRows;
   refs: CriterionRefs;
+  onDraftSaved: () => void | Promise<void>;
 }) {
   const chrome = LIVE_CHROME[locale];
   return (
@@ -209,25 +396,14 @@ function LiveReadyBody({
 
       <ul className="mt-8 border-t border-rule-strong">
         {rows.rows.map((row) => (
-          <li key={row.study_id} className="border-b border-rule py-4">
-            <p className="text-sm leading-6 text-ink">
-              <bdi>{row.citation ?? row.study_id}</bdi>
-            </p>
-            {row.abstract ? (
-              <p className="mt-1 text-sm leading-6 text-ink-muted">
-                <bdi>{row.abstract}</bdi>
-              </p>
-            ) : null}
-            <p className="mt-2 text-sm leading-6 text-ink-muted">
-              {decisionLabel(locale, row.decision)}
-              {row.reasons.length > 0 ? (
-                <>
-                  {" — "}
-                  <bdi>{row.reasons.join("; ")}</bdi>
-                </>
-              ) : null}
-            </p>
-          </li>
+          <LiveRow
+            key={row.study_id}
+            locale={locale}
+            origin={origin}
+            batchIndex={batchIndex}
+            row={row}
+            onDraftSaved={onDraftSaved}
+          />
         ))}
       </ul>
 
@@ -598,6 +774,30 @@ export function ScreeningPage({ locale }: Readonly<{ locale: Locale }>) {
   const chrome = LIVE_CHROME[locale];
   const liveActive = mode.kind === "live";
 
+  /**
+   * Re-read the batch after a draft write.
+   *
+   * The page never folds the response into the rows it already holds: a saved
+   * draft earns its place on screen by being read back from the workspace, the
+   * same route the first render used. If the re-read fails, the last successful
+   * rows stay and the save's own status line still reports what the server said.
+   */
+  async function refreshRows() {
+    if (live.status !== "ready") return;
+    const origin = live.origin;
+    const batchIndex = live.rows.batch_index;
+    try {
+      const rows = await getBatchRows(origin, batchIndex);
+      setLive((previous) =>
+        previous.status === "ready" && previous.rows.batch_index === batchIndex
+          ? { ...previous, rows }
+          : previous,
+      );
+    } catch {
+      // A refresh failure does not retract a successful write.
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
@@ -666,6 +866,7 @@ export function ScreeningPage({ locale }: Readonly<{ locale: Locale }>) {
                 publication={live.publication}
                 rows={live.rows}
                 refs={live.refs}
+                onDraftSaved={refreshRows}
               />
             )}
           </section>
