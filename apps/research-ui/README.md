@@ -56,6 +56,12 @@ untouched) and the page re-reads the batch. A saved draft is **not** an
 approval: coverage, pairing, approval and publication still run separately, and
 saving never publishes.
 
+The corpus screen reads paged rows from `GET /api/v1/ui/corpus/{kind}`
+(`limit`/`offset`, plus a server-side `q` filter). The excluded set is 13.5k
+rows on the pilot workspace, so it is never downloaded whole: the screen asks
+for one 25-row page at a time, and "show more" requests the next offset. The
+excluded page is only requested when the reader clicks "load excluded".
+
 ## Visual direction
 
 [`VISUAL_DIRECTION.md`](docs/VISUAL_DIRECTION.md) is the design system of record for

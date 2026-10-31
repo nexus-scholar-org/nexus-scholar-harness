@@ -338,10 +338,23 @@ collect, and the pairing/defer/publish panel is unchanged.
 **Implemented 2026-10-30.** Route `/[locale]/corpus`, presented as **Corpus** in
 the primary navigation. Reads `GET /api/v1/workspace/status` (harness-computed
 counts and phase), `GET /api/v1/ui/publication-status` (currentness), and
-`GET /api/v1/literature/included`; the excluded set is fetched only after the
-reader asks for it (`GET /api/v1/literature/excluded`), because the file is
+`GET /api/v1/ui/corpus/included`; the excluded set is fetched only after the
+reader asks for it (`GET /api/v1/ui/corpus/excluded`), because the file is
 large and opening the screen must not pay for it (measured on the pilot
 workspace: 27 MB and ~8 s over loopback).
+
+**Paged reads implemented 2026-10-31 (PR after #165).** `GET
+/api/v1/ui/corpus/{kind}` serves `ui07.corpus-page-v1` (`total` matched,
+`corpus_total` stored, `offset`, `limit`, `records`, `missing`) with
+`ui07.corpus-record-v1` rows; `limit` is 1–200 (default 25) and `q`/`reason`
+filter the whole stored set *before* the page is cut. The screen asks for one
+page at a time and appends on "show more", so the 27 MB excluded dump is never
+downloaded and the filter never runs over a fully-loaded client list. A missing
+dump is an explicit `missing` entry with an empty page, an unknown kind is
+`404 CORPUS_KIND_UNKNOWN`, caller-minted identity keys are `422
+CALLER_IDENTITY_REFUSED`, and an unparseable dump is `500 CORPUS_UNREADABLE`.
+The legacy `GET /api/v1/literature/included|excluded` dumps remain for other
+consumers but the corpus screen no longer reads them.
 
 **Scope:** one read-only screen over the screening output the harness already
 wrote. No decision is made, changed, or published from this route.
