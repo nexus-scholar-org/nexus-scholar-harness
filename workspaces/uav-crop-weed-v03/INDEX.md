@@ -1,7 +1,7 @@
 # Project Index: Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace
 
 - **Project Slug**: `uav-crop-weed-v03`
-- **Last Updated**: `2026-10-31 22:24:28 UTC`
+- **Last Updated**: `2026-10-31 22:59:53 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -36,9 +36,9 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-10-31 22:24 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-10-31 20:22 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-10-31 22:24 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-10-31 22:59 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-10-31 22:32 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-10-31 22:59 | Active |
 | `literature/included.json` | Screened eligible studies for full-text synthesis | 2026-10-29 12:29 | Included |
 | `literature/excluded.json` | Excluded studies with logged decision reasons | 2026-10-29 12:29 | Excluded |
 | `literature/prisma_screening_report.md` | PRISMA flow diagram and systematic screening report | 2026-10-31 19:30 | Generated |
