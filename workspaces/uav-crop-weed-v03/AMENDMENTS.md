@@ -38,7 +38,7 @@ Decisions taken at freeze:
 |---|---|---|
 | Final cutoff | `2026-10-17T23:59:59Z` (last executed search/harvest day, R3/r3d lineage) | Window end is now recorded; `protocol.json` still says "through the recorded final search cutoff", which resolves to this date |
 | INC-03 (flagged in §5 above) | **Freeze the bytes as-is**; record the flaw as an accepted limitation | Preserves the criteria hash that all 566 decision files attest. Publication/export of the protocol text is **blocked** until reviewer consent is recorded or the names are redacted by an editorial amendment (no re-screen required for redaction) |
-| Reviewer design | Option C retained as the design; consent **not obtained**; independent human review **not claimed** | Protocol freeze ≠ screening confirmation; `HumanConfirmation@1` remains unsigned |
+| Reviewer design | Option C retained as the design; consent **not obtained**; independent third-party review **not claimed** | Protocol freeze ≠ screening confirmation. A `HumanConfirmation@1` signature exists (2026-10-31, Mouadh BEKHOUCHE, 283 artifacts / 14,150 decisions, fingerprint `e1f51ffe…f876800`); the signer is the researcher, so this records reviewed acceptance, **not** independent third-party review |
 | Charting binding | v0.3 draft `charting.schema.json` frozen **with** accepted limitation F1 | F1 (no `evidence_state`↔content coupling) is unresolved: **no charting rows may be accepted for the v0.3 pilot** until repaired; charting pilots continue on the v0.2 sidecar |
 | Search completeness | HTTP 429 S2 quota wall recorded; freeze r3 lineage | PRISMA-ScR search log must state the provider wall |
 
@@ -68,7 +68,7 @@ Authority: explicit user instruction 2026-10-29 delegating the outstanding
 researcher decisions ("i approve your decision so take them instead of me and
 finish the freeze"), plus the follow-up screening instruction. Recorded as a
 **delegated mechanical decision**, not authenticated human approval.
-`HumanConfirmation@1` remains **unsigned**.
+`HumanConfirmation@1` was signed on **2026-10-31** by **Mouadh BEKHOUCHE** (PhD student, University of Oum El Bouaghi, lead_reviewer) over all 283 decision artifacts and 14,150 decisions, all recorded `confirmed` with no overrides. Record: `literature/screening/HUMAN_CONFIRMATION.json`.
 
 ### Resolution rule (deterministic, applied by `_drivers/v03_scr1_finalize.py`)
 
@@ -158,8 +158,12 @@ A deterministic driver,
   status stays `LEGACY_UNVERIFIED`. The earlier statement in this file that "there
   is no `MANIFEST.json`" describes the finalization event of 2026-10-29; this
   derived export did not exist then and authorizes nothing.
-- **Not a human confirmation.** `decision_status` remains
-  `FINAL_AGENT_UNCONFIRMED`; `HumanConfirmation@1` is still unsigned.
+- **Human confirmation is a separate record.** `decision_status` remains
+  `FINAL_AGENT_UNCONFIRMED` because the decisions were agent-made, but
+  `HumanConfirmation@1` was signed on 2026-10-31 over all 283 decision
+  artifacts / 14,150 decisions (`literature/screening/HUMAN_CONFIRMATION.json`).
+  This derived export is one of the hashed inputs; the export still authorizes
+  nothing beyond what that confirmation binds.
 
 ### Provenance carried by every emitted file
 

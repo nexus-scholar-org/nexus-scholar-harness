@@ -1,7 +1,7 @@
 # Project Index: Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace
 
 - **Project Slug**: `uav-crop-weed-v03`
-- **Last Updated**: `2026-10-30 20:19:12 UTC`
+- **Last Updated**: `2026-10-31 18:30:34 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -13,7 +13,10 @@
 - **Extracted Markdowns**: 0
 
 ## 🔎 Screening Status (v0.3 pilot)
-- **Status**: `FINAL_AGENT_UNCONFIRMED` — `HumanConfirmation@1` unsigned
+- **Status**: `FINAL_AGENT_UNCONFIRMED` (agent-made decisions) — `HumanConfirmation@1` **signed**
+  2026-10-31 by **Mouadh BEKHOUCHE** (PhD student, University of Oum El Bouaghi) over 283
+  artifacts / 14,150 decisions, all `confirmed`, no overrides
+  (fingerprint `e1f51ffe…f876800`; record `literature/screening/HUMAN_CONFIRMATION.json`)
 - **Screened**: 14,150 (14,413 identified − 263 duplicates)
 - **Included**: 644 · **Excluded**: 13,506 (of which 346 *not retrieved*, DEV-01)
 - **Frozen instrument**: protocol `f81e6c58…f755`, criteria `9ae1f97d…b86f`
