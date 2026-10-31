@@ -3,21 +3,22 @@
 The single routing table for outstanding work. Each track's entrypoint carries
 the detail; this file records only **what is open and what governs it**. The
 former phase-by-phase roadmap (Phases 0–7) and its completed narratives are in
-git history. Snapshot: 2026-10-29, committed baseline `d17710e`; AG-04, HCM-06,
-UI-05 and UI-07 are merged. Check live main/PRs before answering current-status
-questions.
+git history. Snapshot: 2026-10-31, committed baseline `e65f3ee`; AG-04, HCM-06,
+UI-05 and UI-06–UI-09 are merged, and the console is now API-only. Check live
+main/PRs before answering current-status questions.
 
 Product direction: [individual researcher application](architecture/decisions/individual-researcher-product.md).
-Priority: close the UAV pilot screening (human gates) and start UI-06, then use
-the pilot labels for AG-05; keep WP-06/WP-13 parked until a harvest or migration
-asks for them.
+Priority: close the UAV pilot screening (human gates) — the only remaining
+blocker is a named reviewer signing `HumanConfirmation@1` and the associated
+scientific decisions — then use the pilot labels for AG-05; keep WP-06/WP-13
+parked until a harvest or migration asks for them.
 
 | Track | Current state | Next step | Blocker / dependency | Governing document |
 | :-- | :-- | :-- | :-- | :-- |
 | **WP** — Contract v1 adoption | WP-01 closed with residual debt; 11 of the 13 other WP rows have bounded delivery recorded (evidence overlaps the packet scope, no fresh packet audit); genuinely open: **WP-06**, **WP-13** | WP-06 transitive dedup when the next harvest (B-D1) is planned; WP-13 when a legacy migration is requested | WP-06 needs the search-kit canonical repo (fork + PR, pin + vendored sync); WP-13 needs the one recorded legacy exception scoped | [`wp01/README.md`](./architecture/wp01/README.md) · [`wp01/evidence-boundaries.md`](./architecture/wp01/evidence-boundaries.md) · [`contract_v1_baseline.md`](./architecture/contract_v1_baseline.md) |
 | **HCM** — harness core modularity | HCM-05 **adopted** (PR #107): harness adapter + canonical agent-kit integration; HCM-02 disposition **implemented** ([hcm-02-disposition.md](./architecture/harness-core-modularity/hcm-02-disposition.md), job-runner bypass migrated PR #134); HCM-03 **partial** (`console/api/pipelines.py` delegates models/validation to `scholar_harness.pipeline`); HCM-04e **implemented policy**; HCM-06 read API merged (PR #133, `6575209`); UI-07 action API merged (PR #134, `aa6e2f0`) | No new HCM implementation; the qualified close-out is recorded in the track README | HCM-02/03/04 have no packet documents — the roadmap is their only definition; HCM-03 transport removal and HCM-04 stage closure are not claimed | [`harness-core-modularity/README.md`](./architecture/harness-core-modularity/README.md) |
 | **AG** — agent controls | AG-04 merged (PR #130, `28e5c42`): usable worker/review interaction on the protected publisher; AG-03A **Windows MIC proven, POSIX unproven**; AG-03B/C delivered | Provision and prove the POSIX authority arrangement, or run the attended pilot without claiming enforced authorization; AG-05 remains conditional | POSIX host boundary (two OS identities + modes) not implemented; AG-05 needs a real backend, fresh held-out set and independent labels | [`agent-controls/README.md`](./architecture/agent-controls/README.md) · [`agent_controls_plan.md`](./architecture/agent-controls/agent_controls_plan.md) |
-| **UI** — research-ui | UI-04 shipped; UI-04a merged (PR #109); UI-05 evidence-lineage route shipped (PR #137); UI-07 read + action API merged (PRs #133/#134); UI test/build/browser gates run in CI | UI-06 audit activity (still open); visual-regression baselines; cross-browser run; human `fr`/`ar` review | Human visual and fluent-language review remain `NOT_VERIFIED`; Chromium-only; no visual-regression comparison | [`research_ui/README.md`](./architecture/research_ui/README.md) · [`apps/research-ui/docs/GATES.md`](../apps/research-ui/docs/GATES.md) |
+| **UI** — research-ui | All packets UI-01–UI-09 shipped: UI-05 lineage (PR #137), UI-06 audit + live tick refresh (PR #169), UI-07 live draft capture (PR #166), UI-08 paged corpus (PR #167), UI-09 same-origin streaming proxy (PRs #165/#168); console static SPA retired (PR #170, `e65f3ee`) so the Research UI is the only product surface | visual-regression baselines; cross-browser run; human `fr`/`ar` review | Human visual and fluent-language review remain `NOT_VERIFIED`; Chromium-only in CI; no visual-regression comparison | [`research_ui/README.md`](./architecture/research_ui/README.md) · [`apps/research-ui/docs/GATES.md`](../apps/research-ui/docs/GATES.md) |
 
 Cross-track gates and delivery lanes: [`test_gate_policy.md`](./architecture/test_gate_policy.md);
 current routing and prohibited shortcuts: the [Developer Compass](./architecture/DEVELOPER_COMPASS.md).
@@ -69,13 +70,15 @@ Its dated defect claims require live verification before task selection.
 | AG-06/07 | Deferred | Extraction/synthesis need separate evidence and authority decisions |
 | UI-01–04 / 04a | Delivery recorded | UI-04a PR #109; mock-backed UI does not establish real backend integration |
 | UI-05 | Shipped (PR #137, `95c5665`) | Evidence-lineage route and trace view |
-| UI-06 | Open | Audit activity route/watch surface; not shipped |
-| UI-07 | Read + action API merged (PR #134, `aa6e2f0`) | Read API + UI-04 live wiring (PR #133); protected action API: pairing-code approval, idempotent redemption, CLI begin, journal migration, browser-verified 6/6 |
+| UI-06 | Shipped (PR #169, `df0c99c`) | Audit activity route, newest-first feed with technical provenance; live mode refreshes on `/events/tick` through the proxy |
+| UI-07 | Shipped (PRs #134/#166) | Read + action API (pairing-code approval, idempotent redemption, journal migration); live draft capture with merge-safe writes by `workspace_id` |
+| UI-08 | Shipped (PR #167, `5a9199a`) | Paged, server-filtered corpus reads (`ui07.corpus-page-v1`); excluded set lazy, 27 MB dump retired |
+| UI-09 | Shipped (PRs #165/#168) | Same-origin proxy: loopback upstream, path/method allowlist, SSE streamed not buffered; console CORS unchanged |
 | F1 | Merged | PR #127, `465c386`: documentation gate selection |
 | F2–F5 | Deferred follow-ups | Audit; no broad test-deletion campaign |
 | F6 | KEEP | Public-surface evidence insufficient for replacement |
 | Kit ownership note | Recorded in this documentation candidate | Sample shows no demonstrated duplication; kit move deferred |
-| UAV pilot | Protocol v0.3 **FROZEN** 2026-10-29 (delegated decision; `f81e6c58…f755`, criteria `9ae1f97d…b86f`); screening **FINAL_AGENT_UNCONFIRMED** (14,150 screened → 644 included / 13,506 excluded, of which 346 *not retrieved* per DEV-01; `HumanConfirmation@1` unsigned) | Human confirmation over the 566 decision files (optional for pilot close-out, needed for AG-05 labels); reviewer consent or name redaction for INC-03 (protocol-text export blocked); charting F1 repair before any charting row is accepted. See `workspaces/uav-crop-weed-v03/AMENDMENTS.md` §v0.3 freeze + §v0.3 screening finalization |
+| UAV pilot | Protocol v0.3 **FROZEN** 2026-10-29 (delegated decision; `f81e6c58…f755`, criteria `9ae1f97d…b86f`); screening **FINAL_AGENT_UNCONFIRMED** (14,150 screened → 644 included / 13,506 excluded, of which 346 *not retrieved* per DEV-01; `HumanConfirmation@1` unsigned) | Human confirmation over the 283 decision files (optional for pilot close-out, needed for AG-05 labels); reviewer consent or name redaction for INC-03 (protocol-text export blocked); charting F1 repair before any charting row is accepted. See `workspaces/uav-crop-weed-v03/AMENDMENTS.md` §v0.3 freeze + §v0.3 screening finalization |
 
 This inventory is a routing aid, not a new packet audit. At close-out, update the
 affected row with its merge/evidence and next action. An index links here rather
