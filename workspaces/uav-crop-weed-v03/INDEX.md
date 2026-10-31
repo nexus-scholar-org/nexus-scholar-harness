@@ -1,7 +1,7 @@
 # Project Index: Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace
 
 - **Project Slug**: `uav-crop-weed-v03`
-- **Last Updated**: `2026-10-31 19:15:38 UTC`
+- **Last Updated**: `2026-10-31 19:26:19 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
@@ -36,12 +36,12 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-10-31 19:15 | Active |
-| `INDEX.md` | Master project directory and status catalog | 2026-10-31 19:08 | Synced |
-| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-10-31 19:15 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-10-31 19:26 | Active |
+| `INDEX.md` | Master project directory and status catalog | 2026-10-31 19:20 | Synced |
+| `audit/journal.jsonl` | Append-only provenance event ledger | 2026-10-31 19:26 | Active |
 | `literature/included.json` | Screened eligible studies for full-text synthesis | 2026-10-29 12:29 | Included |
 | `literature/excluded.json` | Excluded studies with logged decision reasons | 2026-10-29 12:29 | Excluded |
-| `literature/prisma_screening_report.md` | PRISMA flow diagram and systematic screening report | 2026-10-31 18:46 | Generated |
+| `literature/prisma_screening_report.md` | PRISMA flow diagram and systematic screening report | 2026-10-31 19:25 | Generated |
 | `literature/prisma_report.json` | Structured JSON companion to PRISMA flow report | 2026-10-29 12:29 | Generated |
 | `synthesis/literature_review.md` | Synthesis document & literature review | 2026-10-28 13:30 | In Progress |
 

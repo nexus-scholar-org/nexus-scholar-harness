@@ -37,8 +37,8 @@ Decisions taken at freeze:
 | Item | Decision | Recorded consequence |
 |---|---|---|
 | Final cutoff | `2026-10-17T23:59:59Z` (last executed search/harvest day, R3/r3d lineage) | Window end is now recorded; `protocol.json` still says "through the recorded final search cutoff", which resolves to this date |
-| INC-03 (flagged in §5 above) | **Freeze the bytes as-is**; record the flaw as an accepted limitation | Preserves the criteria hash that all 566 decision files attest. Publication/export of the protocol text is **blocked** until reviewer consent is recorded or the names are redacted by an editorial amendment (no re-screen required for redaction) |
-| Reviewer design | Option C retained as the design; consent **not obtained**; independent third-party review **not claimed** | Protocol freeze ≠ screening confirmation. A `HumanConfirmation@1` signature exists (2026-10-31, Mouadh BEKHOUCHE, 283 artifacts / 14,150 decisions, fingerprint `e1f51ffe…f876800`); the signer is the researcher, so this records reviewed acceptance, **not** independent third-party review |
+| INC-03 (flagged in §5 above) | **Freeze the bytes as-is**; record the flaw as an accepted limitation | Preserves the criteria hash that the decision artifacts attest. **Resolved 2026-10-31:** both named co-reviewers consented to be published with their role, so the publication/export block on the frozen protocol text is **lifted**. Frozen bytes are unchanged; the workflow-inside-eligibility coupling remains a recorded quality limitation. See [`consent/INC-03_consent_and_conduct_record.md`](consent/INC-03_consent_and_conduct_record.md) |
+| Reviewer design | Option C **executed** per researcher attestation; consent **recorded 2026-10-31**; independent third-party review of the whole corpus **not claimed** | Protocol freeze ≠ screening confirmation. A `HumanConfirmation@1` signature exists (2026-10-31, Mouadh BEKHOUCHE, 283 artifacts / 14,150 decisions, fingerprint `e1f51ffe…f876800`); the signer is the researcher, so this records reviewed acceptance, **not** independent third-party review. Co-reviewer verification is recorded separately in [`consent/INC-03_consent_and_conduct_record.md`](consent/INC-03_consent_and_conduct_record.md) as attested, not stored as a sampling log |
 | Charting binding | v0.3 draft `charting.schema.json` frozen **with** accepted limitation F1 | F1 (no `evidence_state`↔content coupling) is unresolved: **no charting rows may be accepted for the v0.3 pilot** until repaired; charting pilots continue on the v0.2 sidecar |
 | Search completeness | HTTP 429 S2 quota wall recorded; freeze r3 lineage | PRISMA-ScR search log must state the provider wall |
 
@@ -60,7 +60,7 @@ scope; it does not validate results.
 
 ## v0.3 screening finalization (2026-10-29)
 
-**Status: FINAL AGENT DECISIONS — NOT HUMAN-CONFIRMED.** No protocol byte,
+**Status as of 2026-10-29: FINAL AGENT DECISIONS — NOT HUMAN-CONFIRMED.** Superseded by the 2026-10-31 signature and consent records (below). No protocol byte,
 criteria byte, or charting byte changed; the frozen instrument and the
 `9ae1f97d…b86f` criteria hash that all 566 decision files attest are untouched.
 
@@ -191,5 +191,23 @@ applied.
 
 | Proposal | Open decision | Governing constraint |
 | :--- | :--- | :--- |
-| [`proposals/INC-03_redaction_amendment.md`](proposals/INC-03_redaction_amendment.md) | consent (**A**) vs redacted publication rendering (**B**, recommended) for the unconsented co-reviewer names inside INC-03 | the names are embedded in every hashed batch file; editing the instrument would invalidate the signature |
+| [`proposals/INC-03_redaction_amendment.md`](proposals/INC-03_redaction_amendment.md) | **Decided 2026-10-31 — Option A (consent).** Record: [`consent/INC-03_consent_and_conduct_record.md`](consent/INC-03_consent_and_conduct_record.md) | the names are embedded in every hashed batch file; the frozen instrument was not edited |
 | [`proposals/F1_evidence_state_repair.md`](proposals/F1_evidence_state_repair.md) | freeze a v0.3.1 charting schema that couples `evidence_state` to content/provenance | no charting row may be accepted until F1 is repaired |
+
+## Post-freeze resolutions (2026-10-31)
+
+- **Screening confirmation signed.** `HumanConfirmation@1` by Mouadh BEKHOUCHE
+  over all 283 decision artifacts / 14,150 decisions, no overrides,
+  `retrospective: false`, fingerprint `e1f51ffe…f876800`. Decisions keep their
+  `FINAL_AGENT_UNCONFIRMED` provenance; the confirmation is a separate record.
+- **INC-03 consent recorded.** Both named co-reviewers consented (2026-10-31) to
+  be published with their role; the Option C conduct is attested as executed.
+  The publication block is lifted without editing the frozen instrument. No
+  hash changed.
+- **Still open:** charting F1 repair (see
+  [`proposals/F1_evidence_state_repair.md`](proposals/F1_evidence_state_repair.md)),
+  and a confirmed export with real synthesis content.
+
+`validation.json` is the **2026-10-29 freeze snapshot** and still lists the
+confirmation and consent as outstanding. It is kept as-is on purpose: it records
+what was true at freeze. The resolutions above supersede it.
