@@ -5,7 +5,7 @@
   "title": "Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace",
   "description": "Dedicated host for protocol v0.3: keeps pilot v0.2 inputs byte-preserved; hosts intent v0.3, compiled protocol, rendered criteria, v0.3 charting drafts, and amendment lineage. Provenance: amendment of workspaces/uav-crop-weed-reliability protocol fingerprint sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451",
   "created_at": "2026-10-17T15:06:33.337622+00:00",
-  "updated_at": "2026-10-31T19:26:19.040234+00:00",
+  "updated_at": "2026-10-31T19:35:05.290484+00:00",
   "status": "active",
   "protocol_status": "FROZEN",
   "protocol_revision": "0.3",
@@ -13,7 +13,7 @@
   "protocol_freeze_authorized": true,
   "protocol_frozen_at": "2026-10-29T12:13:31.678081+00:00",
   "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
-  "charting_schema_sha256": "02eaf2cee7af43390ab91b11e1831a4d98fdb0c7f99b9ef113abd69111cace85",
+  "charting_schema_sha256": "91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42",
   "freeze_record": {
     "basis": "EVT-20261017191328-03266a FREEZE-PATH AUTHORIZATION, step 2 (protocol-amendment logging)",
     "decision_authority": "Explicit user instruction 2026-10-29: 'I approve your decision so take them instead of me'. Delegated researcher decision, recorded by the orchestrating agent. This is a mechanical record of a delegated decision, NOT authenticated human approval and NOT a claim of independent human screening.",
@@ -90,5 +90,8 @@
       "literature/prisma_screening_report.md"
     ],
     "contract_status": "NOT_A_CONTRACT_V1_PUBLISHED_GENERATION"
-  }
+  },
+  "charting_schema_version": "0.3.1",
+  "charting_frozen_at": "2026-10-31T19:30:00+00:00",
+  "charting_f1_status": "repaired_2026-10-31"
 }

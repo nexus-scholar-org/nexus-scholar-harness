@@ -25,12 +25,14 @@ Purpose: dedicated, isolated host for protocol revision v0.3 so the pilot worksp
 - `protocol.sha256` — canonical fingerprint: `sha256:f81e6c58aefb3159cb679ca87c4a
   83382dca199e0b02bb12ac409c15f8a4f755`.
 - `SCREENING_CRITERIA.md` — rendered by the compiler.
-- `charting.schema.json` + `CHARTING_CODEBOOK.md` — v0.3 charting pair, **frozen
-  2026-10-29 with accepted limitation F1**. They supersede the pilot v0.2
-  charting sidecar for this workspace, but F1 is unresolved (no state↔content
-  coupling), so no charting rows may be accepted for the v0.3 pilot until it is
-  repaired; charting pilots continue on the v0.2 sidecar. Details in
-  `validation.json` (`freeze.decisions.charting`).
+- `charting.schema.json` + `CHARTING_CODEBOOK.md` — **v0.3.1 charting pair,
+  frozen 2026-10-31 with F1 repaired**. The v0.3.0 bytes were frozen 2026-10-29
+  with limitation F1 (no `evidence_state`↔content coupling); v0.3.1 imports the
+  v0.2 cell logic as per-dimension conditional shapes and refuses every
+  populated-under-absence case. SHA-256 `91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42`. Charting rows may now be produced
+  under v0.3.1 (none accepted yet). Records: `validation_v031.json` and
+  `audit/charting_validation_matrix_v031.json`; the superseded v0.3.0 bytes are
+  kept as `audit/charting_schema_v030_superseded.json`.
 - `validation.json` — attributed machine-gate record (engineer: orchestrator agent).
 - `AMENDMENTS.md` — v0.2→v0.3 record.
 

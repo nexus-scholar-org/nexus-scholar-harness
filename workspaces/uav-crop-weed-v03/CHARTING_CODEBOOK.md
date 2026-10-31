@@ -4,12 +4,16 @@
 **Schema**: `schemas/v1/charting.schema.json`
 **Status**: Pilot-Then-Freeze (Decision #6)
 
-> DRAFT v0.3 — hosted in `workspaces/uav-crop-weed-v03/`. This codebook supersedes
-> the pilot `charting sidecar v0.2` only upon researcher freeze. Until then, the
-> frozen pilot v0.2 sidecar in `workspaces/uav-crop-weed-reliability/` remains
-> normative for anything charted there. Reference-anchor metric values below are
+> **FROZEN v0.3.1 — 2026-10-31.** This codebook governs charting in
+> `workspaces/uav-crop-weed-v03/` and supersedes the pilot `charting sidecar v0.2`
+> for this workspace. It repairs limitation F1: `evidence_state` now governs the
+> dimension's values and provenance (§2.1). SHA-256 of the instrument:
+> `91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42`.
+> The superseded v0.3.0 bytes are kept as
+> `audit/charting_schema_v030_superseded.json`, and the freeze record is
+> `validation_v031.json`. Reference-anchor metric values below are
 > UNVERIFIED-DRAFT transcriptions from the definitive harvest abstracts and must
-> be re-verified against retrieved full texts before dual-coding pilot or freeze.
+> be re-verified against retrieved full texts before dual-coding.
 
 ---
 
@@ -35,6 +39,44 @@ Never collapse missingness into a single null value. Every dimension must be tag
 - **`unavailable`**: Full text, supplementary table, or external dataset documentation required to verify this field could not be accessed.
 - **`conflicting`**: The paper contains internal contradictions (e.g., text in Section 2 claims "independent field testing," but Figure 3 shows train and test tiles checker-boarded inside the same orthomosaic). Record both quotes in `provenance_limits.internal_contradictions_noted`.
 - **`not_applicable`**: The dimension structurally does not apply to the setting (e.g., `fusion_mechanism.integration_topology` for a single-stream RGB-only model, or `transfer_outcomes.delta_transfer_drop` for an `in_distribution_only` experiment).
+
+### 2.1 State governs content and provenance (v0.3.1)
+
+`evidence_state` is the **claim**; the dimension's values and provenance are its
+**evidence**. The schema enforces this per dimension, so a state word can no
+longer coexist with contradicting content:
+
+| `evidence_state` | Value fields | Provenance |
+| :--- | :--- | :--- |
+| `reported` | primary values present (enums non-null, required arrays non-empty) | ≥1 anchor with `absence_check: false` quoting the reported content |
+| `not_reported` | all null / `[]` | one anchor with `absence_check: true` recording the explicit absence check |
+| `unavailable` | all null / `[]` | one anchor with `absence_check: true` naming the access failure, not a content quote |
+| `not_applicable` | all null / `[]` | one anchor with `absence_check: true` quoting why the dimension does not apply |
+| `conflicting` | all null / `[]` — no single value may be asserted | `provenance` + ≥1 `additional_provenance`, every `absence_check: false`, with mutually inconsistent quotes; `narrative_summary` describes the conflict |
+
+Three consequences coders must internalise:
+
+1. **`false` is not "unknown".** The six boolean fields
+   (`matched_modality_ablation_present`, `abstention_or_validity_rejection`,
+   `weed_class_specific_metrics_reported`, `variance_or_ci_reported`,
+   `failed_transfer_documented`, `funding_and_coi_disclosed`) are tri-state:
+   `false` means *reported as no*, `null` means *we cannot tell*. In a
+   non-`reported` state every boolean must be `null`.
+2. **Absence lives in the state, not in an enum value.** `not_reported` was
+   removed from the value enums (including `agricultural_setting`,
+   `weed_granularity`, `independent_unit_level`, `radiometric_calibration`,
+   `temporal_regime`, `partition_unit`, `integration_topology`, `stress_origin`,
+   `data_availability` and `code_availability`). `spatial_leakage_risk:
+   "unclear_not_reported"` remains: it is an assessed *reported* value about the
+   paper's own ambiguity, not the absence of a statement. `not_applicable` stays
+   a value only where it is the reported content (e.g.
+   `radiometric_calibration`, `claimed_vs_demonstrated_gap`).
+3. **`primary_publication_type` is the one exception.** It stays required and
+   non-null in `study_reports` under every state, because it is bibliographic
+   metadata about the record rather than a finding about the study.
+
+`narrative_summary` is required (non-empty) in every state and must explain the
+absence or the conflict — "not reported" alone is not a narrative.
 
 ---
 

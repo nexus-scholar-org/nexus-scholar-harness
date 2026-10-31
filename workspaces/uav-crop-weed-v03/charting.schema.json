@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schemas/v1/charting.schema.json",
   "title": "UAV Crop-Weed Reliability Scoping Review — Evaluation-Setting Charting Schema",
-  "description": "Validates charted evaluation-setting rows linked to study/report families (protocol proto-20261012-uav-crop-weed-reliability). Repeated random seeds are grouped within a setting; materially distinct dataset, split, shift, or target-data-use conditions require separate rows. DRAFT v0.3 — not frozen; supercedes pilot charting sidecar v0.2 only upon researcher freeze.",
+  "description": "Validates charted evaluation-setting rows linked to study/report families (protocol proto-20261012-uav-crop-weed-reliability). Repeated random seeds are grouped within a setting; materially distinct dataset, split, shift, or target-data-use conditions require separate rows. FROZEN v0.3.1 (2026-10-31) — repairs limitation F1 by coupling evidence_state to content and provenance. Supersedes v0.3.0.",
   "type": "object",
   "required": [
     "study_id",
@@ -70,7 +70,7 @@
           ]
         },
         "primary_publication_year": {
-          "type": "integer",
+          "type": ["integer", "null"],
           "minimum": 2020,
           "maximum": 2026
         },
@@ -97,9 +97,56 @@
             }
           }
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "primary_report_doi": {"type": "null"},
+              "primary_publication_year": {"type": "null"},
+              "linked_reports": {"maxItems": 0},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "primary_report_doi": {"type": "null"},
+              "primary_publication_year": {"type": "null"},
+              "linked_reports": {"maxItems": 0},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "primary_report_doi": {"not": {"type": "null"}},
+              "primary_publication_year": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     },
     "task_context": {
       "type": "object",
@@ -117,14 +164,14 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "agricultural_setting": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "arable_row_crop",
             "broadacre_cereal",
             "vegetable_horticulture",
             "perennial_orchard_vineyard",
             "managed_pasture_forage",
-            "not_reported"
+            null
           ]
         },
         "crop_species": {
@@ -133,18 +180,18 @@
           "description": "Standardized crop common or Latin names (e.g., ['maize'], ['barley', 'rapeseed'], ['sugar_beet'])."
         },
         "weed_granularity": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "binary_crop_vs_weed",
             "coarse_group_broadleaf_narrowleaf",
             "multi_species_fine_grained",
             "single_target_weed_species",
             "weed_pressure_gradient_or_cover",
-            "not_reported"
+            null
           ]
         },
         "vision_task": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "semantic_segmentation",
             "instance_segmentation",
@@ -152,19 +199,75 @@
             "bounding_box_object_detection",
             "patch_or_tile_classification",
             "ordinal_or_density_regression",
-            "obia_or_pixel_machine_learning"
+            "obia_or_pixel_machine_learning",
+            null
           ]
         },
         "uav_separability": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "uav_only",
-            "mixed_platform_uav_separable"
+            "mixed_platform_uav_separable",
+            null
           ]
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "agricultural_setting": {"type": "null"},
+              "weed_granularity": {"type": "null"},
+              "vision_task": {"type": "null"},
+              "uav_separability": {"type": "null"},
+              "crop_species": {"maxItems": 0},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "agricultural_setting": {"type": "null"},
+              "weed_granularity": {"type": "null"},
+              "vision_task": {"type": "null"},
+              "uav_separability": {"type": "null"},
+              "crop_species": {"maxItems": 0},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "agricultural_setting": {"not": {"type": "null"}},
+              "weed_granularity": {"not": {"type": "null"}},
+              "vision_task": {"not": {"type": "null"}},
+              "uav_separability": {"not": {"type": "null"}},
+              "crop_species": {"minItems": 1}
+            }
+          }
+        }
+        ]
     },
     "dataset_units": {
       "type": "object",
@@ -185,12 +288,13 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "dataset_origin": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "primary_newly_collected",
             "reused_in_window_uav_benchmark",
             "reused_pre_2020_uav_benchmark",
-            "hybrid_primary_and_benchmark"
+            "hybrid_primary_and_benchmark",
+            null
           ]
         },
         "dataset_names": {
@@ -204,19 +308,77 @@
         "unique_seasons_or_years_count": { "type": ["integer", "null"], "minimum": 1 },
         "total_tiles_or_patches_count": { "type": ["integer", "null"], "minimum": 1 },
         "independent_unit_level": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "sub_image_tile_or_patch",
             "single_raw_uav_frame",
             "spatial_plot_or_block",
             "flight_campaign_or_orthomosaic",
             "distinct_physical_field",
-            "not_reported"
+            null
           ]
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "dataset_origin": {"type": "null"},
+              "independent_unit_level": {"type": "null"},
+              "dataset_names": {"maxItems": 0},
+              "unique_fields_count": {"type": "null"},
+              "unique_orthomosaics_or_flights_count": {"type": "null"},
+              "unique_acquisition_dates_count": {"type": "null"},
+              "unique_seasons_or_years_count": {"type": "null"},
+              "total_tiles_or_patches_count": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "dataset_origin": {"type": "null"},
+              "independent_unit_level": {"type": "null"},
+              "dataset_names": {"maxItems": 0},
+              "unique_fields_count": {"type": "null"},
+              "unique_orthomosaics_or_flights_count": {"type": "null"},
+              "unique_acquisition_dates_count": {"type": "null"},
+              "unique_seasons_or_years_count": {"type": "null"},
+              "total_tiles_or_patches_count": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "dataset_origin": {"not": {"type": "null"}},
+              "independent_unit_level": {"not": {"type": "null"}},
+              "dataset_names": {"minItems": 1}
+            }
+          }
+        }
+        ]
     },
     "sensor_inputs": {
       "type": "object",
@@ -236,7 +398,6 @@
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "modalities_used": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "type": "string",
             "enum": [
@@ -261,20 +422,73 @@
         "gsd_mm_per_pixel": { "type": ["number", "null"], "minimum": 0 },
         "flight_altitude_m": { "type": ["number", "null"], "minimum": 0 },
         "radiometric_calibration": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "calibrated_reflectance_panel_and_dls",
             "calibrated_reflectance_panel_only",
             "downwelling_light_sensor_only",
             "empirical_line_or_statistical_normalization",
             "uncalibrated_raw_or_8bit_dn",
-            "not_reported",
-            "not_applicable"
+            "not_applicable",
+            null
           ]
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "radiometric_calibration": {"type": "null"},
+              "modalities_used": {"maxItems": 0},
+              "spectral_bands": {"maxItems": 0},
+              "derived_indices_used": {"maxItems": 0},
+              "gsd_mm_per_pixel": {"type": "null"},
+              "flight_altitude_m": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "radiometric_calibration": {"type": "null"},
+              "modalities_used": {"maxItems": 0},
+              "spectral_bands": {"maxItems": 0},
+              "derived_indices_used": {"maxItems": 0},
+              "gsd_mm_per_pixel": {"type": "null"},
+              "flight_altitude_m": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "radiometric_calibration": {"not": {"type": "null"}},
+              "modalities_used": {"minItems": 1}
+            }
+          }
+        }
+        ]
     },
     "availability_alignment": {
       "type": "object",
@@ -291,7 +505,6 @@
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "stress_categories_evaluated": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "type": "string",
             "enum": [
@@ -307,19 +520,66 @@
           }
         },
         "stress_origin": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "naturally_observed_in_field",
             "synthetically_injected_perturbation",
             "both_natural_and_synthetic",
             "not_applicable",
-            "not_reported"
+            null
           ]
         },
         "alignment_or_restoration_method": { "type": ["string", "null"] },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "stress_origin": {"type": "null"},
+              "stress_categories_evaluated": {"maxItems": 0},
+              "alignment_or_restoration_method": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "stress_origin": {"type": "null"},
+              "stress_categories_evaluated": {"maxItems": 0},
+              "alignment_or_restoration_method": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "stress_origin": {"not": {"type": "null"}},
+              "stress_categories_evaluated": {"minItems": 1}
+            }
+          }
+        }
+        ]
     },
     "temporal_design": {
       "type": "object",
@@ -334,7 +594,7 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "temporal_regime": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "single_date_snapshot",
             "multiple_dates_pooled_no_heldout",
@@ -342,7 +602,7 @@
             "heldout_date_or_growth_stage_same_season",
             "heldout_cross_season_or_cross_year",
             "explicit_time_series_sequence_model",
-            "not_reported"
+            null
           ],
           "description": "Per Decision #6, strictly separate multiple_dates_pooled_no_heldout from heldout_date_or_growth_stage_same_season and heldout_cross_season_or_cross_year."
         },
@@ -350,9 +610,53 @@
           "type": ["string", "null"],
           "description": "Reported growth stages or BBCH codes (e.g., 'BBCH 15, 17, 19' or 'seedling vs pre-harvest')."
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "temporal_regime": {"type": "null"},
+              "crop_growth_stages_bbch": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "temporal_regime": {"type": "null"},
+              "crop_growth_stages_bbch": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "temporal_regime": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     },
     "split_protocol": {
       "type": "object",
@@ -368,7 +672,7 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "partition_unit": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "random_tile_or_pixel_same_orthomosaic",
             "random_raw_frame_same_flight",
@@ -377,32 +681,82 @@
             "heldout_field_same_farm_or_region",
             "heldout_geographic_location_or_farm",
             "heldout_year_or_season",
-            "not_reported"
+            null
           ]
         },
         "spatial_leakage_risk": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "high_overlapping_or_random_tiles_from_same_flight",
             "moderate_unbuffered_adjacent_blocks_or_frames",
             "low_buffered_blocks_or_independent_fields_flights",
-            "unclear_not_reported"
+            "unclear_not_reported",
+            null
           ]
         },
         "target_domain_data_use": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "in_domain_split_only",
             "zero_target_exposure_strict_holdout",
             "unlabeled_target_images_for_uda_or_tta",
             "self_labeled_target_via_crop_row_or_index_rules",
             "labeled_target_few_shot_or_fine_tuning",
-            "target_acquisition_partially_exposed_in_train"
+            "target_acquisition_partially_exposed_in_train",
+            null
           ]
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "partition_unit": {"type": "null"},
+              "spatial_leakage_risk": {"type": "null"},
+              "target_domain_data_use": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "partition_unit": {"type": "null"},
+              "spatial_leakage_risk": {"type": "null"},
+              "target_domain_data_use": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "partition_unit": {"not": {"type": "null"}},
+              "spatial_leakage_risk": {"not": {"type": "null"}},
+              "target_domain_data_use": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     },
     "fusion_mechanism": {
       "type": "object",
@@ -418,7 +772,7 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "architecture_family": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "cnn_segmentation_encoder_decoder",
             "vision_transformer_or_hybrid_segmentation",
@@ -426,11 +780,12 @@
             "two_stage_rcnn_detector_or_segmenter",
             "two_stage_cascade_detector_plus_segmenter",
             "classical_ml_rf_svm_obia",
-            "knowledge_distilled_student_teacher"
+            "knowledge_distilled_student_teacher",
+            null
           ]
         },
         "integration_topology": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "single_modality_rgb_only",
             "early_channel_stacking_concatenation",
@@ -438,16 +793,64 @@
             "decoupled_radiance_and_index_streams",
             "late_decision_or_feature_ensemble",
             "not_applicable",
-            "not_reported"
+            null
           ]
         },
         "matched_modality_ablation_present": {
-          "type": "boolean",
+          "type": ["boolean", "null"],
           "description": "True ONLY if the study compares multimodal fusion against a matched single-modality baseline (e.g., RGB+MS vs RGB-only with the same backbone and split)."
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "architecture_family": {"type": "null"},
+              "integration_topology": {"type": "null"},
+              "matched_modality_ablation_present": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "architecture_family": {"type": "null"},
+              "integration_topology": {"type": "null"},
+              "matched_modality_ablation_present": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "architecture_family": {"not": {"type": "null"}},
+              "integration_topology": {"not": {"type": "null"}},
+              "matched_modality_ablation_present": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     },
     "uncertainty_calibration": {
       "type": "object",
@@ -464,14 +867,15 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "uncertainty_method": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "none",
             "uncalibrated_softmax_or_confidence_threshold",
             "mc_dropout_or_bayesian_approximation",
             "deep_ensemble_variance",
             "probabilistic_output_head_or_dirichlet",
-            "risk_aware_loss_or_validity_index"
+            "risk_aware_loss_or_validity_index",
+            null
           ]
         },
         "calibration_metrics_reported": {
@@ -489,21 +893,72 @@
           }
         },
         "abstention_or_validity_rejection": {
-          "type": "boolean",
+          "type": ["boolean", "null"],
           "description": "True if the method can reject/abstain on invalid predictions (e.g., In-Row Concentration Ratio IRCR gate or risk-aware rejection)."
         },
         "false_calibration_terminology_trap": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "none",
             "hardware_quantization_fp16_int8_called_calibration",
             "radiometric_sensor_panel_called_calibration",
-            "learned_attention_weights_claimed_as_uncertainty"
+            "learned_attention_weights_claimed_as_uncertainty",
+            null
           ]
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "uncertainty_method": {"type": "null"},
+              "calibration_metrics_reported": {"maxItems": 0},
+              "abstention_or_validity_rejection": {"type": "null"},
+              "false_calibration_terminology_trap": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "uncertainty_method": {"type": "null"},
+              "calibration_metrics_reported": {"maxItems": 0},
+              "abstention_or_validity_rejection": {"type": "null"},
+              "false_calibration_terminology_trap": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "uncertainty_method": {"not": {"type": "null"}},
+              "abstention_or_validity_rejection": {"not": {"type": "null"}},
+              "false_calibration_terminology_trap": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     },
     "metrics_comparators": {
       "type": "object",
@@ -520,7 +975,7 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "weed_class_specific_metrics_reported": {
-          "type": "boolean",
+          "type": ["boolean", "null"],
           "description": "True if weed-specific IoU/F1/AP is reported separately from background/soil and crop classes."
         },
         "primary_metrics": {
@@ -542,10 +997,83 @@
           "minimum": 1,
           "description": "Number of random seeds or cross-validation runs grouped within this setting."
         },
-        "variance_or_ci_reported": { "type": "boolean" },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "variance_or_ci_reported": { "type": ["boolean", "null"] },
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "weed_class_specific_metrics_reported": {"type": "null"},
+              "variance_or_ci_reported": {"type": "null"},
+              "repeated_seeds_or_folds_count": {"type": "null"},
+              "primary_metrics": {"properties": {"weed_iou": {"type": "null"}}},
+              "primary_metrics": {"properties": {"weed_f1_or_dice": {"type": "null"}}},
+              "primary_metrics": {"properties": {"mean_iou": {"type": "null"}}},
+              "primary_metrics": {"properties": {"macro_f1": {"type": "null"}}},
+              "primary_metrics": {"properties": {"map_50": {"type": "null"}}},
+              "primary_metrics": {"properties": {"map_50_95": {"type": "null"}}},
+              "primary_metrics": {"properties": {"overall_accuracy": {"type": "null"}}},
+              "primary_metrics": {"properties": {"weed_cover_r2": {"type": "null"}}},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "weed_class_specific_metrics_reported": {"type": "null"},
+              "variance_or_ci_reported": {"type": "null"},
+              "repeated_seeds_or_folds_count": {"type": "null"},
+              "primary_metrics": {"properties": {"weed_iou": {"type": "null"}}},
+              "primary_metrics": {"properties": {"weed_f1_or_dice": {"type": "null"}}},
+              "primary_metrics": {"properties": {"mean_iou": {"type": "null"}}},
+              "primary_metrics": {"properties": {"macro_f1": {"type": "null"}}},
+              "primary_metrics": {"properties": {"map_50": {"type": "null"}}},
+              "primary_metrics": {"properties": {"map_50_95": {"type": "null"}}},
+              "primary_metrics": {"properties": {"overall_accuracy": {"type": "null"}}},
+              "primary_metrics": {"properties": {"weed_cover_r2": {"type": "null"}}},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "weed_class_specific_metrics_reported": {"not": {"type": "null"}},
+              "variance_or_ci_reported": {"not": {"type": "null"}}
+            },
+            "anyOf": [
+                { "properties": { "primary_metrics": { "properties": { "weed_iou": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "weed_f1_or_dice": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "mean_iou": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "macro_f1": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "map_50": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "map_50_95": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "overall_accuracy": { "not": { "type": "null" } } } } } },
+                { "properties": { "primary_metrics": { "properties": { "weed_cover_r2": { "not": { "type": "null" } } } } } }
+            ]
+          }
+        }
+        ]
     },
     "transfer_outcomes": {
       "type": "object",
@@ -565,7 +1093,6 @@
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "shift_axes_tested": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "type": "string",
             "enum": [
@@ -581,14 +1108,15 @@
           }
         },
         "adaptation_regime": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "not_applicable_in_distribution",
             "zero_shot_direct_transfer",
             "few_shot_supervised_fine_tuning",
             "unsupervised_domain_adaptation",
             "online_test_time_adaptation",
-            "unsupervised_crop_row_self_labeling"
+            "unsupervised_crop_row_self_labeling",
+            null
           ]
         },
         "source_weed_metric_value": { "type": ["number", "null"] },
@@ -598,12 +1126,66 @@
           "description": "Target metric minus Source metric (negative value indicates performance degradation under shift)."
         },
         "failed_transfer_documented": {
-          "type": "boolean",
+          "type": ["boolean", "null"],
           "description": "True if the study explicitly reports a severe performance breakdown or failure mode under transfer or stress."
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "adaptation_regime": {"type": "null"},
+              "failed_transfer_documented": {"type": "null"},
+              "shift_axes_tested": {"maxItems": 0},
+              "source_weed_metric_value": {"type": "null"},
+              "target_weed_metric_value": {"type": "null"},
+              "delta_transfer_drop": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "adaptation_regime": {"type": "null"},
+              "failed_transfer_documented": {"type": "null"},
+              "shift_axes_tested": {"maxItems": 0},
+              "source_weed_metric_value": {"type": "null"},
+              "target_weed_metric_value": {"type": "null"},
+              "delta_transfer_drop": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "adaptation_regime": {"not": {"type": "null"}},
+              "failed_transfer_documented": {"not": {"type": "null"}},
+              "shift_axes_tested": {"minItems": 1}
+            }
+          }
+        }
+        ]
     },
     "provenance_limits": {
       "type": "object",
@@ -624,18 +1206,65 @@
         },
         "internal_contradictions_noted": { "type": ["string", "null"] },
         "claimed_vs_demonstrated_gap": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "aligned_claims_match_split_independence",
             "overclaimed_generalization_from_random_tile_split",
             "overclaimed_multispectral_gain_without_matched_ablation",
             "overclaimed_real_time_or_robustness_without_stress_test",
-            "not_applicable"
+            "not_applicable",
+            null
           ]
         },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "claimed_vs_demonstrated_gap": {"type": "null"},
+              "missing_or_ambiguous_dimensions": {"maxItems": 0},
+              "internal_contradictions_noted": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "claimed_vs_demonstrated_gap": {"type": "null"},
+              "missing_or_ambiguous_dimensions": {"maxItems": 0},
+              "internal_contradictions_noted": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "claimed_vs_demonstrated_gap": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     },
     "open_science": {
       "type": "object",
@@ -653,39 +1282,93 @@
       "properties": {
         "evidence_state": { "$ref": "#/$defs/evidence_state" },
         "data_availability": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "public_repository_verified_link",
             "stated_public_upon_publication",
             "available_upon_reasonable_request",
             "reused_public_benchmark_only",
             "not_available_or_proprietary",
-            "not_reported"
+            null
           ]
         },
         "code_availability": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "public_repository_verified_link",
             "stated_public_upon_publication",
             "available_upon_reasonable_request",
             "not_available",
-            "not_reported"
+            null
           ]
         },
         "license": { "type": ["string", "null"] },
         "retraction_or_correction_status": {
-          "type": "string",
+          "type": ["string", "null"],
           "enum": [
             "none_detected",
             "corrigendum_or_erratum_linked",
-            "retracted"
+            "retracted",
+            null
           ]
         },
-        "funding_and_coi_disclosed": { "type": "boolean" },
-        "narrative_summary": { "type": "string" },
-        "provenance": { "$ref": "#/$defs/provenance_anchor" }
-      }
+        "funding_and_coi_disclosed": { "type": ["boolean", "null"] },
+        "narrative_summary": { "type": "string", "minLength": 1 },
+        "provenance": { "$ref": "#/$defs/provenance_anchor" },
+        "additional_provenance": { "type": "array", "items": { "$ref": "#/$defs/provenance_anchor" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": { "properties": { "provenance": { "properties": { "absence_check": { "const": false } } } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "enum": ["not_reported", "unavailable", "not_applicable"] } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "data_availability": {"type": "null"},
+              "code_availability": {"type": "null"},
+              "license": {"type": "null"},
+              "retraction_or_correction_status": {"type": "null"},
+              "funding_and_coi_disclosed": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": true } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "conflicting" } }, "required": ["evidence_state"] },
+          "then": {
+            "required": ["additional_provenance"],
+            "properties": {
+              "data_availability": {"type": "null"},
+              "code_availability": {"type": "null"},
+              "license": {"type": "null"},
+              "retraction_or_correction_status": {"type": "null"},
+              "funding_and_coi_disclosed": {"type": "null"},
+              "provenance": { "properties": { "absence_check": { "const": false } } },
+              "additional_provenance": {
+                "minItems": 1,
+                "items": { "properties": { "absence_check": { "const": false } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "not": { "const": "conflicting" } } }, "required": ["evidence_state"] },
+          "then": { "properties": { "additional_provenance": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "evidence_state": { "const": "reported" } }, "required": ["evidence_state"] },
+          "then": {
+            "properties": {
+              "data_availability": {"not": {"type": "null"}},
+              "code_availability": {"not": {"type": "null"}},
+              "retraction_or_correction_status": {"not": {"type": "null"}},
+              "funding_and_coi_disclosed": {"not": {"type": "null"}}
+            }
+          }
+        }
+        ]
     }
   },
   "$defs": {
@@ -698,13 +1381,17 @@
         "conflicting",
         "not_applicable"
       ],
-      "description": "Strict epistemic state of the charted dimension. Never collapse not_reported (authors omitted it in full text) with unavailable (full text or supplement inaccessible) or not_applicable."
+      "description": "Strict epistemic state of the charted dimension and the authority over its content: reported requires the reported values plus a content quote; not_reported/unavailable/not_applicable require every value field to be empty plus an absence quote; conflicting requires empty value fields, two mutually inconsistent content quotes (provenance + additional_provenance), and a narrative describing the conflict. Never collapse not_reported (authors omitted it in full text) with unavailable (full text or supplement inaccessible) or not_applicable."
     },
     "provenance_anchor": {
       "type": "object",
-      "required": ["verbatim_quote", "locator"],
+      "required": ["verbatim_quote", "locator", "absence_check"],
       "additionalProperties": false,
       "properties": {
+        "absence_check": {
+          "type": "boolean",
+          "description": "false when verbatim_quote is reported content supporting a value; true when it records the explicit absence check. Enforced by each dimension: reported/conflicting require false; not_reported/unavailable/not_applicable require true."
+        },
         "verbatim_quote": {
           "type": "string",
           "minLength": 5,

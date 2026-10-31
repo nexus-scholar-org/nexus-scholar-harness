@@ -1,0 +1,234 @@
+{
+  "schema": "charting.schema.json",
+  "schema_version": "v0.3.1",
+  "schema_sha256": "91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42",
+  "superseded_sha256": "02eaf2cee7af43390ab91b11e1831a4d98fdb0c7f99b9ef113abd69111cace85",
+  "checked_at": "2026-10-31",
+  "results": [
+    {
+      "name": "schema_self_check",
+      "status": "PASS",
+      "detail": "draft 2020-12 metaschema ok"
+    },
+    {
+      "name": "P1_full_reported_row",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_not_reported_empty_task_context",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_unavailable_empty_task_context",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_not_applicable_empty_task_context",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_study_reports_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_task_context_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_dataset_units_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_sensor_inputs_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_availability_alignment_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_temporal_design_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_split_protocol_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_fusion_mechanism_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_uncertainty_calibration_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_metrics_comparators_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_transfer_outcomes_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_provenance_limits_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P2_open_science_not_reported_empty",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "P3_conflicting_two_anchors",
+      "status": "PASS",
+      "detail": "valid"
+    },
+    {
+      "name": "N1_study_reports_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "study_reports/primary_report_doi: '10.1016/j.compag.2024.109000' is not of type 'null'"
+    },
+    {
+      "name": "N1_task_context_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "task_context/agricultural_setting: 'arable_row_crop' is not of type 'null'"
+    },
+    {
+      "name": "N1_dataset_units_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "dataset_units/dataset_origin: 'primary_newly_collected' is not of type 'null'"
+    },
+    {
+      "name": "N1_sensor_inputs_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "sensor_inputs/radiometric_calibration: 'calibrated_reflectance_panel_and_dls' is not of type 'null'"
+    },
+    {
+      "name": "N1_availability_alignment_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "availability_alignment/stress_origin: 'naturally_observed_in_field' is not of type 'null'"
+    },
+    {
+      "name": "N1_temporal_design_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "temporal_design/temporal_regime: 'multiple_dates_pooled_no_heldout' is not of type 'null'"
+    },
+    {
+      "name": "N1_split_protocol_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "split_protocol/partition_unit: 'spatial_block_or_strip_same_field' is not of type 'null'"
+    },
+    {
+      "name": "N1_fusion_mechanism_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "fusion_mechanism/architecture_family: 'cnn_segmentation_encoder_decoder' is not of type 'null'"
+    },
+    {
+      "name": "N1_uncertainty_calibration_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "uncertainty_calibration/uncertainty_method: 'mc_dropout_or_bayesian_approximation' is not of type 'null'"
+    },
+    {
+      "name": "N1_metrics_comparators_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "metrics_comparators/weed_class_specific_metrics_reported: True is not of type 'null'"
+    },
+    {
+      "name": "N1_transfer_outcomes_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "transfer_outcomes/adaptation_regime: 'zero_shot_direct_transfer' is not of type 'null'"
+    },
+    {
+      "name": "N1_provenance_limits_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "provenance_limits/claimed_vs_demonstrated_gap: 'aligned_claims_match_split_independence' is not of type 'null'"
+    },
+    {
+      "name": "N1_open_science_not_reported_but_populated",
+      "status": "PASS",
+      "detail": "open_science/data_availability: 'public_repository_verified_link' is not of type 'null'"
+    },
+    {
+      "name": "N2_absence_quote_flagged_as_content",
+      "status": "PASS",
+      "detail": "task_context/provenance/absence_check: True was expected"
+    },
+    {
+      "name": "N3_reported_with_absence_quote",
+      "status": "PASS",
+      "detail": "task_context/provenance/absence_check: False was expected"
+    },
+    {
+      "name": "N4_not_reported_with_method",
+      "status": "PASS",
+      "detail": "uncertainty_calibration/uncertainty_method: 'mc_dropout_or_bayesian_approximation' is not of type 'null'"
+    },
+    {
+      "name": "N5_conflicting_with_one_anchor",
+      "status": "PASS",
+      "detail": "task_context: 'additional_provenance' is a required property"
+    },
+    {
+      "name": "N6_conflicting_with_asserted_value",
+      "status": "PASS",
+      "detail": "task_context/agricultural_setting: 'arable_row_crop' is not of type 'null'"
+    },
+    {
+      "name": "N7_reported_with_null_primary_field",
+      "status": "PASS",
+      "detail": "study_reports/primary_publication_year: None should not be valid under {'type': 'null'}"
+    },
+    {
+      "name": "N8_removed_absence_enum_member",
+      "status": "PASS",
+      "detail": "open_science/data_availability: 'not_reported' is not one of ['public_repository_verified_link', 'stated_public_upon_publication', 'available_upon_reasonable_request', 'reused_public_benchmark_only', 'not_available_or_proprietary', None]"
+    },
+    {
+      "name": "N9_boolean_not_tri_state_value",
+      "status": "PASS",
+      "detail": "fusion_mechanism/matched_modality_ablation_present: 'unknown' is not of type 'boolean', 'null'"
+    },
+    {
+      "name": "N10_anchor_without_absence_flag",
+      "status": "PASS",
+      "detail": "task_context/provenance: 'absence_check' is a required property"
+    },
+    {
+      "name": "N11_absence_quote_marked_content",
+      "status": "PASS",
+      "detail": "uncertainty_calibration/provenance/absence_check: True was expected"
+    },
+    {
+      "name": "N12_reported_metrics_with_no_values",
+      "status": "PASS",
+      "detail": "metrics_comparators: {'evidence_state': 'reported', 'weed_class_specific_metrics_reported': True, 'primary_metrics': {'weed_iou': None, 'weed_f1_or_dice': None, 'mean_iou': None, 'macro_f1': None, 'map_50': None, 'map_50_95': None, 'overall_accuracy': None, 'weed_cover_r2': None}, 'repeated_seeds_or_folds_count': 5, 'variance_or_ci_reported': True, 'narrative_summary': 'Weed-specific IoU and F1 over five seeds.', 'provenance': {'verbatim_quote': 'Weed IoU reached 0.72 averaged over five seeds.', 'locator': 'Section 2, p. 3', 'absence_check': False}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "R1_v030_fixture_now_refused",
+      "status": "PASS",
+      "detail": "v0.3.0 accepted; v0.3.1 refuses (4 error(s))"
+    }
+  ],
+  "summary": {
+    "total": 44,
+    "passed": 44,
+    "failed": 0
+  }
+}
