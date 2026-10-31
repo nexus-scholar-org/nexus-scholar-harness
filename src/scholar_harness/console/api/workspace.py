@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from ..runtimes.actions import actions_payload
 
@@ -535,6 +535,154 @@ def ui07_project_summary(request: Request):
             "all_batches_resolved": all_batches_resolved,
             "publication": publication,
         },
+        "missing": missing,
+    }
+
+
+_CORPUS_FILES = {"included": "included.json", "excluded": "excluded.json"}
+
+
+def _ui07_corpus_record(entry: dict[str, Any]) -> dict[str, Any]:
+    """One §3(g) corpus row, projected from the stored screening output.
+
+    The screen must not parse the legacy `literature/included.json` /
+    `excluded.json` shape itself: that shape is an internal dump and drifting
+    it is how two contracts appear. This projection is the only place the raw
+    keys are read, and absent values stay `None` rather than being invented.
+    """
+
+    def _text(value: Any) -> str | None:
+        return value if isinstance(value, str) and value.strip() else None
+
+    screening = entry.get("screening")
+    screening = screening if isinstance(screening, dict) else {}
+    provenance = entry.get("screening_provenance")
+    provenance = provenance if isinstance(provenance, dict) else {}
+
+    violated = screening.get("violated_exclusion_criteria")
+    violated = [v for v in violated if isinstance(v, str) and v] if isinstance(violated, list) else []
+    matched = screening.get("matched_inclusion_criteria")
+    matched = [m for m in matched if isinstance(m, str) and m] if isinstance(matched, list) else []
+
+    confidence = screening.get("confidence")
+    if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+        confidence = None
+
+    year = entry.get("year")
+    if isinstance(year, bool) or not isinstance(year, (int, str)):
+        year = None
+
+    return {
+        "shape": "ui07.corpus-record-v1",
+        "workspace_id": str(entry.get("workspace_id") or entry.get("study_id") or ""),
+        "title": _text(entry.get("title")),
+        "year": year,
+        "provider": _text(entry.get("provider")),
+        "doi": _text(entry.get("doi")),
+        "abstract": _text(entry.get("abstract")),
+        "decision": str(screening.get("decision") or ""),
+        "confidence": float(confidence) if confidence is not None else None,
+        "reasoning": _text(screening.get("screening_reasoning")),
+        "reason_code": _text(provenance.get("reason_code")),
+        "criterion": (violated or matched or [None])[0],
+        "lane": _text(provenance.get("lane")),
+    }
+
+
+def _ui07_corpus_matches(record: dict[str, Any], needle: str, reason: str) -> bool:
+    """Server-side filter: substring over the readable fields, exact reason.
+
+    The browser used to filter only the rows it had already downloaded; with
+    the excluded set at 13k rows that meant either downloading everything or
+    filtering nothing. The filter now runs over the whole stored set before
+    pagination, and the page prints only the page it asked for.
+    """
+    if reason:
+        codes = {str(record.get("reason_code") or "").upper(), str(record.get("criterion") or "").upper()}
+        if reason.strip().upper() not in codes:
+            return False
+    if needle:
+        haystack = " ".join(
+            str(record.get(key) or "")
+            for key in ("workspace_id", "title", "abstract", "doi", "provider", "reason_code", "criterion")
+        ).casefold()
+        if needle.casefold() not in haystack:
+            return False
+    return True
+
+
+@router.get("/ui/corpus/{kind}")
+def ui07_corpus_page(
+    request: Request,
+    kind: str,
+    q: str | None = None,
+    reason: str | None = None,
+    limit: int = Query(25, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """§3(g): one paged corpus view (included or excluded), filter-before-page.
+
+    Missing corpus files are an explicit `missing` entry with an empty page,
+    not a 404: "no screening output yet" is a state the screen renders, and an
+    absent file is not a transport failure. Reads are pure — the file is never
+    rewritten or repaired here.
+    """
+    _ui07_refuse_caller_identity(request)
+    ws = _ws(request)
+
+    filename = _CORPUS_FILES.get(kind)
+    if filename is None:
+        raise _ui07_error(
+            404,
+            "CORPUS_KIND_UNKNOWN",
+            "corpus kind must be 'included' or 'excluded'",
+            kind=kind,
+        )
+
+    relative = f"literature/{filename}"
+    path = ws / "literature" / filename
+    missing: list[dict[str, Any]] = []
+    entries: list[dict[str, Any]] = []
+    if not path.is_file():
+        missing.append({"file": relative, "reason": "CORPUS_MISSING"})
+    else:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001 - one broken dump is reported, not fatal
+            raise _ui07_error(
+                500,
+                "CORPUS_UNREADABLE",
+                f"{relative} is not parseable JSON",
+                file=relative,
+            ) from exc
+        if isinstance(payload, list):
+            raw_entries = payload
+        elif isinstance(payload, dict):
+            raw_entries = next(
+                (
+                    payload[key]
+                    for key in ("records", "items", "papers", "studies")
+                    if isinstance(payload.get(key), list)
+                ),
+                [],
+            )
+        else:
+            raw_entries = []
+        entries = [entry for entry in raw_entries if isinstance(entry, dict)]
+
+    records = [_ui07_corpus_record(entry) for entry in entries]
+    needle = (q or "").strip()
+    reason_filter = (reason or "").strip()
+    matched = [record for record in records if _ui07_corpus_matches(record, needle, reason_filter)]
+
+    return {
+        "shape": "ui07.corpus-page-v1",
+        "kind": kind,
+        "total": len(matched),
+        "corpus_total": len(records),
+        "offset": offset,
+        "limit": limit,
+        "records": matched[offset : offset + limit],
         "missing": missing,
     }
 

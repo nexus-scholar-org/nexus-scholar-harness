@@ -421,6 +421,50 @@ screening journey by `action` filter. The UI never rewrites, reorders,
 or appends events; technical timestamps stay exact (UI-06 packet
 constraint, restated here so the shape cannot drift).
 
+### (g) Paged corpus
+
+```json
+{
+  "shape": "ui07.corpus-page-v1",
+  "kind": "excluded",
+  "total": 1,
+  "corpus_total": 13506,
+  "offset": 0,
+  "limit": 25,
+  "records": [
+    {
+      "shape": "ui07.corpus-record-v1",
+      "workspace_id": "SCI-EXAMPLE-1",
+      "title": "Illustrative excluded record.",
+      "year": 2021,
+      "provider": "crossref",
+      "doi": null,
+      "abstract": "Illustrative abstract.",
+      "decision": "EXCLUDE",
+      "confidence": 0.8,
+      "reasoning": "Illustrative stored reasoning.",
+      "reason_code": "WRONG_TASK",
+      "criterion": "EXC-02",
+      "lane": "mutual_exclude"
+    }
+  ],
+  "missing": []
+}
+```
+
+`GET /api/v1/ui/corpus/{kind}` with `kind` ∈ {`included`, `excluded`},
+`limit` 1–200 (default 25), `offset` ≥ 0, and optional `q`/`reason`
+filters. Filtering runs over the whole stored corpus **before** the page is
+cut: `total` is the matched count, `corpus_total` the stored count. The screen
+never parses `literature/included.json` / `excluded.json` itself — the console
+projects `screening.decision`, `screening_reasoning`, provenance `reason_code`,
+the violated-or-matched criterion and the lane, and an absent value stays
+`null` rather than being invented. A missing dump is `200` with an explicit
+`missing` entry (`CORPUS_MISSING`) and an empty page, not a transport error.
+Reads are pure: no file is repaired or rewritten. Refusals follow §2:
+caller-minted identity keys → `422 CALLER_IDENTITY_REFUSED`; unknown kind →
+`404 CORPUS_KIND_UNKNOWN`; unparseable dump → `500 CORPUS_UNREADABLE`.
+
 ## 4. Illustrative acceptance examples
 
 Each of the two stateful shapes below carries three examples: populated,

@@ -136,40 +136,47 @@ export interface WorkspaceStatus {
 }
 
 /**
- * One record of the screening corpus, exactly as `literature/included.json`
- * and `literature/excluded.json` store it.
+ * One corpus row, projected by the console (`ui07.corpus-record-v1`).
  *
- * These files are the harness's own screening output. The shape is therefore
- * read, not negotiated: an absent field stays absent and the screen says so,
- * rather than filling it from a fixture.
+ * The screen never parses `literature/included.json` / `excluded.json` itself:
+ * that file is an internal dump and reading its keys here is how two corpus
+ * contracts start drifting. The console projects the stored bytes once, and
+ * this is the only shape the screen knows. An absent value stays `null` so the
+ * row can say the harness stored nothing instead of inventing a reason.
  */
-export interface CorpusScreening {
-  workspace_id: string;
-  decision: string;
-  confidence?: number;
-  screening_reasoning?: string;
-  matched_inclusion_criteria?: string[];
-  violated_exclusion_criteria?: string[];
-  document_title?: string;
-  doi?: string | null;
-}
-
-export interface CorpusProvenance {
-  lane?: string;
-  reason_code?: string;
-  criteria_sha256?: string;
-  deviation?: string | null;
-}
-
 export interface CorpusRecord {
+  shape: "ui07.corpus-record-v1";
   workspace_id: string;
-  title?: string | null;
-  year?: number | null;
-  provider?: string | null;
-  doi?: string | null;
-  abstract?: string | null;
-  screening: CorpusScreening;
-  screening_provenance?: CorpusProvenance;
+  title: string | null;
+  year: number | string | null;
+  provider: string | null;
+  doi: string | null;
+  abstract: string | null;
+  decision: string;
+  confidence: number | null;
+  reasoning: string | null;
+  reason_code: string | null;
+  criterion: string | null;
+  lane: string | null;
+}
+
+/**
+ * One page of the corpus (`ui07.corpus-page-v1`).
+ *
+ * `total` is the number of records matching the filter, `corpus_total` the
+ * number stored. Both are counted by the console; the page only prints them.
+ * `missing` is the console's explicit "no such file" entry, never a silent
+ * empty page.
+ */
+export interface CorpusPage {
+  shape: "ui07.corpus-page-v1";
+  kind: "included" | "excluded";
+  total: number;
+  corpus_total: number;
+  offset: number;
+  limit: number;
+  records: CorpusRecord[];
+  missing: MissingEntry[];
 }
 
 export interface ReviewState {
@@ -354,18 +361,30 @@ export function getWorkspaceStatus(origin: string, signal?: AbortSignal): Promis
 }
 
 /**
- * The stored corpus (`GET /api/v1/literature/included|excluded`).
+ * One page of the stored corpus (`GET /api/v1/ui/corpus/{kind}`).
  *
- * The included set is read when the live source opens; the excluded set is
- * large and is read only when the reader asks for it, so opening the screen
- * does not pull megabytes nobody asked for.
+ * The filter and the slice run over the whole stored set on the console, so
+ * the excluded list (~13.5k rows, ~27 MB as a raw dump on the pilot workspace)
+ * never crosses the wire whole. The excluded page is only requested when the
+ * reader asks for it.
  */
-export function getCorpusRecords(
+export function getCorpusPage(
   kind: "included" | "excluded",
   origin: string,
+  options?: { q?: string; reason?: string; limit?: number; offset?: number },
   signal?: AbortSignal,
-): Promise<CorpusRecord[]> {
-  return readJson<CorpusRecord[]>(`/api/v1/literature/${kind}`, consoleBase(origin), signal);
+): Promise<CorpusPage> {
+  const query = new URLSearchParams();
+  if (options?.q) query.set("q", options.q);
+  if (options?.reason) query.set("reason", options.reason);
+  if (options?.limit !== undefined) query.set("limit", String(options.limit));
+  if (options?.offset !== undefined) query.set("offset", String(options.offset));
+  const suffix = query.size > 0 ? `?${query.toString()}` : "";
+  return readJson<CorpusPage>(
+    `/api/v1/ui/corpus/${kind}${suffix}`,
+    consoleBase(origin),
+    signal,
+  );
 }
 
 export function getBatchRows(
