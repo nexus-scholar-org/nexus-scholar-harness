@@ -17,7 +17,9 @@ import { CATALOGS } from "@/messages";
  * 3. the stored timestamp is printed verbatim, never reformatted;
  * 4. a missing agent, description or status says so instead of being filled in;
  * 5. `?source=live` reads the console feed through the same-origin proxy, and a
- *    refused read shows the server code rather than an empty journal.
+ *    refused read shows the server code rather than an empty journal;
+ * 6. live mode also subscribes to `/events/tick` through the proxy and re-reads
+ *    the feed on a tick, while the demonstration mode opens no stream.
  *
  * The rendered-DOM claims are jsdom's. Chromium capture stays in
  * `tests-browser/`.
@@ -69,6 +71,7 @@ function setQuery(query: string) {
 
 afterEach(() => {
   cleanup();
+  FakeEventSource.instances = [];
   vi.unstubAllGlobals();
   window.history.replaceState({}, "", "/en/audit");
 });
@@ -128,6 +131,60 @@ describe("audit screen — demonstration feed", () => {
   }
 });
 
+const LIVE_FEED_V2 = {
+  shape: "ui07.audit-feed-v1",
+  total: 4,
+  offset: 0,
+  limit: 25,
+  items: [
+    {
+      timestamp: "2026-02-03T10:00:00.000000+00:00",
+      event_id: "EVT-LIVE-4",
+      action: "SCREENING_COLLECTED",
+      agent_or_tool: "screening worker",
+      description: "refreshed latest",
+      status: "SUCCESS",
+    },
+    ...LIVE_FEED.items,
+  ],
+};
+
+type TickListener = (event: MessageEvent) => void;
+
+/** jsdom has no EventSource; this is the smallest one the screen can use. */
+class FakeEventSource {
+  static instances: FakeEventSource[] = [];
+
+  readonly url: string;
+  closed = false;
+  private readonly listeners = new Map<string, Set<TickListener>>();
+
+  constructor(url: string) {
+    this.url = url;
+    FakeEventSource.instances.push(this);
+  }
+
+  addEventListener(type: string, listener: TickListener): void {
+    const set = this.listeners.get(type) ?? new Set<TickListener>();
+    set.add(listener);
+    this.listeners.set(type, set);
+  }
+
+  removeEventListener(type: string, listener: TickListener): void {
+    this.listeners.get(type)?.delete(listener);
+  }
+
+  close(): void {
+    this.closed = true;
+  }
+
+  emit(type: string): void {
+    for (const listener of this.listeners.get(type) ?? []) {
+      listener(new MessageEvent(type));
+    }
+  }
+}
+
 describe("audit screen — live feed through the console proxy", () => {
   it("reads the same-origin proxy path and prints the feed as received", async () => {
     setQuery("?source=live");
@@ -182,5 +239,98 @@ describe("audit screen — live feed through the console proxy", () => {
     });
     expect(screen.getByText("CONSOLE_UNREACHABLE")).toBeInTheDocument();
     expect(screen.queryByRole("listitem")).toBeNull();
+  });
+});
+
+describe("audit screen — live tick stream", () => {
+  it("opens no stream for the demonstration feed", () => {
+    vi.stubGlobal("EventSource", FakeEventSource);
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    render(<AuditPage locale="en" />);
+
+    expect(FakeEventSource.instances).toHaveLength(0);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("subscribes through the proxy and re-reads the feed on a tick", async () => {
+    setQuery("?source=live");
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(LIVE_FEED))
+      .mockResolvedValue(jsonResponse(LIVE_FEED_V2));
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("EventSource", FakeEventSource);
+
+    render(<AuditPage locale="en" />);
+
+    await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(3));
+    expect(FakeEventSource.instances).toHaveLength(1);
+    expect(FakeEventSource.instances[0]?.url).toBe("/api/console/api/v1/events/tick");
+
+    FakeEventSource.instances[0]?.emit("tick");
+
+    await waitFor(() => expect(screen.getByText("refreshed latest")).toBeInTheDocument());
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const refresh = fetchSpy.mock.calls[1] as unknown as [unknown];
+    expect(new URL(String(refresh[0]), "http://localhost:3000").pathname).toBe(
+      "/api/console/api/v1/screening/ui/audit-feed",
+    );
+
+    // The refreshed feed is printed as received: newest first, no client sort.
+    const actions = screen
+      .getAllByRole("listitem")
+      .map((row) => row.querySelector("bdi")?.textContent);
+    expect(actions).toEqual(LIVE_FEED_V2.items.map((event) => event.action));
+  });
+
+  it("drops a tick that arrives while the first read is still in flight", async () => {
+    setQuery("?source=live");
+    const fetchSpy = vi.fn(() => new Promise<Response>(() => {}));
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("EventSource", FakeEventSource);
+
+    render(<AuditPage locale="en" />);
+
+    await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
+    FakeEventSource.instances[0]?.emit("tick");
+    await Promise.resolve();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the last successful feed when a tick's re-read fails", async () => {
+    setQuery("?source=live");
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(LIVE_FEED))
+      .mockRejectedValue(new Error("console went away"));
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("EventSource", FakeEventSource);
+
+    render(<AuditPage locale="en" />);
+
+    await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(3));
+    FakeEventSource.instances[0]?.emit("tick");
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    expect(screen.getByText("latest first")).toBeInTheDocument();
+    expect(screen.queryByText(CATALOGS.en["audit.liveUnavailable"])).toBeNull();
+  });
+
+  it("closes the stream when the screen unmounts", async () => {
+    setQuery("?source=live");
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(jsonResponse(LIVE_FEED))));
+    vi.stubGlobal("EventSource", FakeEventSource);
+
+    const { unmount } = render(<AuditPage locale="en" />);
+    await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1));
+    const stream = FakeEventSource.instances[0];
+    expect(stream?.closed).toBe(false);
+
+    unmount();
+
+    expect(stream?.closed).toBe(true);
   });
 });

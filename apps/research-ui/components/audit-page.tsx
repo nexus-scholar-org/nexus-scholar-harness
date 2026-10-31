@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formatNumber, translate, type Locale } from "@/i18n";
 import {
+  consoleBase,
   getAuditFeed,
   isScreeningApiError,
   type AuditFeed,
@@ -26,7 +27,12 @@ import { demoAuditEvents } from "@/lib/mock-audit";
  *   by the shell's visible `Demonstration data` marker;
  * - `?source=live` reads `GET /api/v1/screening/ui/audit-feed` through the
  *   same-origin console proxy, so no port appears in the URL and the
- *   browser's request stays on this application's origin.
+ *   browser's request stays on this application's origin. While live, the
+ *   page also subscribes to the console's `GET /api/v1/events/tick` stream
+ *   (proxied the same way) and re-reads the feed when the workspace changes:
+ *   an agent appending to the journal shows up without a manual reload.
+ *   A tick is a hint, never authority — the re-read still prints exactly the
+ *   bytes the console returns, in the order it returns them.
  *
  * Three presentation rules are load-bearing:
  *
@@ -37,6 +43,8 @@ import { demoAuditEvents } from "@/lib/mock-audit";
  * 3. **Technical provenance is available, not hidden.** The event id and the
  *    raw fields sit behind a disclosure so the feed stays readable while the
  *    provenance remains reachable.
+ * 4. **A failed refresh never retracts what is shown.** Losing the stream, or
+ *    a tick whose re-read fails, leaves the last successful feed on screen.
  */
 
 export const AUDIT_PAGE_SIZE = 25;
@@ -129,22 +137,70 @@ export function AuditPage({ locale }: { locale: Locale }) {
   const [live, setLive] = useState<LiveFeed>({ status: "idle" });
   const [limit, setLimit] = useState(AUDIT_PAGE_SIZE);
 
+  // The stream effect must not reconnect when the reader asks for more rows,
+  // so the current page size is read through a ref instead of a dependency.
+  const limitRef = useRef(limit);
+  useEffect(() => {
+    limitRef.current = limit;
+  }, [limit]);
+  // Ticks before the first read are dropped: the initial read is already in
+  // flight, and `EventSource` emits its first tick as soon as it connects.
+  const initialReadDone = useRef(false);
+
   useEffect(() => {
     if (source.kind !== "live") return;
     let cancelled = false;
+    initialReadDone.current = false;
     setLive({ status: "loading" });
     (async () => {
       try {
         const feed = await getAuditFeed(source.origin, { limit });
-        if (!cancelled) setLive({ status: "ready", feed });
+        if (!cancelled) {
+          initialReadDone.current = true;
+          setLive({ status: "ready", feed });
+        }
       } catch (error: unknown) {
-        if (!cancelled) setLive({ status: "error", error });
+        if (!cancelled) {
+          initialReadDone.current = true;
+          setLive({ status: "error", error });
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [source, limit]);
+
+  useEffect(() => {
+    if (source.kind !== "live") return;
+    // jsdom (and any browser without EventSource) simply stays on the initial
+    // read; the stream is an enhancement, not the only way to see the feed.
+    if (typeof EventSource === "undefined") return;
+    let disposed = false;
+    let refreshing = false;
+    const refresh = async () => {
+      if (disposed || refreshing || !initialReadDone.current) return;
+      refreshing = true;
+      try {
+        const feed = await getAuditFeed(source.origin, { limit: limitRef.current });
+        if (!disposed) setLive({ status: "ready", feed });
+      } catch {
+        // A hint that fails to resolve keeps the last successful feed.
+      } finally {
+        refreshing = false;
+      }
+    };
+    const stream = new EventSource(`${consoleBase(source.origin)}/api/v1/events/tick`);
+    const onTick = () => {
+      void refresh();
+    };
+    stream.addEventListener("tick", onTick);
+    return () => {
+      disposed = true;
+      stream.removeEventListener("tick", onTick);
+      stream.close();
+    };
+  }, [source]);
 
   const events = source.kind === "live" ? (live.status === "ready" ? live.feed.items : []) : demoAuditEvents;
   const total =

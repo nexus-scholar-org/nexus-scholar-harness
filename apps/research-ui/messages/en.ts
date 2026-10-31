@@ -218,7 +218,7 @@ export const en = {
   "audit.fixtureLede":
     "Demonstration feed: the events below are examples, not a workspace journal.",
   "audit.liveLede":
-    "Live feed: the events below were read from this workspace's audit journal through the same-origin console proxy.",
+    "Live feed: the events below were read from this workspace's audit journal through the same-origin console proxy, and refresh when the workspace changes.",
   "audit.liveStamp": "Live console data",
   "audit.liveUnavailable": "Live data unavailable",
   "audit.feedHeading": "Recorded events",
