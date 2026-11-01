@@ -267,7 +267,10 @@ export const CONSOLE_PROXY_PREFIX = "/api/console";
  * exactly as before.
  */
 export function consoleBase(origin: string): string {
-  if (origin.trim() === "") return CONSOLE_PROXY_PREFIX;
+  const trimmed = origin.trim();
+  // Idempotent: callers may hold a base already resolved by this function
+  // (for example a page stores `live.origin` and passes it back on a re-read).
+  if (trimmed === "" || trimmed === CONSOLE_PROXY_PREFIX) return CONSOLE_PROXY_PREFIX;
   return normalizeConsoleOrigin(origin);
 }
 

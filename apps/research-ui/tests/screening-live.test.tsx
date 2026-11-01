@@ -154,7 +154,7 @@ function stubLiveFetch(
   };
   return async (input: unknown) => {
     const url = String(input);
-    const path = url.replace(/^https?:\/\/[^/]+/, "").split("?")[0] ?? url;
+    const path = (url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api\/console/, "")).split("?")[0] ?? url;
     const entry = table[path];
     if (typeof entry === "function") return entry(url);
     if (entry) return entry.clone();
@@ -225,6 +225,20 @@ describe("live mode renders console data and never the fixture", () => {
     expect(screen.queryByText(demoScreeningRecord.citation)).toBeNull();
     for (const criterion of demoScreeningRecord.criteria) {
       expect(screen.queryByText(criterion)).toBeNull();
+    }
+  });
+
+  it("defaults ?source=live to the same-origin console proxy when no console is named", async () => {
+    const fetchSpy = vi.fn(stubLiveFetch());
+    vi.stubGlobal("fetch", fetchSpy);
+    setQuery("?source=live");
+
+    render(<ScreeningPage locale="en" />);
+
+    expect(await screen.findByText(LIVE_ROWS.rows[0]?.citation ?? "")).toBeInTheDocument();
+    expect(fetchSpy).toHaveBeenCalled();
+    for (const call of fetchSpy.mock.calls) {
+      expect(String(call[0])).toMatch(/^\/api\/console\//);
     }
   });
 
