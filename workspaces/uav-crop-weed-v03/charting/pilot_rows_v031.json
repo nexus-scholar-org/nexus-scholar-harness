@@ -1,0 +1,3009 @@
+{
+  "instrument": {
+    "schema_path": "charting.schema.json",
+    "schema_version": "v0.3.1",
+    "schema_sha256": "91dbe0c8f81034ccb5f7eea903a11d3d96e9a50bc42914eea6ec7d0fe7596b42",
+    "codebook": "CHARTING_CODEBOOK.md"
+  },
+  "coder_id": "agent-opencode-single-pass",
+  "coding_mode": "single_pass_agent",
+  "dual_coding_status": "OUTSTANDING",
+  "dual_coding_claim": false,
+  "human_review_of_charting": false,
+  "generated_at": "2026-10-31T23:02:07.681798+00:00",
+  "rows": [
+    {
+      "study_id": "SCI-000006",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1371/journal.pone.0251008",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2021,
+        "linked_reports": [],
+        "narrative_summary": "PLOS ONE 2021 research article; the two croplands are reported inside one publication, charted as separate crop settings.",
+        "provenance": {
+          "verbatim_quote": "A novel semi-supervised framework for UAV based crop/weed classification",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "vegetable_horticulture",
+        "crop_species": [
+          "pea"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "patch_or_tile_classification",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Binary crop-versus-weed patch classification on pea; UAV RGB frames only.",
+        "provenance": {
+          "verbatim_quote": "Two different croplands, pea, and strawberry were selected",
+          "locator": "Materials and methods, field description",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "primary_newly_collected",
+        "dataset_names": [
+          "Peshawar pea/strawberry UAV video dataset"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 1,
+        "unique_acquisition_dates_count": 7,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": null,
+        "independent_unit_level": "single_raw_uav_frame",
+        "narrative_summary": "Frames were extracted from a one-week video campaign on the pea field. The extract reports 2,600 crop and 2,800 weed images without unambiguously assigning them to the two croplands, so the per-crop total is left null.",
+        "provenance": {
+          "verbatim_quote": "The data set comprised 2600 images and 2800 images of crops and weeds",
+          "locator": "Materials and methods, dataset paragraph",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 3.0,
+        "flight_altitude_m": 2.0,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Spark RGB video at 2 m and 0.3 cm spatial resolution; no radiometric calibration or reflectance panel is described, so the imagery is coded as uncalibrated 8-bit DN.",
+        "provenance": {
+          "verbatim_quote": "The altitude for the flight was kept 2m above the ground, and spatial resolution was 0.3cm.",
+          "locator": "Materials and methods, flight campaign",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition (blur, misregistration, illumination drift, band dropout, occlusion) was manipulated or evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no stress/degradation condition evaluated]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "multiple_dates_pooled_no_heldout",
+        "crop_growth_stages_bbch": "early growth stage; exact BBCH not stated",
+        "narrative_summary": "Seven daily acquisitions (23 Feb-1 Mar 2020) were pooled; the first/second half of the video is a frame split, not a date holdout, so dates are pooled.",
+        "provenance": {
+          "verbatim_quote": "Flights were conducted for one week from February 23 to March 1 2020",
+          "locator": "Materials and methods, flight campaign",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_raw_frame_same_flight",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Frames from the same video/field were split 70/15/15, with the first half of the video used for training and the latter half for testing; adjacent video frames share scene context, so leakage risk is high.",
+        "provenance": {
+          "verbatim_quote": "The data set was split into 70% for training, 15% each for validation and testing.",
+          "locator": "Materials and methods, dataset split",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Best-fit mapping: the method is a semi-supervised GAN classifier (discriminator CNN), not a segmentation encoder-decoder; it is RGB-only and reports no modality ablation.",
+        "provenance": {
+          "verbatim_quote": "semi-supervised generative adversarial network for crops and weeds classification",
+          "locator": "Abstract; Section 2",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "Softmax outputs are used for classification but no predictive-uncertainty method, calibration metric, abstention rule, or calibration terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "overall_accuracy": 0.9375
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Binary crop/weed accuracy is reported at the 80% labeled rate: pea 93.75% and strawberry 94.6% in Table 3. No weed-class IoU/F1 is given.",
+        "provenance": {
+          "verbatim_quote": "Crops and Weed 89.15% 90.08% 91.36% 93.75%",
+          "locator": "Results, Table 3",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "Both croplands use the study's own model and in-domain splits; no external field, season, sensor or crop transfer is tested.",
+        "provenance": {
+          "verbatim_quote": "on the Red Green Blue (RGB) images obtained by a quadcopter",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "radiometric calibration not stated",
+          "per-crop image counts ambiguous",
+          "no BBCH stage recorded",
+          "no external validation"
+        ],
+        "internal_contradictions_noted": "The methods state that the first half of each video was used for training and the latter half for testing, but also state a 70/15/15 train/validation/test split of the dataset; the two descriptions do not reconcile into one partition protocol.",
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The paper motivates transfer to other horticultural crops, but evidence is limited to two in-field video datasets and a frame-level split at fixed 2 m altitude.",
+        "provenance": {
+          "verbatim_quote": "evaluated on images collected at a fixed 2m altitude",
+          "locator": "Discussion, limitations",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "not_available_or_proprietary",
+        "code_availability": "not_available",
+        "license": "CC BY 4.0",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "PLOS data statement says all relevant data are within the paper; no code repository is given. Funding (HEC grant) and a no-competing-interests statement are present. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "Data Availability Statement: All relevant data are within the paper.",
+          "locator": "Data Availability Statement",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000006",
+      "setting_id": "SET-02",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1371/journal.pone.0251008",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2021,
+        "linked_reports": [],
+        "narrative_summary": "PLOS ONE 2021 research article; the two croplands are reported inside one publication, charted as separate crop settings.",
+        "provenance": {
+          "verbatim_quote": "A novel semi-supervised framework for UAV based crop/weed classification",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "vegetable_horticulture",
+        "crop_species": [
+          "strawberry"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "patch_or_tile_classification",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Binary crop-versus-weed patch classification on strawberry; UAV RGB frames only.",
+        "provenance": {
+          "verbatim_quote": "Two different croplands, pea, and strawberry were selected",
+          "locator": "Materials and methods, field description",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "primary_newly_collected",
+        "dataset_names": [
+          "Peshawar pea/strawberry UAV video dataset"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 1,
+        "unique_acquisition_dates_count": 7,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": null,
+        "independent_unit_level": "single_raw_uav_frame",
+        "narrative_summary": "Frames were extracted from a one-week video campaign on the strawberry field. The extract reports 2,600 crop and 2,800 weed images without unambiguously assigning them to the two croplands, so the per-crop total is left null.",
+        "provenance": {
+          "verbatim_quote": "The data set comprised 2600 images and 2800 images of crops and weeds",
+          "locator": "Materials and methods, dataset paragraph",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 3.0,
+        "flight_altitude_m": 2.0,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Spark RGB video at 2 m and 0.3 cm spatial resolution; no radiometric calibration or reflectance panel is described, so the imagery is coded as uncalibrated 8-bit DN.",
+        "provenance": {
+          "verbatim_quote": "The altitude for the flight was kept 2m above the ground, and spatial resolution was 0.3cm.",
+          "locator": "Materials and methods, flight campaign",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition (blur, misregistration, illumination drift, band dropout, occlusion) was manipulated or evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no stress/degradation condition evaluated]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "multiple_dates_pooled_no_heldout",
+        "crop_growth_stages_bbch": "early growth stage; exact BBCH not stated",
+        "narrative_summary": "Seven daily acquisitions (23 Feb-1 Mar 2020) were pooled; the first/second half of the video is a frame split, not a date holdout, so dates are pooled.",
+        "provenance": {
+          "verbatim_quote": "Flights were conducted for one week from February 23 to March 1 2020",
+          "locator": "Materials and methods, flight campaign",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_raw_frame_same_flight",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Frames from the same video/field were split 70/15/15, with the first half of the video used for training and the latter half for testing; adjacent video frames share scene context, so leakage risk is high.",
+        "provenance": {
+          "verbatim_quote": "The data set was split into 70% for training, 15% each for validation and testing.",
+          "locator": "Materials and methods, dataset split",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Best-fit mapping: the method is a semi-supervised GAN classifier (discriminator CNN), not a segmentation encoder-decoder; it is RGB-only and reports no modality ablation.",
+        "provenance": {
+          "verbatim_quote": "semi-supervised generative adversarial network for crops and weeds classification",
+          "locator": "Abstract; Section 2",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "Softmax outputs are used for classification but no predictive-uncertainty method, calibration metric, abstention rule, or calibration terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "overall_accuracy": 0.946
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Binary crop/weed accuracy is reported at the 80% labeled rate: pea 93.75% and strawberry 94.6% in Table 3. No weed-class IoU/F1 is given.",
+        "provenance": {
+          "verbatim_quote": "Crops and Weed 90.06% 90.66% 91.98% 94.6%",
+          "locator": "Results, Table 3",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "Both croplands use the study's own model and in-domain splits; no external field, season, sensor or crop transfer is tested.",
+        "provenance": {
+          "verbatim_quote": "on the Red Green Blue (RGB) images obtained by a quadcopter",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "radiometric calibration not stated",
+          "per-crop image counts ambiguous",
+          "no BBCH stage recorded",
+          "no external validation"
+        ],
+        "internal_contradictions_noted": "The methods state that the first half of each video was used for training and the latter half for testing, but also state a 70/15/15 train/validation/test split of the dataset; the two descriptions do not reconcile into one partition protocol.",
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The paper motivates transfer to other horticultural crops, but evidence is limited to two in-field video datasets and a frame-level split at fixed 2 m altitude.",
+        "provenance": {
+          "verbatim_quote": "evaluated on images collected at a fixed 2m altitude",
+          "locator": "Discussion, limitations",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "not_available_or_proprietary",
+        "code_availability": "not_available",
+        "license": "CC BY 4.0",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "PLOS data statement says all relevant data are within the paper; no code repository is given. Funding (HEC grant) and a no-competing-interests statement are present. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "Data Availability Statement: All relevant data are within the paper.",
+          "locator": "Data Availability Statement",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000044",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.48550/arxiv.2106.10581",
+        "primary_publication_type": "preprint_only",
+        "primary_publication_year": 2021,
+        "linked_reports": [],
+        "narrative_summary": "arXiv preprint (v1, 19 Jun 2021); no journal/conference version or code repository linked in the extract.",
+        "provenance": {
+          "verbatim_quote": "Supervised learning for crop/weed classification based on color and texture features",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "soybean"
+        ],
+        "weed_granularity": "coarse_group_broadleaf_narrowleaf",
+        "vision_task": "patch_or_tile_classification",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Four-class segment classification (soil, soybean, grass, broadleaf weeds) on a public UAV soybean dataset.",
+        "provenance": {
+          "verbatim_quote": "discrimination of Soybean crops and weeds",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "reused_pre_2020_uav_benchmark",
+        "dataset_names": [
+          "Weed detection in soybean crops (Kaggle, Dos Santos Ferreira et al.)"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": null,
+        "unique_acquisition_dates_count": null,
+        "unique_seasons_or_years_count": null,
+        "total_tiles_or_patches_count": 15336,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Public soybean UAV dataset split by SLIC into 15,336 annotated segments across four classes.",
+        "provenance": {
+          "verbatim_quote": "The image dataset contained 15,336 segments",
+          "locator": "Dataset description",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": null,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "RGB UAV imagery from a reused public dataset; neither GSD nor altitude is stated in the extract, and no radiometric calibration is described, so imagery is coded as uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "obtained from an unmanned aerial vehicle (UAV), which is publicly available",
+          "locator": "Dataset description",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition is manipulated or evaluated; only colour/texture feature combinations are compared.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no stress/degradation condition evaluated]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "not_reported",
+        "temporal_regime": null,
+        "crop_growth_stages_bbch": null,
+        "narrative_summary": "The reused benchmark description in this extract gives no acquisition date, season or growth stage, so no temporal regime can be charted.",
+        "provenance": {
+          "verbatim_quote": "[Checked Dataset description: no acquisition date or season stated]",
+          "locator": "Dataset description, absence check",
+          "absence_check": true
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_tile_or_pixel_same_orthomosaic",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Segments are randomly divided into training and testing sets; no spatial block, flight or field holdout is used.",
+        "provenance": {
+          "verbatim_quote": "The obtained feature matrices and label values were divided randomly into two sets",
+          "locator": "Methods, SVM training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "classical_ml_rf_svm_obia",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "SVM on handcrafted RGB/HSV colour plus GLCM/LBP texture features; no learned multimodal fusion or modality ablation.",
+        "provenance": {
+          "verbatim_quote": "Support Vector Machine (SVM)",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "SVM decision outputs are used directly; no predictive-uncertainty method or calibration metric is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no uncertainty/calibration metric reported]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": true,
+        "primary_metrics": {
+          "overall_accuracy": 0.9617
+        },
+        "repeated_seeds_or_folds_count": 10,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Best overall accuracy 96.17% for SVM one-vs-one with colour+LBP, averaged over 10 random iterations; per-class confusion matrices are given but no variance/CI is reported.",
+        "provenance": {
+          "verbatim_quote": "reaches 96.17%",
+          "locator": "Results, Table II",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "Only an in-domain random segment split is evaluated; no cross-field, cross-date, cross-sensor or cross-crop transfer.",
+        "provenance": {
+          "verbatim_quote": "discriminate crops, weeds and soil",
+          "locator": "Conclusion",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "GSD and flight altitude not stated",
+          "acquisition date and growth stage not stated",
+          "no radiometric calibration",
+          "random segment split only"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The accuracy claim rests on randomly split segments from one public UAV dataset without spatial or temporal holdout, and the imaging geometry is unreported.",
+        "provenance": {
+          "verbatim_quote": "Because the trained data are generated randomly",
+          "locator": "Results, evaluation protocol",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "reused_public_benchmark_only",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "The Kaggle soybean dataset is publicly linked; no code repository, funding statement, or conflict-of-interest statement appears in the extract. DataCite check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "The database used in this study is available online and can be downloaded from",
+          "locator": "Dataset description",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000041",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.48550/arxiv.2505.07444",
+        "primary_publication_type": "preprint_only",
+        "primary_publication_year": 2025,
+        "linked_reports": [],
+        "narrative_summary": "arXiv preprint (v1, 12 May 2025). The extract shows no journal/conference venue or linked code repository.",
+        "provenance": {
+          "verbatim_quote": "Lightweight Multispectral Crop-Weed Segmentation for Precision Agriculture",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "maize"
+        ],
+        "weed_granularity": "multi_species_fine_grained",
+        "vision_task": "semantic_segmentation",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Five-class WeedsGalore labels (maize, amaranth, barnyard grass, quickweed, other weeds) are remapped to background/crop/weed for three-class semantic segmentation.",
+        "provenance": {
+          "verbatim_quote": "segmentation in maize fields",
+          "locator": "Section III, dataset",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "reused_in_window_uav_benchmark",
+        "dataset_names": [
+          "WeedsGalore"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 4,
+        "unique_acquisition_dates_count": 4,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": 156,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "WeedsGalore: one 1,840 m2 maize plot, four flights May-June 2023, 156 annotated 600x600 tiles.",
+        "provenance": {
+          "verbatim_quote": "156 image tiles of 600×600 pixels",
+          "locator": "Section III, dataset",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB",
+          "MS_narrowband"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue",
+          "red-edge 730 nm",
+          "NIR 840 nm"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 2.5,
+        "flight_altitude_m": 5.0,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Phantom P4 Multispectral at 5 m with 2.5 mm GSD; RGB, red-edge and NIR are used. The extract reports no reflectance panel or irradiance-sensor calibration, so acquisition is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "achieving a ground sampling distance (GSD) of 2.5 mm",
+          "locator": "Section III, dataset",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "The study compares modality sets but does not evaluate blur, misregistration, illumination drift, band dropout, resolution degradation or occlusion as stress conditions.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results: no degradation/stress condition evaluated]",
+          "locator": "Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "multiple_dates_pooled_no_heldout",
+        "crop_growth_stages_bbch": "four growth stages sampled; exact BBCH not stated",
+        "narrative_summary": "Four flights across May-June 2023 are pooled and then split spatially; no date is held out.",
+        "provenance": {
+          "verbatim_quote": "Four flights, conducted between May and June 2023",
+          "locator": "Section III, dataset",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "spatial_block_or_strip_same_field",
+        "spatial_leakage_risk": "moderate_unbuffered_adjacent_blocks_or_frames",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "109/23/24 tiles are spatially separated with no overlap between splits, but no buffer width is reported, so leakage risk is coded moderate.",
+        "provenance": {
+          "verbatim_quote": "109 training (70%), 23 validation (15%), and 24 test (15%) tiles, ensuring no spatial overlap",
+          "locator": "Section III, dataset",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "vision_transformer_or_hybrid_segmentation",
+        "integration_topology": "dual_stream_cross_modal_attention_or_gating",
+        "matched_modality_ablation_present": true,
+        "narrative_summary": "Transformer-CNN hybrid with dynamic gated multispectral fusion; an RGB-only variant is trained and compared (mIoU 63.08), so the modality ablation is matched.",
+        "provenance": {
+          "verbatim_quote": "adaptive gated fusion mechanism",
+          "locator": "Conclusion",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Conclusion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Conclusion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "mean_iou": 0.7888
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Multispectral model mIoU 78.88% versus RGB-only 63.08%; per-class IoU is mentioned but no weed-specific value or run variance is stated.",
+        "provenance": {
+          "verbatim_quote": "achieved an mIoU of 78.88%",
+          "locator": "Section IV, results",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "Evaluation is on a held-out in-domain test split of the same benchmark; no cross-field or cross-season transfer is tested.",
+        "provenance": {
+          "verbatim_quote": "held-out test set of 24 images",
+          "locator": "Section IV, evaluation",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "single field and single season",
+          "no radiometric calibration statement",
+          "no run-to-run variance",
+          "spatial buffer width not stated"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "The paper claims efficiency and multispectral gain on one field; the matched RGB-only ablation supports the gain, and the authors do not claim cross-field generalization.",
+        "provenance": {
+          "verbatim_quote": "with only 8.7M parameters",
+          "locator": "Conclusion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "reused_public_benchmark_only",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "WeedsGalore is a public benchmark; the extract contains no code repository, funding statement, or conflict-of-interest statement. DataCite check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "is a publicly available",
+          "locator": "Section III, dataset",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000151",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.3389/frsen.2022.755939",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2022,
+        "linked_reports": [],
+        "narrative_summary": "Frontiers in Remote Sensing 2022 article comparing four segmentation architectures on two public benchmark datasets.",
+        "provenance": {
+          "verbatim_quote": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "vegetable_horticulture",
+        "crop_species": [
+          "carrot"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "semantic_segmentation",
+        "uav_separability": "mixed_platform_uav_separable",
+        "narrative_summary": "CWFID was captured by a ground field robot, so the platform is mixed and must be separated from UAV evidence.",
+        "provenance": {
+          "verbatim_quote": "organic carrot farm in Northern Germany",
+          "locator": "Section 3, dataset description",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "reused_pre_2020_uav_benchmark",
+        "dataset_names": [
+          "CWFID"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 1,
+        "unique_acquisition_dates_count": 1,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": 60,
+        "independent_unit_level": "single_raw_uav_frame",
+        "narrative_summary": "CWFID: 60 top-down ground-robot images of an organic carrot field, annotated into soil/crop/weed.",
+        "provenance": {
+          "verbatim_quote": "60 top-down looking images of 1,296 × 966 pixel size",
+          "locator": "Section 3, CWFID",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB",
+          "MS_narrowband"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue",
+          "multispectral band set not enumerated"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": null,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "Ground robot with a multispectral camera; band set not enumerated and no GSD or flight altitude (not a UAV).",
+        "provenance": {
+          "verbatim_quote": "mounted with multi-spectral camera",
+          "locator": "Section 3, CWFID",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition is manipulated or evaluated; the paper notes resolution differences post hoc but does not run a stress experiment.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Discussion: no stress/degradation condition evaluated]",
+          "locator": "Methods and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "single_date_snapshot",
+        "crop_growth_stages_bbch": null,
+        "narrative_summary": "Single 2013 acquisition before manual weed control.",
+        "provenance": {
+          "verbatim_quote": "before applying manual weed control in 2013",
+          "locator": "Section 3, CWFID",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_tile_or_pixel_same_orthomosaic",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Ten-fold cross-validation over randomly partitioned images/patches from the same dataset; no spatial or temporal holdout.",
+        "provenance": {
+          "verbatim_quote": "A 10-fold cross-validation procedure was used",
+          "locator": "Section 4, training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "DeepLabV3+ encoder-decoder segmentation compared against SegNet/FCN/U-Net; no modality-fusion ablation.",
+        "provenance": {
+          "verbatim_quote": "DeepLabV3+",
+          "locator": "Section 2, DeepLabV3+",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Conclusion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Conclusion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": true,
+        "primary_metrics": {
+          "overall_accuracy": 0.843
+        },
+        "repeated_seeds_or_folds_count": 10,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "DeepLabV3+ overall accuracy 84.3% (kappa 0.82) on CWFID; weed-class accuracy 90.55% is also reported, but no run variance.",
+        "provenance": {
+          "verbatim_quote": "DeepLab v3+ 84.3 0.82",
+          "locator": "Results, Table 3",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "not_reported",
+        "shift_axes_tested": [],
+        "adaptation_regime": null,
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": null,
+        "narrative_summary": "No model is transferred between the datasets: each architecture is fine-tuned separately on CWFID and on sugarcane and the scores are compared. The CWFID-versus-sugarcane gap is a cross-dataset comparison, not a demonstrated transfer outcome, so it is not charted as transfer.",
+        "provenance": {
+          "verbatim_quote": "[Checked Training and Results: models fine-tuned separately on each dataset, no cross-dataset transfer]",
+          "locator": "Training and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "random 10-fold split only",
+          "no radiometric calibration",
+          "no run-to-run variance",
+          "sugarcane date/season not stated"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The comparison across platforms is informative but both evaluations use random cross-validation within a single dataset, not spatial or temporal holdout.",
+        "provenance": {
+          "verbatim_quote": "Although the overall average performance improvement for all models using CWFID was about 6%",
+          "locator": "Discussion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "reused_public_benchmark_only",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "Both datasets are public benchmarks; no code repository is given, funding is disclosed (NSF grants), but no conflict-of-interest statement appears in the extract. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "The original contributions presented in the study are included in the article/supplementary material",
+          "locator": "Data Availability Statement",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000151",
+      "setting_id": "SET-02",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.3389/frsen.2022.755939",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2022,
+        "linked_reports": [],
+        "narrative_summary": "Frontiers in Remote Sensing 2022 article comparing four segmentation architectures on two public benchmark datasets.",
+        "provenance": {
+          "verbatim_quote": "Deep Convolutional Neural Networks for Weeds and Crops Discrimination From UAS Imagery",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "sugarcane"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "semantic_segmentation",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Sugarcane orthomosaic was captured by a fixed-wing UAV.",
+        "provenance": {
+          "verbatim_quote": "a sugarcane plantation in Northern Brazil",
+          "locator": "Section 3, dataset description",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "reused_pre_2020_uav_benchmark",
+        "dataset_names": [
+          "Sugar Cane Orthomosaic"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 1,
+        "unique_acquisition_dates_count": 1,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": 60,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Sugarcane orthomosaic from Northern Brazil split into 50-60 540x540 patches.",
+        "provenance": {
+          "verbatim_quote": "We split this single orthomosic into 60 images",
+          "locator": "Section 3, sugarcane",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 50.0,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "Fixed-wing UAV with a Canon G9X RGB camera at 125-200 m; 5 cm/px. Altitude is a range, so it is not charted as a single value.",
+        "provenance": {
+          "verbatim_quote": "spatial resolution of 5 cm/",
+          "locator": "Section 3, sugarcane",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition is manipulated or evaluated; the paper notes resolution differences post hoc but does not run a stress experiment.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Discussion: no stress/degradation condition evaluated]",
+          "locator": "Methods and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "not_reported",
+        "temporal_regime": null,
+        "crop_growth_stages_bbch": null,
+        "narrative_summary": "The sugarcane benchmark description gives no acquisition date or growth stage, so no temporal regime can be charted.",
+        "provenance": {
+          "verbatim_quote": "[Checked Section 3: no acquisition date or growth stage stated]",
+          "locator": "Section 3, absence check",
+          "absence_check": true
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_tile_or_pixel_same_orthomosaic",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Ten-fold cross-validation over randomly partitioned images/patches from the same dataset; no spatial or temporal holdout.",
+        "provenance": {
+          "verbatim_quote": "A 10-fold cross-validation procedure was used",
+          "locator": "Section 4, training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "DeepLabV3+ encoder-decoder segmentation compared against SegNet/FCN/U-Net; no modality-fusion ablation.",
+        "provenance": {
+          "verbatim_quote": "DeepLabV3+",
+          "locator": "Section 2, DeepLabV3+",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Conclusion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Conclusion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "overall_accuracy": 0.7099
+        },
+        "repeated_seeds_or_folds_count": 10,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "DeepLabV3+ overall accuracy 70.99% (kappa 0.74) on sugarcane; no weed-specific value or run variance.",
+        "provenance": {
+          "verbatim_quote": "DeepLab v3+ 70.99 0.74",
+          "locator": "Results, Table 4",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "not_reported",
+        "shift_axes_tested": [],
+        "adaptation_regime": null,
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": null,
+        "narrative_summary": "No model is transferred between the datasets: each architecture is fine-tuned separately on CWFID and on sugarcane and the scores are compared. The CWFID-versus-sugarcane gap is a cross-dataset comparison, not a demonstrated transfer outcome, so it is not charted as transfer.",
+        "provenance": {
+          "verbatim_quote": "[Checked Training and Results: models fine-tuned separately on each dataset, no cross-dataset transfer]",
+          "locator": "Training and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "random 10-fold split only",
+          "no radiometric calibration",
+          "no run-to-run variance",
+          "sugarcane date/season not stated"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The comparison across platforms is informative but both evaluations use random cross-validation within a single dataset, not spatial or temporal holdout.",
+        "provenance": {
+          "verbatim_quote": "Although the overall average performance improvement for all models using CWFID was about 6%",
+          "locator": "Discussion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "reused_public_benchmark_only",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "Both datasets are public benchmarks; no code repository is given, funding is disclosed (NSF grants), but no conflict-of-interest statement appears in the extract. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "The original contributions presented in the study are included in the article/supplementary material",
+          "locator": "Data Availability Statement",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000291",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1038/s41598-025-15380-3",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2025,
+        "linked_reports": [],
+        "narrative_summary": "Scientific Reports 2025 article on teff weed detection with UAV imagery.",
+        "provenance": {
+          "verbatim_quote": "Detection of weeds in teff crops using deep learning and UAV imagery for precision",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "broadacre_cereal",
+        "crop_species": [
+          "teff"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "bounding_box_object_detection",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Binary teff-versus-weed detection with bounding boxes and class labels on drone RGB imagery.",
+        "provenance": {
+          "verbatim_quote": "Teff is a vital staple crop",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "primary_newly_collected",
+        "dataset_names": [
+          "University of Gondar teff UAV dataset"
+        ],
+        "unique_fields_count": 3,
+        "unique_orthomosaics_or_flights_count": 4,
+        "unique_acquisition_dates_count": 4,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": 1308,
+        "independent_unit_level": "single_raw_uav_frame",
+        "narrative_summary": "1,308 raw drone images from four flight sessions over three teff fields, plus augmented copies; the raw count is charted as the dataset size.",
+        "provenance": {
+          "verbatim_quote": "A dataset of 1308 high-resolution drone-captured images",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": null,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Air 2S RGB at 1-2 m above ground, 3056x3056 px; altitude is a range and GSD is not stated. No calibration is described, so imagery is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "altitudes of 1–2 m above the ground",
+          "locator": "Image acquisition",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition is manipulated or evaluated; augmentation and optimiser choices are compared, not sensor or environment stress.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no stress/degradation condition evaluated]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "multiple_dates_pooled_no_heldout",
+        "crop_growth_stages_bbch": "multiple growth stages; exact BBCH not stated",
+        "narrative_summary": "Four flight sessions across growth stages and weather are pooled before a random train/test split; no date is held out.",
+        "provenance": {
+          "verbatim_quote": "four drone flight sessions conducted over three Teff fields",
+          "locator": "Image acquisition",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_raw_frame_same_flight",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Images are randomly split 80/20 across pooled dates and fields; adjacent frames from the same flight can land on both sides, so leakage risk is high.",
+        "provenance": {
+          "verbatim_quote": "with 80% of the data allocated for training and 20% for testing",
+          "locator": "Data splitting",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "one_stage_yolo_detector_or_segmenter",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Best-fit mapping: the schema has no CNN-classifier member, so the evaluated YOLOv8 detector family is charted; the best-performing model is the fine-tuned MobileNetV2 classifier. RGB-only, no modality fusion.",
+        "provenance": {
+          "verbatim_quote": "MobileNetV2",
+          "locator": "Results",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Conclusion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Conclusion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "overall_accuracy": 0.964,
+          "map_50": 0.958
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Fine-tuned MobileNetV2 reports 96.40% accuracy and 95.80% fixed-threshold mAP (Table 9); the paper's COCO mAP at IoU 0.5:0.95 is 61.50%. No run-to-run variance is given.",
+        "provenance": {
+          "verbatim_quote": "achieved the highest accuracy (96.40%)",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "All reported scores come from the in-domain random train/test partition; no external field or season is held out.",
+        "provenance": {
+          "verbatim_quote": "The dataset was partitioned into training and testing sets",
+          "locator": "Convolution and pooling",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "GSD not stated",
+          "altitude reported only as a range",
+          "split fraction internally inconsistent",
+          "no run-to-run variance"
+        ],
+        "internal_contradictions_noted": "Text states an 80/20 train/test split, while Table 2 reports 1,831 training images as 70% and 523 test images as 20% of the total; the fractions do not reconcile with the 2,616 augmented images.",
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The headline 96.4% rests on a random split of pooled dates and fields; the paper's wording about varied conditions is broader than the demonstrated holdout.",
+        "provenance": {
+          "verbatim_quote": "Train 1831 70% of the total dataset",
+          "locator": "Table 2",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "available_upon_reasonable_request",
+        "code_availability": "not_available",
+        "license": "CC BY-NC-ND 4.0",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "Data are available from the corresponding author on request; no code repository is given. Funding (none) and competing interests (none) are both disclosed. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "available from the corresponding author upon reasonable request",
+          "locator": "Data availability",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000372",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1038/s41598-026-58738-x",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2026,
+        "linked_reports": [],
+        "narrative_summary": "Scientific Reports 2026 article in press (accepted 16 June 2026).",
+        "provenance": {
+          "verbatim_quote": "Deblurring-aware semantic segmentation of crops and weeds in UAV sorghum imagery",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "sorghum"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "semantic_segmentation",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Three-class semantic segmentation (background, sorghum, weed) on the public DeBlurWeedSeg benchmark.",
+        "provenance": {
+          "verbatim_quote": "three semantic categories, namely background, crop (sorghum), and weed",
+          "locator": "Section 3.1",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "reused_in_window_uav_benchmark",
+        "dataset_names": [
+          "DeBlurWeedSeg"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 1,
+        "unique_acquisition_dates_count": 1,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": 1300,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Public DeBlurWeedSeg: one sorghum field in Southern Germany, 1,300 paired 128x128 sharp/blurred patches.",
+        "provenance": {
+          "verbatim_quote": "1,300 pairs of 128×128 pixel image patches",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": null,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Mavic 2 Pro RGB patches; the extract gives no GSD, altitude or radiometric calibration statement, so acquisition is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "using a DJI Mavic 2 Pro consumer-grade drone",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "reported",
+        "stress_categories_evaluated": [
+          "none_assumed_ideal"
+        ],
+        "stress_origin": "not_applicable",
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "The sharp test subset is the ideal-condition reference; the degraded condition is charted separately as SET-02.",
+        "provenance": {
+          "verbatim_quote": "corresponding sharp counterpart",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "single_date_snapshot",
+        "crop_growth_stages_bbch": "BBCH 13",
+        "narrative_summary": "The benchmark was acquired at a single growth stage (BBCH 13); no temporal holdout is described.",
+        "provenance": {
+          "verbatim_quote": "At the time of image acquisition, sorghum was at the BBCH 13 growth stage",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_tile_or_pixel_same_orthomosaic",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Stratified 70/15/15 patch-level split with a fixed seed; patches from the same field are randomly assigned, so spatial leakage risk is high.",
+        "provenance": {
+          "verbatim_quote": "stratified 70%/15%/15% ratio at the patch level",
+          "locator": "Section 4.2",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "UNet decoder with a ResNet encoder; RGB-only, no multimodal fusion or modality ablation.",
+        "provenance": {
+          "verbatim_quote": "UNet with a ResNet encoder backbone",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "macro_f1": 0.9198
+        },
+        "repeated_seeds_or_folds_count": 1,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "ResNet-34 reaches mean Dice Score 0.9198 on the sharp hold-out test set; only one fixed seed (seed 0) is used, so variance is not reported.",
+        "provenance": {
+          "verbatim_quote": "highest mean Dice Score of 0.9198",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "The sharp subset is evaluated in-domain; the blur comparison is a physical-stress condition charted in availability_alignment, not a domain-transfer axis.",
+        "provenance": {
+          "verbatim_quote": "corresponding sharp counterpart",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "single field and single growth stage",
+          "no GSD or altitude",
+          "single seed only",
+          "random patch split"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "The authors explicitly caveat single-seed inference and leave multi-seed variance to future work; the modest in-domain claims match the patch-level split.",
+        "provenance": {
+          "verbatim_quote": "a full multi-seed variance analysis is left for future work",
+          "locator": "Section 4.2",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "reused_public_benchmark_only",
+        "code_availability": "public_repository_verified_link",
+        "license": "MIT (code)",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "DeBlurWeedSeg is public via Mendeley/GitHub; training/evaluation code is archived on Zenodo and GitHub under MIT. Funding (none) and conflict of interest (none) are disclosed. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "is released under the MIT License",
+          "locator": "Code Availability",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000372",
+      "setting_id": "SET-02",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1038/s41598-026-58738-x",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2026,
+        "linked_reports": [],
+        "narrative_summary": "Scientific Reports 2026 article in press (accepted 16 June 2026).",
+        "provenance": {
+          "verbatim_quote": "Deblurring-aware semantic segmentation of crops and weeds in UAV sorghum imagery",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "sorghum"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "semantic_segmentation",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Three-class semantic segmentation (background, sorghum, weed) on the public DeBlurWeedSeg benchmark.",
+        "provenance": {
+          "verbatim_quote": "three semantic categories, namely background, crop (sorghum), and weed",
+          "locator": "Section 3.1",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "reused_in_window_uav_benchmark",
+        "dataset_names": [
+          "DeBlurWeedSeg"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 1,
+        "unique_acquisition_dates_count": 1,
+        "unique_seasons_or_years_count": 1,
+        "total_tiles_or_patches_count": 1300,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Public DeBlurWeedSeg: one sorghum field in Southern Germany, 1,300 paired 128x128 sharp/blurred patches.",
+        "provenance": {
+          "verbatim_quote": "1,300 pairs of 128×128 pixel image patches",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": null,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Mavic 2 Pro RGB patches; the extract gives no GSD, altitude or radiometric calibration statement, so acquisition is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "using a DJI Mavic 2 Pro consumer-grade drone",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "reported",
+        "stress_categories_evaluated": [
+          "motion_or_defocus_blur"
+        ],
+        "stress_origin": "naturally_observed_in_field",
+        "alignment_or_restoration_method": "NAFNet deblurring front-end with restoration-aware fine-tuning",
+        "narrative_summary": "Motion blur is naturally present in the paired blurred patches; NAFNet is used as a deblurring front-end and jointly fine-tuned with the segmentation network.",
+        "provenance": {
+          "verbatim_quote": "an explicit deblurring module based on NAFNet",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "single_date_snapshot",
+        "crop_growth_stages_bbch": "BBCH 13",
+        "narrative_summary": "The benchmark was acquired at a single growth stage (BBCH 13); no temporal holdout is described.",
+        "provenance": {
+          "verbatim_quote": "At the time of image acquisition, sorghum was at the BBCH 13 growth stage",
+          "locator": "Section 4.1",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_tile_or_pixel_same_orthomosaic",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Stratified 70/15/15 patch-level split with a fixed seed; patches from the same field are randomly assigned, so spatial leakage risk is high.",
+        "provenance": {
+          "verbatim_quote": "stratified 70%/15%/15% ratio at the patch level",
+          "locator": "Section 4.2",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "UNet decoder with a ResNet encoder; RGB-only, no multimodal fusion or modality ablation.",
+        "provenance": {
+          "verbatim_quote": "UNet with a ResNet encoder backbone",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "macro_f1": 0.7614
+        },
+        "repeated_seeds_or_folds_count": 1,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "On the motion-blurred test subset the proposed NAFNet+UNet-ResNet34 pipeline reaches mDS 0.7614 (sharp 0.8924, combined 0.8223); only one fixed seed (seed 0) is used.",
+        "provenance": {
+          "verbatim_quote": "Proposed + DeBlur3 0.8924 0.7614 0.8223",
+          "locator": "Results, Table 4",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "not_reported",
+        "shift_axes_tested": [],
+        "adaptation_regime": null,
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": null,
+        "narrative_summary": "The motion-blur subset is a degradation condition already charted under availability_alignment; the schema's transfer axes do not include blur, so no transfer outcome is charted for this setting.",
+        "provenance": {
+          "verbatim_quote": "[Checked transfer axes: blur degradation is not a schema transfer axis]",
+          "locator": "Methods, absence check",
+          "absence_check": true
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "single field and single growth stage",
+          "no GSD or altitude",
+          "single seed only",
+          "random patch split"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "The authors explicitly caveat single-seed inference and leave multi-seed variance to future work; the modest in-domain claims match the patch-level split.",
+        "provenance": {
+          "verbatim_quote": "a full multi-seed variance analysis is left for future work",
+          "locator": "Section 4.2",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "reused_public_benchmark_only",
+        "code_availability": "public_repository_verified_link",
+        "license": "MIT (code)",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "DeBlurWeedSeg is public via Mendeley/GitHub; training/evaluation code is archived on Zenodo and GitHub under MIT. Funding (none) and conflict of interest (none) are disclosed. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "is released under the MIT License",
+          "locator": "Code Availability",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000607",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1038/s41598-022-23399-z",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2022,
+        "linked_reports": [],
+        "narrative_summary": "Scientific Reports 2022 article on synthetic-image training for cotton weed detection and biomass estimation.",
+        "provenance": {
+          "verbatim_quote": "Use of synthetic images for training a deep learning model for weed detection",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "cotton"
+        ],
+        "weed_granularity": "multi_species_fine_grained",
+        "vision_task": "instance_segmentation",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Three-class instance segmentation (cotton, morningglory, grass weeds) plus biomass regression from mask area.",
+        "provenance": {
+          "verbatim_quote": "weed detection and biomass estimation in cotton",
+          "locator": "title",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "primary_newly_collected",
+        "dataset_names": [
+          "Cotton1 (2020)",
+          "Cotton2 (2021)",
+          "real-plant-instance synthetic images"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 2,
+        "unique_acquisition_dates_count": 2,
+        "unique_seasons_or_years_count": 2,
+        "total_tiles_or_patches_count": 560,
+        "independent_unit_level": "single_raw_uav_frame",
+        "narrative_summary": "Two primary cotton acquisitions (2020 and 2021) plus a synthetic-image pipeline; 560 real images in Cotton1 and 100 in Cotton2.",
+        "provenance": {
+          "verbatim_quote": "Cotton 1 was the main dataset and comprised 560 images",
+          "locator": "Data collection",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 0.0274,
+        "flight_altitude_m": 4.9,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "Fujifilm GFX100 RGB on a Hylio AG-110 at 4.9 m, 0.0274 mm/px, 16-bit PNG; no reflectance panel or irradiance calibration is described, so imagery is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "operating at 4.9 m above ground level",
+          "locator": "Data collection",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "Synthetic training images are a data-source manipulation, not a degradation/stress condition; no blur, misregistration, illumination, band-dropout or occlusion stress is evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no degradation/stress condition evaluated]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "single_date_snapshot",
+        "crop_growth_stages_bbch": "4-5 leaves (Cotton1); 2-4 leaves (Cotton2)",
+        "narrative_summary": "Cotton1 was acquired on a single date in May 2020; no temporal holdout within Cotton1.",
+        "provenance": {
+          "verbatim_quote": "Cotton1 May 06, 2020",
+          "locator": "Table 1",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_raw_frame_same_flight",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Cotton1 is split into 460 training/validation and 100 hold-out test images at the frame level within the same acquisition.",
+        "provenance": {
+          "verbatim_quote": "460 were reserved for the training and validation dataset, and the remaining 100 as hold-out test dataset",
+          "locator": "Data collection",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "two_stage_rcnn_detector_or_segmenter",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Mask R-CNN instance segmentation with a ResNet101 backbone; RGB-only, no multimodal fusion.",
+        "provenance": {
+          "verbatim_quote": "Mask R-CNN, an instance segmentation",
+          "locator": "Model training",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "map_50": 0.8
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Real-image training reaches mAPm 0.80 and mAPb 0.81 on the Cotton1 test set; single training runs, no variance.",
+        "provenance": {
+          "verbatim_quote": "mAPm: 0.80",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "The real-image model is evaluated on the in-domain Cotton1 hold-out and on Cotton2; only the in-domain setting is charted here, while the cross-year comparison is SET-02.",
+        "provenance": {
+          "verbatim_quote": "Cotton1 and Cotton2 test datasets were used to assess all the models",
+          "locator": "Results and discussion",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "single field/region",
+          "no radiometric calibration",
+          "no run-to-run variance",
+          "biomass regression R2 inconsistent (0.66 vs 0.48/0.66 in text)"
+        ],
+        "internal_contradictions_noted": "Abstract reports Grass biomass R2 = 0.46 while the Results text reports R2 = 0.48 for Grass canopy-mask area.",
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The cross-year test is a genuine temporal holdout, but training/evaluation remain within one region and one crop, and the biomass R2 values are internally inconsistent.",
+        "provenance": {
+          "verbatim_quote": "the annotation proportion of the real image training dataset was imbalanced between the species",
+          "locator": "Model training",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "available_upon_reasonable_request",
+        "code_availability": "not_available",
+        "license": "CC BY 4.0",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "Data are available on reasonable request; no code repository is given. USDA funding and a no-competing-interests statement are present. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "This study was funded by the USDA-Natural Resources Conservation Service-Conservation Innovation Grant",
+          "locator": "Funding",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000607",
+      "setting_id": "SET-02",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.1038/s41598-022-23399-z",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2022,
+        "linked_reports": [],
+        "narrative_summary": "Scientific Reports 2022 article on synthetic-image training for cotton weed detection and biomass estimation.",
+        "provenance": {
+          "verbatim_quote": "Use of synthetic images for training a deep learning model for weed detection",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "cotton"
+        ],
+        "weed_granularity": "multi_species_fine_grained",
+        "vision_task": "instance_segmentation",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Three-class instance segmentation (cotton, morningglory, grass weeds) plus biomass regression from mask area.",
+        "provenance": {
+          "verbatim_quote": "weed detection and biomass estimation in cotton",
+          "locator": "title",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "primary_newly_collected",
+        "dataset_names": [
+          "Cotton1 (2020)",
+          "Cotton2 (2021)",
+          "real-plant-instance synthetic images"
+        ],
+        "unique_fields_count": 1,
+        "unique_orthomosaics_or_flights_count": 2,
+        "unique_acquisition_dates_count": 2,
+        "unique_seasons_or_years_count": 2,
+        "total_tiles_or_patches_count": 560,
+        "independent_unit_level": "single_raw_uav_frame",
+        "narrative_summary": "Two primary cotton acquisitions (2020 and 2021) plus a synthetic-image pipeline; 560 real images in Cotton1 and 100 in Cotton2.",
+        "provenance": {
+          "verbatim_quote": "Cotton 1 was the main dataset and comprised 560 images",
+          "locator": "Data collection",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 0.0274,
+        "flight_altitude_m": 4.9,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "Fujifilm GFX100 RGB on a Hylio AG-110 at 4.9 m, 0.0274 mm/px, 16-bit PNG; no reflectance panel or irradiance calibration is described, so imagery is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "operating at 4.9 m above ground level",
+          "locator": "Data collection",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "Synthetic training images are a data-source manipulation, not a degradation/stress condition; no blur, misregistration, illumination, band-dropout or occlusion stress is evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Results: no degradation/stress condition evaluated]",
+          "locator": "Methods and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "heldout_cross_season_or_cross_year",
+        "crop_growth_stages_bbch": "4-5 leaves (Cotton1); 2-4 leaves (Cotton2)",
+        "narrative_summary": "Training uses 2020 imagery/synthetic derivatives and evaluation includes the unseen 2021 Cotton2 dataset, so the regime is cross-year.",
+        "provenance": {
+          "verbatim_quote": "Cotton2 June 13, 2021",
+          "locator": "Table 1",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "heldout_year_or_season",
+        "spatial_leakage_risk": "low_buffered_blocks_or_independent_fields_flights",
+        "target_domain_data_use": "zero_target_exposure_strict_holdout",
+        "narrative_summary": "Synthetic images are generated from 2020 plant instances and evaluated on real Cotton1/Cotton2; the 2021 Cotton2 test is an unseen season with no target labels in training.",
+        "provenance": {
+          "verbatim_quote": "Cotton 2 had 100 images for test purposes",
+          "locator": "Data collection",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "two_stage_rcnn_detector_or_segmenter",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Mask R-CNN instance segmentation with a ResNet101 backbone; RGB-only, no multimodal fusion.",
+        "provenance": {
+          "verbatim_quote": "Mask R-CNN, an instance segmentation",
+          "locator": "Model training",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "map_50": 0.6
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Synthetic-image training reaches mAPm 0.60 versus 0.80 for real images; single training runs, no variance.",
+        "provenance": {
+          "verbatim_quote": "mean average precision for mask-mAPm: 0.60",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "cross_year_or_season"
+        ],
+        "adaptation_regime": "zero_shot_direct_transfer",
+        "source_weed_metric_value": 0.8,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "Synthetic 2020 training transfers to the unseen 2021 Cotton2 test set; the paper reports performance without target fine-tuning, so this is zero-shot cross-year transfer.",
+        "provenance": {
+          "verbatim_quote": "Cotton1 and Cotton2 test datasets were used to assess all the models",
+          "locator": "Results and discussion",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "single field/region",
+          "no radiometric calibration",
+          "no run-to-run variance",
+          "biomass regression R2 inconsistent (0.66 vs 0.48/0.66 in text)"
+        ],
+        "internal_contradictions_noted": "Abstract reports Grass biomass R2 = 0.46 while the Results text reports R2 = 0.48 for Grass canopy-mask area.",
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "The cross-year test is a genuine temporal holdout, but training/evaluation remain within one region and one crop, and the biomass R2 values are internally inconsistent.",
+        "provenance": {
+          "verbatim_quote": "the annotation proportion of the real image training dataset was imbalanced between the species",
+          "locator": "Model training",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "available_upon_reasonable_request",
+        "code_availability": "not_available",
+        "license": "CC BY 4.0",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "Data are available on reasonable request; no code repository is given. USDA funding and a no-competing-interests statement are present. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "This study was funded by the USDA-Natural Resources Conservation Service-Conservation Innovation Grant",
+          "locator": "Funding",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000644",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.3389/fpls.2021.702626",
+        "primary_publication_type": "journal_article",
+        "primary_publication_year": 2021,
+        "linked_reports": [],
+        "narrative_summary": "Frontiers in Plant Science 2021 article on UAS weed mapping in sod production.",
+        "provenance": {
+          "verbatim_quote": "Unmanned Aerial System-Based Weed Mapping in Sod Production Using a Convolutional",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "managed_pasture_forage",
+        "crop_species": [
+          "turfgrass (sod)"
+        ],
+        "weed_granularity": "multi_species_fine_grained",
+        "vision_task": "patch_or_tile_classification",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Multi-label 1.5 m cell classification into broadleaf, grass weeds, spotted spurge, sedge and no-weeds classes.",
+        "provenance": {
+          "verbatim_quote": "Weeds are a persistent problem on sod farms",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "primary_newly_collected",
+        "dataset_names": [
+          "Georgia sod farm surveys 2019-2020"
+        ],
+        "unique_fields_count": null,
+        "unique_orthomosaics_or_flights_count": 6,
+        "unique_acquisition_dates_count": 6,
+        "unique_seasons_or_years_count": 2,
+        "total_tiles_or_patches_count": 10000,
+        "independent_unit_level": "spatial_plot_or_block",
+        "narrative_summary": "Six surveys on Georgia sod farms during 2019-2020, more than 10,000 1.5 m grid-cell images; the number of distinct fields and the exact image total are not stated, so the field count is null and 10,000 is a floor.",
+        "provenance": {
+          "verbatim_quote": "More than 10,000 images from 6 surveys",
+          "locator": "CNN training",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": null,
+        "flight_altitude_m": null,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "DJI Phantom 4 Pro V2 RGB at 20-40 m with 0.57-1.28 cm/px; GSD and altitude are ranges and no radiometric calibration is described, so imagery is coded uncalibrated.",
+        "provenance": {
+          "verbatim_quote": "DJI Phantom 4 Pro V2",
+          "locator": "Unmanned Aerial Systems Survey",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "No degradation/stress condition is manipulated; resolution is discussed as a limitation post hoc, not as an evaluated stress axis.",
+        "provenance": {
+          "verbatim_quote": "[Checked Methods and Discussion: no stress/degradation condition evaluated]",
+          "locator": "Methods and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "reported",
+        "temporal_regime": "multiple_dates_pooled_no_heldout",
+        "crop_growth_stages_bbch": "establishing, mature and post-harvest turf; exact BBCH not stated",
+        "narrative_summary": "Six surveys across 2019-2020 are pooled before an 80/20 random split; no survey/date is held out.",
+        "provenance": {
+          "verbatim_quote": "during the growing season in 2019 and 2020",
+          "locator": "Ground Survey",
+          "absence_check": false
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "random_tile_or_pixel_same_orthomosaic",
+        "spatial_leakage_risk": "high_overlapping_or_random_tiles_from_same_flight",
+        "target_domain_data_use": "in_domain_split_only",
+        "narrative_summary": "Random 80/20 training/validation split of grid cells from all six surveys; no test set and no spatial or temporal holdout.",
+        "provenance": {
+          "verbatim_quote": "The images were divided into training (80%) and validation (20%) datasets",
+          "locator": "CNN training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "cnn_segmentation_encoder_decoder",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Best-fit mapping: the study uses a Fastai multi-label ResNet-34 image classifier, which the schema has no exact member for; it is charted under the CNN encoder-decoder family and is not a segmentation model. RGB-only, no modality ablation.",
+        "provenance": {
+          "verbatim_quote": "The architecture used was ResNet 34.",
+          "locator": "CNN training",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "No predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results and Discussion: no uncertainty/calibration metric reported]",
+          "locator": "Results and Discussion, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": true,
+        "primary_metrics": {
+          "weed_f1_or_dice": 0.8
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "The schema has no F-beta field: 0.80 is the reported overall F2 score (beta=2), not F1/Dice, and is mapped to weed_f1_or_dice with this caveat. Class-wise precision/recall ranges and F2 scores are given; no variance.",
+        "provenance": {
+          "verbatim_quote": "F2 score 0.80",
+          "locator": "Table 2",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "none_in_distribution_only"
+        ],
+        "adaptation_regime": "not_applicable_in_distribution",
+        "source_weed_metric_value": null,
+        "target_weed_metric_value": null,
+        "delta_transfer_drop": null,
+        "failed_transfer_documented": false,
+        "narrative_summary": "All metrics are computed on a random validation subset of the pooled surveys; no external field or season is held out.",
+        "provenance": {
+          "verbatim_quote": "The model output of the validation dataset",
+          "locator": "Metrics, Thresholds, and Performance Comparison",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "no test set",
+          "random cell split across pooled surveys",
+          "GSD and altitude reported only as ranges",
+          "no radiometric calibration"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "overclaimed_generalization_from_random_tile_split",
+        "narrative_summary": "The paper reports performance across six surveys, but because all surveys are pooled and randomly split, the validation score does not demonstrate transfer to an unseen date or field.",
+        "provenance": {
+          "verbatim_quote": "Image resolution is currently the major limiting factor",
+          "locator": "Discussion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "available_upon_reasonable_request",
+        "code_availability": "not_available",
+        "license": "CC BY 4.0",
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": true,
+        "narrative_summary": "Data are stated to be in the article/supplementary material with inquiries to the corresponding author; no code repository. Funding and conflict-of-interest statements are present. Crossref check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "This project was funded by the Georgia Department of Agriculture Specialty Crop Block Grant Program",
+          "locator": "Funding",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000736",
+      "setting_id": "SET-01",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.48550/arxiv.2608.21254",
+        "primary_publication_type": "preprint_only",
+        "primary_publication_year": 2026,
+        "linked_reports": [],
+        "narrative_summary": "arXiv preprint (v1, 21 Aug 2026); no journal/conference version is linked in the extract.",
+        "provenance": {
+          "verbatim_quote": "On the Transferability of Agricultural Weed Detection Under Cross-Field Distribution",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "cotton",
+          "soybean"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "bounding_box_object_detection",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Cross-crop weed-localization transfer between cotton and soybean UAV datasets, plus two public auxiliary datasets.",
+        "provenance": {
+          "verbatim_quote": "agricultural weed detection in cotton fields",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "hybrid_primary_and_benchmark",
+        "dataset_names": [
+          "new cotton UAV dataset",
+          "soybean dataset (Stoneville, MS)",
+          "CoFly-WeedDB",
+          "CottonWeedDet12"
+        ],
+        "unique_fields_count": null,
+        "unique_orthomosaics_or_flights_count": null,
+        "unique_acquisition_dates_count": null,
+        "unique_seasons_or_years_count": null,
+        "total_tiles_or_patches_count": 13189,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Four datasets: 1,628 soybean tiles + 5,706 new cotton tiles + 207 CoFly + 5,648 CWDet12 = 13,189 tiles. The number of distinct physical fields, dates and seasons is not enumerated, so those counts are null.",
+        "provenance": {
+          "verbatim_quote": "Our evaluation uses four datasets of aerial and ground weed imagery",
+          "locator": "Section 3, Datasets",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 21.3,
+        "flight_altitude_m": 7.62,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "The primary cotton/soybean surveys use RGB UAV imagery at 25 ft with approximately 2.13 cm/px; no radiometric calibration is described, so acquisition is coded uncalibrated. CoFly and CWDet12 acquisition geometry is not stated in the extract.",
+        "provenance": {
+          "verbatim_quote": "25 ft (ground resolution ≈2.13 cm/pixel)",
+          "locator": "Section 3, Datasets",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "The study manipulates domain shift (field/crop/dataset) rather than sensor degradation; no blur, misregistration, illumination, band-dropout or occlusion stress is evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Datasets and Results: no degradation/stress condition evaluated]",
+          "locator": "Datasets and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "not_reported",
+        "temporal_regime": null,
+        "crop_growth_stages_bbch": null,
+        "narrative_summary": "Acquisition dates, seasons and growth stages are not stated for the four datasets in the extract, so no temporal regime can be charted.",
+        "provenance": {
+          "verbatim_quote": "[Checked Section 3: no acquisition date, season or growth stage stated]",
+          "locator": "Section 3, absence check",
+          "absence_check": true
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "heldout_field_same_farm_or_region",
+        "spatial_leakage_risk": "low_buffered_blocks_or_independent_fields_flights",
+        "target_domain_data_use": "zero_target_exposure_strict_holdout",
+        "narrative_summary": "Each source/target pair uses distinct datasets/fields, and the train/val/test partition is held fixed across runs. Adaptation regime: zero-shot direct transfer.",
+        "provenance": {
+          "verbatim_quote": "The train/val/test partition is held fixed across all runs",
+          "locator": "Section 4, Training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "two_stage_rcnn_detector_or_segmenter",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Faster R-CNN with a ResNet-50-FPN backbone inside the ALDI framework; RGB-only, no multimodal fusion.",
+        "provenance": {
+          "verbatim_quote": "Faster R-CNN with a ResNet-50-FPN backbone",
+          "locator": "Section 4, Training",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "Seed variance is reported for repeatability, but no predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results: no predictive uncertainty or calibration metric reported]",
+          "locator": "Results, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "map_50": 0.578
+        },
+        "repeated_seeds_or_folds_count": null,
+        "variance_or_ci_reported": false,
+        "narrative_summary": "Zero-shot cotton->soybean transfer reaches mAP@50 57.8 against 76.8 in-domain.",
+        "provenance": {
+          "verbatim_quote": "Cotton →Soybean (57.8)",
+          "locator": "Results, Q1",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "cross_field_same_crop",
+          "cross_crop_species"
+        ],
+        "adaptation_regime": "zero_shot_direct_transfer",
+        "source_weed_metric_value": 0.768,
+        "target_weed_metric_value": 0.578,
+        "delta_transfer_drop": -0.19,
+        "failed_transfer_documented": true,
+        "narrative_summary": "Zero-shot cross-crop transfer collapses from 76.8 in-domain soybean mAP@50 to 57.8, a documented failure for most other pairs.",
+        "provenance": {
+          "verbatim_quote": "Most zero-shot transfer collapses to single-digits",
+          "locator": "Results, Q1",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "acquisition dates/seasons not stated",
+          "no radiometric calibration",
+          "supplementary split table (A2) not in extract",
+          "single region for primary data"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "The paper explicitly documents zero-shot failure and does not overclaim transfer; the limitation is that most analysis is one cotton->soybean pair.",
+        "provenance": {
+          "verbatim_quote": "its in-domain accuracy is not an indication of how far it will fall",
+          "locator": "Results and Conclusion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "not_available_or_proprietary",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "The paper introduces a new cotton dataset but gives no repository/access statement; no code repository is linked. AFOSR funding is disclosed, but no conflict-of-interest statement appears, so the combined disclosure field is false. DataCite check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "The authors gratefully acknowledge the generous support from AFOSR award",
+          "locator": "Acknowledgements",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000736",
+      "setting_id": "SET-02",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.48550/arxiv.2608.21254",
+        "primary_publication_type": "preprint_only",
+        "primary_publication_year": 2026,
+        "linked_reports": [],
+        "narrative_summary": "arXiv preprint (v1, 21 Aug 2026); no journal/conference version is linked in the extract.",
+        "provenance": {
+          "verbatim_quote": "On the Transferability of Agricultural Weed Detection Under Cross-Field Distribution",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "cotton",
+          "soybean"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "bounding_box_object_detection",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Cross-crop weed-localization transfer between cotton and soybean UAV datasets, plus two public auxiliary datasets.",
+        "provenance": {
+          "verbatim_quote": "agricultural weed detection in cotton fields",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "hybrid_primary_and_benchmark",
+        "dataset_names": [
+          "new cotton UAV dataset",
+          "soybean dataset (Stoneville, MS)",
+          "CoFly-WeedDB",
+          "CottonWeedDet12"
+        ],
+        "unique_fields_count": null,
+        "unique_orthomosaics_or_flights_count": null,
+        "unique_acquisition_dates_count": null,
+        "unique_seasons_or_years_count": null,
+        "total_tiles_or_patches_count": 13189,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Four datasets: 1,628 soybean tiles + 5,706 new cotton tiles + 207 CoFly + 5,648 CWDet12 = 13,189 tiles. The number of distinct physical fields, dates and seasons is not enumerated, so those counts are null.",
+        "provenance": {
+          "verbatim_quote": "Our evaluation uses four datasets of aerial and ground weed imagery",
+          "locator": "Section 3, Datasets",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 21.3,
+        "flight_altitude_m": 7.62,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "The primary cotton/soybean surveys use RGB UAV imagery at 25 ft with approximately 2.13 cm/px; no radiometric calibration is described, so acquisition is coded uncalibrated. CoFly and CWDet12 acquisition geometry is not stated in the extract.",
+        "provenance": {
+          "verbatim_quote": "25 ft (ground resolution ≈2.13 cm/pixel)",
+          "locator": "Section 3, Datasets",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "The study manipulates domain shift (field/crop/dataset) rather than sensor degradation; no blur, misregistration, illumination, band-dropout or occlusion stress is evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Datasets and Results: no degradation/stress condition evaluated]",
+          "locator": "Datasets and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "not_reported",
+        "temporal_regime": null,
+        "crop_growth_stages_bbch": null,
+        "narrative_summary": "Acquisition dates, seasons and growth stages are not stated for the four datasets in the extract, so no temporal regime can be charted.",
+        "provenance": {
+          "verbatim_quote": "[Checked Section 3: no acquisition date, season or growth stage stated]",
+          "locator": "Section 3, absence check",
+          "absence_check": true
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "heldout_field_same_farm_or_region",
+        "spatial_leakage_risk": "low_buffered_blocks_or_independent_fields_flights",
+        "target_domain_data_use": "labeled_target_few_shot_or_fine_tuning",
+        "narrative_summary": "Each source/target pair uses distinct datasets/fields, and the train/val/test partition is held fixed across runs. Adaptation regime: few-shot supervised fine-tuning.",
+        "provenance": {
+          "verbatim_quote": "The train/val/test partition is held fixed across all runs",
+          "locator": "Section 4, Training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "two_stage_rcnn_detector_or_segmenter",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Faster R-CNN with a ResNet-50-FPN backbone inside the ALDI framework; RGB-only, no multimodal fusion.",
+        "provenance": {
+          "verbatim_quote": "Faster R-CNN with a ResNet-50-FPN backbone",
+          "locator": "Section 4, Training",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "Seed variance is reported for repeatability, but no predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results: no predictive uncertainty or calibration metric reported]",
+          "locator": "Results, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "map_50": 0.8
+        },
+        "repeated_seeds_or_folds_count": 5,
+        "variance_or_ci_reported": true,
+        "narrative_summary": "Few-shot k=25 reaches mAP@50 80.0 +/- 3.2 over M=5 label draws.",
+        "provenance": {
+          "verbatim_quote": "k=25 reaches 80.0±3.2",
+          "locator": "Results, Q3",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "cross_field_same_crop",
+          "cross_crop_species"
+        ],
+        "adaptation_regime": "few_shot_supervised_fine_tuning",
+        "source_weed_metric_value": 0.578,
+        "target_weed_metric_value": 0.8,
+        "delta_transfer_drop": 0.222,
+        "failed_transfer_documented": false,
+        "narrative_summary": "Few-shot fine-tuning with k=25 labeled target examples reaches 80.0 mAP@50, above the 57.8 source-only baseline, recovering in-domain performance.",
+        "provenance": {
+          "verbatim_quote": "few-shot fine-tuning with as few as 25 labeled target examples outperforms unsupervised DAOD",
+          "locator": "Results, Q3",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "acquisition dates/seasons not stated",
+          "no radiometric calibration",
+          "supplementary split table (A2) not in extract",
+          "single region for primary data"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "Few-shot gains are demonstrated on one learnable target (soybean); the authors note harder targets such as cotton do not recover.",
+        "provenance": {
+          "verbatim_quote": "source domain selection combined with modest target supervision is more productive",
+          "locator": "Results and Conclusion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "not_available_or_proprietary",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "The paper introduces a new cotton dataset but gives no repository/access statement; no code repository is linked. AFOSR funding is disclosed, but no conflict-of-interest statement appears, so the combined disclosure field is false. DataCite check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "The authors gratefully acknowledge the generous support from AFOSR award",
+          "locator": "Acknowledgements",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    },
+    {
+      "study_id": "SCI-000736",
+      "setting_id": "SET-03",
+      "study_reports": {
+        "evidence_state": "reported",
+        "primary_report_doi": "10.48550/arxiv.2608.21254",
+        "primary_publication_type": "preprint_only",
+        "primary_publication_year": 2026,
+        "linked_reports": [],
+        "narrative_summary": "arXiv preprint (v1, 21 Aug 2026); no journal/conference version is linked in the extract.",
+        "provenance": {
+          "verbatim_quote": "On the Transferability of Agricultural Weed Detection Under Cross-Field Distribution",
+          "locator": "title page",
+          "absence_check": false
+        }
+      },
+      "task_context": {
+        "evidence_state": "reported",
+        "agricultural_setting": "arable_row_crop",
+        "crop_species": [
+          "cotton",
+          "soybean"
+        ],
+        "weed_granularity": "binary_crop_vs_weed",
+        "vision_task": "bounding_box_object_detection",
+        "uav_separability": "uav_only",
+        "narrative_summary": "Cross-crop weed-localization transfer between cotton and soybean UAV datasets, plus two public auxiliary datasets.",
+        "provenance": {
+          "verbatim_quote": "agricultural weed detection in cotton fields",
+          "locator": "Abstract",
+          "absence_check": false
+        }
+      },
+      "dataset_units": {
+        "evidence_state": "reported",
+        "dataset_origin": "hybrid_primary_and_benchmark",
+        "dataset_names": [
+          "new cotton UAV dataset",
+          "soybean dataset (Stoneville, MS)",
+          "CoFly-WeedDB",
+          "CottonWeedDet12"
+        ],
+        "unique_fields_count": null,
+        "unique_orthomosaics_or_flights_count": null,
+        "unique_acquisition_dates_count": null,
+        "unique_seasons_or_years_count": null,
+        "total_tiles_or_patches_count": 13189,
+        "independent_unit_level": "sub_image_tile_or_patch",
+        "narrative_summary": "Four datasets: 1,628 soybean tiles + 5,706 new cotton tiles + 207 CoFly + 5,648 CWDet12 = 13,189 tiles. The number of distinct physical fields, dates and seasons is not enumerated, so those counts are null.",
+        "provenance": {
+          "verbatim_quote": "Our evaluation uses four datasets of aerial and ground weed imagery",
+          "locator": "Section 3, Datasets",
+          "absence_check": false
+        }
+      },
+      "sensor_inputs": {
+        "evidence_state": "reported",
+        "modalities_used": [
+          "RGB"
+        ],
+        "spectral_bands": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "derived_indices_used": [],
+        "gsd_mm_per_pixel": 21.3,
+        "flight_altitude_m": 7.62,
+        "radiometric_calibration": "uncalibrated_raw_or_8bit_dn",
+        "narrative_summary": "The primary cotton/soybean surveys use RGB UAV imagery at 25 ft with approximately 2.13 cm/px; no radiometric calibration is described, so acquisition is coded uncalibrated. CoFly and CWDet12 acquisition geometry is not stated in the extract.",
+        "provenance": {
+          "verbatim_quote": "25 ft (ground resolution ≈2.13 cm/pixel)",
+          "locator": "Section 3, Datasets",
+          "absence_check": false
+        }
+      },
+      "availability_alignment": {
+        "evidence_state": "not_reported",
+        "stress_categories_evaluated": [],
+        "stress_origin": null,
+        "alignment_or_restoration_method": null,
+        "narrative_summary": "The study manipulates domain shift (field/crop/dataset) rather than sensor degradation; no blur, misregistration, illumination, band-dropout or occlusion stress is evaluated.",
+        "provenance": {
+          "verbatim_quote": "[Checked Datasets and Results: no degradation/stress condition evaluated]",
+          "locator": "Datasets and Results, absence check",
+          "absence_check": true
+        }
+      },
+      "temporal_design": {
+        "evidence_state": "not_reported",
+        "temporal_regime": null,
+        "crop_growth_stages_bbch": null,
+        "narrative_summary": "Acquisition dates, seasons and growth stages are not stated for the four datasets in the extract, so no temporal regime can be charted.",
+        "provenance": {
+          "verbatim_quote": "[Checked Section 3: no acquisition date, season or growth stage stated]",
+          "locator": "Section 3, absence check",
+          "absence_check": true
+        }
+      },
+      "split_protocol": {
+        "evidence_state": "reported",
+        "partition_unit": "heldout_field_same_farm_or_region",
+        "spatial_leakage_risk": "low_buffered_blocks_or_independent_fields_flights",
+        "target_domain_data_use": "unlabeled_target_images_for_uda_or_tta",
+        "narrative_summary": "Each source/target pair uses distinct datasets/fields, and the train/val/test partition is held fixed across runs. Adaptation regime: unsupervised domain adaptation.",
+        "provenance": {
+          "verbatim_quote": "The train/val/test partition is held fixed across all runs",
+          "locator": "Section 4, Training",
+          "absence_check": false
+        }
+      },
+      "fusion_mechanism": {
+        "evidence_state": "reported",
+        "architecture_family": "two_stage_rcnn_detector_or_segmenter",
+        "integration_topology": "single_modality_rgb_only",
+        "matched_modality_ablation_present": false,
+        "narrative_summary": "Faster R-CNN with a ResNet-50-FPN backbone inside the ALDI framework; RGB-only, no multimodal fusion.",
+        "provenance": {
+          "verbatim_quote": "Faster R-CNN with a ResNet-50-FPN backbone",
+          "locator": "Section 4, Training",
+          "absence_check": false
+        }
+      },
+      "uncertainty_calibration": {
+        "evidence_state": "not_reported",
+        "uncertainty_method": null,
+        "calibration_metrics_reported": [],
+        "abstention_or_validity_rejection": null,
+        "false_calibration_terminology_trap": null,
+        "narrative_summary": "Seed variance is reported for repeatability, but no predictive-uncertainty method, calibration metric, abstention rule, or 'calibration' terminology is reported.",
+        "provenance": {
+          "verbatim_quote": "[Checked Results: no predictive uncertainty or calibration metric reported]",
+          "locator": "Results, absence check",
+          "absence_check": true
+        }
+      },
+      "metrics_comparators": {
+        "evidence_state": "reported",
+        "weed_class_specific_metrics_reported": false,
+        "primary_metrics": {
+          "map_50": 0.503
+        },
+        "repeated_seeds_or_folds_count": 5,
+        "variance_or_ci_reported": true,
+        "narrative_summary": "Unsupervised DAOD on cotton->soybean falls to 50.3 (Distill) or 42.8 (Align) from a source-only 57.8.",
+        "provenance": {
+          "verbatim_quote": "Distill and Align fall to 50.3 and 42.8 from a source-only baseline of 57.8",
+          "locator": "Results, Q2",
+          "absence_check": false
+        }
+      },
+      "transfer_outcomes": {
+        "evidence_state": "reported",
+        "shift_axes_tested": [
+          "cross_field_same_crop",
+          "cross_crop_species"
+        ],
+        "adaptation_regime": "unsupervised_domain_adaptation",
+        "source_weed_metric_value": 0.578,
+        "target_weed_metric_value": 0.503,
+        "delta_transfer_drop": -0.075,
+        "failed_transfer_documented": true,
+        "narrative_summary": "Out-of-the-box DAOD is inconsistent and degrades the cotton->soybean pair from 57.8 to 50.3/42.8, documenting failed unsupervised adaptation.",
+        "provenance": {
+          "verbatim_quote": "applying a modern DAOD framework out of the box does not yield consistent improvements",
+          "locator": "Results, Q2",
+          "absence_check": false
+        }
+      },
+      "provenance_limits": {
+        "evidence_state": "reported",
+        "missing_or_ambiguous_dimensions": [
+          "acquisition dates/seasons not stated",
+          "no radiometric calibration",
+          "supplementary split table (A2) not in extract",
+          "single region for primary data"
+        ],
+        "internal_contradictions_noted": null,
+        "claimed_vs_demonstrated_gap": "aligned_claims_match_split_independence",
+        "narrative_summary": "DAOD failure is reported honestly; the authors note ALDI used default configuration, so the negative result is bounded.",
+        "provenance": {
+          "verbatim_quote": "results are highly variable",
+          "locator": "Results and Conclusion",
+          "absence_check": false
+        }
+      },
+      "open_science": {
+        "evidence_state": "reported",
+        "data_availability": "not_available_or_proprietary",
+        "code_availability": "not_available",
+        "license": null,
+        "retraction_or_correction_status": "none_detected",
+        "funding_and_coi_disclosed": false,
+        "narrative_summary": "The paper introduces a new cotton dataset but gives no repository/access statement; no code repository is linked. AFOSR funding is disclosed, but no conflict-of-interest statement appears, so the combined disclosure field is false. DataCite check on 2026-10-31 found no retraction/correction relation.",
+        "provenance": {
+          "verbatim_quote": "The authors gratefully acknowledge the generous support from AFOSR award",
+          "locator": "Acknowledgements",
+          "absence_check": false
+        }
+      },
+      "coder_id": "agent-opencode-single-pass",
+      "full_text_verified": true
+    }
+  ]
+}

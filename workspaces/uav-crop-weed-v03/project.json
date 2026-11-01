@@ -5,7 +5,7 @@
   "title": "Reliability and Generalization in UAV Crop-Weed Mapping - Protocol v0.3 Amendment Workspace",
   "description": "Dedicated host for protocol v0.3: keeps pilot v0.2 inputs byte-preserved; hosts intent v0.3, compiled protocol, rendered criteria, v0.3 charting drafts, and amendment lineage. Provenance: amendment of workspaces/uav-crop-weed-reliability protocol fingerprint sha256:a1fd8d2a82e0a5fca77deabbad360a1d8190d2d017d3ffa38342d8ac7ff73451",
   "created_at": "2026-10-17T15:06:33.337622+00:00",
-  "updated_at": "2026-10-31T22:24:28.833130+00:00",
+  "updated_at": "2026-10-31T22:59:53.928021+00:00",
   "status": "active",
   "protocol_status": "FROZEN",
   "protocol_revision": "0.3",
@@ -119,6 +119,15 @@
       "change": "9 of 644 included studies extracted through the legacy PyMuPDF convenience path (non-authoritative; no Contract v1 screening_decisions artifact exists) and synthesized into synthesis/literature_review.md with 13 machine-verified verbatim quotes. SCI-000227 remains UNRESOLVED (downloader 404).",
       "unchanged": "screening status FINAL_AGENT_UNCONFIRMED; no charting rows; no human review of the synthesis",
       "record": "extracted/_pilot_manifest.json"
+    },
+    {
+      "date": "2026-10-31",
+      "event_id": "EVT-20261031225953-4817fe",
+      "item": "pilot charting v0.3.1 (single-coded)",
+      "change": "15 setting rows from 9 extracted pilot studies charted under frozen schema v0.3.1; 159 reported-dimension quotes verified against source extracts and 36 dimensions explicitly not_reported. SCI-000227 remains uncharted (no full text).",
+      "unchanged": "protocol, criteria, screening decisions (FINAL_AGENT_UNCONFIRMED), HumanConfirmation@1, charting schema bytes",
+      "caveat": "single-pass agent coding (agent-opencode-single-pass); independent dual coding and human review are outstanding, so no dual-coding claim is made",
+      "record": "charting/pilot_rows_v031.json"
     }
   ]
 }

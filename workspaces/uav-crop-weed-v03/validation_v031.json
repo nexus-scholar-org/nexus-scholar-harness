@@ -26,10 +26,26 @@
     "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755",
     "criteria_sha256": "9ae1f97dc0c9857bb59eb0025924f2dd104d2c41eca2777089b22eecad90b86f",
     "human_confirmation_fingerprint": "e1f51ffcecc00deb58816fa162a68fbc6c756dafdac920b6a639080e4f876800",
-    "charting_rows_accepted": 0
+    "charting_rows_accepted": 15
   },
   "outstanding": [
-    "no charting row has been produced under v0.3.1 yet; the first dual-coded rows are the acceptance test for the codebook wording",
-    "the v0.2 positive-translation check is limited to the design; no v0.2 row has been mechanically translated yet"
-  ]
+    "pilot charting rows are single-coded by an agent (agent-opencode-single-pass); independent dual coding and human review are outstanding, so the codebook wording is not yet accepted by a second coder",
+    "the v0.2 positive-translation check is limited to the design; no v0.2 row has been mechanically translated yet",
+    "SCI-000227 remains uncharted because no full text was retrievable from the arXiv URL recorded during harvest"
+  ],
+  "charting_pilot": {
+    "file": "charting/pilot_rows_v031.json",
+    "summary": "charting/pilot_rows_v031_summary.json",
+    "driver": "_drivers/v031_charting_pilot.py",
+    "rows": 15,
+    "studies": 9,
+    "reported_dimensions": 159,
+    "not_reported_dimensions": 36,
+    "quotes_verified_against_extracts": 159,
+    "coder_id": "agent-opencode-single-pass",
+    "coding_mode": "single_pass_agent",
+    "dual_coding_status": "OUTSTANDING",
+    "human_review_of_charting": false,
+    "scope_note": "Covers 9 of the 10 included pilot studies; SCI-000227 has no retrievable full text and is not charted."
+  }
 }
