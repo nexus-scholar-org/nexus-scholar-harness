@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { translate, type Locale } from "@/i18n";
 import type { EvidenceNode } from "@/lib/contracts";
 import {
+  consoleBase,
   getLineageTrace,
   isScreeningApiError,
-  normalizeConsoleOrigin,
   type LineageClaim,
   type LineageLeg,
   type LineageSelector,
@@ -449,7 +449,7 @@ export function LineagePage({ locale }: Readonly<{ locale: Locale }>) {
     if (requested === null) return;
     let origin: string;
     try {
-      origin = normalizeConsoleOrigin(requested.origin);
+      origin = consoleBase(requested.origin);
     } catch (error: unknown) {
       const failure: ScreeningApiError = error as ScreeningApiError;
       setMode({ kind: "live", origin: requested.origin });

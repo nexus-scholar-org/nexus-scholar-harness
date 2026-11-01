@@ -154,7 +154,7 @@ function stubLineageFetch(
 ): (input: unknown) => Promise<Response> {
   return async (input: unknown) => {
     const url = String(input);
-    const path = url.replace(/^https?:\/\/[^/]+/, "").split("?")[0] ?? url;
+    const path = (url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api\/console/, "")).split("?")[0] ?? url;
     if (path === "/api/v1/ui/lineage") return respond(url).clone();
     return typedRefusal("CLAIM_MISSING", `no recorded claim at ${path}`, 404);
   };
@@ -271,6 +271,20 @@ describe("live mode renders the served trace and never the fixture", () => {
     expect(screen.getByText("SOURCE_AVAILABLE")).toBeInTheDocument();
     expect(screen.getByText("SUPPORTED_VERBATIM")).toBeInTheDocument();
     expect(screen.getByText("NOT_ASSESSED")).toBeInTheDocument();
+  });
+
+  it("defaults ?source=live to the same-origin console proxy when no console is named", async () => {
+    const fetchSpy = vi.fn(stubLineageFetch());
+    vi.stubGlobal("fetch", fetchSpy);
+    setQuery("?source=live&claim_id=CLM-UI-LIVE-1");
+
+    render(<LineagePage locale="en" />);
+
+    expect(await screen.findByText(LIVE_TRACE.claims[0]?.claim_text ?? "")).toBeInTheDocument();
+    expect(fetchSpy).toHaveBeenCalled();
+    for (const call of fetchSpy.mock.calls) {
+      expect(String(call[0])).toMatch(/^\/api\/console\//);
+    }
   });
 
   it("renders every served id, quote, and DOI from the payload and nothing else", async () => {
