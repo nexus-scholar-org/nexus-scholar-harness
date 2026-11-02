@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Live harvest</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.row{display:grid;grid-template-columns:150px 1fr 150px 160px 120px;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #e3e3e3;font-size:13px}
+.track{height:12px;border-radius:6px;background:#ececec;overflow:hidden;border:1px solid #d0d0d0}
+.fill{height:12px;background:#4a4a4a}
+.st{font-size:11px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid;justify-self:start;white-space:nowrap}
+.s-run{border-color:#1d4ed8;color:#1d4ed8;background:#eef2fd}
+.s-done{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.s-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.s-fail{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.lnk{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:6px 10px;background:#fff;color:#1f1f1f;min-height:36px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.term{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px;line-height:1.6;background:#fff;border:1.5px solid #3a3a3a;border-radius:6px;padding:12px 14px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 3 of 6 · Harvest</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Live progress, one row per database</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Replaces the single spinner. Each row shows fetched versus the database's own total, so a cap or a quota problem is visible while it happens.</div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;padding:6px 18px">
+    <div class="row" style="font-size:12px;color:#5c5c5c;font-weight:600"><span>Database</span><span>Fetched of reported total</span><span>Count</span><span>Status</span><span></span></div>
+    <div class="row"><b>OpenAlex</b><div class="track"><div class="fill" style="width:100%"></div></div><span>1,343 of 1,344</span><span class="st s-done">Complete</span><span></span></div>
+    <div class="row"><b>Crossref</b><div class="track"><div class="fill" style="width:15%"></div></div><span>2,000 of ~13,100</span><span class="st s-warn">Cap reached · lower bound</span><button class="lnk">Split by year</button></div>
+    <div class="row"><b>Semantic Scholar</b><div class="track"><div class="fill" style="width:5%"></div></div><span>10 of [unknown]</span><span class="st s-fail">Rate limited (429)</span><button class="lnk">Retry later</button></div>
+    <div class="row"><b>arXiv</b><div class="track"><div class="fill" style="width:62%"></div></div><span>153 of 247</span><span class="st s-run">Fetching · 1 req/s</span><button class="lnk">Stop</button></div>
+    <div class="row" style="border-bottom:0"><b class="muted">PubMed</b><span class="muted">not selected in the plan</span><span></span><span></span><span></span></div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="lbl">Per-query yield so far</div>
+      <div style="font-size:13px">Ranks query slices by how many records also match the seeds' vocabulary, so dead slices can stop early.</div>
+      <div style="font-size:13px;display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:4px 0"><span>OpenAlex · strict</span><b>high</b></div>
+      <div style="font-size:13px;display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:4px 0"><span>Crossref · 2021 slice</span><b>low</b></div>
+      <div style="font-size:13px;display:flex;justify-content:space-between;padding:4px 0"><span>Crossref · 2023 slice</span><b style="color:#8a4a00">near zero · stop?</b></div>
+      <div class="muted" style="font-size:12px;margin-top:auto">UAV lesson 49: nine slices returned about 1,600 records and no include.</div>
+    </div>
+    <div style="width:470px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">CLI equivalent</div>
+      <div class="term">
+        Discovery · run 3 · 2026-11-02 14:20 UTC<br>
+        openalex   1343/1344   complete<br>
+        crossref   2000/~13100 CAP · lower bound  [y] split by year<br>
+        s2           10/?      429 rate limited  [r] retry later<br>
+        arxiv       153/247    fetching 1 req/s<br>
+        <br>
+        [s] stop one  [q] stop all, keep what was fetched
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:space-between;align-items:center">
+    <span class="muted" style="font-size:13px">Stopping keeps fetched records and marks the run PARTIAL with the reason.</span>
+    <button class="btn">Stop all and keep results</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

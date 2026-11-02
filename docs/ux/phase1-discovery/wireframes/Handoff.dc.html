@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hand-off to screening</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.mix{display:flex;height:28px;border-radius:6px;overflow:hidden;border:1.5px solid #8a8a8a;font-size:12px;font-weight:600}
+.mix div{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid #eee;font-variant-numeric:tabular-nums}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#f6f6f6;border:1px solid #d6d6d6;border-radius:4px;padding:10px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.opt{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 6 of 6 · Hand-off</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">3,241 works ready for screening</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">A last look at what screening will receive: where it came from, how much has an abstract, and roughly how much work it is.</div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:10px">
+    <div class="lbl">Provider mix</div>
+    <div class="mix" role="img" aria-label="Crossref 57 percent, OpenAlex 38 percent, arXiv 4 percent, Semantic Scholar under 1 percent">
+      <div style="flex:57;background:#d9dde3">Crossref 57%</div>
+      <div style="flex:38;background:#9fb3d9">OpenAlex 38%</div>
+      <div style="flex:4;background:#4a5568;color:#fff">arXiv</div>
+      <div style="flex:1;background:#1f1f1f"></div>
+    </div>
+    <div class="muted" style="font-size:13px">In UAV v0.3 Crossref records were ~70 times less likely to be included than OpenAlex records (lesson 44). Expect most exclusions to come from Crossref.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:4px">
+      <div class="lbl" style="margin-bottom:6px">Before screening</div>
+      <div class="kv"><span>Unique works</span><b>3,241</b></div>
+      <div class="kv"><span>With an abstract</span><b>2,820 · 87%</b></div>
+      <div class="kv"><span>Title only</span><b>421</b></div>
+      <div class="kv"><span>Outside the year window (flagged)</span><b>18</b></div>
+      <div class="kv" style="border:0"><span>Screening batches</span><b>[n] of [batch size]</b></div>
+      <div class="opt" style="margin-top:12px"><input type="checkbox" id="hyd" checked><label for="hyd">Fill missing abstracts from OpenAlex first <span class="muted">(title-only records are hard to screen; lesson 53)</span></label></div>
+      <div class="opt"><input type="checkbox" id="blind" checked><label for="blind">Keep provider and noise statistics away from screeners <span class="muted">(disclosed priors changed screening decisions; lesson 54)</span></label></div>
+    </div>
+
+    <div style="width:440px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:8px">
+        <div class="lbl">Next command</div>
+        <div class="code">python src/scholar_harness/agent_screen.py prepare workspaces/[project-slug]</div>
+        <div class="muted" style="font-size:12px">Writes literature/screening/batch_NNN.json. Agents write the decision files; collect builds the PRISMA screening report.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Carried forward</div>
+        <div>Run 3 manifest, per-database counts and the dedup event feed the PRISMA identification box automatically.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:auto">
+        <button class="btn btn-p">Prepare screening batches</button>
+        <button class="btn">Export RIS for Rayyan or Zotero</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workspace created</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.term{border:1.5px solid #3a3a3a;border-radius:6px;background:#fff;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.7;padding:14px 16px;box-sizing:border-box;display:flex;flex-direction:column}
+.ok{color:#1f6a35;font-weight:700}
+.file{display:flex;justify-content:space-between;font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:4px 0;border-bottom:1px solid #eee}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#f6f6f6;border:1px solid #d6d6d6;border-radius:4px;padding:10px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">After step 6 · Done</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Workspace created, and what to do next</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Confirms every file that was written and the audit event, then hands off to Phase-1 search with the exact command.</div>
+  </div>
+
+  <div style="display:flex;gap:24px;flex:1;min-height:0">
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="lbl">CLI</div>
+      <div class="term" style="flex:1">
+        <div class="ok">Workspace created: workspaces/[project-slug]/</div>
+        <div>  id        WSP-[32 hex]</div>
+        <div>  protocol  [fingerprint]</div>
+        <div style="margin-top:8px">Written:</div>
+        <div>  <span class="ok">ok</span>  project.json, INDEX.md</div>
+        <div>  <span class="ok">ok</span>  intent.json, protocol.json</div>
+        <div>  <span class="ok">ok</span>  SCREENING_CRITERIA.md</div>
+        <div>  <span class="ok">ok</span>  audit/recon_context.json</div>
+        <div>  <span class="ok">ok</span>  audit/journal.jsonl  GENESIS</div>
+        <div style="margin-top:10px">Next, Phase-1 discovery:</div>
+        <div>  uv run scholar-search ... (built from your concepts)</div>
+        <div class="muted" style="margin-top:8px">Draft removed. Recon cache stays under .cache/inception_recon.</div>
+      </div>
+    </div>
+
+    <div style="width:520px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="lbl">Chat card</div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;border:2px solid #1f6a35">
+        <b style="font-size:16px">Workspace created</b>
+        <div class="muted" style="font-size:13px">workspaces/[project-slug]/ · WSP-[id] · protocol [fingerprint]</div>
+      </div>
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">Files</div>
+        <div class="file"><span>protocol.json</span><a href="#">Open</a></div>
+        <div class="file"><span>SCREENING_CRITERIA.md</span><a href="#">Open</a></div>
+        <div class="file"><span>INDEX.md</span><a href="#">Open</a></div>
+        <div class="file" style="border:0"><span>audit/journal.jsonl</span><span class="ok">GENESIS logged</span></div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:8px">
+        <div class="lbl">Next step · Phase-1 discovery</div>
+        <div class="code">uv run scholar-search … [query built from 9 concepts]</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-p">Run search now</button>
+          <button class="btn">Copy command</button>
+          <button class="btn">Edit query first</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

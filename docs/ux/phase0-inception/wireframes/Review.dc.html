@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review and emit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.sec{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-bottom:1px solid #dedede;font-size:14px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #e3e3e3;padding:5px 6px;text-align:left}
+th{color:#5c5c5c;font-weight:600}
+.ok{color:#1f6a35;font-weight:600}
+.warn{color:#8a4a00;font-weight:600}
+.file{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:13px}
+</style>
+</helmet>
+<div style="width:1200px;height:1040px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 4 of 5 · Step 6, shared by both front ends</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Review and emit</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">The full intent, not counts. Every section links back to its step; the right column says exactly what will be written.</div>
+  </div>
+
+  <div style="display:flex;gap:24px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;padding:6px 18px;min-width:0">
+      <div class="sec">
+        <div class="sec-h"><b>Scope</b><a href="#">Edit</a></div>
+        <div>Drone-mounted crop-disease detection with on-device deep learning</div>
+        <div class="muted">2020 to present · English · semantic search · 25 papers</div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><b>Direction</b><a href="#">Edit</a></div>
+        <div>Lightweight CNN crop disease detection <span class="muted">· 4 anchor papers</span></div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><b>Shape</b><a href="#">Edit</a></div>
+        <div>Design Science · DESIGN_SCIENCE playbook · unit: a deployed detection model</div>
+        <div>RQ1: [refined RQ1 text]</div>
+        <div>RQ2: [refined RQ2 text]</div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><b>Concepts · 9</b><a href="#">Edit</a></div>
+        <table>
+          <thead><tr><th>Concept</th><th>Synonyms</th><th>Evidence</th></tr></thead>
+          <tbody>
+            <tr><td>lightweight cnn crop disease detection</td><td>—</td><td class="ok">4 papers</td></tr>
+            <tr><td>unmanned aerial vehicle</td><td>drone</td><td class="ok">5 papers</td></tr>
+            <tr><td>plant disease classification</td><td>leaf disease detection</td><td class="ok">6 papers</td></tr>
+            <tr><td>edge tpu</td><td>—</td><td class="ok">3 papers (checked)</td></tr>
+            <tr><td class="muted">+ 5 more</td><td></td><td class="ok">all anchored</td></tr>
+          </tbody>
+        </table>
+        <div class="warn" style="font-size:13px">1 synonym dropped: 'uas' had no anchor.</div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><b>Criteria and matrix</b><a href="#">Edit</a></div>
+        <div>Inclusion 4 · exclusion 3 · out of scope: closed-source models, pre-2020</div>
+        <div class="muted">Matrix: model, platform, dataset, accuracy metric, latency · Phase-4 checks on</div>
+      </div>
+      <div class="sec" style="border-bottom:0">
+        <div class="sec-h"><b>Project</b><a href="#">Edit</a></div>
+        <div>Title: [project title] · slug: [project-slug] · lead: [lead researcher]</div>
+      </div>
+    </div>
+
+    <div style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:8px">
+        <div class="lbl">Will be written</div>
+        <div class="file">workspaces/[project-slug]/</div>
+        <div class="file">  project.json  (new WSP- id)</div>
+        <div class="file">  intent.json</div>
+        <div class="file">  protocol.json</div>
+        <div class="file">  SCREENING_CRITERIA.md</div>
+        <div class="file">  INDEX.md</div>
+        <div class="file">  audit/recon_context.json</div>
+        <div class="file">  audit/journal.jsonl  + GENESIS</div>
+        <div class="muted" style="font-size:12px">The protocol fingerprint appears after compile.</div>
+      </div>
+
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Checks</div>
+        <div class="ok">All 9 concepts anchored</div>
+        <div class="ok">Slug is free</div>
+        <div class="warn">Direction pool had mixed subfields</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:auto">
+        <button class="btn btn-p">Write workspace</button>
+        <div style="display:flex;gap:10px">
+          <button class="btn" style="flex:1">Dry run</button>
+          <button class="btn" style="flex:1">Save draft and exit</button>
+        </div>
+        <div class="muted" style="font-size:12px">CLI: [w] write · [d] dry run · [s] save · [b] back</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

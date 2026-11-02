@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discovery states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.card{border:1.5px solid #8a8a8a;border-radius:6px;background:#fff;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid}
+.t-stop{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-info{border-color:#1d4ed8;color:#1d4ed8;background:#eef2fd}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 12px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.was{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#5c5c5c;border-top:1px solid #e3e3e3;padding-top:8px}
+</style>
+</helmet>
+<div style="width:2480px;height:620px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 7 of 8 · Discovery states</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Warning and recovery states</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">The harness already detects most of these honestly; today they surface as a status word in the journal. Each card turns one into a plain message and a next step. The bottom line is today's behaviour.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:18px;flex:1">
+    <div class="card">
+      <span class="tag t-stop">FAILED</span>
+      <b>No records, and 2 databases failed</b>
+      <div>Crossref timed out and Semantic Scholar was rate-limited. Nothing new was saved; run 2's files are still there and are not this run's corpus.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Retry failed databases</button><button class="btn">Open run 2</button></div>
+      <div class="was">Today: status FAILED, stale_artifacts listed in the journal</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Empty result</span>
+      <b>The query matched nothing</b>
+      <div>All databases answered and returned 0 records. The query is probably too narrow: 9 concepts joined by AND.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Back to the plan</button><button class="btn">Run recall check</button></div>
+      <div class="was">Today: EMPTY_RESULT, empty raw file published</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Cap reached</span>
+      <b>Crossref stopped at the 2,000 cap</b>
+      <div>It reports about 13,100 matches, so this count is a lower bound. Splitting by year usually keeps each slice under the cap.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Split by year</button><button class="btn">Accept lower bound</button></div>
+      <div class="was">Today: not detected; reported like a complete count</div>
+    </div>
+    <div class="card">
+      <span class="tag t-stop">Protocol changed</span>
+      <b>protocol.json changed since run 2</b>
+      <div>The fingerprint no longer matches. Runs from different protocols can't be pooled without an amendment record.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Record amendment and run</button><button class="btn">See the change</button></div>
+      <div class="was">Today: no check at discovery time</div>
+    </div>
+    <div class="card">
+      <span class="tag t-info">Polite pool</span>
+      <b>No contact email set</b>
+      <div>SCHOLAR_MAILTO isn't set, so OpenAlex and Crossref give slower, stricter limits. Set it once in your environment.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Show how to set it</button><button class="btn">Run anyway</button></div>
+      <div class="was">Today: noted in the skill preflight only</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">No audit owner</span>
+      <b>The journal row could not be written</b>
+      <div>The output folder isn't inside this workspace, so the search can't be logged. Results are saved but unlogged.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Move into workspace</button><button class="btn">Keep unlogged</button></div>
+      <div class="was">Today: audit_status NOT_WRITTEN on the outcome</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2480,"height":620}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
