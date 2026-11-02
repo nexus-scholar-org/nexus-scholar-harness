@@ -15,8 +15,10 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1
 .muted{color:#5c5c5c}
 .scale{display:flex;height:36px;border-radius:6px;overflow:hidden;border:1.5px solid #8a8a8a;font-size:12px;font-weight:600}
 .scale div{display:flex;align-items:center;justify-content:center}
-.pin{position:absolute;top:-8px;width:2px;height:52px;background:#1f1f1f}
-.pinlbl{position:absolute;top:50px;font-size:12px;white-space:nowrap;transform:translateX(-50%)}
+.pin{position:absolute;top:22px;width:2px;height:48px;pointer-events:none;background:#1f1f1f}
+.pinlbl{position:absolute;top:0;font-size:12px;font-weight:600;white-space:nowrap;transform:translateX(-50%)}
+.bands{display:flex;font-size:12px;color:#5c5c5c;margin-top:8px}
+.bands div{padding-left:6px}
 .btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
 .btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
 </style>
@@ -30,16 +32,22 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1
 
   <div class="box" style="display:flex;flex-direction:column;gap:18px;padding:20px 24px">
     <div class="lbl">Where each follow-up sits in the full literature</div>
-    <div style="position:relative;margin:0 0 40px">
+    <div style="position:relative;padding-top:28px">
       <div class="scale">
-        <div style="flex:1;background:#f3e3cf">scant · under 50</div>
-        <div style="flex:2;background:#ececec">sparse · 50 to 500</div>
-        <div style="flex:3;background:#d9e3f8">dense · over 500</div>
+        <div style="flex:1;background:#f3e3cf"></div>
+        <div style="flex:2;background:#ececec"></div>
+        <div style="flex:3;background:#d9e3f8"></div>
+      </div>
+      <div class="bands">
+        <div style="flex:1">scant · under 50</div>
+        <div style="flex:2">sparse · 50 to 500</div>
+        <div style="flex:3">dense · over 500</div>
       </div>
       <div class="pin" style="left:8%"></div><div class="pinlbl" style="left:8%">A · 31</div>
       <div class="pin" style="left:38%"></div><div class="pinlbl" style="left:38%">B · 210</div>
       <div class="pin" style="left:88%"></div><div class="pinlbl" style="left:88%">C · 4,800</div>
     </div>
+    <div class="muted" style="font-size:12px">Bands are ordered, not drawn to scale.</div>
   </div>
 
   <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">

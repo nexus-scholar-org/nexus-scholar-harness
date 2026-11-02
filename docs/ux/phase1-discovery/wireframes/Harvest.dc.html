@@ -24,6 +24,7 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1
 .lnk{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:6px 10px;background:#fff;color:#1f1f1f;min-height:36px}
 .btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
 .term{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px;line-height:1.6;background:#fff;border:1.5px solid #3a3a3a;border-radius:6px;padding:12px 14px}
+.term > div{white-space:pre}
 </style>
 </helmet>
 <div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
@@ -54,13 +55,13 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1
     <div style="width:470px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
       <div class="lbl">CLI equivalent</div>
       <div class="term">
-        Discovery · run 3 · 2026-11-02 14:20 UTC<br>
-        openalex   1343/1344   complete<br>
-        crossref   2000/~13100 CAP · lower bound  [y] split by year<br>
-        s2           10/?      429 rate limited  [r] retry later<br>
-        arxiv       153/247    fetching 1 req/s<br>
-        <br>
-        [s] stop one  [q] stop all, keep what was fetched
+        <div>Discovery · run 3 · 2026-11-02 14:20 UTC</div>
+        <div>openalex   1343/1344    complete</div>
+        <div>crossref   2000/~13100  CAP, lower bound  [y] split</div>
+        <div>s2           10/?       429 rate limited  [r] retry</div>
+        <div>arxiv       153/247     fetching 1 req/s</div>
+        <div> </div>
+        <div>[s] stop one   [q] stop all, keep results</div>
       </div>
     </div>
   </div>

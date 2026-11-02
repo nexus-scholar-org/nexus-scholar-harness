@@ -15,6 +15,7 @@ a{color:#1d4ed8}a:hover{color:#1a3a9e}
 .lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
 .muted{color:#5c5c5c}
 .term{border:1.5px solid #3a3a3a;border-radius:6px;background:#fff;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.7;padding:14px 16px;box-sizing:border-box;display:flex;flex-direction:column}
+.term > div{white-space:pre}
 .ok{color:#1f6a35;font-weight:700}
 .file{display:flex;justify-content:space-between;font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:4px 0;border-bottom:1px solid #eee}
 .code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#f6f6f6;border:1px solid #d6d6d6;border-radius:4px;padding:10px}
@@ -43,7 +44,7 @@ a{color:#1d4ed8}a:hover{color:#1a3a9e}
         <div>  <span class="ok">ok</span>  audit/recon_context.json</div>
         <div>  <span class="ok">ok</span>  audit/journal.jsonl  GENESIS</div>
         <div style="margin-top:10px">Next, Phase-1 discovery:</div>
-        <div>  uv run scholar-search ... (built from your concepts)</div>
+        <div>  scholar-harness discover plan   (review the query first)</div>
         <div class="muted" style="margin-top:8px">Draft removed. Recon cache stays under .cache/inception_recon.</div>
       </div>
     </div>
@@ -63,11 +64,11 @@ a{color:#1d4ed8}a:hover{color:#1a3a9e}
       </div>
       <div class="box" style="display:flex;flex-direction:column;gap:8px">
         <div class="lbl">Next step · Phase-1 discovery</div>
-        <div class="code">uv run scholar-search … [query built from 9 concepts]</div>
+        <div class="code">scholar-harness discover plan [proposed]</div>
+        <div class="muted" style="font-size:12px">Opens the Phase-1 query plan: see how each database will read your 9 concepts before anything is searched.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-p">Run search now</button>
+          <button class="btn btn-p">Review the search plan</button>
           <button class="btn">Copy command</button>
-          <button class="btn">Edit query first</button>
         </div>
       </div>
     </div>
