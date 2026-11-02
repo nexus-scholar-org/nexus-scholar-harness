@@ -45,6 +45,7 @@ lifecycle map (Phases 0–7), the governance set, and the per-track folders.
 | [**Harvest Calibration Lessons**](./lessons/2026-10-17_uav_harvest_calibration_lessons.md) | Lessons learned from the UAV multi-provider harvest (v0.2 pilot + v0.3), mapped to a proposed kit/harness development backlog (K1–K6, H1–H6). Evidence-anchored; proposals are not commitments. |
 | [**Phase 0 inception UX review**](./ux/phase0-inception/README.md) | 2026-11-02 UX and methodology review of grounded inception, with an 11-board wireframe canvas and finding status. Proposal; not user-tested. |
 | [**Phase 1 discovery UX review**](./ux/phase1-discovery/README.md) | 2026-11-02 review of federated discovery and dedup against the UAV harvest lessons, with an 8-board wireframe canvas. Proposal; not user-tested. |
+| [**Phase 2 screening UX review**](./ux/phase2-screening/README.md) | 2026-11-02 review of agent-in-the-loop title/abstract screening against the SCR1 lessons, with an 8-board wireframe canvas; includes one confirmed bug (S2). Proposal; not user-tested. |
 | [User Guide](./nexus_scholar_user_guide.md) | Also linked under "Start here". |
 
 ## 5. Archive — historical, do not cite as current
