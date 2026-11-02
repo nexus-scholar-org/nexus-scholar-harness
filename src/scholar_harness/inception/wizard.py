@@ -91,9 +91,17 @@ class ConsoleResponder:
 
     def choice(self, message: str, choices: Sequence[tuple[str, str]], default: str = "") -> str:
         console.print(f"[bold cyan]▸ {message}[/bold cyan]")
+        default_num = next(
+            (i for i, (label, _) in enumerate(choices, start=1) if default and label == default),
+            None,
+        )
         for i, (label, desc) in enumerate(choices, start=1):
-            console.print(f"  [bold]{i}.[/bold] {label}  [dim]— {desc}[/dim]")
-        console.print("  Enter choice number:")
+            marker = "  [green](default)[/green]" if i == default_num else ""
+            console.print(f"  [bold]{i}.[/bold] {label}  [dim]— {desc}[/dim]{marker}")
+        if default_num is not None:
+            console.print(f"  Enter choice number [Enter = {default_num}]:")
+        else:
+            console.print("  Enter choice number:")
         while True:
             raw = self._read_line()
             if raw:

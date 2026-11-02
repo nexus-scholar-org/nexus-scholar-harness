@@ -22,7 +22,8 @@ from ..recon.gates import TOPIC_COHERENCE_TOP3_SHARE
 # direction proposal + validation, inserted between Stage 1 and Stage 2.
 # ---------------------------------------------------------------------------
 
-_DELTA_PROBE_CHOICE = "__delta_probe__"
+# Shown verbatim in the direction list, so it reads as an action, not a token.
+_DELTA_PROBE_CHOICE = "Search again, narrower"
 
 # P1 junk filter (16_inception_improvements.md F1/F3): numeric- and venue-
 # scrape artifacts and verb-led sentence fragments must never surface as a
@@ -316,7 +317,7 @@ def _run_grounded_recon(
             (d["label"], f"{len(d['anchor_dois'])} anchor papers") for d in directions
         ]
         if delta_allowed:
-            choices.append((_DELTA_PROBE_CHOICE, "Run one refined delta probe"))
+            choices.append((_DELTA_PROBE_CHOICE, "one refined delta probe, 1 left"))
         if auto_select or direction_id is not None:
             idx = (direction_id - 1) if direction_id is not None else 0
             if idx < 0 or idx >= len(directions):
@@ -342,6 +343,15 @@ def _run_grounded_recon(
             if delta_directions:
                 directions = delta_directions
                 data = delta
+                console.print(
+                    f"[bold]Narrower search for '{target}' found "
+                    f"{len(delta_directions)} direction(s).[/bold]"
+                )
+            else:
+                console.print(
+                    f"[yellow]⚠ Narrower search for '{target}' found no direction "
+                    "with >= 2 citation anchors; showing the original directions.[/yellow]"
+                )
             delta_allowed = False
             continue
         selected = next((d for d in directions if d["label"] == pick), None)
