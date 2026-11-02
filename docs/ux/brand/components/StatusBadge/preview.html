@@ -1,0 +1,30 @@
+<!-- @dsCard group="Status" height=120 subtitle="The four roles and a counted badge" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StatusBadge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+body{margin:0;padding:24px;background:var(--surface);font-family:var(--font-sans);color:var(--ink)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:var(--radius-sm);font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+.include{color:var(--include);background:var(--include-soft)}
+.unclear{color:var(--unclear);background:var(--unclear-soft)}
+.blocked{color:var(--blocked);background:var(--blocked-soft)}
+.exclude{color:var(--exclude);background:var(--exclude-soft)}
+.cap{margin-top:16px;font-size:13px;line-height:18px;color:var(--ink-muted)}
+</style>
+</head>
+<body>
+<div class="row">
+  <span class="badge include">Included</span>
+  <span class="badge unclear">Unclear</span>
+  <span class="badge blocked">Retracted</span>
+  <span class="badge exclude">Not reported</span>
+  <span class="badge unclear">Disagree 131</span>
+  <span class="badge include">Quote found · 100%</span>
+</div>
+<p class="cap">Same four roles on every screen: included / verified / strong, needs you / partial, stop / missing, routine no.</p>
+</body>
+</html>

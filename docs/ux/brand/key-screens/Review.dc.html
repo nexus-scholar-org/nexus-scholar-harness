@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review and emit</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="screen">
+  <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+    <span class="label eyebrow">Step 6 of 6 · Review · the only write gate</span>
+    <h1 class="display" style="margin:0">Everything the protocol will say, before anything is written.</h1>
+    <p class="lede">Each section links back to its step. The right column lists exactly what will be created.</p>
+  </div>
+
+  <div style="display:flex;gap:var(--space-5);flex-wrap:wrap;flex:1;min-height:0">
+    <div class="card" style="flex:1;min-width:620px;padding:0 var(--space-4);display:flex;flex-direction:column">
+      <div style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline)">
+        <div style="display:flex;justify-content:space-between"><span class="heading">Scope</span><a href="#" class="caption">Edit</a></div>
+        <span class="body">Drone-mounted crop-disease detection with on-device deep learning</span>
+        <span class="caption muted">2020 to present · English · semantic search · 25 papers</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline)">
+        <div style="display:flex;justify-content:space-between"><span class="heading">Direction</span><a href="#" class="caption">Edit</a></div>
+        <span class="body">Lightweight CNN crop disease detection <span class="muted">· 4 anchor papers</span></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline)">
+        <div style="display:flex;justify-content:space-between"><span class="heading">Shape</span><a href="#" class="caption">Edit</a></div>
+        <span class="body">Design Science · DESIGN_SCIENCE playbook · unit: a deployed detection model</span>
+        <span class="body">RQ1: [refined RQ1 text]</span>
+        <span class="body">RQ2: [refined RQ2 text]</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline)">
+        <div style="display:flex;justify-content:space-between"><span class="heading">Concepts · 9</span><a href="#" class="caption">Edit</a></div>
+        <table class="tbl">
+          <thead><tr><th>Concept</th><th>Synonyms</th><th>Evidence</th></tr></thead>
+          <tbody>
+            <tr><td>lightweight cnn crop disease detection</td><td class="muted">none</td><td><span class="badge b-include">4 papers</span></td></tr>
+            <tr><td>unmanned aerial vehicle</td><td>drone</td><td><span class="badge b-include">5 papers</span></td></tr>
+            <tr><td>plant disease classification</td><td>leaf disease detection</td><td><span class="badge b-include">6 papers</span></td></tr>
+            <tr><td>edge tpu</td><td class="muted">none</td><td><span class="badge b-include">3 papers · checked</span></td></tr>
+            <tr><td class="muted">+ 5 more</td><td></td><td><span class="badge b-include">all anchored</span></td></tr>
+          </tbody>
+        </table>
+        <span class="caption t-unclear">1 synonym dropped: 'uas' had no anchor in the pool.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0">
+        <div style="display:flex;justify-content:space-between"><span class="heading">Criteria, matrix and project</span><a href="#" class="caption">Edit</a></div>
+        <span class="body">Inclusion 4 · exclusion 3 · out of scope: closed-source models, pre-2020</span>
+        <span class="body muted">Matrix: model, platform, dataset, accuracy metric, latency · Phase-4 checks on</span>
+        <span class="body">Title: [project title] · slug: <span class="data">[project-slug]</span> · lead: [lead researcher]</span>
+      </div>
+    </div>
+
+    <div style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--space-4)">
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-1)">
+        <span class="label eyebrow" style="margin-bottom:var(--space-1)">Will be written</span>
+        <span class="data">workspaces/[project-slug]/</span>
+        <span class="data" style="padding-left:var(--space-4)">project.json <span class="muted">new WSP- id</span></span>
+        <span class="data" style="padding-left:var(--space-4)">intent.json</span>
+        <span class="data" style="padding-left:var(--space-4)">protocol.json</span>
+        <span class="data" style="padding-left:var(--space-4)">SCREENING_CRITERIA.md</span>
+        <span class="data" style="padding-left:var(--space-4)">INDEX.md</span>
+        <span class="data" style="padding-left:var(--space-4)">audit/recon_context.json</span>
+        <span class="data" style="padding-left:var(--space-4)">audit/journal.jsonl <span class="muted">+ GENESIS</span></span>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Checks</span>
+        <span class="caption t-include">All 9 concepts anchored</span>
+        <span class="caption t-include">Slug is free</span>
+        <span class="caption t-unclear">Direction pool had mixed subfields</span>
+      </div>
+      <div class="gate" style="margin-top:auto">
+        <span class="label" style="color:var(--brand)">Write gate</span>
+        <p class="body" style="margin:0">Nothing is written until you confirm. The protocol fingerprint appears after compile.</p>
+        <button class="btn btn-primary">Write workspace</button>
+        <div style="display:flex;gap:var(--space-2)"><button class="btn" style="flex:1">Dry run</button><button class="btn" style="flex:1">Save draft and exit</button></div>
+        <span class="caption muted">CLI: <span class="data">[w]</span> write · <span class="data">[d]</span> dry run · <span class="data">[s]</span> save · <span class="data">[b]</span> back</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

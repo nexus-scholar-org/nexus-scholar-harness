@@ -1,0 +1,36 @@
+/* Shared screen patterns for the four key screens; every value comes from tokens.css */
+.screen { background: var(--ground); color: var(--ink); font-family: var(--font-sans); font-size: 15px; line-height: 22px; box-sizing: border-box; padding: var(--space-6) var(--space-7); display: flex; flex-direction: column; gap: var(--space-5); min-height: 940px; }
+.screen * { box-sizing: border-box; }
+.eyebrow { color: var(--ink-muted); }
+.lede { color: var(--ink-muted); margin: 0; }
+.card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: var(--space-4); }
+.raised { background: var(--surface-raised); }
+.muted { color: var(--ink-muted); }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.b-include { color: var(--include); background: var(--include-soft); }
+.b-unclear { color: var(--unclear); background: var(--unclear-soft); }
+.b-blocked { color: var(--blocked); background: var(--blocked-soft); }
+.b-exclude { color: var(--exclude); background: var(--exclude-soft); }
+.b-brand { color: var(--brand); background: var(--brand-soft); }
+.t-include { color: var(--include); font-weight: 600; }
+.t-unclear { color: var(--unclear); font-weight: 600; }
+.t-blocked { color: var(--blocked); font-weight: 600; }
+.t-exclude { color: var(--exclude); }
+.btn { font: inherit; font-size: 15px; min-height: 44px; padding: 10px var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--hairline); background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
+.btn:focus-visible, .chip:focus-visible, .in:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.btn-primary { background: var(--brand); border-color: var(--brand); color: var(--on-brand); font-weight: 600; }
+.btn-small { min-height: 36px; font-size: 13px; padding: 6px var(--space-3); }
+.chip { font: inherit; font-size: 13px; min-height: 36px; padding: 6px var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--hairline); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chip-on { border-color: var(--brand); color: var(--brand); font-weight: 600; background: var(--brand-soft); }
+.key { font-family: var(--font-mono); font-size: 11px; line-height: 14px; padding: 1px 5px; border: 1px solid currentColor; border-radius: 3px; opacity: 0.8; }
+.gate { background: var(--brand-soft); border: 1.5px dashed var(--brand); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.quote { background: var(--anchor-soft); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); }
+.loc { font-family: var(--font-mono); font-size: 13px; color: var(--anchor); margin-right: var(--space-2); }
+.hl { background: var(--anchor-soft); border-radius: 2px; padding: 0 2px; }
+.tbl { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums; }
+.tbl th { text-align: left; padding: var(--space-2) var(--space-2); color: var(--ink-muted); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--hairline); }
+.tbl td { padding: var(--space-2) var(--space-2); border-bottom: 1px solid var(--hairline); vertical-align: top; }
+.tbl .num { text-align: right; }
+.in { font: inherit; font-size: 15px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); padding: 9px var(--space-3); background: var(--surface); color: var(--ink); }
+a { color: var(--brand); }
+a:hover { color: var(--ink); }

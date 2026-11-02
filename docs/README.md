@@ -47,6 +47,7 @@ lifecycle map (Phases 0–7), the governance set, and the per-track folders.
 | [**Phase 1 discovery UX review**](./ux/phase1-discovery/README.md) | 2026-11-02 review of federated discovery and dedup against the UAV harvest lessons, with an 8-board wireframe canvas. Proposal; not user-tested. |
 | [**Phase 2 screening UX review**](./ux/phase2-screening/README.md) | 2026-11-02 review of agent-in-the-loop title/abstract screening against the SCR1 lessons, with an 8-board wireframe canvas; includes one confirmed bug (S2). Proposal; not user-tested. |
 | [**Phase 3 extraction UX review**](./ux/phase3-extraction/README.md) | 2026-11-02 review of full-text handling, data extraction and synthesis (rag/graph stages), with a 7-board wireframe canvas. Proposal; not user-tested. |
+| [**Brand: Nexus Scholar Provenance**](./ux/brand/README.md) | 2026-11-03 design system built from the wireframes: brand book, tokens (light and dark), four status roles, component previews. Proposal; no logo yet. |
 | [**Phase 4 verification UX review**](./ux/phase4-verification/README.md) | 2026-11-03 review of retraction, risk-of-bias, disclosure, quote and trust checks (scholar-verify-kit), with a 7-board wireframe canvas. Proposal; not user-tested. |
 | [User Guide](./nexus_scholar_user_guide.md) | Also linked under "Start here". |
 
