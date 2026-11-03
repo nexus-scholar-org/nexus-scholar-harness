@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Triage queue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Screening steps" style="gap:var(--space-1)">
+      <a class="step" href="#">Home</a>
+      <a class="step step-done" href="#">1 Prepare</a>
+      <a class="step step-done" href="#">2 Agent proposals</a>
+      <a class="step step-on" href="#" aria-current="page">3 Triage</a>
+      <a class="step" href="#">4 Agreement</a>
+      <a class="step" href="#">5 Publish</a>
+    </nav>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div class="stack" style="gap:var(--space-2)">
+        <span class="label eyebrow">Screening · step 3 of 5 · Triage · your decisions</span>
+        <h1 class="display" style="margin:0;max-width:36ch">Is this record in scope? Decide first; the agent's draft opens after.</h1>
+        <p class="lede">2,057 records still need you. Fill the checklist from the abstract, then decide.</p>
+      </div>
+      <div class="row">
+        <span class="body-strong num">1,184 of 3,241 decided</span>
+        <div class="bar" style="width:160px" role="img" aria-label="36.5 percent decided"><span style="width:36.5%"></span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:var(--space-5);align-items:flex-start;flex-wrap:wrap">
+      <nav class="card stack" aria-label="Triage queue" style="flex:1 1 260px;padding:var(--space-3);gap:var(--space-3)">
+        <div class="row" style="gap:var(--space-2)">
+          <button class="chip chip-on" aria-pressed="true">Proposal ready 1,226</button>
+          <button class="chip" aria-pressed="false">No proposal 831</button>
+          <button class="chip" aria-pressed="false">Title only 421</button>
+        </div>
+        <div class="stack" style="gap:var(--space-1)">
+          <a href="#" aria-current="true" style="display:block;text-decoration:none;color:var(--ink);padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--brand-soft);outline:1.5px solid var(--brand)"><span class="body-strong" style="display:block">[Lightweight CNN for leaf disease detection on a UAV platform]</span><span class="caption muted">Batch 060 · proposal hidden</span></a>
+          <a href="#" style="display:block;text-decoration:none;color:var(--ink);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><span class="body-strong" style="display:block">[paper title]</span><span class="caption muted">Batch 060 · proposal hidden</span></a>
+          <a href="#" style="display:block;text-decoration:none;color:var(--ink);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><span class="body-strong" style="display:block">[paper title]</span><span class="caption muted">Batch 060 · no abstract</span></a>
+          <a href="#" style="display:block;text-decoration:none;color:var(--ink);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><span class="body-strong" style="display:block">[paper title]</span><span class="caption muted">Batch 061 · proposal hidden</span></a>
+          <a href="#" style="display:block;text-decoration:none;color:var(--ink);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><span class="body-strong" style="display:block">[paper title]</span><span class="caption muted">Batch 061 · proposal hidden</span></a>
+        </div>
+        <span class="caption muted" style="padding:0 var(--space-3)">+ 1,221 more in this filter · seeded order <span class="data">20261103</span> · the agent's call is hidden here too</span>
+      </nav>
+
+      <div style="flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:var(--space-4)">
+        <article class="card stack" style="gap:var(--space-2)">
+          <h2 class="title" style="margin:0">[Lightweight CNN for leaf disease detection on a UAV platform]</h2>
+          <span class="caption muted">2023 · [venue] · <a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a> · <span class="data">STU-[id]</span></span>
+          <p class="body" style="margin:var(--space-2) 0 0;max-width:72ch">[Abstract] … images captured by a <span class="hl">UAV</span> over wheat fields … a <span class="hl">lightweight CNN</span> classifies <span class="hl">leaf rust</span> … the model is proposed for <span class="hl">on-board</span> use; <span class="hl">accuracy is reported on a held-out set</span> …</p>
+          <span class="caption muted">Highlighted words are tied to a criterion. The database of origin is hidden.</span>
+        </article>
+
+        <div style="display:flex;gap:var(--space-4);align-items:flex-start;flex-wrap:wrap">
+          <section class="card stack" style="flex:999 1 420px;min-width:0" aria-labelledby="chk-h">
+            <h3 id="chk-h" class="heading" style="margin:0">Your checklist</h3>
+            <table class="tbl">
+              <thead><tr><th>Criterion</th><th>Your answer</th></tr></thead>
+              <tbody>
+                <tr><td>INC-01 UAV platform</td><td><div class="row" style="gap:var(--space-1);flex-wrap:nowrap"><button class="chip chip-on" aria-pressed="true" style="min-height:44px">Yes</button><button class="chip" aria-pressed="false" style="min-height:44px">No</button><button class="chip" aria-pressed="false" style="min-height:44px">Not reported</button></div></td></tr>
+                <tr><td>INC-02 Crop disease task</td><td><div class="row" style="gap:var(--space-1);flex-wrap:nowrap"><button class="chip chip-on" aria-pressed="true" style="min-height:44px">Yes</button><button class="chip" aria-pressed="false" style="min-height:44px">No</button><button class="chip" aria-pressed="false" style="min-height:44px">Not reported</button></div></td></tr>
+                <tr><td>INC-03 Evaluated artifact</td><td><div class="row" style="gap:var(--space-1);flex-wrap:nowrap"><button class="chip chip-on" aria-pressed="true" style="min-height:44px">Yes</button><button class="chip" aria-pressed="false" style="min-height:44px">No</button><button class="chip" aria-pressed="false" style="min-height:44px">Not reported</button></div></td></tr>
+                <tr><td>INC-04 [inclusion criterion 4]</td><td><div class="row" style="gap:var(--space-1);flex-wrap:nowrap"><button class="chip chip-on" aria-pressed="true" style="min-height:44px">Yes</button><button class="chip" aria-pressed="false" style="min-height:44px">No</button><button class="chip" aria-pressed="false" style="min-height:44px">Not reported</button></div></td></tr>
+                <tr><td>EXC-01 Opinion only</td><td><div class="row" style="gap:var(--space-1);flex-wrap:nowrap"><button class="chip" aria-pressed="false" style="min-height:44px">Yes</button><button class="chip chip-on" aria-pressed="true" style="min-height:44px">No</button><button class="chip" aria-pressed="false" style="min-height:44px">Not reported</button></div></td></tr>
+                <tr><td>EXC-02 · EXC-03</td><td><div class="row" style="gap:var(--space-1);flex-wrap:nowrap"><button class="chip" aria-pressed="false" style="min-height:44px">Yes</button><button class="chip chip-on" aria-pressed="true" style="min-height:44px">No</button><button class="chip" aria-pressed="false" style="min-height:44px">Not reported</button></div></td></tr>
+              </tbody>
+            </table>
+            <span class="caption">From your answers: <span class="t-include">Include</span> <span class="muted">· you can still choose another outcome</span></span>
+          </section>
+
+          <aside class="draft stack" style="flex:1 1 260px;min-width:0" aria-label="Agent proposal, hidden">
+            <span class="label">Agent proposal · draft</span>
+            <div class="row" style="gap:var(--space-2);flex-wrap:nowrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 9 6 9 6a16 16 0 0 1-2.6 3.2M6.3 7.6C4.2 9.2 3 12 3 12s4 6 9 6a8.6 8.6 0 0 0 3.7-.8"/></svg>
+              <span class="body-strong">Hidden until you decide</span>
+            </div>
+            <span class="caption muted">Workspace setting "Reveal after my decision", recorded in this decision's provenance, so the agent cannot anchor you.</span>
+            <div class="stack raised" style="gap:var(--space-2);padding:var(--space-3);border-radius:var(--radius-sm)" aria-hidden="true">
+              <div class="skel" style="width:60%"></div>
+              <div class="skel" style="width:90%"></div>
+              <div class="skel" style="width:75%"></div>
+            </div>
+            <span class="data muted">claude-sonnet · prompt sha256:3f9c… · 3 Nov 2026</span>
+          </aside>
+        </div>
+
+        <section class="card stack" aria-label="Your decision">
+          <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--space-3)">
+            <button class="btn btn-primary">Include <span class="key">I</span></button>
+            <button class="btn">Exclude <span class="key">E</span></button>
+            <button class="btn" title="Unclear goes to full-text screening">Unclear <span class="key">U</span></button>
+            <button class="btn">Skip <span class="key">S</span></button>
+            <button class="btn">Undo <span class="key">Z</span></button>
+          </div>
+          <div class="stack" style="gap:var(--space-2)">
+            <span class="caption">Exclude asks for one reason from the protocol:</span>
+            <div class="row" style="gap:var(--space-2)">
+              <button class="chip" style="min-height:44px">Fails INC-01</button>
+              <button class="chip" style="min-height:44px">Fails INC-02</button>
+              <button class="chip" style="min-height:44px">Fails INC-03</button>
+              <button class="chip" style="min-height:44px">Fails INC-04</button>
+              <button class="chip" style="min-height:44px">EXC-01 Opinion only</button>
+              <button class="chip" style="min-height:44px">EXC-02</button>
+              <button class="chip" style="min-height:44px">EXC-03</button>
+            </div>
+          </div>
+          <div class="raised" style="padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm)">
+            <span class="caption muted">Recorded as </span><span class="data">you · HUMAN · [time of decision] · protocol sha256:b81e…04d2 · proposal sha256:9a41…e207 revealed after decision</span>
+          </div>
+          <span class="caption muted">Undo writes a superseding decision linked to this one; nothing is deleted.</span>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1400}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

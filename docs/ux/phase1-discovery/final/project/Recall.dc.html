@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Recall check</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Step 2 of 7 · Recall check · gate</span>
+        <h1 class="display" style="margin:0">The plan finds 7 of the 8 papers you already know. One is missed by every database.</h1>
+        <p class="lede">Seeds are inception's anchor papers plus any you add. A small run checks each one against the approved strings before the full harvest.</p>
+      </div>
+      <div class="row" style="gap:var(--space-3)">
+        <span class="body-strong num">7 of 8 found</span>
+        <div class="bar" style="width:160px" role="img" aria-label="7 of 8 seeds found"><span style="width:87.5%"></span></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="seeds-h">
+          <h2 id="seeds-h" class="heading" style="margin:0">Seeds, found or not found per database</h2>
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th>Seed</th><th>Source</th><th>OpenAlex</th><th>Sem. Scholar</th><th>Crossref</th><th>arXiv</th></tr></thead>
+              <tbody>
+                <tr><td><span class="body-strong">[paper title]</span><br><span class="data">10.xxxx/…</span></td><td><span class="badge b-exclude">Anchor</span></td><td><span class="badge b-include">Found</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-include">Found</span></td><td><span class="badge b-exclude">n/a</span></td></tr>
+                <tr><td><span class="body-strong">[paper title]</span><br><span class="data">10.xxxx/…</span></td><td><span class="badge b-exclude">Anchor</span></td><td><span class="badge b-include">Found</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-exclude">n/a</span></td></tr>
+                <tr><td><span class="body-strong">[paper title]</span><br><span class="data">arXiv:xxxx.xxxxx</span></td><td><span class="badge b-exclude">Anchor</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-exclude">n/a</span></td><td><span class="badge b-include">Found</span></td></tr>
+                <tr><td><span class="body-strong">[paper title]</span><br><span class="data">10.xxxx/…</span></td><td><span class="badge b-brand">You</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-exclude">Not found</span></td><td><span class="badge b-include">Found</span></td><td><span class="badge b-exclude">n/a</span></td></tr>
+                <tr style="background:var(--blocked-soft)"><td><span class="body-strong">[paper title]</span><br><span class="data">10.xxxx/…</span></td><td><span class="badge b-brand">You</span></td><td><span class="badge b-blocked">Not found</span></td><td><span class="badge b-blocked">Not found</span></td><td><span class="badge b-blocked">Not found</span></td><td><span class="badge b-exclude">n/a</span></td></tr>
+                <tr><td class="muted" colspan="6">+ 3 more seeds, all found by OpenAlex</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="caption muted">n/a: the paper is not the kind of record that database holds (for example, a journal article on arXiv). Each seed DOI is resolved and its title compared first; a mismatch shows <span class="data">DOI_TITLE_MISMATCH</span> and the seed is never swapped for another record.</span>
+          <span class="caption muted">Checked <span class="data">2026-11-02 14:05 UTC</span> · OpenAlex and Crossref answered from cache (same strings, dry run at <span class="data">13:58 UTC</span>)</span>
+          <div class="row" style="gap:var(--space-2);align-items:flex-end">
+            <div class="field" style="flex:1;min-width:240px">
+              <label for="seed" class="caption muted">Add a seed you know is relevant</label>
+              <input id="seed" class="in" placeholder="DOI, arXiv id or PMID">
+            </div>
+            <button class="btn">Add seed</button>
+          </div>
+        </section>
+
+        <section class="card stack" aria-labelledby="mean-h" style="gap:var(--space-2)">
+          <h2 id="mean-h" class="heading" style="margin:0">What a miss means</h2>
+          <span class="caption"><span class="body-strong">Missed by one database only:</span> that database does not index the paper, or its string cannot express the query. Usually fine if another database finds it.</span>
+          <span class="caption"><span class="body-strong">Missed by every database:</span> the query's own words do not reach the paper. Other papers worded the same way are probably missing too.</span>
+        </section>
+      </div>
+
+      <aside class="side">
+        <section class="note n-blocked stack" aria-labelledby="miss-h" style="gap:var(--space-2)">
+          <h2 id="miss-h" class="label" style="margin:0;color:var(--blocked)">Why one seed was missed</h2>
+          <p class="body" style="margin:0;color:var(--ink)">Its title and abstract say <span class="hl">"UAS"</span> and <span class="hl">"foliar disease"</span>. Neither is in the query.</p>
+          <p class="caption" style="margin:0;color:var(--ink)">'uas' had no anchor in the inception pool, so it was kept off the search string.</p>
+        </section>
+        <section class="card stack" aria-labelledby="fix-h" style="gap:var(--space-2)">
+          <h2 id="fix-h" class="heading" style="margin:0">Fix it</h2>
+          <button class="btn">Add "UAS" as a synonym of unmanned aerial vehicle</button>
+          <button class="btn">Add "foliar disease" as a synonym of plant disease</button>
+          <span class="caption muted">Either change is a protocol amendment, journaled, and reruns this check.</span>
+        </section>
+        <section class="card stack" style="gap:var(--space-2)">
+          <span class="label">Recorded with the run</span>
+          <span class="caption">The seed list, found or not found per database, and the plan fingerprint.</span>
+          <span class="caption muted">Seeds must come from verified retrieval output, never a guessed DOI.</span>
+        </section>
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Gate · recall</span>
+          <p class="body" style="margin:0">No records are harvested until you choose. Running with a miss is allowed and is written into the report.</p>
+          <button class="btn btn-primary">Amend and check again</button>
+          <button class="btn">Run anyway, 1 missed</button>
+          <a href="#" class="caption">Back to the plan</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1250}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

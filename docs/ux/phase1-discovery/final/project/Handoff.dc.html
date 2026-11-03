@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hand-off to screening</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 7 of 7 · Hand-off to screening · gate</span>
+      <h1 class="display" style="margin:0">Accept these 3,241 works as the corpus you will screen?</h1>
+      <p class="lede">Accepting freezes a corpus snapshot with its own fingerprint. Screening reads only that snapshot, so later runs cannot change what you screen.</p>
+    </div>
+
+    <section class="card stack" aria-labelledby="mix-h" style="gap:var(--space-2)">
+      <h2 id="mix-h" class="heading" style="margin:0">Provider mix</h2>
+      <div style="display:flex;height:32px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--hairline)" role="img" aria-label="Crossref 57 percent, OpenAlex 38 percent, arXiv 4 percent, Semantic Scholar under 1 percent">
+        <div style="flex:57;background:var(--surface-raised);display:flex;align-items:center;padding:0 var(--space-2)" class="caption">Crossref 57%</div>
+        <div style="flex:38;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;padding:0 var(--space-2)" class="caption">OpenAlex 38%</div>
+        <div style="flex:4;background:var(--brand)"></div>
+        <div style="flex:1;background:var(--ink-muted)"></div>
+      </div>
+      <div class="row caption muted"><span>arXiv 4%</span><span>Semantic Scholar under 1%</span><span>Imports 0%</span></div>
+      <span class="caption muted">In the UAV v0.3 review, Crossref records were about 70 times less likely to be included than OpenAlex records. Expect most exclusions to come from Crossref.</span>
+    </section>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="cov-h" style="gap:var(--space-2)">
+          <h2 id="cov-h" class="heading" style="margin:0">What screening will receive</h2>
+          <table class="tbl">
+            <tbody>
+              <tr><td>Unique works</td><td class="num body-strong">3,241</td><td></td></tr>
+              <tr><td>With an abstract</td><td class="num">2,820</td><td><span class="badge b-include">87%</span></td></tr>
+              <tr><td>Title only</td><td class="num">421</td><td><span class="badge b-unclear">Hard to screen</span></td></tr>
+              <tr><td>Outside the year window, flagged</td><td class="num">18</td><td></td></tr>
+              <tr><td>Near-twin pairs left undecided</td><td class="num">12</td><td><span class="badge b-unclear">Counted separately</span></td></tr>
+              <tr><td>Lower-bound databases</td><td class="num">1</td><td class="caption muted">Crossref · stated in the report</td></tr>
+            </tbody>
+          </table>
+          <div class="stack" style="gap:var(--space-2);margin-top:var(--space-2)">
+            <div class="row" style="gap:var(--space-2);align-items:flex-start;flex-wrap:nowrap">
+              <input type="checkbox" id="hyd" checked style="width:20px;height:20px;margin-top:2px">
+              <label for="hyd" class="caption">Fill missing abstracts from OpenAlex before screening <span class="muted">(title-only records are hard to screen)</span></label>
+            </div>
+            <div class="row" style="gap:var(--space-2);align-items:flex-start;flex-wrap:nowrap">
+              <input type="checkbox" id="blind" checked style="width:20px;height:20px;margin-top:2px">
+              <label for="blind" class="caption">Hide the database of origin and noise statistics while screening <span class="muted">(disclosed priors changed screening decisions in the UAV review)</span></label>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side">
+        <section class="card stack" style="gap:var(--space-2)">
+          <span class="label">Corpus snapshot</span>
+          <span class="data">sha256:[corpus]…</span>
+          <span class="caption muted">from run <span class="data">003</span> · dedup decisions to <span class="data">2026-11-03 09:43 UTC</span> · protocol <span class="data">sha256:[protocol]…</span></span>
+          <span class="caption">Carried forward: per-database legs and the dedup event fill the PRISMA identification box.</span>
+        </section>
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Gate · accept the corpus</span>
+          <p class="body" style="margin:0">Nothing is handed to screening until you accept. Acceptance is journaled with you, the time and the snapshot fingerprint.</p>
+          <button class="btn btn-primary">Accept corpus and prepare screening</button>
+          <button class="btn">Export RIS for Zotero</button>
+        </div>
+        <details class="caption muted">
+          <summary>Run from the terminal</summary>
+          <div class="data" style="margin-top:var(--space-2)">uv run python src/scholar_harness/agent_screen.py prepare workspaces/[project-slug]</div>
+        </details>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1200}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

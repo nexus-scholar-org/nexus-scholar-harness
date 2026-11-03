@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Approve on phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <span class="body-strong">Approve</span>
+    <span class="badge b-include" style="margin-left:auto">Connected</span>
+  </header>
+  <main class="m-body">
+    <div class="stack" style="gap:var(--space-1)">
+      <span class="label eyebrow">Approval gate · generation sha256:e4c1…77b0</span>
+      <h1 class="m-h1" style="font-size:24px;line-height:30px">Publish the screening of 3,241 records?</h1>
+    </div>
+
+    <section class="card stack" aria-labelledby="pr-h" style="gap:var(--space-1);padding:var(--space-3)">
+      <h2 id="pr-h" class="label" style="margin:0 0 var(--space-1)">PRISMA screening · preview</h2>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="caption">Identified</span><span class="caption body-strong num">3,506</span></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="caption">Screened, after 265 duplicates</span><span class="caption body-strong num">3,241</span></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="caption">Excluded with a reason</span><span class="caption body-strong num">2,965</span></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="caption">Included</span><span class="caption body-strong num">182</span></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="caption">Unclear, to full text</span><span class="caption body-strong num">94</span></div>
+      <a href="#" class="caption" style="min-height:44px;display:flex;align-items:center">Exclusion reasons and checks</a>
+    </section>
+
+    <section class="card stack" aria-labelledby="w-h" style="gap:2px;padding:var(--space-3)">
+      <h2 id="w-h" class="label" style="margin:0 0 var(--space-1)">Will be written on the desktop</h2>
+      <span class="data" style="font-size:12px">literature/included.json · fulltext_queue.json</span>
+      <span class="data" style="font-size:12px">literature/excluded.json · prisma_screening_report.md</span>
+      <span class="data" style="font-size:12px">audit/journal.jsonl + approval from this phone</span>
+    </section>
+
+    <div class="field">
+      <label for="ac" class="caption">Pairing code shown on the desktop's approval gate</label>
+      <input id="ac" class="in data" inputmode="numeric" autocomplete="one-time-code" value="731-942" style="font-size:20px;letter-spacing:0.1em">
+    </div>
+    <span class="caption muted">This phone has 0 queued decisions. A decision made after approval needs a new one.</span>
+  </main>
+  <div class="m-actions">
+    <button class="btn btn-primary">Approve and publish</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

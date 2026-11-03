@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone after deciding</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <span class="body-strong">Triage</span>
+    <span class="offline" style="margin-left:auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M12 20h.01"/></svg>Offline · 3 queued</span>
+  </header>
+  <main class="m-body">
+    <div class="stack" style="gap:var(--space-1)">
+      <span class="label eyebrow">After your decision</span>
+      <h1 class="m-h1" style="font-size:24px;line-height:30px">You excluded it. The agent's draft agrees.</h1>
+    </div>
+    <span class="caption muted">[Position paper on drones for precision agriculture] · STU-[id]</span>
+
+    <section class="card stack" aria-labelledby="yours-h" style="gap:var(--space-2);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+        <h2 id="yours-h" class="label" style="margin:0">Your decision</h2>
+        <span class="caption t-include"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="vertical-align:-3px"><path d="M5 12l4 4 10-10"/></svg> Recorded</span>
+      </div>
+      <span class="badge b-exclude" style="align-self:flex-start">Exclude · EXC-01 Opinion without evaluation</span>
+      <span class="data muted" style="font-size:12px;line-height:16px">you · HUMAN · 2026-11-03T14:09:41 · protocol sha256:b81e…04d2 · proposal sha256:51d8…a90c revealed after decision</span>
+    </section>
+
+    <section class="draft stack" aria-labelledby="agent-h" style="gap:var(--space-2)">
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+        <h2 id="agent-h" class="label" style="margin:0">Agent proposal · draft</h2>
+        <span class="badge b-exclude">Same as yours</span>
+      </div>
+      <span class="body-strong">Exclude · EXC-01</span>
+      <p class="caption" style="margin:0">"States a position on UAV monitoring; no evaluation of any artifact is reported."</p>
+      <div class="quote caption"><span class="loc">abstract</span>"no experiments are reported"</div>
+      <span class="data muted" style="font-size:12px;line-height:16px">claude-sonnet · prompt sha256:3f9c… · 3 Nov 2026</span>
+    </section>
+  </main>
+  <div class="toast" role="status">
+    <span class="caption" style="flex:1">Excluded · EXC-01 · undo for 5 s</span>
+    <button class="btn btn-small">Undo</button>
+  </div>
+  <div class="m-actions">
+    <button class="btn btn-primary">Next record</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

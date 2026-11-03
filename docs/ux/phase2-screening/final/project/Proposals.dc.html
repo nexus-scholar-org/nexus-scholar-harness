@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent proposals run</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Screening steps" style="gap:var(--space-1)">
+      <a class="step" href="#">Home</a>
+      <a class="step step-done" href="#">1 Prepare</a>
+      <a class="step step-on" href="#" aria-current="page">2 Agent proposals</a>
+      <a class="step" href="#">3 Triage</a>
+      <a class="step" href="#">4 Agreement</a>
+      <a class="step" href="#">5 Publish</a>
+    </nav>
+
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Screening · step 2 of 5 · Agent proposals · optional</span>
+      <h1 class="display" style="margin:0;max-width:36ch">Which agent drafts the proposals, and what leaves this machine?</h1>
+      <p class="lede">A proposal is a draft you see only after deciding. Each one records its provider, model and prompt hash. You can screen without any proposals at all.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <fieldset class="card stack" style="margin:0">
+          <legend class="heading" style="padding:0 var(--space-1)">Provider</legend>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)">
+            <div class="stack" style="gap:var(--space-2);padding:var(--space-3);border-radius:var(--radius-md);background:var(--brand-soft);outline:1.5px solid var(--brand)">
+              <div class="row" style="flex-wrap:nowrap"><input type="radio" name="prov" id="p1" checked style="width:20px;height:20px"><label for="p1" class="body-strong">Your Claude, through MCP</label></div>
+              <span class="caption">Claude reads each batch through the local MCP server and writes its proposals back as files.</span>
+              <div class="note n-unclear caption"><span class="body-strong">What leaves this machine:</span> titles and abstracts of the batches Claude reads, sent to Anthropic under your Claude plan's terms.</div>
+              <span class="caption muted">Cost: no per-token charge here; it counts toward your plan's usage limits.</span>
+            </div>
+            <div class="stack" style="gap:var(--space-2);padding:var(--space-3);border-radius:var(--radius-md);border:1px solid var(--hairline)">
+              <div class="row" style="flex-wrap:nowrap"><input type="radio" name="prov" id="p2" style="width:20px;height:20px"><label for="p2" class="body-strong">Your API key</label></div>
+              <span class="caption">The engine calls the provider directly. The key is never written to the workspace or the journal.</span>
+              <div class="note n-unclear caption"><span class="body-strong">What leaves this machine:</span> titles and abstracts of every record in the run, sent to the key's provider under your API account's terms.</div>
+              <span class="caption muted">Cost: estimated below, charged to your API account.</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <section class="card stack" aria-labelledby="run-h">
+          <h2 id="run-h" class="heading" style="margin:0">Run settings, recorded in every proposal</h2>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)">
+            <div class="field">
+              <label for="model" class="caption">Model</label>
+              <select id="model" class="in"><option>claude-sonnet</option></select>
+              <span class="caption muted">as reported by your Claude app</span>
+            </div>
+            <div class="field">
+              <span class="caption">Prompt</span>
+              <span class="data" style="min-height:44px;display:flex;align-items:center">sha256:3f9c…</span>
+              <a href="#" class="caption">Read the prompt</a>
+            </div>
+            <div class="field">
+              <span class="caption">Records</span>
+              <span class="body-strong num" style="min-height:44px;display:flex;align-items:center">3,241 in 163 batches</span>
+              <span class="caption muted">4 batches at a time</span>
+            </div>
+          </div>
+          <div class="raised stack" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)">
+            <span class="label">Cost estimate</span>
+            <span class="body"><span class="num">≈ 2.1 M</span> input and <span class="num">≈ 0.2 M</span> output tokens <span class="muted">(about 650 in and 60 out per record)</span></span>
+            <span class="caption muted">With your API key: $[estimate] at the model's listed price on [date]. With MCP: no charge here.</span>
+          </div>
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-start">
+            <input type="checkbox" id="consent" checked style="width:20px;height:20px;margin-top:2px">
+            <label for="consent" class="body">I agree that the titles and abstracts of these 3,241 records are sent to Anthropic for this run.</label>
+          </div>
+          <span class="caption muted">Your consent is journaled with the provider, model and prompt hash. Changing the provider asks again.</span>
+        </section>
+
+        <section class="card stack" aria-labelledby="cal-h">
+          <div class="row" style="justify-content:space-between">
+            <h2 id="cal-h" class="heading" style="margin:0">Check the agent on 30 of your labels first</h2>
+            <span class="badge b-exclude">Optional · not run</span>
+          </div>
+          <p class="body" style="margin:0">You label 30 records drawn with seed <span class="data">20261103</span> across all databases; the agent screens the same 30 blind. Before the full run you see every record where it differs from you, and which of your includes it missed.</p>
+          <span class="caption muted">If you skip this, no calibration is reported. The agent is never measured against a built-in rule.</span>
+          <div class="row"><button class="btn">Label 30 records first</button></div>
+        </section>
+      </div>
+
+      <div class="side">
+        <section class="card stack" aria-labelledby="live-h">
+          <div class="row" style="justify-content:space-between">
+            <h2 id="live-h" class="heading" style="margin:0">While it runs</h2>
+            <span class="badge b-brand">State · running</span>
+          </div>
+          <span class="body-strong num">2,410 of 3,241 proposed · batch 121</span>
+          <div class="bar" role="img" aria-label="74 percent"><span style="width:74%"></span></div>
+          <span class="caption muted">4 at a time, down from 6 after a provider rate limit at 15:42 (journaled). Each file is checked against the instrument the moment it lands.</span>
+          <div class="note n-unclear caption">2 files quarantined with their reason · <a href="#">Open</a></div>
+          <div class="row"><button class="btn btn-small">Pause run</button><a href="#" class="caption">Open triage while it runs</a></div>
+        </section>
+
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Run gate</span>
+          <p class="body" style="margin:0">Nothing leaves this machine until you start. Proposals are written as drafts and journaled; none is a decision.</p>
+          <button class="btn btn-primary">Start agent proposals · 3,241 records</button>
+          <button class="btn">Dry run on one batch (20 records)</button>
+          <details class="caption muted">
+            <summary>Run from the terminal</summary>
+            <span class="data">uv run scholar-agent</span>
+            <span class="caption"> serves the MCP tools Claude uses.</span>
+          </details>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

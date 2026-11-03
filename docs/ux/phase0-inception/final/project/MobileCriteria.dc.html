@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Criteria on phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <div class="m-top">
+    <a href="#" class="btn btn-small" aria-label="Back to the draft"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg>Back</a>
+    <span class="caption muted" style="margin-left:auto">Step 5 of 6 · <span class="data">rec_7f3a…</span></span>
+  </div>
+  <div class="m-body">
+    <div class="stack" style="gap:var(--space-1)">
+      <span class="label">Criteria · 2 of 3 waiting</span>
+      <h1 class="m-h1">Should screeners use this criterion?</h1>
+    </div>
+    <div class="row" style="gap:var(--space-2);flex-wrap:nowrap">
+      <div class="bar" style="flex:1"><span style="width:71%"></span></div>
+      <span class="caption num">5 of 7 decided</span>
+    </div>
+
+    <div class="swipe-card draft" style="border-radius:var(--radius-lg)">
+      <div class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><span class="data">E1</span><span class="data muted">OUT_OF_SCOPE</span></span><span class="badge b-unclear">Waiting for you</span></div>
+      <span class="label">Exclusion · word for word</span>
+      <span class="heading">Opinion without an evaluated artifact</span>
+      <span class="badge b-exclude" style="align-self:flex-start">Paradigm default · Design Science</span>
+      <span class="data muted">paradigm DESIGN_SCIENCE · default exclusion</span>
+      <span class="caption muted">If you accept it, a record can be excluded with this reason code at screening.</span>
+    </div>
+
+    <div class="card stack" style="gap:var(--space-1)">
+      <span class="label">Next · E3</span>
+      <span class="body">Evaluates a closed-source model only</span>
+      <span class="caption muted">Suggested from the pool</span>
+    </div>
+    <span class="caption muted">Accepted on the phone means accepted in the draft on your desktop. The workspace is written only from the desktop.</span>
+  </div>
+  <div class="toast" role="status">
+    <span class="caption" style="flex:1">I3 accepted · recorded in the draft</span>
+    <button class="btn btn-small">Undo</button>
+  </div>
+  <div class="m-actions">
+    <button class="btn">Drop</button>
+    <button class="btn">Edit</button>
+    <button class="btn btn-primary">Accept</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

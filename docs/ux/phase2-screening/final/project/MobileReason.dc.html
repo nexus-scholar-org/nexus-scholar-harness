@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exclude reason sheet</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <span class="body-strong">Triage</span>
+    <span class="offline" style="margin-left:auto">Offline · 2 queued</span>
+  </header>
+  <div class="m-body" aria-hidden="true">
+    <div class="swipe-card">
+      <span class="label">Record · STU-[id]</span>
+      <span class="heading" style="font-family:var(--font-display);font-size:22px;line-height:28px">[Position paper on drones for precision agriculture]</span>
+      <span class="caption muted">2022 · [venue]</span>
+      <div class="skel" style="width:100%"></div>
+      <div class="skel" style="width:80%"></div>
+    </div>
+  </div>
+  <div class="scrim"></div>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="why-h">
+    <div class="grab"></div>
+    <span class="label eyebrow">Exclude · one reason from the protocol</span>
+    <h1 id="why-h" class="m-h1" style="font-size:24px;line-height:30px">Why does this record go?</h1>
+    <div class="stack" style="gap:var(--space-2)" role="radiogroup" aria-label="Exclusion reason">
+      <button class="btn btn-block" role="radio" aria-checked="false" style="justify-content:flex-start">Fails INC-01 · UAV platform</button>
+      <button class="btn btn-block" role="radio" aria-checked="false" style="justify-content:flex-start">Fails INC-02 · Crop disease task</button>
+      <button class="btn btn-block" role="radio" aria-checked="false" style="justify-content:flex-start">Fails INC-03 · Evaluated artifact</button>
+      <button class="btn btn-block" role="radio" aria-checked="true" style="justify-content:flex-start;background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>EXC-01 · Opinion without evaluation</button>
+      <a href="#" class="caption" style="min-height:44px;display:flex;align-items:center">More: Fails INC-04 · EXC-02 · EXC-03</a>
+    </div>
+    <div class="field">
+      <label for="note" class="caption">Note <span class="muted">(optional, kept with the decision)</span></label>
+      <input id="note" class="in" placeholder="e.g. position paper, no experiments">
+    </div>
+    <button class="btn btn-primary btn-block" style="min-height:52px">Exclude · EXC-01</button>
+    <span class="caption muted" style="text-align:center">Queued on this phone until it reconnects.</span>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

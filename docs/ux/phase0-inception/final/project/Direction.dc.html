@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">New review · draft <span class="data">rec_7f3a…</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-on" href="#" aria-current="step">Inception</a>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Inception steps" style="gap:var(--space-1)">
+      <a class="step step-done" href="#">1 Scope · done</a>
+      <a class="step step-done" href="#">2 Explore · done</a>
+      <a class="step step-on" href="#" aria-current="step">3 Direction</a>
+      <span class="step">4 Shape</span>
+      <span class="step">5 Concepts and criteria</span>
+      <span class="step">6 Review and emit</span>
+      <span class="caption muted" style="margin-left:auto">Draft saved 3 Nov 2026 · <span class="data">rec_7f3a…</span></span>
+    </nav>
+
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 3 of 6 · Direction · pick one</span>
+      <h1 class="display" style="margin:0">Which direction should this review pursue?</h1>
+      <p class="lede">Three directions in the pool have two or more anchor papers each. They are listed by anchor count, which is evidence, not a recommendation. You can also write your own.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)" role="radiogroup" aria-label="Directions">
+      <label class="card stack" style="outline:1.5px solid var(--brand);background:var(--brand-soft);cursor:pointer">
+        <span class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><input type="radio" name="dir" checked> <span class="label" style="color:var(--brand)">Direction 1 · selected</span></span><span class="badge b-include">4 anchor papers</span></span>
+        <span class="heading">Lightweight CNN crop disease detection</span>
+        <span class="caption">Term occurs in 4 of 25 titles or abstracts</span>
+        <span class="caption muted">Schools: on-device inference, plant pathology datasets</span>
+        <span class="stack" style="gap:var(--space-1)">
+          <a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a>
+          <a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a>
+          <a href="#" class="caption">Show all 4 DOIs</a>
+        </span>
+      </label>
+      <label class="card stack" style="cursor:pointer">
+        <span class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><input type="radio" name="dir"> <span class="label">Direction 2</span></span><span class="badge b-include">3 anchor papers</span></span>
+        <span class="heading">Multispectral UAV imagery</span>
+        <span class="caption">Term occurs in 3 of 25 titles or abstracts</span>
+        <span class="caption muted">Schools: UAV imaging</span>
+        <span class="stack" style="gap:var(--space-1)">
+          <a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a>
+          <a href="#" class="caption">Show all 3 DOIs</a>
+        </span>
+      </label>
+      <label class="card stack" style="cursor:pointer">
+        <span class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><input type="radio" name="dir"> <span class="label">Direction 3</span></span><span class="badge b-unclear">2 anchor papers · thin</span></span>
+        <span class="heading">Edge deployment latency</span>
+        <span class="caption">Term occurs in 2 of 25 titles or abstracts</span>
+        <span class="caption muted">Schools: on-device inference</span>
+        <span class="stack" style="gap:var(--space-1)">
+          <a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a>
+          <a href="#" class="caption">Show both DOIs</a>
+        </span>
+      </label>
+    </div>
+
+    <div class="row">
+      <button class="btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.5M13 2.5v3h-3"/></svg>Search again, narrower · 1 left</button>
+      <button class="btn">Write my own direction</button>
+      <span class="caption muted">Your own direction goes on as "ungrounded" until a concept check finds it in the literature.</span>
+    </div>
+
+    <div class="card stack" style="gap:var(--space-4)">
+      <div class="row" style="justify-content:space-between">
+        <div class="stack" style="gap:var(--space-1)">
+          <span class="label">Optional gap check · direction 3</span>
+          <span class="heading">Is "edge deployment latency" a gap, or just off this pool?</span>
+        </div>
+        <span class="caption muted">Follow-ups used: 3 of 3 · served from cache after the first run</span>
+      </div>
+      <div style="position:relative;padding-top:28px">
+        <div style="display:flex;height:36px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--hairline)">
+          <div style="flex:1;background:var(--unclear-soft)"></div>
+          <div style="flex:2;background:var(--surface-raised)"></div>
+          <div style="flex:3;background:var(--brand-soft)"></div>
+        </div>
+        <div class="caption muted" style="display:flex;margin-top:var(--space-2)">
+          <div style="flex:1;padding-left:6px">scant · under 50</div>
+          <div style="flex:2;padding-left:6px">sparse · 50 to 500</div>
+          <div style="flex:3;padding-left:6px">dense · over 500</div>
+        </div>
+        <div style="position:absolute;top:22px;left:8%;width:2px;height:48px;background:var(--ink)"></div><div class="caption body-strong" style="position:absolute;top:0;left:8%;transform:translateX(-50%);white-space:nowrap">A · 31</div>
+        <div style="position:absolute;top:22px;left:38%;width:2px;height:48px;background:var(--ink)"></div><div class="caption body-strong" style="position:absolute;top:0;left:38%;transform:translateX(-50%);white-space:nowrap">B · 210</div>
+        <div style="position:absolute;top:22px;left:88%;width:2px;height:48px;background:var(--ink)"></div><div class="caption body-strong" style="position:absolute;top:0;left:88%;transform:translateX(-50%);white-space:nowrap">C · 4,800</div>
+      </div>
+      <span class="caption muted">Bands are ordered, not drawn to scale.</span>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)">
+        <div class="card raised stack" style="gap:var(--space-1)">
+          <span class="label">Follow-up A</span>
+          <span class="body-strong">edge deployment latency crop disease</span>
+          <span class="caption"><span class="num">31</span> works · <span class="badge b-unclear">scant</span></span>
+          <span class="caption muted">Genuinely thin. Could be a gap, or a phrasing nobody uses.</span>
+        </div>
+        <div class="card raised stack" style="gap:var(--space-1)">
+          <span class="label">Follow-up B</span>
+          <span class="body-strong">on-device inference agriculture</span>
+          <span class="caption"><span class="num">210</span> works · <span class="badge b-exclude">sparse</span></span>
+          <span class="caption muted">Some work exists; your pool caught little of it.</span>
+        </div>
+        <div class="card raised stack" style="gap:var(--space-1)">
+          <span class="label">Follow-up C</span>
+          <span class="body-strong">edge AI latency</span>
+          <span class="caption"><span class="num">4,800</span> works · <span class="badge b-brand">dense</span></span>
+          <span class="caption muted">Heavily studied in general; the pool was tangential.</span>
+        </div>
+      </div>
+      <div class="note n-unclear body">A is scant, B and C are not. The narrow combination looks thin, but the parent fields are active. Search sparsity alone never proves a gap: read the anchor papers before you commit.</div>
+      <div class="row"><a href="#" class="btn btn-small">Rephrase as follow-up A</a><a href="#" class="caption">Hide gap check</a></div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <a href="#" class="btn">Back to Explore</a>
+      <button class="btn">Save draft and exit</button>
+      <button class="btn btn-primary">Pursue lightweight CNN crop disease detection<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1400}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Explore</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">New review · draft <span class="data">rec_7f3a…</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-on" href="#" aria-current="step">Inception</a>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Inception steps" style="gap:var(--space-1)">
+      <a class="step step-done" href="#">1 Scope · done</a>
+      <a class="step step-on" href="#" aria-current="step">2 Explore</a>
+      <span class="step">3 Direction</span>
+      <span class="step">4 Shape</span>
+      <span class="step">5 Concepts and criteria</span>
+      <span class="step">6 Review and emit</span>
+      <span class="caption muted" style="margin-left:auto">Draft saved 3 Nov 2026 · <span class="data">rec_7f3a…</span></span>
+    </nav>
+
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 2 of 6 · Explore · the first search</span>
+      <h1 class="display" style="margin:0">What do the first 25 papers say about your question?</h1>
+      <p class="lede">Pool health first, in plain words with the raw value underneath. The schools, topics and papers below are what the later steps draw on.</p>
+    </div>
+
+    <div class="card stack">
+      <div class="row" style="justify-content:space-between">
+        <div class="row" style="gap:var(--space-2)">
+          <span class="heading">Pool · 25 papers</span>
+          <span class="caption muted">fetched 3 Nov 2026 · today · semantic · 2020 to present · English</span>
+        </div>
+        <div class="row" style="gap:var(--space-2)">
+          <a href="#" class="caption">Open pool file</a>
+          <button class="btn btn-small"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.5M13 2.5v3h-3"/></svg>Refresh pool</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)">
+        <div class="card raised stack" style="gap:var(--space-1)">
+          <span class="badge b-include" style="align-self:flex-start">Enough papers</span>
+          <span class="body">25 of 25 requested</span>
+          <span class="caption muted">floor is 12</span>
+        </div>
+        <div class="card raised stack" style="gap:var(--space-1)">
+          <span class="badge b-unclear" style="align-self:flex-start">Mixed subfields</span>
+          <span class="body">Top 3 topics cover 41% of papers</span>
+          <span class="caption muted">top-3 share 0.41 · coherent at 0.50 or more · prefer the most relevant school</span>
+        </div>
+        <div class="card raised stack" style="gap:var(--space-1)">
+          <span class="badge b-include" style="align-self:flex-start">Low prompt echo</span>
+          <span class="body">Most terms are new, not your words back</span>
+          <span class="caption muted">prompt echo 0.22 · above 0.3 on a focused pool is fine</span>
+        </div>
+      </div>
+      <span class="caption muted">A refresh runs the same search again and replaces this pool. An empty or failed search is never cached, so it is never reused.</span>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <div class="card stack">
+          <span class="label">Schools of thought</span>
+          <div class="row" style="flex-wrap:nowrap"><span class="body" style="width:240px">On-device inference</span><div class="bar" style="flex:1"><span style="width:77%"></span></div><span class="caption num" style="width:110px;text-align:right">6 papers · 0.77</span></div>
+          <div class="row" style="flex-wrap:nowrap"><span class="body" style="width:240px">UAV imaging</span><div class="bar" style="flex:1"><span style="width:64%"></span></div><span class="caption num" style="width:110px;text-align:right">5 papers · 0.64</span></div>
+          <div class="row" style="flex-wrap:nowrap"><span class="body" style="width:240px">Plant pathology datasets</span><div class="bar" style="flex:1"><span style="width:52%"></span></div><span class="caption num" style="width:110px;text-align:right">4 papers · 0.52</span></div>
+          <div class="row" style="flex-wrap:nowrap"><span class="body muted" style="width:240px">Federated learning</span><div class="bar" style="flex:1"><span style="width:12%;background:var(--ink-muted)"></span></div><span class="caption num" style="width:110px;text-align:right"><span class="badge b-unclear">thin · 1</span></span></div>
+          <div class="note n-unclear caption">Federated learning rests on 1 paper. It can't become a direction on its own; it stays visible so you know it was seen.</div>
+        </div>
+
+        <div class="card stack">
+          <span class="label">OpenAlex topics</span>
+          <div class="row" style="gap:var(--space-2)"><span class="chip">Smart agriculture · 6</span><span class="chip">Remote sensing · 4</span><span class="chip">Edge AI · 3</span><span class="chip">Plant pathology · 3</span><button class="chip">+ 6 more</button></div>
+          <span class="label" style="margin-top:var(--space-2)">Metrics and datasets seen</span>
+          <div class="row" style="gap:var(--space-2)"><span class="chip">accuracy · 9</span><span class="chip">F1 · 6</span><span class="chip">mAP · 4</span><span class="chip">latency ms · 3</span><span class="chip">PlantVillage · 5</span></div>
+        </div>
+
+        <div class="card stack">
+          <span class="label">When the pool is thin</span>
+          <div class="note n-unclear stack" style="gap:var(--space-1)">
+            <span class="body-strong">Only 8 papers came back</span>
+            <span class="caption">Directions from fewer than 12 papers are often fragments. Widening the years or using semantic search usually helps.</span>
+          </div>
+          <span class="caption muted">This note replaces the "Enough papers" tile when the pool is under the floor of 12. The full state is on the States board.</span>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between"><span class="label">Papers · 25</span><span class="caption muted">sorted by anchors</span></div>
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th>Paper</th><th class="num">Year</th><th>Anchors</th></tr></thead>
+              <tbody>
+                <tr><td>[paper title]<br><a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a></td><td class="num">2023</td><td>2 directions</td></tr>
+                <tr><td>[paper title]<br><a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a></td><td class="num">2022</td><td>1 direction</td></tr>
+                <tr><td>[paper title]<br><a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a></td><td class="num">2024</td><td>1 direction</td></tr>
+                <tr><td>[paper title]<br><a href="#" class="data" style="color:var(--anchor)">10.xxxx/…</a></td><td class="num">2021</td><td class="muted">none</td></tr>
+                <tr><td class="muted" colspan="3">+ 21 more · sort by year, anchors or title</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="caption muted">Every DOI links out. A paper anchors a direction only when the direction's term occurs in its title or abstract.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <a href="#" class="btn">Change scope</a>
+      <button class="btn">Add custom lexicon</button>
+      <button class="btn">Save draft and exit</button>
+      <button class="btn btn-primary">See 3 directions<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1350}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prepare batches</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Screening steps" style="gap:var(--space-1)">
+      <a class="step" href="#">Home</a>
+      <a class="step step-on" href="#" aria-current="page">1 Prepare</a>
+      <a class="step" href="#">2 Agent proposals</a>
+      <a class="step" href="#">3 Triage</a>
+      <a class="step" href="#">4 Agreement</a>
+      <a class="step" href="#">5 Publish</a>
+    </nav>
+
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Screening · step 1 of 5 · Prepare batches</span>
+      <h1 class="display" style="margin:0;max-width:36ch">Batches can't be prepared yet: the corpus has no accepted snapshot.</h1>
+      <p class="lede">Each batch is bound to the protocol and to a corpus snapshot by fingerprint, so a later change can never slip in unnoticed. One step from Discovery is missing; it takes one click.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="bind-h">
+          <h2 id="bind-h" class="heading" style="margin:0">Binding check</h2>
+          <table class="tbl">
+            <thead><tr><th>Bound to</th><th>Fingerprint</th><th>Detail</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Protocol</td><td><span class="data">sha256:b81e…04d2</span></td><td class="caption">compiled 28 Oct 2026 · 4 inclusion · 3 exclusion</td><td><span class="badge b-include">Matches</span></td></tr>
+              <tr><td>Screening instrument</td><td><span class="data">sha256:6c0d…3b19</span></td><td class="caption">frozen into every batch file</td><td><span class="badge b-include">Ready</span></td></tr>
+              <tr style="background:var(--blocked-soft)"><td>Corpus snapshot</td><td><span class="data muted">none accepted</span></td><td class="caption">Discovery finished with 3,241 unique works</td><td><span class="badge b-blocked">Blocked</span></td></tr>
+            </tbody>
+          </table>
+          <div class="note n-blocked stack" style="gap:var(--space-2)">
+            <span class="body-strong">Refused: <span class="data">SNAPSHOT_NOT_ACCEPTED</span></span>
+            <span class="body">Prepare needs an accepted corpus snapshot. Accepting freezes the 3,241 works from Discovery under their own fingerprint; it changes no record.</span>
+            <span class="caption">Affects: batch preparation only. Your protocol and Discovery results are untouched.</span>
+          </div>
+          <div class="row">
+            <button class="btn btn-primary">Accept the Discovery corpus as a snapshot · 3,241 works</button>
+            <a href="#" class="caption">See the corpus first</a>
+          </div>
+          <span class="caption muted">Acceptance is recorded in <span class="data">audit/journal.jsonl</span> with the snapshot fingerprint.</span>
+        </section>
+
+        <section class="card stack" aria-labelledby="inst-h">
+          <h2 id="inst-h" class="heading" style="margin:0">What you and the agent answer for each record</h2>
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th>Criterion</th><th>Answers</th></tr></thead>
+              <tbody>
+                <tr><td>INC-01 UAV or drone platform</td><td class="caption">yes · no · not reported</td></tr>
+                <tr><td>INC-02 Crop disease detection task</td><td class="caption">yes · no · not reported</td></tr>
+                <tr><td>INC-03 Evaluated artifact</td><td class="caption">yes · no · not reported</td></tr>
+                <tr><td>INC-04 [inclusion criterion 4]</td><td class="caption">yes · no · not reported</td></tr>
+                <tr><td>EXC-01 Opinion without evaluation</td><td class="caption">yes · no · not reported</td></tr>
+                <tr><td>EXC-02 [exclusion criterion 2] · EXC-03 [exclusion criterion 3]</td><td class="caption">yes · no · not reported</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3)">
+            <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)"><span class="badge b-include" style="align-self:flex-start">Include</span><span class="caption">every inclusion is yes and no exclusion is yes</span></div>
+            <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)"><span class="badge b-exclude" style="align-self:flex-start">Exclude</span><span class="caption">any exclusion is yes, or any inclusion is no · needs one reason code</span></div>
+            <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)"><span class="badge b-unclear" style="align-self:flex-start">Unclear · full text</span><span class="caption">anything else, including every "not reported"</span></div>
+          </div>
+          <span class="caption muted">The agent also writes one sentence of reasoning per record, kept verbatim. Files written against an older instrument are refused.</span>
+        </section>
+      </div>
+
+      <div class="side">
+        <section class="card stack" aria-labelledby="batch-h">
+          <h2 id="batch-h" class="heading" style="margin:0">Batches</h2>
+          <div class="field">
+            <label for="bs" class="caption">Records per batch</label>
+            <div class="row"><input id="bs" class="in num" value="20" style="width:96px"><span class="caption muted">163 batches</span></div>
+          </div>
+          <div class="row" style="align-items:flex-start;flex-wrap:nowrap">
+            <input type="checkbox" id="shuf" checked style="width:20px;height:20px;margin-top:2px">
+            <label for="shuf" class="caption">Shuffle with a recorded seed. Without it, batches follow corpus order and one database fills whole batches.</label>
+          </div>
+          <div class="field">
+            <label for="seed" class="caption">Seed</label>
+            <input id="seed" class="in data" value="20261103" style="width:160px">
+          </div>
+        </section>
+
+        <section class="card stack" aria-labelledby="blind-h">
+          <h2 id="blind-h" class="heading" style="margin:0">Hidden while screening</h2>
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="b1" checked style="width:20px;height:20px;margin-top:2px"><label for="b1" class="caption">Which database a record came from</label></div>
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><input type="checkbox" id="b2" checked style="width:20px;height:20px;margin-top:2px"><label for="b2" class="caption">Expected include rate or noise level</label></div>
+          <fieldset class="stack" style="border:0;padding:0;margin:0;gap:var(--space-2)">
+            <legend class="caption body-strong" style="margin-bottom:var(--space-2)">The agent's proposal</legend>
+            <div class="row" style="flex-wrap:nowrap"><input type="radio" name="reveal" id="r1" checked style="width:20px;height:20px"><label for="r1" class="caption">Reveal after my decision <span class="muted">(default)</span></label></div>
+            <div class="row" style="flex-wrap:nowrap"><input type="radio" name="reveal" id="r2" style="width:20px;height:20px"><label for="r2" class="caption">Show beside the record</label></div>
+            <span class="caption muted">Workspace setting, written into every decision's provenance.</span>
+          </fieldset>
+        </section>
+
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Prepare gate</span>
+          <p class="body" style="margin:0">Nothing is written until you confirm. Prepare writes 163 batch files bound to both fingerprints.</p>
+          <button class="btn" disabled aria-describedby="why">Prepare 163 batches</button>
+          <span id="why" class="caption t-blocked">Available once the corpus snapshot is accepted.</span>
+          <button class="btn">Preview one batch</button>
+          <details class="caption muted">
+            <summary>Run from the terminal</summary>
+            <span class="data">uv run python src/scholar_harness/agent_screen.py prepare workspaces/[project-slug]</span>
+          </details>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1340}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

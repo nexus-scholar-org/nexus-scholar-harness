@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search plan</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 1 of 7 · Search plan · gate</span>
+      <h1 class="display" style="margin:0">This is exactly what each database will receive. Approve it before anything is sent.</h1>
+      <p class="lede">The concepts come from the frozen protocol. Each string below is executed exactly as written; there is no rewrite after you approve it.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="exec-h">
+          <div class="row" style="justify-content:space-between">
+            <h2 id="exec-h" class="heading" style="margin:0">Executed string per database</h2>
+            <span class="caption muted">protocol fingerprint <span class="data">sha256:[protocol]…</span></span>
+          </div>
+
+          <div class="stack" style="gap:var(--space-2);padding-bottom:var(--space-3);border-bottom:1px solid var(--hairline)">
+            <div class="row" style="justify-content:space-between"><span class="body-strong">OpenAlex</span><span class="badge b-include">Strict boolean</span></div>
+            <div class="card raised data" style="padding:var(--space-3);overflow-wrap:anywhere">filter=title_and_abstract.search:("lightweight cnn crop disease detection") AND ("unmanned aerial vehicle" OR drone) AND ("plant disease classification" OR "leaf disease detection") AND … ,from_publication_date:2020-01-01,language:en|fr</div>
+            <span class="caption">Cannot express: nothing in this protocol. <span class="muted">Complete within the filter if under the cap.</span></span>
+          </div>
+
+          <div class="stack" style="gap:var(--space-2);padding-bottom:var(--space-3);border-bottom:1px solid var(--hairline)">
+            <div class="row" style="justify-content:space-between"><span class="body-strong">Semantic Scholar</span><div class="row" style="gap:var(--space-2)"><span class="badge b-exclude">Relevance</span><span class="badge b-include">API key set</span></div></div>
+            <div class="card raised data" style="padding:var(--space-3);overflow-wrap:anywhere">query=lightweight cnn crop disease detection unmanned aerial vehicle drone plant disease classification leaf disease detection …&amp;year=2020-</div>
+            <span class="caption t-unclear">Cannot express: AND, OR, phrases, language. Results are ranked, so this is a supplement with no completeness claim.</span>
+          </div>
+
+          <div class="stack" style="gap:var(--space-2);padding-bottom:var(--space-3);border-bottom:1px solid var(--hairline)">
+            <div class="row" style="justify-content:space-between"><span class="body-strong">Crossref</span><span class="badge b-exclude">Relevance</span></div>
+            <div class="card raised data" style="padding:var(--space-3);overflow-wrap:anywhere">query.bibliographic=lightweight cnn crop disease detection unmanned aerial vehicle drone plant disease classification leaf disease detection …&amp;filter=from-pub-date:2020-01-01,type:journal-article,type:proceedings-article</div>
+            <span class="caption t-unclear">Cannot express: AND, OR, language. A recall net with heavy noise; the type filter removes non-article records.</span>
+          </div>
+
+          <div class="stack" style="gap:var(--space-2);padding-bottom:var(--space-3);border-bottom:1px solid var(--hairline)">
+            <div class="row" style="justify-content:space-between"><span class="body-strong">arXiv</span><span class="badge b-include">Fielded boolean</span></div>
+            <div class="card raised data" style="padding:var(--space-3);overflow-wrap:anywhere">search_query=abs:"lightweight cnn crop disease detection" AND (abs:"unmanned aerial vehicle" OR abs:drone) AND (abs:"plant disease classification" OR abs:"leaf disease detection") AND …&amp;submittedDate:[202001010000 TO 202611022359]</div>
+            <span class="caption t-unclear">Cannot express: language. Preprints only.</span>
+          </div>
+
+          <div class="stack" style="gap:var(--space-2);padding-bottom:var(--space-3);border-bottom:1px solid var(--hairline)">
+            <div class="row" style="justify-content:space-between"><span class="body-strong">PubMed</span><span class="badge b-exclude">Not selected</span></div>
+            <span class="caption muted">Would add MeSH-indexed records; needed for health topics. <a href="#">Select PubMed</a> to see its executed string.</span>
+          </div>
+
+          <div class="stack" style="gap:var(--space-2)">
+            <div class="row" style="justify-content:space-between"><span class="body-strong">bioRxiv</span><span class="badge b-exclude">Off by default</span></div>
+            <span class="caption muted">It cannot evaluate NOT or Boolean operators, so the string would not mean what the protocol says. It stays off unless you turn it on and accept that.</span>
+          </div>
+
+          <div class="row" style="justify-content:space-between;padding-top:var(--space-2);border-top:1px solid var(--hairline)">
+            <a href="#" class="caption">Copy all executed strings</a>
+            <span class="caption muted">Scopus and Web of Science have no connection; add them as an <a href="#">imported export</a>.</span>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side">
+        <section class="card stack" aria-labelledby="lim-h" style="gap:var(--space-2)">
+          <h2 id="lim-h" class="heading" style="margin:0">Limits</h2>
+          <div class="row" style="justify-content:space-between"><span class="caption muted">Date window</span><span class="data">2020-01-01 to search date</span></div>
+          <div class="row" style="justify-content:space-between"><span class="caption muted">Languages</span><span class="body">en, fr <span class="caption muted">where the database can filter</span></span></div>
+          <div class="row" style="justify-content:space-between"><span class="caption muted">Cap per database</span><span class="body num">2,000</span></div>
+          <span class="caption muted">A database that stops at the cap is reported as a lower bound, never as complete.</span>
+          <div class="row" style="justify-content:space-between"><span class="caption muted">Contact email</span><span class="data">[your institutional email]</span></div>
+          <span class="caption muted">Required for polite access to OpenAlex and Crossref. <a href="#">Settings</a></span>
+        </section>
+
+        <section class="card stack" aria-labelledby="dry-h" style="gap:var(--space-2)">
+          <h2 id="dry-h" class="heading" style="margin:0">Dry run</h2>
+          <span class="caption">Asks each database for its reported total only. No records are fetched or saved.</span>
+          <table class="tbl">
+            <thead><tr><th>Database</th><th class="num">Reported</th></tr></thead>
+            <tbody>
+              <tr><td>OpenAlex</td><td class="num"><div>1,344</div><span class="badge b-include">Under cap</span></td></tr>
+              <tr><td>Crossref</td><td class="num"><div>~13,100</div><span class="badge b-unclear">Over cap</span></td></tr>
+              <tr><td>Semantic Scholar</td><td class="num"><div>unknown</div><span class="badge b-exclude">Not reported</span></td></tr>
+              <tr><td>arXiv</td><td class="num"><div>247</div><span class="badge b-include">Under cap</span></td></tr>
+            </tbody>
+          </table>
+          <span class="caption muted">Dry run <span class="data">2026-11-02 13:58 UTC</span> · cache: none</span>
+          <button class="btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4"/></svg>
+            Dry run again
+          </button>
+        </section>
+
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Gate · approve the plan</span>
+          <p class="body" style="margin:0">Nothing is sent to any database until you approve. Approval records these strings and the protocol fingerprint in the journal.</p>
+          <button class="btn btn-primary">Approve plan and check recall</button>
+          <button class="btn">Amend protocol</button>
+          <span class="caption muted">Amending the concepts is journaled as a protocol amendment.</span>
+        </div>
+      </aside>
+    </div>
+
+    <details class="caption muted">
+      <summary>Run from the terminal</summary>
+      <div class="data" style="margin-top:var(--space-2)">uv run scholar-harness discover plan --dry-run</div>
+    </details>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1540}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workspaces on phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <div class="m-top">
+    <span class="heading" style="font-family:var(--font-display)">Nexus Scholar</span>
+    <span class="caption t-include" style="margin-left:auto">Connected to desktop</span>
+  </div>
+  <div class="m-body">
+    <span class="label">Workspaces · 3 reviews · 2 drafts</span>
+    <h1 class="m-h1">Which review are you picking up?</h1>
+
+    <div class="swipe-card" style="gap:var(--space-2)">
+      <div class="row" style="justify-content:space-between"><span class="label">Resume</span><span class="badge b-unclear">3 criteria need you</span></div>
+      <span class="body-strong">Drone-mounted crop-disease detection with on-device deep learning</span>
+      <span class="caption muted">Inception draft · step 5 of 6 · 2 Nov 2026</span>
+      <span class="data muted">rec_7f3a…</span>
+      <a href="#" class="btn btn-primary btn-block">Review criteria</a>
+    </div>
+
+    <div class="card" style="padding:0 var(--space-4)">
+      <a href="#" style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline);color:var(--ink);text-decoration:none;min-height:44px">
+        <span class="row" style="justify-content:space-between"><span class="body-strong">[project title]</span><span class="badge b-brand">Screening</span></span>
+        <span class="caption muted">3 Nov 2026 · batch 002 decided</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline);color:var(--ink);text-decoration:none;min-height:44px">
+        <span class="row" style="justify-content:space-between"><span class="body-strong">[project title]</span><span class="badge b-brand">Discovery</span></span>
+        <span class="caption muted">[date] · search plan reviewed</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--hairline);color:var(--ink);text-decoration:none;min-height:44px">
+        <span class="row" style="justify-content:space-between"><span class="body-strong">[project title]</span><span class="badge b-include">Inception done</span></span>
+        <span class="caption muted">[date] · GENESIS logged</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) 0;color:var(--ink);text-decoration:none;min-height:44px">
+        <span class="row" style="justify-content:space-between"><span class="body-strong">Agent draft</span><span class="badge b-exclude">Draft · not accepted</span></span>
+        <span class="caption muted">from your agent in Claude · 3 Nov 2026</span>
+      </a>
+    </div>
+    <span class="caption muted">New reviews start on the desktop. The phone reads drafts and records your Accept, Edit and Drop.</span>
+  </div>
+  <nav class="tabbar" aria-label="Main">
+    <a href="#" class="on" aria-current="page"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg>Workspaces</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4h12v12H4zM8 8h4v4H8z"/></svg>Screening</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="14" height="10" rx="1"/><path d="M7 17h6"/></svg>Pairing</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

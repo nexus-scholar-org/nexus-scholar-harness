@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inception states</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">New review · draft <span class="data">rec_7f3a…</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-on" href="#" aria-current="step">Inception</a>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Inception · states · every step</span>
+      <h1 class="display" style="margin:0">What happens when a step cannot go on as planned?</h1>
+      <p class="lede">Each card is a state as it appears on its own screen, so each carries that screen's one primary action. Every state names what happened, keeps the answers given so far, and offers a next step. Nothing is lost and nothing is written.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)">
+
+      <div class="card stack">
+        <span class="badge b-blocked" style="align-self:flex-start">No direction</span>
+        <span class="heading">No direction has two anchor papers</span>
+        <span class="body">25 papers came back, but no term occurs in two or more of their titles or abstracts. No direction is invented.</span>
+        <span class="data muted">NO_ANCHORED_DIRECTION · step 3 · your scope is kept</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Rephrase the question</button>
+          <button class="btn btn-small">Broaden to 2015+</button>
+          <button class="btn btn-small">Continue ungrounded</button>
+        </div>
+        <span class="caption muted">Ungrounded is labelled as such through Review and in <span class="data">intent.json</span>.</span>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-unclear" style="align-self:flex-start">Thin pool · partial</span>
+        <span class="heading">Only 8 papers came back</span>
+        <span class="body">Directions from fewer than 12 papers are often fragments. Widening the years or using semantic search usually helps.</span>
+        <span class="data muted">POOL_THIN · 8 of 25 · floor 12 · step 2</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Widen to 2015+</button>
+          <button class="btn btn-small">Semantic search</button>
+          <button class="btn btn-small">Use these 8 anyway</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-blocked" style="align-self:flex-start">Unanchored term</span>
+        <span class="heading">'crop yield forecasting' occurs in 0 of 25 titles or abstracts</span>
+        <span class="body">A check search found no papers for it either, so it can't go into the search string. The other answers stay as they are. 1 check left.</span>
+        <span class="data muted">TERM_UNANCHORED · step 5 · checks 2 of 3 used</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Edit the term</button>
+          <button class="btn btn-small">Remove it</button>
+          <button class="btn btn-small">Pick from anchored terms</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-unclear" style="align-self:flex-start">Workspace exists</span>
+        <span class="heading">This folder already holds a review; nothing was overwritten</span>
+        <span class="body"><span class="data">workspaces/[project-slug]/protocol.json</span> exists from an earlier inception. Writing again would replace it.</span>
+        <span class="data muted">WORKSPACE_EXISTS · write gate · no file touched</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Open the existing review</button>
+          <button class="btn btn-small">Use another folder name</button>
+          <button class="btn btn-small">Replace and keep a backup</button>
+        </div>
+        <span class="caption muted">Replace copies the current files to <span class="data">[backup path]</span> first and logs it in the journal.</span>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-brand" style="align-self:flex-start">Resume a draft</span>
+        <span class="heading">Resume your draft from 2 Nov?</span>
+        <span class="body">Stopped at step 5, Concepts and criteria. The pool is cached (1 day old), so resuming runs no search.</span>
+        <span class="data muted">session rec_7f3a… · same id on desktop, phone, terminal and agent</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Resume at step 5</button>
+          <button class="btn btn-small">Refresh pool, then resume</button>
+          <button class="btn btn-small">Start over</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-blocked" style="align-self:flex-start">Engine unreachable</span>
+        <span class="heading">This page can't reach the engine on this computer</span>
+        <span class="body">Your answers up to the last save are in the draft. Searches, checks and the write gate wait until the engine is back.</span>
+        <span class="data muted">ENGINE_UNREACHABLE · localhost · retrying every 10 s</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Try again now</button>
+          <a href="#" class="btn btn-small">Back to workspaces</a>
+        </div>
+        <details>
+          <summary class="caption" style="cursor:pointer">Run from the terminal</summary>
+          <span class="data">nexus-scholar ui</span>
+        </details>
+      </div>
+
+      <div class="card stack" aria-busy="true">
+        <span class="badge b-brand" style="align-self:flex-start">Loading</span>
+        <span class="heading">Searching 25 papers, 2020 to present</span>
+        <div class="stack" style="gap:var(--space-2)">
+          <div class="skel" style="width:90%"></div>
+          <div class="skel" style="width:70%"></div>
+          <div class="skel" style="width:80%"></div>
+          <div class="skel" style="width:55%"></div>
+        </div>
+        <span class="caption muted">OpenAlex · semantic · results are cached only if the search succeeds</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Cancel search</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-blocked" style="align-self:flex-start">Search failed</span>
+        <span class="heading">The search did not finish, so there is no pool yet</span>
+        <span class="body">The failure was not cached; the next search runs fresh instead of returning this empty result.</span>
+        <span class="data muted">PROBE_FAILED · OpenAlex [error] · step 2 · not cached</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Search again</button>
+          <a href="#" class="btn btn-small">Change scope</a>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-unclear" style="align-self:flex-start">Scope changed</span>
+        <span class="heading">You changed the years after this pool was built</span>
+        <span class="body">The pool covers 2020 to present; scope now says 2015 to present. Directions and anchors from the old pool may not match.</span>
+        <span class="data muted">POOL_STALE · built for an earlier scope · fetched 2 Nov 2026</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Refresh pool for the new scope</button>
+          <button class="btn btn-small">Undo the scope change</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-exclude" style="align-self:flex-start">Empty</span>
+        <span class="heading">No reviews on this computer yet</span>
+        <span class="body">A review starts with a question. Six steps later you confirm, and only then a workspace folder is written.</span>
+        <span class="data muted">workspaces/ · 0 reviews · 0 drafts</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">New review</button>
+          <a href="#" class="btn btn-small">Do this with your agent in Claude</a>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-exclude" style="align-self:flex-start">Narrower search</span>
+        <span class="heading">The narrower search found no new direction</span>
+        <span class="body">Your original three directions are still available. The one narrower search for this session is used.</span>
+        <span class="data muted">DELTA_EMPTY · step 3 · 1 of 1 used</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Back to the three</button>
+          <button class="btn btn-small">Rephrase the question</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <span class="badge b-unclear" style="align-self:flex-start">Gap check · partial</span>
+        <span class="heading">2 of 3 follow-ups came back</span>
+        <span class="body">Follow-up C did not finish. A and B are shown; read them as incomplete, not as a gap.</span>
+        <span class="data muted">DELTA_PARTIAL · follow-up C failed · not cached</span>
+        <div class="row" style="gap:var(--space-2);margin-top:auto">
+          <button class="btn btn-primary btn-small">Run follow-up C again</button>
+          <button class="btn btn-small">Back to directions</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1720}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

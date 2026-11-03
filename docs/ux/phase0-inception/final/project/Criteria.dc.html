@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Concepts and criteria</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">New review · draft <span class="data">rec_7f3a…</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-on" href="#" aria-current="step">Inception</a>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Inception steps" style="gap:var(--space-1)">
+      <a class="step step-done" href="#">1 Scope · done</a>
+      <a class="step step-done" href="#">2 Explore · done</a>
+      <a class="step step-done" href="#">3 Direction · done</a>
+      <a class="step step-done" href="#">4 Shape · done</a>
+      <a class="step step-on" href="#" aria-current="step">5 Concepts and criteria</a>
+      <span class="step">6 Review and emit</span>
+      <span class="caption muted" style="margin-left:auto">Draft saved 3 Nov 2026 · <span class="data">rec_7f3a…</span></span>
+    </nav>
+
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 5 of 6 · Concepts and criteria · you accept each one</span>
+      <h1 class="display" style="margin:0">Which concepts and criteria will screen this review? 3 still need you.</h1>
+      <p class="lede">A concept counts as anchored only when its term occurs in titles or abstracts of the pool. Every criterion is shown word for word with where it came from; nothing reaches the screening file until you accept it.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between">
+            <span class="heading">Concepts · 9 selected</span>
+            <span class="caption">Checks left <span class="body-strong num">2 of 3</span> <span class="muted">· one check searches for a term not in the pool</span></span>
+          </div>
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th>Concept</th><th>Synonyms</th><th>Anchor</th><th>Occurs in</th></tr></thead>
+              <tbody>
+                <tr><td>lightweight cnn crop disease detection <span class="caption muted">· your direction</span></td><td class="muted">none</td><td><span class="badge b-include">anchored</span></td><td class="num">4 of 25 titles or abstracts</td></tr>
+                <tr><td>unmanned aerial vehicle</td><td>drone</td><td><span class="badge b-include">anchored</span></td><td class="num">5 of 25 titles or abstracts</td></tr>
+                <tr><td>plant disease classification</td><td>leaf disease detection</td><td><span class="badge b-include">anchored</span></td><td class="num">6 of 25 titles or abstracts</td></tr>
+                <tr><td>edge tpu <span class="caption muted">· you added it</span></td><td class="muted">none</td><td><span class="badge b-include">anchored · checked</span></td><td class="num">3 papers in a check search</td></tr>
+                <tr><td colspan="2" class="caption muted">+ 5 more concepts, all anchored · <a href="#">show all</a></td><td></td><td></td></tr>
+                <tr style="background:var(--blocked-soft)"><td><span class="body-strong">uas</span> <span class="caption muted">· synonym of unmanned aerial vehicle</span></td><td></td><td><span class="badge b-blocked">not anchored</span></td><td class="num">0 of 25</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="row" style="gap:var(--space-2)">
+            <span class="caption t-unclear">'uas' has no anchor in this pool; kept off the search string.</span>
+            <button class="btn btn-small">Check 'uas' · uses 1 of 2</button>
+            <button class="btn btn-small">Remove it</button>
+          </div>
+          <div class="row" style="gap:var(--space-2);border-top:1px solid var(--hairline);padding-top:var(--space-3)">
+            <label for="newc" class="caption">Add a concept</label>
+            <input id="newc" class="in" style="flex:1;min-width:220px" placeholder="A term; it is checked against the pool as you add it">
+            <button class="btn btn-small">Add and check</button>
+          </div>
+          <span class="caption muted">A DOI in the pool is not enough: the term itself has to appear in a title or abstract. Occurrence counts are recorded in <span class="data">audit/recon_context.json</span>.</span>
+        </div>
+
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between">
+            <span class="heading">Inclusion criteria</span>
+            <span class="caption"><span class="num">3 of 4</span> accepted</span>
+          </div>
+
+          <div class="note n-include stack" style="gap:var(--space-2);color:var(--ink);background:var(--include-soft)">
+            <div class="row" style="justify-content:space-between"><span class="data">I1</span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">You typed it · Scope</span><span class="badge b-include">Accepted by you</span></span></div>
+            <span class="body">Published 2020 or later, in English</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="note stack" style="gap:var(--space-2);color:var(--ink);background:var(--include-soft)">
+            <div class="row" style="justify-content:space-between"><span class="data">I2</span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">Suggested from the pool</span><span class="badge b-include">Accepted by you</span></span></div>
+            <span class="body">Matches at least one core concept</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="draft stack" style="gap:var(--space-2)">
+            <div class="row" style="justify-content:space-between"><span class="data">I3</span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">Paradigm default · Design Science</span><span class="badge b-unclear">Waiting for you</span></span></div>
+            <span class="body">Reports an evaluated artifact</span>
+            <span class="data muted">paradigm DESIGN_SCIENCE · default inclusion</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Accept</button><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="note stack" style="gap:var(--space-2);color:var(--ink);background:var(--include-soft)">
+            <div class="row" style="justify-content:space-between"><span class="data">I4</span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">You typed it</span><span class="badge b-include">Accepted by you</span></span></div>
+            <span class="body">Publishes on a named public dataset</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="row" style="gap:var(--space-2)">
+            <label for="newi" class="caption">Add an inclusion criterion</label>
+            <input id="newi" class="in" style="flex:1;min-width:220px" placeholder="Type it exactly as screeners should read it">
+          </div>
+        </div>
+
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between">
+            <span class="heading">Exclusion criteria</span>
+            <span class="caption"><span class="num">1 of 3</span> accepted · 1 dropped</span>
+          </div>
+
+          <div class="draft stack" style="gap:var(--space-2)">
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><span class="data">E1</span><span class="data muted">OUT_OF_SCOPE</span></span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">Paradigm default · Design Science</span><span class="badge b-unclear">Waiting for you</span></span></div>
+            <span class="body">Opinion without an evaluated artifact</span>
+            <span class="data muted">paradigm DESIGN_SCIENCE · default exclusion</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Accept</button><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="note stack" style="gap:var(--space-2);color:var(--ink);background:var(--include-soft)">
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><span class="data">E2</span><span class="data muted">LANGUAGE</span></span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">You typed it · Scope</span><span class="badge b-include">Accepted by you</span></span></div>
+            <span class="body">Not in English</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="draft stack" style="gap:var(--space-2)">
+            <div class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><span class="data">E3</span><span class="data muted">OUT_OF_SCOPE</span></span><span class="row" style="gap:var(--space-2)"><span class="badge b-exclude">Suggested from the pool</span><span class="badge b-unclear">Waiting for you</span></span></div>
+            <span class="body">Evaluates a closed-source model only</span>
+            <span class="data muted">pool rec_7f3a… · from the out-of-scope list · [n] of 25 abstracts</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Accept</button><button class="btn btn-small">Edit</button><button class="btn btn-small">Drop</button></div>
+          </div>
+
+          <div class="card raised stack" style="gap:var(--space-1)">
+            <div class="row" style="justify-content:space-between"><span class="data muted">E–</span><span class="badge b-exclude">Dropped by you</span></div>
+            <span class="body muted" style="text-decoration:line-through">[suggested criterion text]</span>
+            <span class="caption muted">Kept in the draft history; not in the screening file. <a href="#">Restore</a></span>
+          </div>
+
+          <div class="row" style="gap:var(--space-2)">
+            <label for="newe" class="caption">Add an exclusion</label>
+            <input id="newe" class="in" style="flex:1;min-width:200px" placeholder="Type it exactly as screeners should read it">
+            <label for="cat" class="caption">Reason code</label>
+            <select id="cat" class="in"><option>OUT_OF_SCOPE</option><option>LANGUAGE</option><option>INSUFFICIENT_DATA</option></select>
+          </div>
+          <div class="row" style="gap:var(--space-2)"><span class="caption muted">Out of scope:</span><button class="chip">closed-source models ×</button><button class="chip">pre-2020 ×</button><button class="chip">+ add</button></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card stack">
+          <span class="label">Preview · SCREENING_CRITERIA.md</span>
+          <div class="raised terminal" style="border-radius:var(--radius-sm);padding:var(--space-3);white-space:pre-wrap">## Scope
+Years: 2020 to present
+Languages: English
+
+## Inclusion
+- I1 Published 2020 or later, in English
+- I2 Matches at least one core concept
+- I4 Publishes on a named public dataset
+
+## Exclusion
+- E2 Not in English (LANGUAGE)
+
+<span class="muted">Waiting for you: I3, E1, E3</span></div>
+          <span class="caption muted">Only accepted criteria appear, word for word. Date range and languages are rendered too, so screeners see the window.</span>
+        </div>
+
+        <div class="card stack">
+          <span class="label">Extraction matrix · Phase-2 columns</span>
+          <span class="caption muted">Defaults for DESIGN_SCIENCE</span>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox" checked><span class="body">model architecture</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox" checked><span class="body">deployment platform</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox" checked><span class="body">dataset</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox" checked><span class="body">accuracy metric</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox" checked><span class="body">latency</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox"><span class="body">energy use</span></label>
+          <button class="btn btn-small" style="align-self:flex-start">+ Custom column</button>
+          <span class="caption muted">Columns are saved in the protocol; the Matrix phase that fills them is parked.</span>
+        </div>
+
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between"><span class="label">Phase-4 verification</span><span class="badge b-exclude">advisory · Phase 4 is parked</span></div>
+          <label class="row" style="gap:var(--space-2)"><input type="checkbox" checked><span class="body">Retraction status, COI audit, open-science checks</span></label>
+          <span class="caption muted">Trust threshold 6.0</span>
+          <div class="parked caption">Recorded in <span class="data">protocol.json</span> as advisory. Nothing enforces these settings while Phase 4 is not in production.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <span class="caption t-unclear">3 criteria still need Accept, Edit or Drop</span>
+      <a href="#" class="btn">Back to Shape</a>
+      <button class="btn">Save draft and exit</button>
+      <button class="btn btn-primary" disabled aria-disabled="true" style="opacity:0.55;cursor:not-allowed">Continue to Review and emit</button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2480}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workspace created</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">workspaces/[project-slug]/</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception · done</a>
+      <a class="step step-on" href="#" aria-current="step">Discovery</a>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Inception · done · workspace written</span>
+      <h1 class="display" style="margin:0">The workspace exists; Discovery can start from your 9 concepts.</h1>
+      <p class="lede">Every file below was written once, at the write gate, and the creation is logged as a GENESIS event in the audit journal.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between">
+            <span class="heading">Files written</span>
+            <span class="badge b-include">7 of 7 written</span>
+          </div>
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th>Path</th><th>Holds</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="data">workspaces/[project-slug]/project.json</td><td class="caption">WSP- id, title, lead</td><td><a href="#" class="caption">Open</a></td></tr>
+                <tr><td class="data">intent.json</td><td class="caption">your answers from steps 1 to 5</td><td><a href="#" class="caption">Open</a></td></tr>
+                <tr><td class="data">protocol.json</td><td class="caption">compiled protocol · 9 concepts · 7 criteria</td><td><a href="#" class="caption">Open</a></td></tr>
+                <tr><td class="data">SCREENING_CRITERIA.md</td><td class="caption">the 7 criteria, word for word</td><td><a href="#" class="caption">Open</a></td></tr>
+                <tr><td class="data">INDEX.md</td><td class="caption">workspace index</td><td><a href="#" class="caption">Open</a></td></tr>
+                <tr><td class="data">audit/recon_context.json</td><td class="caption">pool, anchors, occurrence counts</td><td><a href="#" class="caption">Open</a></td></tr>
+                <tr><td class="data">audit/journal.jsonl</td><td class="caption">GENESIS event</td><td><a href="#" class="caption">Open</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between">
+            <span class="heading">Audit journal · first event</span>
+            <span class="badge b-include">GENESIS logged</span>
+          </div>
+          <div class="raised terminal" style="border-radius:var(--radius-sm);padding:var(--space-3);white-space:pre-wrap">event      GENESIS
+workspace  WSP-[32 hex]
+protocol   sha256:[fingerprint]
+session    rec_7f3a…
+by         you · method HUMAN
+at         3 Nov 2026, [time]</div>
+          <span class="caption muted">The journal is append-only. Later phases add events; nothing above is edited.</span>
+        </div>
+
+        <div class="card stack" style="gap:var(--space-1)">
+          <span class="label">Draft and cache</span>
+          <span class="caption">Draft <span class="data">rec_7f3a…</span> closed. The recon cache stays under <span class="data">.cache/inception_recon</span> for re-use by a refresh.</span>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card stack">
+          <span class="label">Next · Phase 1 Discovery</span>
+          <span class="heading">See how each database will read your 9 concepts before anything is searched.</span>
+          <span class="caption muted">The search plan opens with the query per database. No search runs until you approve it there.</span>
+          <button class="btn btn-primary">Review the search plan<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+          <a href="#" class="btn">Back to workspaces</a>
+        </div>
+        <details class="card">
+          <summary class="caption" style="cursor:pointer;min-height:24px">Run from the terminal</summary>
+          <div class="stack" style="gap:var(--space-1);margin-top:var(--space-2)">
+            <span class="data">uv run scholar-harness discover plan</span>
+            <span class="caption muted">[proposed] · same plan, same approval.</span>
+          </div>
+        </details>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

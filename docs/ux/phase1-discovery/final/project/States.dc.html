@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discovery states</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Discovery · states</span>
+      <h1 class="display" style="margin:0">When discovery cannot go on, each state says what happened, what it affects and what to do next.</h1>
+      <p class="lede">Every refusal carries a typed code, so the same message appears in the app, the journal and the report.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)">
+
+      <section class="card stack" aria-labelledby="s1" style="gap:var(--space-2)">
+        <span class="badge b-exclude" style="align-self:flex-start">Empty</span>
+        <h2 id="s1" class="heading" style="margin:0">There is no protocol to search with yet.</h2>
+        <span class="caption">Discovery reads its concepts, limits and fingerprint from a frozen protocol. This workspace has none.</span>
+        <span class="caption muted">Affects: every step of discovery.</span>
+        <span class="data">PROTOCOL_MISSING</span>
+        <div class="row" style="margin-top:auto"><a class="btn" href="#">Go to inception</a><a href="#" class="caption">Import an export instead</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s2" aria-busy="true" style="gap:var(--space-2)">
+        <span class="badge b-brand" style="align-self:flex-start">Loading</span>
+        <h2 id="s2" class="heading" style="margin:0">Reading run 3 and its legs.</h2>
+        <div class="skel" style="width:70%"></div>
+        <div class="skel" style="width:90%"></div>
+        <div class="skel" style="width:55%"></div>
+        <div class="skel" style="width:80%"></div>
+        <span class="caption muted">Counts appear only once the manifest is read; no number is shown before then.</span>
+      </section>
+
+      <section class="card stack" aria-labelledby="s3" style="gap:var(--space-2)">
+        <span class="badge b-blocked" style="align-self:flex-start">Failed</span>
+        <h2 id="s3" class="heading" style="margin:0">No records saved: Crossref timed out and Semantic Scholar was rate-limited.</h2>
+        <span class="caption">Run 2's files are still there, marked stale; they are not this run's corpus.</span>
+        <span class="caption muted">Affects: identification counts and the hand-off, which stays blocked.</span>
+        <span class="data">PROVIDER_TIMEOUT · PROVIDER_RATE_LIMITED</span>
+        <div class="row" style="margin-top:auto"><button class="btn">Retry the failed databases</button><a href="#" class="caption">Open run 2</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s4" style="gap:var(--space-2)">
+        <span class="badge b-unclear" style="align-self:flex-start">Lower bound</span>
+        <h2 id="s4" class="heading" style="margin:0">Crossref stopped at the 2,000 cap, so this count is a lower bound.</h2>
+        <span class="caption">It reports about 13,100 matches. Splitting by year usually keeps each slice under the cap.</span>
+        <span class="caption muted">Affects: the report says "lower bound" for Crossref until you split or accept it.</span>
+        <span class="data">CAP_REACHED</span>
+        <div class="row" style="margin-top:auto"><button class="btn">Split by year</button><button class="btn">Accept the lower bound</button></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s5" style="gap:var(--space-2)">
+        <span class="badge b-unclear" style="align-self:flex-start">Protocol changed</span>
+        <h2 id="s5" class="heading" style="margin:0">The protocol changed after run 2.</h2>
+        <span class="caption">Its fingerprint no longer matches. Runs from different protocols are not pooled without an amendment record.</span>
+        <span class="caption muted">Affects: run 2's counts; the plan must be approved again.</span>
+        <span class="data">PROTOCOL_CHANGED · sha256:[run 2]… → sha256:[now]…</span>
+        <div class="row" style="margin-top:auto"><button class="btn">Record the amendment</button><a href="#" class="caption">See the change</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s6" style="gap:var(--space-2)">
+        <span class="badge b-blocked" style="align-self:flex-start">Setting required</span>
+        <h2 id="s6" class="heading" style="margin:0">Set a contact email before searching.</h2>
+        <span class="caption">OpenAlex and Crossref ask for one for polite access. Without it the search does not start; there is no placeholder address.</span>
+        <div class="field">
+          <label for="mail" class="caption muted">Contact email</label>
+          <input id="mail" class="in" type="email" placeholder="[your institutional email]">
+        </div>
+        <span class="data">CONTACT_EMAIL_MISSING</span>
+        <div class="row" style="margin-top:auto"><button class="btn">Save and continue</button></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s7" style="gap:var(--space-2)">
+        <span class="badge b-blocked" style="align-self:flex-start">Engine unreachable</span>
+        <h2 id="s7" class="heading" style="margin:0">The local engine is not answering.</h2>
+        <span class="caption">The page shows the last status it received, from <span class="data">14:26 UTC</span>. A running harvest keeps going in the engine; nothing is lost.</span>
+        <span class="caption muted">Affects: live progress, decisions and new runs until it answers.</span>
+        <span class="data">ENGINE_UNREACHABLE · localhost</span>
+        <div class="row" style="margin-top:auto"><button class="btn">Try again</button><a href="#" class="caption">How to restart the engine</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s8" style="gap:var(--space-2)">
+        <span class="badge b-unclear" style="align-self:flex-start">Partial</span>
+        <h2 id="s8" class="heading" style="margin:0">3 lines of the Scopus file could not be read.</h2>
+        <span class="caption">The rest of the file parsed. The rejected lines are listed in the report as not imported.</span>
+        <span class="caption muted">Affects: the Scopus count only.</span>
+        <span class="data">IMPORT_LINE_REJECTED · 3</span>
+        <div class="row" style="margin-top:auto"><a href="#" class="btn">See the lines</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s9" style="gap:var(--space-2)">
+        <span class="badge b-unclear" style="align-self:flex-start">Not journaled</span>
+        <h2 id="s9" class="heading" style="margin:0">The journal row could not be written.</h2>
+        <span class="caption">The output folder is outside this workspace, so the search has no audit owner. Results are saved but unlogged.</span>
+        <span class="caption muted">Affects: the run cannot feed the report or the hand-off.</span>
+        <span class="data">AUDIT_NOT_WRITTEN</span>
+        <div class="row" style="margin-top:auto"><button class="btn">Move into the workspace</button></div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

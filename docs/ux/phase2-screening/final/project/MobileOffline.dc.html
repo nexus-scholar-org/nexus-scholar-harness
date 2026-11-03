@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone offline queue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <span class="body-strong">Queued</span>
+    <span class="offline" style="margin-left:auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M12 20h.01"/></svg>Offline</span>
+  </header>
+  <main class="m-body">
+    <div class="stack" style="gap:var(--space-1)">
+      <span class="label eyebrow">Desktop not reachable since 14:12</span>
+      <h1 class="m-h1">3 decisions queued · will send when connected.</h1>
+      <p class="caption muted" style="margin:0">They are sent once, in order. Keep this page open: reloading while offline loses the queue.</p>
+    </div>
+
+    <section class="card" aria-label="Queued decisions" style="padding:0 var(--space-3)">
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap;padding:var(--space-2) 0;border-bottom:1px solid var(--hairline);min-height:52px">
+        <div class="stack" style="gap:0;min-width:0"><span class="caption body-strong">[Position paper on drones for precision agriculture]</span><span class="caption muted">14:09</span></div>
+        <span class="badge b-exclude">Exclude · EXC-01</span>
+      </div>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap;padding:var(--space-2) 0;border-bottom:1px solid var(--hairline);min-height:52px">
+        <div class="stack" style="gap:0;min-width:0"><span class="caption body-strong">[paper title]</span><span class="caption muted">14:10</span></div>
+        <span class="badge b-include">Include</span>
+      </div>
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap;padding:var(--space-2) 0;min-height:52px">
+        <div class="stack" style="gap:0;min-width:0"><span class="caption body-strong">[paper title]</span><span class="caption muted">14:11</span></div>
+        <span class="badge b-unclear">Unclear</span>
+      </div>
+    </section>
+
+    <section class="card stack" aria-labelledby="cf-h" style="gap:var(--space-2);padding:var(--space-3);border-color:var(--unclear)">
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+        <span class="badge b-unclear">Conflict</span>
+        <span class="caption muted">State · after sending at 14:31</span>
+      </div>
+      <h2 id="cf-h" class="body-strong" style="margin:0">This record was decided on both devices.</h2>
+      <span class="caption">[Position paper on drones for precision agriculture]: here Exclude · EXC-01 at 14:09, on the desktop Include at 14:15.</span>
+      <span class="caption muted">Neither counts until you choose; the other is kept as superseded.</span>
+      <div class="row" style="gap:var(--space-2);flex-wrap:nowrap">
+        <button class="btn btn-small" style="flex:1;min-height:44px">Keep Exclude</button>
+        <button class="btn btn-small" style="flex:1;min-height:44px">Keep Include</button>
+      </div>
+    </section>
+  </main>
+  <div class="m-actions">
+    <button class="btn btn-primary">Try to send now</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

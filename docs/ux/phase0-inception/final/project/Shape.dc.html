@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shape</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">New review · draft <span class="data">rec_7f3a…</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-on" href="#" aria-current="step">Inception</a>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Inception steps" style="gap:var(--space-1)">
+      <a class="step step-done" href="#">1 Scope · done</a>
+      <a class="step step-done" href="#">2 Explore · done</a>
+      <a class="step step-done" href="#">3 Direction · done</a>
+      <a class="step step-on" href="#" aria-current="step">4 Shape</a>
+      <span class="step">5 Concepts and criteria</span>
+      <span class="step">6 Review and emit</span>
+      <span class="caption muted" style="margin-left:auto">Draft saved 3 Nov 2026 · <span class="data">rec_7f3a…</span></span>
+    </nav>
+
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 4 of 6 · Shape · lens and questions</span>
+      <h1 class="display" style="margin:0">Which lens fits, and what will you ask?</h1>
+      <p class="lede">Four paradigm cards replace the wide comparison grid. A word scan of your question leans one way; that card is marked, and choosing it pre-fills the playbook and a draft RQ1 for you to edit.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)" role="radiogroup" aria-label="Paradigm">
+          <label class="card stack" style="gap:var(--space-2);outline:1.5px solid var(--brand);background:var(--brand-soft);cursor:pointer">
+            <span class="row" style="justify-content:space-between"><span class="row" style="gap:var(--space-2)"><input type="radio" name="par" checked><span class="heading">Design Science</span></span><span class="badge b-brand">Leaning · 0.58</span></span>
+            <span class="body">Engineer a novel artifact that solves an operational utility problem.</span>
+            <span class="caption muted">Evidence: benchmarks, ablations, latency profiling</span>
+            <span class="caption muted">Excludes: opinion without an evaluated artifact</span>
+          </label>
+          <label class="card stack" style="gap:var(--space-2);cursor:pointer">
+            <span class="row" style="gap:var(--space-2)"><input type="radio" name="par"><span class="heading">Positivist</span></span>
+            <span class="body">Measure objective, generalizable statistical effects.</span>
+            <span class="caption muted">Evidence: controlled benchmarks, A/B logs</span>
+            <span class="caption muted">Excludes: anecdotes, subjective state as proof</span>
+          </label>
+          <label class="card stack" style="gap:var(--space-2);cursor:pointer">
+            <span class="row" style="gap:var(--space-2)"><input type="radio" name="par"><span class="heading">Pragmatist / Mixed Methods</span></span>
+            <span class="body">Triangulate metrics with narratives to solve a socio-technical problem.</span>
+            <span class="caption muted">Evidence: telemetry plus interview coding</span>
+            <span class="caption muted">Excludes: theory with no practice grounding</span>
+          </label>
+          <label class="card stack" style="gap:var(--space-2);cursor:pointer">
+            <span class="row" style="gap:var(--space-2)"><input type="radio" name="par"><span class="heading">Interpretivist</span></span>
+            <span class="body">Understand human meaning, perceptions and identity.</span>
+            <span class="caption muted">Evidence: interviews, thematic coding</span>
+            <span class="caption muted">Excludes: p-values, global generalizability</span>
+          </label>
+        </div>
+        <span class="caption muted">The leaning is a keyword scan of your question, not a judgement. Four lenses only; question frameworks such as PICO or SPIDER are not offered yet.</span>
+
+        <fieldset class="card stack" style="margin:0">
+          <legend class="label" style="padding:0 var(--space-1)">Playbook</legend>
+          <label class="row" style="gap:var(--space-2)"><input type="radio" name="pb" checked><span class="body"><span class="body-strong">DESIGN_SCIENCE</span> · Hevner DSR <span class="muted">(matches Design Science)</span></span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="radio" name="pb"><span class="body">PRISMA_SLR · PRISMA 2020</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="radio" name="pb"><span class="body">SCOPING_REVIEW · JBI</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="radio" name="pb"><span class="body">RAPID_EVIDENCE</span></label>
+          <label class="row" style="gap:var(--space-2)"><input type="radio" name="pb"><span class="body">STUDENT_DISSERTATION</span></label>
+          <label class="row" style="gap:var(--space-2);border-top:1px solid var(--hairline);padding-top:var(--space-3)"><input type="checkbox"><span class="body">Add a secondary paradigm (mixed lens)</span></label>
+        </fieldset>
+      </div>
+
+      <div class="side">
+        <div class="card stack" style="gap:var(--space-4)">
+          <div class="field"><label for="unit" class="body-strong">Unit of analysis</label><input id="unit" class="in" value="a deployed detection model"><span class="caption muted">e.g. a model, a team, a crop field</span></div>
+          <div class="field"><label for="proof" class="body-strong">Proof a reviewer would accept</label><input id="proof" class="in" value="accuracy and on-device latency vs a baseline"></div>
+          <div class="draft stack" style="gap:var(--space-2)">
+            <span class="label">Template draft · not yet yours</span>
+            <div class="field">
+              <label for="rq1" class="body-strong">RQ1</label>
+              <textarea id="rq1" class="in" rows="5">Can a novel lightweight CNN crop disease detection artifact achieve accuracy and on-device latency vs a baseline for a deployed detection model, compared to a defined baseline?</textarea>
+              <span class="caption t-unclear">"baseline" appears twice; tidy it before you accept.</span>
+            </div>
+            <span class="data muted">template DESIGN_SCIENCE · RQ1 · filled from unit, proof and direction</span>
+            <div class="row" style="gap:var(--space-2)"><button class="btn btn-small">Accept RQ1 as written</button><button class="btn btn-small">Clear and write my own</button></div>
+          </div>
+          <button class="btn" style="align-self:flex-start"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Add RQ2</button>
+          <span class="caption muted" style="border-top:1px solid var(--hairline);padding-top:var(--space-3)">Vocabulary for this lens: artifact, design propositions, evaluation criteria, utility.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <a href="#" class="btn">Back to Direction</a>
+      <button class="btn">Save draft and exit</button>
+      <button class="btn btn-primary">Continue to concepts and criteria<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1250}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discovery home</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Phase 1 · Discovery · overview</span>
+        <h1 class="display" style="margin:0">Run 3 identified 3,506 records; 14 possible duplicates need you before screening.</h1>
+        <p class="lede">Nothing reaches a database until you approve the plan. Every count below links to the exact query that produced it.</p>
+      </div>
+      <span class="badge b-unclear">Run 3 · Partial</span>
+    </div>
+
+    <section aria-label="Discovery at a glance" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)">
+      <div class="card stack" style="gap:var(--space-2)">
+        <span class="label">Databases planned</span>
+        <span class="title num">4 of 6</span>
+        <span class="caption">OpenAlex · Semantic Scholar · Crossref · arXiv</span>
+        <span class="caption muted">PubMed not selected · bioRxiv off by default</span>
+      </div>
+      <div class="card stack" style="gap:var(--space-2)">
+        <span class="label">Last run</span>
+        <span class="title num">Run 3</span>
+        <span class="caption"><span class="data">2026-11-02 14:20 UTC</span></span>
+        <span class="caption muted">Crossref is a lower bound · Semantic Scholar failed</span>
+      </div>
+      <div class="card stack" style="gap:var(--space-2)">
+        <span class="label">Records identified</span>
+        <span class="title num">3,506</span>
+        <span class="caption">from 4 databases · 0 imports</span>
+        <span class="caption muted">a count, not a universe: one database hit its cap</span>
+      </div>
+      <div class="card stack" style="gap:var(--space-2)">
+        <span class="label">After duplicates</span>
+        <span class="title num">3,241</span>
+        <span class="caption">265 removed by identifier and title</span>
+        <span class="caption t-unclear">14 near-twins wait for your decision</span>
+      </div>
+    </section>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="flow-h">
+          <h2 id="flow-h" class="heading" style="margin:0">Where this search stands</h2>
+          <table class="tbl">
+            <thead><tr><th>Step</th><th>What it does</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="body-strong">1 · Plan</td><td>The exact string each database receives, limits, what each cannot express</td><td><span class="badge b-include">Approved</span></td><td><a href="#">Open</a></td></tr>
+              <tr><td class="body-strong">2 · Recall check</td><td>Do known papers from inception come back?</td><td><span class="badge b-unclear">7 of 8 found</span></td><td><a href="#">Open</a></td></tr>
+              <tr><td class="body-strong">3 · Harvest</td><td>Fetched versus each database's own reported total</td><td><span class="badge b-unclear">Partial</span></td><td><a href="#">Open</a></td></tr>
+              <tr><td class="body-strong">4 · Import</td><td>Add RIS or CSV exports from Scopus, Web of Science or another database</td><td><span class="badge b-exclude">None yet</span></td><td><a href="#">Open</a></td></tr>
+              <tr style="background:var(--brand-soft)"><td class="body-strong">5 · Duplicates</td><td>Merges per tier; near-twins decided by you, journaled</td><td><span class="badge b-unclear">14 to decide</span></td><td><a href="#">Open</a></td></tr>
+              <tr><td class="body-strong">6 · Report</td><td>PRISMA-S: per-database strings, dates, counts, methods draft</td><td><span class="badge b-exclude">Draft</span></td><td><a href="#">Open</a></td></tr>
+              <tr><td class="body-strong">7 · Hand-off</td><td>Accept the corpus snapshot and prepare screening</td><td><span class="badge b-exclude">Not started</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section aria-label="Entry points" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-3)">
+          <a class="btn" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+            Plan
+          </a>
+          <a class="btn" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+            Import an export
+          </a>
+          <a class="btn" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>
+            Run search
+          </a>
+          <a class="btn" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg>
+            Search report
+          </a>
+        </section>
+
+        <details class="caption muted">
+          <summary>Run from the terminal</summary>
+          <div class="data" style="margin-top:var(--space-2)">uv run scholar-harness discover plan · check · run · report</div>
+        </details>
+      </div>
+
+      <aside class="side">
+        <div class="card stack" style="gap:var(--space-2)">
+          <span class="label">What is kept honest</span>
+          <span class="caption">Each run is numbered and kept; nothing overwrites run 1 or 2.</span>
+          <span class="caption">A failed database publishes no corpus; earlier files stay and are named stale.</span>
+          <span class="caption">Record ids come from identifiers, so they stay the same across re-runs.</span>
+          <span class="caption muted">Contact email for polite access: <span class="data">[your institutional email]</span> · <a href="#">Change</a></span>
+        </div>
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Next step</span>
+          <p class="body" style="margin:0">Decide the 14 near-twin pairs. Undecided pairs stay as separate records and are listed in the report.</p>
+          <button class="btn btn-primary">Review 14 near-twins</button>
+          <button class="btn">Open the search report</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
