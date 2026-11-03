@@ -99,3 +99,8 @@ desktop.ini
 *.aux
 *.log
 *.out
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+# Claude Code skill installs (third-party copies, not project work)
+.claude/skills/
+skills-lock.json
