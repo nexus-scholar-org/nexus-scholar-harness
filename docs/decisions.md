@@ -4,6 +4,62 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-03 — Claude Code dev workflow and area-based test gates
+
+The OpenCode four-agent loop is no longer the development workflow; the files
+stay, baseline-locked, as history. Development runs in Claude Code with three
+project slash commands (`/milestone`, `/gate`, `/ship` in `.claude/skills/`) and
+four narrow subagents (`.claude/agents/`): a read-only finding auditor, a test
+gatekeeper, an independent milestone reviewer, and a UX spec writer. The
+researcher approves milestone starts, contract decisions and every push.
+
+The test selector was keyed to E3 RAG tasks, so after the one-package merge a
+screening edit selected an unrelated RAG test and a search, protocol or UI edit
+fell back to the full ten-minute Python suite. Selection is now by source area
+(`areas` in `docs/architecture/test_gate_manifest.json`, `--changed` from git).
+Inner gates skip `@pytest.mark.slow`, and the PR gate runs the full suite once in
+parallel (`pytest-xdist`, `-n auto`). The full suite still runs once per PR
+candidate; that rule did not change. Details are in
+[`architecture/test_gate_policy.md`](architecture/test_gate_policy.md) §Selector.
+
+## 2026-11-03 — Deployment: local engine first, hybrid sync later (option C staged from A0)
+
+Nexus Scholar ships first as a local engine. `uv tool install nexus-scholar`,
+then `nexus-scholar ui`, serves the static-exported research UI and `/api/v1`
+from the one FastAPI process on loopback, behind a per-launch token. `--lan`
+plus a QR code lets a phone on the same network screen. Workspaces stay local
+folders, with no hosted infrastructure. AI proposals come first from the
+researcher's own Claude Code or Claude Desktop through the `scholar-agent` MCP
+server, which writes proposals only. A bring-your-own Anthropic or Gemini key
+is the second path, for in-app runs. The maintainer never pays for or resells
+tokens. The engine, UI and MCP server stay MIT. Paid features (end-to-end
+encrypted sync of decision and journal events, team dual screening with real
+κ, institutional SSO) go in a separate proprietary service, built only after
+10–20 real users. Stage 1 sells onboarding and support, not code-gated
+features. A signed desktop app (Tauri with a Python sidecar) waits for user
+demand. Hosted web-first (option B) was rejected: it contradicts the privacy
+of unpublished reviews and adds operations work that one maintainer cannot
+carry. The full option study is in
+[`roadmap/production-plan.md`](roadmap/production-plan.md) §5.
+
+## 2026-11-03 — Brand book replaces VISUAL_DIRECTION as the UI design system
+
+`docs/ux/brand/tokens.json` and `BRAND_BOOK.md` become the design system of
+record for `apps/research-ui`. This reverses VISUAL_DIRECTION decision D1 (no
+web fonts, no radius, light only). Tokens generate the Tailwind 4 theme, with
+light and dark modes. The fonts (Literata, Public Sans, IBM Plex Mono) are
+self-hosted, not loaded from Google, so the tool works offline and makes no
+third-party calls. VISUAL_DIRECTION rules that do not conflict are kept as
+amendments. GATES and the browser colour tests are updated in the same PR.
+
+## 2026-11-03 — Production scope: Inception, Discovery, Screening over two months
+
+Only Phases 0–2 are brought to production, on the two-month sequence M0–M5 in
+[`roadmap/production-plan.md`](roadmap/production-plan.md) §6. Screening comes
+first. The quality gate is a real end-to-end run on the golden UAV workspace,
+not the autonomous agent loop. Everything else is labelled "not production —
+parked" in UI, docs, CLI and MCP.
+
 ## 2026-11-03 — One package instead of eight kit repositories
 
 The harness and the eight `scholar-*-kit` packages ship as one distribution,

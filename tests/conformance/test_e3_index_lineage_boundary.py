@@ -667,6 +667,7 @@ def test_e3_pos_005_baseline_chunk_id_rederives_from_the_fixture_limbs() -> None
 # --------------------------------------------------------------------------- #
 
 
+@pytest.mark.slow
 def test_e3_neg_010_request_limbs_inherit_recorded_identity(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

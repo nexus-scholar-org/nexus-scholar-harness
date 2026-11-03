@@ -119,6 +119,7 @@ def phase3_test_workspace(tmp_path):
     return workspace, proto_file
 
 
+@pytest.mark.slow
 def test_phase3_e2e_full_lifecycle(phase3_test_workspace, monkeypatch):
     workspace, proto_file = phase3_test_workspace
 

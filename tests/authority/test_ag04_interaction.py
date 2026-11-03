@@ -875,6 +875,7 @@ except Exception as exc:  # noqa: BLE001 - report, never raise
     not isolation.available(),
     reason="Windows MIC isolation unavailable on this host",
 )
+@pytest.mark.slow
 def test_low_il_worker_process_windows(tmp_path: Path) -> None:
     """AG04-10 (Windows): a real Low-IL worker cannot approve; inbox write is its limit.
 

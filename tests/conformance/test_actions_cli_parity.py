@@ -110,6 +110,7 @@ def test_action_command_parses_against_cli(action):
     )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("subcommand", ["prepare", "collect"])
 def test_agent_screen_subcommands_parse(subcommand):
     """agent_screen.py prepare/collect (Agent-exchange actions) must parse."""

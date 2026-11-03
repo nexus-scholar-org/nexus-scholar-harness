@@ -102,5 +102,8 @@ desktop.ini
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
 # Claude Code skill installs (third-party copies, not project work)
-.claude/skills/
+.claude/skills/*
+!.claude/skills/milestone/
+!.claude/skills/gate/
+!.claude/skills/ship/
 skills-lock.json

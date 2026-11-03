@@ -74,6 +74,8 @@ all = ["nexus-scholar[pdf,extract,rag]"]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.21.0",
+    # Parallel full-suite gate (`-n auto`, docs/architecture/test_gate_policy.md).
+    "pytest-xdist>=3.5.0",
     "ruff>=0.4.0",
     "vcrpy>=5.0.0",
     # starlette's TestClient (console API tests) requires httpx2.
@@ -131,3 +133,6 @@ packages = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
+markers = [
+    "slow: >= ~2.5s (subprocess, real index or server); skipped by the inner test gate",
+]

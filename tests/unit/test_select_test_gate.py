@@ -34,14 +34,15 @@ def test_path_selection_unions_overlapping_tasks_without_duplicate_commands() ->
     data = MODULE.load_manifest()
     tasks, commands = MODULE.select_commands(
         data,
-        tasks=[],
+        tasks=["T-20", "T-40", "T-120"],
         paths=["src/scholar_rag/chunker.py"],
         stage="checkpoint",
     )
-    # A vendored kit edit also selects the harness synchronization boundary.
+    # Explicit E3 tasks union with the rag area gate, without duplicates.
     assert tasks == ["T-20", "T-40", "T-120"]
     assert commands[0] == "git diff --check"
     assert len(commands) == len(set(commands))
+    assert any("tests/kits/rag" in command for command in commands)
 
 
 def test_unknown_task_and_empty_selection_fail_closed() -> None:
@@ -60,7 +61,7 @@ def test_unmatched_executable_path_uses_full_repository_fallback() -> None:
     assert tasks == []
     assert commands == [
         "git diff --check",
-        "uv run pytest -q",
+        "uv run pytest -q -n auto",
         "uv run ruff check scripts/",
     ]
 
@@ -83,7 +84,7 @@ def test_prose_only_doc_selects_light_gate_without_full_suite() -> None:
     )
     assert tasks == []
     assert commands == ["git diff --check"]
-    assert "uv run pytest -q" not in commands
+    assert "uv run pytest -q -n auto" not in commands
 
 
 def test_unmatched_root_readme_is_prose_not_an_error() -> None:
@@ -103,7 +104,7 @@ def test_consumed_doc_keeps_boundary_check() -> None:
         data, tasks=[], paths=["docs/kits_surface_matrix.md"], stage="inner"
     )
     assert "uv run pytest tests/conformance/test_count_freshness.py -q" in commands
-    assert "uv run pytest -q" not in commands
+    assert "uv run pytest -q -n auto" not in commands
 
 
 def test_consumed_skill_doc_keeps_mirror_check() -> None:
@@ -116,7 +117,7 @@ def test_consumed_skill_doc_keeps_mirror_check() -> None:
         stage="inner",
     )
     assert "uv run python scripts/sync_skills_bundle.py --check" in commands
-    assert "uv run pytest -q" not in commands
+    assert "uv run pytest -q -n auto" not in commands
 
 
 def test_locked_doc_keeps_drift_requirements() -> None:
@@ -130,7 +131,7 @@ def test_locked_doc_keeps_drift_requirements() -> None:
     )
     assert "uv run python scripts/generate_contract_baseline.py --check" in commands
     assert "uv run python scripts/generate_contract_schemas.py --check" in commands
-    assert "uv run pytest -q" not in commands
+    assert "uv run pytest -q -n auto" not in commands
 
 
 def test_executable_change_selects_executable_gate() -> None:
@@ -142,19 +143,16 @@ def test_executable_change_selects_executable_gate() -> None:
         paths=["src/scholar_harness/authority/binding.py"],
         stage="inner",
     )
-    assert tasks == ["T-130"]
+    assert tasks == []
     assert commands != ["git diff --check"]
-    assert (
-        "uv run pytest tests/conformance/test_e3_index_lineage_boundary.py -q"
-        in commands
-    )
+    assert 'uv run pytest tests/authority -q -m "not slow"' in commands
     _, pr_commands = MODULE.select_commands(
         data,
         tasks=[],
         paths=["src/scholar_harness/authority/binding.py"],
         stage="pr",
     )
-    assert "uv run pytest -q" in pr_commands
+    assert "uv run pytest -q -n auto" in pr_commands
 
 
 def test_mixed_prose_and_executable_unions() -> None:
@@ -175,7 +173,7 @@ def test_mixed_prose_and_executable_unions() -> None:
         paths=["src/scholar_harness/authority/binding.py"],
         stage="inner",
     )
-    assert mixed_tasks == ["T-130"]
+    assert mixed_tasks == []
     assert mixed_commands == exec_commands
     _, union_commands = MODULE.select_commands(
         data,
@@ -189,22 +187,19 @@ def test_mixed_prose_and_executable_unions() -> None:
     assert (
         "uv run pytest tests/conformance/test_count_freshness.py -q" in union_commands
     )
-    assert (
-        "uv run pytest tests/conformance/test_e3_index_lineage_boundary.py -q"
-        in union_commands
-    )
+    assert 'uv run pytest tests/authority -q -m "not slow"' in union_commands
 
 
 def test_unknown_path_falls_back_conservatively() -> None:
     """F1-06: unknown paths take the harness full suite, never light-only."""
     data = MODULE.load_manifest()
     tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["apps/research-ui/app/page.tsx"], stage="inner"
+        data, tasks=[], paths=["packaging/unknown.cfg"], stage="inner"
     )
     assert tasks == []
     assert commands == [
         "git diff --check",
-        "uv run pytest -q",
+        "uv run pytest -q -n auto",
         "uv run ruff check scripts/",
     ]
 
@@ -262,77 +257,154 @@ def test_manifest_docs_cover_baseline_locked_non_executable_paths() -> None:
     assert uncovered == []
 
 
-def test_t160_authority_path_selects_targeted_gate() -> None:
-    """F3-01: authority area resolves to T-160 inner gate."""
+@pytest.mark.parametrize(
+    ("path", "directory"),
+    [
+        ("tests/authority/test_review_lifecycle.py", "tests/authority"),
+        ("tests/pipeline/test_pipeline_executor.py", "tests/pipeline"),
+        ("tests/unit/test_audit_log.py", "tests/unit"),
+        ("tests/e2e/test_e2e_search_screen.py", "tests/e2e"),
+        ("tests/console/test_console_jobs.py", "tests/console"),
+        ("tests/mcp/test_mcp_setup.py", "tests/mcp"),
+        ("tests/recon/test_engine.py", "tests/recon"),
+        ("tests/kits/search/test_engine.py", "tests/kits/search"),
+    ],
+)
+def test_changed_test_file_runs_itself_then_its_directory(path: str, directory: str) -> None:
+    """A test-only edit runs that file at inner and its directory at checkpoint."""
+    data = MODULE.load_manifest()
+    tasks, commands = MODULE.select_commands(data, tasks=[], paths=[path], stage="inner")
+    assert tasks == []
+    assert commands == ["git diff --check", f"uv run pytest {path} -q"]
+    _, checkpoint = MODULE.select_commands(
+        data, tasks=[], paths=[path], stage="checkpoint"
+    )
+    assert f"uv run pytest {directory} -q" in checkpoint
+    _, pr = MODULE.select_commands(data, tasks=[], paths=[path], stage="pr")
+    assert "uv run pytest -q -n auto" in pr
+
+
+def test_top_level_test_file_runs_itself_at_checkpoint() -> None:
+    data = MODULE.load_manifest()
+    _, commands = MODULE.select_commands(
+        data, tasks=[], paths=["tests/test_handoff.py"], stage="checkpoint"
+    )
+    assert "uv run pytest tests/test_handoff.py -q" in commands
+    assert "uv run pytest tests -q" not in commands
+
+
+def test_explicit_e3_task_still_selects_its_gate() -> None:
     data = MODULE.load_manifest()
     tasks, commands = MODULE.select_commands(
-        data,
-        tasks=[],
-        paths=["tests/authority/test_review_lifecycle.py"],
-        stage="inner",
+        data, tasks=["T-160"], paths=[], stage="inner"
     )
     assert tasks == ["T-160"]
     assert "uv run pytest tests/authority -q" in commands
 
 
-def test_t170_pipeline_path_selects_targeted_gate() -> None:
-    """F3-01: pipeline area resolves to T-170 inner gate."""
+@pytest.mark.parametrize(
+    ("path", "area", "expected"),
+    [
+        (
+            "src/scholar_harness/screening/collector.py",
+            "screening",
+            "tests/test_screening_migration.py",
+        ),
+        ("src/scholar_harness/console/api/screening.py", "console", "tests/console"),
+        ("src/scholar_harness/inception/wizard.py", "inception", "tests/inception"),
+        ("src/scholar_search/providers/pubmed.py", "search", "tests/kits/search"),
+        ("src/scholar_protocol/compiler.py", "protocol", "tests/kits/protocol"),
+        ("src/scholar_agent/server.py", "agent-mcp", "tests/kits/agent"),
+        ("src/scholar_harness/handoff.py", "harness-other", "tests/unit"),
+    ],
+)
+def test_source_area_selects_narrow_inner_gate(path: str, area: str, expected: str) -> None:
+    """Area gates replace both the irrelevant E3 match and the full-suite fallback."""
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(
+    assert MODULE.matched_areas(data, [path]) == [area]
+    tasks, commands = MODULE.select_commands(data, tasks=[], paths=[path], stage="inner")
+    assert tasks == []
+    assert any(expected in command and '-m "not slow"' in command for command in commands)
+    assert "uv run pytest -q -n auto" not in commands
+    assert not any("test_e3_index_lineage_boundary" in command for command in commands)
+    _, pr = MODULE.select_commands(data, tasks=[], paths=[path], stage="pr")
+    assert "uv run pytest -q -n auto" in pr
+
+
+def test_contracts_area_keeps_baseline_drift_check_at_inner() -> None:
+    data = MODULE.load_manifest()
+    _, commands = MODULE.select_commands(
         data,
         tasks=[],
-        paths=["tests/pipeline/test_pipeline_executor.py"],
+        paths=["src/scholar_harness/contracts/acceptance.py"],
         stage="inner",
     )
-    assert tasks == ["T-170"]
-    assert "uv run pytest tests/pipeline -q" in commands
+    assert "uv run python scripts/generate_contract_baseline.py --check" in commands
 
 
-def test_t180_unit_path_selects_targeted_gate() -> None:
-    """F3-01: unit area resolves to T-180 inner gate."""
+def test_research_ui_change_takes_ui_gate_not_python_suite() -> None:
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["tests/unit/test_audit_log.py"], stage="inner"
-    )
-    assert tasks == ["T-180"]
-    assert "uv run pytest tests/unit -q" in commands
+    paths = [
+        "apps/research-ui/components/screening-page.tsx",
+        "apps/research-ui/lib/screening-api.ts",
+    ]
+    _, inner = MODULE.select_commands(data, tasks=[], paths=paths, stage="inner")
+    assert inner == [
+        "git diff --check",
+        "npm --prefix apps/research-ui run typecheck",
+        "npm --prefix apps/research-ui run test:related -- "
+        "components/screening-page.tsx lib/screening-api.ts",
+    ]
+    _, pr = MODULE.select_commands(data, tasks=[], paths=paths, stage="pr")
+    assert "npm --prefix apps/research-ui run test:browser" in pr
+    assert not any(command.startswith("uv run pytest") for command in pr)
 
 
-def test_t190_e2e_path_selects_targeted_gate() -> None:
-    """F3-01: e2e area resolves to T-190 inner gate."""
+def test_research_ui_markdown_stays_prose() -> None:
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["tests/e2e/test_e2e_search_screen.py"], stage="inner"
+    _, commands = MODULE.select_commands(
+        data, tasks=[], paths=["apps/research-ui/docs/GATES.md"], stage="inner"
     )
-    assert tasks == ["T-190"]
-    assert "uv run pytest tests/e2e -q" in commands
+    assert commands == ["git diff --check"]
 
 
-def test_t200_console_path_selects_targeted_gate() -> None:
-    """F3-01: console area resolves to T-200 inner gate."""
+def test_mixed_area_and_unknown_path_still_takes_full_fallback() -> None:
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["tests/console/test_console_jobs.py"], stage="inner"
+    _, commands = MODULE.select_commands(
+        data,
+        tasks=[],
+        paths=["src/scholar_search/engine.py", "packaging/unknown.cfg"],
+        stage="inner",
     )
-    assert tasks == ["T-200"]
-    assert "uv run pytest tests/console -q" in commands
+    # The full-suite fallback subsumes the narrower search run.
+    assert "uv run pytest -q -n auto" in commands
+    assert not any("tests/kits/search" in command for command in commands)
 
 
-def test_t210_mcp_path_selects_targeted_gate() -> None:
-    """F3-01: mcp area resolves to T-210 inner gate."""
+def test_every_area_command_targets_existing_test_paths() -> None:
+    """Area commands must not silently point at deleted or renamed tests."""
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["tests/mcp/test_mcp_setup.py"], stage="inner"
-    )
-    assert tasks == ["T-210"]
-    assert "uv run pytest tests/mcp -q" in commands
+    root = SCRIPT.parents[1]
+    for area in data["areas"]:
+        for stage in data["stages"]:
+            for command in area.get(stage, []):
+                if not command.startswith("uv run pytest "):
+                    continue
+                for raw in command.split()[3:]:
+                    token = raw.removeprefix("--ignore=")
+                    if token.startswith("tests"):
+                        assert (root / token).exists(), f"{area['name']}/{stage}: {token}"
 
 
-def test_t220_recon_path_selects_targeted_gate() -> None:
-    """F3-01: recon area resolves to T-220 inner gate."""
+def test_full_suite_runs_once_and_subsumes_narrower_pytest_runs() -> None:
+    """A pr selection with a full-suite fallback must not also run subsets."""
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["tests/recon/test_engine.py"], stage="inner"
+    _, commands = MODULE.select_commands(
+        data,
+        tasks=[],
+        paths=["pyproject.toml", ".gitignore", "scripts/select_test_gate.py"],
+        stage="pr",
     )
-    assert tasks == ["T-220"]
-    assert "uv run pytest tests/recon -q" in commands
+    pytest_runs = [command for command in commands if command.startswith("uv run pytest")]
+    assert pytest_runs == ["uv run pytest -q -n auto"]
+    assert "uv run ruff check scripts/" in commands

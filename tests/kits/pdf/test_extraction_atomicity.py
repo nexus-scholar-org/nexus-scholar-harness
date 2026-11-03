@@ -108,6 +108,7 @@ def test_e2_pos_002_exact_rerun_is_idempotent_and_never_re_extracts(
     assert len(engine.calls) == 1
 
 
+@pytest.mark.slow
 def test_e2_neg_029_crash_before_sidecar_leaves_no_authoritative_output(
     tmp_path: Path,
 ) -> None:

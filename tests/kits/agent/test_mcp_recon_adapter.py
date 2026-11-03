@@ -289,6 +289,7 @@ def test_absence_no_discovery_source():
     assert "find_spec" not in src
 
 
+@pytest.mark.slow
 def test_absence_import_does_not_mutate_sys_path():
     code = (
         "import sys, json; "
@@ -311,6 +312,7 @@ def test_absence_import_does_not_mutate_sys_path():
     assert payload["same_path"] is True
 
 
+@pytest.mark.slow
 def test_absence_env_override_is_ignored():
     """Setting the legacy override must not change import-time path state."""
     code = (

@@ -1,6 +1,6 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -497,8 +497,18 @@ describe("live mode against a real console over real HTTP", () => {
         expect(screen.getByText(wsId)).toBeInTheDocument();
         expect(screen.queryByText(demoScreeningRecord.citation)).toBeNull();
       } finally {
-        if (child !== null) {
-          child.kill();
+        if (child !== null && child.exitCode === null && child.signalCode === null) {
+          // `uv run` parents the server: killing the parent alone orphans the
+          // listener on Windows, so the whole tree goes (`/T`), by force (`/F`).
+          try {
+            if (process.platform === "win32" && child.pid !== undefined) {
+              execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+            } else {
+              child.kill();
+            }
+          } catch {
+            // Already gone.
+          }
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }

@@ -482,7 +482,7 @@ describe("byte pins", () => {
     },
     {
       path: "package.json",
-      sha256: "b8b9c1e8accec9b0fd7b9d74f9ca0ea38fb2f416413ed2164a19bebcb3627208",
+      sha256: "aa6b96f9f0527b24467416d640a070e5b12169880e6b0489f4ea2dc894564e99",
     },
     {
       path: "package-lock.json",

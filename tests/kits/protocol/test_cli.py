@@ -227,6 +227,7 @@ def test_render_criteria_nonexistent_exit_2() -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 def test_extraction_schema_output_is_json() -> None:
     """extraction-schema must output valid JSON Schema."""
     result = run("extraction-schema", str(VALID_DIR / "design_science_min.json"))

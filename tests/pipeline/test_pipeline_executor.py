@@ -165,6 +165,7 @@ def test_on_fail_continue_keeps_running(tmp_path):
     assert (ws / "literature" / "n3.json").exists()
 
 
+@pytest.mark.slow
 def test_on_fail_skip_marks_skipped(tmp_path):
     ws = _bootstrap(tmp_path)
     spec = _spec_dict()
@@ -310,6 +311,7 @@ def test_cli_run_pipeline_halted_exit(tmp_path):
     assert "review" in result.output
 
 
+@pytest.mark.slow
 def test_cold_import_no_circular_import():
     """Verify scholar_harness.pipeline_executor imports in a fresh process without circular import."""
     code = "import scholar_harness.pipeline_executor; import scholar_harness.console"

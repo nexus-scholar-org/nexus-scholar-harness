@@ -27,6 +27,7 @@ def clean_env():
         os.environ.pop("NEXUS_RECON_ROOT", None)
 
 
+@pytest.mark.slow
 def test_scholar_agent_cli_help_subprocess():
     """Verify scholar-agent --help succeeds and lists options and tools."""
     res = subprocess.run(

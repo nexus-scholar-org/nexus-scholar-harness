@@ -79,17 +79,44 @@ The selector prints the required commands; it deliberately does not execute
 them:
 
 ```powershell
-uv run python scripts/select_test_gate.py --task T-10 --stage inner
-uv run python scripts/select_test_gate.py --task T-20 --stage checkpoint
-uv run python scripts/select_test_gate.py --path tools/scholar-rag-kit/src/scholar_rag/chunker.py --stage inner
+uv run python scripts/select_test_gate.py --changed main --stage inner   # usual form
+uv run python scripts/select_test_gate.py --path src/scholar_search/engine.py --stage checkpoint
 uv run python scripts/select_test_gate.py --task T-120 --stage closure --format json
 uv run python scripts/select_test_gate.py --check
 ```
 
-Multiple tasks and paths are unioned in deterministic order. Path inference is
-conservative: if a changed executable path matches no rule, the selector emits
-the full-suite fallback for the requested repository/stage. An empty selection
-is an error, not permission to skip testing.
+`--changed [BASE]` adds every path changed since the merge base with `BASE`
+(default `main`), including staged, unstaged and untracked files. In Claude Code,
+`/gate [stage]` runs this and the selected commands.
+
+Selection, in order:
+
+1. **Areas** (`areas` in the manifest, added 2026-11-03 after the one-package
+   merge). Each non-Markdown path takes the first area whose globs match it:
+   screening, contracts, authority, console, inception, recon, pipeline,
+   workspace-audit, harness-cli, a `src/scholar_harness/**` catch-all, one area
+   per package under `src/scholar_*`, the selector itself, and `research-ui`
+   (typecheck plus `vitest related` for the touched files at inner; vitest,
+   build and Playwright at pr, never the Python suite). Area `pr`/`closure`
+   default to the full Python suite once, in parallel (`-n auto`).
+2. **Changed test files** outside every area run themselves at inner, their
+   directory at checkpoint, and the full suite at pr.
+3. **E3 tasks** (`T-10`…`T-230`) apply to remaining paths and to explicit
+   `--task`; they are kept as history.
+4. **Docs:** prose takes the light gate; consumed and baseline-locked docs keep
+   their boundary and drift checks.
+5. **Fallback:** an executable path that nothing above matches takes the full
+   suite. Add an area rather than living with the fallback. An empty selection is
+   an error, not permission to skip testing.
+
+**Slow tests.** Tests that take about 2.5 s or more (real subprocesses, real
+servers, real indexes) carry `@pytest.mark.slow`. Inner area gates run
+`-m "not slow"`; checkpoint, pr and closure run them. Measured on 2026-11-03
+(Windows, 8 logical cores): the full suite took 10 m 25 s serially and about
+5 m 47 s with `-n auto`; inner area gates for the screening, search, inception,
+protocol and agent areas took 6–29 s. Mark a new test slow when it exceeds the
+threshold; a test that starts a server must stop the whole process tree (on
+Windows, `taskkill /T /F`), or the orphan locks the venv's console scripts.
 
 ## E3 cadence
 

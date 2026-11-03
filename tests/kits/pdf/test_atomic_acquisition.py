@@ -1379,6 +1379,7 @@ def _marker_payload(
     }
 
 
+@pytest.mark.slow
 def test_e1_crash_at_manifest_replace_recovers_under_the_same_key(
     tmp_path: Path,
 ) -> None:

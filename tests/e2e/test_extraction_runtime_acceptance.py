@@ -919,6 +919,7 @@ def test_a3_success_event_reports_the_real_document_count(tmp_path: Path) -> Non
     assert outcome.artifact_id in events[0]["outputs"][0]
 
 
+@pytest.mark.slow
 def test_a3_producer_records_the_indexing_outcome_it_observed(
     tmp_path: Path, indexer: CapturingIndexer
 ) -> None:
@@ -1169,6 +1170,7 @@ def test_a5_producer_hands_the_gate_a_context_from_recorded_state(
     ), outcome.refusal["details"]["issue_codes"]
 
 
+@pytest.mark.slow
 def test_a5_producer_refuses_a_foreign_identity_that_is_not_recorded(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -1912,6 +1914,7 @@ def _script(args: list[str], *, env: dict[str, str] | None = None) -> tuple[int,
     return completed.returncode, completed.stdout
 
 
+@pytest.mark.slow
 def test_script_status_and_publish_json_parse_in_a_real_subprocess(
     tmp_path: Path,
 ) -> None:
@@ -2043,6 +2046,7 @@ def _script_json(
     return code, json.loads(stdout), stdout
 
 
+@pytest.mark.slow
 def test_script_index_json_refusal_in_a_real_subprocess(tmp_path: Path) -> None:
     """Standalone ``index --json`` with no accepted manifest: one document, exit 1.
 
@@ -2062,6 +2066,7 @@ def test_script_index_json_refusal_in_a_real_subprocess(tmp_path: Path) -> None:
     assert not (workspace / "rag" / "chroma_db").exists()
 
 
+@pytest.mark.slow
 def test_script_index_json_success_in_a_real_subprocess(tmp_path: Path) -> None:
     """Standalone ``index --json`` after a real publish: one document, exit 0."""
 
@@ -2094,6 +2099,7 @@ def test_script_index_json_success_in_a_real_subprocess(tmp_path: Path) -> None:
     assert (workspace / "rag" / "chroma_db").exists()
 
 
+@pytest.mark.slow
 def test_script_index_json_zero_indexed_exits_one_in_a_real_subprocess(
     tmp_path: Path,
 ) -> None:
@@ -2112,6 +2118,7 @@ def test_script_index_json_zero_indexed_exits_one_in_a_real_subprocess(
     assert payload["indexed_files"] == 0
 
 
+@pytest.mark.slow
 def test_script_status_json_identity_refusal_in_a_real_subprocess(
     tmp_path: Path,
 ) -> None:

@@ -43,6 +43,7 @@ import hashlib
 import json
 import socket
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -939,6 +940,7 @@ def _http_json(
         return exc.code, exc.read().decode("utf-8")
 
 
+@pytest.mark.slow
 def test_real_http_loopback_allow_and_refuse(tmp_path):
     """The action API answers over real loopback HTTP and refuses evil origins."""
     workspace, studies = _scaffold(tmp_path, name="http-ws")
@@ -988,11 +990,30 @@ def test_real_http_loopback_allow_and_refuse(tmp_path):
         assert status == 403, text
         assert json.loads(text)["detail"]["code"] == "ACTION_ORIGIN_REFUSED"
     finally:
+        _stop_tree(proc)
+
+
+def _stop_tree(proc: subprocess.Popen) -> None:
+    """Stop ``uv run`` and the server it parents.
+
+    On Windows terminating the ``uv``/``scholar-harness.exe`` launcher orphans
+    the Python listener, which then outlives the suite and locks the venv's
+    console scripts; the whole tree goes (``/T``), by force (``/F``).
+    """
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/pid", str(proc.pid), "/T", "/F"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    else:
         proc.terminate()
-        try:
-            proc.wait(timeout=15)
-        except subprocess.TimeoutExpired:
-            proc.kill()
+    try:
+        proc.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=15)
 
 
 # --- HCM-02: job_runner journal migration ------------------------------------------- #
