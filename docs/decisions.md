@@ -4,6 +4,31 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-03 — Plan revised after independent review: screening wedge at week 6
+
+An independent review of the production plan found that screening could not be
+reached before week 6: no code builds a corpus snapshot outside tests, and the
+import path was not scheduled. It also found that M1 was too large for one
+person. The researcher accepted three changes:
+
+- **Order.** M0 (adding a minimal `accept-corpus` entry path) → M1a screening
+  backend → M1b desktop UI and driver → M2 mobile → M5-slim package, where the
+  wedge ships. Discovery (M3) is stretch. The web Inception wizard (M4) moves
+  past the two-month horizon; inception stays CLI/MCP, labelled beta.
+- **You see every record by default.** The agent orders the queue and
+  proposes. Exclusion without a human look is an explicit opt-in with a sample
+  audit, and the methods paragraph discloses it (PRISMA 2020 item 8).
+- **Unclear is stored as the existing `ScreeningDecisionValue.MAYBE`.** It is
+  labelled "Unclear → full text". There is no Contract v1 version change; only
+  the collector's refusal of MAYBE at finalize changes, in M1a.
+
+The review also moved the prompt-gate eval from the 30-record golden workspace
+to the human-labelled `uav-crop-weed-v03` screening data (at least 200 records,
+at least 30 includes). It restricted `--lan` to a sub-app without the
+job-running routers, and keyed decision IDs on the client event ID so replays
+cannot void approvals. Details: `roadmap/production-plan.md` §2, §4, §6;
+`architecture/agent-system.md` §2–§6, §8.
+
 ## 2026-11-03 — Agent system: proposals only, least autonomy per job
 
 The AI behind Phases 0–2 is built as versioned *tasks*: a prompt, an output
@@ -48,8 +73,9 @@ from the one FastAPI process on loopback, behind a per-launch token. `--lan`
 plus a QR code lets a phone on the same network screen. Workspaces stay local
 folders, with no hosted infrastructure. AI proposals come first from the
 researcher's own Claude Code or Claude Desktop through the `scholar-agent` MCP
-server, which writes proposals only. A bring-your-own Anthropic or Gemini key
-is the second path, for in-app runs. The maintainer never pays for or resells
+server, which writes proposals only. A bring-your-own Anthropic key is the
+second path, for in-app runs. Whether Gemini stays as a third option is open
+(`architecture/agent-system.md` §9). The maintainer never pays for or resells
 tokens. The engine, UI and MCP server stay MIT. Paid features (end-to-end
 encrypted sync of decision and journal events, team dual screening with real
 κ, institutional SSO) go in a separate proprietary service, built only after

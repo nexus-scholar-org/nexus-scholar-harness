@@ -1,6 +1,13 @@
 # Production plan: Inception, Discovery, Screening
 
-**Status:** DECISIONS CONFIRMED 2026-11-03: option C staged from A0, MCP-first plus BYO key, the full two-month plan, the brand book as the design system (recorded in [`decisions.md`](../decisions.md)). Implementation has not started; M0 waits for go-ahead.
+**Status:** DECISIONS CONFIRMED 2026-11-03: option C staged from A0, MCP-first plus BYO key, the brand book as the design system (recorded in [`decisions.md`](../decisions.md)). **Revised the same day after an independent review:**
+- the screening wedge ships at week 6;
+- Discovery is stretch;
+- the web Inception wizard moves past the horizon;
+- you see every record by default;
+- Unclear is stored as MAYBE.
+
+The revised sequence is in §6. Implementation has not started; M0 waits for go-ahead.
 **Base:** `main` at `4229f04`. The contract baseline check passes there (`generate_contract_baseline.py --check`: "Contract baseline current").
 **Scope:** Phase 0 Inception, Phase 1 Discovery and Phase 2 Screening, each end to end (backend and UI). Everything else is frozen and labelled "not production" (§8).
 **First paying user:** solo PhD researchers, then labs and institutions. **Horizon:** 1 month for the screening wedge, 2 months for all three phases. **Infra and token budget:** to be decided. The recommended architecture needs none in stage 1 (§5).
@@ -45,10 +52,10 @@ Transport today (V): the browser calls `app/api/console/[...path]/route.ts`, a s
 | SRCH-11, SRCH-31 | One page per provider (`crossref.py:86-103`, `arxiv.py:196-225`, `pubmed.py:144-158`). The pool size is used as a retrieval cap, default 100 (`protocol_adapter.py:73-74`). | Paginate, read totals, emit `cap_hit`, no cap by default | M | SRCH-31: `target_candidate_pool_size` semantics are a protocol decision |
 | SRCH-12/13/14 | arXiv silent compaction (`arxiv.py:150-194`); bioRxiv drops operators, including NOT, and is in the default set (`biorxiv.py:24-27`, `engine.py:30-37`); PubMed regex rewrite (`pubmed.py:138`) | Report the executed string; drop bioRxiv from the defaults; translate from parsed tokens | S each | No |
 | SRCH-10 | A DOI resolving returns "verified" with no title check (`verifier.py:65-90`) | `DOI_TITLE_MISMATCH` status; never swap records | S | No |
-| CORE-06, CORE-10 | Arrival-order `SCI-` ids are renumbered every run (`dedup.py:109-112`, `coordinator.py:444-446`). The DOI bridge can merge two studies (`pipeline/verification.py:116-120`). | Sort before dedup; join on snapshot ids; stop re-running discovery on resume; quarantine claimed ids | M + S | Indirect (COMPASS input-order invariance) |
+| CORE-06, CORE-10 | Arrival-order `SCI-` ids are renumbered every run (`dedup.py:109-112`, `pipeline/coordinator.py:444-446`). The DOI bridge can merge two studies (`pipeline/verification.py:116-120`). | Sort before dedup; join on snapshot ids; stop re-running discovery on resume; quarantine claimed ids | M + S | Indirect (COMPASS input-order invariance) |
 | CORE-07 | `cmd_prepare` exits on a missing registry (`batcher.py:198-200`) because **no runtime code calls `build_corpus_snapshot_artifact`** (`scholar_search/identity.py:296-398`) | This is **WP-01 Packet B adoption**; catch the exit and journal `PIPELINE_RUN_ABORTED` | M | Yes (Packet B) |
 
-**PDF-07/08 are out of scope.** They belong to the full-text stage, after the collect gate (`console/runtimes/actions.py:81-86`, `coordinator.py:456-466`). They are parked with full-text.
+**PDF-07/08 are out of scope.** They belong to the full-text stage, after the collect gate (`console/runtimes/actions.py:81-86`, `pipeline/coordinator.py:456-466`). They are parked with full-text.
 
 **Inception, Phase 0**
 
@@ -70,7 +77,7 @@ Transport today (V): the browser calls `app/api/console/[...path]/route.ts`, a s
 3. **AI proposals and human decisions share one file** (`batcher.py:136`), and the only worker writes `PENDING_REVIEW` with no reasons (`worker.py:266-275`). The wedge requires them to be separated.
 4. **The LLM path is Gemini-only** (`scholar_search/screening.py:591-621`). No Anthropic provider exists in `src/`. Claude is reachable only through MCP and the file handoff.
 5. **Inception has no web front end and no stateless step API.** The wizard runs only through the interactive `Responder` protocol (`wizard.py:40-70`). The console needs a workspace to exist before it starts (`cli.py:1029`), but inception is what creates the workspace.
-6. **No offline-reproducible search.** The hishel cache ignores its config (`http_client.py:70-78`); the VCR cassette directories are empty. The UAV workspaces hold no raw search files.
+6. **No offline-reproducible search.** The hishel cache ignores its config (`http_client.py:70-78`); the VCR cassette directories are empty. Correction after review: `workspaces/uav-crop-weed-v03/calibration_v03/` does hold raw files for five providers (`v03_20261017_raw_*.json`). The first audit only looked in `literature/`. That workspace's 570 screening files are also the source for the prompt-gate eval (agent-system §5).
 7. **An RIS importer exists** (`scholar_search/importers.py:11`, CLI `import` at `scholar_search/cli.py:455`). Whether the harness discovery stage can take imported records as a source is **unverified**. If it can, a researcher can bring a Scopus/WoS export straight to screening.
 
 ---
@@ -117,8 +124,9 @@ Open UX questions to close in 01–09:
 - Four outcomes against three swipe directions. Proposal: Skip is a button, not a swipe.
 - Reason capture on a phone. Proposal: one tap from protocol exclusion codes; free text optional.
 - Undo window, and whether undo is an event or a deletion. Proposal: undo is a new superseding event, never a delete.
-- Should the AI proposal be hidden until the human decides, to limit anchoring bias? Proposal: a per-workspace setting, default "show after decision", recorded in provenance.
-- UNCLEAR as a first-class outcome (`README.md:60-62`). It needs a contract decision; MAYBE exists today in consensus.
+- **Decided — blinding:** the agent proposal is hidden until you decide (default; a workspace setting recorded in provenance). Queue filters that reveal how the agent split ("agent disagrees") are post-decision views only.
+- **Decided — you see every record by default.** The agent orders the queue and proposes; it never excludes a record you have not seen. AI-agreed exclusion is an explicit opt-in with a sample audit, and the methods paragraph states it (PRISMA 2020 item 8).
+- **Decided — Unclear is stored as the existing `MAYBE`** of `ScreeningDecisionValue` (`contracts/models.py:93`) and labelled "Unclear → full text" in the UI and provenance. No contract version bump; the collector's refusal of MAYBE at finalize changes in M1a.
 - How a pairing code reaches a phone. Proposal: a QR on the desktop screen.
 
 ### Phase 1 Discovery
@@ -199,7 +207,7 @@ Open: M1–M7 method questions (`phase0-inception/README.md:39-72`). Two of them
   - IndexedDB works without a secure context, so on a LAN connection a queue survives a dropped connection, but **not a reload while offline**.
   - Reloading while offline needs a service worker, which needs HTTPS. That comes with the sync tier, or with an opt-in `mkcert` setup (§5).
   - The badge always shows how many decisions are queued.
-- **How the phone reaches the engine (stage 1):** `nexus-scholar ui --lan` binds to the LAN with the per-launch bearer token (INC-01 fix is a hard prerequisite). The desktop shows a QR code with URL plus token. The token lives in the session cookie; nothing goes in URLs after first load.
+- **How the phone reaches the engine (stage 1):** `nexus-scholar ui --lan` serves a **restricted sub-app** on the LAN: screening reads and decision events only. The jobs, pipelines and streams routers that run commands are never mounted there, because a photographed QR code or a LAN sniffer must not gain command execution. Phone tokens are short-lived and separate from the desktop's per-launch token (the INC-01 fix is a hard prerequisite). The desktop shows a QR code with the URL plus a one-time pairing token; the phone exchanges it for a session cookie, and nothing goes in URLs after first load.
 - **Native apps, later:** a client for the same `/api/v1` contract, an offline store of events, push for "new batch ready", store accounts, and a sync backend. They are only worth building after sync exists and users ask for them.
 
 ---
@@ -252,23 +260,28 @@ The decision entry for `docs/decisions.md` is written **after** you confirm (§9
 
 One PR per milestone, from `main`, through the fork. Lane declared up front; the owning full suite runs once per PR candidate; `generate_contract_baseline.py --check` runs in every PR. A milestone's backend and UI ship together.
 
+**Revised 2026-11-03 after an independent review** (verdict: sound with changes), with the researcher's agreement. The screening wedge ships at week 6 (M5-slim). Discovery (M3) is stretch. The web Inception wizard (M4) moves past the horizon; inception stays CLI/MCP, labelled beta. Two review findings drove the change:
+- screening could not be reached before week 6, because nothing builds a corpus snapshot outside tests (§1.3-1);
+- M1 was too large for one person in two weeks.
+
 | M | Weeks | Content | DoD | Lane |
 | :-- | :-- | :-- | :-- | :-- |
-| **M0 Foundations** | 1 | INC-01 (token, TrustedHost, allowlist, proxy Origin); fix the redeem path; CORE-17; AGT-01; brand tokens → `theme.css` generator + dark mode + self-hosted fonts + base components; VD/brand decision entry; final-spec template; golden workspace scaffold `workspaces/golden-uav-30/` with its protocol; `scripts/check_golden_workspace.py` (journal covers every stage; every decision has HUMAN provenance; PRISMA counts reconcile) | Each security finding has a failing-then-passing test; existing Playwright suite green on the new theme in light and dark | STANDARD |
-| **M1 Screening core** | 2–3 | CON-10/11/13/14/15, CON-02/03 (per-batch approval, approver relabelled as an attestation), SRCH-16/17/35, AGT-16/18/19; decision events + projection; proposals in their own file with provider/model/prompt hash; Anthropic proposal provider; endpoints: cross-batch queue, decision event POST, proposal read/run, PRISMA preview, pairing begin. UI: screening specs 01–03, 05–09 final; desktop triage with keyboard; publish with QR pairing. | Reproducing test per P0; fixture workspace (30 UAV records, snapshot built in the fixture script) screened with AI proposals and human decisions, published, `check_golden_workspace.py` green for the screening stage | **RELEASE** (artifact publication, acceptance semantics) |
-| **M2 Screening mobile** | 4 | Spec 04 final; swipe card, reason sheet, undo, IndexedDB queue + replay, `--lan` + QR; WebKit mobile emulation | Playwright: 30 decisions on a mobile viewport with the network cut mid-run, all replayed once; a conflict is surfaced; a real phone on LAN is used by you | STANDARD |
-| **M3 Discovery** | 5–6 | Packet B adoption (snapshot producer called at runtime, CORE-07); CORE-06/10; SRCH-30/11/31/12/13/14/10; CORE-21 legs in the journal; import as a source; VCR cassettes for the golden search. UI: discovery specs 01–08. | Live search on the golden protocol, frozen to cassettes; PRISMA-S report lists the executed string, total, fetched and cap per database; a re-run produces identical ids | **RELEASE** (Packet B) |
-| **M4 Inception** | 7 | INC-08/09/21/22, PROT-02, PROT-08; PROT-01 relabelled advisory; multi-workspace server + create; stateless step API; recon over HTTP; draft resume. UI: inception specs 00–08. | Golden workspace re-created from scratch in the web wizard; re-inception refuses without `--replace`; every criterion was shown verbatim | **RELEASE** (protocol content); PROT-03 only with its own architecture decision |
-| **M5 Package + golden run** | 8 | Static export served by FastAPI; `nexus-scholar ui`; `.mcpb`; wheel smoke with the UI; user guide deployment section; honest "not production" labels (§8); delete `scholar_bib` (refs in `scholar_agent/server.py`, `doctor.py`, `providers/crossref.py`, `pyproject.toml`, plugin manifest) | **The gate:** a fresh install from the wheel; inception → discovery → screening on the golden UAV workspace by you, with audit trail intact; CI matrix green | **RELEASE** (closure) |
+| **M0 Foundations** | 1 | INC-01 (token, TrustedHost, allowlist, proxy Origin); fix the redeem path; CORE-17; AGT-01; brand tokens → `theme.css` generator + dark mode + self-hosted fonts + base components; final-spec template; golden workspace scaffold `workspaces/golden-uav-30/` with its protocol; `scripts/check_golden_workspace.py` (journal covers every stage; every decision has HUMAN provenance; PRISMA counts reconcile). **Added:** (a) a minimal **`nexus-scholar accept-corpus`** that calls `build_corpus_snapshot_artifact` (`scholar_search/identity.py:296`) on `literature/verified.json` or a RIS/CSV import, registers it, and runs the baseline drift check; this is the screening entry path. (b) The Unclear storage decision: existing `MAYBE` (§2). (c) The `--lan` threat model written into the INC-01 DoD (§4). | Each security finding has a failing-then-passing test; `accept-corpus` lets `prepare` succeed on a fresh workspace (test); existing Playwright suite green on the new theme in light and dark | STANDARD (`accept-corpus` touches Packet B; escalate to RELEASE if it changes snapshot semantics) |
+| **M1a Screening backend** | 2–3 | CON-10/11/13/14/15, CON-02/03 (per-batch approval, approver relabelled as an attestation), SRCH-16/17/35, AGT-16/18/19; collector accepts `MAYBE` at finalize as "Unclear → full text"; **decision events** keyed by client `event_id` (UUIDv7), with `decision_id` derived from `event_id`, not from `decided_at`; a projection that excludes conflicted studies so the coverage gate refuses collect visibly; proposal store, validators and journal events (agent-system §2–§4); MCP read tools and `submit_proposal`; endpoints: cross-batch queue, decision-event POST, proposal read, PRISMA preview, pairing begin. | Reproducing test per P0; **replaying the same event set gives byte-identical output and keeps approval valid** (negative test); fixture workspace (30 UAV records) screened end to end through the API with HUMAN provenance on every decision | **RELEASE** (artifact identity, acceptance semantics) |
+| **M1b Screening desktop UI + driver** | 4 | Anthropic driver (Batches, caching, refusal → Unclear); screening task with its eval (agent-system §5); UI: screening specs 01–03, 05–09 final; desktop triage with keyboard; **you see every record by default**; publish with QR pairing. | Playwright: full desktop triage of the fixture workspace; proposal hidden until decision; prompt-gate eval passes on the v03 labelled set | STANDARD |
+| **M2 Screening mobile** | 5 | Spec 04 final; swipe card, reason sheet, undo, IndexedDB queue + replay; `--lan` serves a **restricted sub-app** (screening reads and decision events only, never jobs/pipelines) with short-lived phone tokens; WebKit mobile emulation | Playwright: 30 decisions on a mobile viewport with the network cut mid-run, all replayed once; a conflict is surfaced; jobs/pipelines unreachable over LAN (test); a real phone on LAN is used by you | STANDARD |
+| **M5-slim Package (ship)** | 6 | Static export served by FastAPI; `nexus-scholar ui`; `.mcpb`; wheel smoke with the UI; honest "not production" labels (§8); **decision export** (RIS/CSV); **methods paragraph** with PRISMA counts and an automation-use statement; one-page **data-flow statement** (what leaves the machine, to which provider); delete `scholar_bib` | **The gate:** a fresh install from the wheel; accept-corpus → screening → publish on the golden UAV workspace by you, with the audit trail intact; CI matrix green | **RELEASE** (closure) |
+| **M3 Discovery** (stretch) | 7–8 | Full Packet B adoption at runtime (CORE-07); CORE-06/10; SRCH-30/11/31/12/13/14/10; CORE-21 legs in the journal; VCR cassettes for the golden search; agent tasks: query critique, near-twin, methods text. UI: discovery specs 01–08. | Live search on the golden protocol, frozen to cassettes; PRISMA-S report lists the executed string, total, fetched and cap per database; a re-run produces identical ids | **RELEASE** (Packet B) |
+| **M4 Inception web** (after the horizon) | — | INC-08/09/21/22, PROT-02, PROT-08 (PROT-01 relabelled advisory); multi-workspace server; stateless step API; recon over HTTP; agent tasks and chat; UI: inception specs 00–08. Until then, inception runs through the CLI/MCP wizard, labelled beta. | Golden workspace re-created in the web wizard; re-inception refuses without `--replace` | **RELEASE** |
 
-**One-month cut (screening wedge launch):** M0 + M1 + M2 + a slim M5, with screening fed by **import** (RIS from your own search) instead of M3. Discovery and inception stay CLI-only and are labelled beta. This is the version I'd ship first if a month is the hard limit.
+**Before M2 starts:** five interviews with labs or institutions (see the `product-direction-sellable` direction), to test what stage 1 sells.
 
 ---
 
 ## 7. Risks and cuts
 
 **Risks**
-- **M1 is RELEASE and large.** It may need to split into a backend PR and a UI PR. I'd ask you before splitting.
+- **M1a is the critical path.** It is RELEASE and carries the decision-event and identity changes. It was split from the UI work for that reason; if it slips, M2 moves, not M5-slim's scope.
 - **Packet B adoption may surface contract drift.** That is `BLOCKED_BASELINE_DRIFT`: stop and decide, never regenerate.
 - **The phone LAN path depends on the INC-01 fix** and on Windows firewall prompts. Reload while offline needs HTTPS, which is not in stage 1.
 - **Anchoring bias from showing AI proposals** is a research-method risk. The proposal is hidden until the human decides by default; the setting is recorded.
@@ -276,8 +289,8 @@ One PR per milestone, from `main`, through the fork. Lane declared up front; the
 - **Single maintainer:** the 8-week plan has no slack.
 
 **Cut first → last**
-1. Web inception (M4 UI). The CLI and chat wizard remain, labelled.
-2. Calibrate screen.
+1. M3 Discovery UI (already stretch); keep `accept-corpus` and import as the entry path. (Web inception is already past the horizon.)
+2. The in-app Calibrate screen. The prompt-gate eval on the v03 labelled set stays.
 3. Dedup near-twin review UI. Show counts only.
 4. Tauri and anything desktop (already stage 2).
 5. fr/ar for new strings. They fall back to en, visibly.
