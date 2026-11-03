@@ -4,6 +4,24 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-03 — Agent system: proposals only, least autonomy per job
+
+The AI behind Phases 0–2 is built as versioned *tasks*: a prompt, an output
+schema, a model and effort setting, and an eval set. Most tasks are plain code
+or single structured calls. Only the inception conversation and the
+researcher's own Claude Code or Claude Desktop (through MCP) run agent loops.
+Model output is always a proposal in an append-only store with full provenance
+(model, prompt hash, input hash, checks, usage). Plain-code validators check
+each proposal, and anything that fails, refuses or is truncated goes to the
+researcher as Unclear, never Exclude. Only the engine writes artifacts and the
+journal, and only after a human decision. The in-app driver (the researcher's
+own API key, with Message Batches and prompt caching) and the MCP driver share
+the same tasks. Changing a prompt, model or effort setting needs a new task
+version and an eval re-run, mirroring the contract-baseline gate. Default
+model: `claude-opus-5-5`. Open: whether to keep Gemini, whether to build the
+in-app inception chat, and whether a cheaper screening model holds recall.
+Design: [`architecture/agent-system.md`](architecture/agent-system.md).
+
 ## 2026-11-03 — Claude Code dev workflow and area-based test gates
 
 The OpenCode four-agent loop is no longer the development workflow; the files
