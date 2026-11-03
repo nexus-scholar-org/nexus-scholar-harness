@@ -216,6 +216,36 @@ def _resolve_path(p: str | None) -> str | None:
     return str(_mcp_anchor() / path)
 
 
+def _existing_file(arg: str | None) -> Path | None:
+    """The file ``arg`` names, or ``None`` when it is inline JSON or no file.
+
+    Tool arguments may carry either a path or a raw JSON payload. Probing a
+    payload as a path is not harmless: on Linux ``Path(long_string).exists()``
+    raises ``OSError(ENAMETOOLONG)`` instead of returning ``False``.
+    """
+    if not arg:
+        return None
+    text = arg.lstrip()
+    if text.startswith(("{", "[")) or "\n" in arg or len(arg) > 1024:
+        return None
+    try:
+        path = Path(arg)
+        return path if path.is_file() else None
+    except OSError:
+        return None
+
+
+def _existing_dir(arg: str | None) -> Path | None:
+    """The directory ``arg`` names, or ``None``; same guards as ``_existing_file``."""
+    if not arg or arg.lstrip().startswith(("{", "[")) or len(arg) > 1024:
+        return None
+    try:
+        path = Path(arg)
+        return path if path.is_dir() else None
+    except OSError:
+        return None
+
+
 # ==============================================================================
 # Phase 0: Socratic Protocol & Compiler Tools
 # ==============================================================================
@@ -229,8 +259,9 @@ def nexus_protocol_compile(intent_json: str) -> str:
     """
     try:
         intent_json = _resolve_path(intent_json) or intent_json
-        if Path(intent_json).exists() and Path(intent_json).is_file():
-            intent_data = json.loads(Path(intent_json).read_text(encoding="utf-8"))
+        intent_file = _existing_file(intent_json)
+        if intent_file is not None:
+            intent_data = json.loads(intent_file.read_text(encoding="utf-8"))
         else:
             intent_data = json.loads(intent_json)
 
@@ -276,9 +307,9 @@ def nexus_protocol_validate(protocol_json: str) -> str:
     def _response(report: ValidationReport) -> str:
         if report.is_valid:
             proto = ResearchProtocol.model_validate(
-                json.loads(protocol_json)
-                if not (p.exists() and p.is_file())
-                else p.read_text(encoding="utf-8")
+                json.loads(p.read_text(encoding="utf-8"))
+                if p is not None
+                else json.loads(protocol_json)
             )
             title = (
                 proto.metadata.get("title", "")
@@ -305,8 +336,8 @@ def nexus_protocol_validate(protocol_json: str) -> str:
 
     try:
         protocol_json = _resolve_path(protocol_json) or protocol_json
-        p = Path(protocol_json)
-        if p.exists() and p.is_file():
+        p = _existing_file(protocol_json)
+        if p is not None:
             return _response(validate_protocol(p))
         return _response(_validate_raw(json.loads(protocol_json)))
     except Exception as e:
@@ -1029,9 +1060,11 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
     try:
         screeners_json = _resolve_path(screeners_json) or screeners_json
         adjudication_json = _resolve_path(adjudication_json) or adjudication_json
-        p = Path(screeners_json)
         screeners_map: dict[str, dict[str, str]] = {}
-        if p.is_dir():
+        screeners_dir = _existing_dir(screeners_json)
+        screeners_file = _existing_file(screeners_json)
+        if screeners_dir is not None:
+            p = screeners_dir
             for f in p.glob("batch_*_decisions*.json"):
                 # derive screener key
                 parts = f.stem.split("_decisions")
@@ -1047,15 +1080,15 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
                     dec = r.get("decision")
                     if wid and dec:
                         screeners_map[screener_key][wid] = dec.upper()
-        elif p.is_file():
-            screeners_map = json.loads(p.read_text(encoding="utf-8"))
+        elif screeners_file is not None:
+            screeners_map = json.loads(screeners_file.read_text(encoding="utf-8"))
         else:
             screeners_map = json.loads(screeners_json)
 
         adj_map = {}
         if adjudication_json:
-            ap = Path(adjudication_json)
-            if ap.is_file():
+            ap = _existing_file(adjudication_json)
+            if ap is not None:
                 raw_adj = json.loads(ap.read_text(encoding="utf-8"))
                 if isinstance(raw_adj, list):
                     for item in raw_adj:

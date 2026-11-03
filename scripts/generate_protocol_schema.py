@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Generate the checked-in JSON Schema from the Pydantic models.
 
 Usage

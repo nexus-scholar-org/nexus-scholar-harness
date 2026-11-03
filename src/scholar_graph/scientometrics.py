@@ -27,9 +27,18 @@ class ScientometricEngine:
                 self.graph, max_iter=max_iter, normalized=normalized
             )
         except nx.PowerIterationFailedConvergence:
-            hubs, authorities = nx.hits(
-                self.graph, max_iter=max_iter * 3, normalized=False
-            )
+            try:
+                hubs, authorities = nx.hits(
+                    self.graph, max_iter=max_iter * 3, normalized=False
+                )
+            except nx.PowerIterationFailedConvergence as exc:
+                # A single node or a graph with no citation structure has no
+                # HITS fixed point; report that instead of a solver error.
+                raise ValueError(
+                    "HITS did not converge: the graph has too little citation "
+                    f"structure ({self.graph.number_of_nodes()} nodes, "
+                    f"{self.graph.number_of_edges()} edges)"
+                ) from exc
             # Manual normalization using absolute values to handle negative scores
             if hubs:
                 max_h = max(abs(v) for v in hubs.values()) if hubs else 1.0

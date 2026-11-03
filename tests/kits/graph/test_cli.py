@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 from typer.testing import CliRunner
@@ -12,10 +13,13 @@ runner = CliRunner()
 def test_cli_help():
     result = runner.invoke(app, ["build", "--help"])
     assert result.exit_code == 0
-    assert "--doi" in result.stdout
-    assert "--input" in result.stdout
-    assert "--output" in result.stdout
-    assert "--json-output" in result.stdout
+    # rich styles option names with ANSI codes when it thinks it has a
+    # terminal (as on CI), so compare the plain text.
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
+    assert "--doi" in plain
+    assert "--input" in plain
+    assert "--output" in plain
+    assert "--json-output" in plain
 
 
 @patch("scholar_graph.cli.CitationGraphBuilder.build_graph", new_callable=AsyncMock)
@@ -39,4 +43,4 @@ def test_cli_graph_build_from_file(mock_build_graph, tmp_path: Path):
     assert result.exit_code == 0, debug_text
     assert out_html.exists()
     assert out_json.exists()
-    assert "Graph built successfully" in result.stdout
+    assert "Citation graph built!" in result.stdout
