@@ -41,8 +41,8 @@ def _source_root() -> Path:
     """Walk up from this module to the enclosing project root (pyproject.toml).
 
     Anchoring on the source tree (not ``Path.cwd()``) makes the default cache
-    root deterministic: launching from ``tools/scholar-agent-kit/``, a repo
-    subdirectory, or any other CWD resolves to the same path (P4).
+    root deterministic: launching from the repo root, a repo subdirectory,
+    or any other CWD resolves to the same path (P4).
     """
     current = Path(__file__).resolve().parent
     while True:

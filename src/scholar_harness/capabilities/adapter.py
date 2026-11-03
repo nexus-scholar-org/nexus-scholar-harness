@@ -341,7 +341,7 @@ ENV_BINDING_TABLE = """\
 | Key                | InProcessAdapter (application)                     | OpencodeAdapter (dev loop)              |
 |--------------------|----------------------------------------------------|-----------------------------------------|
 | ``CLI:<short>``    | ``scholar-<short>`` console script                 | ``uv run scholar-<short>``              |
-| ``KIT_ROOT:<short>``| the installed **package** directory (``…/src/scholar_<x>``), not a checkout root | ``<root>/tools/scholar-<short>-kit`` |
+| ``KIT_ROOT:<short>``| the installed **package** directory (``…/src/scholar_<x>``), not a checkout root | ``<root>`` (the repo root holding ``src/scholar_<short>``) |
 | ``SKILL_DIR:<skill>``| ``<workspace>/.agents/skills/<skill>`` if present,| ``<root>/.agents/skills/<skill>``       |
 |                    | else the resolved skills root (wheel/repo)         |                                         |
 | ``WORKSPACE``      | the ``workspace`` argument                         | the ``workspace`` argument              |
@@ -351,7 +351,7 @@ ENV_BINDING_TABLE = """\
 
 The app ``KIT_ROOT:<short>`` is the installed *package* directory. Shipped
 bodies that append ``/src/<module>/…`` or ``/pyproject.toml`` resolve only
-against a vendored checkout, so those idioms do not resolve in an installed
+against a repo checkout, so those idioms do not resolve in an installed
 wheel: reconciling the two meanings is an open contract decision, and the app
 column is not fully resolved.
 
@@ -396,7 +396,7 @@ def installed_kit_root(short: str) -> Path | None:
 
     **This is the package directory, not a checkout root.** Shipped skill
     bodies that compose ``{KIT_ROOT:<short>}/src/<module>/…`` or
-    ``{KIT_ROOT:rag}/pyproject.toml`` resolve only against a vendored checkout;
+    ``{KIT_ROOT:rag}/pyproject.toml`` resolve only against a repo checkout;
     in an installed wheel ``<pkg>/src/<module>`` does not exist and the package
     directory has no ``pyproject.toml``. Reconciling the app binding with those
     idioms is an open contract decision (the dev column and the app column do
@@ -424,7 +424,7 @@ def installed_kit_root(short: str) -> Path | None:
 
 
 def dev_kit_root(root: Path, short: str) -> Path | None:
-    """``{KIT_ROOT:<short>}`` in the dev loop: the vendored kit checkout.
+    """``{KIT_ROOT:<short>}`` in the dev loop: the repo root.
 
     The path comes from
     :data:`~scholar_harness.skills_portability.variables.DEV_KIT_ROOT_TEMPLATE`,

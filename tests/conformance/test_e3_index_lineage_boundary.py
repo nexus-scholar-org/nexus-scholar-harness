@@ -11,7 +11,7 @@ that the harness side of the boundary is real:
 ``E3-POS-005`` byte-for-byte golden parity
     The harness fixture ``tests/conformance/fixtures/e3_golden_manifest.json``
     is canonically byte-identical to the kit-pinned
-    ``GOLDEN_MANIFEST`` (``tools/scholar-rag-kit/tests/test_index_manifest.py:66``,
+    ``GOLDEN_MANIFEST`` (``tests/kits/rag/test_index_manifest.py:66``,
     pin ``f108fa89``), and the baseline ``CHK-`` re-derives from the fixture's
     own limbs through the kit's ``mint_chunk_id``. Either side drifting fails
     loudly here rather than silently diverging.
@@ -117,10 +117,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import json
-import os
 import platform
-import re
-import subprocess
 import sys
 import tomllib
 from datetime import UTC, datetime
@@ -159,7 +156,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 #: tree; the ``:66`` citation is the ``GOLDEN_MANIFEST`` literal, ``:185`` the
 #: printed canonical chunk input, ``:197`` the frozen digest table.
 KIT_GOLDEN_TEST = (
-    REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_manifest.py"
+    REPO_ROOT / "tests" / "kits" / "rag" / "test_index_manifest.py"
 )
 KIT_RAG_PIN = "15a7a5a50a0394ed87b9b8b3c153081e10ec36ad"
 
@@ -169,40 +166,35 @@ HARNESS_GOLDEN_FIXTURE = (
     REPO_ROOT / "tests" / "conformance" / "fixtures" / "e3_golden_manifest.json"
 )
 
-PLUGINS_JSON = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
-PINS_JSON = REPO_ROOT / "packaging" / "nexus-scholar" / "nexus_scholar_pins.json"
 AGENT_SERVER = (
-    REPO_ROOT / "tools" / "scholar-agent-kit" / "src" / "scholar_agent" / "server.py"
+    REPO_ROOT / "src" / "scholar_agent" / "server.py"
 )
 AGENT_CAPABILITIES = (
     REPO_ROOT
-    / "tools"
-    / "scholar-agent-kit"
     / "src"
     / "scholar_agent"
     / "capabilities.py"
 )
-KIT_RAG_PYPROJECT = REPO_ROOT / "tools" / "scholar-rag-kit" / "pyproject.toml"
-METAPACKAGE_PYPROJECT = REPO_ROOT / "packaging" / "nexus-scholar" / "pyproject.toml"
+PROJECT_PYPROJECT = REPO_ROOT / "pyproject.toml"
 KIT_TEST_MANIFEST = (
-    REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_manifest.py"
+    REPO_ROOT / "tests" / "kits" / "rag" / "test_index_manifest.py"
 )
 KIT_TEST_SERVICE = (
-    REPO_ROOT / "tools" / "scholar-rag-kit" / "tests" / "test_index_service.py"
+    REPO_ROOT / "tests" / "kits" / "rag" / "test_index_service.py"
 )
 KIT_TEST_MCP_BOUNDARY = (
     REPO_ROOT
-    / "tools"
-    / "scholar-agent-kit"
     / "tests"
+    / "kits"
+    / "agent"
     / "test_mcp_indexing_boundary.py"
 )
 
 PROTOCOL_FIXTURE = (
     REPO_ROOT
-    / "tools"
-    / "scholar-protocol-kit"
     / "tests"
+    / "kits"
+    / "protocol"
     / "fixtures"
     / "canonical"
     / "identity_base.json"
@@ -611,7 +603,7 @@ def test_e3_pos_005_harness_fixture_matches_kit_golden_bytes() -> None:
     The comparison is over ``canonical_json_bytes`` of each side's parse, so a
     drift in either repository -- a reworded digest, a reordered array, a new
     field -- fails here with the exact digest that moved, rather than silently
-    diverging. Source: ``tools/scholar-rag-kit/tests/test_index_manifest.py:66``
+    diverging. Source: ``tests/kits/rag/test_index_manifest.py:66``
     (``GOLDEN_MANIFEST``) at pin ``f108fa89``.
     """
 
@@ -1109,28 +1101,6 @@ def test_e3_neg_038_frozen_registries_reject_the_index_manifest_sidecar(
 # --------------------------------------------------------------------------- #
 # E3-NEG-048 -- declared dependencies (C-34)
 # --------------------------------------------------------------------------- #
-
-
-def test_e3_neg_048_rag_kit_pin_is_a_full_merged_sha_and_resolves_vendored() -> None:
-    """E3-NEG-048 (harness half): pin, snapshot, and import agree on one commit."""
-
-    import scholar_rag
-
-    plugins = json.loads(PLUGINS_JSON.read_text(encoding="utf-8"))
-    by_name = {plugin["name"]: plugin for plugin in plugins["plugins"]}
-    rev = by_name["scholar-rag-kit"]["default_rev"]
-    assert rev == KIT_RAG_PIN
-    assert re.fullmatch(r"[0-9a-f]{40}", rev) is not None, (
-        "the pin must be a full commit SHA, never a floating branch"
-    )
-    assert scholar_rag.__file__ is not None, "namespace package without a file"
-    resolved = Path(scholar_rag.__file__).resolve()
-    assert REPO_ROOT / "tools" / "scholar-rag-kit" in resolved.parents, (
-        f"scholar_rag resolved outside the vendored tree: {resolved}"
-    )
-    pins = json.loads(PINS_JSON.read_text(encoding="utf-8"))
-    pinned = {pin["name"]: pin for pin in pins["kits"]}["scholar-rag-kit"]
-    assert pinned["default_rev"] == rev, "the metapackage pin must follow plugins.json"
 
 
 # --------------------------------------------------------------------------- #
@@ -1680,7 +1650,7 @@ def test_e3_neg_009_kit_document_eligibility_join_is_proof_bound() -> None:
 
     Proof type: EXECUTION of the kit's own hermetic join plus a hash-pinned
     tripwire. Kit ledger test
-    ``tools/scholar-rag-kit/tests/test_index_service.py:2140``
+    ``tests/kits/rag/test_index_service.py:2140``
     (``test_t90_neg_009_a_document_absent_from_the_accepted_parent_is_refused``)
     and manifest-level
     ``test_a_document_absent_from_the_accepted_parent_is_refused``
@@ -1695,7 +1665,7 @@ def test_e3_neg_009_kit_document_eligibility_join_is_proof_bound() -> None:
         build_parent_view,
     )
 
-    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    owner = REPO_ROOT / "src/scholar_rag/index_service.py"
     assert "eligibility join" in _kit_text(owner)
     _assert_kit_test_exists(
         KIT_TEST_SERVICE,
@@ -1750,7 +1720,7 @@ def test_e3_neg_011_kit_study_lineage_join_is_proof_bound() -> None:
         build_parent_view,
     )
 
-    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    owner = REPO_ROOT / "src/scholar_rag/index_service.py"
     assert "eligibility join" in _kit_text(owner)
     _assert_kit_test_exists(
         KIT_TEST_SERVICE,
@@ -1792,7 +1762,7 @@ def test_e3_neg_017_kit_parent_hash_mismatch_is_proof_bound() -> None:
         build_parent_view,
     )
 
-    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    owner = REPO_ROOT / "src/scholar_rag/index_manifest.py"
     assert "PARENT_HASH_MISMATCH" in _kit_text(owner)
     _assert_kit_test_exists(
         KIT_TEST_MANIFEST,
@@ -1843,7 +1813,7 @@ def test_e3_neg_030_kit_per_study_uniqueness_is_proof_bound() -> None:
         compute_fingerprints,
     )
 
-    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    owner = REPO_ROOT / "src/scholar_rag/index_manifest.py"
     assert "cross-document collision" in _kit_text(owner)
     _assert_kit_test_exists(
         KIT_TEST_MANIFEST,
@@ -1890,7 +1860,7 @@ def test_e3_neg_031_kit_collection_uniqueness_is_proof_bound() -> None:
         compute_fingerprints,
     )
 
-    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    owner = REPO_ROOT / "src/scholar_rag/index_manifest.py"
     assert "cross-document collision" in _kit_text(owner)
     _assert_kit_test_exists(
         KIT_TEST_MANIFEST,
@@ -1935,7 +1905,7 @@ def test_e3_neg_035_kit_usability_refusal_is_proof_bound() -> None:
         MANIFEST_CODE_VOCABULARY,
     )
 
-    owner = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py"
+    owner = REPO_ROOT / "src/scholar_rag/index_manifest.py"
     assert "EXTRACTED_TEXT_UNUSABLE" in _kit_text(owner)
     _assert_kit_test_exists(
         KIT_TEST_SERVICE,
@@ -1959,7 +1929,7 @@ def test_e3_pos_009_mcp_boundary_tripwire_is_proof_bound() -> None:
 
     Proof type: READ-ONLY TRIPWIRE (not behavior re-proof). The 45/45
     agent-kit boundary tests at pinned ``79ffe42``
-    (``tools/scholar-agent-kit/tests/test_mcp_indexing_boundary.py``, 45 tests)
+    (``tests/kits/agent/test_mcp_indexing_boundary.py``, 45 tests)
     are the behavioral proof and stay in the canonical repo; this harness test
     pins that the vendored surface has not moved: ``mcp_supported=False`` for
     ``rag_indexing``, the ``UNSUPPORTED_CAPABILITY`` envelope, and the
@@ -2039,14 +2009,14 @@ def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
 
     adapter = REPO_ROOT / "src/scholar_harness/index_acceptance.py"
     kit_files = [
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/replacement.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_verifier.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/chunker.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/embedder.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_models.py",
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/canonical.py",
+        REPO_ROOT / "src/scholar_rag/index_service.py",
+        REPO_ROOT / "src/scholar_rag/index_manifest.py",
+        REPO_ROOT / "src/scholar_rag/replacement.py",
+        REPO_ROOT / "src/scholar_rag/index_verifier.py",
+        REPO_ROOT / "src/scholar_rag/chunker.py",
+        REPO_ROOT / "src/scholar_rag/embedder.py",
+        REPO_ROOT / "src/scholar_rag/index_models.py",
+        REPO_ROOT / "src/scholar_rag/canonical.py",
     ]
     for path in (adapter, *kit_files):
         assert path.is_file(), f"authoritative E3 path moved: {path}"
@@ -2063,28 +2033,20 @@ def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
         f"authoritative E3 import-time third-party drifted: {sorted(top_third_party)}; "
         "only pydantic may be imported at module top level"
     )
-    kit_py = tomllib.loads(KIT_RAG_PYPROJECT.read_bytes().decode("utf-8"))
-    kit_deps = kit_py["project"]["dependencies"]
-    assert any(str(dep).startswith("pydantic") for dep in kit_deps), (
-        "pydantic must be declared in the kit"
+    project = tomllib.loads(PROJECT_PYPROJECT.read_bytes().decode("utf-8"))
+    base_deps = project["project"]["dependencies"]
+    assert any(str(dep).startswith("pydantic") for dep in base_deps), (
+        "pydantic must be a base dependency"
     )
-    assert any("chromadb" in str(dep) for dep in kit_deps), (
-        "the deferred chromadb backend must stay declared in the kit"
+    assert not any("chromadb" in str(dep) for dep in base_deps), (
+        "chromadb must stay out of the base install"
     )
-    meta_py = tomllib.loads(METAPACKAGE_PYPROJECT.read_bytes().decode("utf-8"))
-    meta_deps = meta_py["project"]["dependencies"]
-    assert any(str(dep).startswith("pydantic") for dep in meta_deps), (
-        "pydantic must be reachable from the metapackage"
+    rag_extra = project["project"]["optional-dependencies"]["rag"]
+    assert any("chromadb" in str(dep) for dep in rag_extra), (
+        "the deferred chromadb backend must stay declared in the rag extra"
     )
-    force_include = meta_py["tool"]["hatch"]["build"]["targets"]["wheel"][
-        "force-include"
-    ]
-    bundled = {
-        source.split("tools/")[1].split("/")[0]
-        for source in force_include
-        if "tools/" in source and "/src/" in source
-    }
-    assert "scholar-rag-kit" in bundled and "scholar-agent-kit" in bundled
+    packages = project["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
+    assert "src/scholar_rag" in packages and "src/scholar_agent" in packages
     all_imports: set[str] = set()
     for path in kit_files:
         all_imports |= _e3_all_imports(path)
@@ -2096,15 +2058,15 @@ def test_e3_pos_012_declared_imports_are_proof_bound() -> None:
         assert "yaml" not in top, f"{path.name} imports yaml at top level"
         assert "google" not in top, f"{path.name} imports google at top level"
     replacement_text = _kit_text(
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/replacement.py"
+        REPO_ROOT / "src/scholar_rag/replacement.py"
     )
     assert "deferred: keeps" in replacement_text
     verifier_text = _kit_text(
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_verifier.py"
+        REPO_ROOT / "src/scholar_rag/index_verifier.py"
     )
     assert "deferred: keeps" in verifier_text
     embedder_text = _kit_text(
-        REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/embedder.py"
+        REPO_ROOT / "src/scholar_rag/embedder.py"
     )
     assert "never imports chromadb" in embedder_text
 
@@ -2121,9 +2083,9 @@ MISSING: tuple[tuple[str, str, Path, str, bool, str], ...] = ()
 def pinned_service_battery(monkeypatch: pytest.MonkeyPatch) -> Any:
     import scholar_rag.index_service as service
 
-    expected = REPO_ROOT / "tools/scholar-rag-kit/src/scholar_rag/index_service.py"
+    expected = REPO_ROOT / "src/scholar_rag/index_service.py"
     assert Path(service.__file__).resolve() == expected.resolve()
-    path = REPO_ROOT / "tools/scholar-rag-kit/tests/test_index_service.py"
+    path = REPO_ROOT / "tests/kits/rag/test_index_service.py"
     spec = importlib.util.spec_from_file_location("e3_pinned_service_battery", path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)

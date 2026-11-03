@@ -33,9 +33,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = ROOT / "src" / "scholar_harness" / "screening"
 PROTOCOL_FIXTURE = (
     ROOT
-    / "tools"
-    / "scholar-protocol-kit"
     / "tests"
+    / "kits"
+    / "protocol"
     / "fixtures"
     / "canonical"
     / "identity_base.json"

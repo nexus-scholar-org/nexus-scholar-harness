@@ -170,9 +170,10 @@ KIT_SHORTS: tuple[str, ...] = tuple(sorted(KIT_COMMANDS.values()))
 #: :meth:`Preamble.dev` and
 #: :func:`scholar_harness.capabilities.adapter.dev_kit_root` consume this
 #: constant, so the preamble and the dev adapter can never disagree about where
-#: a vendored kit lives (the checkout is ``tools/scholar-<short>-kit``, not
-#: ``tools/scholar-<short>``).
-DEV_KIT_ROOT_TEMPLATE = "tools/scholar-{{kit}}-kit"
+#: a kit lives. Since the kits merged into one package every kit lives under
+#: the repo root (``src/scholar_<short>/``), so the template has no ``{{kit}}``
+#: splice and binds the root itself.
+DEV_KIT_ROOT_TEMPLATE = "."
 
 
 def _skill_dirs_under(skills: Path) -> dict[str, str]:
@@ -299,7 +300,7 @@ class Preamble:
 
         ``{KIT_ROOT:<short>}`` expands through :data:`DEV_KIT_ROOT_TEMPLATE`,
         the same constant :func:`~scholar_harness.capabilities.adapter.dev_kit_root`
-        uses, so it names the vendored ``tools/scholar-<short>-kit`` checkout
+        uses, so it names the repo root that holds ``src/scholar_<short>/``
         and never a path that does not exist.
         """
         repo = repo_root or Path(__file__).resolve().parents[3]

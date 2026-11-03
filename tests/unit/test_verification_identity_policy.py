@@ -49,9 +49,9 @@ from scholar_harness.verification_identity import (
 _POLICY_ROOT = Path(__file__).resolve().parents[2]
 _POLICY_PROTOCOL_FIXTURE = (
     _POLICY_ROOT
-    / "tools"
-    / "scholar-protocol-kit"
     / "tests"
+    / "kits"
+    / "protocol"
     / "fixtures"
     / "canonical"
     / "identity_base.json"

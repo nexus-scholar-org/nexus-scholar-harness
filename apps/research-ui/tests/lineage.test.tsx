@@ -753,13 +753,6 @@ describe("live mode against a real console over real HTTP", () => {
       const parent = mkdtempSync(join(tmpdir(), "ui05-lineage-live-"));
       const pythonPath = [
         join(repoRoot, "src"),
-        join(repoRoot, "tools", "scholar-protocol-kit", "src"),
-        join(repoRoot, "tools", "scholar-search-kit", "src"),
-        join(repoRoot, "tools", "scholar-pdf-kit", "src"),
-        join(repoRoot, "tools", "scholar-bib-kit", "src"),
-        join(repoRoot, "tools", "scholar-rag-kit", "src"),
-        join(repoRoot, "tools", "scholar-graph-kit", "src"),
-        join(repoRoot, "tools", "scholar-agent-kit", "src"),
       ].join(delimiter);
       execFileSync(
         "uv",

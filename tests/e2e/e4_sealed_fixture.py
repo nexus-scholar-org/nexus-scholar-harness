@@ -88,9 +88,9 @@ CORPUS_COMMIT = "3" * 40
 
 PROTOCOL_FIXTURE = (
     REPO_ROOT
-    / "tools"
-    / "scholar-protocol-kit"
     / "tests"
+    / "kits"
+    / "protocol"
     / "fixtures"
     / "canonical"
     / "identity_base.json"

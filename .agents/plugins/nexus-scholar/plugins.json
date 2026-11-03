@@ -5,73 +5,35 @@
   "plugins": [
     {
       "name": "scholar-protocol-kit",
-      "description": "Deterministic research protocol compiler, JSON-schema contract, and intent specification.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-protocol-kit.git",
-      "default_rev": "4e10f25c25a1b150ce518348d211c7771683a9b7",
-      "console_script": "scholar-protocol",
-      "extras": [
-        "dev"
-      ]
+      "console_script": "scholar-protocol"
     },
     {
       "name": "scholar-search-kit",
-      "description": "Federated academic search, deduplication, verification, and export toolkit.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-search-kit.git",
-      "default_rev": "d20292a410a4aaa278fa9ffef8021b949a3218c3",
-      "console_script": "scholar-search",
-      "extras": [
-        "dev"
-      ]
+      "console_script": "scholar-search"
     },
     {
       "name": "scholar-pdf-kit",
-      "description": "Open Access discovery, resilient downloading, magic-byte validation, and fulltext extraction.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-pdf-kit.git",
-      "default_rev": "3c024c37071b49265cfea6e713c1c9065e2a2cc0",
-      "console_script": "scholar-pdf",
-      "extras": [
-        "extract"
-      ]
+      "console_script": "scholar-pdf"
     },
     {
       "name": "scholar-bib-kit",
-      "description": "BibTeX parser, linter, deduplicator, and Crossref/OpenAlex metadata resolver.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-bib-kit.git",
-      "default_rev": "fbdd38ba25301e613621f18119623f04d2673dca",
-      "console_script": "scholar-bib",
-      "extras": []
+      "console_script": "scholar-bib"
     },
     {
       "name": "scholar-graph-kit",
-      "description": "Citation graph construction, centrality metrics, and PyVis interactive network visualization.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-graph-kit.git",
-      "default_rev": "646b84cec215ebd9b7b449448bca879492e78492",
-      "console_script": "scholar-graph",
-      "extras": []
+      "console_script": "scholar-graph"
     },
     {
       "name": "scholar-rag-kit",
-      "description": "Local dense retrieval, Chroma vector database indexing, and RAG synthesis over extracted literature.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-rag-kit.git",
-      "default_rev": "15a7a5a50a0394ed87b9b8b3c153081e10ec36ad",
-      "console_script": "scholar-rag",
-      "extras": []
+      "console_script": "scholar-rag"
     },
     {
       "name": "scholar-agent-kit",
-      "description": "Model Context Protocol (MCP) server exposing all Nexus Scholar tools to Claude Code and AI agents.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-agent-kit.git",
-      "default_rev": "50c0b3fbf52fc1a9768b219bc2e894d713eb38af",
-      "console_script": "scholar-agent",
-      "extras": []
+      "console_script": "scholar-agent"
     },
     {
       "name": "scholar-verify-kit",
-      "description": "Post-screening trust verification: retraction status, open-science artifacts, conflict-of-interest audit, and deterministic risk-of-bias scoring.",
-      "repo": "https://github.com/nexus-scholar-org/scholar-verify-kit.git",
-      "default_rev": "44a8d63cc0a11694bbcb7a355a53f73c3f93145c",
-      "console_script": "scholar-verify",
-      "extras": []
+      "console_script": "scholar-verify"
     }
   ]
 }

@@ -144,9 +144,8 @@ ExtractionModel = build_extraction_model(protocol)
 
 ## Verified surface, MCP mapping & knowledge
 
-- pin: see `{CONFIG}` (`scholar-protocol-kit`
-  vendored at `{KIT_ROOT:protocol}/`; canonical repo
-  `nexus-scholar-org/scholar-protocol-kit` owns runtime). Matrix protocol rows are
+- Source: `{KIT_ROOT:protocol}/src/scholar_protocol/`, part of the single
+  `nexus-scholar` package (no separate kit pin). Matrix protocol rows are
   references only.
 - **CLI never writes files** — `compile`, `validate` (+ `--strict`), `fingerprint`, `canon`,
   `render-criteria`, `extraction-schema`, `extraction-prompt` all print to STDOUT; redirect

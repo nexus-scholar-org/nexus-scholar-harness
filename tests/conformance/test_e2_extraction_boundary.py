@@ -54,7 +54,7 @@ this file proves is that the harness side of the boundary is real:
 ``E2-NEG-023`` no premature publication
     Two limbs. The first -- a failure between extraction success and candidate
     construction leaves no candidate -- is the canonical kit's proof
-    (``tools/scholar-pdf-kit/tests/test_extraction_atomicity.py:138-172``) and is
+    (``tests/kits/pdf/test_extraction_atomicity.py:138-172``) and is
     deliberately **not** re-proven here (§10.1.7); no engine runs in this file.
     The second -- a failure between candidate construction and harness acceptance
     leaves no published artifact and no registry entry -- is harness-owned, so it
@@ -75,7 +75,7 @@ this file proves is that the harness side of the boundary is real:
     A candidate built against workspace A's accepted lineage cannot be accepted
     by workspace B's context. The kit-side limb (a parent bound to another
     workspace cannot authorize a service-level extraction) is the kit's proof
-    (``tools/scholar-pdf-kit/tests/test_extraction_contract.py:2636``,
+    (``tests/kits/pdf/test_extraction_contract.py:2636``,
     ``test_e2_neg_025_cross_workspace_extraction_is_rejected``); the harness limb
     proved here is that the frozen gate refuses the cross-workspace candidate in
     *both* workspaces.
@@ -94,18 +94,18 @@ Kit-side-only IDs, **cited not re-proven** (§10.1.7 -- a green run of this file
 not evidence for any of them; the canonical suite is):
 
 ``E2-NEG-004`` cross-workspace acquisition manifest
-    ``tools/scholar-pdf-kit/tests/test_extraction_contract.py:847``,
+    ``tests/kits/pdf/test_extraction_contract.py:847``,
     ``test_e2_neg_004_cross_workspace_acquisition_manifest_is_rejected``.
 ``E2-NEG-024`` storage-prefix containment
-    ``tools/scholar-pdf-kit/tests/test_extraction_contract.py:2461``,
+    ``tests/kits/pdf/test_extraction_contract.py:2461``,
     ``test_e2_neg_024_escaping_storage_prefix_is_refused_before_any_filesystem_work``
     (plus the symlink and non-regular-destination limbs at ``:2489`` and ``:2523``).
 ``E2-NEG-046`` relocated sidecar is never adopted
-    ``tools/scholar-pdf-kit/tests/test_extraction_contract.py:2906``,
+    ``tests/kits/pdf/test_extraction_contract.py:2906``,
     ``test_e2_neg_046_relocated_sidecar_is_never_adopted_as_the_commit`` (plus the
     symlinked-sidecar limb at ``:2960``).
 ``E2-NEG-029`` atomic sidecar commit / no partial sidecar
-    ``tools/scholar-pdf-kit/tests/test_extraction_atomicity.py:114``,
+    ``tests/kits/pdf/test_extraction_atomicity.py:114``,
     ``test_e2_neg_029_crash_before_sidecar_leaves_no_authoritative_output``, and
     its fault-injection limb at ``:138``,
     ``test_e2_neg_029b_fault_injection_leaves_no_partial_sidecar``.
@@ -171,10 +171,8 @@ from scholar_harness.extraction_adapter import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-FIXTURE_DIR = REPO_ROOT / "tests" / "conformance" / "fixtures" / "e1_vendored"
 MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
-PINS_JSON = REPO_ROOT / "packaging" / "nexus-scholar" / "nexus_scholar_pins.json"
-PDF_KIT_PYPROJECT = REPO_ROOT / "tools" / "scholar-pdf-kit" / "pyproject.toml"
+PDF_KIT_PYPROJECT = REPO_ROOT / "pyproject.toml"
 
 # The frozen Contract v1 golden chain. Read-only: it is the generated
 # ``tests/fixtures/contracts/v1/two_study_artifact_chain.json`` (the same fixture
@@ -280,24 +278,10 @@ FOREIGN_ARTIFACT_ID = "ART-foreign-unregistered-parent"
 # --------------------------------------------------------------------------- #
 
 
-def _fixture(kit: str) -> dict:
-    return json.loads((FIXTURE_DIR / f"{kit}.json").read_text(encoding="utf-8"))
-
-
-def _plugins() -> dict[str, dict]:
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    return {plugin["name"]: plugin for plugin in manifest["plugins"]}
-
-
-def _pins() -> dict[str, dict]:
-    pins = json.loads(PINS_JSON.read_text(encoding="utf-8"))
-    return {pin["name"]: pin for pin in pins["kits"]}
-
-
 def _vendored_pdf_kit_version() -> str:
     """The real version of the vendored canonical pdf kit.
 
-    Read from ``tools/scholar-pdf-kit/pyproject.toml`` ``[project] version`` --
+    Read from ``pyproject.toml`` ``[project] version`` --
     the vendored snapshot's own declared version, not a hard-coded literal, so a
     version bump in the kit cannot leave the harness asserting a stale one.
     """
@@ -386,12 +370,12 @@ def _extracted_record() -> ExtractedDocumentRecord:
     """One committed extraction record, field-for-field the kit's own shape.
 
     Mirrored from the canonical construction in
-    ``tools/scholar-pdf-kit/src/scholar_pdf/extraction.py:2272-2306``
+    ``src/scholar_pdf/extraction.py:2272-2306``
     (``PDFExtractionService._extracted_record``, the only place the vendored kit
     builds an :class:`ExtractedDocumentRecord`). The kit's own E2 suite does not
     construct a record directly -- it drives a real extraction and reads the
     committed record back out of the sidecar, then projects it into the candidate
-    (``tools/scholar-pdf-kit/tests/test_extraction_contract.py:1573-1596`` for the
+    (``tests/kits/pdf/test_extraction_contract.py:1573-1596`` for the
     sidecar records, ``:1611-1625`` for
     ``ArtifactRecordProjection.from_outcome`` + ``build_document_manifest_candidate``).
 
@@ -1061,7 +1045,7 @@ def test_e2_neg_023_injected_log_event_failure_in_the_acceptance_window_publishe
     E2-NEG-023 has two limbs. The *first* -- "injecting a failure between
     extraction success and candidate construction leaves no candidate" -- belongs to
     the canonical pdf-kit and is proven by its own behavioral tests
-    (``tools/scholar-pdf-kit/tests/test_extraction_atomicity.py:138-172``, whose
+    (``tests/kits/pdf/test_extraction_atomicity.py:138-172``, whose
     ``ExtractionFault.VALIDATION`` injection fires after the engine returned usable
     text but before the commit). This harness packet does not re-prove kit
     behavior (§10.1.7), and no engine is executed here at all.
@@ -1406,35 +1390,6 @@ def test_e2_neg_035_parent_is_never_silently_replaced_with_a_registered_one(
 # --------------------------------------------------------------------------- #
 
 
-@pytest.mark.parametrize(("kit", "commit"), E2_KITS, ids=[k for k, _ in E2_KITS])
-def test_e2_neg_037_pins_and_vendored_records_agree_on_the_e2_commit(
-    kit: str, commit: str
-) -> None:
-    """Canonical commit, vendored snapshot record, and both pins must be one fact.
-
-    ``plugins.json`` ``default_rev``, the E1 vendored fixture's ``commit``, the
-    generated metapackage pin, and this packet's standing record must all name
-    the same full 40-hex commit. A kit commit that is pinned but not vendored, a
-    vendored tree that is not pinned, or a pin that drifted from both fails here.
-    (The blob-level index/worktree comparison is E1's E1-NEG-030 gate.)
-    """
-
-    assert len(commit) == 40
-    assert int(commit, 16) >= 0, "a full commit sha, never a floating branch"
-
-    plugins = _plugins()
-    assert kit in plugins, f"{kit} is missing from plugins.json"
-    assert plugins[kit]["default_rev"] == commit
-
-    fixture = _fixture(kit)
-    assert fixture["kit"] == kit
-    assert fixture["commit"] == commit
-
-    pin = _pins()[kit]
-    assert pin["default_rev"] == commit
-    assert pin["repo"] == plugins[kit]["repo"]
-
-
 def test_e2_neg_037_imported_kits_resolve_under_the_vendored_snapshots() -> None:
     """The imported E2 surfaces come from ``tools/<kit>/src``, not another install.
 
@@ -1444,13 +1399,13 @@ def test_e2_neg_037_imported_kits_resolve_under_the_vendored_snapshots() -> None
     """
 
     pdf_file = Path(scholar_pdf.__file__).resolve()
-    expected_pdf = (REPO_ROOT / "tools" / "scholar-pdf-kit" / "src").resolve()
+    expected_pdf = (REPO_ROOT / "src").resolve()
     assert expected_pdf in pdf_file.parents, (
         f"scholar_pdf resolved to {pdf_file}, not the vendored pdf-kit snapshot"
     )
 
     agent_paths = [Path(entry).resolve() for entry in scholar_agent_paths()]
-    expected_agent = (REPO_ROOT / "tools" / "scholar-agent-kit" / "src").resolve()
+    expected_agent = (REPO_ROOT / "src").resolve()
     assert any(expected_agent in entry.parents for entry in agent_paths), (
         f"scholar_agent resolved to {agent_paths}, not the vendored agent-kit snapshot"
     )

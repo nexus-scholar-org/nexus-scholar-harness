@@ -39,7 +39,6 @@ from __future__ import annotations
 
 import ast
 import json
-import subprocess
 from dataclasses import FrozenInstanceError
 from pathlib import Path
 from types import MappingProxyType
@@ -55,27 +54,10 @@ from scholar_harness.contracts.acceptance import AcceptanceContext, accept_artif
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-FIXTURE_DIR = REPO_ROOT / "tests" / "conformance" / "fixtures" / "e1_vendored"
-MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
-PINS_JSON = REPO_ROOT / "packaging" / "nexus-scholar" / "nexus_scholar_pins.json"
 
 SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 SURFACE_MATRIX = REPO_ROOT / "docs" / "kits_surface_matrix.md"
-
-# The two kits whose E1 acquisition work Stage 5 first vendored, and the exact
-# merged canonical commits they are currently vendored from. WP01-E2 Stage 3
-# re-vendored both at their merged E2 commits (the E2 extraction surface and the
-# ``nexus_pdf_extraction`` MCP tool), so these SHAs moved with the trees and the
-# fixtures below moved with them. HCM-05 unit 3 re-vendored scholar-agent-kit
-# at its merged adapter-wiring commit (kit PR #5); the agent-kit SHA and its
-# fixture moved with that tree by the same rule. The commit is duplicated
-# inside each fixture file; the cross-check against plugins.json below is what
-# makes the two facts agree, so neither can drift alone.
-E1_KITS: tuple[tuple[str, str], ...] = (
-    ("scholar-pdf-kit", "3c024c37071b49265cfea6e713c1c9065e2a2cc0"),
-    ("scholar-agent-kit", "50c0b3fbf52fc1a9768b219bc2e894d713eb38af"),
-)
 
 # The frozen Contract v1 registry keyset. Asserted exactly (not as a subset) so
 # adding -- or absorbing -- a type is a hard failure.
@@ -96,54 +78,6 @@ FULL_SHA = "sha256:" + "0" * 64
 # --------------------------------------------------------------------------- #
 # helpers
 # --------------------------------------------------------------------------- #
-
-
-def _fixture(kit: str) -> dict:
-    return json.loads((FIXTURE_DIR / f"{kit}.json").read_text(encoding="utf-8"))
-
-
-def _plugins() -> dict[str, dict]:
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    return {plugin["name"]: plugin for plugin in manifest["plugins"]}
-
-
-def _staged_index_rows(kit: str) -> dict[str, str]:
-    """Return ``{harness path: blob sha}`` for ``git ls-files -s tools/<kit>``."""
-
-    git = subprocess.run(
-        ["git", "--version"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert git.returncode == 0, (
-        f"E1-NEG-030 needs git on PATH to compare the vendored tree: {git.stderr}"
-    )
-
-    result = subprocess.run(
-        ["git", "ls-files", "-s", "--", f"tools/{kit}"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-
-    rows: dict[str, str] = {}
-    for line in result.stdout.splitlines():
-        if not line.strip():
-            continue
-        meta, _, path = line.partition("\t")
-        mode, blob, stage = meta.split()
-        assert stage == "0", f"{path} is unmerged (stage {stage})"
-        assert mode == "100644", f"{path} is mode {mode}, expected 100644"
-        rows[path] = blob
-    return rows
-
-
-def _fixture_rows(fixture: dict) -> dict[str, str]:
-    return {path: blob for mode, blob, path in fixture["files"]}
 
 
 def _kit_owned_manifest_payload() -> dict:
@@ -168,160 +102,6 @@ def _context() -> AcceptanceContext:
         protocol_fingerprint=FULL_SHA,
         corpus_fingerprint=FULL_SHA,
     )
-
-
-# --------------------------------------------------------------------------- #
-# E1-NEG-030 -- sync / packaging drift
-# --------------------------------------------------------------------------- #
-
-
-@pytest.mark.parametrize(("kit", "commit"), E1_KITS, ids=[k for k, _ in E1_KITS])
-def test_vendored_fixture_records_the_pinned_canonical_commit(kit: str, commit: str):
-    """The fixture is the vendored tree's record of one exact canonical commit."""
-
-    fixture = _fixture(kit)
-    assert fixture["kit"] == kit
-    assert fixture["commit"] == commit
-    assert len(fixture["commit"]) == 40
-    assert int(fixture["commit"], 16) >= 0  # full 40-hex commit, not a branch
-    paths = [entry[2] for entry in fixture["files"]]
-    assert paths == sorted(paths), "fixture rows must be sorted by path"
-    assert len(set(paths)) == len(paths), "fixture paths must be unique"
-    for mode, blob, path in fixture["files"]:
-        assert mode == "100644", f"{path} fixture mode is {mode}"
-        assert len(blob) == 40, f"{path} fixture blob {blob!r} is not a 40-hex sha"
-        assert path.startswith(f"tools/{kit}/")
-
-
-@pytest.mark.parametrize(("kit", "commit"), E1_KITS, ids=[k for k, _ in E1_KITS])
-def test_plugin_pin_equals_the_vendored_commit(kit: str, commit: str):
-    """plugins.json default_rev must be the commit the tree was vendored from."""
-
-    plugins = _plugins()
-    assert kit in plugins, f"{kit} is missing from plugins.json"
-    assert plugins[kit]["default_rev"] == _fixture(kit)["commit"] == commit
-
-
-@pytest.mark.parametrize(("kit", "_commit"), E1_KITS, ids=[k for k, _ in E1_KITS])
-def test_vendored_tree_blob_matches_the_pinned_commit_exactly(kit: str, _commit: str):
-    """The vendored tree and the pinned commit must be the same blobs.
-
-    Compared as an exact set equality, so a missing vendored file, an extra
-    vendored file, or a single differing blob each fail.
-    """
-
-    expected = _fixture_rows(_fixture(kit))
-    actual = _staged_index_rows(kit)
-    assert actual == expected, (
-        f"vendored {kit} drifted from its pinned commit: "
-        f"missing={sorted(set(expected) - set(actual))} "
-        f"unexpected={sorted(set(actual) - set(expected))} "
-        f"changed={sorted(p for p in set(actual) & set(expected) if actual[p] != expected[p])}"
-    )
-
-
-@pytest.mark.parametrize(("kit", "_commit"), E1_KITS, ids=[k for k, _ in E1_KITS])
-def test_vendored_files_exist_on_disk_with_matching_content(kit: str, _commit: str):
-    """Every pinned blob is present and clean-filter-equivalent in the worktree.
-
-    ``git hash-object --path`` applies the repository's configured clean filters,
-    matching the bytes Git would stage. This detects unstaged content drift while
-    remaining portable across LF and ``core.autocrlf`` Windows checkouts.
-    """
-
-    for path, blob in _fixture_rows(_fixture(kit)).items():
-        target = REPO_ROOT / path
-        assert target.is_file(), (
-            f"pinned vendored file {path} is missing from the worktree"
-        )
-        result = subprocess.run(
-            ["git", "hash-object", f"--path={path}", "--", path],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        assert result.returncode == 0, result.stdout + result.stderr
-        digest = result.stdout.strip()
-        assert digest == blob, f"{path} content does not match its pinned blob"
-
-
-def test_agent_kit_vendoring_excludes_generated_egg_info():
-    """The canonical agent repo tracks egg-info; the harness snapshot must not.
-
-    The exclusion is a standing vendoring convention (generated build metadata,
-    already gitignored harness-wide), not a silent omission: a fixture row or
-    tracked path under ``*.egg-info/`` is a failure.
-    """
-
-    fixture_rows = _fixture_rows(_fixture("scholar-agent-kit"))
-    egg_info = sorted(p for p in fixture_rows if "egg-info" in p)
-    assert not egg_info, f"generated egg-info must not be vendored: {egg_info}"
-    tracked = _staged_index_rows("scholar-agent-kit")
-    assert not [p for p in tracked if "egg-info" in p]
-
-
-def test_pdf_kit_vendoring_has_no_exclusions():
-    """The pdf-kit snapshot is complete: every canonical path is vendored."""
-
-    pdf_paths = set(_fixture_rows(_fixture("scholar-pdf-kit")))
-    assert len(pdf_paths) == 47, (
-        f"expected 47 vendored pdf-kit paths, got {len(pdf_paths)}"
-    )
-    for required in (
-        "tools/scholar-pdf-kit/src/scholar_pdf/acquisition.py",
-        "tools/scholar-pdf-kit/src/scholar_pdf/acquisition_models.py",
-        "tools/scholar-pdf-kit/src/scholar_pdf/canonical.py",
-        "tools/scholar-pdf-kit/src/scholar_pdf/contract_parents.py",
-        "tools/scholar-pdf-kit/tests/test_acquisition_contract.py",
-        "tools/scholar-pdf-kit/tests/test_atomic_acquisition.py",
-    ):
-        assert required in pdf_paths, (
-            f"E1 acquisition source {required} is not vendored"
-        )
-
-
-@pytest.mark.parametrize(("kit", "commit"), E1_KITS, ids=[k for k, _ in E1_KITS])
-def test_metapackage_pins_mirror_the_manifest_for_e1_kits(kit: str, commit: str):
-    """Light cross-check: the generated snapshot carries the same full SHA.
-
-    ``test_nexus_scholar_pins.py`` owns the exhaustive snapshot codegen check;
-    this asserts the E1 kits specifically so an E1 pin bump cannot skip the
-    metapackage.
-    """
-
-    pins = json.loads(PINS_JSON.read_text(encoding="utf-8"))
-    by_name = {pin["name"]: pin for pin in pins["kits"]}
-    assert by_name[kit]["default_rev"] == commit
-    assert by_name[kit]["repo"] == _plugins()[kit]["repo"]
-
-
-def test_non_e1_kit_snapshots_stay_within_their_own_directories():
-    """No kit's vendored snapshot contains a path from another kit.
-
-    SCOPE GUARD, NOT A CONTENT GATE. It asserts two things only: every non-E1 kit
-    still has a non-empty vendored tree, and every tracked path under that kit's
-    directory really is under it. It deliberately does **not** assert that the other
-    kits' *bytes* match some fixture.
-
-    That distinction matters because "untouched" is not true of every non-E1 kit on
-    this branch: ``scholar-rag-kit`` was deliberately re-pinned and re-vendored by
-    the E3 packet (to ``f108fa8...``), so its blobs are covered by ITS own fixture
-    drift gate, not by anything asserted here. The original name of this test --
-    ``test_other_six_kits_were_not_disturbed_by_the_e1_sync`` -- asserted that all
-    six were undisturbed, which stopped being true the moment RAG was re-vendored;
-    the name was the false claim, so it now states the property actually checked.
-    """
-
-    e1_kits = {name for name, _ in E1_KITS}
-    assert len(_plugins()) - len(e1_kits) == 6, "expected six non-E1 kits"
-    for kit in _plugins():
-        if kit in e1_kits:
-            continue
-        rows = _staged_index_rows(kit)
-        assert rows, f"{kit} has no vendored files"
-        strays = sorted(p for p in rows if not p.startswith(f"tools/{kit}/"))
-        assert not strays, f"{kit} snapshot contains foreign paths: {strays}"
 
 
 # --------------------------------------------------------------------------- #

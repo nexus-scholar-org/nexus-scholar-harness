@@ -94,8 +94,8 @@ class OpencodeAdapter:
 
         - ``CLI:<short>`` → ``uv run scholar-<short>`` (the repo's live
           console scripts, exactly what :func:`rewrite_text` reverses);
-        - ``KIT_ROOT:<short>`` → ``<root>/tools/scholar-<short>-kit`` (the
-          shared ``DEV_KIT_ROOT_TEMPLATE``, the vendored checkout the kit is
+        - ``KIT_ROOT:<short>`` → ``<root>`` (the repo root holding ``src/scholar_<short>``) (the
+          shared ``DEV_KIT_ROOT_TEMPLATE``, the checkout the kit is
           installed from); absent when that checkout is not present;
         - ``SKILL_DIR:<skill>`` → ``<root>/.agents/skills/<skill>``; absent
           when the skill does not exist;

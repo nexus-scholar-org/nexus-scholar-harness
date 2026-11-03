@@ -1,6 +1,6 @@
 """Conformance tests for scholar-search-kit identity contracts."""
 
-import json
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -18,9 +18,9 @@ def test_corpus_identity_conformance():
     """Verify CorpusSnapshotIdentity matches harness Contract v1 constraints."""
     fixture_path = (
         Path(__file__).parent.parent
-        / "tools"
-        / "scholar-search-kit"
         / "tests"
+        / "kits"
+        / "search"
         / "fixtures"
         / "canonical"
         / "identity_base.json"
@@ -49,20 +49,14 @@ def test_corpus_identity_conformance():
     assert env["corpus_id"] == ident.corpus_id
     assert env["corpus_fingerprint"] == ident.corpus_fingerprint
 
-    plugins = json.loads(
-        (
-            Path(__file__).parents[1]
-            / ".agents"
-            / "plugins"
-            / "nexus-scholar"
-            / "plugins.json"
-        ).read_text(encoding="utf-8")
-    )
-    expected_commit = next(
-        item["default_rev"]
-        for item in plugins["plugins"]
-        if item["name"] == "scholar-search-kit"
-    )
+    # The component ships inside this repository, so its producer commit is HEAD.
+    expected_commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=Path(__file__).resolve().parent,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
     assert get_corpus_identity(fixture_path).producer.commit == expected_commit
 
 

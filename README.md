@@ -100,11 +100,11 @@ Read [AGENTS.md](AGENTS.md) and the [Developer Compass](docs/architecture/DEVELO
 ```sh
 git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
-uv sync --extra dev
-uv run python scripts/install_plugins.py
+uv sync --extra dev --extra pdf --extra rag
+uv run pytest
 ```
 
-`uv sync` installs harness dependencies, not all kits. The installer uses the pinned [plugin manifest](.agents/plugins/nexus-scholar/plugins.json). Kit source changes also belong in their canonical repositories with synchronized pins and vendored content.
+The harness and the eight kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 
@@ -112,4 +112,4 @@ Start with the [docs index](docs/README.md), [program tracker](docs/UPCOMING_WOR
 
 ## License
 
-MIT, as declared in the [project metadata](pyproject.toml).
+MIT; see [LICENSE](LICENSE).

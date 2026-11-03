@@ -27,7 +27,7 @@ Rules for this module:
   ``None``).
 
 Kit-consumption status (HCM-05 ADOPTED): the vendored
-``tools/scholar-agent-kit/src/scholar_agent/server.py`` now consumes this
+``src/scholar_agent/server.py`` now consumes this
 adapter through a plain guarded import -- the dynamic seam
 (``_harness_src`` / ``NEXUS_HARNESS_SRC`` / ``sys.path`` insert / parent-walk
 discovery) is deleted, and the MCP ``recon_*`` tools call the loader first and

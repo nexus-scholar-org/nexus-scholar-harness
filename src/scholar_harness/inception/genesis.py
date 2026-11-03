@@ -152,7 +152,7 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
         from scholar_protocol.render import render_screening_criteria
     except ImportError as exc:  # pragma: no cover - kit dependency missing
         raise typer.Exit(
-            "scholar-protocol-kit is not installed; run scripts/install_plugins.py first"
+            "scholar-protocol-kit is not installed; run `uv sync` first"
         ) from exc
 
     intent_path = ws_dir / "intent.json"
@@ -564,7 +564,7 @@ def _generate_skill_meta_records(target: Path, skills_root: Path | None) -> dict
     """Emit ``SKILL.meta.json`` per workspace skill; never fails the scaffold.
 
     Manifest priority: the repo ``plugins.json`` (dev loop) → the bundled
-    ``nexus_scholar_pins.json`` (wheel) → no manifest (``rev: null`` states the
+    ``nexus_scholar_plugins.json`` (wheel) → no manifest (``rev: null`` states the
     unknown honestly rather than inventing one).
     """
     import json as _json
@@ -587,7 +587,7 @@ def _generate_skill_meta_records(target: Path, skills_root: Path | None) -> dict
         with _resources.as_file(
             _resources.files("scholar_harness").joinpath("..")
         ) as _pkg_parent:
-            candidates.append(_pkg_parent / "nexus_scholar_pins.json")
+            candidates.append(_pkg_parent / "nexus_scholar_plugins.json")
     except Exception:  # pragma: no cover — importlib.resources always available
         pass
     for candidate in candidates:

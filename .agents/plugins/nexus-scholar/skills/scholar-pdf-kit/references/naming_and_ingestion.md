@@ -11,7 +11,7 @@ This guide covers output naming, manual ingestion of local PDF files, and biblio
 Discovery `download` and manual `ingest` promote validated bytes to
 identity-addressed paths of the form `DOC-<32 hex>.pdf` (content hash via
 `_content_path`/`_promote_candidate` in
-`tools/scholar-pdf-kit/src/scholar_pdf/downloader.py`) — never from a title,
+`src/scholar_pdf/downloader.py`) — never from a title,
 filename, or HTTP success. A concurrent writer publishing different bytes to the
 same identity path fails rather than overwrites.
 

@@ -8,6 +8,7 @@ Validates the complete research harness lifecycle across:
 """
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -39,23 +40,19 @@ from scholar_agent.server import (
 
 
 def _pinned_rag_commit() -> str:
-    """The vendored rag-kit commit, read from the manifest that pins it.
+    """The commit of the build that actually ran.
 
-    Provenance must name the build that actually ran, so this is derived instead
-    of hard-coded: a hand-copied SHA would keep claiming a superseded rag-kit
-    revision after the pin moves.
+    scholar_rag ships inside this repository's single package, so its build is
+    the repository HEAD; derived, never hard-coded, so provenance cannot claim a
+    superseded revision.
     """
-    manifest = json.loads(
-        (
-            Path(__file__).resolve().parents[2]
-            / ".agents"
-            / "plugins"
-            / "nexus-scholar"
-            / "plugins.json"
-        ).read_text(encoding="utf-8")
-    )
-    pins = {p["name"]: p["default_rev"] for p in manifest["plugins"]}
-    return pins["scholar-rag-kit"]
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=Path(__file__).resolve().parent,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
 
 
 @pytest.fixture
