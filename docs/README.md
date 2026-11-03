@@ -40,6 +40,7 @@ lifecycle map (Phases 0–7), the governance set, and the per-track folders.
 
 | Document | Description |
 | :-- | :-- |
+| [**Harness and toolkit assessment**](./assessment/README.md) | 2026-11-03 independent assessment of the harness and all eight kits at `5deb3a1`: scorecard, cross-cutting conclusions, consolidated P0/P1/P2 priority list, one evidence-backed report per scope. Current view; supersedes earlier assessment material. |
 | [**Kit Surface Matrix**](./kits_surface_matrix.md) | Technical API · CLI · MCP reference across all eight scholar kits (tool signatures, flags, cross-kit contracts, env vars). Read before driving kit CLIs. |
 | [**Commit Snapshots**](./internal/COMMIT_SNAPSHOTS.md) | Historical workspace snapshot markers for restoring previous workspace test data. |
 | [**Harvest Calibration Lessons**](./lessons/2026-10-17_uav_harvest_calibration_lessons.md) | Lessons learned from the UAV multi-provider harvest (v0.2 pilot + v0.3), mapped to a proposed kit/harness development backlog (K1–K6, H1–H6). Evidence-anchored; proposals are not commitments. |
