@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screener agreement</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.stat{display:flex;flex-direction:column;gap:2px;flex:1;border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;font-variant-numeric:tabular-nums}
+.stat b{font-size:24px}
+.mx{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.mx td,.mx th{border:1px solid #c9c9c9;padding:10px 14px;text-align:right}
+.mx th{background:#f2f2f2;font-weight:600;text-align:left}
+.bar{display:grid;grid-template-columns:200px 1fr 50px;gap:10px;align-items:center;font-size:13px;padding:5px 0}
+.track{height:12px;border-radius:6px;background:#ececec;overflow:hidden}
+.fill{height:12px;background:#8a4a00}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 5 of 6 · Agreement · after both lanes finished</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">How often did the two lanes agree, and on what did they split?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Reported before you publish and written to the screening report. Raw agreement leads, because kappa drops sharply when includes are rare.</div>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <div class="stat"><span class="lbl">Raw agreement</span><b>94.6%</b><span class="muted" style="font-size:12px">2,988 of 3,160 decided by both</span></div>
+    <div class="stat"><span class="lbl">Cohen's kappa</span><b>0.57</b><span class="muted" style="font-size:12px">moderate · read with prevalence</span></div>
+    <div class="stat"><span class="lbl">Include prevalence</span><b>~7%</b><span class="muted" style="font-size:12px">lane A 223, lane B 205 includes</span></div>
+    <div class="stat"><span class="lbl">Unclear in a lane</span><b>81</b><span class="muted" style="font-size:12px">sent to full text, outside kappa</span></div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div class="lbl">Lane A against lane B</div>
+      <table class="mx">
+        <thead><tr><th></th><th>B include</th><th>B exclude</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><th>A include</th><td>128</td><td>95</td><td>223</td></tr>
+          <tr><th>A exclude</th><td>77</td><td>2,860</td><td>2,937</td></tr>
+          <tr><th>Total</th><td>205</td><td>2,955</td><td>3,160</td></tr>
+        </tbody>
+      </table>
+      <div class="box" style="background:#fdf3e6;border-color:#8a4a00;font-size:13px">
+        <b>Why kappa looks low:</b> with ~93% of records excluded, chance agreement is already 87%, so a 94.6% raw agreement only reaches 0.57. This interpretation was fixed in the protocol before screening started (lesson 35).
+      </div>
+    </div>
+
+    <div class="box" style="width:440px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Disagreements by criterion · 172</div>
+      <div class="bar"><span>INC-03 Evaluated artifact</span><div class="track"><div class="fill" style="width:100%"></div></div><span>98</span></div>
+      <div class="bar"><span>INC-01 UAV platform</span><div class="track"><div class="fill" style="width:42%"></div></div><span>41</span></div>
+      <div class="bar"><span>EXC-01 Opinion only</span><div class="track"><div class="fill" style="width:22%"></div></div><span>22</span></div>
+      <div class="bar"><span>INC-02 Crop disease task</span><div class="track"><div class="fill" style="width:11%"></div></div><span>11</span></div>
+      <div class="muted" style="font-size:13px;margin-top:8px">INC-03 causes more than half the splits. A clearer wording, or allowing "not reported", would remove most of them in the next review.</div>
+      <div class="muted" style="font-size:12px;margin-top:auto">All 172 went through your triage queue; none were resolved by majority vote.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

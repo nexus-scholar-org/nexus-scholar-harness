@@ -1,0 +1,37 @@
+<!-- @dsCard group="Evidence" height=236 subtitle="Level, reasons, and what would change it" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrustLevel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+body{margin:0;padding:24px;background:var(--surface);font-family:var(--font-sans);color:var(--ink)}
+.claim{display:grid;grid-template-columns:110px 1fr;gap:8px 16px;padding:12px 0;border-bottom:1px solid var(--hairline);align-items:start}
+.claim:last-child{border-bottom:0}
+.lvl{display:inline-flex;padding:4px 8px;border-radius:var(--radius-sm);font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;justify-self:start}
+.strong{color:var(--include);background:var(--include-soft)}
+.adequate{color:var(--brand);background:var(--brand-soft)}
+.weak{color:var(--unclear);background:var(--unclear-soft)}
+.blocked{color:var(--blocked);background:var(--blocked-soft)}
+.t{font-size:15px;line-height:22px;font-weight:600;margin:0}
+.why{font-size:15px;line-height:22px;margin:2px 0 0}
+.if{font-size:13px;line-height:18px;color:var(--ink-muted);margin:2px 0 0}
+a{color:var(--brand)}
+</style>
+</head>
+<body>
+<div class="claim">
+  <span class="lvl strong">Strong</span>
+  <div><p class="t">On-board inference under 50 ms is reported by only 4 of 27 studies.</p><p class="why">4 studies, all low risk, 2 with public code.</p><p class="if">Changes if: nothing in the current evidence.</p></div>
+</div>
+<div class="claim">
+  <span class="lvl weak">Weak</span>
+  <div><p class="t">Hyperspectral input beats RGB.</p><p class="why">2 of 3 supporting studies high risk; 1 funded by the camera maker.</p><p class="if">Changes if: a low-risk study agrees.</p></div>
+</div>
+<div class="claim">
+  <span class="lvl blocked">Blocked</span>
+  <div><p class="t">Transfer learning halves training data.</p><p class="why">Rests on the retracted <a href="#">[Study title] 2022</a>.</p><p class="if">Changes if: remove it and re-check.</p></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prepare screening</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.ok{color:#1f6a35;font-weight:600}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:6px 0;border-bottom:1px solid #eee}
+.opt{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:4px 0}
+.in{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 9px;background:#fff;color:#1f1f1f;width:90px}
+.tri{display:grid;grid-template-columns:1fr 70px 70px 110px;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid #eee;align-items:center}
+.pill{font-size:12px;border:1px solid #8a8a8a;border-radius:12px;padding:2px 8px;text-align:center}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 1 of 6 · Prepare</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Set up batches, lanes and what a screener can answer</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">The binding is checked before anything is written. The main change: each criterion and each record can be marked unclear, which sends it to full-text review instead of forcing a yes or no.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div style="width:420px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">Binding</div>
+        <div class="kv"><span>Protocol fingerprint</span><span class="ok">matches corpus</span></div>
+        <div class="kv"><span>Corpus snapshot</span><span class="ok">accepted · 3,241 works</span></div>
+        <div class="kv" style="border:0"><span>Criteria</span><span>4 inclusion · 3 exclusion</span></div>
+        <div class="muted" style="font-size:12px;margin-top:6px">No accepted snapshot? This panel shows one button, <a href="#">Accept the Phase-1 corpus</a>, instead of a log error.</div>
+      </div>
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">Batches</div>
+        <div class="opt" style="align-items:center"><label for="bs">Records per batch</label><input id="bs" class="in" value="20"><span class="muted">→ 163 batches</span></div>
+        <div class="opt"><input type="checkbox" id="shuf" checked><label for="shuf">Shuffle with a recorded seed <span class="muted">(today: corpus order, so one provider fills whole batches)</span></label></div>
+        <div class="opt"><input type="checkbox" id="lanes" checked><label for="lanes">Two independent lanes, A and B <span class="muted">(each record screened twice, blind to the other)</span></label></div>
+      </div>
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">Screeners never see</div>
+        <div class="opt"><input type="checkbox" id="b1" checked><label for="b1">Which database a record came from</label></div>
+        <div class="opt"><input type="checkbox" id="b2" checked><label for="b2">Expected include rate or noise level <span class="muted">(lesson 54)</span></label></div>
+        <div class="opt"><input type="checkbox" id="b3" checked><label for="b3">The other lane's decisions</label></div>
+      </div>
+    </div>
+
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="lbl">What a screener fills for each record</div>
+      <div class="tri" style="font-size:12px;color:#5c5c5c;font-weight:600"><span>Criterion</span><span>Yes</span><span>No</span><span>Not reported</span></div>
+      <div class="tri"><span>INC-01 UAV or drone platform</span><span class="pill">yes</span><span class="pill">no</span><span class="pill">not reported</span></div>
+      <div class="tri"><span>INC-02 Crop disease detection task</span><span class="pill">yes</span><span class="pill">no</span><span class="pill">not reported</span></div>
+      <div class="tri"><span>INC-03 Evaluated artifact</span><span class="pill">yes</span><span class="pill">no</span><span class="pill">not reported</span></div>
+      <div class="tri"><span>EXC-01 Opinion without evaluation</span><span class="pill">yes</span><span class="pill">no</span><span class="pill">not reported</span></div>
+      <div class="muted" style="font-size:12px">+ INC-04, EXC-02 and EXC-03, same three answers</div>
+      <div class="lbl" style="margin-top:8px">How the decision is derived</div>
+      <div style="font-size:13px;display:flex;flex-direction:column;gap:6px">
+        <div><b>Exclude</b> · any exclusion is yes, or any inclusion is no</div>
+        <div><b>Include</b> · every inclusion is yes and no exclusion is yes</div>
+        <div><b>Unclear → full text</b> · anything else, including every "not reported" <span class="muted">(today this resolves to Exclude)</span></div>
+      </div>
+      <div class="lbl" style="margin-top:8px">Also required</div>
+      <div style="font-size:13px">One sentence of reasoning per record, kept verbatim in the decision record.</div>
+      <div class="muted" style="font-size:12px;margin-top:auto">The instrument above is frozen into every batch file with its own fingerprint, so files written against an older instrument are refused (lessons 28, 32).</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn">Preview one batch</button>
+    <button class="btn btn-p">Prepare 163 batches × 2 lanes</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

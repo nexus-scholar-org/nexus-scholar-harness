@@ -1,0 +1,35 @@
+<!-- @dsCard group="Evidence" height=176 subtitle="Draft, verified, edited, not reported, and selected" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DataCell</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+body{margin:0;padding:24px;background:var(--surface);font-family:var(--font-sans);color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:13px;line-height:18px;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--hairline);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--surface-raised);color:var(--ink-muted);font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase}
+.verified{background:var(--include-soft)}
+.edited{background:var(--brand-soft)}
+.nr{background:var(--exclude-soft);color:var(--exclude);font-style:italic}
+.sel{outline:2px solid var(--brand);outline-offset:-2px}
+.legend{display:flex;gap:16px;margin-top:12px;font-size:13px;line-height:18px;color:var(--ink-muted)}
+.sw{display:inline-block;width:12px;height:12px;border:1px solid var(--hairline);border-radius:2px;vertical-align:middle;margin-right:4px}
+</style>
+</head>
+<body>
+<table>
+  <thead><tr><th>Study</th><th>Model</th><th>Dataset</th><th>Accuracy metric</th><th>Latency</th></tr></thead>
+  <tbody>
+    <tr><td>[Study A] 2023</td><td class="verified">MobileNetV3</td><td class="edited">Own, 3 seasons</td><td class="sel">F1 0.91 (held-out)</td><td class="nr">not reported</td></tr>
+  </tbody>
+</table>
+<div class="legend">
+  <span><span class="sw" style="background:var(--surface)"></span>Draft</span>
+  <span><span class="sw" style="background:var(--include-soft)"></span>Verified</span>
+  <span><span class="sw" style="background:var(--brand-soft)"></span>Edited by you</span>
+  <span><span class="sw" style="background:var(--exclude-soft)"></span>Not reported</span>
+</div>
+</body>
+</html>

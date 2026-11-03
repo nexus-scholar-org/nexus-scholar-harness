@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inception agent (chat)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.user{align-self:flex-end;max-width:68%;border-radius:14px;padding:10px 14px;background:#e7e7e7;font-size:14px}
+.agent{align-self:flex-start;max-width:88%;border:1.5px solid #bdbdbd;border-radius:14px;padding:12px 14px;background:#fff;font-size:14px;display:flex;flex-direction:column;gap:10px}
+.chip{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:16px;padding:5px 12px;background:#fff;color:#1f1f1f}
+.chip-p{border-color:#1d4ed8;color:#1d4ed8;font-weight:600}
+.badge{font-size:12px;border-radius:4px;padding:3px 8px;border:1px solid}
+.b-ok{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.b-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.dir{border:1.5px solid #8a8a8a;border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:6px;font-size:13px;flex:1}
+.check{display:flex;gap:8px;font-size:13px}
+</style>
+</helmet>
+<div style="width:1200px;height:1040px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 3 of 5 · Front end B</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Agent: inception in chat</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Each agent turn ends in one decision with quick replies. The brief on the right fills in as steps finish.</div>
+  </div>
+
+  <div style="display:flex;gap:24px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:14px;padding:18px;min-width:0">
+      <div class="lbl">Conversation</div>
+
+      <div class="user">Drone-mounted crop-disease detection with on-device deep learning.</div>
+
+      <div class="agent">
+        <div><b>Step 1 · Scope.</b> I'll search 25 papers from 2020 on, English, semantic mode. Change anything?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip chip-p">Looks right, search</button>
+          <button class="chip">Change years</button>
+          <button class="chip">Keyword mode</button>
+        </div>
+      </div>
+
+      <div class="agent">
+        <div><b>Step 3 · Pick a direction.</b> From 25 papers I found three directions backed by at least two papers each.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge b-ok">Enough papers (25)</span>
+          <span class="badge b-warn">Mixed subfields (0.41)</span>
+          <span class="badge b-ok">Low prompt echo (0.22)</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="dir"><b>Lightweight CNN crop disease detection</b><span class="muted">4 anchor papers</span><a href="#" style="color:#1d4ed8">Show DOIs</a></div>
+          <div class="dir"><b>Multispectral UAV imagery</b><span class="muted">3 anchor papers</span><a href="#" style="color:#1d4ed8">Show DOIs</a></div>
+          <div class="dir"><b>Edge deployment latency</b><span class="muted">2 anchor papers · thin</span><a href="#" style="color:#1d4ed8">Show DOIs</a></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip chip-p">Pick 1</button>
+          <button class="chip">Pick 2</button>
+          <button class="chip">Pick 3</button>
+          <button class="chip">Search again, narrower</button>
+          <button class="chip">Check if 3 is a gap</button>
+        </div>
+      </div>
+
+      <div class="user">Pick 1.</div>
+
+      <div class="agent">
+        <div><b>Step 4 · Shape.</b> Your topic leans Design Science. Use it with the DESIGN_SCIENCE playbook (Hevner DSR)?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip chip-p">Yes, Design Science</button>
+          <button class="chip">Positivist</button>
+          <button class="chip">Compare paradigms</button>
+        </div>
+      </div>
+
+      <div style="margin-top:auto;display:flex;gap:8px;align-items:center;border:1.5px solid #8a8a8a;border-radius:8px;padding:8px 10px">
+        <label for="reply" class="muted" style="font-size:13px">Reply</label>
+        <input id="reply" style="flex:1;border:0;font:inherit;font-size:14px;outline:none" placeholder="Type, or use a quick reply above">
+        <button class="chip">Back a step</button>
+      </div>
+    </div>
+
+    <div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:10px">
+        <div class="lbl">Inception brief · 3 of 6</div>
+        <div class="check"><b style="width:56px">Done</b><span>Scope: 2020+, en, semantic, 25 papers</span></div>
+        <div class="check"><b style="width:56px">Done</b><span>Explore: 25 papers, 3 schools</span></div>
+        <div class="check"><b style="width:56px">Done</b><span>Direction: lightweight CNN crop disease detection (4)</span></div>
+        <div class="check" style="color:#1d4ed8"><b style="width:56px">Now</b><span>Shape: paradigm, playbook, RQs</span></div>
+        <div class="check muted"><b style="width:56px">Next</b><span>Concepts and criteria</span></div>
+        <div class="check muted"><b style="width:56px">Next</b><span>Review and emit</span></div>
+      </div>
+
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Evidence</div>
+        <div>Anchored terms: 42 · checks left: 3 of 3</div>
+        <div class="muted">Session rec_7f3a… · 1 probe, 1 distill · cache .cache/inception_recon</div>
+        <a href="#" style="color:#1d4ed8">Open pool and anchor list</a>
+      </div>
+
+      <div class="box" style="border:1.5px dashed #1d4ed8;background:#eef2fd;display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <div class="lbl" style="color:#1d4ed8">Write gate</div>
+        <div>Nothing is written until you confirm on the Review step.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="chip">Save draft</button>
+          <button class="chip">Dry run now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

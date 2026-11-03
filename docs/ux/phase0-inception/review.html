@@ -1,0 +1,244 @@
+<title>Inception Module Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: a referee report — one reading column, a verdict block up top, numbered major comments as the spine. */
+:root{
+  --bg:#f6f7f5; --surface:#ffffff; --fg:#1c2529; --muted:#55626a; --rule:#d9dedb;
+  --accent:#2a4d8f; --accent-soft:#e8eef8;
+  --major:#8a4a00; --major-soft:#fbf1e3;
+  --minor:#4a5560; --minor-soft:#eef0f2;
+  --good:#1f6a3d; --good-soft:#e9f5ee;
+  --display:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a1d; --surface:#1b2327; --fg:#e4e9e7; --muted:#9aa7ad; --rule:#2e3a3f;
+  --accent:#8fb0ec; --accent-soft:#1f2b40;
+  --major:#f0b06a; --major-soft:#33261a;
+  --minor:#b4bec6; --minor-soft:#262e33;
+  --good:#7fd0a0; --good-soft:#1a2e23; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#141a1d; --surface:#1b2327; --fg:#e4e9e7; --muted:#9aa7ad; --rule:#2e3a3f;
+  --accent:#8fb0ec; --accent-soft:#1f2b40;
+  --major:#f0b06a; --major-soft:#33261a;
+  --minor:#b4bec6; --minor-soft:#262e33;
+  --good:#7fd0a0; --good-soft:#1a2e23; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+a{color:var(--accent)} a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.page{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.25}
+h1{font-size:2.1rem;font-weight:600}
+h2{font-size:1.4rem;font-weight:600}
+h3{font-size:1.08rem;font-weight:600;font-family:var(--body)}
+p{margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mono{font-family:var(--mono);font-size:.86em}
+.muted{color:var(--muted)}
+section{display:flex;flex-direction:column;gap:16px}
+
+.meta{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-size:.92rem;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding-block:12px}
+.meta dt{color:var(--muted)} .meta dd{margin:0;min-width:0}
+
+.verdict{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+.verdict .rec{font-family:var(--display);font-size:1.25rem;font-weight:600}
+.chip{display:inline-block;font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:2px 8px;white-space:nowrap}
+.c-major{background:var(--major-soft);color:var(--major)}
+.c-minor{background:var(--minor-soft);color:var(--minor)}
+.c-good{background:var(--good-soft);color:var(--good)}
+.c-acc{background:var(--accent-soft);color:var(--accent)}
+
+ul.plain{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+
+.comments{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule)}
+.comment{display:grid;grid-template-columns:56px 1fr;gap:4px 16px;padding-block:18px;border-bottom:1px solid var(--rule)}
+.comment .id{font-family:var(--mono);font-weight:500;color:var(--muted);padding-top:2px}
+.comment .body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.comment .head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.lab{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
+
+.groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.group{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px;font-size:.94rem;min-width:0}
+.group h3{font-family:var(--display)}
+.group dl{margin:0;display:flex;flex-direction:column;gap:8px}
+.group dt{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.group dd{margin:0}
+
+ol.prio{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:10px}
+ol.prio li::marker{font-family:var(--mono);color:var(--accent);font-weight:500}
+
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+.note{border-left:0;background:var(--minor-soft);border-radius:8px;padding:14px 16px;font-size:.92rem}
+
+@media (max-width:720px){
+  .groups{grid-template-columns:1fr}
+  .comment{grid-template-columns:1fr}
+  h1{font-size:1.7rem}
+}
+</style>
+
+<div class="page">
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <div class="eyebrow">Referee report · Nexus Scholar harness</div>
+    <h1>Grounded inception: the module, the recon engine and the chat agent</h1>
+    <dl class="meta">
+      <dt>Date</dt><dd>2 November 2026</dd>
+      <dt>Scope</dt><dd><span class="mono">src/scholar_harness/inception/</span>, <span class="mono">src/scholar_harness/recon/</span>, the <span class="mono">inception-agent</span> skill and its parity helper, and the draft wireframes</dd>
+      <dt>Method</dt><dd>Code and documentation reading by an AI reviewer (Claude). No user testing.</dd>
+      <dt>Requested by</dt><dd>Mouadh Bekhouche</dd>
+    </dl>
+  </header>
+
+  <div class="verdict">
+    <div class="eyebrow">Recommendation</div>
+    <div class="rec">Sound core, major revisions before claiming systematic-review compliance</div>
+    <p>The reproducibility machinery is stronger than most review tools, and anchoring every concept to real DOIs is the right defence against invented terms. The main scientific risk is that the anchor rule protects precision at the cost of recall, which a systematic search is judged on first. For end users, the barriers are jargon and rigidity rather than missing features.</p>
+  </div>
+
+  <section>
+    <h2>Strengths</h2>
+    <ul class="plain">
+      <li><b>Reproducibility.</b> Deterministic protocol compile, content-addressed recon cache, a protocol fingerprint and an append-only audit journal with a GENESIS event and a full <span class="mono">recon_context.json</span> sidecar.</li>
+      <li><b>Evidence before concepts.</b> A direction needs two or more anchor DOIs and every core concept at least one. Nothing unanchored reaches <span class="mono">core_concepts</span>.</li>
+      <li><b>Careful signals.</b> Corpus saturation is framed as a thinness signal, never a gap certificate, and the skill warns that the prompt-echo index reads backwards on well-focused pools.</li>
+      <li><b>Teaching value.</b> The interview makes students state a paradigm, a unit of analysis, the proof a reviewer would accept, and what is out of scope.</li>
+      <li><b>One engine, two front ends.</b> The chat agent imports the wizard's own functions, so both propose identical directions.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Major comments</h2>
+    <div class="comments">
+      <div class="comment">
+        <div class="id">M1</div>
+        <div class="body">
+          <div class="head"><h3>Unanchored synonyms are dropped, which hurts recall</h3><span class="chip c-major">Major</span></div>
+          <p>A synonym with no anchor in a pool of at most 25 papers is removed (<span class="mono">grounded.py:477</span>). Controlled vocabulary such as MeSH headings, regional spellings and older names will often be absent from a small, query-shaped sample.</p>
+          <p><span class="lab">Remedy</span>Check synonyms against the whole-corpus count (<span class="mono">ReconEngine.corpus_count</span> already exists), or keep them with a recorded expert rationale.</p>
+        </div>
+      </div>
+      <div class="comment">
+        <div class="id">M2</div>
+        <div class="body">
+          <div class="head"><h3>Directions are frequent phrases, and their evidence is thin and circular</h3><span class="chip c-major">Major</span></div>
+          <p>Two DOIs out of a 25-paper pool drawn from one query is a low bar, and the pool reflects the wording of the topic. Directions are n-grams ranked multi-word first, then by frequency (<span class="mono">grounded.py:153</span>). They are lexical patterns, not research gaps or questions.</p>
+          <p><span class="lab">Remedy</span>Rename them in the interface (for example "recurring themes"), and consider citation or recency weighting, or semantic clustering.</p>
+        </div>
+      </div>
+      <div class="comment">
+        <div class="id">M3</div>
+        <div class="body">
+          <div class="head"><h3>Gate thresholds come from a single trial</h3><span class="chip c-major">Major</span></div>
+          <p>The topic-purity threshold (0.50) and the thin-pool floor (12 papers) were calibrated on one multi-domain trial dated 13 September 2026 (<span class="mono">gates.py</span>).</p>
+          <p><span class="lab">Remedy</span>Label them provisional in the methods text and validate them across more fields before they appear in a publication.</p>
+        </div>
+      </div>
+      <div class="comment">
+        <div class="id">M4</div>
+        <div class="body">
+          <div class="head"><h3>Semantic search results drift over time</h3><span class="chip c-major">Major</span></div>
+          <p>OpenAlex semantic results can change as the service updates. The cache keeps a project stable, but a later rerun by a reader may differ without explanation.</p>
+          <p><span class="lab">Remedy</span>Record the provider, retrieval date and search mode in the protocol itself, not only in the cache key.</p>
+        </div>
+      </div>
+      <div class="comment">
+        <div class="id">M5</div>
+        <div class="body">
+          <div class="head"><h3>Systematic-review basics are missing at this stage</h3><span class="chip c-major">Major</span></div>
+          <p>Reviewers and journals expect: searches across several bibliographic databases (Scopus, Web of Science, PubMed as relevant), peer review of the search strategy against the PRESS checklist, piloting the criteria on a sample, dual screening, and protocol registration (PROSPERO or OSF).</p>
+          <p><span class="lab">Remedy</span>Add database selection and a registration export to inception, and a second-reviewer path to screening.</p>
+        </div>
+      </div>
+      <div class="comment">
+        <div class="id">M6</div>
+        <div class="body">
+          <div class="head"><h3>The paradigm model is narrow</h3><span class="chip c-minor">Moderate</span></div>
+          <p>Four paradigms detected from keywords (Positivist, Interpretivist, Design Science, Pragmatist / Mixed Methods) leave out critical realism, constructivist grounded theory and transformative approaches. Health and social-science reviewers will look first for PICO, SPIDER or PEO question frameworks.</p>
+          <p><span class="lab">Remedy</span>Offer a question framework as an alternative entry to the paradigm cards, and make lexicon warnings advisory.</p>
+        </div>
+      </div>
+      <div class="comment">
+        <div class="id">M7</div>
+        <div class="body">
+          <div class="head"><h3>Three proposed directions can steer the researcher</h3><span class="chip c-minor">Moderate</span></div>
+          <p>Even with the human as final gate, a short machine-ranked list narrows thinking (automation bias).</p>
+          <p><span class="lab">Remedy</span>Show the other anchored terms in the pool, and accept a researcher-defined direction that is anchored afterwards.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>By user group</h2>
+    <div class="groups">
+      <div class="group">
+        <h3>PhD students</h3>
+        <dl>
+          <dt>Works</dt><dd>Structured thinking, a compiled protocol and an audit trail a committee can inspect. A dissertation playbook exists.</dd>
+          <dt>Hurts</dt><dd>Internal terms (QEI, purity, <span class="mono">DESIGN_SCIENCE</span>), the CLI, and hard exits that lose every answer.</dd>
+          <dt>Needs</dt><dd>Plain-language labels, save and resume, a graphical front end.</dd>
+        </dl>
+      </div>
+      <div class="group">
+        <h3>Supervisors</h3>
+        <dl>
+          <dt>Works</dt><dd>Provenance: they can see why a concept is in the search, with the papers behind it.</dd>
+          <dt>Hurts</dt><dd>No way to comment on or approve a draft protocol.</dd>
+          <dt>Needs</dt><dd>A review loop, registration export, second-reviewer support.</dd>
+        </dl>
+      </div>
+      <div class="group">
+        <h3>Experienced researchers</h3>
+        <dl>
+          <dt>Works</dt><dd>Headless flags for scripted runs; a deterministic, cached engine.</dd>
+          <dt>Hurts</dt><dd>A long guided interview for a field they know; machine-picked directions.</dd>
+          <dt>Needs</dt><dd>Import an existing protocol or seed papers, jump to any step, override an anchor rule with a reason.</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recommended order of work</h2>
+    <ol class="prio">
+      <li><b>Protect recall.</b> Whole-corpus synonym checks, expert overrides with a recorded reason, researcher-supplied seed papers.</li>
+      <li><b>Translate the interface.</b> Plain labels for users, raw metrics kept in an expandable detail line.</li>
+      <li><b>Add question frameworks.</b> PICO and SPIDER beside the paradigm cards.</li>
+      <li><b>Strengthen the record.</b> Provider, date and mode in the protocol; PROSPERO or OSF export.</li>
+      <li><b>Support collaboration.</b> A supervisor review loop and second-reviewer support before claiming systematic-review compliance.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Already addressed</h2>
+    <p class="muted">Committed as <span class="mono">46f4a46</span> on branch <span class="mono">fix/inception-ux-quick-wins</span>; not yet pushed or reviewed.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Issue</th><th>Change</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>The re-search option printed as <span class="mono">__delta_probe__</span></td><td>Reads "Search again, narrower"</td><td><span class="chip c-good">Fixed</span></td></tr>
+          <tr><td>A narrower search with no result was silent</td><td>Prints the outcome either way</td><td><span class="chip c-good">Fixed</span></td></tr>
+          <tr><td>Numbered choices hid the default</td><td>Default marked, prompt shows <span class="mono">[Enter = N]</span></td><td><span class="chip c-good">Fixed</span></td></tr>
+          <tr><td>Skill default of 10 papers sat below the thin-pool floor of 12</td><td>Default raised to 25</td><td><span class="chip c-good">Fixed</span></td></tr>
+          <tr><td>Date window asked after the search; late hard exit; unbounded concept defaults</td><td>Proposed in the wireframes</td><td><span class="chip c-acc">Designed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Limits of this review</h2>
+    <div class="note">These judgements come from reading code and documentation, not from watching people use the tool. A few short sessions with two or three PhD students and one supervisor would test them quickly. File and line references point to the code as of 2 November 2026.</div>
+    <p>Companion wireframes: <a href="https://claude.ai/artifact/Dwo4z3mZQjqejCcgMs9SH2">Inception module and agent wireframe</a> (eleven boards covering the flow, both front ends, the review screen and error states).</p>
+  </section>
+</div>

@@ -3,9 +3,8 @@
 **Status:** independent, read-only assessment of the harness and all eight vendored
 `scholar-*-kit` packages at commit `5deb3a1`. It supersedes earlier assessment material
 as the current view; older dated reviews remain history.
-`5deb3a1` is `main` at `4bd02c5` plus the unmerged inception quick-wins branch, which
-changes only `inception/grounded.py` and `inception/wizard.py`; line numbers in those two
-files may be offset by a few lines on `main`. All kit and other harness source is identical.
+`5deb3a1` is `main` at `4bd02c5` plus the inception UX quick-wins commit (`46f4a46`,
+now merged), which changes only `inception/grounded.py` and `inception/wizard.py`.
 Since the 2026-11-03 merge into one package, a cited `tools/scholar-<kit>-kit/src/<pkg>/…`
 path lives at `src/<pkg>/…` and `tools/scholar-<kit>-kit/tests/…` at `tests/kits/<kit>/…`. Nothing was fixed — each
 document ends with a prioritized recommendation table.

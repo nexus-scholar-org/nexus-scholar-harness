@@ -47,6 +47,7 @@ recorded are summarized in [`decisions.md`](decisions.md).
 | Document | What it is |
 | :-- | :-- |
 | [UAV harvest calibration lessons](lessons/2026-10-17_uav_harvest_calibration_lessons.md) | Lessons from the UAV multi-provider harvest. |
+| [UX reviews and brand](ux/) | 2026-11-02/03 phase-by-phase UX reviews (inception, discovery, screening, extraction, verification) with wireframe canvases, and the *Nexus Scholar Provenance* design system. Proposals; not user-tested. |
 | [Inception/recon scientific review](architecture/inception_recon_scientific_review.md) (2026-10-09), [test suite audit](architecture/test_suite_audit.md) (2026-10-13), [guideline conformance audit](architecture/guideline_conformance_and_review_audit_2026-10-21.md), [T-SC1 packet](architecture/packet_t_sc1_canonical_profile_parity_2026-10-21.md) | Dated records, kept as history. Links inside them may point at removed files. |
 | [Commit snapshots](internal/COMMIT_SNAPSHOTS.md) | Where to restore earlier workspace data from. |
 | [`specs/`](../specs/README.md) | Formal specifications that code and the frozen baseline still cite. |

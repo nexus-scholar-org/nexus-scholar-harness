@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Extraction quality</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.stat{display:flex;flex-direction:column;gap:2px;flex:1;border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;font-variant-numeric:tabular-nums}
+.stat b{font-size:22px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:middle}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.tag{font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;border:1px solid;white-space:nowrap}
+.t-ok{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-bad{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px;line-height:1.55;background:#f6f6f6;border:1px solid #d6d6d6;border-radius:4px;padding:10px;white-space:pre-wrap}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 3 of 6 · Extract text</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Is the extracted text good enough to extract data from?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Each of the 150 reports gets a quick quality check before indexing. Today a failed parse falls back to the abstract and is still counted as an extracted document.</div>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <div class="stat"><span class="lbl">Text looks good</span><b>139</b><span class="muted" style="font-size:12px">sections and tables found</span></div>
+    <div class="stat"><span class="lbl">Scanned, no text layer</span><b>4</b><span class="muted" style="font-size:12px">needs OCR</span></div>
+    <div class="stat"><span class="lbl">Columns mixed up</span><b>4</b><span class="muted" style="font-size:12px">two-column layout misread</span></div>
+    <div class="stat"><span class="lbl">Tables not found</span><b>3</b><span class="muted" style="font-size:12px">results may sit in images</span></div>
+    <div class="stat" style="border-color:#1f6a35"><span class="lbl">Abstract-only</span><b>0</b><span class="muted" style="font-size:12px">today: 45, counted as extracted</span></div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="lbl">Needs attention · 11</div>
+      <table>
+        <thead><tr><th>Report</th><th>Pages</th><th>Problem</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>[report title]</td><td>12</td><td><span class="tag t-bad">No text layer</span></td><td><button class="btn">Run OCR</button></td></tr>
+          <tr><td>[report title]</td><td>9</td><td><span class="tag t-warn">Columns mixed</span></td><td><button class="btn">Compare</button></td></tr>
+          <tr><td>[report title]</td><td>16</td><td><span class="tag t-warn">No tables found</span></td><td><button class="btn">Mark tables</button></td></tr>
+          <tr><td class="muted">+ 8 more</td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="font-size:12px;margin-top:auto">The engine (PyMuPDF), its version and each check result are written into the document's frontmatter and journaled.</div>
+    </div>
+
+    <div class="box" style="width:460px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Compare · page 6 of [report title]</div>
+      <div class="muted" style="font-size:12px">Extracted text, read in the wrong order across two columns:</div>
+      <div class="mono">The proposed network reaches   images were collected over
+an F1 score of 0.91 on the    three growing seasons from
+held-out set, which is        plots in [region], and</div>
+      <div class="muted" style="font-size:12px">A misread page like this would feed jumbled sentences into the data-extraction step.</div>
+      <div style="display:flex;gap:8px;margin-top:auto">
+        <button class="btn">Re-extract as two columns</button>
+        <button class="btn">Accept as is</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

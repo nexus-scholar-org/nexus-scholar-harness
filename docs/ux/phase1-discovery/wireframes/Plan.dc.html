@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Query plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.cblock{border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 10px;background:#fff;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.op{font-size:12px;font-weight:700;color:#5c5c5c;align-self:center}
+.code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px;background:#f6f6f6;border:1px solid #d6d6d6;border-radius:4px;padding:10px;line-height:1.6}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.tag{font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;border:1px solid;white-space:nowrap}
+.t-strict{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.t-rel{border-color:#5c5c5c;color:#3a3a3a;background:#f2f2f2}
+.t-off{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.warn{color:#8a4a00;font-weight:600}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 1 of 6 · Plan · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Check the query before it reaches any database</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">The concepts come from the frozen protocol. Each database reads the query differently, so the plan shows what will actually be sent and what that lets you claim.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div style="width:430px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:8px">
+        <div class="lbl">Concepts from protocol.json</div>
+        <div class="cblock"><b>lightweight cnn crop disease detection</b><span class="muted">no synonyms · 4 anchor papers</span></div>
+        <div class="op">AND</div>
+        <div class="cblock"><b>unmanned aerial vehicle</b><span class="muted">OR drone · 5 anchor papers</span></div>
+        <div class="op">AND</div>
+        <div class="cblock"><b>plant disease classification</b><span class="muted">OR leaf disease detection · 6</span></div>
+        <div class="muted" style="font-size:12px">+ 6 more concepts · protocol fingerprint [sha256:…]</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px">
+        <div class="lbl">Compiled query</div>
+        <div class="code">"lightweight cnn crop disease detection" AND ("unmanned aerial vehicle" OR drone) AND ("plant disease classification" OR "leaf disease detection") AND …</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Limits</div>
+        <div>Years: 2020 to present</div>
+        <div>Languages: en, fr <span class="warn">· only en is sent today</span></div>
+        <div>Cap per database: 2,000 <span class="muted">(from the protocol's expected pool size)</span></div>
+        <div class="muted" style="font-size:12px">A database that hits the cap is reported as a lower bound.</div>
+      </div>
+    </div>
+
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="lbl">How each database reads it</div>
+      <table>
+        <thead><tr><th>Database</th><th>Mode</th><th>Sent as</th><th>What you can claim</th></tr></thead>
+        <tbody>
+          <tr><td><b>OpenAlex</b></td><td><span class="tag t-strict">Strict boolean</span></td><td>AND / OR filter on title and abstract</td><td>Complete within the filter, if under the cap</td></tr>
+          <tr><td><b>Crossref</b></td><td><span class="tag t-rel">Relevance</span></td><td>Keywords; type filter: journal article, proceedings</td><td>Recall net only; expect heavy noise</td></tr>
+          <tr><td><b>Semantic Scholar</b></td><td><span class="tag t-rel">Relevance</span></td><td>Keywords, ranked</td><td>Supplement; no completeness claim</td></tr>
+          <tr><td><b>arXiv</b></td><td><span class="tag t-strict">Fielded</span></td><td>Title and abstract fields with AND / OR</td><td>Preprints only</td></tr>
+          <tr><td><b>PubMed</b></td><td><span class="tag t-off">Off</span></td><td><a href="#">Turn on</a> · would add MeSH terms</td><td>Needed for health topics</td></tr>
+          <tr><td class="muted">Scopus, Web of Science</td><td class="muted">Not supported</td><td class="muted">—</td><td class="muted">State this in the methods</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:auto;border-top:1px solid #e3e3e3;padding-top:10px;font-size:13px">
+        <a href="#">Show the exact request for each database</a> <span class="muted">· saved with the run</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:space-between;align-items:center">
+    <span class="muted" style="font-size:13px">Changing concepts amends the frozen protocol and is journaled as an amendment.</span>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Amend protocol</button>
+      <button class="btn btn-p">Approve and check recall</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

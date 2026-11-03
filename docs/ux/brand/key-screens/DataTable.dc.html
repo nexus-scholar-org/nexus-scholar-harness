@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data extraction table</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 5 of 6 · Data extraction · gate</span>
+      <h1 class="display" style="margin:0">Every cell drafted from a quote, and checked by you.</h1>
+      <p class="lede">142 studies by 5 columns. A machine draft stays plain until you accept it; "not reported" is a value, not a blank.</p>
+    </div>
+    <span class="body-strong">411 of 710 cells settled</span>
+  </div>
+
+  <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:center">
+    <span class="caption" style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border:1px solid var(--hairline);border-radius:2px;background:var(--include-soft)"></span>Verified 312</span>
+    <span class="caption" style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border:1px solid var(--hairline);border-radius:2px;background:var(--brand-soft)"></span>Edited by you 41</span>
+    <span class="caption" style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border:1px solid var(--hairline);border-radius:2px;background:var(--exclude-soft)"></span>Not reported 58</span>
+    <span class="caption" style="display:inline-flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border:1px solid var(--hairline);border-radius:2px;background:var(--surface)"></span>Machine draft 299</span>
+  </div>
+
+  <div style="display:flex;gap:var(--space-5);flex-wrap:wrap;flex:1;min-height:0">
+    <div class="card" style="flex:1;min-width:620px;padding:var(--space-2);display:flex;flex-direction:column;gap:var(--space-3)">
+      <div style="overflow-x:auto">
+      <table class="tbl" style="table-layout:fixed">
+        <thead><tr><th style="width:130px">Study</th><th>Model</th><th>Platform</th><th>Dataset</th><th>Accuracy metric</th><th>Latency</th></tr></thead>
+        <tbody>
+          <tr><td>[Study A] 2023</td><td style="background:var(--include-soft)">MobileNetV3</td><td style="background:var(--include-soft)">DJI quadcopter</td><td style="background:var(--brand-soft)">Own, 3 seasons</td><td style="outline:2px solid var(--brand);outline-offset:-2px">F1 0.91 (held-out)</td><td class="t-exclude" style="background:var(--exclude-soft);font-style:italic">not reported</td></tr>
+          <tr><td>[Study B] 2022</td><td style="background:var(--include-soft)">YOLOv5s</td><td style="background:var(--include-soft)">Fixed-wing UAV</td><td style="background:var(--include-soft)">PlantVillage</td><td style="background:var(--include-soft)">mAP 0.84</td><td style="background:var(--include-soft)">38 ms, Jetson Nano</td></tr>
+          <tr><td>[Study C] 2024</td><td>ResNet-18 (pruned)</td><td style="background:var(--include-soft)">Multirotor</td><td class="t-exclude" style="background:var(--exclude-soft);font-style:italic">not reported</td><td>Accuracy 96.4%</td><td>12 fps</td></tr>
+          <tr><td>[Study D] 2021</td><td style="background:var(--include-soft)">Custom CNN</td><td style="background:var(--brand-soft)">Hexacopter</td><td style="background:var(--include-soft)">Own</td><td style="background:var(--include-soft)">Accuracy 93.1%</td><td class="t-exclude" style="background:var(--exclude-soft);font-style:italic">not reported</td></tr>
+          <tr><td class="muted" colspan="6">+ 138 more studies</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <span class="caption muted" style="padding:0 var(--space-2) var(--space-2)">Export is blocked while any cell is still a machine draft, unless you export it marked as unverified.</span>
+    </div>
+
+    <div style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--space-4)">
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-3)">
+        <span class="label eyebrow">Study A · Accuracy metric</span>
+        <div class="title" style="margin:0">F1 0.91 <span class="muted" style="font-family:var(--font-sans);font-size:15px;font-weight:400">held-out test set</span></div>
+        <div class="quote"><span class="loc">p. 9, Table 3</span>"The proposed network reaches an F1 score of 0.91 on the held-out set."</div>
+        <div style="display:flex;gap:var(--space-2)">
+          <button class="btn btn-primary" style="flex:1">Accept <span class="key">A</span></button>
+          <button class="btn" style="flex:1">Edit <span class="key">E</span></button>
+          <button class="btn" style="flex:1">Not reported <span class="key">N</span></button>
+        </div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Second extractor</span>
+        <p class="body" style="margin:0">A second, independent pass on a random 20% of studies; differences come back to you.</p>
+        <span class="caption muted">28 studies · 9 differences so far</span>
+      </div>
+      <span class="caption muted">Each cell stores value, quote, page, who set it and when.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

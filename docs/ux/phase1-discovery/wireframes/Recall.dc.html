@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Recall check</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.ok{color:#1f6a35;font-weight:700}
+.miss{color:#8f1d1d;font-weight:700}
+.src{font-size:11px;border:1px solid #8a8a8a;border-radius:4px;padding:1px 6px;color:#5c5c5c;white-space:nowrap}
+.in{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 10px;background:#fff;color:#1f1f1f}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.meter{height:14px;border-radius:7px;background:#ececec;overflow:hidden;border:1px solid #c9c9c9}
+.meter div{height:14px;background:#1f6a35}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 2 of 6 · Recall check · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Does the query find papers you already know?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Seeds come from inception's anchor papers plus any you add. A small, cheap run checks each one before the full harvest. Uses scholar-search validate-query.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">Seed papers · 8</span><span style="font-size:14px"><span class="ok">7 found</span> · <span class="miss">1 missed</span></span></div>
+      <div class="meter" role="img" aria-label="7 of 8 seeds found"><div style="width:87.5%"></div></div>
+      <table>
+        <thead><tr><th>Seed</th><th>Source</th><th>Found by</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>[paper title]<br><span class="muted">10.xxxx/…</span></td><td><span class="src">anchor</span></td><td>OpenAlex, Crossref</td><td class="ok">found</td></tr>
+          <tr><td>[paper title]<br><span class="muted">10.xxxx/…</span></td><td><span class="src">anchor</span></td><td>OpenAlex</td><td class="ok">found</td></tr>
+          <tr><td>[paper title]<br><span class="muted">arXiv:xxxx.xxxxx</span></td><td><span class="src">anchor</span></td><td>arXiv</td><td class="ok">found</td></tr>
+          <tr><td>[paper title]<br><span class="muted">10.xxxx/…</span></td><td><span class="src">you</span></td><td>Crossref</td><td class="ok">found</td></tr>
+          <tr style="background:#fbeeee"><td>[paper title]<br><span class="muted">10.xxxx/…</span></td><td><span class="src">you</span></td><td>none</td><td class="miss">missed</td></tr>
+          <tr><td class="muted">+ 3 more found</td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+      <div style="display:flex;gap:8px;margin-top:auto">
+        <label for="seed" class="muted" style="font-size:13px;align-self:center">Add a seed</label>
+        <input id="seed" class="in" style="flex:1" placeholder="DOI, arXiv id or PMID">
+        <button class="btn">Add</button>
+      </div>
+    </div>
+
+    <div style="width:420px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:8px;border:1.5px solid #8f1d1d">
+        <div class="lbl" style="color:#8f1d1d">Why one seed was missed</div>
+        <div style="font-size:14px">Its title and abstract say <b>"UAS"</b> and <b>"foliar disease"</b>. Neither is in the query.</div>
+        <div class="muted" style="font-size:13px">"UAS" was dropped in inception because it had no anchor in the probe pool.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn">Add "UAS" as a synonym</button>
+          <button class="btn">Add "foliar disease"</button>
+        </div>
+        <div class="muted" style="font-size:12px">Either change amends the protocol and reruns this check.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Rule</div>
+        <div>Seeds must come from verified retrieval output, never a guessed DOI.</div>
+        <div class="muted">UAV lesson 2: a constructed DOI matched the wrong paper.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Recorded</div>
+        <div>Seed list, found or missed per database, and the query fingerprint go into the run manifest.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn">Back to plan</button>
+    <button class="btn">Run anyway, 1 missed</button>
+    <button class="btn btn-p">Fix and recheck</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screening triage queue</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 4 of 6 · Triage · your decisions</span>
+      <h1 class="display" style="margin:0">So far 227 records need you; 2,121 agreed exclusions do not.</h1>
+      <p class="lede">Both screening lanes have finished 2,410 records. You see only the ones they disagree on or both include.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--space-3)">
+      <span class="body-strong">41 of 227 done</span>
+      <div style="width:160px;height:6px;border-radius:3px;background:var(--surface-raised);overflow:hidden"><div style="width:18%;height:6px;background:var(--brand)"></div></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:var(--space-5);flex-wrap:wrap;flex:1;min-height:0">
+    <div class="card" style="width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3)">
+      <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+        <button class="chip chip-on">Disagree 131</button>
+        <button class="chip">Both include 96</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-1)">
+        <div style="padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--brand-soft);outline:1.5px solid var(--brand)"><div class="body-strong">[Lightweight CNN for leaf disease detection on a UAV platform]</div><div class="caption muted">A include · B exclude · INC-03</div></div>
+        <div style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><div class="body-strong">[paper title]</div><div class="caption muted">A exclude · B include · EXC-01</div></div>
+        <div style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><div class="body-strong">[paper title]</div><div class="caption muted">A include · B exclude · INC-01</div></div>
+        <div style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><div class="body-strong">[paper title]</div><div class="caption muted">A exclude · B include · INC-02</div></div>
+      </div>
+      <span class="caption muted" style="padding:0 var(--space-3)">+ 127 more in this filter · sorted by the criterion the lanes split on</span>
+    </div>
+
+    <div style="flex:1;min-width:560px;display:flex;flex-direction:column;gap:var(--space-4)">
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <h2 class="title" style="margin:0">Lightweight CNN for leaf disease detection on a UAV platform</h2>
+        <span class="caption muted">2023 · [venue] · <span class="data">10.xxxx/…</span></span>
+        <p class="body" style="margin:var(--space-2) 0 0;max-width:72ch">[Abstract] … images captured by a <span class="hl">UAV</span> over wheat fields … a <span class="hl">lightweight CNN</span> classifies <span class="hl">leaf rust</span> … the model is proposed for <span class="hl">on-board</span> use; accuracy is reported on a held-out set …</p>
+        <span class="caption muted">Highlighted words are tied to a criterion. The database of origin is hidden from screeners and from you.</span>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-3)">
+        <table class="tbl">
+          <thead><tr><th>Criterion</th><th>Lane A</th><th>Lane B</th></tr></thead>
+          <tbody>
+            <tr><td>INC-01 UAV platform</td><td class="t-include">yes</td><td class="t-include">yes</td></tr>
+            <tr><td>INC-02 Crop disease task</td><td class="t-include">yes</td><td class="t-include">yes</td></tr>
+            <tr style="background:var(--unclear-soft)"><td>INC-03 Evaluated artifact</td><td class="t-include">yes</td><td class="t-blocked">no</td></tr>
+            <tr><td>EXC-01 Opinion only</td><td class="t-exclude">no</td><td class="t-exclude">no</td></tr>
+          </tbody>
+        </table>
+        <div class="quote"><span class="loc">Lane A</span>"Reports accuracy on a held-out set, so the model is evaluated."</div>
+        <div class="quote"><span class="loc">Lane B</span>"Proposes on-board use but no deployment evaluation is described."</div>
+      </div>
+
+      <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1">Include <span class="key">I</span></button>
+        <button class="btn" style="flex:1">Exclude with reason <span class="key">E</span></button>
+        <button class="btn" style="flex:1">Send to full text <span class="key">F</span></button>
+        <button class="btn" style="flex:1">Skip <span class="key">S</span></button>
+      </div>
+      <span class="caption muted">Your decision and both lanes' rows are kept as linked records; nothing is overwritten.</span>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;gap:var(--space-4);align-items:center;flex-wrap:wrap;padding:var(--space-3) var(--space-4)">
+    <span class="body-strong">After the queue</span>
+    <span class="body">check a random sample of 60 agreed exclusions</span>
+    <span class="caption muted">a single wrong exclusion reopens that criterion</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

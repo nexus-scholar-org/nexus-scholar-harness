@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Triage queue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.q{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-bottom:1px solid #eee;font-size:13px}
+.q.on{background:#eef2fd;border-left:0;outline:1.5px solid #1d4ed8;border-radius:4px}
+.filter{font:inherit;font-size:12px;border:1.5px solid #8a8a8a;border-radius:14px;padding:4px 10px;background:#fff;color:#1f1f1f}
+.filter.on{border-color:#1d4ed8;color:#1d4ed8;font-weight:600}
+.hl{background:#fdf3e6;padding:0 2px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #e3e3e3;padding:6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.y{color:#1f6a35;font-weight:600}
+.n{color:#3a3a3a}
+.nr{color:#8a4a00;font-weight:600}
+.dec{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 14px;background:#fff;color:#1f1f1f;min-height:44px;flex:1}
+.dec-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.key{font-family:ui-monospace,Consolas,monospace;font-size:11px;border:1px solid #8a8a8a;border-radius:3px;padding:0 4px;margin-left:6px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:16px;background:#fafafa">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="lbl">Step 4 of 6 · Triage · your decisions</div>
+      <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">So far 227 records need you; 2,121 agreed exclusions do not</h1>
+    </div>
+    <span style="font-size:14px">41 of 227 done</span>
+  </div>
+
+  <div style="display:flex;gap:16px;flex:1;min-height:0">
+    <div class="box" style="width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding:12px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="filter on">Disagree 131</button>
+        <button class="filter">Both include 96</button>
+      </div>
+      <div class="q on"><b>[paper title]</b><span class="muted">A include · B exclude · INC-03</span></div>
+      <div class="q"><b>[paper title]</b><span class="muted">A exclude · B include · EXC-01</span></div>
+      <div class="q"><b>[paper title]</b><span class="muted">A include · B exclude · INC-01</span></div>
+      <div class="q"><b>[paper title]</b><span class="muted">A exclude · B include · INC-02</span></div>
+      <div class="muted" style="font-size:12px;padding:6px 10px">+ 127 more in this filter</div>
+      <div class="muted" style="font-size:12px;margin-top:auto">Sorted by which criterion the lanes split on, so similar calls come together.</div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div class="box" style="display:flex;flex-direction:column;gap:6px">
+        <b style="font-size:16px">[Paper title: lightweight CNN for leaf disease detection on a UAV platform]</b>
+        <div class="muted" style="font-size:13px">2023 · [venue] · 10.xxxx/…</div>
+        <div style="font-size:14px;line-height:1.55">[Abstract text] … images captured by a <span class="hl">UAV</span> over wheat fields … a <span class="hl">lightweight CNN</span> classifies <span class="hl">leaf rust</span> … the model is proposed for <span class="hl">on-board</span> use; accuracy is reported on a held-out set …</div>
+        <div class="muted" style="font-size:12px">Highlights mark words tied to a criterion. Database of origin is hidden.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px">
+        <table>
+          <thead><tr><th>Criterion</th><th>Lane A</th><th>Lane B</th></tr></thead>
+          <tbody>
+            <tr><td>INC-01 UAV platform</td><td class="y">yes</td><td class="y">yes</td></tr>
+            <tr><td>INC-02 Crop disease task</td><td class="y">yes</td><td class="y">yes</td></tr>
+            <tr style="background:#fdf3e6"><td>INC-03 Evaluated artifact</td><td class="y">yes</td><td class="n">no</td></tr>
+            <tr><td>EXC-01 Opinion only</td><td class="n">no</td><td class="n">no</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:13px"><b>A:</b> "Reports accuracy on a held-out set, so the model is evaluated."</div>
+        <div style="font-size:13px"><b>B:</b> "Proposes on-board use but no deployment evaluation is described."</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="dec dec-p">Include<span class="key">I</span></button>
+        <button class="dec">Exclude<span class="key">E</span></button>
+        <button class="dec">Full text<span class="key">F</span></button>
+        <button class="dec">Skip<span class="key">S</span></button>
+      </div>
+      <div class="muted" style="font-size:12px">Exclude asks for one reason code. Your decision and both lanes' rows are kept as linked records; nothing is overwritten.</div>
+    </div>
+  </div>
+
+  <div class="box" style="display:flex;gap:16px;align-items:center;padding:10px 16px;font-size:13px">
+    <b>After the queue:</b>
+    <span>check a random sample of 60 agreed exclusions</span>
+    <span class="muted">· records only the sample size and errors found; a single wrong exclusion reopens that criterion</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

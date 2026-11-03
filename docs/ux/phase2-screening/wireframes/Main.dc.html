@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screening overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.n{width:28px;height:28px;border-radius:14px;border:1.5px solid #1f1f1f;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.gate{border:1.5px dashed #1d4ed8;background:#eef2fd}
+</style>
+</helmet>
+<div style="width:1200px;height:720px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:22px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 1 of 8 · Phase 2 screening</div>
+    <h1 style="margin:6px 0 0;font-size:30px;font-weight:700">Agents screen everything; you decide only what is uncertain</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Today: prepare, ask an agent to fill each batch file, review and approve batch by batch, then collect. The redesign keeps the file hand-off and its integrity checks, and changes where the researcher's attention goes.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px">
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">1</div><b>Prepare</b></div>
+      <div style="font-size:13px">Bind to protocol and corpus, shuffle, set lanes</div>
+      <div class="muted" style="font-size:12px">Outcomes include Unclear</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">2</div><b>Calibrate</b></div>
+      <div style="font-size:13px">Agents vs your labels on 20 to 50 records</div>
+      <div style="font-size:12px;color:#1d4ed8;font-weight:600">Gate: agreement</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">3</div><b>Screen</b></div>
+      <div style="font-size:13px">Two independent agent lanes, files checked on arrival</div>
+      <div class="muted" style="font-size:12px">Blind to provider and noise</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">4</div><b>Triage</b></div>
+      <div style="font-size:13px">One queue: disagreements and includes; unclear goes to full text</div>
+      <div style="font-size:12px;color:#1d4ed8;font-weight:600">Your decisions</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">5</div><b>Agreement</b></div>
+      <div style="font-size:13px">Raw agreement, kappa with prevalence, per criterion</div>
+      <div class="muted" style="font-size:12px">Reported, not hidden</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">6</div><b>Publish</b></div>
+      <div style="font-size:13px">Approve the whole generation once; PRISMA counts</div>
+      <div style="font-size:12px;color:#1d4ed8;font-weight:600">One pairing code</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Where your time goes today</div>
+      <div style="font-size:14px">Every batch: review, approve, pairing code</div>
+      <div class="muted" style="font-size:13px">~160 batches for 3,241 works · a title-only record is pushed to a yes/no · one screener unless you hand-name second-screener files</div>
+    </div>
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Where it goes in the redesign</div>
+      <div style="font-size:14px">Only records the agents disagree on or both include</div>
+      <div class="muted" style="font-size:13px">Agreed exclusions are closed by the agents and checked on a random sample (lesson 45, Option C)</div>
+    </div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:10px;border-style:dashed;background:#f4f4f4">
+    <div class="lbl">Already solid, stays</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px">
+      <div class="box">Batches bound to protocol and corpus fingerprints; stale files refused</div>
+      <div class="box">Exact coverage: no record dropped or invented between batch and decisions</div>
+      <div class="box">Publication approval gates collect; refused files kept as .rejected</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":720}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

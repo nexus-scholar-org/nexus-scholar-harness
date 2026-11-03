@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inception states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.card{border:1.5px solid #8a8a8a;border-radius:6px;background:#fff;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid}
+.t-stop{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-info{border-color:#1d4ed8;color:#1d4ed8;background:#eef2fd}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 12px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.was{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#5c5c5c;border-top:1px solid #e3e3e3;padding-top:8px}
+</style>
+</helmet>
+<div style="width:2480px;height:620px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 5 of 5 · Both front ends</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Empty, warning and recovery states</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Every state names what happened, keeps the answers given so far, and offers a next step. The bottom line of each card is today's behaviour.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;flex:1">
+    <div class="card">
+      <span class="tag t-stop">No direction</span>
+      <b>No direction has two anchor papers</b>
+      <div>25 papers came back, but no term appeared in two or more of them. I won't invent one.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+        <button class="btn btn-p">Rephrase topic</button>
+        <button class="btn">Switch to semantic</button>
+        <button class="btn">Continue ungrounded</button>
+      </div>
+      <div class="was">Today: typer.Exit, wizard ends</div>
+    </div>
+
+    <div class="card">
+      <span class="tag t-warn">Thin pool</span>
+      <b>Only 8 papers came back</b>
+      <div>Directions from fewer than 12 papers are often fragments. Widening the years or using semantic search usually helps.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+        <button class="btn btn-p">Widen to 2015+</button>
+        <button class="btn">Semantic search</button>
+        <button class="btn">Use these anyway</button>
+      </div>
+      <div class="was">Today: one-line note, then the list</div>
+    </div>
+
+    <div class="card">
+      <span class="tag t-warn">Unanchored term</span>
+      <b>'crop yield forecasting' has no papers</b>
+      <div>A check found no papers for this concept, so it can't go into the search. 1 check left.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+        <button class="btn btn-p">Edit the term</button>
+        <button class="btn">Remove it</button>
+        <button class="btn">Pick from anchored terms</button>
+      </div>
+      <div class="was">Today: typer.Exit at Stage 4b, all answers lost</div>
+    </div>
+
+    <div class="card">
+      <span class="tag t-info">Narrower search</span>
+      <b>The narrower search found no new direction</b>
+      <div>Your original three directions are still available. You've used the one narrower search for this session.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+        <button class="btn btn-p">Back to the three</button>
+        <button class="btn">Rephrase topic</button>
+      </div>
+      <div class="was">Today: silent, same list returns</div>
+    </div>
+
+    <div class="card">
+      <span class="tag t-info">Resume</span>
+      <b>Resume your draft?</b>
+      <div>Draft from 2 Nov, stopped at step 5 (Concepts). Search results are cached, so resuming costs nothing.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+        <button class="btn btn-p">Resume at step 5</button>
+        <button class="btn">Start over</button>
+      </div>
+      <div class="was">Today: no draft; EOF aborts</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2480,"height":620}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

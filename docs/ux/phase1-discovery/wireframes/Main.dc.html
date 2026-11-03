@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discovery overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.n{width:28px;height:28px;border-radius:14px;border:1.5px solid #1f1f1f;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.gate{border:1.5px dashed #1d4ed8;background:#eef2fd}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:22px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 1 of 8 · Phase 1 discovery</div>
+    <h1 style="margin:6px 0 0;font-size:30px;font-weight:700">From a frozen protocol to a deduplicated corpus</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Today one command runs search, dedup, hydration and screening prep behind a single spinner. The redesign splits discovery into six visible steps with two gates before anything hits the providers.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px">
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">1</div><b>Plan</b></div>
+      <div style="font-size:13px">See the compiled query and how each database will read it</div>
+      <div style="font-size:12px;color:#1d4ed8;font-weight:600">Gate: approve query</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">2</div><b>Recall</b></div>
+      <div style="font-size:13px">Check the query finds papers you already know</div>
+      <div style="font-size:12px;color:#1d4ed8;font-weight:600">Gate: seeds found</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">3</div><b>Harvest</b></div>
+      <div style="font-size:13px">Live progress per database, rate limits, caps</div>
+      <div class="muted" style="font-size:12px">Stop or retry one database</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">4</div><b>Report</b></div>
+      <div style="font-size:13px">Records per database, lower bounds, search date</div>
+      <div class="muted" style="font-size:12px">PRISMA identification box</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">5</div><b>Dedup</b></div>
+      <div style="font-size:13px">Merges by DOI, title and near-twin, with review</div>
+      <div class="muted" style="font-size:12px">Journaled with counts</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">6</div><b>Hand-off</b></div>
+      <div style="font-size:13px">Unique records, provider mix, screening workload</div>
+      <div class="muted" style="font-size:12px">Into Phase 2 screening</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Today</div>
+      <div style="font-size:14px">scholar-harness run --protocol protocol.json</div>
+      <div class="muted" style="font-size:13px">One string with AND / OR sent to every provider · pool-size max used as a hard cap · first language only · one spinner until the PRISMA hand-off · raw files overwritten each run</div>
+    </div>
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Redesign</div>
+      <div style="font-size:14px">scholar-harness discover plan · check · run · report</div>
+      <div class="muted" style="font-size:13px">Per-database translation · seeds from inception anchors · caps disclosed as lower bounds · per-database counts journaled · run-numbered files</div>
+    </div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:10px;border-style:dashed;background:#f4f4f4">
+    <div class="lbl">What already works and stays</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px">
+      <div class="box">Honest status: SUCCESS, PARTIAL, EMPTY_RESULT, FAILED<br><span class="muted">pipeline/discovery.py</span></div>
+      <div class="box">Fail-closed: a failed harvest publishes no corpus; earlier files are kept and named stale</div>
+      <div class="box">One DISCOVERY_SEARCH event per run, written to the owning workspace only</div>
+    </div>
+  </div>
+
+  <div class="muted" style="font-size:13px">Command names in the redesign are proposals. Kit changes (translation, type filters, near-twin dedup) go through the scholar-search-kit repository; harness changes stay here.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

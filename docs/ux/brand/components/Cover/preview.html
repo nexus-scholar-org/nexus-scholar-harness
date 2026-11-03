@@ -1,0 +1,50 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nexus Scholar Provenance</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600&family=Public+Sans:wght@400&display=swap">
+<style>
+body{margin:0;width:960px;height:288px;background:var(--ground);position:relative;overflow:hidden}
+svg{position:absolute;left:0;top:0}
+.brand{fill:var(--brand)}
+.ink{fill:var(--ink)}
+.anchor{fill:var(--anchor)}
+.soft{fill:var(--brand-soft)}
+.include{fill:var(--include)}
+.rule{stroke:var(--ground);stroke-width:1.5;fill:none}
+.node{fill:var(--ground)}
+.name{position:absolute;left:48px;top:150px;margin:0;font-family:var(--font-display);font-size:64px;line-height:0.95;font-weight:600;letter-spacing:-0.01em;color:var(--ink);white-space:nowrap}
+.tag{position:absolute;left:48px;top:230px;margin:0;font-family:var(--font-sans);font-size:14px;line-height:20px;color:var(--ink-muted);max-width:440px}
+</style>
+</head>
+<body>
+<!--
+derivation
+blocks: brand 384×112, ink 192×112, anchor 96×112, brand-soft 192×112, include 96×112 (sides = space-7 multiples: 8, 4, 2, 4, 2 × 48); flush strip across the top band, square corners (radius-sm 4 would read as rounding on a ledger rule; the system's cards are square-cornered at this scale)
+arrangement: top-band skeleton (the name is wider than 440px at 64px): one strip of unequal bands, the brand blue widest because the brand is neutral-first with one hue; the signal colours stay narrow
+pattern: a literal motif, the provenance chain: three hairline rules cut from the ground crossing the blocks, each carrying anchor discs (r = space-1 + 2) where a claim is tied to a source; chosen because the README's first principle is "every number has a source"
+scales: rule pitch space-6 (32), discs r 6, text block inset space-7 (48), name 64px Literata 600 one line, tagline 14px Public Sans
+-->
+<svg width="960" height="112" viewBox="0 0 960 112" aria-hidden="true">
+  <rect class="brand" x="0" y="0" width="384" height="112"/>
+  <rect class="ink" x="384" y="0" width="192" height="112"/>
+  <rect class="anchor" x="576" y="0" width="96" height="112"/>
+  <rect class="soft" x="672" y="0" width="192" height="112"/>
+  <rect class="include" x="864" y="0" width="96" height="112"/>
+  <path class="rule" d="M48 24 H912"/>
+  <path class="rule" d="M48 56 H912"/>
+  <path class="rule" d="M48 88 H912"/>
+  <circle class="node" cx="96" cy="24" r="6"/>
+  <circle class="node" cx="288" cy="56" r="6"/>
+  <circle class="node" cx="432" cy="88" r="6"/>
+  <circle class="node" cx="528" cy="24" r="6"/>
+  <circle class="node" cx="624" cy="56" r="6"/>
+  <circle class="node" cx="768" cy="88" r="6"/>
+  <circle class="node" cx="912" cy="24" r="6"/>
+</svg>
+<h1 class="name">Nexus Scholar Provenance</h1>
+<p class="tag">Every number has a source.</p>
+</body>
+</html>

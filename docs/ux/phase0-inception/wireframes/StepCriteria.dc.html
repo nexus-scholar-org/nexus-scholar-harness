@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 5 Criteria and matrix</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.li{display:flex;gap:10px;align-items:center;font-size:13px;padding:6px 0;border-bottom:1px solid #eee}
+.src{font-size:11px;border:1px solid #8a8a8a;border-radius:4px;padding:1px 6px;color:#5c5c5c}
+.in{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 9px;background:#fff;color:#1f1f1f}
+.chip{font-size:12px;border:1px solid #8a8a8a;border-radius:12px;padding:3px 10px;background:#fff}
+.opt{display:flex;gap:8px;align-items:center;font-size:13px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.md{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px;line-height:1.6;background:#f6f6f6;border:1px solid #d6d6d6;border-radius:4px;padding:10px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 5 of 6 · Criteria and matrix</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Who gets in, and what you extract</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Criteria derived from earlier answers are listed with their source, so manual additions sit beside them. A live preview shows the screening file.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+      <div class="box">
+        <div class="lbl">Inclusion</div>
+        <div class="li"><span class="src">scope</span>Published 2020 or later, in English</div>
+        <div class="li"><span class="src">concepts</span>Matches at least one core concept</div>
+        <div class="li"><span class="src">lens</span>Reports an evaluated artifact</div>
+        <div class="li" style="border:0"><span class="src">you</span><input class="in" style="flex:1" aria-label="New inclusion criterion" placeholder="Add, e.g. publishes on a named public dataset"></div>
+      </div>
+      <div class="box">
+        <div class="lbl">Exclusion</div>
+        <div class="li"><span class="src">lens</span>Opinion without an evaluated artifact<span class="muted" style="margin-left:auto">OUT_OF_SCOPE</span></div>
+        <div class="li"><span class="src">scope</span>Not in English<span class="muted" style="margin-left:auto">LANGUAGE</span></div>
+        <div class="li" style="border:0"><span class="src">you</span><input class="in" style="flex:1" aria-label="New exclusion criterion" placeholder="Add an exclusion"><select class="in" aria-label="Rejection category"><option>OUT_OF_SCOPE</option><option>LANGUAGE</option><option>INSUFFICIENT_DATA</option></select></div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:13px">Out of scope:</span><span class="chip">closed-source models ×</span><span class="chip">pre-2020 ×</span><span class="chip">+ add</span></div>
+      </div>
+      <div class="box">
+        <div class="lbl">Phase-4 verification</div>
+        <div class="opt" style="margin-top:6px"><input type="checkbox" id="v" checked><label for="v">Retraction status, COI audit, open-science checks</label></div>
+        <div class="muted" style="font-size:12px;margin-top:4px">Trust threshold 6.0. Turning this off sets it to 0 and skips the checks.</div>
+      </div>
+    </div>
+
+    <div style="width:440px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box">
+        <div class="lbl">Extraction matrix · Phase-2 columns</div>
+        <div class="muted" style="font-size:12px;margin:4px 0 8px">On by default for DESIGN_SCIENCE</div>
+        <div class="opt"><input type="checkbox" id="m1" checked><label for="m1">model architecture</label></div>
+        <div class="opt"><input type="checkbox" id="m2" checked><label for="m2">deployment platform</label></div>
+        <div class="opt"><input type="checkbox" id="m3" checked><label for="m3">dataset</label></div>
+        <div class="opt"><input type="checkbox" id="m4" checked><label for="m4">accuracy metric</label></div>
+        <div class="opt"><input type="checkbox" id="m5" checked><label for="m5">latency</label></div>
+        <div class="opt"><input type="checkbox" id="m6"><label for="m6">energy use</label></div>
+        <button class="btn" style="margin-top:8px">+ Custom column</button>
+      </div>
+      <div class="box" style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <div class="lbl">Preview · SCREENING_CRITERIA.md</div>
+        <div class="md">## Inclusion<br>- I1 Published 2020+ in English<br>- I2 Matches a core concept<br>- I3 Reports an evaluated artifact<br>## Exclusion<br>- E1 Opinion only (OUT_OF_SCOPE)<br>- E2 Not English (LANGUAGE)</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn">Back to concepts</button>
+    <button class="btn btn-p">Continue to Review</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

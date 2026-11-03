@@ -28,6 +28,7 @@ from scholar_harness.inception import (
     log_genesis,
     run_wizard,
 )
+from scholar_harness.inception.grounded import _DELTA_PROBE_CHOICE
 from scholar_harness.recon import ReconEngine, distill_pool
 
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
@@ -699,7 +700,7 @@ def test_grounded_delta_probe_runs_once_and_merges(tmp_path):
 
     engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
     n_concepts = len(_pool_anchored_defaults(engine))
-    answers = [TOPIC, "__delta_probe__", GROUNDED_CONCEPT, GROUNDED_CONCEPT] + _wizard_answers(n_concepts)
+    answers = [TOPIC, _DELTA_PROBE_CHOICE, GROUNDED_CONCEPT, GROUNDED_CONCEPT] + _wizard_answers(n_concepts)
     result = run_wizard(
         GroundedScriptedResponder(answers),
         tmp_path,

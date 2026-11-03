@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 1 Scope</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.term{border:1.5px solid #3a3a3a;border-radius:6px;background:#fff;font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.7;padding:14px 16px;box-sizing:border-box;display:flex;flex-direction:column}
+.term > div{white-space:pre}
+.bar{display:flex;justify-content:space-between;border-bottom:1px solid #bdbdbd;padding-bottom:6px;margin-bottom:8px}
+.ok{color:#1f6a35;font-weight:700}
+.warn{color:#8a4a00;font-weight:700}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.in{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:9px 10px;background:#fff;color:#1f1f1f}
+.seg{display:flex;border:1.5px solid #8a8a8a;border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;flex:1;border:0;padding:9px;background:#fff;color:#1f1f1f;min-height:40px}
+.seg .on{background:#1d4ed8;color:#fff;font-weight:600}
+.chip{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:16px;padding:5px 12px;background:#fff;color:#1f1f1f}
+.btn-p{font:inherit;font-size:14px;background:#1d4ed8;border:1.5px solid #1d4ed8;color:#fff;font-weight:600;border-radius:6px;padding:10px 16px;min-height:44px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 1 of 6 · Scope</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Set the scope before the first search</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Years, languages and search mode now feed the probe, so the anchor papers match the review window. Topic feedback appears as you type.</div>
+  </div>
+
+  <div style="display:flex;gap:24px;flex:1;min-height:0">
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="lbl">CLI</div>
+      <div class="term" style="flex:1">
+        <div class="bar"><span><b>Inception</b> · Step 1 of 6 · Scope</span><span class="muted">[?] help  [q] quit</span></div>
+        <div>Describe your research curiosity in one or two sentences:</div>
+        <div>&gt; drone-mounted crop-disease detection with on-device deep learning</div>
+        <div><span class="ok">  one subject, 9 words, good length</span></div>
+        <div style="margin-top:8px">Years [Enter = 2020 to present]: _</div>
+        <div>Languages [Enter = en]: _</div>
+        <div style="margin-top:8px">Search mode:</div>
+        <div>  1  semantic   better topic match, OpenAlex embeddings   (default)</div>
+        <div>  2  keyword    exact terms, matches older runs</div>
+        <div>Choice [Enter = 1]: _</div>
+        <div style="margin-top:8px">Papers to sample [Enter = 25, max 25]: _</div>
+        <div class="muted">  fewer than 12 papers gives fragmentary directions</div>
+        <div style="margin-top:10px;border:1px dashed #8a8a8a;padding:6px 8px">Search 25 semantic papers, 2020 to present, en?  [Enter] search  [e] edit</div>
+      </div>
+    </div>
+
+    <div style="width:470px;flex-shrink:0;display:flex;flex-direction:column;gap:10px">
+      <div class="lbl">Chat card</div>
+      <div class="box" style="display:flex;flex-direction:column;gap:14px;flex:1">
+        <div class="field">
+          <label for="topic"><b>Research curiosity</b></label>
+          <textarea id="topic" class="in" rows="3">Drone-mounted crop-disease detection with on-device deep learning</textarea>
+          <span class="ok" style="font-size:13px">One subject, good length</span>
+        </div>
+        <div style="display:flex;gap:12px">
+          <div class="field" style="flex:1"><label for="y1">From year</label><input id="y1" class="in" value="2020"></div>
+          <div class="field" style="flex:1"><label for="y2">To year</label><input id="y2" class="in" placeholder="present"></div>
+        </div>
+        <div class="field">
+          <span>Languages</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip" style="border-color:#1d4ed8;color:#1d4ed8;font-weight:600">English</button><button class="chip">+ add</button></div>
+        </div>
+        <div class="field">
+          <span>Search mode</span>
+          <div class="seg"><button class="on">Semantic (recommended)</button><button>Keyword</button></div>
+        </div>
+        <div class="field">
+          <label for="n">Papers to sample</label>
+          <input id="n" class="in" value="25">
+          <span class="muted" style="font-size:13px">12 or more keeps directions reliable; 25 is the cap.</span>
+        </div>
+        <div style="margin-top:auto;display:flex;justify-content:flex-end"><button class="btn-p">Search 25 papers</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box" style="display:flex;gap:24px;font-size:13px;padding:10px 16px">
+    <div><b>Topic warnings</b> <span class="muted">· two subjects joined by "and" · fewer than 4 words · a question with no subject</span></div>
+    <div class="warn">Example: "AI and climate" is two subjects; pick one or narrow both.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

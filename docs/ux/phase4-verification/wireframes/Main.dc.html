@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verification overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.n{width:28px;height:28px;border-radius:14px;border:1.5px solid #1f1f1f;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.gate{border:1.5px dashed #1d4ed8;background:#eef2fd}
+.when{font-size:11px;font-weight:700;color:#5c5c5c;border:1px solid #8a8a8a;border-radius:4px;padding:1px 6px;align-self:flex-start}
+</style>
+</helmet>
+<div style="width:1200px;height:720px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:22px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 1 of 7 · Phase 4 trust and verification</div>
+    <h1 style="margin:6px 0 0;font-size:30px;font-weight:700">Can each claim in the synthesis be trusted, and why?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Today Phase 4 runs as separate commands over files the pipeline never writes, with rules written for one UAV review. The redesign runs each check where it is cheapest, makes the rules a setting of the review, and ends in one trust view per claim.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px">
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <span class="when">at screening + before publishing</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">1</div><b>Retraction</b></div>
+      <div style="font-size:13px">Retracted, concern, corrected: three severities</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <span class="when">after data extraction</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">2</div><b>Risk of bias</b></div>
+      <div style="font-size:13px">Tool chosen per study design; you judge, hints help</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <span class="when">from full text</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">3</div><b>Disclosures</b></div>
+      <div style="font-size:13px">Funding, conflicts, data and code, quoted verbatim</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <span class="when">after synthesis</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">4</div><b>Quotes</b></div>
+      <div style="font-size:13px">Each claim's quote found in its source text</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <span class="when">before publishing</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">5</div><b>Trust</b></div>
+      <div style="font-size:13px">Per claim: level, reasons, what changes it</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Today</div>
+      <div class="muted" style="font-size:13px">scholar-verify retraction · open-science · coi · risk-of-bias · trust-context · verbatim-claims, each over hand-built inputs (records.json, _manifest.json, consensus.json, 8 COI chunk files) · a correction blocks a claim like a retraction</div>
+    </div>
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Redesign</div>
+      <div class="muted" style="font-size:13px">Inputs come from the verified Phase-3 data table · review settings hold the bias tool, benchmarks and trust rules · each check states coverage and what it could not see</div>
+    </div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:10px;border-style:dashed;background:#f4f4f4">
+    <div class="lbl">Already solid, stays</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px">
+      <div class="box">Same inputs, same outputs; only the retraction lookup varies</div>
+      <div class="box">Refuses rather than inventing coverage; unresolved lookups stay visible</div>
+      <div class="box">Quote matching kept separate from similarity, and labelled so</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":720}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

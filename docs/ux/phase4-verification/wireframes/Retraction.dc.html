@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Retraction and status</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.sev{display:grid;grid-template-columns:170px 60px 1fr;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:14px;font-variant-numeric:tabular-nums}
+.tag{font-size:12px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid;justify-self:start;white-space:nowrap}
+.t-stop{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-low{border-color:#5c5c5c;color:#3a3a3a;background:#f2f2f2}
+.t-ok{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Check 1 · Retraction and publication status</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">One retracted study, and six that were only corrected</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Run first at screening, where a retracted record is cheap to drop, and again right before publishing. Each notice keeps its own severity; today all of them count the same and block.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;min-width:0">
+      <div class="lbl" style="margin-bottom:4px">142 included studies</div>
+      <div class="sev"><span class="tag t-stop">Retracted</span><b>1</b><span>Leaves the evidence; you confirm and it is recorded as excluded after inclusion</span></div>
+      <div class="sev"><span class="tag t-stop">Expression of concern</span><b>1</b><span>Held until you re-read it; claims using it are paused</span></div>
+      <div class="sev"><span class="tag t-low">Correction / addendum</span><b>6</b><span>Check whether the correction changes any number you extracted</span></div>
+      <div class="sev"><span class="tag t-ok">No notice found</span><b>121</b><span>Checked against OpenAlex and Crossref</span></div>
+      <div class="sev"><span class="tag t-warn">Could not resolve</span><b>4</b><span>No DOI match; shown so you can check by hand</span></div>
+      <div class="sev" style="border:0"><span class="tag t-low">arXiv only</span><b>9</b><span>Preprints have no formal retraction channel</span></div>
+      <div class="muted" style="font-size:12px;margin-top:auto">The OpenAlex flag is a metadata snapshot, not the publisher's live status. Checked 2 Nov 2026 at screening; re-check due before publishing.</div>
+    </div>
+
+    <div style="width:420px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:8px;border-color:#8f1d1d">
+        <div class="lbl" style="color:#8f1d1d">Retracted</div>
+        <b>[Study title] · 2022</b>
+        <div style="font-size:13px">Retraction notice 14 Mar 2025 · reason given: image duplication</div>
+        <div style="font-size:13px">Used in: 4 data cells, 2 synthesis claims</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn">Remove from evidence</button><a href="#" style="font-size:13px;align-self:center">Open notice</a></div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:8px">
+        <div class="lbl">Correction · [Study title] · 2023</div>
+        <div style="font-size:13px">Corrigendum fixes a table caption; the F1 value you extracted (0.88) is unchanged.</div>
+        <div style="display:flex;gap:8px"><button class="btn">No effect on data</button><button class="btn">Update a value</button></div>
+      </div>
+      <div class="muted" style="font-size:12px">Every decision here is journaled with the notice's DOI and date.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

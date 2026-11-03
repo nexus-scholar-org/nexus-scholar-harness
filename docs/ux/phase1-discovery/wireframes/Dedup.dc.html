@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deduplication review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.tier{display:grid;grid-template-columns:1fr 90px;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid #eee;font-variant-numeric:tabular-nums}
+.tier span:last-child{text-align:right;font-weight:600}
+.pair{border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:13px;background:#fff}
+.pair .rec{display:grid;grid-template-columns:70px 1fr;gap:6px}
+.hl{background:#fdf3e6;padding:0 2px}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 12px;background:#fff;color:#1f1f1f;min-height:40px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.big{font:inherit;font-size:14px;min-height:44px;padding:10px 16px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 5 of 6 · Dedup</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">3,506 records became 3,241 unique works</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Each tier says how many it merged. Near-twins the tiers did not merge are shown for a quick human decision, because a work counted twice can land on both the include and exclude lanes.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">Merged by tier</div>
+        <div class="tier"><span>Same DOI, arXiv id, PMID or OpenAlex id</span><span>231</span></div>
+        <div class="tier"><span>Same normalized title</span><span>22</span></div>
+        <div class="tier"><span>Fuzzy title ≥ 0.97, year ± 1, first author</span><span>12</span></div>
+        <div class="tier" style="border:0"><span><b>Duplicates removed</b></span><span>265 · 7.6%</span></div>
+        <div class="muted" style="font-size:12px;margin-top:6px">A conflicting id in the same namespace blocks any title merge.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Safety</div>
+        <div>The pool is saved before dedup runs, because dedup edits the kept record in place (UAV lesson 15).</div>
+        <div>Representative choice: most complete record, then provider weight. <a href="#">See scores</a></div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Journal</div>
+        <div>New DEDUPLICATION event with tier counts. Today dedup writes no event.</div>
+      </div>
+    </div>
+
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">Near-twins to review · 14</span><span class="muted" style="font-size:13px">title similarity 0.90 to 0.97 or case-only differences</span></div>
+      <div class="pair">
+        <div class="rec"><span class="muted">SCI-001346</span><span>A <span class="hl">Lightweight CNN</span> for UAV Crop Disease Detection · 2023 · Crossref</span></div>
+        <div class="rec"><span class="muted">SCI-007947</span><span>A <span class="hl">lightweight CNN</span> for UAV crop disease detection · 2023 · OpenAlex</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><span class="muted" style="font-size:12px;flex:1">case-only difference · no shared id · same first author</span><button class="btn btn-p">Merge</button><button class="btn">Keep both</button></div>
+      </div>
+      <div class="pair">
+        <div class="rec"><span class="muted">SCI-002210</span><span>Edge deployment of plant disease models on drones · 2022 · Crossref</span></div>
+        <div class="rec"><span class="muted">SCI-002981</span><span>Edge deployment of plant disease models on drones: an extended study · 2024 · S2</span></div>
+        <div style="display:flex;gap:8px;align-items:center"><span class="muted" style="font-size:12px;flex:1">likely an extended version · different years · different DOIs</span><button class="btn">Merge</button><button class="btn btn-p">Keep both</button></div>
+      </div>
+      <div class="muted" style="font-size:13px">+ 12 more pairs · <a href="#">Merge all case-only pairs</a></div>
+      <div class="muted" style="font-size:12px;margin-top:auto">Ids here are run-local (SCI-…); stable study ids are minted later. UAV v0.3 merged 0 of 356 near-twin pairs (lesson 52).</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn big">Skip review for now</button>
+    <button class="btn btn-p big">Confirm 3,241 works</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

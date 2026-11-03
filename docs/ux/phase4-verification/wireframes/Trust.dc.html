@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trust summary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.lvl{font-size:12px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid;white-space:nowrap}
+.l-strong{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.l-adeq{border-color:#1d4ed8;color:#1d4ed8;background:#eef2fd}
+.l-weak{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.l-block{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #e3e3e3;padding:8px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.rule{display:grid;grid-template-columns:1fr 130px;gap:8px;font-size:13px;padding:5px 0;border-bottom:1px solid #eee}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:16px;background:#fafafa">
+  <div>
+    <div class="lbl">Check 5 · Trust summary · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">For each claim: how much to trust it, and why</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Built from the four checks above. Every level lists its reasons and what would change it; the rules are a review setting you can see and adjust.</div>
+  </div>
+
+  <div style="display:flex;gap:10px;font-size:13px;flex-wrap:wrap">
+    <span class="lvl l-strong">Strong 3</span><span class="lvl l-adeq">Adequate 5</span><span class="lvl l-weak">Weak 3</span><span class="lvl l-block">Blocked 1</span><span class="muted">12 claims in the RQ1 draft</span>
+  </div>
+
+  <div style="display:flex;gap:16px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <table>
+        <thead><tr><th>Claim</th><th>Level</th><th>Why</th><th>Changes if</th></tr></thead>
+        <tbody>
+          <tr><td>C2 On-board inference under 50 ms is rare</td><td><span class="lvl l-strong">Strong</span></td><td>4 studies, all Low risk, 2 with public code</td><td>—</td></tr>
+          <tr><td>C1 Lightweight CNNs reach F1 above 0.85</td><td><span class="lvl l-adeq">Adequate</span></td><td>9 studies support; 3 have "some concerns" on ground truth</td><td>Holds without the 3 (6 remain)</td></tr>
+          <tr><td>C9 Hyperspectral input beats RGB</td><td><span class="lvl l-weak">Weak</span></td><td>2 of 3 supporting studies High risk; 1 industry-funded by the camera maker</td><td>A Low-risk study agrees</td></tr>
+          <tr><td>C4 Transfer learning halves training data</td><td><span class="lvl l-block">Blocked</span></td><td>Rests on the retracted [Study title] 2022</td><td>Remove it and re-check C4</td></tr>
+          <tr><td class="muted" colspan="4">+ 8 more claims</td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="font-size:12px;margin-top:auto">"Changes if" is a sensitivity check: the claim is re-tested with the weakest studies left out.</div>
+    </div>
+
+    <div class="box" style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:6px">
+      <div class="lbl" style="margin-bottom:4px">Rules for this review</div>
+      <div class="rule"><span>Retraction</span><b class="lvl l-block" style="justify-self:start">Blocks</b></div>
+      <div class="rule"><span>Expression of concern, until re-read</span><b class="lvl l-block" style="justify-self:start">Blocks</b></div>
+      <div class="rule"><span>Correction that changes extracted data</span><b class="lvl l-weak" style="justify-self:start">Weakens</b></div>
+      <div class="rule"><span>Correction with no data effect</span><span class="muted">No effect</span></div>
+      <div class="rule"><span>Any supporting study High risk</span><b class="lvl l-weak" style="justify-self:start">Weakens</b></div>
+      <div class="rule"><span>Funder makes the tested product</span><b class="lvl l-weak" style="justify-self:start">Weakens</b></div>
+      <div class="rule" style="border:0"><span>Public data or code for a supporting study</span><b class="lvl l-strong" style="justify-self:start">Needed for Strong</b></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">Today any correction blocks, and any industry tie prevents Strong. These rules are stored in the protocol and fingerprinted.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto">
+        <button class="btn btn-p">Accept trust summary</button>
+        <button class="btn">Edit rules (amendment)</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

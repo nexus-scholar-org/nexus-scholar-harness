@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Harvest report</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid #e3e3e3;padding:8px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+td.r,th.r{text-align:right}
+.st{font-size:12px;font-weight:700;border-radius:4px;padding:3px 9px;border:1px solid}
+.s-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.lb{color:#8a4a00;font-weight:600}
+.file{display:flex;justify-content:space-between;font-family:ui-monospace,Consolas,monospace;font-size:12px;padding:4px 0;border-bottom:1px solid #eee}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 4 of 6 · Report</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Run 3: what came back, and what it lets you claim</h1>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap">
+      <span class="st s-warn">PARTIAL</span>
+      <span style="font-size:14px">3,506 records · 1 of 4 databases rate-limited · Crossref is a lower bound</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="lbl">Records identified per database (PRISMA 2020)</div>
+      <table>
+        <thead><tr><th>Database</th><th class="r">Records</th><th class="r">Reported total</th><th>Completeness</th><th class="r">No abstract</th><th>Searched</th></tr></thead>
+        <tbody>
+          <tr><td>OpenAlex</td><td class="r">1,343</td><td class="r">1,344</td><td>complete</td><td class="r">3%</td><td>2026-11-02</td></tr>
+          <tr><td>Crossref</td><td class="r">2,000</td><td class="r">~13,100</td><td class="lb">lower bound, capped</td><td class="r">15%</td><td>2026-11-02</td></tr>
+          <tr><td>Semantic Scholar</td><td class="r">10</td><td class="r">unknown</td><td class="lb">failed, 429</td><td class="r">—</td><td>2026-11-02</td></tr>
+          <tr><td>arXiv</td><td class="r">153</td><td class="r">247</td><td class="lb">stopped by you</td><td class="r">0%</td><td>2026-11-02</td></tr>
+          <tr><td><b>Total</b></td><td class="r"><b>3,506</b></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="font-size:12px">Records with a publication year outside the window (for example e-pub-ahead-of-print 2027): <b>18</b>, kept and flagged for screening.</div>
+      <div class="box" style="background:#fdf3e6;border-color:#8a4a00;font-size:13px">
+        <b>Methods text you can use:</b> "OpenAlex was searched exhaustively within the strict filter. Crossref results were capped at 2,000 of about 13,100 and are a lower bound. Semantic Scholar was unavailable (rate-limited) on 2 November 2026."
+      </div>
+    </div>
+
+    <div style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:4px">
+        <div class="lbl" style="margin-bottom:4px">Files for this run</div>
+        <div class="file"><span>literature/runs/003/raw.json</span><a href="#">Open</a></div>
+        <div class="file"><span>literature/runs/003/manifest.json</span><a href="#">Open</a></div>
+        <div class="file"><span>literature/runs/003/requests.json</span><a href="#">Open</a></div>
+        <div class="muted" style="font-size:12px;margin-top:6px">Runs 001 and 002 are kept, not overwritten. Today both raw files are replaced on every successful run.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Journal</div>
+        <div>DISCOVERY_SEARCH · PARTIAL</div>
+        <div class="muted">Now with records per database, reported totals, cap flags and search date.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Fill the gaps</div>
+        <button class="btn">Split Crossref by year</button>
+        <button class="btn">Retry Semantic Scholar when quota resets</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn">Compare with run 2</button>
+    <button class="btn btn-p">Continue to dedup</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
