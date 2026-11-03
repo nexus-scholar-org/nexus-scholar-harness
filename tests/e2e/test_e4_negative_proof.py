@@ -397,7 +397,7 @@ def test_e4_neg_001_pdf_byte_flip_is_not_current(
     assert str(follow.get("status")) == "FAILED", (
         "OWNER nexus-scholar-org/nexus-scholar-harness "
         "src/scholar_harness/orchestrator.py::_run_indexing_stage + "
-        "nexus-scholar-org/scholar-rag-kit tools/scholar-rag-kit/src/scholar_rag/index_service.py::index_workspace: "
+        "nexus-scholar-org/scholar-rag-kit src/scholar_rag/index_service.py::index_workspace: "
         f"duplicate-study generation after a PDF change must not index as current: {follow}"
     )
     reports = (
@@ -602,7 +602,7 @@ def test_e4_neg_003_chunker_config_change_moves_fingerprints(
         recomputed["configuration_fingerprint"] != payload["configuration_fingerprint"]
     ), (
         "OWNER nexus-scholar-org/scholar-rag-kit "
-        "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py::compute_fingerprints: "
+        "src/scholar_rag/index_manifest.py::compute_fingerprints: "
         "an effective config change must move the configuration fingerprint"
     )
     assert recomputed["index_fingerprint"] != payload["index_fingerprint"], (
@@ -686,7 +686,7 @@ def test_e4_neg_004_embedding_identity_change_moves_fingerprints(
     recomputed = compute_fingerprints(mutated)
     assert recomputed["index_fingerprint"] != payload["index_fingerprint"], (
         "OWNER nexus-scholar-org/scholar-rag-kit "
-        "tools/scholar-rag-kit/src/scholar_rag/index_manifest.py::compute_fingerprints: "
+        "src/scholar_rag/index_manifest.py::compute_fingerprints: "
         "an embedding-identity change must move the index fingerprint; "
         "the old backend must never be queried as compatible"
     )
@@ -860,7 +860,7 @@ def test_e4_neg_006_missing_backend_chunk_is_inconsistent(
     verdict = verify_backend(typed, mutated_reader)  # kit typed verification surface
     assert verdict.matches is False, (
         "OWNER nexus-scholar-org/scholar-rag-kit "
-        "tools/scholar-rag-kit/src/scholar_rag/index_verifier.py::verify_backend: "
+        "src/scholar_rag/index_verifier.py::verify_backend: "
         "a missing visible chunk must report an inconsistent state, never a count-only success"
     )
     assert "BACKEND_STATE_INCONSISTENT" in list(verdict.codes or []), verdict.codes

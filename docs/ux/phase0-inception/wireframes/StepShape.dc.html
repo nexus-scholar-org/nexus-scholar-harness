@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 4 Shape</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.pcard{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:5px;font-size:13px}
+.pcard.rec{border:2px solid #1d4ed8;background:#f5f8fe}
+.tag{align-self:flex-start;font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;border:1px solid #1d4ed8;color:#1d4ed8;background:#fff}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.in{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:9px 10px;background:#fff;color:#1f1f1f}
+.opt{display:flex;gap:8px;align-items:center;font-size:13px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 4 of 6 · Shape</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Choose a lens, then draft the questions</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">The 180-column refraction grid becomes four cards. The leaning scan marks one as recommended; picking it pre-fills the playbook and RQ1.</div>
+  </div>
+
+  <div style="display:flex;gap:20px;flex:1;min-height:0">
+    <div style="flex:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start;min-width:0">
+      <div class="pcard rec">
+        <span class="tag">Recommended · leaning 0.58</span>
+        <b style="font-size:15px">Design Science</b>
+        <div>Engineer a novel artifact that solves an operational utility problem.</div>
+        <div class="muted">Evidence: benchmarks, ablations, latency profiling</div>
+        <div class="muted">Excludes: opinion without an evaluated artifact</div>
+      </div>
+      <div class="pcard">
+        <b style="font-size:15px">Positivist</b>
+        <div>Measure objective, generalizable statistical effects.</div>
+        <div class="muted">Evidence: controlled benchmarks, A/B logs</div>
+        <div class="muted">Excludes: anecdotes, subjective state as proof</div>
+      </div>
+      <div class="pcard">
+        <b style="font-size:15px">Pragmatist / Mixed Methods</b>
+        <div>Triangulate metrics with narratives to solve a socio-technical problem.</div>
+        <div class="muted">Evidence: telemetry plus interview coding</div>
+        <div class="muted">Excludes: theory with no practice grounding</div>
+      </div>
+      <div class="pcard">
+        <b style="font-size:15px">Interpretivist</b>
+        <div>Understand human meaning, perceptions and identity.</div>
+        <div class="muted">Evidence: interviews, thematic coding</div>
+        <div class="muted">Excludes: p-values, global generalizability</div>
+      </div>
+      <div class="box" style="grid-column:span 2;display:flex;flex-direction:column;gap:8px">
+        <div class="lbl">Playbook</div>
+        <div class="opt"><input type="radio" id="pb1" name="pb" checked><label for="pb1"><b>DESIGN_SCIENCE</b> · Hevner DSR (recommended for Design Science)</label></div>
+        <div class="opt"><input type="radio" id="pb2" name="pb"><label for="pb2">PRISMA_SLR · PRISMA 2020</label></div>
+        <div class="opt"><input type="radio" id="pb3" name="pb"><label for="pb3">SCOPING_REVIEW · JBI</label></div>
+        <div class="muted" style="font-size:12px">+ RAPID_EVIDENCE, STUDENT_DISSERTATION</div>
+        <div class="opt" style="margin-top:4px"><input type="checkbox" id="sec"><label for="sec">Add a secondary paradigm (mixed lens)</label></div>
+      </div>
+    </div>
+
+    <div class="box" style="width:460px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="field"><label for="unit"><b>Unit of analysis</b></label><input id="unit" class="in" value="a deployed detection model"><span class="muted" style="font-size:12px">e.g. a model, a team, a crop field</span></div>
+      <div class="field"><label for="proof"><b>Proof a reviewer would accept</b></label><input id="proof" class="in" value="accuracy and on-device latency vs a baseline"></div>
+      <div class="field">
+        <label for="rq1"><b>RQ1</b> <span class="muted">· drafted from the Design Science template</span></label>
+        <textarea id="rq1" class="in" rows="4">Can a novel lightweight CNN crop disease detection artifact achieve accuracy and on-device latency vs a baseline for a deployed detection model, compared to a defined baseline?</textarea>
+        <span style="font-size:12px;color:#8a4a00">"baseline" appears twice; tidy before continuing.</span>
+      </div>
+      <button class="btn" style="align-self:flex-start">+ Add RQ2</button>
+      <div style="font-size:12px;border-top:1px solid #e3e3e3;padding-top:10px" class="muted">Vocabulary for this lens: artifact, design propositions, evaluation criteria, utility.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn">Back</button>
+    <button class="btn btn-p">Continue to concepts</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

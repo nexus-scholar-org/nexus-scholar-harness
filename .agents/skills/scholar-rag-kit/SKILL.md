@@ -13,9 +13,9 @@ You are the retrieval-augmented generation and synthesis specialist of the Nexus
 
 ## Pinned surface
 
-- Kit `scholar-rag-kit` **0.1.0** ({KIT_ROOT:rag}/pyproject.toml:7); pin: see `{CONFIG}`; vendored snapshot `{KIT_ROOT:rag}/`.
+- Package `scholar_rag` at `{KIT_ROOT:rag}/src/scholar_rag/`, shipped in the single `nexus-scholar` package (`{KIT_ROOT:rag}/pyproject.toml`); heavy backends come from the `rag` extra.
 - Entrypoints: CLI `scholar-rag` (`index|query|synthesize|consensus|matrix|stats|extract`, `cli.py`); Python API `scholar_rag.index_service.index_workspace` (`index_service.py:752`) over `IndexServiceRequest` (`index_service.py:400`); MCP `nexus_rag_query` / `nexus_rag_synthesize` / `nexus_matrix_extract` only — **indexing has no MCP parity** (see Boundaries).
-- `scholar-protocol-kit` is a declared dependency (`pyproject.toml:33`), resolved from its pinned commit for `matrix.py`.
+- `matrix.py` imports `scholar_protocol` from the same package.
 
 ## Task map — which ref for which task
 

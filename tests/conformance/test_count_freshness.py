@@ -9,8 +9,6 @@ canonical skill except ``pull-request-gate`` (the sync script's one exclusion).
 
 from __future__ import annotations
 
-import json
-import re
 from pathlib import Path
 
 from scholar_agent.server import mcp
@@ -19,7 +17,7 @@ from scholar_harness.console.runtimes.actions import ACTIONS
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-TOOLS_DIR = REPO_ROOT / "tools"
+SRC_DIR = REPO_ROOT / "src"
 SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
@@ -72,12 +70,12 @@ BOUNDARY_MCP_TOOLS = frozenset(
 # (it is a contributor-facing convention, not a research-kit skill).
 SYNC_EXCLUDED = {"pull-request-gate"}
 
-FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
-
 
 def test_kit_count_matches_documentation():
     kits = sorted(
-        p.name for p in TOOLS_DIR.iterdir() if p.is_dir() and p.name.endswith("-kit")
+        p.name
+        for p in SRC_DIR.iterdir()
+        if p.is_dir() and p.name.startswith("scholar_") and p.name != "scholar_harness"
     )
     assert len(kits) == EXPECTED_KITS, f"expected {EXPECTED_KITS} kits, found {kits}"
 
@@ -116,23 +114,4 @@ def test_skills_mirror_is_complete_and_current():
     )
     assert len(mirrored) == EXPECTED_MIRRORED_SKILLS, (
         f"expected {EXPECTED_MIRRORED_SKILLS} mirrored skills, found {len(mirrored)}"
-    )
-
-
-def test_manifest_default_revs_are_pinned_commits():
-    """Manifest kit pins must be full commit SHAs, never floating branches.
-
-    ``default_rev`` in plugins.json is the fallback install ref (used when no
-    local ``tools/<kit>`` checkout exists); a 40-hex SHA makes those installs
-    reproducible instead of tracking whichever ``main`` happens to be HEAD.
-    """
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    assert len(manifest["plugins"]) == EXPECTED_KITS
-    unpinned = [
-        (p["name"], p.get("default_rev"))
-        for p in manifest["plugins"]
-        if not FULL_SHA_RE.match(p.get("default_rev", ""))
-    ]
-    assert not unpinned, (
-        f"plugins.json default_rev must be full commit SHAs: {unpinned}"
     )

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screening progress</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.lane{display:grid;grid-template-columns:90px 1fr 120px;gap:14px;align-items:center;font-size:14px;padding:8px 0}
+.track{height:14px;border-radius:7px;background:#ececec;overflow:hidden;border:1px solid #d0d0d0}
+.fill{height:14px;background:#4a4a4a}
+.tally{display:flex;flex-direction:column;gap:2px;flex:1;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 12px;background:#fff;font-variant-numeric:tabular-nums}
+.tally b{font-size:20px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.bad{color:#8f1d1d;font-weight:600}
+.term{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px;line-height:1.6;background:#fff;border:1.5px solid #3a3a3a;border-radius:6px;padding:12px 14px}
+.term > div{white-space:pre}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 3 of 6 · Screen</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Both lanes, every file checked the moment it lands</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Today a broken decision file is found only at collect. Here each file is validated against the frozen instrument on arrival, and a bad one is quarantined with its reason while the rest continue.</div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column">
+    <div class="lane"><b>Lane A</b><div class="track"><div class="fill" style="width:86%"></div></div><span>140 of 163</span></div>
+    <div class="lane"><b>Lane B</b><div class="track"><div class="fill" style="width:74%"></div></div><span>121 of 163</span></div>
+    <div class="muted" style="font-size:13px">4 shards running · dropped from 6 after a provider rate limit at 15:42 (logged; lesson 40)</div>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <div class="tally"><span class="lbl">Both lanes done</span><b>2,410</b><span class="muted" style="font-size:12px">records</span></div>
+    <div class="tally"><span class="lbl">Agree exclude</span><b>2,121</b><span class="muted" style="font-size:12px">closed, sample-checked later</span></div>
+    <div class="tally"><span class="lbl">Agree include</span><b>96</b><span class="muted" style="font-size:12px">to your queue</span></div>
+    <div class="tally"><span class="lbl">Disagree</span><b>131</b><span class="muted" style="font-size:12px">to your queue</span></div>
+    <div class="tally"><span class="lbl">Unclear</span><b>62</b><span class="muted" style="font-size:12px">to full text</span></div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="lbl">Quarantined files · 3</div>
+      <table>
+        <thead><tr><th>File</th><th>Problem</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>batch_041_A_decisions.json</td><td class="bad">Rows out of order vs batch (2 swapped)</td><td><button class="btn">Repair, keep original</button></td></tr>
+          <tr><td>batch_088_B_decisions.json</td><td class="bad">Written against an older instrument</td><td><button class="btn">Re-screen batch</button></td></tr>
+          <tr><td>batch_102_A_decisions.json</td><td class="bad">Starts with a byte-order mark; strict JSON fails</td><td><button class="btn">Rewrite without BOM</button></td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="font-size:12px;margin-top:auto">Repairs keep the original under decisions_repair/ and assert the decisions are unchanged (lesson 30).</div>
+    </div>
+    <div style="width:430px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">CLI equivalent</div>
+      <div class="term">
+        <div>agent_screen.py status workspaces/[slug]</div>
+        <div> </div>
+        <div>lane  done     valid  quarantined</div>
+        <div>A     140/163  138    2 (041 order, 102 BOM)</div>
+        <div>B     121/163  120    1 (088 instrument)</div>
+        <div> </div>
+        <div>agree-exc 2121  agree-inc 96</div>
+        <div>disagree   131  unclear    62</div>
+        <div> </div>
+        <div>[t] open triage queue (227 records)</div>
+      </div>
+      <div class="muted" style="font-size:12px">Counts are computed from the files on disk, never from what a screener reports about itself (lesson 33).</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

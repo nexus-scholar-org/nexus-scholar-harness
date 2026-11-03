@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Claim quote check</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.stat{display:flex;flex-direction:column;gap:2px;flex:1;border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;font-variant-numeric:tabular-nums}
+.stat b{font-size:22px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.ok{color:#1f6a35;font-weight:600}
+.warn{color:#8a4a00;font-weight:600}
+.bad{color:#8f1d1d;font-weight:600}
+.src{font-size:13px;line-height:1.55;background:#f6f6f6;border-radius:4px;padding:8px 10px}
+.hit{background:#cfe8d6}
+.miss{background:#f2c9c9}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Check 4 · Claim quotes</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Is each quoted passage really in the paper it cites?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">A quote found in the source shows the citation is real. It does not show the claim follows from it, so support is shown in its own column.</div>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <div class="stat"><span class="lbl">Quote found</span><b class="ok">9</b><span class="muted" style="font-size:12px">coverage at least 90%</span></div>
+    <div class="stat"><span class="lbl">Partly found</span><b class="warn">2</b><span class="muted" style="font-size:12px">quote altered or merged</span></div>
+    <div class="stat"><span class="lbl">No quote given</span><b class="bad">1</b><span class="muted" style="font-size:12px">claim cites no passage</span></div>
+    <div class="stat"><span class="lbl">Claims in RQ1 draft</span><b>12</b><span class="muted" style="font-size:12px">RQ2 checked separately</span></div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <table>
+        <thead><tr><th>Claim</th><th>Cites</th><th>Quote in source</th><th>Support</th></tr></thead>
+        <tbody>
+          <tr><td>C1 Lightweight CNNs reach F1 above 0.85 …</td><td>[Study A]</td><td class="ok">found · 100%</td><td class="warn">mixed</td></tr>
+          <tr><td>C2 On-board inference under 50 ms …</td><td>[Study B]</td><td class="ok">found · 97%</td><td class="ok">supported</td></tr>
+          <tr style="background:#fdf3e6"><td>C5 Pruning keeps accuracy within 2 points …</td><td>[Study C]</td><td class="warn">partly · 64%</td><td class="muted">not checked</td></tr>
+          <tr><td>C7 Validation across seasons is rare</td><td>—</td><td class="bad">no quote</td><td class="bad">no passage</td></tr>
+          <tr><td class="muted" colspan="4">+ 8 more claims</td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="font-size:12px;margin-top:auto">Matching is on normalised text (NFKC), token n-grams and character windows; threshold 0.90.</div>
+    </div>
+
+    <div class="box" style="width:440px;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">C5 · quote vs source</div>
+      <div style="font-size:13px"><b>Quoted:</b> "pruning to 40% of the parameters kept accuracy within 2 points of the full model"</div>
+      <div style="font-size:13px"><b>Source, p. 7:</b></div>
+      <div class="src"><span class="hit">pruning to 40% of the parameters kept accuracy</span> <span class="miss">within 4.1 points</span> of the full model on the validation set</div>
+      <div style="font-size:13px" class="warn">The number in the claim differs from the paper.</div>
+      <div style="display:flex;gap:8px;margin-top:auto"><button class="btn">Fix the claim</button><button class="btn">Open page 7</button></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

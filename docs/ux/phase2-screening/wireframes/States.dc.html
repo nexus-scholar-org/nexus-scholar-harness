@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screening states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.card{border:1.5px solid #8a8a8a;border-radius:6px;background:#fff;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid}
+.t-stop{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-info{border-color:#1d4ed8;color:#1d4ed8;background:#eef2fd}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 12px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.was{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#5c5c5c;border-top:1px solid #e3e3e3;padding-top:8px}
+</style>
+</helmet>
+<div style="width:2480px;height:560px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 7 of 8 · Screening states</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Warning and recovery states</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">The integrity checks already catch most of these; the cards turn each refusal into a plain message with a next step. The bottom line is today's behaviour.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:18px;flex:1">
+    <div class="card">
+      <span class="tag t-stop">Protocol changed</span>
+      <b>Batches no longer match the protocol</b>
+      <div>Criteria were amended after batches were prepared. Decisions made against the old criteria are kept but can't be published with the new ones.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Rebind and re-screen</button><button class="btn">See the change</button></div>
+      <div class="was">Today: STALE_BINDING refusal</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Missing field</span>
+      <b>12 rows have no decision</b>
+      <div>Batch 057 lane B left the decision empty. These rows are recorded as missing and sent to your queue, never filled in.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Re-screen 12 rows</button><button class="btn">Open in queue</button></div>
+      <div class="was">Today: silently becomes INCLUDE</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Title only</span>
+      <b>421 records have no abstract</b>
+      <div>Screeners can only judge the title. Filling abstracts from OpenAlex first usually recovers most of them; the rest default to Unclear.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Fill abstracts first</button><button class="btn">Screen as unclear</button></div>
+      <div class="was">Today: "No abstract available." then yes/no</div>
+    </div>
+    <div class="card">
+      <span class="tag t-stop">Shard failed</span>
+      <b>Six shards stopped on a rate limit</b>
+      <div>They stopped before writing anything, so there is nothing to repair. Restarting at 4 at a time has worked before.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Restart at 4</button><button class="btn">Wait 10 minutes</button></div>
+      <div class="was">Today: not tracked by the harness</div>
+    </div>
+    <div class="card">
+      <span class="tag t-info">Unclear rows</span>
+      <b>62 rows are marked unclear</b>
+      <div>They go to full-text review as a group, counted separately in PRISMA. You can still look at any of them now.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Send to full text</button><button class="btn">Review now</button></div>
+      <div class="was">Today: MAYBE refused at finalize</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Not approved</span>
+      <b>Nothing was published</b>
+      <div>Collect needs your approval of this exact generation. Your decisions are saved; approve, then collect again.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Review and approve</button></div>
+      <div class="was">Today: APPROVAL_MISSING in the log</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2480,"height":560}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

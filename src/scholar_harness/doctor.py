@@ -10,10 +10,9 @@ Version-check honesty: ``__version__`` from each kit is *not* the truthful
 assertion -- the distribution wheel bundles the very same source tree the
 harness imports in the repo checkout, so a version echo would merely
 re-report the bundled code.  The truthful assertions are (1) importability of
-each declared kit in the current Python env and (2) the pinned ``default_rev``
-from the kit manifest (``.agents/plugins/nexus-scholar/plugins.json`` in the
-repo checkout; the codegen-derived ``nexus_scholar_pins.json`` snapshot inside
-the wheel).
+each bundled kit in the current Python env and (2) the ``nexus-scholar``
+distribution version they all ship in (the kits merged into one package and
+have no separate pins).
 """
 
 from __future__ import annotations
@@ -63,52 +62,34 @@ class CheckResult:
 
 
 # ---------------------------------------------------------------------------
-# Kit manifest: repo plugins.json (source of truth) -> wheel pins snapshot
+# Kits: the eight scholar_* packages ship inside the nexus-scholar distribution
 # ---------------------------------------------------------------------------
 
+#: Every kit bundled in the ``nexus-scholar`` package. They share its version;
+#: there are no per-kit pins since the kits merged into one package.
+KITS: tuple[str, ...] = (
+    "scholar-protocol-kit",
+    "scholar-search-kit",
+    "scholar-pdf-kit",
+    "scholar-bib-kit",
+    "scholar-graph-kit",
+    "scholar-rag-kit",
+    "scholar-agent-kit",
+    "scholar-verify-kit",
+)
 
-def _repo_plugins_json() -> Path:
-    return Path(__file__).resolve().parents[2] / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
 
-
-def _wheel_pins_path() -> Path | None:
-    """Locate the pins snapshot inside an installed ``nexus-scholar`` wheel."""
+def _package_version() -> str:
     try:
-        dist = importlib.metadata.distribution("nexus-scholar")
+        return importlib.metadata.version("nexus-scholar")
     except importlib.metadata.PackageNotFoundError:
-        return None
-    try:
-        located = Path(dist.locate_file("nexus_scholar_pins.json"))
-    except (OSError, ValueError):
-        return None
-    return located if located.is_file() else None
+        return ""
 
 
 def load_kit_manifest() -> dict[str, str]:
-    """Return ``{kit_name: default_rev}`` for every declared kit.
-
-    Read order: the repo checkout's ``.agents/plugins/nexus-scholar/plugins.json``
-    (single source of truth), then the wheel-bundled ``nexus_scholar_pins.json``
-    snapshot (codegen-derived from ``plugins.json`` -- see
-    ``scripts/generate_nexus_scholar_pins.py``, CI-enforced in sync), else empty.
-    """
-    source = _repo_plugins_json()
-    if source.is_file():
-        data = json.loads(source.read_text(encoding="utf-8"))
-        return {
-            plugin["name"]: plugin.get("default_rev", "")
-            for plugin in data.get("plugins", [])
-            if "name" in plugin
-        }
-    pins = _wheel_pins_path()
-    if pins is not None:
-        data = json.loads(pins.read_text(encoding="utf-8"))
-        return {
-            kit["name"]: kit.get("default_rev", "")
-            for kit in data.get("kits", [])
-            if "name" in kit
-        }
-    return {}
+    """Return ``{kit_name: nexus-scholar version}`` for every bundled kit."""
+    version = _package_version()
+    return {kit: version for kit in KITS}
 
 
 def _import_name(kit_name: str) -> str:
@@ -128,13 +109,6 @@ def check_kits(importable_map: dict[str, bool] | None = None) -> list[CheckResul
     replaces real ``importlib.import_module`` lookups when provided.
     """
     manifest = load_kit_manifest()
-    if not manifest:
-        return [
-            CheckResult(
-                "kits", "kit-manifest", Status.FAIL,
-                "No kit manifest found (repo plugins.json or wheel pins snapshot)",
-            )
-        ]
     results: list[CheckResult] = []
     for kit_name, rev in manifest.items():
         import_name = _import_name(kit_name)
@@ -147,7 +121,7 @@ def check_kits(importable_map: dict[str, bool] | None = None) -> list[CheckResul
             except ImportError:
                 ok = False
         if ok:
-            suffix = f"pinned {rev[:12]}" if rev else "no pinned rev"
+            suffix = f"nexus-scholar {rev}" if rev else "nexus-scholar version unknown"
             detail = f"{import_name} imports · {suffix}"
         else:
             detail = f"{import_name} import FAILED"
@@ -903,7 +877,7 @@ def _render_table(report: dict[str, Any]) -> None:
 
     if any(check["group"] == "kits" for check in report["checks"]):
         console.print(
-            "[dim]kits version policy: pinned `default_rev` + importability are the "
+            "[dim]kits version policy: importability + the nexus-scholar version are the "
             "truthful assertions — the wheel bundles the exact source the harness "
             "imports, so a `__version__` echo would re-report bundled code, not the "
             "install.[/dim]"

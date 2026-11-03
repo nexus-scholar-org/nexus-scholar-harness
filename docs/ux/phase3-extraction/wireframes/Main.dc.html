@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Extraction overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.n{width:28px;height:28px;border-radius:14px;border:1.5px solid #1f1f1f;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.gate{border:1.5px dashed #1d4ed8;background:#eef2fd}
+.new{font-size:11px;font-weight:700;color:#8a4a00;border:1px solid #8a4a00;border-radius:4px;padding:1px 6px;align-self:flex-start}
+</style>
+</helmet>
+<div style="width:1200px;height:720px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:22px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 1 of 7 · Phase 3 extraction and synthesis</div>
+    <h1 style="margin:6px 0 0;font-size:30px;font-weight:700">From included records to verified data and a draft synthesis</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Today the pipeline jumps from title/abstract includes to extraction, fills the matrix with retrieved snippets, and writes a review for the first question only. The redesign adds the two missing full-text steps and puts a person between machine output and anything called a result.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px">
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <span class="new">New</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">1</div><b>Retrieve</b></div>
+      <div style="font-size:13px">Get full texts; count what could not be retrieved</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <span class="new">New</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">2</div><b>Eligibility</b></div>
+      <div style="font-size:13px">Full-text decisions with exclusion reasons</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <span class="new" style="visibility:hidden">New</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">3</div><b>Extract text</b></div>
+      <div style="font-size:13px">PDF to text, with a quality check per document</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:8px">
+      <span class="new" style="visibility:hidden">New</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n">4</div><b>Index</b></div>
+      <div style="font-size:13px">Chunk and embed full texts only</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <span class="new" style="visibility:hidden">New</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">5</div><b>Data</b></div>
+      <div style="font-size:13px">Machine-drafted cells, each verified by you</div>
+    </div>
+    <div class="box gate" style="display:flex;flex-direction:column;gap:8px">
+      <span class="new" style="visibility:hidden">New</span>
+      <div style="display:flex;gap:8px;align-items:center"><div class="n" style="border-color:#1d4ed8;color:#1d4ed8">6</div><b>Synthesis</b></div>
+      <div style="font-size:13px">A draft per research question, claims checked</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Today</div>
+      <div class="muted" style="font-size:13px">Missing PDF → abstract-only document counted as extracted · matrix cell = first sentence of a passage · "entailment" = similarity · literature_review.md answers RQ1 from 5 passages · citation graph built, then unused</div>
+    </div>
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl">Redesign</div>
+      <div class="muted" style="font-size:13px">PRISMA full-text counts recorded · abstract-only studies flagged, kept out of the matrix unless you allow them · every cell shows its source quote and needs your check · one draft per RQ, labelled as a draft</div>
+    </div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:10px;border-style:dashed;background:#f4f4f4">
+    <div class="lbl">Already solid, stays</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px">
+      <div class="box">Fallback documents quote the abstract verbatim and invent nothing</div>
+      <div class="box">Each matrix cell keeps a citation token to its passage</div>
+      <div class="box">Retrieval stays inside one study; never borrows another paper's text</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":720}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -114,6 +114,62 @@ def refresh_index_md(project_dir: Path) -> Path:
             if counts:
                 metrics_block += " (" + "; ".join(counts) + ")"
 
+    # Screening status is curated data from project.json, not something this
+    # generator can infer from the file catalog. Render it so a refresh never
+    # silently drops the reviewer/human-confirmation record (regression: the
+    # block used to live only in the hand-edited INDEX.md and every sync erased
+    # it).
+    screening_block = ""
+    screening = manifest.get("screening")
+    screening_lines: list[str] = []
+    if manifest.get("screening_status"):
+        screening_lines.append(f"- **Status**: `{manifest['screening_status']}`")
+    if manifest.get("human_confirmation"):
+        screening_lines.append(
+            f"- **Human confirmation**: {manifest['human_confirmation']}"
+        )
+    if isinstance(screening, dict):
+        totals = screening.get("totals")
+        if isinstance(totals, dict):
+            if totals.get("screened") is not None:
+                detail = ""
+                if (
+                    totals.get("identified") is not None
+                    and totals.get("duplicates_removed") is not None
+                ):
+                    detail = (
+                        f" ({totals['identified']:,} identified − "
+                        f"{totals['duplicates_removed']:,} duplicates)"
+                    )
+                screening_lines.append(f"- **Screened**: {totals['screened']:,}{detail}")
+            if totals.get("included") is not None and totals.get("excluded") is not None:
+                excluded = f"{totals['excluded']:,}"
+                if totals.get("not_retrieved"):
+                    excluded += (
+                        f" (of which {totals['not_retrieved']:,} *not retrieved*)"
+                    )
+                screening_lines.append(
+                    f"- **Included**: {totals['included']:,} · **Excluded**: {excluded}"
+                )
+        deviations = screening.get("deviations")
+        if isinstance(deviations, list) and deviations:
+            screening_lines.append(
+                "- **Deviations**: " + ", ".join(str(item) for item in deviations)
+            )
+    if manifest.get("protocol_fingerprint") or manifest.get("criteria_sha256"):
+        instrument: list[str] = []
+        if manifest.get("protocol_fingerprint"):
+            instrument.append(f"protocol `{manifest['protocol_fingerprint']}`")
+        if manifest.get("criteria_sha256"):
+            instrument.append(f"criteria `{manifest['criteria_sha256']}`")
+        screening_lines.append("- **Frozen instrument**: " + ", ".join(instrument))
+    if screening_lines:
+        screening_block = (
+            "\n## 🔎 Screening Status\n"
+            + "\n".join(screening_lines)
+            + "\n\n---\n"
+        )
+
     index_content = f"""# Project Index: {title}
 
 - **Project Slug**: `{slug}`
@@ -126,7 +182,7 @@ def refresh_index_md(project_dir: Path) -> Path:
 {metrics_block}
 
 ---
-
+{screening_block}
 ## 🎯 Research Questions
 """
     for i, rq in enumerate(manifest.get("research_questions", []), 1):

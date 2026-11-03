@@ -129,11 +129,11 @@ def fallback_repositories(paths: list[str]) -> set[str]:
     repos: set[str] = set()
     for raw_path in paths:
         path = normalize_path(raw_path)
-        if path.startswith("tools/scholar-rag-kit/"):
+        if path.startswith(("src/scholar_rag/", "tests/kits/rag/")):
             repos.add("scholar-rag-kit")
-        elif path.startswith("tools/scholar-agent-kit/"):
+        elif path.startswith(("src/scholar_agent/", "tests/kits/agent/")):
             repos.add("scholar-agent-kit")
-        elif path.startswith(("src/", "scripts/", "tests/", ".github/", "packaging/")) or path in {
+        elif path.startswith(("src/", "scripts/", "tests/", ".github/")) or path in {
             "pyproject.toml",
             "uv.lock",
         }:

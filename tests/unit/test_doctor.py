@@ -82,35 +82,20 @@ def test_doctor_command_registered():
 
 def test_kits_all_importable_dev_env():
     manifest = load_kit_manifest()
-    assert len(manifest) == 8  # all 8 scholar-*-kit packages declared
+    assert len(manifest) == 8  # all 8 scholar_* packages bundled
     results = check_kits()
     assert [r.name for r in results] == list(manifest)
     assert all(r.status == Status.PASS for r in results)
-    # every declared kit carries its pinned default_rev in the detail
-    assert all("pinned" in r.detail for r in results)
+    # every kit reports the one nexus-scholar version it ships in
+    assert all("nexus-scholar" in r.detail for r in results)
 
 
-def test_load_kit_manifest_wheel_fallback(tmp_path, monkeypatch):
-    """The wheel-deployed scenario: no repo plugins.json, bundled pins snapshot."""
-    pins = tmp_path / "nexus_scholar_pins.json"
-    pins.write_text(
-        json.dumps(
-            {
-                "kits": [
-                    {"name": "scholar-rag-kit", "default_rev": "abc123"},
-                    {"name": "other"},
-                ]
-            }
-        ),
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(doctor_mod, "_repo_plugins_json", lambda: tmp_path / "ghost")
-    monkeypatch.setattr(doctor_mod, "_wheel_pins_path", lambda: pins)
+def test_kit_manifest_reports_the_package_version(monkeypatch):
+    """All kits share the nexus-scholar distribution version; none is pinned."""
+    monkeypatch.setattr(doctor_mod, "_package_version", lambda: "9.9.9")
     manifest = load_kit_manifest()
-    assert manifest == {"scholar-rag-kit": "abc123", "other": ""}
-    # no repo, no wheel -> empty manifest (doctor stays usable)
-    monkeypatch.setattr(doctor_mod, "_wheel_pins_path", lambda: None)
-    assert load_kit_manifest() == {}
+    assert set(manifest) == set(doctor_mod.KITS)
+    assert set(manifest.values()) == {"9.9.9"}
 
 
 def test_kits_fail_reachable_via_importable_map():

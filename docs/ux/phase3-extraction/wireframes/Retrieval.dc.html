@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Full-text retrieval</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.stack{display:flex;height:30px;border-radius:6px;overflow:hidden;border:1.5px solid #8a8a8a;font-size:12px;font-weight:600}
+.stack div{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:middle}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600;font-size:14px;min-height:44px;padding:10px 16px}
+.drop{border:2px dashed #8a8a8a;border-radius:8px;padding:22px;text-align:center;background:#fff;display:flex;flex-direction:column;gap:8px;align-items:center}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 1 of 6 · Retrieve · new step</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">276 reports sought; 45 still missing</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Today a missing PDF quietly becomes an abstract-only document. Here every report is either retrieved or recorded as not retrieved with a reason, which PRISMA 2020 asks for.</div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:10px">
+    <div class="stack" role="img" aria-label="198 open access, 33 uploaded, 45 not retrieved of 276">
+      <div style="flex:198;background:#9fb3d9">Open access 198</div>
+      <div style="flex:33;background:#4a5568;color:#fff">Uploaded 33</div>
+      <div style="flex:45;background:#f3e3cf">Missing 45</div>
+    </div>
+    <div class="muted" style="font-size:13px">Open-access copies located by scholar-pdf-kit; uploads are your own library or author copies, matched by DOI and checked against the title.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="lbl">Not retrieved yet · 45</div>
+      <table>
+        <thead><tr><th>Report</th><th>Why</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>[paper title]<br><span class="muted">10.xxxx/… · 2022</span></td><td>Paywalled, no library access</td><td><button class="btn">Upload</button> <button class="btn">Request</button></td></tr>
+          <tr><td>[paper title]<br><span class="muted">10.xxxx/… · 2023</span></td><td>No PDF found anywhere</td><td><button class="btn">Upload</button> <button class="btn">Mark missing</button></td></tr>
+          <tr><td>[paper title]<br><span class="muted">10.xxxx/… · 2021</span></td><td>Author asked 12 Oct, no reply</td><td><button class="btn">Upload</button> <button class="btn">Mark missing</button></td></tr>
+          <tr><td class="muted">+ 42 more</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:13px;margin-top:auto;display:flex;gap:16px;flex-wrap:wrap">
+        <span>Paywalled <b>31</b></span><span>Not found <b>9</b></span><span>Author not replied <b>5</b></span>
+      </div>
+    </div>
+
+    <div style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="drop">
+        <b>Drop PDFs here</b>
+        <span class="muted" style="font-size:13px">Matched to reports by DOI, then by title. A mismatch is held for you to confirm.</span>
+        <label for="pdfs" class="btn" style="display:inline-block">Choose files</label>
+        <input id="pdfs" type="file" multiple style="display:none">
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">PRISMA</div>
+        <div>Reports sought: <b>276</b></div>
+        <div>Reports not retrieved: <b>45</b> <span class="muted">(until you upload or confirm)</span></div>
+        <div class="muted">Each retrieval and each "missing" mark is journaled with its source.</div>
+      </div>
+      <button class="btn btn-p" style="margin-top:auto">Continue with 231 full texts</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

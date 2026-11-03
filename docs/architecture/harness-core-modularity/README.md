@@ -5,12 +5,9 @@ without behaviour change.
 
 ## Current
 
-| Document | Role |
-|---|---|
-| [`harness_core_modularity_roadmap.md`](./harness_core_modularity_roadmap.md) | **Plan/roadmap** for the track (packet order, deferrals, handoff). |
-| [`hcm_05_mcp_recon_adapter_characterization.md`](./hcm_05_mcp_recon_adapter_characterization.md) | HCM-05 characterization (ADOPTED; PR #107). |
-| [`hcm-02-disposition.md`](./hcm-02-disposition.md) | HCM-02 evidence disposition (IMPLEMENTED, qualified; see close-out below). |
-| HCM-06 read presentation API | Merged (PR #133, `6575209`): 8 read-only GET routes with generation-currentness + loopback CORS; UI-04 live wiring. |
+The roadmap and packet documents were removed in the 2026-11-03 docs cut; the
+close-out record below is the surviving summary and the originals remain in
+git history. HCM-06 read presentation API: merged (PR #133, `6575209`).
 
 ## Close-out record (2026-10-29)
 
@@ -44,6 +41,6 @@ must-survive facts are here and the originals remain in git history.
 Any policy that mints, refuses, or quarantines identity needs its own packet
 gate before it changes.
 
-HCM-02/03 have no packet documents; the roadmap is their only definition. HCM-06 read API is merged (PR #133); UI-07 protected action API is merged (PR #134, `aa6e2f0`) including the job_runner journal migration.
+HCM-02/03 were defined by the roadmap, now in git history. HCM-06 read API is merged (PR #133); UI-07 protected action API is merged (PR #134, `aa6e2f0`) including the job_runner journal migration.
 Runtime work follows the test-gate policy (`docs/architecture/test_gate_policy.md`).
 

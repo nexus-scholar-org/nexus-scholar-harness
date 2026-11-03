@@ -30,7 +30,7 @@ Ownership (section 6.1):
 
 Check 4 kit-share boundary (explicit):
 
-* kit-owned (``tools/scholar-rag-kit/src/scholar_rag/index_service.py``
+* kit-owned (``src/scholar_rag/index_service.py``
   ``eligibility join``; ``index_manifest.py`` ``PARENT_HASH_MISMATCH``,
   ``EXTRACTED_TEXT_UNUSABLE``, ``EXTRACTED_CONTENT_CHANGED``,
   ``cross-document collision``; ``_refuse_path_shaped`` /

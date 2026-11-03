@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Step 3 Gap check</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.scale{display:flex;height:36px;border-radius:6px;overflow:hidden;border:1.5px solid #8a8a8a;font-size:12px;font-weight:600}
+.scale div{display:flex;align-items:center;justify-content:center}
+.pin{position:absolute;top:22px;width:2px;height:48px;pointer-events:none;background:#1f1f1f}
+.pinlbl{position:absolute;top:0;font-size:12px;font-weight:600;white-space:nowrap;transform:translateX(-50%)}
+.bands{display:flex;font-size:12px;color:#5c5c5c;margin-top:8px}
+.bands div{padding-left:6px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 3 · optional gap check</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Is "edge deployment latency" a gap, or just off this pool?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Runs up to 3 follow-up searches from the cache and counts the whole field. The answer is a thinness signal for you to weigh, never a gap certificate.</div>
+  </div>
+
+  <div class="box" style="display:flex;flex-direction:column;gap:18px;padding:20px 24px">
+    <div class="lbl">Where each follow-up sits in the full literature</div>
+    <div style="position:relative;padding-top:28px">
+      <div class="scale">
+        <div style="flex:1;background:#f3e3cf"></div>
+        <div style="flex:2;background:#ececec"></div>
+        <div style="flex:3;background:#d9e3f8"></div>
+      </div>
+      <div class="bands">
+        <div style="flex:1">scant · under 50</div>
+        <div style="flex:2">sparse · 50 to 500</div>
+        <div style="flex:3">dense · over 500</div>
+      </div>
+      <div class="pin" style="left:8%"></div><div class="pinlbl" style="left:8%">A · 31</div>
+      <div class="pin" style="left:38%"></div><div class="pinlbl" style="left:38%">B · 210</div>
+      <div class="pin" style="left:88%"></div><div class="pinlbl" style="left:88%">C · 4,800</div>
+    </div>
+    <div class="muted" style="font-size:12px">Bands are ordered, not drawn to scale.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+    <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:14px">
+      <div class="lbl">Follow-up A</div>
+      <b>edge deployment latency crop disease</b>
+      <div>31 works · <b style="color:#8a4a00">scant</b></div>
+      <div class="muted" style="font-size:13px">Genuinely thin. Could be a gap, or a phrasing nobody uses.</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:14px">
+      <div class="lbl">Follow-up B</div>
+      <b>on-device inference agriculture</b>
+      <div>210 works · <b>sparse</b></div>
+      <div class="muted" style="font-size:13px">Some work exists; your pool caught little of it.</div>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:14px">
+      <div class="lbl">Follow-up C</div>
+      <b>edge AI latency</b>
+      <div>4,800 works · <b style="color:#1d3fae">dense</b></div>
+      <div class="muted" style="font-size:13px">Heavily studied in general; the pool was tangential.</div>
+    </div>
+  </div>
+
+  <div class="box" style="border:1.5px dashed #8a4a00;background:#fdf3e6;font-size:14px">
+    <b>Reading this:</b> A is scant, B and C are not. The narrow combination looks thin, but the parent fields are active. Search sparsity alone never proves a gap: check the anchor papers before you commit.
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:auto">
+    <span class="muted" style="font-size:13px">Follow-ups used: 3 of 3 · all served from cache after the first run</span>
+    <div style="display:flex;gap:10px">
+      <button class="btn">Back to directions</button>
+      <button class="btn">Rephrase as follow-up A</button>
+      <button class="btn btn-p">Pursue this direction</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

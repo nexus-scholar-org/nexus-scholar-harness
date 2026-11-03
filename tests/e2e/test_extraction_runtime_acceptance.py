@@ -62,9 +62,9 @@ ROOT = Path(__file__).resolve().parents[2]
 AGENT_EXTRACT = ROOT / "src" / "scholar_harness" / "agent_extract.py"
 PROTOCOL_FIXTURE = (
     ROOT
-    / "tools"
-    / "scholar-protocol-kit"
     / "tests"
+    / "kits"
+    / "protocol"
     / "fixtures"
     / "canonical"
     / "identity_base.json"

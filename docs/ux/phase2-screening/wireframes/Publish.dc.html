@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Approve and publish</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.flow{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.fbox{border:1.5px solid #3a3a3a;border-radius:4px;padding:10px 12px;font-size:14px;display:flex;justify-content:space-between;background:#fff;font-variant-numeric:tabular-nums}
+.side{border:1.5px solid #8a8a8a;border-radius:4px;padding:8px 12px;font-size:13px;background:#f4f4f4;font-variant-numeric:tabular-nums}
+.down{align-self:center;color:#5c5c5c;font-size:13px}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #eee}
+.ok{color:#1f6a35;font-weight:600}
+.file{display:flex;justify-content:space-between;font-family:ui-monospace,Consolas,monospace;font-size:12px;padding:4px 0;border-bottom:1px solid #eee}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 6 of 6 · Publish · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Approve the whole screening once, then publish</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">One review of the finished generation replaces approving ~160 batches one by one. The approval is bound to this exact content, so any later change needs a new one.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="lbl">PRISMA 2020 · screening</div>
+      <div class="flow">
+        <div class="fbox"><span>Records screened (title and abstract)</span><b>3,241</b></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="down" style="flex:1;text-align:center">↓</div>
+          <div class="side" style="flex:2">Excluded: <b>2,965</b> · agreed by both lanes 2,860 · by you 105</div>
+        </div>
+        <div class="fbox"><span>Reports sought for retrieval</span><b>276</b></div>
+        <div class="muted" style="font-size:13px;padding-left:4px">= 182 included by you plus 94 sent to full text (81 unclear in a lane, 13 by you)</div>
+      </div>
+      <div class="lbl" style="margin-top:10px">Checks</div>
+      <div class="kv"><span>Every record has exactly one final decision</span><span class="ok">3,241 / 3,241</span></div>
+      <div class="kv"><span>Agreed-exclusion sample checked by you</span><span class="ok">60 checked · 0 wrong</span></div>
+      <div class="kv"><span>Rows with invented or missing fields</span><span class="ok">0</span></div>
+      <div class="kv" style="border:0"><span>Agreement report attached</span><span class="ok">94.6% raw · kappa 0.57</span></div>
+    </div>
+
+    <div style="width:420px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:4px">
+        <div class="lbl" style="margin-bottom:6px">Will be written</div>
+        <div class="file"><span>literature/included.json</span><span>182</span></div>
+        <div class="file"><span>literature/fulltext_queue.json</span><span>94</span></div>
+        <div class="file"><span>literature/excluded.json</span><span>2,965</span></div>
+        <div class="file"><span>literature/prisma_screening_report.md</span><span></span></div>
+        <div class="file"><span>screening_decisions artifact (registry)</span><span></span></div>
+        <div class="file" style="border:0"><span>audit/journal.jsonl · decisions + approval</span><span></span></div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:8px;border:1.5px dashed #1d4ed8;background:#eef2fd">
+        <div class="lbl" style="color:#1d4ed8">Approval</div>
+        <div style="font-size:13px">Generation fingerprint <span style="font-family:ui-monospace,Consolas,monospace">[sha256:…]</span></div>
+        <div style="font-size:13px">Approving shows a one-time pairing code in your terminal; enter it here to confirm it is you at both ends.</div>
+        <button class="btn btn-p">Approve and publish</button>
+        <button class="btn">Defer with a reason</button>
+      </div>
+      <div class="muted" style="font-size:12px">fulltext_queue.json is new: unclear records are kept apart from includes so PRISMA can report them honestly.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

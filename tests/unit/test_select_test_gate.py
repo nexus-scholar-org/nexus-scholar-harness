@@ -26,7 +26,7 @@ def test_inner_selection_is_narrow_and_deterministic() -> None:
     assert tasks == ["T-10"]
     assert commands == [
         "git diff --check",
-        "uv run --directory tools/scholar-rag-kit pytest tests/test_canonical.py -q",
+        "uv run pytest tests/kits/rag/test_canonical.py -q",
     ]
 
 
@@ -35,7 +35,7 @@ def test_path_selection_unions_overlapping_tasks_without_duplicate_commands() ->
     tasks, commands = MODULE.select_commands(
         data,
         tasks=[],
-        paths=["tools/scholar-rag-kit/src/scholar_rag/chunker.py"],
+        paths=["src/scholar_rag/chunker.py"],
         stage="checkpoint",
     )
     # A vendored kit edit also selects the harness synchronization boundary.
@@ -69,7 +69,7 @@ def test_empty_task_stage_uses_owning_repository_fallback() -> None:
     data = MODULE.load_manifest()
     tasks, commands = MODULE.select_commands(data, tasks=["T-10"], paths=[], stage="closure")
     assert tasks == ["T-10"]
-    assert "uv run --directory tools/scholar-rag-kit pytest -q" in commands
+    assert "uv run pytest tests/kits/rag -q" in commands
 
 
 def test_prose_only_doc_selects_light_gate_without_full_suite() -> None:

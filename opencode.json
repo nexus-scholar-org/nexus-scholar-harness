@@ -3,7 +3,7 @@
   "mcp": {
     "nexus-scholar": {
       "type": "local",
-      "command": ["uv", "run", "--directory", "tools/scholar-agent-kit", "scholar-agent"],
+      "command": ["uv", "run", "scholar-agent"],
       "enabled": true
     }
   }

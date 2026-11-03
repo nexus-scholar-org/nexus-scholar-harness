@@ -39,14 +39,14 @@ This is **not** a re-implementation. You reuse the real machinery:
 Ask, in chat (only what's not already obvious):
 
 1. **Topic** — one scoped sentence (e.g. "drone-mounted crop-disease detection with on-device deep learning").
-2. **Year + scale** — `start_year` (default 2020), cap `limit` (default 10).
+2. **Year + scale** — `start_year` (default 2020), cap `limit` (default 25, the pool cap; below 12 the pool reads as `thin`).
 3. **Mode** — semantic (`semantic=True`, OpenAlex embeddings, better topic grounding — recommend it; cache keys stay isolated via `/m/semantic/`) vs keyword (matches CLI default; `semantic=False`).
 4. Any standing scope/preference for later stages (paradigm, venue/venue type, language).
 
 ### Stage 2 — Probe (MCP)
 
 ```text
-recon_probe(topic="<STAGE1.topic>", semantic=True, start_year=<year>, limit=10)
+recon_probe(topic="<STAGE1.topic>", semantic=True, start_year=<year>, limit=25)
 ```
 
 Signature (server surface only): `topic` required; `session_id` optional (omit for a new `rec_<hex>` session, pass back to extend); `start_year` default 2020; `limit` default 10 (pool capped at 25); `semantic` default False. Report to the user: `session_id`, `cache_key` (lineage; note the `/m/semantic/` segment if semantic), `pool_path`, `n_docs`. If a provider rate-limits, the engine degrades gracefully — say so, don't treat it as failure. If `status:"error"` is returned, echo the message and ask the user to refine the topic. Record the recon root actually used in the `recon_context` lineage so a later audit can find the session. Legacy sessions may exist under `{KIT_ROOT:agent}/.cache/inception_recon` from before the root fix; treat them as stale.

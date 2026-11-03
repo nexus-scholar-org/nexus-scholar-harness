@@ -10,7 +10,6 @@
       "uv run python scripts/generate_contract_baseline.py --check",
       "uv run python scripts/generate_contract_schemas.py --check",
       "uv run python scripts/generate_two_study_contract_fixture.py --check",
-      "uv run python scripts/generate_nexus_scholar_pins.py --check",
       "uv run ruff check scripts/",
       "git diff --check"
     ]
@@ -18,107 +17,107 @@
   "tasks": {
     "T-10": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/canonical.py", "tools/scholar-rag-kit/tests/test_canonical.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_canonical.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_canonical.py tests/test_index_identity.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/canonical.py", "tests/kits/rag/test_canonical.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_canonical.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_canonical.py tests/kits/rag/test_index_identity.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-20": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/chunker.py", "tools/scholar-rag-kit/tests/test_index_identity.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_identity.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_identity.py tests/test_chunker.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/chunker.py", "tests/kits/rag/test_index_identity.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_identity.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_identity.py tests/kits/rag/test_chunker.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-30": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/indexer.py", "tools/scholar-rag-kit/src/scholar_rag/index_models.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_identity.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_identity.py tests/test_index_service.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/indexer.py", "src/scholar_rag/index_models.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_identity.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_identity.py tests/kits/rag/test_index_service.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-40": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/chunker.py", "tools/scholar-rag-kit/src/scholar_rag/index_models.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_chunker.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_chunker.py tests/test_index_identity.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/chunker.py", "src/scholar_rag/index_models.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_chunker.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_chunker.py tests/kits/rag/test_index_identity.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-50": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/index_manifest.py", "tools/scholar-rag-kit/tests/test_index_manifest.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_manifest.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_manifest.py tests/test_index_identity.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/index_manifest.py", "tests/kits/rag/test_index_manifest.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_manifest.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_manifest.py tests/kits/rag/test_index_identity.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-60": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/indexer.py", "tools/scholar-rag-kit/src/scholar_rag/replacement.py", "tools/scholar-rag-kit/tests/test_index_replacement.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_replacement.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_replacement.py tests/test_index_manifest.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/indexer.py", "src/scholar_rag/replacement.py", "tests/kits/rag/test_index_replacement.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_replacement.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_replacement.py tests/kits/rag/test_index_manifest.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-70": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/recovery.py", "tools/scholar-rag-kit/tests/test_index_legacy.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_legacy.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_legacy.py tests/test_index_replacement.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/recovery.py", "tests/kits/rag/test_index_legacy.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_legacy.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_legacy.py tests/kits/rag/test_index_replacement.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-80": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/index_verifier.py", "tools/scholar-rag-kit/tests/test_index_verifier.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_verifier.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_verifier.py tests/test_index_manifest.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/index_verifier.py", "tests/kits/rag/test_index_verifier.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_verifier.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_verifier.py tests/kits/rag/test_index_manifest.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-90": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/index_service.py", "tools/scholar-rag-kit/src/scholar_rag/cli.py", "tools/scholar-rag-kit/tests/test_index_service.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_service.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_service.py tests/test_index_manifest.py tests/test_index_verifier.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests", "uv build --wheel tools/scholar-rag-kit"],
+      "paths": ["src/scholar_rag/index_service.py", "src/scholar_rag/cli.py", "tests/kits/rag/test_index_service.py"],
+      "inner": ["uv run pytest tests/kits/rag/test_index_service.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_service.py tests/kits/rag/test_index_manifest.py tests/kits/rag/test_index_verifier.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag", "uv build --wheel"],
       "closure": []
     },
     "T-95": {
       "repo": "scholar-rag-kit",
-      "paths": ["tools/scholar-rag-kit/src/scholar_rag/models.py", "tools/scholar-rag-kit/src/scholar_rag/retriever.py", "tools/scholar-rag-kit/src/scholar_rag/synthesis.py"],
-      "inner": ["uv run --directory tools/scholar-rag-kit pytest -k \"index or citation or similarity\" -q"],
-      "checkpoint": ["uv run --directory tools/scholar-rag-kit pytest tests/test_index_identity.py tests/test_index_service.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
+      "paths": ["src/scholar_rag/models.py", "src/scholar_rag/retriever.py", "src/scholar_rag/synthesis.py"],
+      "inner": ["uv run pytest tests/kits/rag -k \"index or citation or similarity\" -q"],
+      "checkpoint": ["uv run pytest tests/kits/rag/test_index_identity.py tests/kits/rag/test_index_service.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
       "closure": []
     },
     "T-100": {
       "repo": "scholar-agent-kit",
-      "paths": ["tools/scholar-agent-kit/src/scholar_agent/capabilities.py", "tools/scholar-agent-kit/src/scholar_agent/server.py", "tools/scholar-agent-kit/tests/test_mcp_indexing_boundary.py"],
-      "inner": ["uv run --directory tools/scholar-agent-kit pytest tests/test_mcp_indexing_boundary.py -q"],
-      "checkpoint": ["uv run --directory tools/scholar-agent-kit pytest tests/test_mcp_indexing_boundary.py tests/test_mcp_extraction_capability.py tests/test_mcp_acquisition_capability.py -q"],
-      "pr": ["uv run --directory tools/scholar-agent-kit pytest -q", "uv run --directory tools/scholar-agent-kit ruff check src tests"],
+      "paths": ["src/scholar_agent/capabilities.py", "src/scholar_agent/server.py", "tests/kits/agent/test_mcp_indexing_boundary.py"],
+      "inner": ["uv run pytest tests/kits/agent/test_mcp_indexing_boundary.py -q"],
+      "checkpoint": ["uv run pytest tests/kits/agent/test_mcp_indexing_boundary.py tests/kits/agent/test_mcp_extraction_capability.py tests/kits/agent/test_mcp_acquisition_capability.py -q"],
+      "pr": ["uv run pytest tests/kits/agent -q", "uv run ruff check src/scholar_agent tests/kits/agent"],
       "closure": []
     },
     "T-110": {
       "repo": "kits",
-      "paths": ["tools/scholar-rag-kit/pyproject.toml", "tools/scholar-rag-kit/uv.lock", "tools/scholar-agent-kit/pyproject.toml", "tools/scholar-agent-kit/uv.lock"],
-      "inner": ["uv build --wheel tools/scholar-rag-kit", "uv build --wheel tools/scholar-agent-kit"],
-      "checkpoint": ["uv run pytest tests/integrations/test_nexus_scholar_metapackage.py -q"],
-      "pr": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-agent-kit pytest -q"],
+      "paths": ["pyproject.toml", "uv.lock"],
+      "inner": ["uv build --wheel"],
+      "checkpoint": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run pytest tests/kits/agent -q"],
       "closure": []
     },
     "T-120": {
       "repo": "harness",
-      "paths": ["tools/scholar-rag-kit/**", "tools/scholar-agent-kit/**", ".agents/plugins/nexus-scholar/plugins.json", "packaging/nexus-scholar/nexus_scholar_pins.json"],
-      "inner": ["uv run pytest tests/conformance/test_nexus_scholar_pins.py tests/conformance/test_count_freshness.py -q"],
+      "paths": ["src/scholar_rag/**", "src/scholar_agent/**", ".agents/plugins/nexus-scholar/plugins.json"],
+      "inner": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
       "checkpoint": ["uv run pytest tests/conformance -q"],
       "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q", "uv build --wheel packaging/nexus-scholar"]
+      "closure": ["uv run pytest -q", "uv build --wheel"]
     },
     "T-130": {
       "repo": "harness",
@@ -250,8 +249,8 @@
   },
   "fallback": {
     "harness": ["uv run pytest -q", "uv run ruff check scripts/"],
-    "scholar-rag-kit": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-rag-kit ruff check src tests"],
-    "scholar-agent-kit": ["uv run --directory tools/scholar-agent-kit pytest -q", "uv run --directory tools/scholar-agent-kit ruff check src tests"],
-    "kits": ["uv run --directory tools/scholar-rag-kit pytest -q", "uv run --directory tools/scholar-agent-kit pytest -q"]
+    "scholar-rag-kit": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
+    "scholar-agent-kit": ["uv run pytest tests/kits/agent -q", "uv run ruff check src/scholar_agent tests/kits/agent"],
+    "kits": ["uv run pytest tests/kits/rag -q", "uv run pytest tests/kits/agent -q"]
   }
 }

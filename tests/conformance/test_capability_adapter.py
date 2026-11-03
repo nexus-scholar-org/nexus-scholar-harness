@@ -3827,7 +3827,7 @@ def test_resolve_env_binds_the_exact_key_set(surface: str, tmp_path: Path) -> No
     ]
     assert missing == [], (
         "kits not importable in this environment, so KIT_ROOT cannot be bound "
-        f"(install them with scripts/install_plugins.py): {missing}"
+        f"(run `uv sync`): {missing}"
     )
     workspace = tmp_path / "workspaces" / _WS
     workspace.mkdir(parents=True)
@@ -3871,13 +3871,13 @@ def test_kit_root_binds_the_resolved_package_not_a_hardcoded_path(
         if surface == "in-process":
             assert bound == package_dir, (short, bound, package_dir)
         else:
-            # Dev binds the vendored checkout, the single shared template.
+            # Dev binds the repo root, the single shared template.
             assert bound == ROOT / DEV_KIT_ROOT_TEMPLATE.replace("{{kit}}", short)
             # pytest's ``pythonpath`` imports editable kits from inside the
             # vendored checkout; a wheel/venv install (even the repo's own
             # ``.venv``) is not a checkout import and is not constrained by
             # this dev binding.
-            if package_dir.is_relative_to(ROOT / "tools"):
+            if package_dir.is_relative_to(ROOT / "src"):
                 assert package_dir.is_relative_to(bound), (short, package_dir, bound)
 
 

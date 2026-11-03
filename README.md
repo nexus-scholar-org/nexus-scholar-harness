@@ -76,7 +76,7 @@ These are bounded engineering guarantees. Protected-publisher evidence is for th
 
 Project events use an append-only journal, not protection against an administrator rewriting local files. Model outputs and external-provider results are not universally deterministic. Local storage does not imply local inference: configured services may receive research content.
 
-See the [AG plan](docs/architecture/agent-controls/agent_controls_plan.md), [evidence boundaries](docs/architecture/wp01/evidence-boundaries.md) and [program tracker](docs/UPCOMING_WORK.md) for scope and residual limitations.
+See the [AG record](docs/architecture/agent-controls/README.md), [evidence boundaries](docs/architecture/wp01/evidence-boundaries.md) and [assessment priority list](docs/assessment/README.md) for scope and residual limitations.
 
 ## Scientific capabilities and architecture
 
@@ -100,16 +100,16 @@ Read [AGENTS.md](AGENTS.md) and the [Developer Compass](docs/architecture/DEVELO
 ```sh
 git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
-uv sync --extra dev
-uv run python scripts/install_plugins.py
+uv sync --extra dev --extra pdf --extra rag
+uv run pytest
 ```
 
-`uv sync` installs harness dependencies, not all kits. The installer uses the pinned [plugin manifest](.agents/plugins/nexus-scholar/plugins.json). Kit source changes also belong in their canonical repositories with synchronized pins and vendored content.
+The harness and the eight kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 
-Start with the [docs index](docs/README.md), [program tracker](docs/UPCOMING_WORK.md) and [contribution instructions](.agents/skills/pull-request-gate/SKILL.md). For feedback, [open an issue](https://github.com/nexus-scholar-org/nexus-scholar-harness/issues) with your research task, environment and the unclear or failing step.
+Start with the [docs index](docs/README.md), [assessment priority list](docs/assessment/README.md) and [contribution instructions](.agents/skills/pull-request-gate/SKILL.md). For feedback, [open an issue](https://github.com/nexus-scholar-org/nexus-scholar-harness/issues) with your research task, environment and the unclear or failing step.
 
 ## License
 
-MIT, as declared in the [project metadata](pyproject.toml).
+MIT; see [LICENSE](LICENSE).

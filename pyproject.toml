@@ -3,63 +3,131 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nexus-scholar-harness"
+name = "nexus-scholar"
 version = "1.0.0"
-description = "Harness for systematic literature reviews: skills, plugin registry, and unified tool environment."
+description = "Nexus Scholar: a harness for systematic literature reviews and the eight scholar_* packages it drives, in one distribution."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+authors = [
+    { name = "Nexus Scholar Org", email = "nexus-scholar@users.noreply.github.com" },
+]
+keywords = [
+    "systematic review",
+    "PRISMA",
+    "literature review",
+    "MCP",
+    "evidence synthesis",
+    "scientific literature",
+    "RAG",
+    "meta-analysis",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 
-# The harness itself is a thin orchestrator. The scholar-* kits are NOT vendored here;
-# they live in their own repositories and are installed into the shared .venv by
-# scripts/install_plugins.py (which reads .agents/plugins/nexus-scholar/plugins.json).
-# This keeps one source of truth for each kit and one shared environment for the harness.
+# One package, one version. The harness (scholar_harness) and the eight
+# scholar_* packages that used to be separate kit repositories ship together;
+# there are no per-kit pins. The base set keeps `--help` and the light stages
+# working; heavy backends are opt-in extras (imports of them stay lazy).
 dependencies = [
-    "typer>=0.9.0",
-    "rich>=13.0.0",
+    "aiohttp>=3.9.0",
+    "bibtexparser>=2.0.0b7",
     "fastapi>=0.115.0",
-    "uvicorn>=0.30.0",
+    "hishel==0.0.32",
+    "httpx>=0.28.1",
+    "mcp>=2.1.1",
+    "networkx>=3.0",
     "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "pypdf>=4.0.0",
+    "pyvis>=0.3.2",
+    "pyyaml>=6.0.0",
+    "requests>=2.31.0",
+    # networkx HITS (scholar_graph scientometrics) needs scipy at call time.
+    "scipy>=1.11",
+    "rich>=13.9.4",
+    "tenacity>=8.0.0",
+    "typer>=0.9.0",
+    "uvicorn>=0.30.0",
 ]
 
 [project.optional-dependencies]
+# PDF text extraction (scholar_pdf PyMuPDF engine).
+pdf = ["pymupdf>=1.24.0"]
+# Layout-aware extraction backends (scholar_pdf Docling / GROBID TEI parsing).
+extract = ["docling>=2.5.0", "lxml"]
+# Retrieval and synthesis backends (scholar_rag).
+rag = [
+    "chromadb>=0.4.22",
+    "sentence-transformers>=2.3.1",
+    "openai>=1.12.0",
+]
+all = ["nexus-scholar[pdf,extract,rag]"]
 dev = [
     "pytest>=8.0.0",
-    # tests/unit/test_http_client.py declares 8 `async def` tests marked
-    # `@pytest.mark.asyncio` (the search kit's http retry/backoff suite). The
-    # plugin used to arrive only transitively through the kits' own dev extras
-    # (scripts/install_plugins.py), so a clean `uv sync --extra dev` env could
-    # not run those tests at all -- they failed with "async def functions are
-    # not natively supported". The harness declares the tests, so the harness
-    # must declare the plugin that runs them. Dev extra ONLY: it must never
-    # enter the metapackage wheel's runtime deps (the minimal-dependency
-    # packaging contract is CI-hard-gated by the wheel-smoke job).
     "pytest-asyncio>=0.21.0",
     "ruff>=0.4.0",
-    # starlette's TestClient -- used by the console API tests under
-    # tests/console/ -- requires httpx2. Without it declared here the console
-    # test suite only runs in a venv that happens to have httpx2 already
-    # (it arrives transitively through the agent kit's mcp dependency), so a
-    # clean `uv sync --extra dev` environment could not run them at all.
+    "vcrpy>=5.0.0",
+    # starlette's TestClient (console API tests) requires httpx2.
     "httpx2>=2.0.0",
 ]
 
+[project.urls]
+Repository = "https://github.com/nexus-scholar-org/nexus-scholar-harness"
+Homepage = "https://github.com/nexus-scholar-org/nexus-scholar-harness"
+
 [project.scripts]
+nexus-scholar = "scholar_harness.cli:app"
 scholar-harness = "scholar_harness.cli:app"
+scholar-agent = "scholar_agent.server:main"
+scholar-bib = "scholar_bib.cli:app"
+scholar-graph = "scholar_graph.cli:app"
+scholar-pdf = "scholar_pdf.cli:app"
+scholar-protocol = "scholar_protocol.cli:app"
+scholar-rag = "scholar_rag.cli:app"
+scholar-search = "scholar_search.cli:main"
+scholar-verify = "scholar_verify.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/scholar_harness",
+    "src/scholar_agent",
+    "src/scholar_bib",
+    "src/scholar_graph",
+    "src/scholar_pdf",
+    "src/scholar_protocol",
+    "src/scholar_rag",
+    "src/scholar_search",
+    "src/scholar_verify",
+]
+
+# Shipped skills bundle (the dev-only pull-request-gate skill is excluded).
+[tool.hatch.build.targets.wheel.force-include]
+".agents/skills/critic-contract" = "scholar_harness_data/skills/critic-contract"
+".agents/skills/doer-contract" = "scholar_harness_data/skills/doer-contract"
+".agents/skills/inception-agent" = "scholar_harness_data/skills/inception-agent"
+".agents/skills/methodology-copilot" = "scholar_harness_data/skills/methodology-copilot"
+".agents/skills/scholar-agent-kit" = "scholar_harness_data/skills/scholar-agent-kit"
+".agents/skills/scholar-bib-kit" = "scholar_harness_data/skills/scholar-bib-kit"
+".agents/skills/scholar-graph-kit" = "scholar_harness_data/skills/scholar-graph-kit"
+".agents/skills/scholar-pdf-kit" = "scholar_harness_data/skills/scholar-pdf-kit"
+".agents/skills/scholar-protocol-kit" = "scholar_harness_data/skills/scholar-protocol-kit"
+".agents/skills/scholar-rag-kit" = "scholar_harness_data/skills/scholar-rag-kit"
+".agents/skills/scholar-search-kit" = "scholar_harness_data/skills/scholar-search-kit"
+".agents/skills/scholar-verify-kit" = "scholar_harness_data/skills/scholar-verify-kit"
+".agents/skills/workspace-manager" = "scholar_harness_data/skills/workspace-manager"
+".agents/plugins/nexus-scholar/plugins.json" = "nexus_scholar_plugins.json"
+"docs/kits_surface_matrix.md" = "scholar_harness_data/docs/kits_surface_matrix.md"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = [
-    "src",
-    "tools/scholar-protocol-kit/src",
-    "tools/scholar-search-kit/src",
-    "tools/scholar-pdf-kit/src",
-    "tools/scholar-bib-kit/src",
-    "tools/scholar-rag-kit/src",
-    "tools/scholar-graph-kit/src",
-    "tools/scholar-agent-kit/src",
-]
+pythonpath = ["src"]
 addopts = "-q"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/scholar_harness"]

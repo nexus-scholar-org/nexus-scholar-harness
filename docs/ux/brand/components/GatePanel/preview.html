@@ -1,0 +1,29 @@
+<!-- @dsCard group="Actions" height=232 subtitle="The single write gate of a screen" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GatePanel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+body{margin:0;padding:24px;background:var(--ground);font-family:var(--font-sans);color:var(--ink)}
+.gate{max-width:400px;background:var(--brand-soft);border:1.5px dashed var(--brand);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:10px}
+.lbl{font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--brand)}
+p{margin:0;font-size:15px;line-height:22px}
+.fp{font-family:var(--font-mono);font-size:13px;color:var(--ink-muted)}
+.btn{font:inherit;font-size:15px;min-height:44px;border-radius:var(--radius-md);padding:10px 16px;border:1.5px solid var(--hairline);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:600}
+.row{display:flex;gap:8px}
+.row .btn{flex:1}
+</style>
+</head>
+<body>
+<div class="gate">
+  <span class="lbl">Approval</span>
+  <p>Nothing is published until you approve this exact generation. <span class="fp">sha256:f81e6c58…</span></p>
+  <button class="btn primary">Approve and publish</button>
+  <div class="row"><button class="btn">Dry run</button><button class="btn">Defer with a reason</button></div>
+</div>
+</body>
+</html>

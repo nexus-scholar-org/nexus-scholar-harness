@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Funding, conflicts and open data</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:1px solid #eee;font-variant-numeric:tabular-nums}
+.quote{font-size:13px;background:#f6f6f6;border-radius:4px;padding:8px 10px}
+.tag{font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;border:1px solid;align-self:flex-start}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-bad{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:7px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Check 3 · Disclosures</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Who paid, who is tied, and can the data be checked?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Read from each full text and quoted verbatim, so a label can always be traced to a sentence. Today the conflict audit needs exactly eight hand-made analyst files, and studies without extracted text drop out of the open-data count unannounced.</div>
+  </div>
+
+  <div style="display:flex;gap:18px">
+    <div class="box" style="flex:1;display:flex;flex-direction:column">
+      <div class="lbl" style="margin-bottom:4px">Funding and conflicts · 142</div>
+      <div class="kv"><span>No conflict declared</span><b>88</b></div>
+      <div class="kv"><span>Public or academic funding only</span><b>31</b></div>
+      <div class="kv"><span>Industry funding</span><b>9</b></div>
+      <div class="kv"><span>Author with industry affiliation</span><b>6</b></div>
+      <div class="kv" style="border:0"><span>No statement</span><b>8</b></div>
+    </div>
+    <div class="box" style="flex:1;display:flex;flex-direction:column">
+      <div class="lbl" style="margin-bottom:4px">Data and code · 142</div>
+      <div class="kv"><span>Public, with a link</span><b>34 <span class="muted" style="font-weight:400">(4 links dead)</span></b></div>
+      <div class="kv"><span>On request</span><b>41</b></div>
+      <div class="kv"><span>Statement without access</span><b>17</b></div>
+      <div class="kv"><span>Not stated</span><b>50</b></div>
+      <div class="kv" style="border:0"><span>Not scanned (no text)</span><b>0</b></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <span class="tag t-warn">Industry funding</span>
+      <b>[Study F] 2023</b>
+      <div class="quote">Funding: "This work was supported by [company], which manufactures the UAV platform evaluated in this study."</div>
+      <div class="muted" style="font-size:13px">Entity: [company] · role: funder and maker of the tested device</div>
+      <div style="display:flex;gap:8px;margin-top:auto"><button class="btn">Confirm</button><button class="btn">Change label</button></div>
+    </div>
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <span class="tag t-bad">Dead link</span>
+      <b>[Study H] 2022</b>
+      <div class="quote">Data availability: "Code and data are available at github.com/[user]/[repo]."</div>
+      <div class="muted" style="font-size:13px">Link checked 3 Nov 2026: not found (404). Archived copy: none found.</div>
+      <div style="display:flex;gap:8px;margin-top:auto"><button class="btn">Mark as unavailable</button><button class="btn">Add a working link</button></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

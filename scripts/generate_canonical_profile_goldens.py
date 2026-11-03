@@ -37,6 +37,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from scholar_harness.contracts import canonical as harness_canonical
+from scholar_harness.contracts import identifiers as harness_identifiers
 from scholar_protocol.canonical import (
     canonical_fingerprint as protocol_fingerprint,
 )
@@ -50,9 +52,6 @@ from scholar_search.canonical import (
 from scholar_search.canonical import (
     canonical_json as search_canonical_json,
 )
-
-from scholar_harness.contracts import canonical as harness_canonical
-from scholar_harness.contracts import identifiers as harness_identifiers
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_DIR = ROOT / "tests" / "fixtures" / "canonical_profiles"

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Full-text eligibility</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #eee;font-variant-numeric:tabular-nums}
+.crit{display:grid;grid-template-columns:200px 70px 1fr;gap:10px;font-size:13px;padding:8px 0;border-bottom:1px solid #eee;align-items:start}
+.y{color:#1f6a35;font-weight:600}
+.n{color:#8f1d1d;font-weight:600}
+.quote{font-size:12px;color:#3a3a3a;background:#f6f6f6;border-radius:4px;padding:6px 8px}
+.dec{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 14px;background:#fff;color:#1f1f1f;min-height:44px;flex:1}
+.dec-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.in{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 10px;background:#fff;color:#1f1f1f}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:16px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 2 of 6 · Full-text eligibility · new step · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Decide on the full text, with a reason for every exclusion</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">An agent drafts each criterion from the full text and points to the page that supports it; you confirm. Several reports of one study are linked, not excluded.</div>
+  </div>
+
+  <div style="display:flex;gap:16px;flex:1;min-height:0">
+    <div style="width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">231 reports assessed</div>
+        <div class="kv"><span>Studies included</span><b>142</b></div>
+        <div class="kv"><span>Reports of included studies</span><b>150</b></div>
+        <div class="kv" style="border:0"><span>Reports excluded</span><b>81</b></div>
+      </div>
+      <div class="box">
+        <div class="lbl" style="margin-bottom:6px">Exclusion reasons</div>
+        <div class="kv"><span>Outcome not reported</span><b>31</b></div>
+        <div class="kv"><span>No UAV platform</span><b>24</b></div>
+        <div class="kv"><span>Artifact not evaluated</span><b>21</b></div>
+        <div class="kv" style="border:0"><span>Other (named)</span><b>5</b></div>
+      </div>
+      <div class="muted" style="font-size:12px">Counts go straight into the PRISMA full-text box. All 231 decided; one shown on the right.</div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div class="box" style="display:flex;flex-direction:column;gap:4px">
+        <b style="font-size:16px">[Report title] · 2023 · 14 pages</b>
+        <span class="muted" style="font-size:13px">Came through as "unclear" at title/abstract (INC-01 not reported)</span>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column">
+        <div class="crit" style="font-size:12px;color:#5c5c5c;font-weight:600"><span>Criterion</span><span>Draft</span><span>Evidence in the full text</span></div>
+        <div class="crit"><span>INC-01 UAV platform</span><span class="y">yes</span><div class="quote">p. 4, Methods: "images were acquired with a DJI quadcopter at 30 m altitude"</div></div>
+        <div class="crit"><span>INC-02 Crop disease task</span><span class="y">yes</span><div class="quote">p. 2, Introduction: "detection of wheat yellow rust"</div></div>
+        <div class="crit"><span>INC-03 Evaluated artifact</span><span class="y">yes</span><div class="quote">p. 9, Table 3: precision, recall and F1 on a held-out test set</div></div>
+        <div class="crit" style="border:0"><span>EXC-01 Opinion only</span><span class="n">no</span><div class="quote">Empirical study with reported results</div></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="dec dec-p">Include</button>
+        <button class="dec">Exclude with reason</button>
+        <button class="dec">Link to another report</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label for="note" class="muted" style="font-size:13px">Note</label>
+        <input id="note" class="in" style="flex:1" placeholder="Optional; saved with your decision">
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:auto">Every quote links to its page in the PDF. A draft without a quote cannot be confirmed as "yes".</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

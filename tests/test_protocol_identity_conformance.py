@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+import subprocess
 from pathlib import Path
 
 from scholar_harness.contracts import (
@@ -18,9 +18,9 @@ from scholar_protocol import (
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = (
     Path(__file__).parents[1]
-    / "tools"
-    / "scholar-protocol-kit"
     / "tests"
+    / "kits"
+    / "protocol"
     / "fixtures"
     / "canonical"
 )
@@ -47,16 +47,14 @@ def test_protocol_identity_emits_valid_contract_identifiers():
     assert ident.protocol_fingerprint.startswith("sha256:")
     assert len(ident.protocol_fingerprint) == 71
 
-    plugins = json.loads(
-        (ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    expected_commit = next(
-        item["default_rev"]
-        for item in plugins["plugins"]
-        if item["name"] == "scholar-protocol-kit"
-    )
+    # The component ships inside this repository, so its producer commit is HEAD.
+    expected_commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=Path(__file__).resolve().parent,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
     assert ident.producer.commit == expected_commit
 
 

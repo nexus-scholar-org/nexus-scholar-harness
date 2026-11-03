@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Calibrate screeners</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid #e3e3e3;padding:7px 6px;text-align:left;vertical-align:top}
+th{color:#5c5c5c;font-weight:600;font-size:12px}
+.inc{color:#1f6a35;font-weight:600}
+.exc{color:#3a3a3a}
+.unc{color:#8a4a00;font-weight:600}
+.miss{background:#fbeeee}
+.stat{display:flex;flex-direction:column;gap:2px;flex:1;border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff}
+.stat b{font-size:22px}
+.btn{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px;padding:10px 16px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:18px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 2 of 6 · Calibrate · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Do the agents decide the way you would?</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">You label a random sample of 30 records first; both lanes screen the same sample blind. Today calibration falls back to a heuristic when no gold file is given, which measures the agent against a rule, not against you.</div>
+  </div>
+
+  <div style="display:flex;gap:12px">
+    <div class="stat"><span class="lbl">Lane A disagrees with you</span><b>1 of 29</b><span class="muted" style="font-size:13px">records it decided</span></div>
+    <div class="stat"><span class="lbl">Lane B disagrees with you</span><b>2 of 29</b><span class="muted" style="font-size:13px">records it decided</span></div>
+    <div class="stat" style="border-color:#8f1d1d"><span class="lbl" style="color:#8f1d1d">Your includes missed</span><b style="color:#8f1d1d">1 of 5</b><span class="muted" style="font-size:13px">Lane B, record 14 · the number that matters most</span></div>
+    <div class="stat"><span class="lbl">Unclear in both lanes</span><b>1</b><span class="muted" style="font-size:13px">record 3 · goes to full text, not an error</span></div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex:1;min-height:0">
+    <div class="box" style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="lbl">Every record where you and the agents differ</div>
+      <table>
+        <thead><tr><th>#</th><th>Record</th><th>You</th><th>Lane A</th><th>Lane B</th><th>Criterion behind it</th></tr></thead>
+        <tbody>
+          <tr class="miss"><td>14</td><td>[paper title]</td><td class="inc">Include</td><td class="inc">Include</td><td class="exc">Exclude</td><td>INC-03 read as "no" from the abstract</td></tr>
+          <tr><td>3</td><td>[paper title]</td><td class="exc">Exclude</td><td class="unc">Unclear</td><td class="unc">Unclear</td><td>INC-01 not reported (satellite or drone?)</td></tr>
+          <tr><td>21</td><td>[paper title]</td><td class="exc">Exclude</td><td class="inc">Include</td><td class="exc">Exclude</td><td>EXC-01 judged differently</td></tr>
+          <tr><td>27</td><td>[paper title]</td><td class="exc">Exclude</td><td class="exc">Exclude</td><td class="inc">Include</td><td>INC-02 wording too broad</td></tr>
+        </tbody>
+      </table>
+      <div class="muted" style="font-size:12px;margin-top:auto">Sample drawn with a recorded seed across all databases. Your labels are saved as the gold file and journaled.</div>
+    </div>
+
+    <div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+      <div class="box" style="display:flex;flex-direction:column;gap:8px;border-color:#8f1d1d">
+        <div class="lbl" style="color:#8f1d1d">Suggested fix</div>
+        <div style="font-size:14px">INC-03 "Evaluated artifact" is often not stated in an abstract. Let screeners answer "not reported" for it, which routes to full text instead of excluding.</div>
+        <button class="btn">Apply and recalibrate</button>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">Gate</div>
+        <div>Proceed when no lane misses one of your includes, or when you accept the miss with a reason.</div>
+        <div class="muted">Changing criterion wording amends the protocol and rebinds the batches.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn">Label 20 more</button>
+    <button class="btn">Accept with reason</button>
+    <button class="btn btn-p">Fix INC-03 and recalibrate</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

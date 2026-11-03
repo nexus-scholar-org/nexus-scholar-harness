@@ -190,14 +190,14 @@ def test_dev_preamble_resolves(skill: str) -> None:
     # Both surfaces must resolve the same body: one vocabulary, two preambles.
     assert _assert_fully_bound(skill, Preamble.dev())
     assert _assert_fully_bound(skill, _app_preamble())
-    # The dev ``{KIT_ROOT:<short>}`` must name the vendored checkout, not
-    # ``tools/scholar-<short>`` (which does not exist): "no placeholder
-    # survives" alone cannot catch a wrong-but-renderable template.
+    # The dev ``{KIT_ROOT:<short>}`` must name the directory that holds
+    # ``src/scholar_<short>``: "no placeholder survives" alone cannot catch a
+    # wrong-but-renderable template.
     dev = Preamble.dev()
     for short in KIT_SHORTS:
         rendered = render("{KIT_ROOT:" + short + "}", dev)
         assert Path(rendered).is_dir(), (short, rendered)
-        assert Path(rendered).name == f"scholar-{short}-kit", rendered
+        assert (Path(rendered) / "src" / f"scholar_{short}").is_dir(), rendered
 
 
 @pytest.mark.parametrize("skill", RESEARCH_FACING)

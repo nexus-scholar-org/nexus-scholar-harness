@@ -21,7 +21,7 @@ def validate_manifest():
 
     print(f"[OK] Plugin manifest valid: {len(plugins)} plugins")
     for plugin in plugins:
-        required = {"name", "repo", "default_rev", "console_script"}
+        required = {"name", "console_script"}
         if not required.issubset(plugin.keys()):
             print(f"  [FAIL] {plugin.get('name')}: missing required fields")
             sys.exit(1)

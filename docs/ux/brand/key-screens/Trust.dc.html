@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trust summary</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="screen">
+  <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+    <span class="label eyebrow">Check 5 · Trust summary · gate</span>
+    <h1 class="display" style="margin:0">For each claim: how much to trust it, and why.</h1>
+    <p class="lede">Built from the retraction, bias, disclosure and quote checks. Every level lists its reasons and what would change it.</p>
+  </div>
+
+  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
+    <span class="badge b-include">Strong 3</span>
+    <span class="badge b-brand">Adequate 5</span>
+    <span class="badge b-unclear">Weak 3</span>
+    <span class="badge b-blocked">Blocked 1</span>
+    <span class="caption muted" style="margin-left:var(--space-2)">12 claims in the RQ1 draft</span>
+  </div>
+
+  <div style="display:flex;gap:var(--space-5);flex-wrap:wrap;flex:1;min-height:0">
+    <div class="card" style="flex:1;min-width:620px;display:flex;flex-direction:column;gap:var(--space-3)">
+      <table class="tbl">
+        <thead><tr><th style="width:230px">Claim</th><th style="width:110px">Level</th><th>Why</th><th style="width:170px">Changes if</th></tr></thead>
+        <tbody>
+          <tr><td>On-board inference under 50 ms is rare</td><td><span class="badge b-include">Strong</span></td><td>4 studies, all low risk, 2 with public code</td><td class="muted">nothing in the current evidence</td></tr>
+          <tr><td>Lightweight CNNs reach F1 above 0.85</td><td><span class="badge b-brand">Adequate</span></td><td>9 studies support; 3 have some concerns on ground truth</td><td>Holds without the 3 (6 remain)</td></tr>
+          <tr><td>Hyperspectral input beats RGB</td><td><span class="badge b-unclear">Weak</span></td><td>2 of 3 supporting studies high risk; 1 funded by the camera maker</td><td>A low-risk study agrees</td></tr>
+          <tr><td>Transfer learning halves training data</td><td><span class="badge b-blocked">Blocked</span></td><td>Rests on the retracted <a href="#">[Study title] 2022</a></td><td>Remove it and re-check</td></tr>
+          <tr><td class="muted" colspan="4">+ 8 more claims</td></tr>
+        </tbody>
+      </table>
+      <span class="caption muted" style="margin-top:auto">"Changes if" is a sensitivity check: the claim is re-tested with the weakest studies left out.</span>
+    </div>
+
+    <div style="width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--space-4)">
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--space-1)">
+        <span class="label eyebrow" style="margin-bottom:var(--space-1)">Rules for this review</span>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0;border-bottom:1px solid var(--hairline)"><span class="body">Retraction</span><span class="badge b-blocked">Blocks</span></div>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0;border-bottom:1px solid var(--hairline)"><span class="body">Expression of concern, until re-read</span><span class="badge b-blocked">Blocks</span></div>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0;border-bottom:1px solid var(--hairline)"><span class="body">Correction that changes extracted data</span><span class="badge b-unclear">Weakens</span></div>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0;border-bottom:1px solid var(--hairline)"><span class="body">Correction with no data effect</span><span class="caption muted">no effect</span></div>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0;border-bottom:1px solid var(--hairline)"><span class="body">Any supporting study high risk</span><span class="badge b-unclear">Weakens</span></div>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0;border-bottom:1px solid var(--hairline)"><span class="body">Funder makes the tested product</span><span class="badge b-unclear">Weakens</span></div>
+        <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:var(--space-1) 0"><span class="body">Public data or code for a supporting study</span><span class="badge b-include">For Strong</span></div>
+        <span class="caption muted" style="margin-top:var(--space-2)">Stored in the protocol and fingerprinted; changing a rule is an amendment.</span>
+      </div>
+      <div class="gate" style="margin-top:auto">
+        <span class="label" style="color:var(--brand)">Accept</span>
+        <p class="body" style="margin:0">The trust summary is attached to the synthesis draft once you accept it.</p>
+        <button class="btn btn-primary">Accept trust summary</button>
+        <button class="btn">Edit rules (amendment)</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

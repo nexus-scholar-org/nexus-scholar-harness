@@ -7,7 +7,7 @@ This reference details how `scholar-pdf-kit` resolves DOIs to legal Open Access 
 ## 1. Multi-Stage OA Resolution
 
 The toolkit resolves DOIs through a staged discovery fallback
-(`process_doi` in `tools/scholar-pdf-kit/src/scholar_pdf/downloader.py`):
+(`process_doi` in `src/scholar_pdf/downloader.py`):
 
 ```mermaid
 flowchart TD
@@ -45,7 +45,7 @@ Downloads are executed asynchronously using `aiohttp` and `tenacity`:
 
 ## 3. Magic Byte Integrity Validation
 
-Publisher CDNs occasionally return `200 OK` responses containing error HTML instead of binary PDFs. `scholar-pdf-kit` protects against corrupt files using binary signature inspection (`is_valid_pdf` in `tools/scholar-pdf-kit/src/scholar_pdf/validator.py`):
+Publisher CDNs occasionally return `200 OK` responses containing error HTML instead of binary PDFs. `scholar-pdf-kit` protects against corrupt files using binary signature inspection (`is_valid_pdf` in `src/scholar_pdf/validator.py`):
 
 ```python
 MIN_PDF_SIZE_BYTES = 10 * 1024  # 10 KB floor: block-pages are typically smaller

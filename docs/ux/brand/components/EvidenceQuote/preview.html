@@ -1,0 +1,23 @@
+<!-- @dsCard group="Evidence" height=200 subtitle="A located quote, and one that differs from the claim" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EvidenceQuote</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;padding:24px;background:var(--surface);font-family:var(--font-sans);color:var(--ink);display:flex;flex-direction:column;gap:16px}
+.q{background:var(--anchor-soft);border-radius:var(--radius-sm);padding:10px 12px;font-size:15px;line-height:22px}
+.loc{font-family:var(--font-mono);font-size:13px;color:var(--anchor);margin-right:8px}
+.diff{background:var(--blocked-soft);color:var(--blocked);border-radius:2px;padding:0 2px}
+.note{font-size:13px;line-height:18px;color:var(--blocked);font-weight:600;margin:6px 0 0}
+</style>
+</head>
+<body>
+<div class="q"><span class="loc">p. 9, Table 3</span>"The proposed network reaches an F1 score of 0.91 on the held-out set."</div>
+<div>
+  <div class="q"><span class="loc">p. 7</span>"pruning to 40% of the parameters kept accuracy <span class="diff">within 4.1 points</span> of the full model on the validation set"</div>
+  <p class="note">The claim says "within 2 points"; the paper says 4.1.</p>
+</div>
+</body>
+</html>

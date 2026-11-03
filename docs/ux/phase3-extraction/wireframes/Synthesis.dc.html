@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Synthesis draft</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+a{color:#1d4ed8}a:hover{color:#1a3a9e}
+.box{border:1.5px solid #8a8a8a;border-radius:6px;padding:14px 16px;background:#fff;box-sizing:border-box}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.tab{font:inherit;font-size:14px;border:1.5px solid #8a8a8a;border-radius:6px 6px 0 0;border-bottom:0;padding:8px 16px;background:#f2f2f2;color:#1f1f1f}
+.tab.on{background:#fff;font-weight:700;border-color:#1d4ed8;color:#1d4ed8}
+.claim{border:1.5px solid #8a8a8a;border-radius:6px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;border:1px solid}
+.t-ok{border-color:#1f6a35;color:#1f6a35;background:#eef7f0}
+.t-mix{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-no{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.cite{font-size:12px;color:#3a3a3a}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:6px 12px;background:#fff;color:#1f1f1f;min-height:36px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600;font-size:14px;min-height:44px;padding:10px 16px}
+.banner{border:1.5px dashed #8a4a00;background:#fdf3e6;border-radius:6px;padding:10px 14px;font-size:13px}
+</style>
+</helmet>
+<div style="width:1200px;height:900px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:14px;background:#fafafa">
+  <div>
+    <div class="lbl">Step 6 of 6 · Synthesis · gate</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">A draft for each research question, every claim traced to its studies</h1>
+  </div>
+
+  <div style="display:flex;gap:6px">
+    <button class="tab on">RQ1 · performance</button>
+    <button class="tab">RQ2 · field context</button>
+    <span class="muted" style="font-size:13px;align-self:center;margin-left:10px">Today only RQ1 is written, from 5 passages.</span>
+  </div>
+
+  <div class="banner"><b>Draft.</b> Built from 41 passages in 27 studies and your verified data table. Not reviewed. Exports carry this label until you mark every claim.</div>
+
+  <div style="display:flex;gap:16px;flex:1;min-height:0">
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="claim">
+        <span class="tag t-mix">Mixed · 1 study disagrees</span>
+        <div>Lightweight CNNs reach F1 above 0.85 on held-out UAV imagery in most studies that report it.</div>
+        <div class="cite">Supports: 9 studies · Partly: 2 · Disagrees: [Study K] (F1 0.71, cross-season test)</div>
+        <div style="display:flex;gap:8px"><button class="btn">Keep</button><button class="btn">Edit</button><button class="btn">Show passages</button></div>
+      </div>
+      <div class="claim">
+        <span class="tag t-ok">Supported</span>
+        <div>On-board inference under 50 ms is reported by only 4 of 27 studies.</div>
+        <div class="cite">From the data table: latency column, 4 values under 50 ms, 19 not reported</div>
+        <div style="display:flex;gap:8px"><button class="btn">Keep</button><button class="btn">Edit</button><button class="btn">Show cells</button></div>
+      </div>
+      <div class="claim">
+        <span class="tag t-no">No supporting passage</span>
+        <div>Validation across several growing seasons is rare.</div>
+        <div class="cite">No cited passage states this; it may be true but is not shown by the evidence</div>
+        <div style="display:flex;gap:8px"><button class="btn">Remove</button><button class="btn">Edit</button><button class="btn">Find evidence</button></div>
+      </div>
+    </div>
+
+    <div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:12px">
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">How claims are checked</div>
+        <div>Each claim is tested against its cited passages for support, contradiction or neither, then shown to you.</div>
+        <div class="muted">Today the check is word-vector similarity, which also scores a claim and its opposite as close; and without an LLM the "synthesis" is the passages themselves, so it always passes.</div>
+      </div>
+      <div class="box" style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div class="lbl">This draft</div>
+        <div>12 claims · 7 supported · 3 mixed · 2 without a passage</div>
+        <div class="muted">Marked by you: 4 of 12</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto">
+        <button class="btn btn-p">Mark draft reviewed</button>
+        <button class="btn" style="min-height:44px">Export as draft</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

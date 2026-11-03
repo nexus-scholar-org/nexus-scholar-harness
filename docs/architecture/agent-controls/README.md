@@ -9,11 +9,11 @@ unproven.
 
 ## Current
 
-| Document | Role |
-|---|---|
-| [`agent_controls_plan.md`](./agent_controls_plan.md) | **Current execution plan** (status, ordered work, completion criteria). Supersedes the next-action text of AG-00 and the reassessment. |
-| [`agent_controls_decision.md`](./agent_controls_decision.md) | Approved architecture decision (target invariants). |
-| [`ag-03a-protected-publisher-feasibility.md`](./ag-03a-protected-publisher-feasibility.md) | Completed Windows MIC feasibility packet and its measured limits; POSIX unproven. |
+The plan, decision and packet documents were removed in the 2026-11-03 docs
+cut; the decision is summarized in [`docs/decisions.md`](../../decisions.md)
+and the originals remain in git history. Current gaps in the authorization
+model are in the [assessment](../../assessment/harness-contracts-screening.md)
+(CON-02/03).
 
 ## Completion record (AG-00 – AG-03C)
 
@@ -51,6 +51,5 @@ must-survive facts are here and the originals remain in git history.
    string ordering; the handoff's embedded protocol summary is unaudited display text.
 4. **Operator-attended pilot scope.** The worker scaffolds unresolved drafts; all judgments are human. No model-accuracy, autonomy, or POSIX claim. Audit emission is wired for real workspaces only (synthetic flows log nothing by design).
 
-Do not cite the removed packet files as current status; use this record and
-[`agent_controls_plan.md`](./agent_controls_plan.md).
+Do not cite the removed packet files as current status; use this record.
 

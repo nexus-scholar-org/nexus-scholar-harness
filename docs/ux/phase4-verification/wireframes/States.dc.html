@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verification states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1f1f1f}
+.lbl{font-size:12px;color:#5c5c5c;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.muted{color:#5c5c5c}
+.card{border:1.5px solid #8a8a8a;border-radius:6px;background:#fff;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:4px;padding:3px 8px;border:1px solid}
+.t-stop{border-color:#8f1d1d;color:#8f1d1d;background:#fbeeee}
+.t-warn{border-color:#8a4a00;color:#8a4a00;background:#fdf3e6}
+.t-info{border-color:#1d4ed8;color:#1d4ed8;background:#eef2fd}
+.btn{font:inherit;font-size:13px;border:1.5px solid #8a8a8a;border-radius:6px;padding:8px 12px;background:#fff;color:#1f1f1f;min-height:44px}
+.btn-p{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+.was{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#5c5c5c;border-top:1px solid #e3e3e3;padding-top:8px}
+</style>
+</helmet>
+<div style="width:2480px;height:560px;box-sizing:border-box;padding:40px;display:flex;flex-direction:column;gap:20px;background:#fafafa">
+  <div>
+    <div class="lbl">Board 7 of 7 · Verification states</div>
+    <h1 style="margin:6px 0 0;font-size:28px;font-weight:700">Warning and recovery states</h1>
+    <div class="muted" style="font-size:14px;margin-top:6px">Each card says what is missing or changed and offers a next step. The bottom line is today's behaviour.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:18px;flex:1">
+    <div class="card">
+      <span class="tag t-stop">No data table</span>
+      <b>Phase 3 data is not verified yet</b>
+      <div>Risk of bias and disclosures read the verified data table. 299 cells are still drafts; finish them or run on what is verified, flagged.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Open data table</button><button class="btn">Run flagged</button></div>
+      <div class="was">Today: needs hand-built records.json</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Rules not set</span>
+      <b>This review has no bias tool chosen</b>
+      <div>Pick a tool and its domains before any rating is shown. Nothing from another review is reused.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Choose a tool</button><button class="btn">See templates</button></div>
+      <div class="was">Today: UAV weed rules apply to every review</div>
+    </div>
+    <div class="card">
+      <span class="tag t-warn">Disclosures incomplete</span>
+      <b>12 studies have no funding statement read yet</b>
+      <div>The audit covers 130 of 142. The trust summary marks the 12 as unknown, not as clean.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Read the 12</button><button class="btn">Continue, marked unknown</button></div>
+      <div class="was">Today: SystemExit unless 8 chunk files exist</div>
+    </div>
+    <div class="card">
+      <span class="tag t-info">Lookup unresolved</span>
+      <b>4 studies could not be matched for retraction</b>
+      <div>No DOI match in OpenAlex or Crossref. Check them by hand on the publisher site; they are not treated as clean.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Check 4 by hand</button></div>
+      <div class="was">Today: kept as sentinels (good)</div>
+    </div>
+    <div class="card">
+      <span class="tag t-stop">New notice</span>
+      <b>A study was retracted since screening</b>
+      <div>The pre-publication re-check found a new retraction. 2 claims rely on it and are reopened.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Review 2 claims</button><button class="btn">Open notice</button></div>
+      <div class="was">Today: retraction runs once, at the end</div>
+    </div>
+    <div class="card">
+      <span class="tag t-info">No claims yet</span>
+      <b>There is no synthesis to rate</b>
+      <div>Per-study checks are done; the trust summary appears once a draft synthesis exists.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto"><button class="btn btn-p">Go to synthesis</button></div>
+      <div class="was">Today: needs synthesis/consensus.json</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2480,"height":560}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
