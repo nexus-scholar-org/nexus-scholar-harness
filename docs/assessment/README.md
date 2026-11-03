@@ -5,7 +5,9 @@
 as the current view; older dated reviews remain history.
 `5deb3a1` is `main` at `4bd02c5` plus the unmerged inception quick-wins branch, which
 changes only `inception/grounded.py` and `inception/wizard.py`; line numbers in those two
-files may be offset by a few lines on `main`. All kit and other harness source is identical. Nothing was fixed — each
+files may be offset by a few lines on `main`. All kit and other harness source is identical.
+Since the 2026-11-03 merge into one package, a cited `tools/scholar-<kit>-kit/src/<pkg>/…`
+path lives at `src/<pkg>/…` and `tools/scholar-<kit>-kit/tests/…` at `tests/kits/<kit>/…`. Nothing was fixed — each
 document ends with a prioritized recommendation table.
 
 **Method.** Eleven documents written by nine parallel reviewers, each owning one scope.

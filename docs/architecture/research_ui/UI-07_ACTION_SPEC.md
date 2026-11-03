@@ -2,8 +2,8 @@
 
 Status: specification-in-review. No implementation authorized by this document.
 Companion: [UI-07 Presentation Spec](./UI-07_PRESENTATION_SPEC.md) (read-only; this spec adds nothing to it).
-HCM prerequisite: [HCM-02 disposition](../harness-core-modularity/hcm-02-disposition.md).
-Product direction: [individual researcher application](../decisions/individual-researcher-product.md).
+HCM prerequisite: HCM-02 (see the [HCM close-out record](../harness-core-modularity/README.md)).
+Product direction: [individual researcher application](../../decisions.md).
 Requesting packet: [AGENT_WORK_PACKETS.md](./AGENT_WORK_PACKETS.md) §UI-07.
 
 All example payloads in this document are **illustrative** and use

@@ -1,8 +1,7 @@
 # Human confirmation (`HumanConfirmation@1`)
 
 Normative input: `specs/agent-layer-portability/06_human_confirmation.md`.
-Packet: [`packet_t_alp_c_confirmation.md`](./packet_t_alp_c_confirmation.md)
-(Phase C). Judgement calls: [`decision_phase_c_confirmation_2026-10-26.md`](./decision_phase_c_confirmation_2026-10-26.md).
+Phase C. Judgement calls: [`docs/decisions.md`](../decisions.md).
 
 A confirmation answers one question: **which named person accepted exactly which
 bytes?** The artifact is `literature/screening/HUMAN_CONFIRMATION.json` under a

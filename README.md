@@ -76,7 +76,7 @@ These are bounded engineering guarantees. Protected-publisher evidence is for th
 
 Project events use an append-only journal, not protection against an administrator rewriting local files. Model outputs and external-provider results are not universally deterministic. Local storage does not imply local inference: configured services may receive research content.
 
-See the [AG plan](docs/architecture/agent-controls/agent_controls_plan.md), [evidence boundaries](docs/architecture/wp01/evidence-boundaries.md) and [program tracker](docs/UPCOMING_WORK.md) for scope and residual limitations.
+See the [AG record](docs/architecture/agent-controls/README.md), [evidence boundaries](docs/architecture/wp01/evidence-boundaries.md) and [assessment priority list](docs/assessment/README.md) for scope and residual limitations.
 
 ## Scientific capabilities and architecture
 
@@ -108,7 +108,7 @@ The harness and the eight kits are one package: `uv sync` installs all of them e
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 
-Start with the [docs index](docs/README.md), [program tracker](docs/UPCOMING_WORK.md) and [contribution instructions](.agents/skills/pull-request-gate/SKILL.md). For feedback, [open an issue](https://github.com/nexus-scholar-org/nexus-scholar-harness/issues) with your research task, environment and the unclear or failing step.
+Start with the [docs index](docs/README.md), [assessment priority list](docs/assessment/README.md) and [contribution instructions](.agents/skills/pull-request-gate/SKILL.md). For feedback, [open an issue](https://github.com/nexus-scholar-org/nexus-scholar-harness/issues) with your research task, environment and the unclear or failing step.
 
 ## License
 
