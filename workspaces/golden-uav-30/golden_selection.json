@@ -1,0 +1,128 @@
+{
+  "schema": "golden-selection-v1",
+  "source_workspace": "uav-crop-weed-v03",
+  "rule": "per stratum, records with an abstract ordered by sha256(workspace_id); clear exclusions round-robin over reason_code",
+  "note": "Strata come from unconfirmed agent decisions and are used only to choose a varied sample. They are not labels.",
+  "records": [
+    {
+      "workspace_id": "SCI-000740",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-000563",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-000938",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-000338",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-011028",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-000368",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-000307",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-000006",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-001678",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-001032",
+      "stratum": "agent_include"
+    },
+    {
+      "workspace_id": "SCI-002546",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-003382",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-003479",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-004128",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-000696",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-010155",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-003868",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-010916",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-010657",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-001208",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-009968",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-004006",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-009285",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-001710",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-001107",
+      "stratum": "clear_exclude"
+    },
+    {
+      "workspace_id": "SCI-006287",
+      "stratum": "borderline_exclude"
+    },
+    {
+      "workspace_id": "SCI-013075",
+      "stratum": "borderline_exclude"
+    },
+    {
+      "workspace_id": "SCI-000993",
+      "stratum": "borderline_exclude"
+    },
+    {
+      "workspace_id": "SCI-010305",
+      "stratum": "borderline_exclude"
+    },
+    {
+      "workspace_id": "SCI-000028",
+      "stratum": "borderline_exclude"
+    }
+  ]
+}
