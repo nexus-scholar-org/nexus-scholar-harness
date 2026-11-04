@@ -136,6 +136,11 @@ PRE_EXISTING_TOOLS = frozenset(
     }
 )
 
+# M1a (screening proposals over MCP) added three tools after this packet.
+M1A_SCREENING_TOOLS = frozenset(
+    {"nexus_screening_queue", "nexus_screening_record", "nexus_submit_proposal"}
+)
+
 #: Exact envelope shape. "No artifacts" is explicit, and the rejection carries no
 #: index/manifest/audit/success bookkeeping.
 ENVELOPE_KEYS = {"operation", "status", "artifacts", "warnings", "errors"}
@@ -741,12 +746,12 @@ def test_e3_neg_040_indexing_tool_docstring_declares_the_boundary():
     assert "no partial mcp indexing" in flat
 
 
-def test_e3_neg_040_tool_count_is_unchanged_at_twenty_five():
-    """E3 converts a tool; it adds none and drops none."""
+def test_e3_neg_040_e3_adds_no_tool_and_drops_none():
+    """E3 converts a tool; it adds none and drops none (M1a's three come later)."""
     registered = _registered_tool_names()
     assert PRE_EXISTING_TOOLS <= registered
-    assert registered == PRE_EXISTING_TOOLS
-    assert len(registered) == 25
+    assert registered == PRE_EXISTING_TOOLS | M1A_SCREENING_TOOLS
+    assert len(registered) == 28
 
 
 def _help_text() -> str:

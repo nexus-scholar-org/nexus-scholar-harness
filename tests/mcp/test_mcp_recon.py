@@ -135,7 +135,7 @@ def test_three_recon_tools_registered_on_mcp():
     # The 22 nexus_* tools (F1/F2 + the WP01-E1 acquisition-boundary tool
     # ``nexus_pdf_acquire`` + the WP01-E2 declared-unsupported extraction-boundary
     # tool ``nexus_pdf_extraction``), plus the 3 recon_* tools asserted above.
-    assert len(names) == 25
+    assert len(names) == 28
     assert "nexus_discover" in names
 
 

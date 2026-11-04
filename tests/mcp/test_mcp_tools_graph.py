@@ -237,9 +237,9 @@ def _write_screening_fixtures(tmp_path, *, candidates, protocol=None):
     return candidates_path, protocol_path
 
 
-def test_nexus_screen_writes_conflicts_and_prisma_json(tmp_path):
-    """Conflicting-signal doc (inclusion AND exclusion hit) must be written to
-    conflicts.json, and prisma_report.json must reflect the flag count."""
+def test_nexus_screen_flags_conflicts_in_its_proposals(tmp_path):
+    """A conflicting-signal doc (inclusion AND exclusion hit) is flagged in the
+    proposals preview. AGT-16 (M1a): proposals only, no published partition."""
     candidates_path, protocol_path = _write_screening_fixtures(
         tmp_path,
         candidates=[{
@@ -251,26 +251,23 @@ def test_nexus_screen_writes_conflicts_and_prisma_json(tmp_path):
     out_dir = tmp_path / "output"
     result = nexus_screen(str(candidates_path), str(protocol_path), str(out_dir))
 
-    conflicts = json.loads((out_dir / "conflicts.json").read_text(encoding="utf-8"))
-    prisma = json.loads((out_dir / "prisma_report.json").read_text(encoding="utf-8"))
-    included = json.loads((out_dir / "included.json").read_text(encoding="utf-8"))
-    excluded = json.loads((out_dir / "excluded.json").read_text(encoding="utf-8"))
-
-    assert (out_dir / "prisma_screening_report.md").exists()
-    assert len(conflicts) >= 1
-    assert len(conflicts) == prisma["conflicts_flagged"]
-    assert prisma["records_screened"] == len(included) + len(excluded)
-    assert prisma["records_screened"] == 1
-    assert "conflicts flagged" in result
+    proposals = json.loads((out_dir / "screening_proposals.json").read_text(encoding="utf-8"))
+    preview = proposals["preview"]
+    assert proposals["status"] == "PROPOSALS_ONLY"
+    assert preview["conflicts_flagged"] >= 1
+    assert preview["records_screened"] == len(proposals["proposals"]) == 1
+    assert "1 flagged" in result
+    for name in ("included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md"):
+        assert not (out_dir / name).exists(), name
 
 
-def test_nexus_screen_empty_candidates_still_writes_prisma(tmp_path):
+def test_nexus_screen_empty_candidates_still_writes_proposals(tmp_path):
     candidates_path, protocol_path = _write_screening_fixtures(tmp_path, candidates=[])
     out_dir = tmp_path / "output"
     result = nexus_screen(str(candidates_path), str(protocol_path), str(out_dir))
-    prisma = json.loads((out_dir / "prisma_report.json").read_text(encoding="utf-8"))
-    assert prisma["records_screened"] == 0
-    assert "0 conflicts flagged" in result
+    proposals = json.loads((out_dir / "screening_proposals.json").read_text(encoding="utf-8"))
+    assert proposals["preview"]["records_screened"] == 0
+    assert "0 flagged" in result
 
 
 # ---------------------------------------------------------------------------
@@ -374,9 +371,8 @@ def test_nexus_relative_paths_resolve_to_anchor(tmp_path, monkeypatch):
 
     result = nexus_screen("inputs/candidates.json", "inputs/protocol.json", "literature")
 
-    assert (anchor / "literature" / "included.json").exists()
-    assert (anchor / "literature" / "prisma_report.json").exists()
-    assert "conflicts flagged" in result
+    assert (anchor / "literature" / "screening_proposals.json").exists()
+    assert "flagged" in result
     assert not (Path.cwd() / "literature").exists()
 
 

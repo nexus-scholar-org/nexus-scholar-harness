@@ -26,7 +26,7 @@ that no single skill covers.
 | rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
-| agent (`scholar_agent`) | MCP server (**25 tools**, incl. `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
+| agent (`scholar_agent`) | MCP server (**28 tools**, incl. `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
 | verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (Phase-4 streams) | Phase-4 trust |
 | harness (`scholar_harness`) | thin wrapper over the 8 kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
@@ -402,7 +402,7 @@ Declared facts (all harness-enforced by
   JSON strings, not MCP failures; matrix-extract validates only structurally.
 
 ### scholar-agent-kit (MCP front-door)
-- **25 tools** (22 `nexus_*` + 3 `recon_*`); `--help` lists all 25 (listing parity enforced
+- **28 tools** (25 `nexus_*` + 3 `recon_*`); `--help` lists all 28 (listing parity enforced
   by `tests/conformance/test_mcp_tool_parity.py`). Full inventory and signatures in
   `server.py` (tool list at lines 203-1782); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in

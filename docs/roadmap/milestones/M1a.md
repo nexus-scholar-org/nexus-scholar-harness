@@ -18,8 +18,8 @@ Assessment findings (phase-auditor first, reproducing test before the fix)
 - [x] **CON-13** (guarded outside the Contract v1 lock, researcher 2026-11-04): the harness refuses to submit a `screening_decisions` artifact that does not have exactly one `screening_batch` parent, before calling the frozen acceptance gate. The gap in `contracts/acceptance.py` and `chain.py` stays recorded for Contract v1.1.
 - [x] **CON-14/15**: the dual path runs the unresolved, coverage and duplicate gates; its artifact id derives from decision ids.
 - [x] **CON-02/03** (plan §1.2 fix): approval covers exactly one batch generation and never seals another batch's bytes; the approver is recorded as an unauthenticated local attestation, not an identity. Authentication waits for the sync tier.
-- [ ] **SRCH-16/17/35**: no imputed votes; uncertainty goes to the human; `ScreeningDecision` records method, model and prompt hash.
-- [ ] **AGT-16/18/19**: MCP screening writes proposals only; κ refuses fewer than two raters; state-changing MCP tools journal.
+- [x] **SRCH-16/17/35**: no imputed votes; uncertainty goes to the human; `ScreeningDecision` records method, model and prompt hash.
+- [x] **AGT-16/18/19**: MCP screening writes proposals only; κ refuses fewer than two raters; state-changing MCP tools journal.
 
 Decision events (contract §3)
 - [x] **Event store**: append-only `literature/screening/events/<screener_id>.jsonl` behind an OS file lock (§9.2); intake results `accepted`, `duplicate`, `conflict`, `refused`.
@@ -32,7 +32,7 @@ Unclear
 
 Proposals (agent-system §2–§4)
 - [x] **Proposal store**: append-only, full provenance (model, prompt hash, input hash, checks, usage); plain-code validators; failures become Unclear, never Exclude; journal events.
-- [ ] **MCP**: read tools (queue, record) and `submit_proposal`; nothing over MCP writes decisions or published outputs.
+- [x] **MCP**: read tools (queue, record) and `submit_proposal`; nothing over MCP writes decisions or published outputs.
 
 Screening API (contract §4, M1a rows)
 - [x] `GET /summary`, `GET /queue`, `GET /records/{id}`, `GET /records/{id}/proposal` (`PROPOSAL_HIDDEN`, contract test 4).
@@ -58,6 +58,12 @@ End to end
 | CON-13 (guard) | `::test_con13_a_decisions_artifact_needs_exactly_one_batch_parent`, `::test_con13_every_decisions_submission_goes_through_the_guard` | no harness check | refused before the frozen gate |
 | CON-14 | `::test_con14_a_dual_conflict_is_never_finalized`, `::test_con14_dual_duplicate_rows_refuse`, `::test_con14_both_unclear_is_an_agreement_forwarded_to_full_text` | dual path skipped the gates | coverage, duplicate and CONFLICT gates per screener |
 | CON-15 | `::test_con15_dual_artifact_id_depends_on_the_decisions` | id from batch_id alone | id includes the decision ids |
+| SRCH-16 | `tests/kits/search/test_screening_provenance.py::test_srch16_llm_uncertainty_goes_to_a_human`, `::test_srch16_no_invented_confidence_or_reason` | missing → INCLUDE, other → EXCLUDE, 0.75, "LLM screened." | MAYBE; no invented values |
+| SRCH-17 | `::test_srch17_a_missing_vote_is_not_an_exclude`, `::test_srch17_an_unadjudicated_tie_is_a_conflict_not_an_exclude` | missing vote and open tie → EXCLUDE | CONFLICT, listed as incomplete |
+| SRCH-35 | `::test_srch35_decision_carries_provenance_fields`, `::test_srch35_heuristic_decisions_are_labelled` | no method/model/prompt fields | `method`, `screener_id`, `model_id`, `prompt_version` |
+| AGT-16 | `tests/mcp/test_mcp_screening_proposals.py::test_agt16_19_mcp_screening_writes_proposals_only_and_journals` | `nexus_screen*` wrote included/excluded/PRISMA | `screening_proposals.json` only |
+| AGT-18 | `tests/kits/search/test_screening_provenance.py::test_agt18_kappa_is_undefined_below_two_raters` | κ = 1.0 with one rater | `None` |
+| AGT-19 | `tests/mcp/test_mcp_screening_proposals.py::test_agt19_*` | no MCP tool journaled | writer tools journal inside a workspace, only on success |
 
 ## Decisions
 - [Approval: terminal-only code; event-decided batches need no worker step](../../decisions.md) (2026-11-04)
@@ -69,6 +75,7 @@ End to end
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
 | checkpoint | 5762c48 + events/API working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4153 passed, 14 skipped; clean; baseline current | 280 s |
+| checkpoint | SRCH/AGT working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4186 passed, 14 skipped; clean; baseline current | 310 s |
 
 ## Raised for the researcher
 - ~~Approval code over HTTP~~ and ~~approval from events~~: decided 2026-11-04 (see Decisions).

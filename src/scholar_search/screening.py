@@ -28,6 +28,15 @@ class ScreeningDecision:
     relevant_rqs: list[str] = field(default_factory=list)
     document_title: str = ""
     doi: str | None = None
+    # SRCH-35: who or what decided. `method` is HUMAN, LLM, HEURISTIC, ...
+    method: str | None = None
+    screener_id: str | None = None
+    model_id: str | None = None
+    prompt_version: str | None = None
+
+
+#: Version of the LLM batch screening prompt (`generate_batch_screening_prompt`).
+LLM_PROMPT_VERSION = "gemini-batch-screen-v1"
 
 
 @dataclass
@@ -268,6 +277,16 @@ _EXC_PHRASE_SIGNALS: dict[str, list[str]] = {
 
 
 def evaluate_heuristic_screening(
+    doc: Document,
+    protocol_data: dict[str, Any],
+) -> ScreeningDecision:
+    """The keyword baseline, labelled `method: HEURISTIC` (SRCH-35)."""
+    decision = _evaluate_heuristic(doc, protocol_data)
+    decision.method = "HEURISTIC"
+    return decision
+
+
+def _evaluate_heuristic(
     doc: Document,
     protocol_data: dict[str, Any],
 ) -> ScreeningDecision:
@@ -557,14 +576,18 @@ def _parse_llm_screening_response(
             continue
         seen_wsids.add(wsid)
 
-        raw_decision = str(entry.get("decision", "INCLUDE")).upper()
-        decision: Literal["INCLUDE", "EXCLUDE"] = (
-            "INCLUDE" if raw_decision == "INCLUDE" else "EXCLUDE"
+        # SRCH-16: only an explicit INCLUDE or EXCLUDE is taken at its word.
+        # A missing, unclear or unknown answer is MAYBE ("Unclear → full
+        # text"), so the uncertainty reaches a human instead of being imputed.
+        raw_decision = str(entry.get("decision") or "").strip().upper()
+        decision: Literal["INCLUDE", "EXCLUDE", "MAYBE"] = (
+            raw_decision if raw_decision in ("INCLUDE", "EXCLUDE") else "MAYBE"
         )
         try:
-            confidence = float(entry.get("confidence", 0.75))
+            raw_conf = entry.get("confidence")
+            confidence = None if raw_conf is None else float(raw_conf)
         except (TypeError, ValueError):
-            confidence = 0.75
+            confidence = None
 
         decisions.append(
             ScreeningDecision(
@@ -579,10 +602,13 @@ def _parse_llm_screening_response(
                 ),
                 relevant_rqs=list(entry.get("relevant_rqs") or []),
                 screening_reasoning=str(
-                    entry.get("screening_reasoning", "LLM screened.")
+                    entry.get("screening_reasoning")
+                    or "(the model returned no reasoning)"
                 ),
                 document_title=doc.title,
                 doi=doc.external_ids.doi,
+                method="LLM",
+                prompt_version=LLM_PROMPT_VERSION,
             )
         )
 
@@ -686,6 +712,9 @@ class LLMBatchScreener:
         try:
             raw_text = await self._call_gemini(prompt)
             decisions = _parse_llm_screening_response(raw_text, batch, protocol_data)
+            for decision in decisions:
+                if decision.method == "LLM":
+                    decision.model_id = self.model
             logger.info(
                 "Batch %d: %d INCLUDE, %d EXCLUDE",
                 batch_index + 1,
@@ -738,7 +767,7 @@ class LLMBatchScreener:
 def calculate_fleiss_kappa(
     rater_decisions: list[list[str]],
     categories: list[str] | None = None,
-) -> float:
+) -> float | None:
     """Calculate Fleiss' multi-rater Kappa for N subjects rated by n raters.
 
     Args:
@@ -749,8 +778,10 @@ def calculate_fleiss_kappa(
     Returns:
         Fleiss' kappa score (-1.0 to 1.0).
     """
+    # AGT-18: agreement is undefined without subjects or with one rater; 1.0
+    # would read as perfect agreement.
     if not rater_decisions:
-        return 1.0
+        return None
 
     if categories is None:
         categories = ["INCLUDE", "EXCLUDE"]
@@ -758,7 +789,7 @@ def calculate_fleiss_kappa(
     N = len(rater_decisions)
     n = len(rater_decisions[0])
     if N == 0 or n <= 1:
-        return 1.0
+        return None
 
     k = len(categories)
     cat_to_idx = {c: i for i, c in enumerate(categories)}
@@ -814,7 +845,8 @@ def reconcile_multi_screener_decisions(
             "ties": [],
             "majority_count": 0,
             "adjudicated_count": 0,
-            "fleiss_kappa": 1.0,
+            "fleiss_kappa": None,
+            "incomplete": [],
         }
 
     all_ids = sorted(list(set.union(*(set(s.keys()) for s in screeners_map.values()))))
@@ -828,10 +860,15 @@ def reconcile_multi_screener_decisions(
     majority_count = 0
     adjudicated_count = 0
 
+    incomplete: list[str] = []
     for wid in all_ids:
-        ratings = [
-            screeners_map[sk].get(wid, "EXCLUDE").upper() for sk in screener_keys
-        ]
+        # SRCH-17: a screener who did not rate a study casts no vote; it is
+        # never counted as an EXCLUDE. Such a study needs a person.
+        if any(wid not in screeners_map[sk] for sk in screener_keys):
+            incomplete.append(wid)
+            reconciled[wid] = "CONFLICT"
+            continue
+        ratings = [screeners_map[sk][wid].upper() for sk in screener_keys]
         subject_ratings.append(ratings)
 
         inc_votes = ratings.count("INCLUDE")
@@ -850,8 +887,8 @@ def reconcile_multi_screener_decisions(
                 reconciled[wid] = adjudication_map[wid].upper()
                 adjudicated_count += 1
             else:
-                # Fallback before adjudication
-                reconciled[wid] = "EXCLUDE"
+                # SRCH-17: an unadjudicated tie stays unresolved for a person.
+                reconciled[wid] = "CONFLICT"
 
     kappa = calculate_fleiss_kappa(subject_ratings, categories=["INCLUDE", "EXCLUDE"])
 
@@ -860,7 +897,8 @@ def reconcile_multi_screener_decisions(
         "ties": ties,
         "majority_count": majority_count,
         "adjudicated_count": adjudicated_count,
-        "fleiss_kappa": round(kappa, 4),
+        "fleiss_kappa": None if kappa is None else round(kappa, 4),
+        "incomplete": incomplete,
         "total_records": len(all_ids),
         "included_count": sum(1 for d in reconciled.values() if d == "INCLUDE"),
         "excluded_count": sum(1 for d in reconciled.values() if d == "EXCLUDE"),
