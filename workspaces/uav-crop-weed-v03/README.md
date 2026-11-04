@@ -15,7 +15,14 @@ Purpose: dedicated, isolated host for protocol revision v0.3 so the pilot worksp
   = `GENESIS` in this workspace's ledger. Authorship is a mechanical record, NOT
   authenticated scientific approval. **FROZEN 2026-10-29** (delegated researcher
   decision; see `AMENDMENTS.md` §v0.3 freeze). Protocol freeze is not screening
-  confirmation: the 566 agent decision files remain unconfirmed by a human.
+  confirmation. Screening confirmation is a separate, signed record:
+  `literature/screening/HUMAN_CONFIRMATION.json` (`HumanConfirmation@1`,
+  2026-10-31, lead reviewer Mouadh BEKHOUCHE) confirms all 14,150 agent
+  decisions (0 changed) and pins the 283 decision files by SHA-256. The
+  `decision_status: FINAL_AGENT_UNCONFIRMED` fields written before that record
+  (in the hashed decision files, `MANIFEST.json`, `summary.json`, the published
+  PRISMA report and the journal) are left as written; the confirmation
+  supersedes them (journal `SCREENING_CONFIRMATION_RECOGNISED`, 2026-11-04).
 
 ## Contents
 

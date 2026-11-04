@@ -54,6 +54,7 @@ End to end
 | Unclear | `test_maybe_passes_finalize_as_unclear_to_full_text` | refused `UNRESOLVED_FINALIZE_REFUSED` | pass |
 
 ## Decisions
+- [The v03 screening labels are human-confirmed](../../decisions.md) (2026-11-04)
 - [Unclear forwarded to full text](../../decisions.md) (2026-11-04)
 - [CON-13 guarded outside the Contract v1 lock](../../decisions.md) (2026-11-04)
 
@@ -67,7 +68,7 @@ End to end
 - **Approval from events.** Pairing still expects a per-batch worker recommendation (AG-04 recommend step), which event-projected decisions do not produce. Joining the two is part of CON-02/03 and the end-to-end item.
 
 ## Parallel work
-- **AI reference screening** of 200 `uav-crop-weed-v03` records, recorded as `method: LLM` (screener `claude-reference-v1`), blind to the v03 agent labels. It is the provisional prompt-gate eval set for M1b, named "AI reference labels, not human-validated". The researcher asked for it on 2026-11-04 and declined to mark it as human.
+- **AI reference screening** of 200 `uav-crop-weed-v03` records, recorded as `method: LLM` (screener `claude-reference-v1`), blind to the v03 labels. It was meant as a stopgap eval set; it is no longer needed for that, because the v03 labels are human-confirmed (decision 2026-11-04). It is kept only as a model-versus-human comparison. Against the confirmed labels, it included 24 of the 60 sampled includes, marked 21 Unclear and excluded 15; it never included a confirmed exclusion.
 
 ## Deferred
 None yet.

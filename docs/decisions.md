@@ -22,6 +22,31 @@ then works on a fresh workspace.
 - **Packet B:** full adoption, with discovery producing the snapshot itself,
   remains M3.
 
+## 2026-11-04 — The v03 screening labels are human-confirmed: the M1b eval set
+
+`uav-crop-weed-v03` has a signed screening confirmation:
+`literature/screening/HUMAN_CONFIRMATION.json` (`HumanConfirmation@1`, PR
+#172, 2026-10-31). Its lead reviewer, Mouadh BEKHOUCHE, confirmed all 14,150
+agent decisions and changed none, and the record pins the 283 decision files
+by SHA-256. The M0 note that v03 had no human labels was wrong: it read the
+README and the `decision_status: FINAL_AGENT_UNCONFIRMED` fields and missed
+this record.
+
+**Consequences:**
+- The v03 labels are the human-confirmed eval set for the M1b prompt gate
+  (agent-system §5).
+- The 200-record AI reference screening (`method: LLM`, 2026-11-04) is no
+  longer needed as a stopgap. It stays available only as a model-versus-human
+  comparison.
+- The stale status fields are not rewritten: they sit in hashed decision
+  files, a published report and the append-only journal. The README says so,
+  and a `SCREENING_CONFIRMATION_RECOGNISED` journal row records that the
+  confirmation supersedes them.
+
+**Caveat for the methods text:** these are confirmations of agent drafts,
+none changed. The eval measures recall against labels a human reviewed with
+the draft in view, not against independent blind screening.
+
 ## 2026-11-04 — Unclear records go forward to full text (PRISMA)
 
 A record the researcher marks Unclear (stored as `MAYBE`, labelled "Unclear →
