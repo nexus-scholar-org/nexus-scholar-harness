@@ -479,13 +479,24 @@ describe("live mode against a real console over real HTTP", () => {
       const origin = `http://127.0.0.1:${port}`;
       let child: ChildProcess | null = null;
       try {
+        // `serve` requires its per-launch token (INC-01). In the app the proxy
+        // adds it server-side; this test calls the console directly through the
+        // `console=` override, so it adds the header itself.
+        const token = "screening-live-launch-token";
         child = spawn("uv", ["run", "scholar-harness", "serve", "--workspace", ws, "--port", String(port)], {
           cwd: repoRoot,
           stdio: "ignore",
           shell: false,
+          env: { ...process.env, NEXUS_CONSOLE_TOKEN: token },
         });
         const ready = await waitForConsole(`${origin}/healthz`, 90000);
         expect(ready).toBe(true);
+        const realFetch = globalThis.fetch;
+        vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+          const headers = new Headers(init?.headers);
+          if (String(input).startsWith(origin)) headers.set("authorization", `Bearer ${token}`);
+          return realFetch(input, { ...init, headers });
+        });
 
         setQuery(`?source=live&console=${origin}`);
         render(<ScreeningPage locale="en" />);

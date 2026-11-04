@@ -419,6 +419,14 @@ def test_missing_stage_entries_render_zero_never_none(monkeypatch, tmp_path):
 
 def test_pipeline_spec_path_is_unaffected(monkeypatch, tmp_path):
     """The ``--pipeline`` DAG path keeps its own summary (not the new panel)."""
+    from scholar_harness.pipeline import validation as pipeline_validation
+
+    # A ``python -c`` stub node; production specs may not run it (INC-01).
+    monkeypatch.setattr(
+        pipeline_validation,
+        "ALLOWED_COMMAND_PREFIXES",
+        (*pipeline_validation.ALLOWED_COMMAND_PREFIXES, ("python", "-c")),
+    )
     spec = {
         "schema_version": "0.1.0",
         "id": "cli_closure_spec",

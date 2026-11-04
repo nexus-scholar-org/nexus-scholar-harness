@@ -41,6 +41,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -925,12 +926,17 @@ def _wait_http(url: str, budget_s: float = 90.0) -> bool:
     return False
 
 
+# ``serve`` takes its per-launch token from the environment (INC-01).
+HTTP_TOKEN = "ui07-http-launch-token"
+
+
 def _http_json(
     method: str, url: str, payload: dict | None = None, origin: str | None = None
 ) -> tuple[int, str]:
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
     req = urllib.request.Request(url, data=data, method=method)
     req.add_header("Content-Type", "application/json")
+    req.add_header("Authorization", f"Bearer {HTTP_TOKEN}")
     if origin is not None:
         req.add_header("Origin", origin)
     try:
@@ -959,6 +965,7 @@ def test_real_http_loopback_allow_and_refuse(tmp_path):
             str(port),
         ],
         cwd=str(ROOT),
+        env={**os.environ, "NEXUS_CONSOLE_TOKEN": HTTP_TOKEN},
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )

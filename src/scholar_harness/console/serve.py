@@ -14,11 +14,15 @@ proxy, never directly.
 
 from __future__ import annotations
 
+import hmac
+import re
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .api import audit as audit_api
 from .api import jobs as jobs_api
@@ -28,7 +32,43 @@ from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .runtimes.job_runner import JobRunner
 
-def create_app(workspace: str | Path) -> FastAPI:
+#: Host names a loopback console answers to. ``serve`` passes exactly these.
+LOOPBACK_HOSTS: tuple[str, ...] = ("127.0.0.1", "localhost", "::1")
+#: Starlette's ``TestClient`` sends ``Host: testserver``; in-process callers of
+#: ``create_app`` get it by default, ``serve`` never does.
+_DEFAULT_HOSTS: tuple[str, ...] = (*LOOPBACK_HOSTS, "testserver")
+# Same shape as the screening actions' own check (``_require_action_origin``).
+_LOOPBACK_ORIGIN = re.compile(
+    r"https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?", re.IGNORECASE
+)
+_OPEN_PATHS = frozenset({"/healthz"})
+
+
+def _refusal(status: int, code: str, message: str) -> JSONResponse:
+    return JSONResponse({"detail": {"code": code, "message": message}}, status_code=status)
+
+
+def _host_name(header: str) -> str:
+    """``Host`` without its port; IPv6 brackets removed."""
+    if header.startswith("["):
+        return header[1:].split("]", 1)[0]
+    return header.rsplit(":", 1)[0] if header.count(":") == 1 else header
+
+
+def create_app(
+    workspace: str | Path,
+    *,
+    token: str | None = None,
+    trusted_hosts: Iterable[str] | None = None,
+) -> FastAPI:
+    """Build the console app for one workspace.
+
+    INC-01 guards run on every request: the ``Host`` must be a trusted loopback
+    name (DNS rebinding), a browser ``Origin`` must be loopback, and when
+    ``token`` is set every route except ``/healthz`` needs
+    ``Authorization: Bearer <token>``. ``serve`` always passes a token and
+    :data:`LOOPBACK_HOSTS`; ``token=None`` is for in-process tests only.
+    """
     ws = Path(workspace).resolve()
     if not ws.is_dir():
         raise ValueError(f"workspace path does not exist: {ws}")
@@ -50,20 +90,40 @@ def create_app(workspace: str | Path) -> FastAPI:
     app.state.job_runner = runner
     app.state.job_broadcast = broadcast
 
-    # Loopback-only CORS for the local dev UI (e.g. `next dev` on :3000
-    # fetching this API): browsers treat a different loopback port as
-    # cross-origin, so GET responses must carry ACAO for loopback origins.
-    # This does not widen the Low-worker threat surface — the worker never
-    # needed a browser to reach loopback; only a page already running on
-    # loopback gains read access. Browsers never mutate through this API
-    # (allow_methods GET only; non-browser clients send no Origin and are
-    # unaffected), and cross-origin POST stays preflight-blocked by design.
+    # Loopback-only CORS for GET from a loopback page (e.g. `next dev` on
+    # :3000). CORS alone does not stop writes: a cross-origin "simple" POST
+    # (text/plain) is sent without a preflight. The INC-01 guard below is what
+    # refuses foreign origins, foreign hosts and calls without the token.
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
         allow_methods=["GET"],
         allow_headers=["*"],
     )
+
+    hosts = frozenset(trusted_hosts if trusted_hosts is not None else _DEFAULT_HOSTS)
+    expected = f"Bearer {token}".encode() if token else None
+
+    # Registered after CORS, so it is the outer layer and runs first.
+    @app.middleware("http")
+    async def inc01_guard(request: Request, call_next):
+        if _host_name(request.headers.get("host", "")) not in hosts:
+            return _refusal(400, "HOST_REFUSED", "the console answers only on loopback")
+        origin = request.headers.get("origin")
+        if origin is not None and not _LOOPBACK_ORIGIN.fullmatch(origin.strip()):
+            # The code the screening actions already use (contract §7).
+            return _refusal(
+                403, "ACTION_ORIGIN_REFUSED", "refusing a request from a non-loopback origin"
+            )
+        if (
+            expected is not None
+            and request.method != "OPTIONS"
+            and request.url.path not in _OPEN_PATHS
+        ):
+            supplied = request.headers.get("authorization", "").encode()
+            if not hmac.compare_digest(supplied, expected):
+                return _refusal(401, "TOKEN_REQUIRED", "a valid console token is required")
+        return await call_next(request)
 
     app.include_router(workspace_api.router)
     app.include_router(jobs_api.router)

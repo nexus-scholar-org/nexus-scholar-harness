@@ -763,13 +763,23 @@ describe("live mode against a real console over real HTTP", () => {
       const port = 18997 + (process.pid % 50);
       const origin = `http://127.0.0.1:${port}`;
       try {
+        // `serve` requires its per-launch token (INC-01). In the app the proxy
+        // adds it server-side; this test calls the console directly through the
+        // `console=` override, so it adds the header itself.
+        const token = "lineage-live-launch-token";
         child = spawn(
           "uv",
           ["run", "scholar-harness", "serve", "--workspace", join(parent, "ws"), "--port", String(port)],
-          { cwd: repoRoot, stdio: "ignore", shell: false },
+          { cwd: repoRoot, stdio: "ignore", shell: false, env: { ...process.env, NEXUS_CONSOLE_TOKEN: token } },
         );
         const ready = await waitForConsole(`${origin}/healthz`, 90000);
         expect(ready).toBe(true);
+        const realFetch = globalThis.fetch;
+        vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => {
+          const headers = new Headers(init?.headers);
+          if (String(input).startsWith(origin)) headers.set("authorization", `Bearer ${token}`);
+          return realFetch(input, { ...init, headers });
+        });
 
         setQuery(`?source=live&console=${origin}&claim_id=CLM-LIN-1`);
         render(<LineagePage locale="en" />);

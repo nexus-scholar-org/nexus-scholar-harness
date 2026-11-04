@@ -1022,22 +1022,52 @@ def serve(
         False, "--reload", help="Enable uvicorn auto-reload (development only)"
     ),
 ):
-    """Run the Harness Console server (FastAPI + uvicorn) for a workspace."""
+    """Run the Harness Console server (FastAPI + uvicorn) for a workspace.
+
+    INC-01: binds to loopback only and requires a per-launch bearer token on
+    every API route. The token is ``NEXUS_CONSOLE_TOKEN`` when set (so the
+    research UI's proxy, started with the same variable, can call the
+    console); otherwise a fresh one is generated and printed once.
+    """
+    import os
+    import secrets
+
     import uvicorn
 
     from .console import create_app
+    from .console.serve import LOOPBACK_HOSTS
 
     ws = workspace.resolve()
     if not ws.is_dir():
         console.print(f"[bold red]❌ Workspace directory not found: {ws}[/bold red]")
         raise typer.Exit(1)
+    if host.strip("[]") not in LOOPBACK_HOSTS:
+        console.print(
+            f"[bold red]❌ Refusing to bind {host}: the console serves loopback only "
+            f"({', '.join(LOOPBACK_HOSTS)}). Phone access on the LAN comes with a "
+            "restricted sub-app, not this server.[/bold red]"
+        )
+        raise typer.Exit(1)
 
-    app = create_app(ws)
+    token = os.environ.get("NEXUS_CONSOLE_TOKEN", "").strip()
+    generated = not token
+    if generated:
+        token = secrets.token_urlsafe(32)
+
+    app = create_app(ws, token=token, trusted_hosts=LOOPBACK_HOSTS)
     console.print(
         f"[bold cyan]🌐 Harness Console listening on http://{host}:{port}[/bold cyan]\n"
-        f"[dim]Workspace: {ws}[/dim]\n"
-        f"[dim]CTRL+C to stop[/dim]"
+        f"[dim]Workspace: {ws}[/dim]"
     )
+    if generated:
+        console.print("[dim]Start the research UI with this token in its environment:[/dim]")
+        # Plain, unwrapped and unhighlighted so it copies as one token.
+        console.print(
+            f"  NEXUS_CONSOLE_TOKEN={token}", markup=False, highlight=False, soft_wrap=True
+        )
+    else:
+        console.print("[dim]Token: from NEXUS_CONSOLE_TOKEN[/dim]")
+    console.print("[dim]CTRL+C to stop[/dim]")
     uvicorn.run(app, host=host, port=port, reload=reload)
 
 

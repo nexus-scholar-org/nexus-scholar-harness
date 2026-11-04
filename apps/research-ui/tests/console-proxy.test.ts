@@ -32,6 +32,12 @@ function request(
   path: string,
   init?: ConstructorParameters<typeof NextRequest>[1],
 ): NextRequest {
+  // A browser always sends its own Origin on a fetch POST; the proxy requires it.
+  if (init?.method === "POST") {
+    const headers = new Headers(init.headers);
+    if (!headers.has("origin")) headers.set("origin", "http://localhost:3000");
+    init = { ...init, headers };
+  }
   return new NextRequest(`http://localhost:3000/api/console/${path}`, init);
 }
 
@@ -393,5 +399,71 @@ describe("console proxy — upstream failure", () => {
     );
 
     expect(response.status).toBe(504);
+  });
+});
+
+describe("console proxy — INC-01 guards", () => {
+  it("adds the console token from NEXUS_CONSOLE_TOKEN, server-side", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    vi.stubEnv("NEXUS_CONSOLE_TOKEN", "launch-token");
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({})));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await GET(request("api/v1/jobs"), context("api", "v1", "jobs"));
+
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect((call[1]?.headers as Record<string, string>).authorization).toBe("Bearer launch-token");
+  });
+
+  it("sends no authorization header when no token is configured", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    vi.stubEnv("NEXUS_CONSOLE_TOKEN", "");
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({})));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await GET(request("api/v1/jobs"), context("api", "v1", "jobs"));
+
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect((call[1]?.headers as Record<string, string>).authorization).toBeUndefined();
+  });
+
+  it("refuses a request addressed to a foreign host (DNS rebinding)", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({})));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const response = await GET(
+      new NextRequest("http://evil.example:3000/api/console/api/v1/jobs"),
+      context("api", "v1", "jobs"),
+    );
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).detail.code).toBe("CONSOLE_HOST_REFUSED");
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a foreign origin", "https://evil.example"],
+    ["another loopback port", "http://localhost:4000"],
+    ["no origin", null],
+  ])("refuses a POST from %s", async (_label, origin) => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({})));
+    vi.stubGlobal("fetch", fetchSpy);
+    const headers: Record<string, string> = { "content-type": "application/json" };
+    if (origin !== null) headers.origin = origin;
+
+    const response = await POST(
+      new NextRequest("http://localhost:3000/api/console/api/v1/screening/actions/publish", {
+        method: "POST",
+        headers,
+        body: "{}",
+      }),
+      context("api", "v1", "screening", "actions", "publish"),
+    );
+
+    expect(response.status).toBe(403);
+    expect((await response.json()).detail.code).toBe("CONSOLE_ORIGIN_REFUSED");
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

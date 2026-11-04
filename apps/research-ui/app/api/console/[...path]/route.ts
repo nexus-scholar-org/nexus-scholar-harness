@@ -30,6 +30,11 @@ import type { NextRequest } from "next/server";
  *    connection that only ends when the job does. Those routes also carry no
  *    120 s timeout — they are long-lived by design — and abort with the
  *    caller's request signal instead.
+ * 5. **Not a confused deputy (INC-01).** The proxy adds the console's
+ *    per-launch token (`NEXUS_CONSOLE_TOKEN`) server-side, so it answers only
+ *    when addressed on a loopback host (DNS rebinding is refused with
+ *    `CONSOLE_HOST_REFUSED`) and forwards a POST only when its `Origin` is this
+ *    app's own origin (`CONSOLE_ORIGIN_REFUSED`).
  */
 
 const DEFAULT_CONSOLE_URL = "http://127.0.0.1:8765";
@@ -137,7 +142,19 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     return typedError(400, "CONSOLE_PATH_REFUSED", "only /api/v1/... paths are proxied");
   }
 
+  // INC-01. The proxy holds the console token, so it must not be a confused
+  // deputy: answer only when addressed on loopback (a rebound DNS name such as
+  // evil.example resolving to 127.0.0.1 is refused), and forward a POST only
+  // when the browser says it comes from this same app.
+  const incoming = new URL(request.url);
+  if (!LOOPBACK.has(incoming.hostname)) {
+    return typedError(400, "CONSOLE_HOST_REFUSED", "the console proxy answers only on loopback");
+  }
+
   const method = request.method.toUpperCase();
+  if (method === "POST" && request.headers.get("origin") !== incoming.origin) {
+    return typedError(403, "CONSOLE_ORIGIN_REFUSED", "POST is accepted only from this app's own origin");
+  }
   if (!READ_METHODS.has(method) && method !== "POST") {
     return typedError(405, "CONSOLE_METHOD_REFUSED", "the console proxy accepts GET, HEAD and POST");
   }
@@ -149,7 +166,6 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     );
   }
 
-  const incoming = new URL(request.url);
   const query = new URLSearchParams(incoming.searchParams);
   // `console` is the opt-in override read by the client during tests; it is
   // never an upstream parameter.
@@ -169,6 +185,11 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     // what ends it; only bounded reads get the 120 s ceiling.
     signal: stream ? request.signal : AbortSignal.timeout(120_000),
   };
+  // The per-launch console token (`nexus-scholar serve` prints it or reads it
+  // from the same variable). It is added here, server-side; the browser never
+  // sees it.
+  const token = (process.env.NEXUS_CONSOLE_TOKEN ?? "").trim();
+  if (token) init.headers = { ...init.headers, authorization: `Bearer ${token}` };
   if (method === "POST") {
     const contentType = request.headers.get("content-type");
     if (contentType) init.headers = { ...init.headers, "content-type": contentType };
