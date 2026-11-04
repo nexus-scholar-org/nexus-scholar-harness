@@ -1,14 +1,16 @@
 # Project Index: Golden UAV 30
 
 - **Project Slug**: `golden-uav-30`
-- **Last Updated**: `2026-11-04 16:49:16 UTC`
+- **Last Updated**: `2026-11-04 17:48:02 UTC`
 - **Project Status**: `ACTIVE`
 
 ---
 
 ## 📊 Summary Metrics
 - **Discovered Papers**: 0
-- **Verified Papers**: 0
+- **Verified Papers**: 30
+- **Full-Text Eligible Candidates**: 0
+- **Confirmed Excluded Studies**: 0
 - **Downloaded PDFs**: 0
 - **Extracted Markdowns**: 0
 
@@ -26,7 +28,7 @@
 
 | File / Directory | Description | Last Modified | Status |
 | :--- | :--- | :--- | :--- |
-| `project.json` | Project manifest, metadata, and research questions | 2026-11-04 16:49 | Active |
+| `project.json` | Project manifest, metadata, and research questions | 2026-11-04 17:48 | Active |
 | `INDEX.md` | Master project directory and status catalog | 2026-11-04 16:49 | Synced |
 | `audit/journal.jsonl` | Append-only provenance event ledger | 2026-11-04 16:49 | Active |
 | `literature/verified.json` | Hydrated bibliographic records with DOIs & abstracts | 2026-11-04 16:49 | Verified |

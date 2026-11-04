@@ -24,7 +24,9 @@ def ws(tmp_path, monkeypatch) -> Path:
     return workspace
 
 
-ESCAPES = ["../escape", "ABSOLUTE"]
+# "[/.." and "{x}/.." look like inline JSON to a prefix check but are paths
+# (review finding, M0): they must be contained like any other path.
+ESCAPES = ["../escape", "ABSOLUTE", "[/../..", "{x}/../.."]
 
 
 def _target(ws: Path, escape: str, name: str) -> str:
@@ -64,4 +66,5 @@ def test_inside_paths_and_inline_json_still_resolve(ws):
     assert server._resolve_path("sub/x.json") == str((ws / "sub" / "x.json").resolve())
     assert server._resolve_path(str(ws / "x.json")) == str((ws / "x.json").resolve())
     assert server._resolve_path('{"a": 1}') == '{"a": 1}'
+    assert server._resolve_path(' [1, 2]') == ' [1, 2]'
     assert server._resolve_path(None) is None

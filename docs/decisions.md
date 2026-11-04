@@ -80,7 +80,9 @@ escaping path raises `PathOutsideWorkspace` (`PATH_OUTSIDE_WORKSPACE`) before
 any I/O, which the MCP client sees as a tool error. Consequence: a researcher
 who wants a tool to read a file elsewhere (a PDF in Downloads) copies it into
 the workspace first. Reads are contained too, because an agent could otherwise
-use a reader tool to pull any local file into its context.
+use a reader tool to pull any local file into its context. Inline JSON payloads pass
+through only when they parse as JSON; anything else that starts with `[` or `{`
+is treated as a path and contained (review finding, M0).
 
 ## 2026-11-04 — MCP keys stay in the env file, never in a config file (CORE-17)
 

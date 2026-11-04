@@ -216,8 +216,15 @@ def _resolve_path(p: str | None) -> str | None:
     the anchor, or :class:`PathOutsideWorkspace` is raised before any read or
     write. Inline JSON (raw protocol/intent/screener payloads) passes through.
     """
-    if not p or p.lstrip().startswith(("{", "[")):
+    if not p:
         return p
+    if p.lstrip().startswith(("{", "[")):
+        # Only a payload that really parses is inline JSON; "[/../x" is a path.
+        try:
+            json.loads(p)
+            return p
+        except ValueError:
+            pass
     anchor = _mcp_anchor()
     path = Path(p)
     resolved = (path if path.is_absolute() else anchor / path).resolve()

@@ -45,8 +45,20 @@ def _artifact(ws: Path, artifact_id: str, artifact_type: str, data: dict, accept
     return {"artifact_type": artifact_type, "path": path, "accepted_at": accepted_at}
 
 
-def _decision(study: str, decision: str, method: str = "HUMAN") -> dict:
-    return {"study_id": study, "decision": decision, "method": method, "screener_id": "researcher"}
+def _decision(
+    study: str,
+    decision: str,
+    method: str = "HUMAN",
+    screener_id: str = "researcher",
+    decided_at: str = "2026-11-04T10:00:03+00:00",
+) -> dict:
+    return {
+        "study_id": study,
+        "decision": decision,
+        "method": method,
+        "screener_id": screener_id,
+        "decided_at": decided_at,
+    }
 
 
 def _finished(tmp_path: Path, decisions: list[dict] | None = None, journal: list[dict] | None = None) -> Path:
@@ -168,6 +180,27 @@ def test_a_non_human_decision_fails_provenance(tmp_path, method):
     results = _by_name(checker.run_checks(_finished(tmp_path, decisions=decisions)))
     assert not results["provenance"].ok
     assert any("STU-b" in p and method in p for p in results["provenance"].problems)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "reason"),
+    [
+        ("screener_id", "researcher-draft", "placeholder screener"),
+        ("screener_id", "", "placeholder screener"),
+        ("decided_at", "1970-01-01T00:00:00+00:00", "placeholder decided_at"),
+        ("decided_at", "", "placeholder decided_at"),
+    ],
+)
+def test_placeholder_provenance_fails_even_when_human(tmp_path, field, value, reason):
+    """DEVELOPER_COMPASS §6: HUMAN alone is not provenance (the CON-11 pattern)."""
+    decisions = [
+        _decision("STU-a", "INCLUDE"),
+        _decision("STU-b", "EXCLUDE", **{field: value}),
+        _decision("STU-c", "EXCLUDE"),
+    ]
+    results = _by_name(checker.run_checks(_finished(tmp_path, decisions=decisions)))
+    assert not results["provenance"].ok
+    assert any("STU-b" in p and reason in p for p in results["provenance"].problems)
 
 
 def test_a_study_without_a_decision_fails_provenance(tmp_path):

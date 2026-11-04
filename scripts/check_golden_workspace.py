@@ -6,7 +6,8 @@ Three checks, each read from the workspace's own files:
   stage of the run, in order: workspace created, protocol in place, corpus
   accepted, batches prepared, decisions recorded, screening published.
 - **provenance**: in the newest accepted ``screening_decisions`` artifact of
-  each batch, every decision has method ``HUMAN``, and every study of the
+  each batch, every decision has method ``HUMAN``, a real screener id (not empty or
+  ``*-draft``) and a real ``decided_at`` (not empty or 1970), and every study of the
   accepted corpus snapshot has exactly one decision.
 - **prisma**: ``literature/prisma_report.json`` reconciles with the corpus
   snapshot (records identified, duplicates, studies screened) and with the
@@ -132,6 +133,14 @@ def check_provenance(ws: Path) -> CheckResult:
                 result.problems.append(
                     f"{study}: method {decision.get('method')!r}, not HUMAN"
                 )
+            # DEVELOPER_COMPASS §6: a real screener and a real time, not the
+            # CON-11 placeholders (`researcher-draft`, the 1970 epoch).
+            screener = str(decision.get("screener_id") or "")
+            if not screener or screener.endswith("-draft"):
+                result.problems.append(f"{study}: placeholder screener {screener!r}")
+            decided_at = str(decision.get("decided_at") or "")
+            if not decided_at or decided_at.startswith("1970-"):
+                result.problems.append(f"{study}: placeholder decided_at {decided_at!r}")
     studies = {study["study_id"] for study in corpus["studies"]}
     for study in sorted(studies - set(decided)):
         result.problems.append(f"{study}: no decision")
