@@ -4,6 +4,18 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-04 — MCP tool paths are contained in the workspace (AGT-01)
+
+Every path argument of a `scholar-agent` tool, for reading and for writing, must
+resolve inside the MCP workspace (`--workspace`, else `NEXUS_MCP_WORKSPACE`, else
+the repository root). Relative paths are joined onto it; absolute paths are
+allowed only when they land inside it. Symlinks and `..` are resolved first. An
+escaping path raises `PathOutsideWorkspace` (`PATH_OUTSIDE_WORKSPACE`) before
+any I/O, which the MCP client sees as a tool error. Consequence: a researcher
+who wants a tool to read a file elsewhere (a PDF in Downloads) copies it into
+the workspace first. Reads are contained too, because an agent could otherwise
+use a reader tool to pull any local file into its context.
+
 ## 2026-11-04 — MCP keys stay in the env file, never in a config file (CORE-17)
 
 `setup-mcp` used to copy provider keys from `.env` into an `env:` block of each

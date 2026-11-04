@@ -55,6 +55,12 @@ def _pinned_rag_commit() -> str:
     ).stdout.strip()
 
 
+@pytest.fixture(autouse=True)
+def _mcp_workspace(tmp_path, monkeypatch):
+    """Tool paths must resolve inside NEXUS_MCP_WORKSPACE (AGT-01)."""
+    monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(tmp_path))
+
+
 @pytest.fixture
 def phase3_test_workspace(tmp_path):
     """Creates a temporary Phase 3 research workspace with a canonical protocol."""

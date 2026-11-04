@@ -9,6 +9,12 @@ import pytest
 from scholar_agent.server import nexus_graph_narrative
 
 
+@pytest.fixture(autouse=True)
+def _mcp_workspace(tmp_path, monkeypatch):
+    """Tool paths must resolve inside NEXUS_MCP_WORKSPACE (AGT-01)."""
+    monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(tmp_path))
+
+
 @pytest.fixture()
 def graph_workspace(tmp_path):
     """Create a workspace with fixture graph data for narrative testing."""

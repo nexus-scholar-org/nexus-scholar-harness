@@ -204,16 +204,31 @@ def _mcp_anchor() -> Path:
     return Path.cwd()
 
 
+class PathOutsideWorkspace(ValueError):
+    """A tool path argument resolves outside the MCP anchor (AGT-01)."""
+
+
 def _resolve_path(p: str | None) -> str | None:
-    """Resolve a possibly-relative path arg against the MCP anchor; leave
-    absolute paths and inline JSON (raw protocol/intent/screener payloads)
-    untouched."""
+    """Resolve a path arg against the MCP anchor and refuse escapes (AGT-01).
+
+    Relative paths are joined onto the anchor; absolute paths are kept. Either
+    way the resolved path (symlinks followed, ``..`` collapsed) must lie inside
+    the anchor, or :class:`PathOutsideWorkspace` is raised before any read or
+    write. Inline JSON (raw protocol/intent/screener payloads) passes through.
+    """
     if not p or p.lstrip().startswith(("{", "[")):
         return p
+    anchor = _mcp_anchor()
     path = Path(p)
-    if path.is_absolute():
-        return str(path)
-    return str(_mcp_anchor() / path)
+    resolved = (path if path.is_absolute() else anchor / path).resolve()
+    inside = Path(os.path.normcase(resolved)).is_relative_to(
+        Path(os.path.normcase(anchor))
+    )
+    if not inside:
+        raise PathOutsideWorkspace(
+            f"PATH_OUTSIDE_WORKSPACE: {p!r} resolves outside the MCP workspace {anchor}"
+        )
+    return str(resolved)
 
 
 def _existing_file(arg: str | None) -> Path | None:

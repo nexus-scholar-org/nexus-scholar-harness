@@ -76,8 +76,8 @@ def test_screen_llm_tool_registered():
 def test_screen_llm_missing_input():
     """Calling with a nonexistent input file returns an error JSON."""
     result = nexus_screen_llm(
-        input_path="/nonexistent/papers.json",
-        protocol_path="/nonexistent/protocol.json",
+        input_path="nonexistent/papers.json",
+        protocol_path="nonexistent/protocol.json",
     )
     data = json.loads(result)
     assert data["status"] == "ERROR"
@@ -88,7 +88,7 @@ def test_screen_llm_missing_protocol(sample_papers_json):
     """Calling with a valid input but missing protocol returns an error JSON."""
     result = nexus_screen_llm(
         input_path=sample_papers_json,
-        protocol_path="/nonexistent/protocol.json",
+        protocol_path="nonexistent/protocol.json",
     )
     data = json.loads(result)
     assert data["status"] == "ERROR"

@@ -74,7 +74,7 @@ def test_pipeline_tool_registered():
 
 def test_pipeline_missing_workspace():
     """Calling with a nonexistent workspace dir returns an error JSON."""
-    result = nexus_pipeline_run(workspace_dir="/nonexistent/workspace")
+    result = nexus_pipeline_run(workspace_dir="nonexistent/workspace")
     data = json.loads(result)
     assert data["status"] == "ERROR"
     assert "not found" in data["error"].lower()
