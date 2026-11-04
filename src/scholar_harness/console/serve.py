@@ -124,7 +124,7 @@ def create_app(
     expected = f"Bearer {token}".encode() if token else None
     # Phone-scoped tokens (contract §4, §6). M2's `/lan/pair` adds to this set;
     # tests pass them in. A phone token reaches only `_PHONE_ROUTES`.
-    app.state.phone_tokens = set(phone_tokens or ())
+    app.state.phone_tokens = {t for t in (phone_tokens or ()) if t}
 
     # Registered after CORS, so it is the outer layer and runs first.
     @app.middleware("http")

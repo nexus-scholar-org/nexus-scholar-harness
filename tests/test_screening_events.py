@@ -433,3 +433,56 @@ def _two_batch_workspace(tmp_path: Path) -> Path:
     workspace = _build(tmp_path, batch_size=2)
     assert sorted(ev.load_context(workspace).batches) == [1, 2]
     return workspace
+
+
+def test_review_2_a_hand_written_event_claim_does_not_skip_the_worker_step(ws):
+    """Review finding 2: `source: decision-events` must match the real projection."""
+    from scholar_harness.authority.review import approve_command
+    from scholar_harness.screening.worker import WorkerRefused
+
+    _operator(ws)
+    _decide_all(ws)
+    path = ws / "literature" / "screening" / "batch_001_decisions.json"
+    forged = json.loads(path.read_text(encoding="utf-8"))
+    for entry in forged["decisions"]:
+        entry["method"] = "LLM"
+    path.write_text(json.dumps(forged), encoding="utf-8")
+    with pytest.raises(WorkerRefused, match="WORKER_BATCH_MISSING"):
+        approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+
+
+def test_review_3_events_bound_to_an_earlier_generation_are_not_projected(tmp_path):
+    """Review finding 3: a protocol change makes earlier events stale.
+
+    Re-preparing the same corpus under the same protocol is idempotent (same
+    batch generation), so the change that moves the generation is the
+    protocol. Earlier events then leave the projection, the projected bytes
+    change, and a previous approval no longer counts as current.
+    """
+    from scholar_harness.authority.review import _pending_batches
+
+    ws = _build(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    path = ev.write_projection(ws, 1, SCREENER, workspace_id=WS_ID)
+    before = path.read_bytes()
+    assert json.loads(before)["decisions"]
+
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol.setdefault("metadata", {})["title"] = "Amended protocol title"
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+
+    after = ev.write_projection(ws, 1, SCREENER, workspace_id=WS_ID).read_bytes()
+    assert json.loads(after)["decisions"] == []
+    assert after != before
+    assert _pending_batches(ws, 0, b"") == [1]
+
+
+def test_review_7_a_non_os_journal_failure_also_rolls_back(ws, monkeypatch):
+    def broken(*args, **kwargs):
+        raise ValueError("bad journal row")
+
+    monkeypatch.setattr(ev, "append_event", broken)
+    results = ev.intake(ws, [_event(ws, _studies(ws)[0])], token_scope="desktop", received_at="2026-11-04T10:00:05Z")
+    assert results[0].refusal["code"] == "ATOMIC_COMMIT_FAILED"
+    assert ev.read_events(ws) == []

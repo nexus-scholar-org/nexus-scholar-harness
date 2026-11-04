@@ -385,7 +385,22 @@ def _reviewed_bytes(
     if not recommendation_path(workspace_dir, batch_index).is_file() and (
         decisions_path.is_file() and _is_event_projection(decisions_path)
     ):
-        return decisions_path.read_bytes(), "decision-events"
+        # Review finding 2: the claim is believed only if the bytes are exactly
+        # what the event log projects; a hand-written file needs the worker step.
+        from scholar_harness.screening import events as decision_events
+
+        final = decisions_path.read_bytes()
+        payload = json.loads(final)
+        manifest = json.loads((Path(workspace_dir) / "project.json").read_text(encoding="utf-8"))
+        workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
+        try:
+            projected = decision_events.project_batch(
+                workspace_dir, batch_index, str(payload.get("reviewed_by") or ""), workspace_id=workspace_id
+            )
+        except (KeyError, OSError, ValueError):
+            projected = b""
+        if final.replace(b"\r\n", b"\n") == projected:
+            return final, "decision-events"
     return _read_recommendation_bytes(workspace_dir, batch_index), "worker-recommendation"
 
 

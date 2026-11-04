@@ -108,3 +108,9 @@ def test_submit_stores_provenance_and_journals(tmp_path: Path):
     assert [r["action"] for r in rows] == ["SCREENING_PROPOSAL_SUBMITTED"]
     # A proposal never reaches a decision file.
     assert not list((ws).rglob("batch_*_decisions.json"))
+
+
+def test_review_5_an_answer_without_an_id_is_unclear_not_a_crash():
+    output = {"criteria": [{"answer": "yes"}, {"id": "INC-02", "answer": "yes"}], "cannot_decide": False}
+    checks = pr.validate_output(output, CRITERIA, TEXT)
+    assert pr.derive_outcome(output, CRITERIA, checks) == ("MAYBE", None)

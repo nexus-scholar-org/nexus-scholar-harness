@@ -871,14 +871,14 @@ def reconcile_multi_screener_decisions(
         ratings = [screeners_map[sk][wid].upper() for sk in screener_keys]
         subject_ratings.append(ratings)
 
-        inc_votes = ratings.count("INCLUDE")
-        exc_votes = ratings.count("EXCLUDE")
-
-        if inc_votes > n_raters / 2:
-            reconciled[wid] = "INCLUDE"
-            majority_count += 1
-        elif exc_votes > n_raters / 2:
-            reconciled[wid] = "EXCLUDE"
+        # Review finding 4: MAYBE ("Unclear → full text") is a category of its
+        # own, so a MAYBE majority is MAYBE, as in the harness collector.
+        winner = next(
+            (c for c in ("INCLUDE", "EXCLUDE", "MAYBE") if ratings.count(c) > n_raters / 2),
+            None,
+        )
+        if winner is not None:
+            reconciled[wid] = winner
             majority_count += 1
         else:
             # Deadlock tie
@@ -890,7 +890,7 @@ def reconcile_multi_screener_decisions(
                 # SRCH-17: an unadjudicated tie stays unresolved for a person.
                 reconciled[wid] = "CONFLICT"
 
-    kappa = calculate_fleiss_kappa(subject_ratings, categories=["INCLUDE", "EXCLUDE"])
+    kappa = calculate_fleiss_kappa(subject_ratings, categories=["INCLUDE", "EXCLUDE", "MAYBE"])
 
     return {
         "reconciled": reconciled,

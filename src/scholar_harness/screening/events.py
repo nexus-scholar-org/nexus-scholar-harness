@@ -286,57 +286,81 @@ def intake(
     received_at: str,
     device: str | None = None,
     context: ScreeningContext | None = None,
+    after_commit: Any = None,
 ) -> list[IntakeResult]:
-    """Judge and store a request's events (contract §3.4)."""
+    """Judge and store a request's events (contract §3.4).
+
+    `after_commit`, when given, is called with the stored events while the
+    event lock is still held (the console regenerates projections there).
+    """
     ws = Path(workspace)
     context = context or load_context(ws)
+    try:
+        with _locked(ws):
+            return _intake_locked(ws, events, token_scope, received_at, device, context, after_commit)
+    except OSError:
+        # The lock could not be taken (Windows gives up after ten retries).
+        return [
+            IntakeResult(
+                str(raw.get("event_id") or "") if isinstance(raw, dict) else "",
+                "refused",
+                _refuse(ATOMIC_COMMIT_FAILED, "the event log is busy; retry"),
+            )
+            for raw in events
+        ]
+
+
+def _intake_locked(ws, events, token_scope, received_at, device, context, after_commit):
     results: list[IntakeResult] = []
-    with _locked(ws):
-        stored = read_events(ws)
-        known = {e["event_id"]: e for e in stored}
-        pending: list[dict[str, Any]] = []
-        for raw in events:
-            event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
-            refusal = validate_event(raw, context)
-            if refusal is not None:
-                results.append(IntakeResult(event_id, "refused", refusal))
-                continue
-            previous = known.get(event_id)
-            if previous is not None:
-                if _client_content(previous) == _client_content(raw):
-                    results.append(IntakeResult(event_id, "duplicate"))
-                else:
-                    results.append(
-                        IntakeResult(
-                            event_id,
-                            "refused",
-                            _refuse(IDEMPOTENCY_CONFLICT, "event_id reused with different content"),
-                        )
-                    )
-                continue
-            supersedes = raw.get("supersedes")
-            if supersedes and not any(
-                e["event_id"] == supersedes
-                and e["study_id"] == raw["study_id"]
-                and e["screener_id"] == raw["screener_id"]
-                for e in stored + pending
-            ):
+    stored = read_events(ws)
+    known = {e["event_id"]: e for e in stored}
+    pending: list[dict[str, Any]] = []
+    for raw in events:
+        event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
+        refusal = validate_event(raw, context)
+        if refusal is not None:
+            results.append(IntakeResult(event_id, "refused", refusal))
+            continue
+        previous = known.get(event_id)
+        if previous is not None:
+            if _client_content(previous) == _client_content(raw):
+                results.append(IntakeResult(event_id, "duplicate"))
+            else:
                 results.append(
                     IntakeResult(
                         event_id,
                         "refused",
-                        _refuse(INVALID_OUTPUT, "supersedes names no earlier event for this study"),
+                        _refuse(IDEMPOTENCY_CONFLICT, "event_id reused with different content"),
                     )
                 )
-                continue
-            record = {**raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": False}
-            pending.append(record)
-            known[event_id] = record
-            live = heads(stored + pending, raw["study_id"], raw["screener_id"])
-            in_conflict = len({e["outcome"] for e in live}) > 1
-            results.append(IntakeResult(event_id, "conflict" if in_conflict else "accepted"))
-        if pending:
-            _commit(ws, pending, results, device=device or str(pending[0].get("device")))
+            continue
+        supersedes = raw.get("supersedes")
+        if supersedes and not any(
+            e["event_id"] == supersedes
+            and e["study_id"] == raw["study_id"]
+            and e["screener_id"] == raw["screener_id"]
+            for e in stored + pending
+        ):
+            results.append(
+                IntakeResult(
+                    event_id,
+                    "refused",
+                    _refuse(INVALID_OUTPUT, "supersedes names no earlier event for this study"),
+                )
+            )
+            continue
+        record = {**raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": False}
+        pending.append(record)
+        known[event_id] = record
+        live = heads(stored + pending, raw["study_id"], raw["screener_id"])
+        in_conflict = len({e["outcome"] for e in live}) > 1
+        results.append(IntakeResult(event_id, "conflict" if in_conflict else "accepted"))
+    if pending:
+        _commit(ws, pending, results, device=device or str(pending[0].get("device")))
+        written = {r.event_id for r in results if r.result in ("accepted", "conflict")}
+        if after_commit is not None and written:
+            # Review finding 8: project under the same lock as the append.
+            after_commit([e for e in pending if e["event_id"] in written])
     return results
 
 
@@ -372,7 +396,7 @@ def _commit(
             },
             refresh_index=False,
         )
-    except OSError:
+    except Exception:  # review finding 7: any failure rolls the events back
         for path, size in sizes.items():
             with path.open("r+b") as handle:
                 handle.truncate(size)
@@ -440,6 +464,17 @@ def project_batch(
     batch = context.batches[batch_index]
     events = [e for e in read_events(workspace) if e.get("screener_id") == screener_id]
     entries: list[dict[str, Any]] = []
+    # Review finding 3: only events bound to this batch generation and protocol
+    # count; after a re-prepare, earlier decisions are not carried over.
+    current = {
+        "protocol_fingerprint": context.protocol_fingerprint,
+        "batch_id": batch.batch_id,
+        "batch_sha256": batch.batch_sha256,
+    }
+    events = [
+        e for e in events
+        if {k: (e.get("binding") or {}).get(k) for k in current} == current
+    ]
     for study in sorted(batch.candidates):
         winner = winning_event(events, study, screener_id)
         if winner is None:
@@ -466,6 +501,7 @@ def project_batch(
         entries.append(entry)
     payload = {
         "batch": batch_index,
+        "binding": current,
         "source": "decision-events",
         "reviewed_by": screener_id,
         "timestamp": max((e["decided_at"] for e in entries), default=""),

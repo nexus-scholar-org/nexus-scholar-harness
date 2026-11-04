@@ -93,3 +93,16 @@ def test_agt18_kappa_is_undefined_below_two_raters(ratings):
 def test_agt18_reconcile_reports_undefined_kappa_for_one_screener():
     assert reconcile_multi_screener_decisions({"s1": {"a": "INCLUDE"}})["fleiss_kappa"] is None
     assert reconcile_multi_screener_decisions({})["fleiss_kappa"] is None
+
+
+def test_review_4_unclear_is_a_category_in_reconcile_and_kappa():
+    both = reconcile_multi_screener_decisions({"s1": {"a": "MAYBE"}, "s2": {"a": "MAYBE"}})
+    assert both["reconciled"]["a"] == "MAYBE"
+    majority = reconcile_multi_screener_decisions(
+        {"s1": {"a": "MAYBE"}, "s2": {"a": "MAYBE"}, "s3": {"a": "INCLUDE"}}
+    )
+    assert majority["reconciled"]["a"] == "MAYBE"
+    agree = reconcile_multi_screener_decisions(
+        {"s1": {"a": "MAYBE", "b": "INCLUDE"}, "s2": {"a": "MAYBE", "b": "INCLUDE"}}
+    )
+    assert agree["fleiss_kappa"] == 1.0

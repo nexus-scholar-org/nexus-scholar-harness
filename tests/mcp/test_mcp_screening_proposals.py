@@ -114,7 +114,7 @@ def test_submit_proposal_stores_a_draft_and_never_a_decision(ws):
          "evidence": {"text": quote, "start": start, "end": start + len(quote)}}
         for c in record["criteria"]
     ]
-    result = json.loads(server.nexus_submit_proposal(study, json.dumps({"criteria": answers, "cannot_decide": False}), model="claude-opus-5-5"))
+    result = json.loads(server.nexus_submit_proposal(study, json.dumps({"criteria": answers, "cannot_decide": False}), model="claude-opus-5-5", prompt_sha256="sha256:" + "b" * 64))
     assert result["status"] == "SUCCESS"
     assert result["derived_outcome"] == "INCLUDE"
     assert all(v["ok"] for v in result["validators"])
@@ -126,13 +126,13 @@ def test_submit_proposal_stores_a_draft_and_never_a_decision(ws):
 
 def test_a_malformed_proposal_is_recorded_as_unclear(ws):
     study = json.loads(server.nexus_screening_queue())["items"][0]["study_id"]
-    result = json.loads(server.nexus_submit_proposal(study, "not json at all", model="claude-opus-5-5"))
+    result = json.loads(server.nexus_submit_proposal(study, "not json at all", model="claude-opus-5-5", prompt_sha256="sha256:" + "b" * 64))
     assert result["derived_outcome"] == "MAYBE"
     assert not all(v["ok"] for v in result["validators"])
 
 
 def test_unknown_study_is_refused(ws):
-    result = json.loads(server.nexus_submit_proposal("STU-" + "0" * 32, "{}", model="m"))
+    result = json.loads(server.nexus_submit_proposal("STU-" + "0" * 32, "{}", model="m", prompt_sha256="sha256:" + "c" * 64))
     assert result == {"status": "ERROR", "error": "UNKNOWN_STUDY"}
 
 
@@ -155,3 +155,10 @@ def test_agt19_outside_a_research_workspace_nothing_is_journaled(tmp_path, monke
     raw.write_text("[]", encoding="utf-8")
     assert "Successfully deduplicated" in server.nexus_dedup(str(raw), str(tmp_path / "out.json"))
     assert not (tmp_path / "audit").exists()
+
+
+@pytest.mark.parametrize(("model", "prompt"), [("", "sha256:" + "a" * 64), ("m", None), ("m", "")])
+def test_review_6_a_proposal_needs_its_model_and_prompt_hash(ws, model, prompt):
+    study = json.loads(server.nexus_screening_queue())["items"][0]["study_id"]
+    result = json.loads(server.nexus_submit_proposal(study, "{}", model=model, prompt_sha256=prompt))
+    assert result == {"status": "ERROR", "error": "PROVENANCE_MISSING"}

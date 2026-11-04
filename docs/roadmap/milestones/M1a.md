@@ -76,6 +76,7 @@ End to end
 | :-- | :-- | :-- | :-- | :-- |
 | checkpoint | 5762c48 + events/API working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4153 passed, 14 skipped; clean; baseline current | 280 s |
 | checkpoint | SRCH/AGT working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4186 passed, 14 skipped; clean; baseline current | 310 s |
+| pr | be447ba | selector `--changed origin/main --stage pr` (areas screening, authority, console, search, agent-mcp): `git diff --check`; `ruff check scripts/`; `sync_skills_bundle.py --check`; contract `--check`; `generate_screening_api_fixtures.py --check`; `uv run pytest -n auto` (full suite once) | clean; clean; 13 OK; baseline current; 19 current; 4193 passed, 14 skipped | 323 s |
 
 ## Raised for the researcher
 - ~~Approval code over HTTP~~ and ~~approval from events~~: decided 2026-11-04 (see Decisions).
@@ -83,5 +84,22 @@ End to end
 ## Parallel work
 - **AI reference screening** of 200 `uav-crop-weed-v03` records, recorded as `method: LLM` (screener `claude-reference-v1`), blind to the v03 labels. It was meant as a stopgap eval set; it is no longer needed for that, because the v03 labels are human-confirmed (decision 2026-11-04). It is kept only as a model-versus-human comparison. Against the confirmed labels, it included 24 of the 60 sampled includes, marked 21 Unclear and excluded 15; it never included a confirmed exclusion.
 
+## Review
+
+`milestone-reviewer`, 2026-11-04, first pass: **CHANGES** (10 findings). All are fixed, each with a test that failed before:
+
+| # | Finding | Fix | Test |
+| :-- | :-- | :-- | :-- |
+| 1 | The proposal journal row carried the derived outcome, readable in the audit feed before a decision (blinding bypass) | the journal records only that a proposal was stored | `test_review_1_the_audit_feed_never_reveals_a_proposal_outcome` |
+| 2 | Any file claiming `source: decision-events` skipped the worker step | believed only when its bytes equal the event projection | `test_review_2_a_hand_written_event_claim_does_not_skip_the_worker_step` |
+| 3 | The projection ignored event bindings; a new generation reused stale events | events must match the current protocol and batch; the projection carries its binding | `test_review_3_events_bound_to_an_earlier_generation_are_not_projected` |
+| 4 | reconcile and κ treated MAYBE as a non-category | MAYBE is a category; a MAYBE majority is MAYBE | `test_review_4_unclear_is_a_category_in_reconcile_and_kappa` |
+| 5 | An answer without an id crashed the checks | a failed check, so the proposal is Unclear | `test_review_5_an_answer_without_an_id_is_unclear_not_a_crash` |
+| 6 | MCP proposals were stored without a model or prompt hash | refused, `PROVENANCE_MISSING` | `test_review_6_a_proposal_needs_its_model_and_prompt_hash` |
+| 7 | Only `OSError` rolled back an intake; a lock timeout gave a 500 | any failure rolls back; a lock timeout is `ATOMIC_COMMIT_FAILED` | `test_review_7_a_non_os_journal_failure_also_rolls_back` |
+| 8 | The projection was written outside the event lock | written under the lock (`after_commit`) | covered by the API tests |
+| 9 | The CON-13 guard counted parents but did not check their type | the one parent must be a `screening_batch` | `test_con13_a_decisions_artifact_needs_exactly_one_batch_parent` |
+| 10 | Evidence uncommitted; reveal tracking not listed; no queue-order test | this section; Deferred below; queue-order test | `test_review_10_agent_uncertainty_orders_unclear_drafts_first` |
+
 ## Deferred
-None yet.
+- **Reveal tracking** (`changed_after_reveal`, the `REVEAL` audit row; contract §3.1) moves to M1b. The reveal happens when the triage screen shows a proposal after a decision, which is M1b UI work; the engine field exists and is stamped `false` until then.

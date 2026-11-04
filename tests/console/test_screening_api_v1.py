@@ -289,3 +289,42 @@ def test_phone_token_may_read_and_submit_events(client):
     study = _studies(client)[0]
     results = _post(client, [_event(client, study, device="phone")], headers=phone)
     assert results[0]["result"] == "accepted"
+
+
+def test_review_1_the_audit_feed_never_reveals_a_proposal_outcome(client, ws):
+    """Review finding 1: journal rows must not carry the agent's call."""
+    study = _studies(client)[0]
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    pr.submit_proposal(
+        ws, study_id=study, title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+        protocol=protocol,
+        protocol_fingerprint=client.get(f"{BASE}/records/{study}").json()["binding"]["protocol_fingerprint"],
+        provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "driver": "mcp"},
+        created_at="2026-11-04T09:00:00Z",
+    )
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    feed = client.get(f"{BASE}/ui/audit-feed").text
+    for text in (journal, feed):
+        assert "MAYBE" not in text and "derived" not in text
+
+
+def test_review_10_agent_uncertainty_orders_unclear_drafts_first(client, ws):
+    studies = _studies(client)
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    fingerprint = client.get(f"{BASE}/records/{studies[0]}").json()["binding"]["protocol_fingerprint"]
+    # A clean INCLUDE draft for the first record, an Unclear draft for the last.
+    record = client.get(f"{BASE}/records/{studies[0]}").json()
+    text = pr.record_text(record["title"], record["abstract"])
+    quote = text[:5]
+    ok = {"criteria": [{"id": c["id"], "answer": "yes" if c["kind"] == "inclusion" else "no",
+                        "evidence": {"text": quote, "start": 0, "end": 5}} for c in record["criteria"]],
+          "cannot_decide": False}
+    pr.submit_proposal(ws, study_id=studies[0], title=record["title"], abstract=record["abstract"], output=ok,
+                       protocol=protocol, protocol_fingerprint=fingerprint,
+                       provenance={"task_version": "v", "model": "m"}, created_at="2026-11-04T09:00:00Z")
+    pr.submit_proposal(ws, study_id=studies[2], title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+                       protocol=protocol, protocol_fingerprint=fingerprint,
+                       provenance={"task_version": "v", "model": "m"}, created_at="2026-11-04T09:00:01Z")
+    ordered = client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).json()["items"]
+    assert [i["study_id"] for i in ordered] == [studies[2], studies[0], studies[1]]
+    assert "derived_outcome" not in json.dumps(ordered)

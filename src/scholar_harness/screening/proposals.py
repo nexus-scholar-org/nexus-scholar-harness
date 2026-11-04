@@ -82,7 +82,13 @@ def validate_output(output: Any, criteria: Criteria, text: str) -> list[dict[str
         isinstance(a, dict) and a.get("answer") in ANSWERS for a in answers
     ) and isinstance(output.get("cannot_decide", False), bool)
     checks.append({"name": "schema", "ok": schema_ok, "detail": "" if schema_ok else "unknown answer value"})
-    complete = sorted(ids) == sorted(criteria.all) and len(ids) == len(set(ids))
+    # Review finding 5: an answer without an id is a failed check, not a crash.
+    complete = (
+        all(isinstance(i, str) and i for i in ids)
+        and len(ids) == len(answers)
+        and sorted(map(str, ids)) == sorted(criteria.all)
+        and len(ids) == len(set(ids))
+    )
     checks.append(
         {
             "name": "one_answer_per_criterion",
@@ -179,7 +185,9 @@ def submit_proposal(
         append_event(
             ws,
             JOURNAL_ACTION,
-            f"Stored agent proposal for {study_id} (derived {outcome})",
+            # Review finding 1: no outcome here. The journal and the audit feed
+            # are readable before a decision; the call stays in the store.
+            f"Stored an agent proposal for {study_id}",
             agent=f"scholar-harness/proposals ({record.get('driver') or 'unknown'})",
             outputs=[str(PROPOSALS_FILE).replace("\\", "/")],
             parameters={
@@ -188,7 +196,7 @@ def submit_proposal(
                 "model": model,
                 "task_version": task_version,
             },
-            metrics={"failed_checks": sum(1 for c in checks if not c["ok"])},
+            metrics={},
             refresh_index=False,
         )
     except OSError:

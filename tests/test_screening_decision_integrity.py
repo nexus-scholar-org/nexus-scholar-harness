@@ -948,13 +948,18 @@ def test_con13_a_decisions_artifact_needs_exactly_one_batch_parent(parents: int)
         "artifact_type": "screening_decisions",
         "inputs": [{"artifact_id": f"ART-{i}", "sha256": "sha256:" + "0" * 64} for i in range(parents)],
     }
+    registry = {"artifacts": {"ART-0": {"artifact_type": "screening_batch"}, "ART-1": {"artifact_type": "screening_batch"},
+                              "ART-c": {"artifact_type": "corpus_snapshot"}}}
     with pytest.raises(RuntimeError, match="exactly one screening_batch parent"):
-        require_single_batch_parent(envelope)
-    require_single_batch_parent({**envelope, "inputs": envelope["inputs"][:1] or [{"artifact_id": "ART-0"}]})
+        require_single_batch_parent(envelope, registry)
+    require_single_batch_parent({**envelope, "inputs": [{"artifact_id": "ART-0"}]}, registry)
+    # Review finding 9: the one parent must be a screening_batch.
+    with pytest.raises(RuntimeError, match="exactly one screening_batch parent"):
+        require_single_batch_parent({**envelope, "inputs": [{"artifact_id": "ART-c"}]}, registry)
 
 
 def test_con13_every_decisions_submission_goes_through_the_guard() -> None:
     source = (SRC_ROOT / "collector.py").read_text(encoding="utf-8")
     submissions = source.count("accept_artifact(")
-    guarded = source.count("require_single_batch_parent(dec_env)")
+    guarded = source.count("require_single_batch_parent(dec_env, registry)")
     assert submissions >= 2 and guarded == submissions

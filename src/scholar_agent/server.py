@@ -2256,6 +2256,10 @@ def nexus_submit_proposal(
     from scholar_harness.screening import proposals as pr
 
     try:
+        # Review finding 6: a proposal without its model and prompt hash has
+        # no provenance and is refused, never stored blank.
+        if not str(model or "").strip() or not str(prompt_sha256 or "").strip():
+            return json.dumps({"status": "ERROR", "error": "PROVENANCE_MISSING"})
         ws = _screening_workspace(workspace_dir)
         context, _settings, _events, _winners = _state(ws)
         if study_id not in context.study_batch:

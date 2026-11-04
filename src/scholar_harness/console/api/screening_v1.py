@@ -254,10 +254,10 @@ def post_events(body: EventsBody, request: Request) -> dict[str, Any]:
     ws = _ws(request)
     context = ev.load_context(ws)
     scope = getattr(request.state, "token_scope", "desktop")
-    results = ev.intake(ws, body.events, token_scope=scope, received_at=_now(), device=scope, context=context)
-    stored = {r.event_id for r in results if r.result in ("accepted", "conflict")}
-    if stored:
-        _project(ws, context, [e for e in body.events if isinstance(e, dict) and e.get("event_id") in stored])
+    results = ev.intake(
+        ws, body.events, token_scope=scope, received_at=_now(), device=scope, context=context,
+        after_commit=lambda stored: _project(ws, context, stored),
+    )
     return {"results": [r.as_dict() for r in results]}
 
 
@@ -302,9 +302,10 @@ def resolve_conflict(study_id: str, body: ResolveBody, request: Request) -> dict
         "resolves": [e["event_id"] for e in match["events"] if e["event_id"] != kept["event_id"]],
         "note": kept.get("note") or f"Conflict resolved: kept {kept['event_id']}",
     }
-    results = ev.intake(ws, [resolution], token_scope=scope, received_at=_now(), device=scope, context=context)
-    if results[0].result == "accepted":
-        _project(ws, context, [resolution])
+    results = ev.intake(
+        ws, [resolution], token_scope=scope, received_at=_now(), device=scope, context=context,
+        after_commit=lambda stored: _project(ws, context, stored),
+    )
     return {"results": [r.as_dict() for r in results]}
 
 

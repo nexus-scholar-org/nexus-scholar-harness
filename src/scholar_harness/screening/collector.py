@@ -232,7 +232,7 @@ def _refuse_single_batch(
         missing_batches.append(batch_index)
 
 
-def require_single_batch_parent(envelope: dict) -> None:
+def require_single_batch_parent(envelope: dict, registry: dict) -> None:
     """Refuse a decisions artifact without exactly one batch parent (CON-13).
 
     The frozen acceptance gate (``contracts/acceptance.py``, ``chain.py``) runs
@@ -243,10 +243,14 @@ def require_single_batch_parent(envelope: dict) -> None:
     that gap is recorded for Contract v1.1.
     """
     parents = envelope.get("inputs") or []
-    if len(parents) != 1:
+    types = [
+        (registry.get("artifacts", {}).get(str(p.get("artifact_id"))) or {}).get("artifact_type")
+        for p in parents
+    ]
+    if types != ["screening_batch"]:
         raise RuntimeError(
             "screening collection blocked: a screening_decisions artifact needs "
-            f"exactly one screening_batch parent, got {len(parents)}"
+            f"exactly one screening_batch parent, got {types}"
         )
 
 
@@ -709,7 +713,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
 
-                require_single_batch_parent(dec_env)
+                require_single_batch_parent(dec_env, registry)
                 res = accept_artifact(
                     workspace_dir,
                     dec_env,
@@ -1069,7 +1073,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
 
-                require_single_batch_parent(dec_env)
+                require_single_batch_parent(dec_env, registry)
                 res = accept_artifact(
                     workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect"
                 )
