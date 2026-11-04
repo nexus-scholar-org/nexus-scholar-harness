@@ -52,13 +52,20 @@ const LOCALE_ENDONYMS = [
   LOCALE_METADATA.ar.endonym,
 ];
 
+/** The theme selector's three buttons (production plan §3, M0), after the locales. */
+function themeStops(locale: "en" | "ar"): string[] {
+  return (["theme.system", "theme.light", "theme.dark"] as const).map(
+    (key) => `button:${CATALOGS[locale][key]}`,
+  );
+}
+
 test.describe("rendered tab order", () => {
-  test("375px: the desktop <nav> is display:none, so the ring is [skip, trigger, three locales]", async ({
+  test("375px: the desktop <nav> is display:none, so the ring is [skip, trigger, three locales, three themes]", async ({
     page,
   }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
 
-    const ring = await measureTabRing(page, 8, "en");
+    const ring = await measureTabRing(page, 11, "en");
     const order = ring.map(describeStop);
     report(`375px/en tab ring = ${JSON.stringify(order)}`);
 
@@ -70,6 +77,7 @@ test.describe("rendered tab order", () => {
       `a:${CATALOGS.en["a11y.skipToMain"]}`,
       `button:${CATALOGS.en["a11y.openMainNavigation"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      ...themeStops("en"),
     ]);
 
     // The stop that jsdom also reports is genuinely absent here, and the reason
@@ -78,10 +86,10 @@ test.describe("rendered tab order", () => {
     await expect(page.locator(PRIMARY_NAV)).toBeHidden();
   });
 
-  test("375px/ar: the same five stops, in Arabic chrome", async ({ page }) => {
+  test("375px/ar: the same eight stops, in Arabic chrome", async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
 
-    const ring = await measureTabRing(page, 8, "ar");
+    const ring = await measureTabRing(page, 11, "ar");
     const order = ring.map(describeStop);
     report(`375px/ar tab ring = ${JSON.stringify(order)}`);
 
@@ -92,17 +100,18 @@ test.describe("rendered tab order", () => {
       `a:${CATALOGS.ar["a11y.skipToMain"]}`,
       `button:${CATALOGS.ar["a11y.openMainNavigation"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      ...themeStops("ar"),
     ]);
     expect(ring.some((stop) => stop.inPrimaryNav)).toBe(false);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   });
 
-  test("1440px: the mobile disclosure is display:none, so the ring is [skip, Overview, Screening, Corpus, Audit, three locales]", async ({
+  test("1440px: the mobile disclosure is display:none, so the ring is [skip, Overview, Screening, Corpus, Audit, three locales, three themes]", async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
 
-    const ring = await measureTabRing(page, 10, "en");
+    const ring = await measureTabRing(page, 13, "en");
     const order = ring.map(describeStop);
     report(`1440px/en tab ring = ${JSON.stringify(order)}`);
 
@@ -119,6 +128,7 @@ test.describe("rendered tab order", () => {
       `a:${CATALOGS.en["nav.corpus"]}`,
       `a:${CATALOGS.en["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      ...themeStops("en"),
     ]);
     expect(ring.some((stop) => stop.inMobileDisclosure)).toBe(false);
     await expect(page.locator(MOBILE_NAV_TRIGGER)).toBeHidden();
@@ -129,7 +139,7 @@ test.describe("rendered tab order", () => {
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
 
-    const ring = await measureTabRing(page, 10, "ar");
+    const ring = await measureTabRing(page, 13, "ar");
     const order = ring.map(describeStop);
     report(`1440px/ar tab ring = ${JSON.stringify(order)}`);
 
@@ -140,6 +150,7 @@ test.describe("rendered tab order", () => {
       `a:${CATALOGS.ar["nav.corpus"]}`,
       `a:${CATALOGS.ar["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      ...themeStops("ar"),
     ]);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   });
@@ -156,12 +167,12 @@ test.describe("rendered tab order — the screening workspace", () => {
   const RADIO = "input:screening-decision-include";
   const REASON = "textarea:screening-reason";
 
-  test("1440px/en: [skip, Overview, Screening, Corpus, Audit, three locales, include radio, reason field]", async ({
+  test("1440px/en: [skip, Overview, Screening, Corpus, Audit, three locales, three themes, include radio, reason field]", async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
 
-    const ring = await measureTabRing(page, 12, "en", "/screening");
+    const ring = await measureTabRing(page, 15, "en", "/screening");
     const order = ring.map((stop) => (stop.focusId === "" ? describeStop(stop) : `${stop.tag}:${stop.focusId}`));
     report(`1440px/en/screening tab ring = ${JSON.stringify(ring.map(describeStop))}`);
 
@@ -172,6 +183,7 @@ test.describe("rendered tab order — the screening workspace", () => {
       `a:${CATALOGS.en["nav.corpus"]}`,
       `a:${CATALOGS.en["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      ...themeStops("en"),
       RADIO,
       REASON,
     ]);
@@ -181,7 +193,7 @@ test.describe("rendered tab order — the screening workspace", () => {
   test("375px/ar: the narrow ring drops the primary nav, in RTL chrome", async ({ page }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
 
-    const ring = await measureTabRing(page, 10, "ar", "/screening");
+    const ring = await measureTabRing(page, 13, "ar", "/screening");
     const order = ring.map((stop) => (stop.focusId === "" ? describeStop(stop) : `${stop.tag}:${stop.focusId}`));
     report(`375px/ar/screening tab ring = ${JSON.stringify(ring.map(describeStop))}`);
 
@@ -189,6 +201,7 @@ test.describe("rendered tab order — the screening workspace", () => {
       `a:${CATALOGS.ar["a11y.skipToMain"]}`,
       `button:${CATALOGS.ar["a11y.openMainNavigation"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
+      ...themeStops("ar"),
       RADIO,
       REASON,
     ]);

@@ -2106,3 +2106,41 @@ $ git diff --stat -- <the three test files>
 The single deleted line is home-page's one-sentence `renderRoute` doc comment,
 replaced by its expanded justification; every `expect`/`it`/`describe` line
 survives byte-identical (exit 1 above).
+
+## 9. Milestone M0 — the brand theme replaces the UI-01c palette
+
+Decision: `docs/decisions.md`, 2026-11-03, "Brand book replaces
+VISUAL_DIRECTION as the UI design system". It reverses VISUAL_DIRECTION D1:
+web fonts, small radii and a dark theme are now in.
+
+**What changed in the gates.**
+
+- **Palette.** The colour values in §1.2 (gate 19) and the contrast table in
+  §3.7 describe the UI-01c palette and are superseded; they are kept as
+  history. Values now come from `docs/ux/brand/tokens.json` through
+  `app/theme.css`, which `scripts/build-tokens.mjs` generates.
+  `npm run tokens:check` runs in `prebuild`, so a stale `theme.css` fails the
+  build.
+- **Role names.** The role names are unchanged, so components did not move.
+  Two brand names cannot be roles because the hygiene gate retires them:
+  brand `surface` is the role `leaf`, and brand `surface-raised` is
+  `leaf-raised`.
+- **Contrast.** It is enforced on the rendered page in both themes:
+  `playwright.config.ts` adds a `chromium-dark` project that runs the whole
+  browser suite under `prefers-color-scheme: dark`. The committed screenshots
+  stay light-only.
+- **Focus.** The ring is now `brand`, as the brand book requires.
+  `focus-visibility.spec.ts` reads the live token, so it measures
+  `rgb(36, 69, 110)` in light and `rgb(143, 179, 230)` in dark.
+- **Hygiene.** The token gate reads its declaration set from `globals.css`
+  plus `theme.css`.
+- **Tab order.** The ring gains the theme selector's three buttons after the
+  locale links (jsdom: `tests/keyboard-traversal.test.tsx`; rendered:
+  `tests-browser/tab-order.spec.ts`).
+- **N12.** The guard keeps `fetch`, `XMLHttpRequest` and
+  `navigator.language` out of the UI source. It now allows `localStorage` in
+  exactly one file, `components/theme-toggle.tsx`, which may not read the
+  locale.
+- **Byte pins.** The `package.json` and `package-lock.json` pins in
+  `tests/i18n-catalog.test.ts` moved with the three `@fontsource` packages,
+  which self-host the fonts.

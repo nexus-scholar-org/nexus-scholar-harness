@@ -42,12 +42,13 @@ describe("catalog parity", () => {
     // 42 keys at UI-01d, +32 in packet UI-02's state model = 74, +19 in packet
     // UI-04's screening workspace = 93, +24 in packet UI-08's corpus screen
     // (including `nav.corpus`) = 117, +20 `audit.*` added by packet UI-06 = 137, +5 draft-capture keys added
-    // by the UI-07 action wiring = 142.
+    // by the UI-07 action wiring = 142, +4 theme-selector keys (production plan
+    // §3, M0) = 146.
     // The number is asserted rather than trusted; `messages/en.ts`'s header
     // states the same figure, and `docs/I18N.md` §3 repeats it.
     const expected = Object.keys(en).sort();
 
-    expect(expected).toHaveLength(142);
+    expect(expected).toHaveLength(146);
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
     }
@@ -482,11 +483,11 @@ describe("byte pins", () => {
     },
     {
       path: "package.json",
-      sha256: "aa6b96f9f0527b24467416d640a070e5b12169880e6b0489f4ea2dc894564e99",
+      sha256: "41a417d2e5ef1267eae889acd6d3788a65c91167a619b0fa25a8689838636d29",
     },
     {
       path: "package-lock.json",
-      sha256: "39618d29b4cb8744eb7bea072c2e5110708bd10c08e2201752903a3cc90c4e9d",
+      sha256: "a3decceab16a65daaeb98fcf04682b6cf55f1da357da1c448b6a50dbc47647a5",
     },
   ] as const;
 

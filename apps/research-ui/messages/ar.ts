@@ -68,6 +68,10 @@ const ar: Record<MessageKey, string> = {
   "evidenceKind.study": "دراسة",
   "evidenceKind.decision": "قرار",
   "locale.selectorLabel": "اللغة",
+  "theme.selectorLabel": "المظهر",
+  "theme.system": "النظام",
+  "theme.light": "فاتح",
+  "theme.dark": "داكن",
   "notFound.heading": "الصفحة غير موجودة",
   "notFound.body":
     "لا يحتوي هذا العرض التوضيحي على صفحة عند هذا العنوان. استخدم أحد روابط اللغة أدناه، أو عد إلى النظرة العامة.",

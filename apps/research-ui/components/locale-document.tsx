@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { LOCALE_METADATA, translate, type Locale } from "@/i18n";
 
 import { AppShell } from "./app-shell";
+import { THEME_BOOT_SCRIPT } from "./theme-toggle";
 
 /**
  * The document owner (packet UI-01d, D-I18N-01a).
@@ -37,7 +38,12 @@ export function LocaleDocument({
   const metadata = LOCALE_METADATA[locale];
 
   return (
-    <html lang={metadata.lang} dir={metadata.dir}>
+    // `suppressHydrationWarning`: the boot script may set `data-theme` on this
+    // element before React hydrates; that attribute is the only difference.
+    <html lang={metadata.lang} dir={metadata.dir} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body>
         <AppShell locale={locale}>{children}</AppShell>
       </body>

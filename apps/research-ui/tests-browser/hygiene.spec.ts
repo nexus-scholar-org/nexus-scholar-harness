@@ -371,7 +371,13 @@ test.describe("browser-suite hygiene", () => {
    * the selectors. That is how the first one was found.
    */
   test("no dangling token, no raw palette utility, and no retired palette in the shipped CSS", async ({ page, request }) => {
-    const globals = await readFile(join(APP_ROOT, "app", "globals.css"), "utf8");
+    // Tokens are declared in `app/globals.css` and in `app/theme.css`, which
+    // `scripts/build-tokens.mjs` generates from the brand tokens (M0) and
+    // `globals.css` imports. Both are the declaration set.
+    const globals =
+      (await readFile(join(APP_ROOT, "app", "globals.css"), "utf8")) +
+      "\n" +
+      (await readFile(join(APP_ROOT, "app", "theme.css"), "utf8"));
 
     // --- 1a. every referenced var() token is declared -----------------------
     const declared = new Set(

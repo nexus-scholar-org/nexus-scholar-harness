@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { translate, type Locale } from "@/i18n";
 
 import { LocaleSwitcher } from "./locale-switcher";
+import { ThemeToggle } from "./theme-toggle";
 import { MobileNav } from "./mobile-nav";
 import { PrimaryNav, currentItemIdFromPathname } from "./primary-nav";
 
@@ -142,6 +143,14 @@ export function AppShell({
           <LocaleSwitcher
             locale={locale}
             selectorLabel={translate(locale, "locale.selectorLabel")}
+          />
+          <ThemeToggle
+            selectorLabel={translate(locale, "theme.selectorLabel")}
+            labels={{
+              system: translate(locale, "theme.system"),
+              light: translate(locale, "theme.light"),
+              dark: translate(locale, "theme.dark"),
+            }}
           />
         </div>
       </header>
