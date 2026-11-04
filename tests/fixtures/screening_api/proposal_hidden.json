@@ -1,0 +1,17 @@
+{
+  "name": "proposal_hidden",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/records/STU-5501d9dbf159a23a786423d1b11f46f4/proposal",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "detail": {
+        "code": "PROPOSAL_HIDDEN",
+        "message": "decide this record first; the agent's draft is hidden until then"
+      }
+    },
+    "status": 403
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "record_detail",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/records/STU-5501d9dbf159a23a786423d1b11f46f4",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "abstract": "We map weeds from drone imagery in maize fields.",
+      "binding": {
+        "batch_id": "batch-943f93bf12ff2ce60f2c43c0db28b683",
+        "batch_sha256": "sha256:bbf9d560a5c6c465b0d86cb1ca6ee95c32ef5ba697f5ce2d02cbce5ed0b8d549",
+        "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5"
+      },
+      "criteria": [
+        {
+          "id": "INC-01",
+          "kind": "inclusion",
+          "text": ""
+        },
+        {
+          "id": "EXC-01",
+          "kind": "exclusion",
+          "text": ""
+        }
+      ],
+      "doi": null,
+      "highlights": [],
+      "history": [],
+      "my_decision": null,
+      "study_id": "STU-5501d9dbf159a23a786423d1b11f46f4",
+      "title": "UAV multispectral weed mapping in maize",
+      "venue": null,
+      "year": null
+    },
+    "status": 200
+  }
+}

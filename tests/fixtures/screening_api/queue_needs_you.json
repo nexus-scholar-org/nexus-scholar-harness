@@ -1,0 +1,42 @@
+{
+  "name": "queue_needs_you",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/queue?view=needs_you",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "items": [
+        {
+          "batch_id": "batch-943f93bf12ff2ce60f2c43c0db28b683",
+          "decided": false,
+          "flags": [],
+          "has_proposal": false,
+          "study_id": "STU-5501d9dbf159a23a786423d1b11f46f4",
+          "title": "UAV multispectral weed mapping in maize"
+        },
+        {
+          "batch_id": "batch-943f93bf12ff2ce60f2c43c0db28b683",
+          "decided": false,
+          "flags": [
+            "title_only"
+          ],
+          "has_proposal": false,
+          "study_id": "STU-7e6cbe603ca705ba542aaf6b76d9ff25",
+          "title": "Weed segmentation from aerial orthomosaics"
+        },
+        {
+          "batch_id": "batch-943f93bf12ff2ce60f2c43c0db28b683",
+          "decided": false,
+          "flags": [],
+          "has_proposal": false,
+          "study_id": "STU-b959ba7263a2bb267ea0a527402b2ca6",
+          "title": "Ground robot weed detection"
+        }
+      ],
+      "next_cursor": null
+    },
+    "status": 200
+  }
+}

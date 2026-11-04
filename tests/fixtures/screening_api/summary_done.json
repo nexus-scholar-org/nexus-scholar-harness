@@ -1,0 +1,28 @@
+{
+  "name": "summary_done",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/summary",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "agent_proposed": 1,
+      "by_outcome": {
+        "EXCLUDE": 1,
+        "INCLUDE": 1,
+        "MAYBE": 1
+      },
+      "conflicts": 0,
+      "decided": 3,
+      "lanes": {
+        "agent": 1,
+        "second_screener": "PARKED",
+        "you": 3
+      },
+      "needs_you": 0,
+      "total": 3
+    },
+    "status": 200
+  }
+}

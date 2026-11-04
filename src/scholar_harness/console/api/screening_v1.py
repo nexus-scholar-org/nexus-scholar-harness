@@ -286,7 +286,16 @@ def resolve_conflict(study_id: str, body: ResolveBody, request: Request) -> dict
     resolution = {
         key: value for key, value in kept.items() if key not in ev.ENGINE_FIELDS
     } | {
-        "event_id": str(uuid.uuid4()),
+        # Derived from the kept and rival events, so resolving the same
+        # conflict twice is a duplicate, not a second decision.
+        "event_id": str(
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "nexus-scholar:resolve:" + kept["event_id"] + ":" + ",".join(
+                    sorted(e["event_id"] for e in match["events"] if e["event_id"] != kept["event_id"])
+                ),
+            )
+        ),
         "decided_at": _now(),
         "device": scope,
         "supersedes": kept["event_id"],
