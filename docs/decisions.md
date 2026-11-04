@@ -22,6 +22,22 @@ then works on a fresh workspace.
 - **Packet B:** full adoption, with discovery producing the snapshot itself,
   remains M3.
 
+## 2026-11-04 — Approval: terminal-only code; event-decided batches need no worker step (CON-02/03)
+
+**The code stays on the terminal.** The approval code is printed only in the
+terminal running `nexus-scholar serve`, never returned over HTTP, and the
+researcher types it into the publish screen. This keeps the existing pinned
+rule: something that can call the console API (a malicious page that got the
+token, another local process) still cannot approve on its own. The contract's
+`qr_payload` for `pairing/begin` is dropped; spec 09 follows.
+
+**Events replace the worker step.** A batch decided entirely by human decision
+events is approved on its event projection. No worker recommendation is
+required. The approval binds that batch's projected bytes only, never another
+batch's (CON-03), and the approver is recorded as an unauthenticated local
+attestation, not an identity (CON-02). The worker path stays for
+agent-screened batches. Researcher's choices, 2026-11-04.
+
 ## 2026-11-04 — The v03 screening labels are human-confirmed: the M1b eval set
 
 `uav-crop-weed-v03` has a signed screening confirmation:

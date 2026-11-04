@@ -54,6 +54,7 @@ End to end
 | Unclear | `test_maybe_passes_finalize_as_unclear_to_full_text` | refused `UNRESOLVED_FINALIZE_REFUSED` | pass |
 
 ## Decisions
+- [Approval: terminal-only code; event-decided batches need no worker step](../../decisions.md) (2026-11-04)
 - [The v03 screening labels are human-confirmed](../../decisions.md) (2026-11-04)
 - [Unclear forwarded to full text](../../decisions.md) (2026-11-04)
 - [CON-13 guarded outside the Contract v1 lock](../../decisions.md) (2026-11-04)
@@ -64,8 +65,7 @@ End to end
 | checkpoint | 5762c48 + events/API working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4153 passed, 14 skipped; clean; baseline current | 280 s |
 
 ## Raised for the researcher
-- **Approval code over HTTP.** The contract lists `qr_payload` in the `POST /actions/pairing/begin` reply, but the codebase pins that the plaintext pairing code is never returned by any API route. M1a keeps that rule: the code is printed to the terminal running the console, and the reply says `code_shown_on: terminal`. A QR on the desktop screen would need the rule changed.
-- **Approval from events.** Pairing still expects a per-batch worker recommendation (AG-04 recommend step), which event-projected decisions do not produce. Joining the two is part of CON-02/03 and the end-to-end item.
+- ~~Approval code over HTTP~~ and ~~approval from events~~: decided 2026-11-04 (see Decisions).
 
 ## Parallel work
 - **AI reference screening** of 200 `uav-crop-weed-v03` records, recorded as `method: LLM` (screener `claude-reference-v1`), blind to the v03 labels. It was meant as a stopgap eval set; it is no longer needed for that, because the v03 labels are human-confirmed (decision 2026-11-04). It is kept only as a model-versus-human comparison. Against the confirmed labels, it included 24 of the 60 sampled includes, marked 21 Unclear and excluded 15; it never included a confirmed exclusion.

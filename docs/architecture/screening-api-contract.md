@@ -113,7 +113,7 @@ M = milestone; ✓ = route exists today.
 | `GET /agreement` | agreement with the agent | → `{decided_with_proposal, agreement_pct, table_2x2, splits_by_criterion:[{criterion_id, n}], unclear_either_side, kappa: null, kappa_note: "needs a second human screener"}`; counts only decisions made before the reveal | desktop | M1b |
 | `POST /lan/session/begin` | show the phone QR | → `{qr_payload, one_time_token_expires_at}`; desktop only; separate from approval pairing | desktop | M2 |
 | `POST /lan/session/stop` | stop phone access | revokes every phone token | desktop | M2 |
-| `POST /actions/pairing/begin` | start approval pairing for a generation | `{generation}` → `{qr_payload, code_expires_at}` | desktop | M1a |
+| `POST /actions/pairing/begin` | start approval pairing for one batch | `{batch}` → `{batch_index, snapshot_fingerprint, code_expires_at, attempt_cap, code_shown_on: "terminal"}`. The code is printed only in the terminal running the console, never returned over HTTP (decision 2026-11-04) | desktop | M1a |
 | `GET /actions/pairing/status` ✓ | pairing state | `screening.py:1407` | desktop, phone (read-only) | — |
 | `POST /actions/pairing/redeem` ✓ | approve | `screening.py:1429` (fix the proxy allowlist path, plan §1.2). **Desktop only in stage 1:** the phone shows the PRISMA summary and "Approve on your desktop" (changed from the MobileApprove canvas) | desktop | M0 |
 | `POST /actions/defer` ✓, `POST /actions/publish` ✓ | defer or publish | `screening.py:1512, :1581` | desktop | — |
