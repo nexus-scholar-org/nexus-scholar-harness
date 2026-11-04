@@ -40,6 +40,7 @@ from scholar_harness.workspace.audit import append_event
 EVENTS_DIR = Path("literature") / "screening" / "events"
 OUTCOMES = frozenset({"INCLUDE", "EXCLUDE", "MAYBE"})
 DEVICES = frozenset({"desktop", "phone"})
+PROJECTION_FAILED_ACTION = "SCREENING_PROJECTION_FAILED"
 JOURNAL_ACTION = "SCREENING_DECISIONS_RECEIVED"
 
 # Refusal codes (console refusal set, contract §7).
@@ -396,12 +397,61 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
     if after_commit is not None and project:
         try:
             after_commit(project)
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             # Review B: the events are stored and journaled, so their results
-            # stand. The projection is derived; the next intake or approval
-            # (which compares against `project_batch`) catches it up.
-            pass
+            # stand. Review B2: the failure is journaled, and collect refuses
+            # while any projection differs from the event log, so a stale
+            # file is never published. A retry (a duplicate) re-projects.
+            _journal_projection_failure(ws, project, exc)
     return results
+
+
+def _journal_projection_failure(ws: Path, events: list[dict[str, Any]], exc: Exception) -> None:
+    try:
+        append_event(
+            ws,
+            PROJECTION_FAILED_ACTION,
+            f"Stored {len(events)} decision event(s); their decisions file could not be rewritten "
+            "(collect refuses until it is)",
+            agent="scholar-harness/screening-events",
+            parameters={"first_event_id": events[0]["event_id"], "error": type(exc).__name__},
+            metrics={"events": len(events)},
+            refresh_index=False,
+        )
+    except OSError:
+        pass  # the collect gate below still refuses the stale file
+
+
+def projection_is_current(workspace: Path, batch_index: int, path: Path) -> bool:
+    """True when `path` holds exactly what the event log projects for the batch."""
+    try:
+        final = path.read_bytes()
+        payload = json.loads(final)
+        manifest = json.loads((Path(workspace) / "project.json").read_text(encoding="utf-8"))
+        workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
+        projected = project_batch(
+            workspace, batch_index, str(payload.get("reviewed_by") or ""), workspace_id=workspace_id
+        )
+    except (KeyError, OSError, ValueError, AttributeError):
+        return False
+    return final.replace(b"\r\n", b"\n") == projected
+
+
+def stale_projections(workspace: Path) -> list[int]:
+    """Batches whose decisions file claims the event log but no longer matches it."""
+    directory = Path(workspace) / "literature" / "screening"
+    stale = []
+    for path in sorted(directory.glob("batch_[0-9][0-9][0-9]_decisions.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not (isinstance(payload, dict) and payload.get("source") == "decision-events"):
+            continue
+        index = int(path.name[6:9])
+        if not projection_is_current(workspace, index, path):
+            stale.append(index)
+    return stale
 
 
 def _commit(

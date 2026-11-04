@@ -111,3 +111,9 @@ Second pass: **CHANGES** (finding 3 fixed only in the projection; the finding 7 
 | B | The lock-timeout `except OSError` also caught a projection failure after commit, so a stored event was reported refused and a retry left the projection stale | only `LockBusy` (the lock not taken) is `ATOMIC_COMMIT_FAILED`; a projection failure leaves the results as stored; duplicates re-project | `test_review_b_a_projection_failure_after_commit_keeps_the_event_accepted`, `test_review_b_a_lock_timeout_is_atomic_commit_failed_and_stores_nothing` |
 | C | The reveal-tracking deferral lived only in M1a.md | added to the plan §6 M1b row (RELEASE for that change); `false` documented as "not tracked" | — |
 | follow-up | `project.json` was read outside the try in `_reviewed_bytes` | read inside it, so a missing manifest falls back to the worker step | — |
+
+Third pass: **CHANGES** (B2: the B fix swallowed a projection failure, so after an approval a stale decisions file could be published). Fixed in the next commit:
+
+| # | Finding | Fix | Test |
+| :-- | :-- | :-- | :-- |
+| B2 | A projection failure after commit was silent; after a batch approval, collect published the older file because the staged review still matched its bytes | the failure is journaled (`SCREENING_PROJECTION_FAILED`); `collect` refuses `PROJECTION_STALE` while any `decision-events` file differs from `project_batch` (the event log is the authority); `projection_is_current` is the one comparison, shared with the approval path | `test_review_b2_a_failed_projection_after_approval_blocks_collect` |

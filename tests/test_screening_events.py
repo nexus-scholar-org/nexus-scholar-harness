@@ -486,3 +486,32 @@ def test_review_7_a_non_os_journal_failure_also_rolls_back(ws, monkeypatch):
     results = ev.intake(ws, [_event(ws, _studies(ws)[0])], token_scope="desktop", received_at="2026-11-04T10:00:05Z")
     assert results[0].refusal["code"] == "ATOMIC_COMMIT_FAILED"
     assert ev.read_events(ws) == []
+
+
+def test_review_b2_a_failed_projection_after_approval_blocks_collect(tmp_path):
+    """A stored decision whose file rewrite failed is journaled, and collect
+    refuses rather than publish the older, still-approved file."""
+    import json as _json
+
+    from scholar_harness.authority.review import approve_command
+    from scholar_harness.screening.collector import cmd_collect
+
+    ws = _build(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+    study = _studies(ws)[0]
+    head = next(e for e in ev.read_events(ws) if e["study_id"] == study)
+    change = _event(ws, study, "EXCLUDE", supersedes=head["event_id"], decided_at="2026-11-04T13:00:00.000Z")
+
+    def held_open(_stored):
+        raise PermissionError("decisions file held open")
+
+    results = ev.intake(ws, [change], token_scope="desktop", received_at="2026-11-04T13:00:05Z", after_commit=held_open)
+    assert results[0].result == "accepted"
+    rows = [_json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert rows[-1]["action"] == "SCREENING_PROJECTION_FAILED"
+    assert ev.stale_projections(ws) == [1]
+    with pytest.raises(RuntimeError, match="PROJECTION_STALE"):
+        cmd_collect(ws)
+    assert not (ws / "literature" / "included.json").exists()

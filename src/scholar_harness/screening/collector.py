@@ -268,6 +268,19 @@ def cmd_collect(workspace_dir: Path) -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     raw_verified: list[dict] = json.loads(verified_path.read_text(encoding="utf-8"))
 
+    # Review B2: the event log is the authority. A decisions file that claims
+    # it but differs (its rewrite failed after a later decision) would publish
+    # an older decision that the staged review still matches; refuse instead.
+    from scholar_harness.screening import events as decision_events
+
+    stale = decision_events.stale_projections(workspace_dir)
+    if stale:
+        raise RuntimeError(
+            "screening collection blocked (PROJECTION_STALE): batch(es) "
+            f"{', '.join(f'{i:03d}' for i in stale)} differ from the decision events; "
+            "re-submit the last decision or re-open the batch so its file is rewritten"
+        )
+
     registry_path = workspace_dir / "audit" / "artifact_registry.json"
     registry = (
         json.loads(registry_path.read_text(encoding="utf-8"))
