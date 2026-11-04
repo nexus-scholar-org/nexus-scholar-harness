@@ -17,7 +17,7 @@ Assessment findings (phase-auditor first, reproducing test before the fix)
 - [x] **CON-11**: no missing decision becomes INCLUDE; no fabricated confidence, method or 1970 time; the console writer stamps `method: HUMAN`, `screener_id` and `decided_at` on every row.
 - [ ] **CON-13** (guarded outside the Contract v1 lock, researcher 2026-11-04): the harness refuses to submit a `screening_decisions` artifact that does not have exactly one `screening_batch` parent, before calling the frozen acceptance gate. The gap in `contracts/acceptance.py` and `chain.py` stays recorded for Contract v1.1.
 - [ ] **CON-14/15**: the dual path runs the unresolved, coverage and duplicate gates; its artifact id derives from decision ids.
-- [ ] **CON-02/03** (plan §1.2 fix): approval covers exactly one batch generation and never seals another batch's bytes; the approver is recorded as an unauthenticated local attestation, not an identity. Authentication waits for the sync tier.
+- [x] **CON-02/03** (plan §1.2 fix): approval covers exactly one batch generation and never seals another batch's bytes; the approver is recorded as an unauthenticated local attestation, not an identity. Authentication waits for the sync tier.
 - [ ] **SRCH-16/17/35**: no imputed votes; uncertainty goes to the human; `ScreeningDecision` records method, model and prompt hash.
 - [ ] **AGT-16/18/19**: MCP screening writes proposals only; κ refuses fewer than two raters; state-changing MCP tools journal.
 
@@ -38,7 +38,7 @@ Screening API (contract §4, M1a rows)
 - [x] `GET /summary`, `GET /queue`, `GET /records/{id}`, `GET /records/{id}/proposal` (`PROPOSAL_HIDDEN`, contract test 4).
 - [x] `POST /decisions/events` (≤ 200), `GET /decisions/conflicts`, `POST /decisions/conflicts/{id}/resolve`.
 - [x] `GET`/`PUT /settings`, `POST /prepare` (`SNAPSHOT_NOT_ACCEPTED`), `GET /prisma/preview`.
-- [ ] `POST /actions/pairing/begin` reaching a staged challenge from event-projected decisions (today it refuses typed `WORKER_BATCH_MISSING`; joined with CON-02/03 and the end-to-end item).
+- [x] `POST /actions/pairing/begin` reaches a staged challenge for an event-decided batch, with the code printed on the console terminal only (decision 2026-11-04).
 - [x] **Token scopes**: a phone-scoped token is refused on prepare, proposal runs and publish (`TOKEN_SCOPE_REFUSED`, contract test 7).
 - [x] **Refusal codes**: the proposed codes in contract §7 form the console refusal set (`console/refusals.py`), kept in step with the contract by `tests/console/test_console_refusals.py`. The agent-role registry (`Envelope@1`) is a different vocabulary and is unchanged.
 - [ ] **Shared fixtures** `tests/fixtures/screening_api/*.json` and `tests/console/test_screening_api_contract.py`.
@@ -52,6 +52,8 @@ End to end
 | :-- | :-- | :-- | :-- |
 | CON-11 | `tests/test_screening_decision_integrity.py::test_missing_provenance_refuses_instead_of_defaulting` (no decision, no method, epoch time, no reason) | 4 failed: defaulted to INCLUDE/LLM/1970/"Agent screened." | pass |
 | Unclear | `test_maybe_passes_finalize_as_unclear_to_full_text` | refused `UNRESOLVED_FINALIZE_REFUSED` | pass |
+| CON-03 | `tests/test_screening_events.py::test_con03_one_batch_approval_never_seals_another_batch`, `::test_con03_a_changed_batch_needs_a_fresh_approval` | approving batch 1 staged a corpus-wide publication approval | publication staged only when every batch is currently approved |
+| CON-02 | `::test_event_decided_batch_approves_without_a_worker_recommendation` | approver recorded as an identity | `identity_basis: unauthenticated-local-attestation` on every review and result |
 
 ## Decisions
 - [Approval: terminal-only code; event-decided batches need no worker step](../../decisions.md) (2026-11-04)

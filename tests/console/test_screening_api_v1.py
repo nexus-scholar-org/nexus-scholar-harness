@@ -248,12 +248,9 @@ def test_pairing_begin_needs_an_operator_context(client):
     assert response.json()["detail"]["code"] == "OPERATOR_CONTEXT_MISSING"
 
 
-def test_pairing_begin_returns_typed_refusals_and_never_a_code(client, ws, capsys):
-    """Until events feed the approval pipeline (M1a end-to-end item), begin refuses typed.
-
-    The pairing step still expects a worker recommendation per batch; the
-    refusal must be a typed 409, and no code may appear anywhere in the reply.
-    """
+def test_pairing_begin_for_an_event_batch_keeps_the_code_on_the_terminal(client, ws, capsys):
+    """Decision 2026-11-04: an event-decided batch needs no worker step, and the
+    approval code is printed on the console's terminal, never returned."""
     (ws / "literature" / "screening" / "operator_context.json").write_text(
         json.dumps({"schema": "harness-operator-context-v1", "operator_identity": "researcher@example"}),
         encoding="utf-8",
@@ -261,9 +258,11 @@ def test_pairing_begin_returns_typed_refusals_and_never_a_code(client, ws, capsy
     studies = _studies(client)
     _post(client, [_event(client, s) for s in studies])
     response = client.post(f"{BASE}/actions/pairing/begin", json={"batch": 1})
-    assert response.status_code == 409
-    assert response.json()["detail"]["code"] == "WORKER_BATCH_MISSING"
-    assert "approval code" not in capsys.readouterr().out
+    assert response.status_code == 200, response.text
+    assert response.json()["code_shown_on"] == "terminal"
+    printed = capsys.readouterr().out
+    code = printed.split("approval code for batch 1: ")[1].split()[0]
+    assert code and code not in response.text
 
 
 @pytest.mark.parametrize(

@@ -31,6 +31,10 @@ SCREENER = "researcher:local-1"
 
 @pytest.fixture
 def ws(tmp_path) -> Path:
+    return _build(tmp_path)
+
+
+def _build(tmp_path: Path, *, batch_size: int = 20) -> Path:
     workspace = tmp_path / "ws"
     workspace.mkdir()
     (workspace / "project.json").write_text(
@@ -76,7 +80,7 @@ def ws(tmp_path) -> Path:
         encoding="utf-8",
     )
     (workspace / "audit" / "journal.jsonl").touch()
-    cmd_prepare(workspace, batch_size=20)
+    cmd_prepare(workspace, batch_size=batch_size)
     return workspace
 
 
@@ -356,3 +360,76 @@ def _stage_approval(ws: Path) -> None:
     write_publication_approval(
         ws / "literature" / "screening", record, staged_at="2026-11-04T11:00:00+00:00"
     )
+
+
+# --- approval (CON-02/03, decision 2026-11-04) --------------------------------
+
+
+def _operator(ws: Path) -> None:
+    (ws / "literature" / "screening" / "operator_context.json").write_text(
+        json.dumps({"schema": "harness-operator-context-v1", "operator_identity": "researcher@example"}),
+        encoding="utf-8",
+    )
+
+
+def _decide_all(ws: Path, outcome: str = "INCLUDE") -> None:
+    _intake(ws, [_event(ws, s, outcome) for s in _studies(ws)])
+    for index in ev.load_context(ws).batches:
+        ev.write_projection(ws, index, SCREENER, workspace_id=WS_ID)
+
+
+def test_event_decided_batch_approves_without_a_worker_recommendation(ws):
+    from scholar_harness.authority.review import approve_command
+
+    _operator(ws)
+    _decide_all(ws)
+    result = approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+    assert result["superseded"] is False
+    review = json.loads(Path(result["review_path"]).read_text(encoding="utf-8"))
+    assert review["source"] == "decision-events"
+    assert review["identity_basis"] == "unauthenticated-local-attestation"
+    assert result["publication_staged"] is True
+    cmd_collect(ws)  # the staged approval publishes
+    assert (ws / "literature" / "included.json").is_file()
+
+
+def test_con03_one_batch_approval_never_seals_another_batch(tmp_path):
+    from scholar_harness.authority.review import approve_command
+
+    ws = _two_batch_workspace(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    first = approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+    assert first["publication_staged"] is False
+    assert first["publication_pending_batches"] == [2]
+    assert not (ws / "literature" / "screening" / "publication_approval.json").exists()
+    with pytest.raises(RuntimeError):
+        cmd_collect(ws)  # APPROVAL_MISSING: batch 2 was never approved
+    second = approve_command(ws, 2, approved_at="2026-11-04T12:05:00+00:00")
+    assert second["publication_staged"] is True
+    cmd_collect(ws)
+    assert (ws / "literature" / "included.json").is_file()
+
+
+def test_con03_a_changed_batch_needs_a_fresh_approval(tmp_path):
+    from scholar_harness.authority.review import approve_command
+
+    ws = _two_batch_workspace(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+    # The researcher changes a batch-1 decision after approving it.
+    study = ev.load_context(ws).batches[1].candidates[0]
+    head = ev.winning_event(ev.read_events(ws), study, SCREENER)
+    _intake(ws, [_event(ws, study, "MAYBE", supersedes=head["event_id"], decided_at="2026-11-04T12:01:00.000Z")])
+    ev.write_projection(ws, 1, SCREENER, workspace_id=WS_ID)
+    second = approve_command(ws, 2, approved_at="2026-11-04T12:05:00+00:00")
+    assert second["publication_staged"] is False
+    assert second["publication_pending_batches"] == [1]
+
+
+def _two_batch_workspace(tmp_path: Path) -> Path:
+    """Three studies prepared as two batches (2 + 1)."""
+    workspace = _build(tmp_path, batch_size=2)
+    assert sorted(ev.load_context(workspace).batches) == [1, 2]
+    return workspace
