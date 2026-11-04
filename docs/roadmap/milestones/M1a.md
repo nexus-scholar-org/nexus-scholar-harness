@@ -79,6 +79,7 @@ End to end
 | pr | be447ba | selector `--changed origin/main --stage pr` (areas screening, authority, console, search, agent-mcp): `git diff --check`; `ruff check scripts/`; `sync_skills_bundle.py --check`; contract `--check`; `generate_screening_api_fixtures.py --check`; `uv run pytest -n auto` (full suite once) | clean; clean; 13 OK; baseline current; 19 current; 4193 passed, 14 skipped | 323 s |
 | pr (after review) | ae8795d | same selection and commands | clean; clean; 13 OK; baseline current; 19 current; 4203 passed, 14 skipped | 357 s |
 | pr (after second review) | 63b3170 | same selection and commands | clean; clean; 13 OK; baseline current; 19 current; 4206 passed, 14 skipped | 338 s |
+| pr (after third review) | 5f7c4f3 | same selection and commands | clean; clean; 13 OK; baseline current; 19 current; 4207 passed, 14 skipped | 332 s |
 
 ## Raised for the researcher
 - ~~Approval code over HTTP~~ and ~~approval from events~~: decided 2026-11-04 (see Decisions).
