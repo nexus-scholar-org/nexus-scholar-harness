@@ -232,6 +232,24 @@ def _refuse_single_batch(
         missing_batches.append(batch_index)
 
 
+def require_single_batch_parent(envelope: dict) -> None:
+    """Refuse a decisions artifact without exactly one batch parent (CON-13).
+
+    The frozen acceptance gate (``contracts/acceptance.py``, ``chain.py``) runs
+    its batch-id, binding and membership checks only when there is exactly one
+    ``screening_batch`` parent, and those files are locked by the Contract v1
+    baseline. The harness therefore checks this before every submission
+    (decision 2026-11-04). A caller that bypasses the harness is not covered;
+    that gap is recorded for Contract v1.1.
+    """
+    parents = envelope.get("inputs") or []
+    if len(parents) != 1:
+        raise RuntimeError(
+            "screening collection blocked: a screening_decisions artifact needs "
+            f"exactly one screening_batch parent, got {len(parents)}"
+        )
+
+
 def cmd_collect(workspace_dir: Path) -> None:
     """Assemble all decision files into the final screening outputs."""
     screening_dir = _screening_dir(workspace_dir)
@@ -336,7 +354,9 @@ def cmd_collect(workspace_dir: Path) -> None:
     screener2_files = sorted(screening_dir.glob("batch_*_decisions_screener2.json"))
     adj_files = sorted(screening_dir.glob("_adjudication_resolved_group_*.json"))
 
-    if screener2_files and adj_files:
+    # CON-10: a second screener's file alone starts dual mode. Agreements need
+    # no adjudication; every disagreement still does (refused below).
+    if screener2_files:
         if corpus_env is None:
             raise RuntimeError(
                 "dual screening blocked: no accepted corpus snapshot is available"
@@ -420,6 +440,23 @@ def cmd_collect(workspace_dir: Path) -> None:
                 "refusing collection"
             )
 
+        def _dual_integrity(batch_idx: int, entries: list[dict], *, label: str) -> None:
+            """CON-14: the single path's gates, for each screener's file.
+
+            Exact coverage (no missing, extra or duplicate study) and no
+            CONFLICT row. MAYBE is terminal ("Unclear → full text").
+            """
+            canonical = [{**entry, "workspace_id": _canonical_wid(entry)} for entry in entries]
+            try:
+                check_exact_coverage(_batch_candidate_ids(batch_idx), canonical)
+                check_no_unresolved_for_finalize(canonical)
+            except ScreeningIntegrityRefused as refusal:
+                missing_batches.append(batch_idx)
+                raise RuntimeError(
+                    f"dual screening blocked: batch {batch_idx} {label} decisions "
+                    f"refused ({refusal.code}: {refusal.message})"
+                ) from refusal
+
         # Load Screener 1 decisions
         s1_map: dict[str, dict] = {}
         for b in manifest["batches"]:
@@ -431,6 +468,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                 except Exception:
                     continue
                 _check_batch_membership(idx, s1_entries, label="screener 1")
+                _dual_integrity(idx, s1_entries, label="screener 1")
                 for r in s1_entries:
                     s1_map[_canonical_wid(r)] = r
 
@@ -446,6 +484,7 @@ def cmd_collect(workspace_dir: Path) -> None:
             except Exception:
                 continue
             _check_batch_membership(idx, s2_entries, label="screener 2")
+            _dual_integrity(idx, s2_entries, label="screener 2")
             for r in s2_entries:
                 s2_map[_canonical_wid(r)] = r
 
@@ -566,7 +605,9 @@ def cmd_collect(workspace_dir: Path) -> None:
             ]
             decision = final_contract.decision.value
             final_source = a_entry if is_disputed else s2_entry
-            conf = float(final_source.get("confidence", 0.8))
+            # CON-11: no invented confidence.
+            raw_conf = final_source.get("confidence")
+            conf = None if raw_conf is None else float(raw_conf)
             matched = list(final_source.get("matched_inclusion_criteria") or [])
             violated = list(final_source.get("violated_exclusion_criteria") or [])
             rqs = list(final_source.get("relevant_rqs") or [])
@@ -632,6 +673,8 @@ def cmd_collect(workspace_dir: Path) -> None:
                     {
                         "kind": "screening-decisions-artifact",
                         "batch_id": batch_env["data"]["batch_id"],
+                        # CON-15: different decisions give a different id.
+                        "decision_ids": [item.decision_id for item in contract_decisions],
                     },
                 )
 
@@ -666,6 +709,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
 
+                require_single_batch_parent(dec_env)
                 res = accept_artifact(
                     workspace_dir,
                     dec_env,
@@ -1025,6 +1069,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
 
+                require_single_batch_parent(dec_env)
                 res = accept_artifact(
                     workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect"
                 )

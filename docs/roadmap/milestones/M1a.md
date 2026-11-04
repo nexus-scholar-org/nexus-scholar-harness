@@ -13,10 +13,10 @@ Carried over from M0
 - [x] **M0 CI matrix result** recorded in `M0.md` (PR #185: 12/12 green after re-running two macOS jobs that never got a runner).
 
 Assessment findings (phase-auditor first, reproducing test before the fix)
-- [ ] **CON-10**: dual mode starts on any `*_screener2.json`; unadjudicated disagreement refused.
+- [x] **CON-10**: dual mode starts on any `*_screener2.json`; unadjudicated disagreement refused.
 - [x] **CON-11**: no missing decision becomes INCLUDE; no fabricated confidence, method or 1970 time; the console writer stamps `method: HUMAN`, `screener_id` and `decided_at` on every row.
-- [ ] **CON-13** (guarded outside the Contract v1 lock, researcher 2026-11-04): the harness refuses to submit a `screening_decisions` artifact that does not have exactly one `screening_batch` parent, before calling the frozen acceptance gate. The gap in `contracts/acceptance.py` and `chain.py` stays recorded for Contract v1.1.
-- [ ] **CON-14/15**: the dual path runs the unresolved, coverage and duplicate gates; its artifact id derives from decision ids.
+- [x] **CON-13** (guarded outside the Contract v1 lock, researcher 2026-11-04): the harness refuses to submit a `screening_decisions` artifact that does not have exactly one `screening_batch` parent, before calling the frozen acceptance gate. The gap in `contracts/acceptance.py` and `chain.py` stays recorded for Contract v1.1.
+- [x] **CON-14/15**: the dual path runs the unresolved, coverage and duplicate gates; its artifact id derives from decision ids.
 - [x] **CON-02/03** (plan §1.2 fix): approval covers exactly one batch generation and never seals another batch's bytes; the approver is recorded as an unauthenticated local attestation, not an identity. Authentication waits for the sync tier.
 - [ ] **SRCH-16/17/35**: no imputed votes; uncertainty goes to the human; `ScreeningDecision` records method, model and prompt hash.
 - [ ] **AGT-16/18/19**: MCP screening writes proposals only; κ refuses fewer than two raters; state-changing MCP tools journal.
@@ -54,6 +54,10 @@ End to end
 | Unclear | `test_maybe_passes_finalize_as_unclear_to_full_text` | refused `UNRESOLVED_FINALIZE_REFUSED` | pass |
 | CON-03 | `tests/test_screening_events.py::test_con03_one_batch_approval_never_seals_another_batch`, `::test_con03_a_changed_batch_needs_a_fresh_approval` | approving batch 1 staged a corpus-wide publication approval | publication staged only when every batch is currently approved |
 | CON-02 | `::test_event_decided_batch_approves_without_a_worker_recommendation` | approver recorded as an identity | `identity_basis: unauthenticated-local-attestation` on every review and result |
+| CON-10 | `tests/test_screening_decision_integrity.py::test_con10_a_second_screener_starts_dual_mode_without_an_adjudication_file`, `::test_con10_a_disagreement_without_adjudication_refuses` | screener 2 ignored without an adjudication file | dual mode; disagreement refused |
+| CON-13 (guard) | `::test_con13_a_decisions_artifact_needs_exactly_one_batch_parent`, `::test_con13_every_decisions_submission_goes_through_the_guard` | no harness check | refused before the frozen gate |
+| CON-14 | `::test_con14_a_dual_conflict_is_never_finalized`, `::test_con14_dual_duplicate_rows_refuse`, `::test_con14_both_unclear_is_an_agreement_forwarded_to_full_text` | dual path skipped the gates | coverage, duplicate and CONFLICT gates per screener |
+| CON-15 | `::test_con15_dual_artifact_id_depends_on_the_decisions` | id from batch_id alone | id includes the decision ids |
 
 ## Decisions
 - [Approval: terminal-only code; event-decided batches need no worker step](../../decisions.md) (2026-11-04)

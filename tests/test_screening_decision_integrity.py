@@ -832,3 +832,129 @@ def test_no_authorization_concept_in_new_code() -> None:
         elif isinstance(node, ast.ImportFrom):
             imported.add((node.module or "").split(".")[0])
     assert imported <= {"__future__", "hashlib", "typing"}, imported
+
+
+# --- M1a: dual screening (CON-10, CON-13, CON-14/15) --------------------------
+
+
+def _dual_files(
+    workspace: Path,
+    studies: list[dict],
+    s1: list[str],
+    s2: list[str],
+    *,
+    s2_extra: list[dict] | None = None,
+) -> None:
+    screening = workspace / "literature" / "screening"
+
+    def rows(values: list[str], screener: str) -> list[dict]:
+        return [
+            {
+                "workspace_id": study["study_id"],
+                "decision": value,
+                "method": "HUMAN",
+                "screening_reasoning": f"{value} by {screener}.",
+                "decision_id": f"SCR-{screener}-{i}",
+                "screener_id": screener,
+                "decided_at": "2026-11-04T12:00:00Z",
+            }
+            for i, (study, value) in enumerate(zip(studies, values))
+        ]
+
+    (screening / "batch_001_decisions.json").write_text(json.dumps(rows(s1, "reviewer-1")), encoding="utf-8")
+    (screening / "batch_001_decisions_screener2.json").write_text(
+        json.dumps(rows(s2, "reviewer-2") + (s2_extra or [])), encoding="utf-8"
+    )
+
+
+def test_con10_a_second_screener_starts_dual_mode_without_an_adjudication_file(tmp_path: Path) -> None:
+    """CON-10: screener 2 was ignored unless an adjudication file existed."""
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "EXCLUDE"], ["INCLUDE", "EXCLUDE"])
+    _stage_approval_for_collected(workspace)
+    cmd_collect(workspace)
+    decisions = _decision_artifacts(workspace)[0][2]["data"]["decisions"]
+    assert {d["screener_id"] for d in decisions} >= {"reviewer-1", "reviewer-2", "dual-consensus"}
+
+
+def test_con10_a_disagreement_without_adjudication_refuses(tmp_path: Path) -> None:
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "EXCLUDE"], ["INCLUDE", "INCLUDE"])
+    with pytest.raises(RuntimeError, match="disagreement requires adjudication"):
+        cmd_collect(workspace)
+    for name in PARTITION_FILES:
+        assert not (workspace / "literature" / name).exists()
+
+
+def test_con14_a_dual_conflict_is_never_finalized(tmp_path: Path) -> None:
+    """CON-14: the dual path skipped the unresolved gate entirely."""
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "CONFLICT"], ["INCLUDE", "CONFLICT"])
+    with pytest.raises(RuntimeError, match="UNRESOLVED_FINALIZE_REFUSED"):
+        cmd_collect(workspace)
+    assert _decision_artifacts(workspace) == []
+
+
+def test_con14_both_unclear_is_an_agreement_forwarded_to_full_text(tmp_path: Path) -> None:
+    """Decision 2026-11-04: MAYBE/MAYBE is two screeners saying "full text"."""
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "MAYBE"], ["INCLUDE", "MAYBE"])
+    _stage_approval_for_collected(workspace)
+    cmd_collect(workspace)
+    prisma = json.loads((workspace / "literature" / "prisma_report.json").read_text(encoding="utf-8"))
+    assert prisma["records_unclear"] == 1
+
+
+def test_con14_dual_duplicate_rows_refuse(tmp_path: Path) -> None:
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    duplicate = {
+        "workspace_id": studies[0]["study_id"],
+        "decision": "EXCLUDE",
+        "method": "HUMAN",
+        "screening_reasoning": "late second opinion",
+        "decision_id": "SCR-reviewer-2-dup",
+        "screener_id": "reviewer-2",
+        "decided_at": "2026-11-04T12:05:00Z",
+    }
+    _dual_files(workspace, studies, ["INCLUDE", "EXCLUDE"], ["INCLUDE", "EXCLUDE"], s2_extra=[duplicate])
+    with pytest.raises(RuntimeError, match="DUPLICATE_ENTRY"):
+        cmd_collect(workspace)
+
+
+def test_con15_dual_artifact_id_depends_on_the_decisions(tmp_path: Path) -> None:
+    """CON-15: the dual artifact id came from batch_id alone."""
+    ids = []
+    for tag, value in (("a", "INCLUDE"), ("b", "EXCLUDE")):
+        workspace, studies = _workspace(tmp_path, n_docs=1, tag=tag)
+        cmd_prepare(workspace, batch_size=20)
+        _dual_files(workspace, studies, [value], [value])
+        _stage_approval_for_collected(workspace)
+        cmd_collect(workspace)
+        ids.append(_decision_artifacts(workspace)[0][0])
+    assert ids[0] != ids[1]
+
+
+@pytest.mark.parametrize("parents", [0, 2])
+def test_con13_a_decisions_artifact_needs_exactly_one_batch_parent(parents: int) -> None:
+    """CON-13, guarded outside the Contract v1 lock (decision 2026-11-04)."""
+    from scholar_harness.screening.collector import require_single_batch_parent
+
+    envelope = {
+        "artifact_type": "screening_decisions",
+        "inputs": [{"artifact_id": f"ART-{i}", "sha256": "sha256:" + "0" * 64} for i in range(parents)],
+    }
+    with pytest.raises(RuntimeError, match="exactly one screening_batch parent"):
+        require_single_batch_parent(envelope)
+    require_single_batch_parent({**envelope, "inputs": envelope["inputs"][:1] or [{"artifact_id": "ART-0"}]})
+
+
+def test_con13_every_decisions_submission_goes_through_the_guard() -> None:
+    source = (SRC_ROOT / "collector.py").read_text(encoding="utf-8")
+    submissions = source.count("accept_artifact(")
+    guarded = source.count("require_single_batch_parent(dec_env)")
+    assert submissions >= 2 and guarded == submissions
