@@ -105,6 +105,7 @@ def test_nexus_dedup_and_screen(tmp_path, sample_intent_json):
     assert (lit_dir / "prisma_screening_report.md").exists()
 
 
+@pytest.mark.slow
 def test_nexus_rag_and_matrix_tools(tmp_path, sample_intent_json):
     # The typed index service is imported here, not at module scope: this test
     # states a version floor on scholar-rag-kit (the T-90 index service), and a

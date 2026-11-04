@@ -12,6 +12,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 SKILL_SCRIPT = (
     Path(".agents/skills/inception-agent/scripts/grounded_directions.py").resolve()
 )
@@ -51,6 +53,7 @@ def _run(tmp_path: Path, *args: str) -> subprocess.CompletedProcess:
     )
 
 
+@pytest.mark.slow
 def test_helper_returns_wizard_directions(tmp_path):
     terms = _write(tmp_path, "terms.json", TERMS_FIXTURE)
     result = _run(
@@ -69,6 +72,7 @@ def test_helper_returns_wizard_directions(tmp_path):
     assert out["qei_note"].startswith("PASS")
 
 
+@pytest.mark.slow
 def test_helper_emits_recon_context_for_validated_direction(tmp_path):
     terms = _write(tmp_path, "terms.json", TERMS_FIXTURE)
     pool = _write(tmp_path, "pool.json", POOL_FIXTURE)
@@ -98,6 +102,7 @@ def test_helper_emits_recon_context_for_validated_direction(tmp_path):
     assert recon["anchored_terms"]["edge inference"][:2] == ["10.1/a", "10.1/b"]
 
 
+@pytest.mark.slow
 def test_helper_caps_default_concepts_for_chat_seeding(tmp_path):
     terms = _write(tmp_path, "terms.json", TERMS_FIXTURE)
     result = _run(
@@ -118,6 +123,7 @@ def test_helper_caps_default_concepts_for_chat_seeding(tmp_path):
     assert recon["anchor_dois"] == ["10.1/a", "10.1/b"]
 
 
+@pytest.mark.slow
 def test_helper_rejects_unknown_direction(tmp_path):
     terms = _write(tmp_path, "terms.json", TERMS_FIXTURE)
     result = _run(
@@ -133,6 +139,7 @@ def test_helper_rejects_unknown_direction(tmp_path):
     assert "error" in json.loads(result.stdout)
 
 
+@pytest.mark.slow
 def test_helper_reports_missing_terms_file(tmp_path):
     result = _run(tmp_path, "--terms", str(tmp_path / "nope.json"), "--topic", "x")
     assert result.returncode == 2

@@ -11,7 +11,7 @@ A harness for systematic literature reviews, shipped as **one package** (`nexus-
 - `uv sync --extra dev` installs everything needed for development: the harness, all eight kits (editable, from `src/`), every CLI (`scholar-harness`, `nexus-scholar`, `scholar-search`, `scholar-pdf`, `scholar-rag`, …) and the test tools. Heavy backends are opt-in extras: `--extra pdf` (PyMuPDF), `--extra rag` (chromadb, sentence-transformers, openai), `--extra extract` (Docling, lxml), `--extra all`. The full test suite needs `--extra dev --extra pdf --extra rag`.
 - **One package, one version.** There are no per-kit repositories, pins or sync steps: change kit code in `src/scholar_<kit>/` like any other code, in one PR. The old kit repos (`nexus-scholar-org/scholar-<name>-kit`) are archived history. `.agents/plugins/nexus-scholar/plugins.json` is only the agent-plugin manifest (kit names and console scripts).
 - **Distribution:** `uv build --wheel` builds the `nexus-scholar` wheel from the root `pyproject.toml` (all nine packages plus the bundled skills). Both entrypoints (`nexus-scholar`, `scholar-agent`) must answer `--help` on the base install without heavy backends; CI smoke is a hard gate. `nexus-scholar init <title>` scaffolds a portable workspace in any folder.
-- **Active work: the WP program (WP-01 delivered; remaining WP open) plus three tracks — HCM (harness core modularity), AG (agent controls), and UI (`apps/research-ui`).** Phase 7 (distribution/portability) is shipped; the operational commands are in `docs/nexus_scholar_user_guide.md`. The inception dev-loop spec (`specs/exploratory-grounding-agent/`) is complete/historical; its agent tasks are all `[x]`.
+- **Active work: the production plan for Phases 0–2 (`docs/roadmap/production-plan.md`, see "Development workflow" below).** Synthesis, matrix, graph and RoB-trust are parked. Phase 7 (distribution/portability) is shipped; the operational commands are in `docs/nexus_scholar_user_guide.md`. The inception dev-loop spec (`specs/exploratory-grounding-agent/`) is complete/historical; its agent tasks are all `[x]`.
 - Run everything through the project venv with `uv run ...`. Never rely on a system Python.
 
 ### Contract v1 baseline (hard gate)
@@ -39,24 +39,16 @@ A harness for systematic literature reviews, shipped as **one package** (`nexus-
 Each domain has an SKILL.md under `.agents/skills/<kit>/SKILL.md` (scholar-search-kit, scholar-pdf-kit, scholar-bib-kit, scholar-rag-kit, scholar-graph-kit, scholar-protocol-kit, scholar-agent-kit, scholar-verify-kit, methodology-copilot, workspace-manager, inception-agent). Load the relevant skill before working in that domain — they document the exact CLIs and data formats (e.g. YAML-frontmatter Markdown for extracted fulltext, the audit event schema). The verified API↔CLI↔MCP map, known-broken tooling, and cross-kit contracts live in `docs/kits_surface_matrix.md` (read it before driving kit CLIs/MCP tools). The MCP server entrypoint for the agent kit is `.agents/plugins/nexus-scholar/mcp_config.json`. `inception-agent` runs the Grounded Exploratory Inception Agent interactively in chat, reusing the MCP `recon_*` tools and `.agents/skills/inception-agent/scripts/grounded_directions.py` (imports the real wizard functions for direction parity).
 - Scope repository searches to `src/<package>` or `tests/`, never recursively from the repo root (`.venv/`, `apps/research-ui/node_modules/` flood results).
 
-## Autonomous Agent Architecture
+## Development workflow (Claude Code)
 
-The Nexus Scholar dev loop uses four specialized agents that operate fully autonomously:
+Current mission: [`docs/roadmap/production-plan.md`](docs/roadmap/production-plan.md) — Phases 0–2 to production, milestones M0–M5, screening first. Decisions are in `docs/decisions.md`. The quality gate is the golden UAV workspace run, not an autonomous agent loop.
 
-| Agent | Role | Permissions |
-|-------|------|-------------|
-| **orchestrator** | Phase manager: reads execution plans, dispatches tasks, manages git branches, runs critic loops | Full (git, tests, merge) |
-| **coder** | Implements tasks: follows execution plan checklists, runs targeted tests, self-reviews via critic loop | Full (edit, test, lint) |
-| **tester** | QA verification: runs targeted tests during dev, full suite at phase completion | Full (read, test, report) |
-| **reviewer** | Spec compliance: verifies DoD, conventions; provides APPROVE/CHANGES/BLOCKED | Full (read, report) |
-
-**Autonomous mode:** All agents have `permission: allow` — no human approval required. Execute the full workflow without pausing.
-
-**Testing strategy:** Follow `docs/architecture/test_gate_policy.md`: `inner` targeted tests, `checkpoint` boundary tests, `pr` full owning-repo suite once, and `closure` full harness/CI matrix. Do not rerun a full suite after a documentation-only repair when recorded evidence remains valid.
-
-**Git workflow:** `main` (production) → `staging/phase-{X}` (phase integration) → `dev/phase-{X}/task-{N}` (active development).
-
-**Critic loop:** Before marking a task DONE, the coder runs an internal self-review checklist (spec compliance, code quality, kit discipline, test quality). If any check fails, the task loops back with fixes.
+- **Slash commands** (`.claude/skills/`): `/milestone <M>` starts or resumes a milestone (branch from `main`, lane, `docs/roadmap/milestones/<M>.md` with DoD and evidence); `/gate [inner|checkpoint|pr]` runs only the tests selected for what changed; `/ship <M>` runs the PR gate once, the independent review, then fork + PR.
+- **Subagents** (`.claude/agents/`): `phase-auditor` (read-only; re-verifies a finding and names its reproducing test), `test-gatekeeper` (runs a gate, returns evidence), `milestone-reviewer` (independent APPROVE/CHANGES/BLOCKED against the milestone DoD), `ux-spec-writer` (writes `docs/ux/<phase>/final/` specs only).
+- The researcher approves each milestone start, every contract decision, and every push/PR. Design decisions stay in the main session.
+- **Testing:** `uv run python scripts/select_test_gate.py --changed main --stage <stage>` selects by source area (`areas` in `docs/architecture/test_gate_manifest.json`). `inner` skips `@pytest.mark.slow`; `pr` runs the full suite once in parallel (`-n auto`). Never run the full suite after every small edit.
+- **Git:** `main` → `dev/<m>/<slug>` per milestone, one PR per milestone through the fork.
+- The OpenCode dev roles (`.opencode/agent/{orchestrator,coder,tester,reviewer}.md`, generated from `roles/`) are legacy and baseline-locked: do not edit them or use them as the gate. The research roles in `roles/` (screener, adjudicator, extractors, critics) are product behaviour, not dev tooling.
 
 ## Style / workflow notes
 - Do not re-derive kit internals in harness code; call the kit CLIs / import their APIs (e.g. `scholar_search.dedup.Deduplicator`, `scholar_rag.indexer.ScholarIndexer`) as `orchestrator.py` does.

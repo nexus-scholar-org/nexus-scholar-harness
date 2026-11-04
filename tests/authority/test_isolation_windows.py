@@ -247,6 +247,7 @@ attempt("api_record_to_inbox", lambda: (inbox / "api_record.json").write_text(pa
 """
 
 
+@pytest.mark.slow
 def test_low_worker_api_call_cannot_persist_to_publisher_store(
     deployment: tuple[Path, Path],
 ) -> None:

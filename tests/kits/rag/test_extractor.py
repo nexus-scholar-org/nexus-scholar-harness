@@ -70,6 +70,7 @@ def test_calculate_confidence(extractor):
     assert confidence == pytest.approx(0.50, abs=0.01)
 
 
+@pytest.mark.slow
 @pytest.mark.asyncio
 async def test_extract_from_text_heuristic_fallback(extractor):
     """LLM failure triggers heuristic fallback."""

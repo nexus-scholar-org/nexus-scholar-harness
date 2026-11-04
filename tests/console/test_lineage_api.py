@@ -31,6 +31,7 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from scholar_harness.console import create_app
@@ -669,6 +670,7 @@ def _refusal_texts(payload: dict) -> list[str]:
     return texts
 
 
+@pytest.mark.slow
 def test_lineage_never_claims_entailment(tmp_path):
     """A verbatim quote is served as a quote: server-composed refusal and
     error text never claims entailment, support, or proof. Stored bytes

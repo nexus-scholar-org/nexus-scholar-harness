@@ -926,6 +926,7 @@ EXISTING_HELP_FRAGMENTS = {
 }
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("command", sorted(EXISTING_HELP_FRAGMENTS))
 def test_existing_subcommand_help_text_is_unchanged(command: str) -> None:
     """AC-30: the pre-existing subcommands keep their help text."""
@@ -944,6 +945,7 @@ def test_existing_subcommand_help_text_is_unchanged(command: str) -> None:
     assert "validate" not in result.stdout
 
 
+@pytest.mark.slow
 def test_validate_subcommand_is_exposed() -> None:
     """AC-29: the new subcommand is a first-class, re-runnable command."""
     environment = dict(os.environ, COLUMNS="80")
@@ -1122,6 +1124,7 @@ def test_advisory_findings_mark_the_file_debt(tmp_path: Path) -> None:
     assert classification.tier == dc.TIER_DEBT
 
 
+@pytest.mark.slow
 def test_validate_subcommand_exposes_the_decisions_dir_flag() -> None:
     """D6/A4: the CLI exposes the workspace-relative decisions directory."""
     environment = dict(os.environ, COLUMNS="80")
@@ -1267,6 +1270,7 @@ def test_normal_scan_with_debt_is_success(tmp_path: Path) -> None:
     assert rows[-1]["metrics"]["scan_findings"] == []
 
 
+@pytest.mark.slow
 def test_validate_help_pins_the_current_default_report_path() -> None:
     """N1/B3: the --out help names the real default, in full.
 

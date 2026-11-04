@@ -22,6 +22,7 @@ import time
 from pathlib import Path
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 from scholar_harness.console import create_app
@@ -331,6 +332,7 @@ def test_pipeline_job_cancel_cooperative(tmp_path):
     assert journal[-1]["status"] == "PARTIAL"
 
 
+@pytest.mark.slow
 def test_pipeline_job_single_flight(tmp_path):
     ws = _bootstrap(tmp_path)
     app = create_app(ws)
