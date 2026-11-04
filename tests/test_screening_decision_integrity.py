@@ -326,9 +326,13 @@ def test_extra_ids_still_refuse(tmp_path: Path) -> None:
     _assert_fail_closed_fresh(workspace, decisions_path, "COVERAGE_INCOMPLETE")
 
 
-def test_maybe_and_conflict_refuse_finalize(tmp_path: Path) -> None:
-    """AG-C02: MAYBE/CONFLICT rows refuse finalize; nothing is coerced."""
-    for value in ("MAYBE", "CONFLICT"):
+def test_conflict_refuses_finalize(tmp_path: Path) -> None:
+    """AG-C02: CONFLICT rows refuse finalize; nothing is coerced.
+
+    MAYBE ("Unclear → full text") is a terminal outcome since M1a (decision
+    2026-11-04) and has its own test below; CONFLICT stays unresolved.
+    """
+    for value in ("CONFLICT",):
         workspace, studies = _workspace(tmp_path, tag=f"ws-{value.lower()}")
         cmd_prepare(workspace, batch_size=20)
         decisions_path = _write_decisions(
@@ -354,6 +358,67 @@ def test_maybe_and_conflict_refuse_finalize(tmp_path: Path) -> None:
         assert decisions_path.with_name(decisions_path.name + ".rejected").is_file()
         assert _batch_row(workspace)["status"] == "MISSING"
         assert _refusal_rows(workspace, "UNRESOLVED_FINALIZE_REFUSED")
+
+
+def test_maybe_passes_finalize_as_unclear_to_full_text(tmp_path: Path) -> None:
+    """M1a: MAYBE is "Unclear → full text": published, forwarded, counted apart."""
+    workspace, studies = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    _write_decisions(
+        workspace,
+        [
+            _entry(studies[0]["study_id"], "INCLUDE"),
+            _entry(
+                studies[1]["study_id"],
+                "MAYBE",
+                screening_reasoning="Cannot tell from the abstract alone.",
+            ),
+        ],
+    )
+    _stage_approval_for_collected(workspace)
+    cmd_collect(workspace)
+    literature = workspace / "literature"
+    included = json.loads((literature / "included.json").read_text(encoding="utf-8"))
+    excluded = json.loads((literature / "excluded.json").read_text(encoding="utf-8"))
+    prisma = json.loads((literature / "prisma_report.json").read_text(encoding="utf-8"))
+    assert {d["screening"]["decision"] for d in included} == {"INCLUDE", "MAYBE"}
+    assert excluded == []
+    assert prisma["records_included"] == 1
+    assert prisma["records_unclear"] == 1
+    assert prisma["records_excluded"] == 0
+    decisions = _decision_artifacts(workspace)[0][2]["data"]["decisions"]
+    assert sorted(d["decision"] for d in decisions) == ["INCLUDE", "MAYBE"]
+
+
+@pytest.mark.parametrize(
+    ("override", "absent"),
+    [
+        ({}, "decision"),
+        ({}, "method"),
+        ({"decided_at": "1970-01-01T00:00:00+00:00"}, None),
+        ({"screening_reasoning": ""}, None),
+    ],
+    ids=["no-decision", "no-method", "epoch-time", "no-reason"],
+)
+def test_missing_provenance_refuses_instead_of_defaulting(
+    tmp_path: Path, override: dict, absent: str | None
+) -> None:
+    """CON-11: no default INCLUDE, LLM, 1970 time or "Agent screened." reason."""
+    workspace, studies = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    broken = _entry(studies[1]["study_id"], "EXCLUDE", **override)
+    if absent is not None:
+        broken.pop(absent)
+    path = workspace / "literature" / "screening" / "batch_001_decisions.json"
+    payload = {
+        "batch": 1,
+        "reviewed_by": "reviewer-1",
+        "decisions": [_entry(studies[0]["study_id"], "INCLUDE"), broken],
+    }
+    if override.get("decided_at") is None:
+        payload["timestamp"] = STAMP
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    _assert_fail_closed_fresh(workspace, path, "PROVENANCE_MISSING")
 
 
 def test_no_silent_exclusion_regression(tmp_path: Path) -> None:

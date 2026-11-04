@@ -97,7 +97,8 @@ def _finished(tmp_path: Path, decisions: list[dict] | None = None, journal: list
         _event(5, "SCREENING_GENERATION_PUBLISHED"),
     ]
     (ws / "audit" / "journal.jsonl").write_text("".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
-    included = [d for d in decisions if d["decision"] == "INCLUDE"]
+    # As the collector publishes: Unclear (MAYBE) goes forward with the includes.
+    included = [d for d in decisions if d["decision"] in ("INCLUDE", "MAYBE")]
     excluded = [d for d in decisions if d["decision"] == "EXCLUDE"]
     (ws / "literature" / "included.json").write_text(json.dumps(included), encoding="utf-8")
     (ws / "literature" / "excluded.json").write_text(json.dumps(excluded), encoding="utf-8")
@@ -107,7 +108,8 @@ def _finished(tmp_path: Path, decisions: list[dict] | None = None, journal: list
         "duplicates_removed": 1,
         "records_screened": 3,
         "records_excluded": len(excluded),
-        "records_included": len(included),
+        "records_included": sum(1 for d in decisions if d["decision"] == "INCLUDE"),
+        "records_unclear": sum(1 for d in decisions if d["decision"] == "MAYBE"),
         "conflicts_flagged": 0,
         "exclusion_reasons_breakdown": {"WRONG_TASK": len(excluded)},
     }
@@ -238,3 +240,41 @@ def test_the_unscreened_golden_workspace_reports_what_is_missing():
     assert not results["journal"].ok
     assert any("batches prepared" in p for p in results["journal"].problems)
     assert not results["prisma"].ok
+
+
+def test_unclear_is_forwarded_with_the_includes(tmp_path):
+    """Decision 2026-11-04: MAYBE counts apart but is published in included.json."""
+    decisions = [
+        _decision("STU-a", "INCLUDE"),
+        _decision("STU-b", "MAYBE"),
+        _decision("STU-c", "EXCLUDE"),
+    ]
+    results = _by_name(checker.run_checks(_finished(tmp_path, decisions=decisions)))
+    assert results["prisma"].ok, results["prisma"].problems
+
+
+def test_conflicts_are_a_subset_not_an_extra_bucket(tmp_path):
+    """The collector flags borderline rows as conflicts and still partitions them."""
+    ws = _finished(tmp_path)
+    literature = ws / "literature"
+    flagged = json.loads((literature / "excluded.json").read_text(encoding="utf-8"))[:1]
+    (literature / "conflicts.json").write_text(json.dumps(flagged), encoding="utf-8")
+    prisma = json.loads((literature / "prisma_report.json").read_text(encoding="utf-8"))
+    prisma["conflicts_flagged"] = 1
+    (literature / "prisma_report.json").write_text(json.dumps(prisma), encoding="utf-8")
+    results = _by_name(checker.run_checks(ws))
+    assert results["prisma"].ok, results["prisma"].problems
+
+
+def test_a_record_can_carry_several_exclusion_reasons(tmp_path):
+    ws = _finished(tmp_path)
+    path = ws / "literature" / "prisma_report.json"
+    prisma = json.loads(path.read_text(encoding="utf-8"))
+    prisma["exclusion_reasons_breakdown"] = {"WRONG_TASK": 2, "WRONG_PLATFORM": 1}
+    path.write_text(json.dumps(prisma), encoding="utf-8")
+    assert _by_name(checker.run_checks(ws))["prisma"].ok
+    prisma["exclusion_reasons_breakdown"] = {"WRONG_TASK": 1}
+    path.write_text(json.dumps(prisma), encoding="utf-8")
+    results = _by_name(checker.run_checks(ws))
+    assert not results["prisma"].ok
+    assert any("exclusion reasons" in p for p in results["prisma"].problems)

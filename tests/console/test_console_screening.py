@@ -240,7 +240,8 @@ def test_screening_decisions_validation(tmp_path):
     assert client.post("/api/v1/screening/batch/1/decisions", json=bad_id).status_code == 422
 
     # Bad decision enum -> 422 (pydantic).
-    bad_dec = {"batch": 1, "decisions": [{"workspace_id": "SCI-000001", "decision": "MAYBE"}]}
+    # M1a: MAYBE ("Unclear → full text") is a valid outcome; an unknown one is not.
+    bad_dec = {"batch": 1, "decisions": [{"workspace_id": "SCI-000001", "decision": "PERHAPS"}]}
     assert client.post("/api/v1/screening/batch/1/decisions", json=bad_dec).status_code == 422
 
     # Confidence out of range -> 422.
@@ -500,8 +501,15 @@ def test_screening_parity_legacy_array(tmp_path):
     (ws / "literature" / "screening" / "batch_001_decisions.json").write_text(
         json.dumps(
             [
-                {"workspace_id": "SCI-000001", "decision": "INCLUDE", "confidence": 0.9},
-                {"workspace_id": "SCI-000002", "decision": "EXCLUDE", "confidence": 0.8},
+                # CON-11: a bare-list file carries its own per-row provenance.
+                {"workspace_id": "SCI-000001", "decision": "INCLUDE", "confidence": 0.9,
+                 "method": "LLM", "screener_id": "legacy-agent-screener",
+                 "decided_at": "2026-10-13T12:00:00+00:00",
+                 "screening_reasoning": "Meets INC-01."},
+                {"workspace_id": "SCI-000002", "decision": "EXCLUDE", "confidence": 0.8,
+                 "method": "LLM", "screener_id": "legacy-agent-screener",
+                 "decided_at": "2026-10-13T12:00:00+00:00",
+                 "screening_reasoning": "Violates EXC-02."},
             ]
         ),
         encoding="utf-8",

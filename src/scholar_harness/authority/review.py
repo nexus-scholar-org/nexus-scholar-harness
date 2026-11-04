@@ -21,7 +21,7 @@ Authority comes ONLY from the publisher-owned operator context
 string, or editable approval file is never trusted identity, and identity is
 never taken from CLI args. On Windows, ``approve`` refuses when its own
 process token is Low integrity — the worker cannot invoke the operator
-action. MAYBE/CONFLICT (and worker-pending rows) stay unresolved until the
+action. CONFLICT (and worker-pending rows) stay unresolved until the
 researcher resolves them or defers publication.
 
 Single-screener flow only. Dual-screening and checklist-derived inputs
@@ -112,7 +112,7 @@ REVIEW_REASON_MISSING = "REVIEW_REASON_MISSING"
 REVIEW_BEGIN_ARGS_REFUSED = "REVIEW_BEGIN_ARGS_REFUSED"
 
 #: Decisions that count as final (anything else refuses as unresolved).
-TERMINAL_DECISIONS = frozenset({"INCLUDE", "EXCLUDE"})
+TERMINAL_DECISIONS = frozenset({"INCLUDE", "EXCLUDE", "MAYBE"})  # MAYBE: Unclear → full text (M1a)
 
 
 class ReviewRefused(RuntimeError):
@@ -380,7 +380,8 @@ def _parse_decisions(path: Path) -> list[dict[str, Any]]:
 def _require_resolved(entries: list[dict[str, Any]]) -> None:
     """Refuse any non-terminal decision presented for approval.
 
-    AG-02 MAYBE/CONFLICT stay unresolved (never coerced); worker-pending
+    AG-02 CONFLICT stays unresolved (never coerced); MAYBE is the terminal
+    outcome "Unclear → full text" since M1a (decision 2026-11-04); worker-pending
     rows and any other non-terminal value refuse under the same code instead
     of being coerced into terminal exclusions.
     """
@@ -697,16 +698,20 @@ def _compute_single_screener_content(
             wsid = str(entry.get("workspace_id") or entry.get("study_id") or "")
             doc = doc_by_wsid.get(wsid)
             raw_dec = str(entry.get("decision", "")).strip().upper()
-            if raw_dec not in ("INCLUDE", "EXCLUDE"):
+            # MAYBE is "Unclear → full text", a terminal outcome since M1a.
+            if raw_dec not in ("INCLUDE", "EXCLUDE", "MAYBE"):
                 raise ReviewRefused(
                     REVIEW_INVALID_DECISIONS,
                     f"batch {idx} carries non-terminal decision {raw_dec!r}",
                     batch_index=idx,
                 )
+            # Mirrors the collector (CON-11): no invented confidence or reason,
+            # so approval and collect compute byte-identical content.
             try:
-                confidence = float(entry.get("confidence", 0.80))
+                raw_conf = entry.get("confidence")
+                confidence = None if raw_conf is None else float(raw_conf)
             except (TypeError, ValueError):
-                confidence = 0.80
+                confidence = None
             all_decisions.append(
                 ScreeningDecision(
                     workspace_id=wsid,
@@ -720,7 +725,7 @@ def _compute_single_screener_content(
                     ),
                     relevant_rqs=list(entry.get("relevant_rqs") or []),
                     screening_reasoning=str(
-                        entry.get("screening_reasoning", "Agent screened.")
+                        entry.get("screening_reasoning") or entry.get("reason_code")
                     ),
                     document_title=doc.title if doc else entry.get("title", ""),
                     doi=doc.external_ids.doi if doc else None,

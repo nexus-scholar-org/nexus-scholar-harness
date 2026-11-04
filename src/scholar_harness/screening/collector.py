@@ -41,6 +41,7 @@ from .integrity import (
     STALE_BINDING,
     ScreeningIntegrityRefused,
     bind_batch,
+    check_decision_provenance,
     check_exact_coverage,
     check_no_unresolved_for_finalize,
     decision_file_sha256,
@@ -784,6 +785,11 @@ def cmd_collect(workspace_dir: Path) -> None:
                 }
                 check_exact_coverage(batch_candidate_ids, raw_decisions)
                 check_no_unresolved_for_finalize(raw_decisions)
+                check_decision_provenance(
+                    raw_decisions,
+                    wrapper_reviewer=decision_metadata["reviewed_by"],
+                    wrapper_timestamp=decision_metadata["timestamp"],
+                )
             except ScreeningIntegrityRefused as refusal:
                 _refuse_single_batch(
                     workspace_dir,
@@ -848,29 +854,31 @@ def cmd_collect(workspace_dir: Path) -> None:
                             or entry.get("doi"),
                         )
                     else:
-                        raw_dec = str(entry.get("decision", "INCLUDE")).upper()
+                        # CON-11: the provenance gate guarantees a decision.
+                        raw_dec = str(entry["decision"]).upper()
                         valid = {item.value for item in ScreeningDecisionValue}
                         if raw_dec not in valid:
                             raise ValueError(
                                 f"{decisions_file.name}: invalid decision {raw_dec!r}"
                             )
-                        # AG-02: explicit terminal values only. MAYBE/CONFLICT
-                        # were refused by the finalize gate above, so the
-                        # non-INCLUDE branch below only ever sees EXCLUDE:
-                        # unresolved rows are never silently coerced.
-                        if raw_dec == "INCLUDE":
-                            decision = "INCLUDE"
-                        elif raw_dec == "EXCLUDE":
-                            decision = "EXCLUDE"
+                        # AG-02: explicit terminal values only. CONFLICT was
+                        # refused by the finalize gate above; MAYBE is the
+                        # terminal outcome "Unclear → full text" (M1a).
+                        # Nothing is silently coerced.
+                        if raw_dec in ("INCLUDE", "EXCLUDE", "MAYBE"):
+                            decision = raw_dec
                         else:  # pragma: no cover - refused by the gate above
                             raise ValueError(
                                 f"{decisions_file.name}: unresolved decision "
                                 f"{raw_dec!r} cannot be finalized"
                             )
+                        # CON-11: no invented confidence. A human decision has
+                        # none; a model's is kept when it gave one.
                         try:
-                            confidence = float(entry.get("confidence", 0.80))
+                            raw_conf = entry.get("confidence")
+                            confidence = None if raw_conf is None else float(raw_conf)
                         except (TypeError, ValueError):
-                            confidence = 0.80
+                            confidence = None
 
                         sd = ScreeningDecision(
                             workspace_id=wsid,
@@ -884,7 +892,8 @@ def cmd_collect(workspace_dir: Path) -> None:
                             ),
                             relevant_rqs=list(entry.get("relevant_rqs") or []),
                             screening_reasoning=str(
-                                entry.get("screening_reasoning", "Agent screened.")
+                                entry.get("screening_reasoning")
+                                or entry.get("reason_code")
                             ),
                             document_title=doc.title if doc else entry.get("title", ""),
                             doi=doc.external_ids.doi if doc else None,
@@ -916,16 +925,15 @@ def cmd_collect(workspace_dir: Path) -> None:
                     or entry.get("timestamp")
                     or decision_metadata["timestamp"]
                 )
-                if not decided_at:
-                    # F-002: Stable fallback for legacy payloads missing timestamps
-                    decided_at = "1970-01-01T00:00:00+00:00"
+                # CON-11: the provenance gate guaranteed a real time, a
+                # screener and a method; nothing is defaulted here.
                 screener_id = str(
                     entry.get("screener_id") or decision_metadata["reviewed_by"]
                 )
-                method = MethodProvenance(str(entry.get("method") or "LLM").upper())
+                method = MethodProvenance(str(entry["method"]).upper())
                 dec_val = ScreeningDecisionValue(str(sd.decision).upper())
                 parent_ids = list(entry.get("parent_decision_ids") or [])
-                reason = str(sd.screening_reasoning or "Agent screened.")
+                reason = str(sd.screening_reasoning)
                 decision_id = deterministic_id(
                     IdentifierKind.SCREENING_DECISION,
                     batch_env["workspace_id"],

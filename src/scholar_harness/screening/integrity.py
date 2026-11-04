@@ -27,9 +27,18 @@ CONTENT_CHANGED = "CONTENT_CHANGED"
 #: The parent batch was superseded after the recorded acceptance.
 STALE_BINDING = "STALE_BINDING"
 
+#: A decision row lacks the provenance the contract needs (CON-11): an outcome,
+#: a method, a real decision time, a screener, or a reason. Refused instead of
+#: defaulted (no INCLUDE, LLM, 1970 or "Agent screened." stand-ins).
+PROVENANCE_MISSING = "PROVENANCE_MISSING"
+
 #: Legacy decision strings (and any checklist-derived outcome) that count as
-#: unresolved. Finalization refuses them instead of coercing them.
-UNRESOLVED_VALUES = frozenset({"MAYBE", "CONFLICT"})
+#: unresolved. Finalization refuses them instead of coercing them. `MAYBE` is
+#: not here since M1a: it is the terminal outcome "Unclear → full text"
+#: (decision 2026-11-04), forwarded to full-text retrieval.
+UNRESOLVED_VALUES = frozenset({"CONFLICT"})
+
+_EPOCH_PREFIX = "1970-01-01"
 
 
 class ScreeningIntegrityRefused(RuntimeError):
@@ -124,6 +133,51 @@ def check_no_unresolved_for_finalize(entries: list[dict[str, Any]]) -> None:
             "decision file carries unresolved row(s) presented for "
             "finalization; refusing instead of coercing to EXCLUDE",
             unresolved_rows=unresolved,
+        )
+
+
+def check_decision_provenance(
+    entries: list[dict[str, Any]],
+    *,
+    wrapper_reviewer: str = "",
+    wrapper_timestamp: str = "",
+) -> None:
+    """Refuse rows whose provenance would otherwise be invented (CON-11).
+
+    Every row needs an outcome (or a checklist the outcome is derived from), a
+    `method`, a decision time that is not empty or the 1970 epoch, a screener
+    (the row's own or the file wrapper's, not a `*-draft` placeholder), and a
+    reason (`screening_reasoning` or `reason_code`; checklist rows derive
+    theirs). The wrapper values are the file's own record of who wrote it and
+    when; nothing here invents one.
+    """
+    problems: list[dict[str, str]] = []
+    for entry in entries:
+        study = _entry_study_id(entry)
+        checklist = any(str(key).startswith(("inc_", "exc_")) for key in entry)
+        missing: list[str] = []
+        if not checklist and not str(entry.get("decision") or "").strip():
+            missing.append("decision")
+        if not str(entry.get("method") or "").strip():
+            missing.append("method")
+        decided_at = str(
+            entry.get("decided_at") or entry.get("timestamp") or wrapper_timestamp or ""
+        ).strip()
+        if not decided_at or decided_at.startswith(_EPOCH_PREFIX):
+            missing.append("decided_at")
+        screener = str(entry.get("screener_id") or wrapper_reviewer or "").strip()
+        if not screener or screener.endswith("-draft"):
+            missing.append("screener_id")
+        reason = str(entry.get("screening_reasoning") or entry.get("reason_code") or "")
+        if not checklist and not reason.strip():
+            missing.append("reason")
+        if missing:
+            problems.append({"study_id": study, "missing": ",".join(missing)})
+    if problems:
+        raise ScreeningIntegrityRefused(
+            PROVENANCE_MISSING,
+            "decision row(s) lack provenance; refusing instead of defaulting",
+            rows=problems,
         )
 
 

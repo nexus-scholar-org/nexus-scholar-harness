@@ -163,6 +163,9 @@ def _write_decisions(
         {
             "workspace_id": study["study_id"],
             "decision": decision,
+            "method": "HUMAN",
+            "screener_id": OPERATOR,
+            "decided_at": NOW,
             "screening_reasoning": f"UI-07 API resolution {i}.",
         }
         for i, (study, decision) in enumerate(zip(studies, resolved))
@@ -353,7 +356,8 @@ def test_redeem_refuses_coverage_and_unresolved(tmp_path):
     workspace, studies = _scaffold(tmp_path)
     _write_operator_context(workspace)
     run_recommend(workspace, 1, produced_at=NOW)
-    _write_decisions(workspace, studies, decisions=["MAYBE", "INCLUDE"])
+    # M1a, decision 2026-11-04: MAYBE is terminal; CONFLICT is the unresolved probe.
+    _write_decisions(workspace, studies, decisions=["CONFLICT", "INCLUDE"])
     code = begin_pairing(workspace, 1)["code"]
     client = TestClient(create_app(workspace))
     r = client.post(

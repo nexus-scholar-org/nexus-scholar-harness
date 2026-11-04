@@ -17,8 +17,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ScreeningDecision:
     workspace_id: str
-    decision: Literal["INCLUDE", "EXCLUDE"]
-    confidence: float
+    # MAYBE is "Unclear → full text": forwarded to full-text retrieval and
+    # counted on its own PRISMA line (harness decision 2026-11-04).
+    decision: Literal["INCLUDE", "EXCLUDE", "MAYBE"]
+    # None for a human decision: a confidence is never invented (CON-11).
+    confidence: float | None
     screening_reasoning: str
     matched_inclusion_criteria: list[str] = field(default_factory=list)
     violated_exclusion_criteria: list[str] = field(default_factory=list)
@@ -36,6 +39,8 @@ class PrismaFlowReport:
     records_included: int
     conflicts_flagged: int
     exclusion_reasons_breakdown: dict[str, int] = field(default_factory=dict)
+    #: MAYBE ("Unclear → full text"): forwarded with the includes, counted apart.
+    records_unclear: int = 0
 
     def to_mermaid(self) -> str:
         """Generate a PRISMA 2020 flow diagram in Mermaid syntax."""
@@ -97,7 +102,9 @@ class PrismaFlowReport:
             "## 2. Screening Phase (Title & Abstract)",
             f"- **Records Screened**: `{self.records_screened}`",
             f"- **Records Excluded**: `{self.records_excluded}`",
-            f"- **Records Eligible for Full-Text Retrieval**: `{self.records_included}`",
+            f"- **Records Eligible for Full-Text Retrieval**: `{self.records_included + self.records_unclear}`",
+            f"  - Included at title/abstract: `{self.records_included}`",
+            f"  - Unclear → full text: `{self.records_unclear}`",
             f"- **Borderline Conflicts Flagged for Human Audit**: `{self.conflicts_flagged}`",
             "",
             "### Exclusion Reasons Breakdown",
@@ -472,11 +479,13 @@ def partition_screening_results(
 
         doc_dict["screening"] = asdict(dec)
 
-        # Flag borderline confidence (0.40-0.70) as conflict for human audit
-        if 0.40 <= dec.confidence <= 0.70:
+        # Flag borderline model confidence (0.40-0.70) as conflict for human
+        # audit. A human decision carries no confidence and is never flagged.
+        if dec.confidence is not None and 0.40 <= dec.confidence <= 0.70:
             conflict_items.append(doc_dict)
 
-        if dec.decision == "INCLUDE":
+        if dec.decision in ("INCLUDE", "MAYBE"):
+            # Unclear goes forward to full text with the includes.
             included_items.append(doc_dict)
         else:
             excluded_items.append(doc_dict)
@@ -488,9 +497,10 @@ def partition_screening_results(
         duplicates_removed=duplicates_removed,
         records_screened=len(decisions),
         records_excluded=len(excluded_items),
-        records_included=len(included_items),
+        records_included=sum(1 for d in decisions if d.decision == "INCLUDE"),
         conflicts_flagged=len(conflict_items),
         exclusion_reasons_breakdown=reason_counts,
+        records_unclear=sum(1 for d in decisions if d.decision == "MAYBE"),
     )
 
     return included_items, excluded_items, conflict_items, report
