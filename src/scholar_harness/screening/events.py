@@ -142,6 +142,10 @@ def screener_file(workspace: Path, screener_id: str) -> Path:
     return Path(workspace) / EVENTS_DIR / f"{safe}.jsonl"
 
 
+class LockBusy(Exception):
+    """The events lock could not be taken; nothing was read or stored."""
+
+
 @contextmanager
 def _locked(workspace: Path) -> Iterator[None]:
     """Exclusive OS lock over the events directory (Windows and POSIX)."""
@@ -152,7 +156,10 @@ def _locked(workspace: Path) -> Iterator[None]:
             import msvcrt
 
             handle.seek(0)
-            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+            except OSError as exc:  # Windows gives up after ten retries
+                raise LockBusy(str(exc)) from exc
             try:
                 yield
             finally:
@@ -161,7 +168,10 @@ def _locked(workspace: Path) -> Iterator[None]:
         else:
             import fcntl
 
-            fcntl.flock(handle, fcntl.LOCK_EX)
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX)
+            except OSError as exc:
+                raise LockBusy(str(exc)) from exc
             try:
                 yield
             finally:
@@ -236,6 +246,27 @@ def validate_event(event: Any, context: ScreeningContext) -> dict[str, str] | No
     return None
 
 
+def is_current(event: dict[str, Any], context: ScreeningContext) -> bool:
+    """True when the event is bound to its study's current batch and protocol."""
+    study = event.get("study_id")
+    if study not in context.study_batch:
+        return False
+    batch = context.batches[context.study_batch[study]]
+    binding = event.get("binding") or {}
+    return (
+        binding.get("protocol_fingerprint") == context.protocol_fingerprint
+        and binding.get("batch_id") == batch.batch_id
+        and binding.get("batch_sha256") == batch.batch_sha256
+    )
+
+
+def current_events(events: list[dict[str, Any]], context: ScreeningContext) -> list[dict[str, Any]]:
+    """Review A: the events of the current generation. After a protocol change
+    or a re-prepare, earlier decisions count nowhere: not as decided, not as
+    conflicts, not as a reason to reveal a proposal."""
+    return [e for e in events if is_current(e, context)]
+
+
 def _superseded(events: list[dict[str, Any]]) -> set[str]:
     gone: set[str] = set()
     for event in events:
@@ -298,8 +329,8 @@ def intake(
     try:
         with _locked(ws):
             return _intake_locked(ws, events, token_scope, received_at, device, context, after_commit)
-    except OSError:
-        # The lock could not be taken (Windows gives up after ten retries).
+    except LockBusy:
+        # Review B: only a failure to take the lock means nothing was stored.
         return [
             IntakeResult(
                 str(raw.get("event_id") or "") if isinstance(raw, dict) else "",
@@ -352,15 +383,24 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
         record = {**raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": False}
         pending.append(record)
         known[event_id] = record
-        live = heads(stored + pending, raw["study_id"], raw["screener_id"])
+        live = heads(current_events(stored, context) + pending, raw["study_id"], raw["screener_id"])
         in_conflict = len({e["outcome"] for e in live}) > 1
         results.append(IntakeResult(event_id, "conflict" if in_conflict else "accepted"))
     if pending:
         _commit(ws, pending, results, device=device or str(pending[0].get("device")))
-        written = {r.event_id for r in results if r.result in ("accepted", "conflict")}
-        if after_commit is not None and written:
-            # Review finding 8: project under the same lock as the append.
-            after_commit([e for e in pending if e["event_id"] in written])
+    # Review finding 8: project under the same lock as the append. Duplicates
+    # re-project too, so a retry repairs a projection that failed earlier.
+    project = [
+        known[r.event_id] for r in results if r.result in ("accepted", "conflict", "duplicate")
+    ]
+    if after_commit is not None and project:
+        try:
+            after_commit(project)
+        except Exception:  # noqa: BLE001
+            # Review B: the events are stored and journaled, so their results
+            # stand. The projection is derived; the next intake or approval
+            # (which compares against `project_batch`) catches it up.
+            pass
     return results
 
 
@@ -471,10 +511,7 @@ def project_batch(
         "batch_id": batch.batch_id,
         "batch_sha256": batch.batch_sha256,
     }
-    events = [
-        e for e in events
-        if {k: (e.get("binding") or {}).get(k) for k in current} == current
-    ]
+    events = current_events(events, context)
     for study in sorted(batch.candidates):
         winner = winning_event(events, study, screener_id)
         if winner is None:

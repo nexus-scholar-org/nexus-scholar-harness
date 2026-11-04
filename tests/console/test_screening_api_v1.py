@@ -328,3 +328,64 @@ def test_review_10_agent_uncertainty_orders_unclear_drafts_first(client, ws):
     ordered = client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).json()["items"]
     assert [i["study_id"] for i in ordered] == [studies[2], studies[0], studies[1]]
     assert "derived_outcome" not in json.dumps(ordered)
+
+
+def _amend_protocol(ws: Path) -> None:
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol.setdefault("metadata", {})["title"] = "Amended protocol title"
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+
+
+def test_review_a_decisions_of_an_earlier_protocol_count_nowhere(client, ws):
+    studies = _studies(client)
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    fingerprint = client.get(f"{BASE}/records/{studies[0]}").json()["binding"]["protocol_fingerprint"]
+    pr.submit_proposal(
+        ws, study_id=studies[0], title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+        protocol=protocol, protocol_fingerprint=fingerprint,
+        provenance={"task_version": "v", "model": "m", "prompt_sha256": "sha256:" + "0" * 64},
+        created_at="2026-11-04T09:00:00Z",
+    )
+    assert all(r["result"] == "accepted" for r in _post(client, [_event(client, s) for s in studies]))
+    _amend_protocol(ws)
+    summary = client.get(f"{BASE}/summary").json()
+    assert (summary["decided"], summary["needs_you"]) == (0, 3)
+    assert sorted(_studies(client)) == sorted(studies)
+    hidden = client.get(f"{BASE}/records/{studies[0]}/proposal")
+    assert hidden.status_code == 403 and hidden.json()["detail"]["code"] == "PROPOSAL_HIDDEN"
+    # A new decision against the current protocol is accepted, not a conflict.
+    assert _post(client, [_event(client, studies[0], "EXCLUDE")])[0]["result"] == "accepted"
+    assert client.get(f"{BASE}/decisions/conflicts").json()["items"] == []
+
+
+def test_review_b_a_projection_failure_after_commit_keeps_the_event_accepted(client, ws, monkeypatch):
+    from scholar_harness.screening import events as ev
+
+    study = _studies(client)[0]
+    event = _event(client, study, "INCLUDE")
+    real = ev.write_projection
+
+    def busy(*args, **kwargs):
+        raise PermissionError("decisions file open elsewhere")
+
+    monkeypatch.setattr(ev, "write_projection", busy)
+    assert _post(client, [event])[0]["result"] == "accepted"
+    assert [e["event_id"] for e in ev.read_events(ws)] == [event["event_id"]]
+    decisions = ws / "literature" / "screening" / "batch_001_decisions.json"
+    assert not decisions.exists()
+    # The retry is a duplicate, and it brings the projection up to date.
+    monkeypatch.setattr(ev, "write_projection", real)
+    assert _post(client, [event])[0]["result"] == "duplicate"
+    assert json.loads(decisions.read_text(encoding="utf-8"))["decisions"][0]["workspace_id"] == study
+
+
+def test_review_b_a_lock_timeout_is_atomic_commit_failed_and_stores_nothing(client, ws, monkeypatch):
+    from scholar_harness.screening import events as ev
+
+    def busy(_workspace):
+        raise ev.LockBusy("lock held")
+
+    monkeypatch.setattr(ev, "_locked", busy)
+    result = _post(client, [_event(client, _studies(client)[0])])[0]
+    assert (result["result"], result["refusal"]["code"]) == ("refused", "ATOMIC_COMMIT_FAILED")
+    assert ev.read_events(ws) == []

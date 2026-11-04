@@ -102,5 +102,11 @@ End to end
 | 9 | The CON-13 guard counted parents but did not check their type | the one parent must be a `screening_batch` | `test_con13_a_decisions_artifact_needs_exactly_one_batch_parent` |
 | 10 | Evidence uncommitted; reveal tracking not listed; no queue-order test | this section; Deferred below; queue-order test | `test_review_10_agent_uncertainty_orders_unclear_drafts_first` |
 
-## Deferred
-- **Reveal tracking** (`changed_after_reveal`, the `REVEAL` audit row; contract §3.1) moves to M1b. The reveal happens when the triage screen shows a proposal after a decision, which is M1b UI work; the engine field exists and is stamped `false` until then.
+Second pass: **CHANGES** (finding 3 fixed only in the projection; the finding 7 fix misreported a committed event). Fixed in the next commit:
+
+| # | Finding | Fix | Test |
+| :-- | :-- | :-- | :-- |
+| A | Every reader except the projection still counted events from an earlier protocol or batch: the summary showed them decided, `needs_you` was empty, the proposal was revealed, and a new decision was reported as a conflict | one helper, `current_events`, used by `_state` (console and MCP), the conflict routes, the intake conflict check and the projection | `test_review_a_decisions_of_an_earlier_protocol_count_nowhere` |
+| B | The lock-timeout `except OSError` also caught a projection failure after commit, so a stored event was reported refused and a retry left the projection stale | only `LockBusy` (the lock not taken) is `ATOMIC_COMMIT_FAILED`; a projection failure leaves the results as stored; duplicates re-project | `test_review_b_a_projection_failure_after_commit_keeps_the_event_accepted`, `test_review_b_a_lock_timeout_is_atomic_commit_failed_and_stores_nothing` |
+| C | The reveal-tracking deferral lived only in M1a.md | added to the plan §6 M1b row (RELEASE for that change); `false` documented as "not tracked" | — |
+| follow-up | `project.json` was read outside the try in `_reviewed_bytes` | read inside it, so a missing manifest falls back to the worker step | — |

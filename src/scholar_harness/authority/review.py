@@ -391,9 +391,9 @@ def _reviewed_bytes(
 
         final = decisions_path.read_bytes()
         payload = json.loads(final)
-        manifest = json.loads((Path(workspace_dir) / "project.json").read_text(encoding="utf-8"))
-        workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
         try:
+            manifest = json.loads((Path(workspace_dir) / "project.json").read_text(encoding="utf-8"))
+            workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
             projected = decision_events.project_batch(
                 workspace_dir, batch_index, str(payload.get("reviewed_by") or ""), workspace_id=workspace_id
             )

@@ -85,7 +85,10 @@ def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], d
     if not context.batches:
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no prepared batches; accept the corpus and prepare")
     settings = load_settings(ws)
-    events = [e for e in ev.read_events(ws) if e.get("screener_id") == settings["screener_id"]]
+    events = [
+        e for e in ev.current_events(ev.read_events(ws), context)
+        if e.get("screener_id") == settings["screener_id"]
+    ]
     winners = {
         study: winner
         for study in context.study_batch
@@ -263,7 +266,8 @@ def post_events(body: EventsBody, request: Request) -> dict[str, Any]:
 
 @router.get("/decisions/conflicts")
 def get_conflicts(request: Request) -> dict[str, Any]:
-    return {"items": ev.conflicts(ev.read_events(_ws(request)))}
+    ws = _ws(request)
+    return {"items": ev.conflicts(ev.current_events(ev.read_events(ws), ev.load_context(ws)))}
 
 
 class ResolveBody(BaseModel):
@@ -276,7 +280,8 @@ def resolve_conflict(study_id: str, body: ResolveBody, request: Request) -> dict
     """Keep one event: a new superseding decision that names every rival head."""
     ws = _ws(request)
     context = ev.load_context(ws)
-    match = next((c for c in ev.conflicts(ev.read_events(ws)) if c["study_id"] == study_id), None)
+    current = ev.current_events(ev.read_events(ws), context)
+    match = next((c for c in ev.conflicts(current) if c["study_id"] == study_id), None)
     if match is None:
         raise _error(404, refusals.UNKNOWN_STUDY, f"{study_id} has no open conflict")
     kept = next((e for e in match["events"] if e["event_id"] == body.keep_event_id), None)
