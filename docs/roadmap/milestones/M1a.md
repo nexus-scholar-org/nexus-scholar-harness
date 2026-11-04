@@ -14,7 +14,7 @@ Carried over from M0
 
 Assessment findings (phase-auditor first, reproducing test before the fix)
 - [ ] **CON-10**: dual mode starts on any `*_screener2.json`; unadjudicated disagreement refused.
-- [ ] **CON-11**: no missing decision becomes INCLUDE; no fabricated confidence, method or 1970 time; the console writer stamps `method: HUMAN`, `screener_id` and `decided_at` on every row.
+- [x] **CON-11**: no missing decision becomes INCLUDE; no fabricated confidence, method or 1970 time; the console writer stamps `method: HUMAN`, `screener_id` and `decided_at` on every row.
 - [ ] **CON-13** (guarded outside the Contract v1 lock, researcher 2026-11-04): the harness refuses to submit a `screening_decisions` artifact that does not have exactly one `screening_batch` parent, before calling the frozen acceptance gate. The gap in `contracts/acceptance.py` and `chain.py` stays recorded for Contract v1.1.
 - [ ] **CON-14/15**: the dual path runs the unresolved, coverage and duplicate gates; its artifact id derives from decision ids.
 - [ ] **CON-02/03** (plan §1.2 fix): approval covers exactly one batch generation and never seals another batch's bytes; the approver is recorded as an unauthenticated local attestation, not an identity. Authentication waits for the sync tier.
@@ -22,24 +22,25 @@ Assessment findings (phase-auditor first, reproducing test before the fix)
 - [ ] **AGT-16/18/19**: MCP screening writes proposals only; κ refuses fewer than two raters; state-changing MCP tools journal.
 
 Decision events (contract §3)
-- [ ] **Event store**: append-only `literature/screening/events/<screener_id>.jsonl` behind an OS file lock (§9.2); intake results `accepted`, `duplicate`, `conflict`, `refused`.
-- [ ] **Projection** to `batch_NNN_decisions.json`: deterministic, excludes conflicted studies; the existing `decision_id` recipe is fed the winning event's immutable fields.
-- [ ] **Contract test 1**: replaying the same event set gives byte-identical decisions files and the approval stays valid (negative test).
-- [ ] **Contract tests 2, 3, 5, 8**: duplicate vs `IDEMPOTENCY_CONFLICT`; conflict excluded and collect refuses `BATCH_INCOMPLETE`; EXCLUDE without reason → `REASON_CODE_INVALID`; one journal row per accepted batch of events.
+- [x] **Event store**: append-only `literature/screening/events/<screener_id>.jsonl` behind an OS file lock (§9.2); intake results `accepted`, `duplicate`, `conflict`, `refused`.
+- [x] **Projection** to `batch_NNN_decisions.json`: deterministic, excludes conflicted studies; the existing `decision_id` recipe is fed the winning event's immutable fields.
+- [x] **Contract test 1**: replaying the same event set gives byte-identical decisions files and the approval stays valid (negative test).
+- [x] **Contract tests 2, 3, 5, 8**: duplicate vs `IDEMPOTENCY_CONFLICT`; conflict excluded and collect refuses `BATCH_INCOMPLETE`; EXCLUDE without reason → `REASON_CODE_INVALID`; one journal row per accepted batch of events.
 
 Unclear
-- [ ] **MAYBE passes finalize** as "Unclear → full text" and is counted as `unclear_to_full_text` (contract test 6); decision entry for the PRISMA rule (researcher, 2026-11-04: forwarded to full text, its own line); `check_golden_workspace.py` follows.
+- [x] **MAYBE passes finalize** as "Unclear → full text" and is counted as `unclear_to_full_text` (contract test 6); decision entry for the PRISMA rule (researcher, 2026-11-04: forwarded to full text, its own line); `check_golden_workspace.py` follows.
 
 Proposals (agent-system §2–§4)
-- [ ] **Proposal store**: append-only, full provenance (model, prompt hash, input hash, checks, usage); plain-code validators; failures become Unclear, never Exclude; journal events.
+- [x] **Proposal store**: append-only, full provenance (model, prompt hash, input hash, checks, usage); plain-code validators; failures become Unclear, never Exclude; journal events.
 - [ ] **MCP**: read tools (queue, record) and `submit_proposal`; nothing over MCP writes decisions or published outputs.
 
 Screening API (contract §4, M1a rows)
-- [ ] `GET /summary`, `GET /queue`, `GET /records/{id}`, `GET /records/{id}/proposal` (`PROPOSAL_HIDDEN`, contract test 4).
-- [ ] `POST /decisions/events` (≤ 200), `GET /decisions/conflicts`, `POST /decisions/conflicts/{id}/resolve`.
-- [ ] `GET`/`PUT /settings`, `POST /prepare` (`SNAPSHOT_NOT_ACCEPTED`), `GET /prisma/preview`, `POST /actions/pairing/begin`.
-- [ ] **Token scopes**: a phone-scoped token is refused on prepare, proposal runs and publish (`TOKEN_SCOPE_REFUSED`, contract test 7).
-- [ ] **Refusal codes**: the proposed codes in contract §7 are added to the registry.
+- [x] `GET /summary`, `GET /queue`, `GET /records/{id}`, `GET /records/{id}/proposal` (`PROPOSAL_HIDDEN`, contract test 4).
+- [x] `POST /decisions/events` (≤ 200), `GET /decisions/conflicts`, `POST /decisions/conflicts/{id}/resolve`.
+- [x] `GET`/`PUT /settings`, `POST /prepare` (`SNAPSHOT_NOT_ACCEPTED`), `GET /prisma/preview`.
+- [ ] `POST /actions/pairing/begin` reaching a staged challenge from event-projected decisions (today it refuses typed `WORKER_BATCH_MISSING`; joined with CON-02/03 and the end-to-end item).
+- [x] **Token scopes**: a phone-scoped token is refused on prepare, proposal runs and publish (`TOKEN_SCOPE_REFUSED`, contract test 7).
+- [x] **Refusal codes**: the proposed codes in contract §7 form the console refusal set (`console/refusals.py`), kept in step with the contract by `tests/console/test_console_refusals.py`. The agent-role registry (`Envelope@1`) is a different vocabulary and is unchanged.
 - [ ] **Shared fixtures** `tests/fixtures/screening_api/*.json` and `tests/console/test_screening_api_contract.py`.
 
 End to end
@@ -49,6 +50,8 @@ End to end
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| CON-11 | `tests/test_screening_decision_integrity.py::test_missing_provenance_refuses_instead_of_defaulting` (no decision, no method, epoch time, no reason) | 4 failed: defaulted to INCLUDE/LLM/1970/"Agent screened." | pass |
+| Unclear | `test_maybe_passes_finalize_as_unclear_to_full_text` | refused `UNRESOLVED_FINALIZE_REFUSED` | pass |
 
 ## Decisions
 - [Unclear forwarded to full text](../../decisions.md) (2026-11-04)
@@ -57,6 +60,11 @@ End to end
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| checkpoint | 5762c48 + events/API working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4153 passed, 14 skipped; clean; baseline current | 280 s |
+
+## Raised for the researcher
+- **Approval code over HTTP.** The contract lists `qr_payload` in the `POST /actions/pairing/begin` reply, but the codebase pins that the plaintext pairing code is never returned by any API route. M1a keeps that rule: the code is printed to the terminal running the console, and the reply says `code_shown_on: terminal`. A QR on the desktop screen would need the rule changed.
+- **Approval from events.** Pairing still expects a per-batch worker recommendation (AG-04 recommend step), which event-projected decisions do not produce. Joining the two is part of CON-02/03 and the end-to-end item.
 
 ## Parallel work
 - **AI reference screening** of 200 `uav-crop-weed-v03` records, recorded as `method: LLM` (screener `claude-reference-v1`), blind to the v03 agent labels. It is the provisional prompt-gate eval set for M1b, named "AI reference labels, not human-validated". The researcher asked for it on 2026-11-04 and declined to mark it as human.
