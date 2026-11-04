@@ -1,7 +1,7 @@
 # M1a Screening backend
 Branch: dev/m1a/screening-backend · Lane: **RELEASE** (plan §6: artifact
 identity and acceptance semantics; it also changes public HTTP and MCP
-behaviour) · Status: IN PROGRESS · Started: 2026-11-04
+behaviour) · Status: READY FOR PR · Started: 2026-11-04
 
 Plan: [`production-plan.md`](../production-plan.md) §6 row M1a, §1.2 findings,
 §4 decision model. Contract: [`screening-api-contract.md`](../../architecture/screening-api-contract.md)
@@ -118,3 +118,11 @@ Third pass: **CHANGES** (B2: the B fix swallowed a projection failure, so after 
 | # | Finding | Fix | Test |
 | :-- | :-- | :-- | :-- |
 | B2 | A projection failure after commit was silent; after a batch approval, collect published the older file because the staged review still matched its bytes | the failure is journaled (`SCREENING_PROJECTION_FAILED`); `collect` refuses `PROJECTION_STALE` while any `decision-events` file differs from `project_batch` (the event log is the authority); `projection_is_current` is the one comparison, shared with the approval path | `test_review_b2_a_failed_projection_after_approval_blocks_collect` |
+
+Fourth pass (B2 only): **APPROVE**, 2026-11-05.
+
+## Deferred
+- **Reveal tracking** (`changed_after_reveal`, the `REVEAL` audit row; contract §3.1) moves to M1b. The reveal happens when the triage screen shows a proposal after a decision, which is M1b UI work; the engine field exists and is stamped `false` until then. **Before M1b, `changed_after_reveal: false` means "not tracked", not "not changed after a reveal".** The item is in the plan §6 M1b row, with that change escalated to RELEASE.
+- **Library `submit_proposal` provenance:** only the MCP tool refuses a proposal without a model or prompt hash; the library call is guarded when the M1b driver becomes its first non-MCP caller.
+- **`PROJECTION_STALE` as a typed console refusal**, and journaling a failure of the `SCREENING_PROJECTION_FAILED` row itself (collect still refuses): M1b, when the UI shows it.
+- **Second-screener projection:** `write_projection` writes one `batch_NNN_decisions.json` whatever the screener; the second screener is parked (plan §6), and the per-screener file comes with it.
