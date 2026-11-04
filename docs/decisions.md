@@ -22,6 +22,27 @@ then works on a fresh workspace.
 - **Packet B:** full adoption, with discovery producing the snapshot itself,
   remains M3.
 
+## 2026-11-04 — Unclear records go forward to full text (PRISMA)
+
+A record the researcher marks Unclear (stored as `MAYBE`, labelled "Unclear →
+full text") passes title and abstract screening. In the PRISMA flow it is
+counted in "records sought for retrieval" with the includes, and shown on its
+own line (`unclear_to_full_text`), never with the exclusions. The collector
+stops refusing `MAYBE` at finalize (M1a), and `check_golden_workspace.py`
+reconciles included + unclear + excluded + conflicts with records screened.
+Researcher's choice, 2026-11-04.
+
+## 2026-11-04 — CON-13 is guarded outside the Contract v1 lock
+
+`contracts/acceptance.py` and `contracts/chain.py` check batch identity,
+binding and membership only when a `screening_decisions` artifact has exactly
+one `screening_batch` parent; zero or several parents skip those checks
+(CON-13). Both files are locked by the Contract v1 baseline. Rather than a
+contract change, the harness refuses to submit a decisions artifact without
+exactly one batch parent, before it calls the frozen gate (M1a). A caller that
+bypasses the harness and calls `accept_artifact` directly is not covered; that
+gap is recorded for Contract v1.1. Researcher's choice, 2026-11-04.
+
 ## 2026-11-04 — Console guards and the `--lan` threat model (INC-01)
 
 **Threats.** In stage 1 the console holds unpublished review data and can run
