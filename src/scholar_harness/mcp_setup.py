@@ -5,8 +5,10 @@ Replaces the documented copy-paste Tier-3 snippets with a single command that
 merges **only** the ``nexus-scholar`` key into each target's ``mcpServers``
 map (never clobbering foreign entries), bakes the **absolute** workspace path
 into ``--workspace`` (``${workspaceFolder}`` doesn't expand in Claude Desktop
-or a terminal-launched server), and optionally passes ``SCHOLAR_*`` /
-``NEXUS_*`` / provider API keys through an ``env:`` block.  Config roots are
+or a terminal-launched server), and, when an env file holds ``SCHOLAR_*`` /
+``NEXUS_*`` / provider API keys, adds ``--env-file <path>`` so the server
+loads them at start.  Key values are never written into a config file
+(CORE-17).  Config roots are
 CWD-independent and hermetic via the ``NEXUS_MCP_CONFIG_HOME`` override (the
 ``NEXUS_RECON_ROOT`` pattern); env values are never echoed anywhere.
 """
@@ -28,9 +30,6 @@ console = Console()
 HARNESSES = ("claude", "cursor", "vscode", "dsh", "mcp")
 # ``all`` expands to every file-backed target plus the printed DSH manual.
 ALL_TARGETS = ("claude", "cursor", "vscode", "mcp", "dsh")
-
-# Targets whose config schema supports a per-server ``env:`` block.
-ENV_SUPPORTING = ("claude", "cursor", "mcp")
 
 # Keys picked out of the env file for passthrough; anything else is skipped.
 MODEL_KEY_EXACTS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY")
@@ -164,6 +163,11 @@ def _select_env_keys(values: dict[str, str]) -> dict[str, str]:
     }
 
 
+def read_env_passthrough(path: Path) -> dict[str, str]:
+    """The approved keys of an env file; shared with the MCP server's loader."""
+    return _select_env_keys(_read_env_file(path))
+
+
 def _load_config(path: Path) -> dict[str, Any]:
     """Best-effort read of an existing config (missing/corrupt → fresh map)."""
     try:
@@ -219,13 +223,7 @@ def _one_liner(name: str, status: str, env_keys: dict[str, str]) -> str:
     }[status]
     if env_keys:
         keys = ", ".join(sorted(env_keys))
-        if name in ENV_SUPPORTING:
-            note += f" \u00b7 env passthrough: {keys} (values masked)"
-        else:
-            note += (
-                f" \u00b7 env NOT supported in this config \u2014 export "
-                f"{keys} in your environment"
-            )
+        note += f" \u00b7 server reads {keys} from the env file at start (values not written)"
     return note
 
 
@@ -263,7 +261,7 @@ def run_setup_mcp(
                 "skipping env passthrough[/yellow]"
             )
         else:
-            env = _select_env_keys(_read_env_file(env_file))
+            env = read_env_passthrough(env_file)
 
     table = Table(
         title="\u2699\ufe0f nexus-scholar MCP wiring",
@@ -291,8 +289,10 @@ def run_setup_mcp(
             )
             raise typer.Exit(1)
         entry = build_mcp_entry(ws)
-        if env and name in ENV_SUPPORTING:
-            entry = {**entry, "env": dict(env)}
+        if env:
+            # CORE-17: never write key values into a config file. The server
+            # reads the approved keys from this file when it starts.
+            entry = {**entry, "args": [*entry["args"], "--env-file", str(env_file.resolve())]}
         merged = _merge_servers(_load_config(path), "nexus-scholar", entry)
         payload = _serialize(merged)
 

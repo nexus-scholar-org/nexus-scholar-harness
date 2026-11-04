@@ -120,7 +120,13 @@ class JobRunner:
                 raise JobConflict(action_id)
 
             action: Action = get_action(action_id)
-            ws = workspace or str(self.workspace)
+            # INC-01: a job runs only against the workspace this console serves.
+            if workspace and Path(workspace).resolve() != Path(self.workspace).resolve():
+                raise ValueError(
+                    "WORKSPACE_MISMATCH: jobs run only in the served workspace "
+                    f"{self.workspace}"
+                )
+            ws = str(self.workspace)
             spec: PipelineSpec | None = None
             if action_id == "pipeline":
                 if not pipeline_id:

@@ -189,55 +189,87 @@ def test_setup_mcp_dry_run_writes_nothing_deterministic(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_setup_mcp_env_file_injects_known_keys_only(tmp_path, monkeypatch):
+def test_setup_mcp_never_writes_key_values(tmp_path, monkeypatch):
+    """CORE-17: config files carry a pointer to the env file, never its values."""
     monkeypatch.setenv("NEXUS_MCP_CONFIG_HOME", str(tmp_path / "cfg"))
     ws = tmp_path / "ws"
     ws.mkdir()
     env = ws / ".env"
     env.write_text(
         "SCHOLAR_MAILTO=me@example.com\n"
-        "SCHOLAR_OPENALEX_KEY=oa-secret\n"
-        "SCHOLAR_S2_KEY=s2-secret\n"
         "OPENAI_API_KEY=sk-open-secret\n"
-        "ANTHROPIC_API_KEY=sk-ant-secret\n"
-        "GEMINI_API_KEY=sk-gem-secret\n"
-        "NEXUS_RECON_ROOT=/tmp/recon-root\n"
-        "NEXUS_HARNESS_SRC=/tmp/harness-src\n"
-        "NEXUS_MCP_CONFIG_HOME=/tmp/never-forwarded\n"
-        "SOME_FOREIGN_KEY=zzz\n",
+        "ANTHROPIC_API_KEY=sk-ant-secret\n",
         encoding="utf-8",
     )
     result = runner.invoke(
-        app, ["setup-mcp", "--workspace", str(ws), "--harness", "claude", "--env-file", str(env)]
+        app,
+        ["setup-mcp", "--workspace", str(ws), "--harness", "claude,cursor,vscode,mcp",
+         "--env-file", str(env)],
     )
     assert result.exit_code == 0, result.stdout
 
-    claude = tmp_path / "cfg" / "Claude" / "claude_desktop_config.json"
-    entry = json.loads(claude.read_text(encoding="utf-8"))["mcpServers"]["nexus-scholar"]
-    assert set(entry["env"]) == {
-        "SCHOLAR_MAILTO", "SCHOLAR_OPENALEX_KEY", "SCHOLAR_S2_KEY",
-        "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY",
-        "NEXUS_RECON_ROOT", "NEXUS_HARNESS_SRC",
-    }
-    assert "NEXUS_MCP_CONFIG_HOME" not in entry["env"]  # setup-time control, never forwarded
-    assert "SOME_FOREIGN_KEY" not in entry["env"]  # unknown keys skipped
-    assert entry["env"]["SCHOLAR_MAILTO"] == "me@example.com"
-    assert entry["env"]["OPENAI_API_KEY"] == "sk-open-secret"
+    targets = [
+        tmp_path / "cfg" / "Claude" / "claude_desktop_config.json",
+        ws / ".cursor" / "mcp.json",
+        ws / ".vscode" / "mcp.json",
+        ws / ".mcp.json",
+    ]
+    for path in targets:
+        raw = path.read_text(encoding="utf-8")
+        assert "sk-open-secret" not in raw and "sk-ant-secret" not in raw, path
+        assert "me@example.com" not in raw, path
+        entry = json.loads(raw)["mcpServers"]["nexus-scholar"]
+        assert "env" not in entry, path
+        args = entry["args"]
+        assert args[args.index("--env-file") + 1] == str(env.resolve()), path
 
 
-def test_setup_mcp_env_file_bom_first_line(tmp_path, monkeypatch):
-    """A UTF-8 BOM (PowerShell/Notepad) must not swallow the first key."""
-    monkeypatch.setenv("NEXUS_MCP_CONFIG_HOME", str(tmp_path / "cfg"))
-    ws = tmp_path / "ws"
-    ws.mkdir()
-    env = ws / ".env"
-    env.write_bytes("\ufeffOPENAI_API_KEY=sk-bommed\nSCHOLAR_MAILTO=a@b.c\n".encode("utf-8"))
-    result = runner.invoke(
-        app, ["setup-mcp", "--workspace", str(ws), "--harness", "mcp", "--env-file", str(env)]
+def test_server_env_file_selects_known_keys_without_overriding(tmp_path, monkeypatch):
+    """The server loads approved keys from the env file; the real env wins."""
+    from scholar_agent.server import _apply_env_file
+
+    env = tmp_path / ".env"
+    env.write_bytes(
+        "﻿OPENAI_API_KEY=sk-bommed\n"
+        "SCHOLAR_MAILTO=file@example.com\n"
+        "NEXUS_MCP_CONFIG_HOME=/never\n"
+        "SOME_FOREIGN_KEY=zzz\n".encode("utf-8")
     )
-    assert result.exit_code == 0, result.stdout
-    entry = json.loads((ws / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["nexus-scholar"]
-    assert entry["env"]["OPENAI_API_KEY"] == "sk-bommed"
+    for key in ("OPENAI_API_KEY", "NEXUS_MCP_CONFIG_HOME", "SOME_FOREIGN_KEY"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("SCHOLAR_MAILTO", "shell@example.com")
+
+    loaded = _apply_env_file(env)
+
+    assert sorted(loaded) == ["OPENAI_API_KEY"]
+    import os
+
+    assert os.environ["OPENAI_API_KEY"] == "sk-bommed"  # BOM does not swallow the key
+    assert os.environ["SCHOLAR_MAILTO"] == "shell@example.com"
+    assert "NEXUS_MCP_CONFIG_HOME" not in os.environ
+    assert "SOME_FOREIGN_KEY" not in os.environ
+
+
+def test_secret_bearing_files_are_gitignored():
+    """CORE-17: .env and generated MCP configs never enter git."""
+    import subprocess
+
+    paths = [
+        ".env",
+        ".mcp.json",
+        ".cursor/mcp.json",
+        "workspaces/demo/.env",
+        "workspaces/demo/.mcp.json",
+        "workspaces/demo/.cursor/mcp.json",
+    ]
+    result = subprocess.run(
+        ["git", "check-ignore", "--no-index", *paths],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    ignored = set(result.stdout.split())
+    assert ignored == set(paths), sorted(set(paths) - ignored)
 
 
 def test_setup_mcp_never_prints_env_values(tmp_path, monkeypatch):
@@ -262,7 +294,6 @@ def test_setup_mcp_never_prints_env_values(tmp_path, monkeypatch):
     )
     assert dry.exit_code == 0, dry.stdout
     assert secret not in dry.stdout
-    assert "***" in dry.stdout
 
     # Redaction is structural: values → ***, key names preserved.
     from scholar_harness.mcp_setup import _masked_json
@@ -292,7 +323,8 @@ def test_setup_mcp_default_env_file_from_workspace(tmp_path, monkeypatch):
     result = runner.invoke(app, ["setup-mcp", "--workspace", str(ws), "--harness", "mcp"])
     assert result.exit_code == 0, result.stdout
     entry = json.loads((ws / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["nexus-scholar"]
-    assert entry["env"] == {"SCHOLAR_MAILTO": "a@b.c"}
+    assert "env" not in entry
+    assert entry["args"][entry["args"].index("--env-file") + 1] == str((ws / ".env").resolve())
 
 
 def test_setup_mcp_vscode_skips_env_but_notes(tmp_path, monkeypatch):
@@ -306,9 +338,9 @@ def test_setup_mcp_vscode_skips_env_but_notes(tmp_path, monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     entry = json.loads((ws / ".vscode" / "mcp.json").read_text(encoding="utf-8"))["mcpServers"]["nexus-scholar"]
-    # VS Code's mcp.json has no per-server env block — the note tells the user.
+    # The server reads the env file itself, so VS Code works like every target.
     assert "env" not in entry
-    assert "env NOT" in result.stdout
+    assert "--env-file" in entry["args"]
     assert "sk-vscode" not in result.stdout
 
 

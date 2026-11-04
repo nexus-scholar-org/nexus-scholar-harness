@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 import networkx as nx
+import pytest
 from scholar_agent.server import (
     nexus_bib_clean,
     nexus_extract_pdf,
@@ -21,6 +22,12 @@ from scholar_agent.server import (
     nexus_verify_claims,
 )
 from scholar_graph.builder import CitationGraphBuilder
+
+
+@pytest.fixture(autouse=True)
+def _mcp_workspace(tmp_path, monkeypatch):
+    """Tool paths must resolve inside NEXUS_MCP_WORKSPACE (AGT-01)."""
+    monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(tmp_path))
 
 
 def _di_graph(dois: list[str], *edges: tuple[str, str]) -> nx.DiGraph:
@@ -393,11 +400,12 @@ def test_nexus_mcp_workspace_env_anchors_relative_args(tmp_path, monkeypatch):
     assert "unique" in result
 
 
-def test_nexus_resolve_path_leaves_absolute_and_inline_json_untouched(tmp_path, monkeypatch):
+def test_nexus_resolve_path_keeps_inside_absolute_and_inline_json(tmp_path, monkeypatch):
     from scholar_agent import server
 
-    assert server._resolve_path(str(tmp_path)) == str(tmp_path)
-    assert server._resolve_path('{"a": 1}') == '{"a": 1}'
+    assert server._resolve_path(str(tmp_path)) == str(tmp_path.resolve())
+    # Inline JSON is kept only by the JSON-capable resolver (AGT-01 review).
+    assert server._resolve_path_or_json('{"a": 1}') == '{"a": 1}'
     assert server._resolve_path(None) is None
 
 

@@ -33,12 +33,22 @@ Every screen defaults to labelled demonstration data and performs no request.
 Append `?source=live` to read the local Harness Console instead:
 
 ```powershell
+# both terminals share one per-launch token (any long random string)
+$env:NEXUS_CONSOLE_TOKEN = [guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")
 # terminal 1 — the backend
 uv run scholar-harness serve --workspace workspaces/uav-crop-weed-v03 --port 8765
-# terminal 2 — the product surface
+# terminal 2 — the product surface (set the same NEXUS_CONSOLE_TOKEN first)
 cd apps/research-ui && npm run dev
 # then open http://localhost:3000/en/screening?source=live
 ```
+
+The console requires `Authorization: Bearer <token>` on every route except
+`/healthz`, answers only on a loopback `Host`, and refuses non-loopback
+`Origin`s (INC-01). If `NEXUS_CONSOLE_TOKEN` is not set, `serve` generates a
+token and prints it once; start the UI with that value. The proxy adds the
+header server-side, so the browser never holds the token. It also refuses a
+request addressed to a non-loopback host and a POST whose `Origin` is not the
+app's own.
 
 Reads, event streams and the allowlisted screening POSTs go to this
 application's own origin at `/api/console/...`; the route handler

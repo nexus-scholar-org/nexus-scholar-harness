@@ -73,6 +73,29 @@ def _toposort(node_ids: set[str], edges: list[list[str]]) -> tuple[list[str], li
     return order, errors
 
 
+# INC-01: a node runs as ``uv run <command> --arg value ...``. Only the domain
+# kit CLIs and the screening handoff may run. ``scholar-harness`` /
+# ``nexus-scholar`` are excluded because ``serve`` and ``run`` would start a
+# server or another spec; ``python`` is allowed only for the handoff script.
+ALLOWED_COMMAND_PREFIXES: tuple[tuple[str, ...], ...] = (
+    ("scholar-search",),
+    ("scholar-pdf",),
+    ("scholar-rag",),
+    ("scholar-protocol",),
+    ("scholar-verify",),
+    ("scholar-bib",),
+    ("scholar-graph",),
+    ("python", "src/scholar_harness/agent_screen.py"),
+)
+
+
+def command_allowed(command: list[str]) -> bool:
+    """Whether ``command`` starts with one of :data:`ALLOWED_COMMAND_PREFIXES`."""
+    return any(
+        tuple(command[: len(prefix)]) == prefix for prefix in ALLOWED_COMMAND_PREFIXES
+    )
+
+
 def validate_spec(spec: PipelineSpec) -> dict[str, Any]:
     """Structural + semantic validation. Returns {errors: [...], warnings: [...]}."""
     errors: list[str] = []
@@ -98,6 +121,11 @@ def validate_spec(spec: PipelineSpec) -> dict[str, Any]:
     for n in spec.nodes:
         if not n.command:
             errors.append(f"node {n.id}: command must not be empty")
+        elif not command_allowed(n.command):
+            errors.append(
+                f"node {n.id}: COMMAND_NOT_ALLOWED {n.command[0]!r}; nodes may run only "
+                "the kit CLIs (scholar-search, scholar-pdf, ...) or the screening handoff"
+            )
         unresolved = {k for k in _extract_template_keys(n.args)
                       if not _lookup(k, spec.settings, slot_keys) and k not in output_refs}
         if unresolved:

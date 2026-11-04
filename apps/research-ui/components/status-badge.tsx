@@ -41,14 +41,17 @@ import { stateKey, translate, type Locale } from "@/i18n";
  */
 
 /** Shared shape. The per-state entry supplies colour only. */
+// Brand badge (production plan §3, M0): a status role's `-soft` tint behind
+// the role's full colour, never ink on a tint and never a full colour behind
+// text. `radius-sm`, as the brand book gives badges.
 const STAMP_SHAPE =
-  "inline-flex items-center gap-1.5 border px-2 py-0.5 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.12em] rtl:tracking-normal rtl:text-[0.75rem]";
+  "inline-flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-[0.6875rem] font-semibold uppercase leading-4 tracking-[0.05em] rtl:tracking-normal rtl:text-[0.75rem]";
 
 const styles: Record<WorkflowState, string> = {
-  complete: "border-success/45 text-success",
-  active: "border-evidence/45 text-evidence",
-  waiting: "border-warning/45 text-warning",
-  refused: "border-refusal/45 text-refusal",
+  complete: "bg-include-soft text-include",
+  active: "bg-brand-soft text-brand",
+  waiting: "bg-unclear-soft text-unclear",
+  refused: "bg-blocked-soft text-blocked",
 };
 
 export function StatusBadge({

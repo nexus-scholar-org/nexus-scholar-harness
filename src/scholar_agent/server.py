@@ -204,16 +204,51 @@ def _mcp_anchor() -> Path:
     return Path.cwd()
 
 
+class PathOutsideWorkspace(ValueError):
+    """A tool path argument resolves outside the MCP anchor (AGT-01)."""
+
+
 def _resolve_path(p: str | None) -> str | None:
-    """Resolve a possibly-relative path arg against the MCP anchor; leave
-    absolute paths and inline JSON (raw protocol/intent/screener payloads)
-    untouched."""
-    if not p or p.lstrip().startswith(("{", "[")):
+    """Resolve a path arg against the MCP anchor and refuse escapes (AGT-01).
+
+    Relative paths are joined onto the anchor; absolute paths are kept. Either
+    way the resolved path (symlinks followed, ``..`` collapsed) must lie inside
+    the anchor, or :class:`PathOutsideWorkspace` is raised before any read or
+    write. This is for path parameters only, and nothing passes through by its
+    content: ``'["/../../x"]'`` is valid JSON and, on POSIX, also a legal path.
+    Parameters that accept an inline payload use :func:`_resolve_path_or_json`.
+    """
+    if not p:
         return p
+    anchor = _mcp_anchor()
     path = Path(p)
-    if path.is_absolute():
-        return str(path)
-    return str(_mcp_anchor() / path)
+    resolved = (path if path.is_absolute() else anchor / path).resolve()
+    inside = Path(os.path.normcase(resolved)).is_relative_to(
+        Path(os.path.normcase(anchor))
+    )
+    if not inside:
+        raise PathOutsideWorkspace(
+            f"PATH_OUTSIDE_WORKSPACE: {p!r} resolves outside the MCP workspace {anchor}"
+        )
+    return str(resolved)
+
+
+def _resolve_path_or_json(p: str | None) -> str | None:
+    """For the parameters that take a file path *or* an inline JSON payload.
+
+    Only ``intent_json``, ``protocol_json``, ``screeners_json`` and
+    ``adjudication_json`` use this. A value that parses as JSON is returned
+    unchanged as a payload, and those tools read it through
+    :func:`_existing_file`, which never opens a ``{``/``[``-prefixed string as
+    a path. Anything else is a path and is contained by :func:`_resolve_path`.
+    """
+    if p and p.lstrip().startswith(("{", "[")):
+        try:
+            json.loads(p)
+            return p
+        except ValueError:
+            pass
+    return _resolve_path(p)
 
 
 def _existing_file(arg: str | None) -> Path | None:
@@ -258,7 +293,7 @@ def nexus_protocol_compile(intent_json: str) -> str:
     Returns the canonical protocol JSON string.
     """
     try:
-        intent_json = _resolve_path(intent_json) or intent_json
+        intent_json = _resolve_path_or_json(intent_json) or intent_json
         intent_file = _existing_file(intent_json)
         if intent_file is not None:
             intent_data = json.loads(intent_file.read_text(encoding="utf-8"))
@@ -335,7 +370,7 @@ def nexus_protocol_validate(protocol_json: str) -> str:
         )
 
     try:
-        protocol_json = _resolve_path(protocol_json) or protocol_json
+        protocol_json = _resolve_path_or_json(protocol_json) or protocol_json
         p = _existing_file(protocol_json)
         if p is not None:
             return _response(validate_protocol(p))
@@ -1058,8 +1093,8 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
         adjudication_json: Optional path to JSON file with adjudicated tie-breaking decisions.
     """
     try:
-        screeners_json = _resolve_path(screeners_json) or screeners_json
-        adjudication_json = _resolve_path(adjudication_json) or adjudication_json
+        screeners_json = _resolve_path_or_json(screeners_json) or screeners_json
+        adjudication_json = _resolve_path_or_json(adjudication_json) or adjudication_json
         screeners_map: dict[str, dict[str, str]] = {}
         screeners_dir = _existing_dir(screeners_json)
         screeners_file = _existing_file(screeners_json)
@@ -2104,6 +2139,12 @@ def main(argv: list[str] | None = None) -> None:
         help="Workspace root directory for anchoring relative paths and storing cache/artifacts (default: NEXUS_MCP_WORKSPACE or repo root).",
     )
     parser.add_argument(
+        "--env-file",
+        type=str,
+        default=None,
+        help="Env file with SCHOLAR_*/NEXUS_*/provider keys to load at start (default: <workspace>/.env if present). Variables already set win.",
+    )
+    parser.add_argument(
         "--transport",
         type=str,
         default="stdio",
@@ -2124,7 +2165,28 @@ def main(argv: list[str] | None = None) -> None:
         if "NEXUS_RECON_ROOT" not in os.environ:
             os.environ["NEXUS_RECON_ROOT"] = str(ws_path / ".cache" / "inception_recon")
 
+    env_file = Path(args.env_file) if args.env_file else _mcp_anchor() / ".env"
+    if env_file.is_file():
+        _apply_env_file(env_file)
+
     mcp.run(transport=args.transport)
+
+
+def _apply_env_file(path: Path) -> list[str]:
+    """Load the approved keys of ``path`` into the environment (CORE-17).
+
+    Keys come from the env file at start instead of an ``env:`` block in a
+    config file, so no config file ever holds a key value. Variables already
+    set in the environment win. Returns the names that were loaded.
+    """
+    from scholar_harness.mcp_setup import read_env_passthrough
+
+    loaded = []
+    for key, value in read_env_passthrough(path).items():
+        if key not in os.environ:
+            os.environ[key] = value
+            loaded.append(key)
+    return loaded
 
 
 if __name__ == "__main__":

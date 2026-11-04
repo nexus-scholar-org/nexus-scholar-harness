@@ -28,6 +28,17 @@ from fastapi.testclient import TestClient
 from scholar_harness.console import create_app
 from scholar_harness.console.runtimes.actions import get_action, render_command
 from scholar_harness.console.runtimes.job_runner import JobRunner
+from scholar_harness.pipeline import validation as pipeline_validation
+
+
+@pytest.fixture(autouse=True)
+def _allow_stub_commands(monkeypatch):
+    """The DAG tests run ``python -c`` stub nodes; production specs may not (INC-01)."""
+    monkeypatch.setattr(
+        pipeline_validation,
+        "ALLOWED_COMMAND_PREFIXES",
+        (*pipeline_validation.ALLOWED_COMMAND_PREFIXES, ("python", "-c")),
+    )
 
 CODE_WRITE = (
     "import pathlib,argparse,sys;"
@@ -82,7 +93,7 @@ def _bootstrap(tmp) -> Path:
 
 
 def _async_client(app) -> httpx.AsyncClient:
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1")
 
 
 async def _async_wait_terminal(runner: JobRunner, job_id: str, timeout: float = 60):

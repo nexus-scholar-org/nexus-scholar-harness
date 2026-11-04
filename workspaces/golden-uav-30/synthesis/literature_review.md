@@ -1,0 +1,1 @@
+# Literature Review: Golden UAV 30\n\n## Objectives & Research Questions\n- **What is the statistically significant effect/impact of Golden UAV 30 on the target population or system, as quantified by Quantitative telemetry, controlled benchmarks / A/B logs?**\n\n## Findings & Synthesis\n*To be generated from extracted papers.*\n

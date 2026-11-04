@@ -188,7 +188,14 @@ describe("direction and literal-string source guards", () => {
     const scope = [...UI_SOURCE, ...sourceFiles("i18n"), ...sourceFiles("messages")];
     expect(hits(scope, /\bfetch\(/)).toEqual([]);
     expect(hits(scope, /XMLHttpRequest/)).toEqual([]);
-    expect(hits(scope, /localStorage/)).toEqual([]);
+    // One exemption, by file: the theme selector remembers light/dark/system in
+    // `localStorage` (production plan §3, M0). A theme is not a locale and
+    // changes no text, and it is read after render (an effect, and the boot
+    // script that sets `data-theme` before paint), never during it. No other
+    // file may touch storage, and the theme file may not read the locale.
+    const THEME_FILE = "components/theme-toggle.tsx";
+    expect(hits(scope.filter((file) => file !== THEME_FILE), /localStorage/)).toEqual([]);
+    expect(hits([THEME_FILE], /navigator\.|locale/i)).toEqual([]);
     expect(hits(scope, /navigator\.language/)).toEqual([]);
   });
 });

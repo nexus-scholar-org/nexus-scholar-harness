@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 /*
  * PROSE MUST NOT GENERATE CSS. Tailwind v4 auto-detects sources by scanning the
@@ -84,97 +85,26 @@
 @source not "../messages/**";
 
 /*
- * The Nexus Scholar visual direction (packet UI-01c).
+ * The design system (production plan §3, M0).
  *
- * `VISUAL_DIRECTION.md` states the principles in prose; this file is where they
- * become values. `@theme` is the single place raw colour and typeface values
- * are declared. Tailwind emits these as `--color-*` / `--font-*` custom
- * properties on `:root` and exposes matching utilities (`bg-paper`,
- * `text-ink-muted`, `font-display`, ...), so every role is reachable from
- * markup and from the hand-written CSS below without a second source of truth.
+ * Every colour, typeface, radius and the overlay shadow come from
+ * `docs/ux/brand/tokens.json` through `app/theme.css`, which
+ * `scripts/build-tokens.mjs` generates (`npm run tokens`; the build fails when
+ * it is stale). This replaces the UI-01c `@theme` that lived here: the brand
+ * book is the design system of record since the 2026-11-03 decision, which
+ * reverses VISUAL_DIRECTION D1 (no web fonts, no radius, light only).
  *
- * CHARACTER. The product is a research instrument, so the ground is warm paper
- * and the type is ink, not a cold dashboard grey on white. Structure is carried
- * by hairline rules and by a display serif for the document voice; depth,
- * rounded containers and drop shadows are not used to imply hierarchy at all.
+ * The UI's role names are kept (`paper`, `leaf`, `ink`, `ink-muted`, `rule`,
+ * `evidence`, `success`, `warning`, `refusal`, `focus`) and now resolve to brand
+ * values; the brand-only roles (`brand`, `anchor`, `include`, `unclear`,
+ * `blocked`, `exclude` and their `-soft` tints) are new. The mapping is in the
+ * generator.
  *
- * MEASURED CONTRAST (WCAG 2.1). These are the ratios axe-core reported for
- * rendered text on the real page — read out of the `color-contrast` pass nodes'
- * own `contrastRatio` / `fgColor` / `bgColor` fields at 375px and 1440px, not
- * hand-computed from the hexes and not assumed. `GATES.md` §3.7 quotes the run
- * that produced them. Every text role below clears normal-size 4.5:1 on BOTH
- * grounds, and the tightest role on the page, `ink-faint`, has 0.84 to spare:
- *
- *   role   hex        on --color-paper   on --color-leaf
- *   ink        #1c1a17      15.66:1           16.79:1
- *   ink-muted  #4a453d       8.57:1            9.19:1
- *   ink-faint  #6b6357       5.34:1            5.72:1
- *   evidence   #1f3a5f      10.36:1           11.11:1
- *   success    #1f5c3a       7.15:1            7.67:1
- *   warning    #7a5410       6.11:1            6.54:1
- *   refusal    #8f2f28       7.27:1            7.80:1
- *
- * REPRODUCIBILITY, so this comment is not read as stronger than it is: the
- * figures above are MEASURED ONCE, in the UI-01c run, and are NOT reproducible by
- * the committed suite. The browser suite asserts that every text node passes
- * 4.5:1, which is what makes them safe to design against; it asserts no
- * individual ratio. `GATES.md` §3.7.1 is the record of what is enforced and what
- * is a snapshot. Re-measure `ink-faint` first if you darken `--color-paper`.
- *
- * The two `--color-rule-*` values are hairlines, not a signal: they carry
- * separation, never meaning. The one boundary that carries meaning is the
- * focus ring, and it is ink.
- *
- * `--color-paper` and `--color-ink` intentionally REPLACE the values UI-01
- * preserved verbatim (`#f8fafc` / `#172033`). That preservation was recorded as
- * gate 19 in `GATES.md` §1.2 precisely so a later packet could name a deliberate
- * change; this is that change, and `GATES.md` §3.7 records it as a
- * redesign rather than a regression.
+ * Contrast: the brand book states every text colour passes 4.5:1 on surface
+ * and ground in both themes; `tests-browser/rendered-axe.spec.ts` checks it on
+ * the rendered page in light and in dark.
  */
-@theme {
-  /* --- grounds and type ------------------------------------------------ */
-  --color-paper: #f6f3ec;
-  --color-leaf: #fdfbf7;
-  --color-ink: #1c1a17;
-  --color-ink-muted: #4a453d;
-  --color-ink-faint: #6b6357;
-
-  /* --- rules: hairlines, never meaning --------------------------------- */
-  --color-rule: #ded5c3;
-  --color-rule-strong: #bfb39b;
-
-  /* --- semantic state, one hue each ------------------------------------ */
-  --color-evidence: #1f3a5f;
-  --color-success: #1f5c3a;
-  --color-warning: #7a5410;
-  --color-refusal: #8f2f28;
-
-  /*
-   * Focus is INK, not an accent, and is declared as its own token rather than
-   * reused from `--color-ink` on purpose: the focus ring is an interaction
-   * contract, so a future change to the body ink must not silently restate it.
-   * `--color-evidence` (the active-route marker and the editorial aside rule)
-   * is deliberately a different role with a different colour, so a focused
-   * control never reads as "the current page".
-   */
-  --color-focus: #1c1a17;
-
-  /*
-   * Two typeface roles and no web fonts (decision D1). `--font-display` is the
-   * document voice — titles, section heads, the product name. `--font-interface`
-   * is everything that has to be read precisely: body copy, labels, stamps,
-   * numbers. A meetup demo must not depend on conference wifi, so both stacks
-   * resolve from fonts the OS already has, and there is no third role: exact
-   * identifiers are marked by case and tracking rather than by a monospace face.
-   */
-  --font-display: georgia, "Iowan Old Style", "Palatino Linotype", palatino, "Book Antiqua",
-    "Times New Roman", serif;
-  --font-interface: ui-sans-serif, system-ui, -apple-system, "Segoe UI", roboto, "Helvetica Neue",
-    arial, sans-serif;
-}
-
 :root {
-  color-scheme: light;
   --background: var(--color-paper);
   --foreground: var(--color-ink);
 }
@@ -290,7 +220,7 @@ textarea:focus-visible {
   overflow: visible;
   white-space: normal;
   clip-path: none;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-rule-strong);
   background-color: var(--color-leaf);
   color: var(--color-ink);
@@ -298,7 +228,7 @@ textarea:focus-visible {
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.25rem;
-  box-shadow: 0 8px 20px -8px rgb(28 26 23 / 0.28);
+  box-shadow: var(--shadow-overlay);
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }

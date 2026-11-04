@@ -53,6 +53,14 @@ export default defineConfig({
       // `npx playwright install chromium` and not a system Chrome.
       use: { browserName: "chromium" },
     },
+    {
+      // The same suite under `prefers-color-scheme: dark` (production plan §3,
+      // M0): contrast, focus, overflow and hygiene must hold in both themes.
+      // The committed screenshots stay light-only; they are evidence files.
+      name: "chromium-dark",
+      use: { browserName: "chromium", colorScheme: "dark" },
+      testIgnore: /screenshots\.spec\.ts$/,
+    },
   ],
   webServer: {
     // `next start` serves the production bundle, so the screenshots and the

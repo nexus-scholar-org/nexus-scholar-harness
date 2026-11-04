@@ -293,7 +293,11 @@ starts this server on your workspace.
 | `NEXUS_SKILLS_SRC` | Override the skill-bundle source root (`init` picks it first) |
 
 Copy `.env.example` (created by `init`) to `.env` and fill in keys; `doctor` and
-`setup-mcp` read `<workspace>/.env` by default.
+`setup-mcp` read `<workspace>/.env` by default. `setup-mcp` never copies key
+values into an MCP config file: it adds `--env-file <path>` to the server
+command, and `scholar-agent` loads the keys from that file when it starts
+(variables already set in your environment win). `.env`, `.mcp.json` and
+`.cursor/mcp.json` are gitignored.
 
 ---
 
@@ -308,7 +312,8 @@ scaffolded):
 | `nexus-scholar sync` | Atomically rebuild `project.json` stats + `INDEX.md` from disk |
 | `nexus-scholar run` | Execute a research pipeline (classic `--protocol` or a `--pipeline` DAG) |
 | `nexus-scholar export` | Export findings/bibliographies to external tools |
-| `nexus-scholar serve` | Run the FastAPI console server (uvicorn) for a workspace |
+| `nexus-scholar accept-corpus` | Accept the corpus snapshot from `literature/verified.json`, or import a RIS export with `--ris`, so screening `prepare` can run |
+| `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints) |
 | `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol |
 
 Run any with `--help` for full options.

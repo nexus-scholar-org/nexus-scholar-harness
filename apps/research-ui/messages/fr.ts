@@ -71,6 +71,10 @@ const fr: Record<MessageKey, string> = {
   "evidenceKind.study": "étude",
   "evidenceKind.decision": "décision",
   "locale.selectorLabel": "Langue",
+  "theme.selectorLabel": "Thème",
+  "theme.system": "Système",
+  "theme.light": "Clair",
+  "theme.dark": "Sombre",
   "notFound.heading": "Page introuvable",
   "notFound.body":
     "Cette démonstration n'a pas de page à cette adresse. Utilisez l'un des liens de langue ci-dessous, ou revenez à la vue d'ensemble.",

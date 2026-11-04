@@ -1009,6 +1009,40 @@ def export(
         raise typer.Exit(1)
 
 
+@app.command("accept-corpus")
+def accept_corpus_command(
+    workspace: Path = typer.Option(
+        Path("."), "--workspace", "-w", help="Path to research workspace directory"
+    ),
+    ris: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--ris",
+        help="Import a RIS export (Scopus, Web of Science, Zotero) into literature/verified.json first",
+    ),
+):
+    """Accept the workspace's corpus snapshot so screening can start.
+
+    Builds the Contract-v1 corpus snapshot from literature/verified.json (or a
+    RIS export) and publishes it through the acceptance gate. Run `prepare`
+    afterwards. Re-running on the same records is a no-op.
+    """
+    from .corpus_accept import AcceptCorpusRefused, accept_corpus
+
+    try:
+        result = accept_corpus(workspace, ris=ris)
+    except AcceptCorpusRefused as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]", markup=True, soft_wrap=True)
+        raise typer.Exit(1) from exc
+    state = "already accepted" if result.already_accepted else "accepted"
+    console.print(
+        f"[bold green]✅ Corpus snapshot {state}:[/bold green] "
+        f"{result.study_count} studies from {result.record_count} records",
+        soft_wrap=True,
+    )
+    console.print(f"[dim]{result.artifact_id}[/dim]")
+    console.print("[dim]Next: prepare the screening batches.[/dim]")
+
+
 @app.command("serve")
 def serve(
     workspace: Path = typer.Option(
@@ -1022,22 +1056,52 @@ def serve(
         False, "--reload", help="Enable uvicorn auto-reload (development only)"
     ),
 ):
-    """Run the Harness Console server (FastAPI + uvicorn) for a workspace."""
+    """Run the Harness Console server (FastAPI + uvicorn) for a workspace.
+
+    INC-01: binds to loopback only and requires a per-launch bearer token on
+    every API route. The token is ``NEXUS_CONSOLE_TOKEN`` when set (so the
+    research UI's proxy, started with the same variable, can call the
+    console); otherwise a fresh one is generated and printed once.
+    """
+    import os
+    import secrets
+
     import uvicorn
 
     from .console import create_app
+    from .console.serve import LOOPBACK_HOSTS
 
     ws = workspace.resolve()
     if not ws.is_dir():
         console.print(f"[bold red]❌ Workspace directory not found: {ws}[/bold red]")
         raise typer.Exit(1)
+    if host.strip("[]") not in LOOPBACK_HOSTS:
+        console.print(
+            f"[bold red]❌ Refusing to bind {host}: the console serves loopback only "
+            f"({', '.join(LOOPBACK_HOSTS)}). Phone access on the LAN comes with a "
+            "restricted sub-app, not this server.[/bold red]"
+        )
+        raise typer.Exit(1)
 
-    app = create_app(ws)
+    token = os.environ.get("NEXUS_CONSOLE_TOKEN", "").strip()
+    generated = not token
+    if generated:
+        token = secrets.token_urlsafe(32)
+
+    app = create_app(ws, token=token, trusted_hosts=LOOPBACK_HOSTS)
     console.print(
         f"[bold cyan]🌐 Harness Console listening on http://{host}:{port}[/bold cyan]\n"
-        f"[dim]Workspace: {ws}[/dim]\n"
-        f"[dim]CTRL+C to stop[/dim]"
+        f"[dim]Workspace: {ws}[/dim]"
     )
+    if generated:
+        console.print("[dim]Start the research UI with this token in its environment:[/dim]")
+        # Plain, unwrapped and unhighlighted so it copies as one token.
+        console.print(
+            f"  NEXUS_CONSOLE_TOKEN={token}", markup=False, highlight=False, soft_wrap=True
+        )
+    else:
+        console.print("[dim]Token: from NEXUS_CONSOLE_TOKEN[/dim]")
+    console.print("[dim]CTRL+C to stop[/dim]")
     uvicorn.run(app, host=host, port=port, reload=reload)
 
 

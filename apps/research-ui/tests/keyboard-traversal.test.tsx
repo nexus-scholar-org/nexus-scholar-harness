@@ -56,6 +56,10 @@ function expectedTabStops(locale: Locale): string[] {
     `a:${CATALOGS[locale]["nav.audit"]}`,
     `button:${CATALOGS[locale]["a11y.openMainNavigation"]}`,
     ...SUPPORTED_LOCALES.map((code) => `a:${LOCALE_METADATA[code].endonym}`),
+    // The theme selector (production plan §3, M0) follows the locale links.
+    `button:${CATALOGS[locale]["theme.system"]}`,
+    `button:${CATALOGS[locale]["theme.light"]}`,
+    `button:${CATALOGS[locale]["theme.dark"]}`,
   ];
 }
 

@@ -4,6 +4,16 @@ import type { ReactNode } from "react";
 import { LocaleDocument } from "@/components/locale-document";
 import { SUPPORTED_LOCALES, resolveLocale, translate } from "@/i18n";
 
+// The brand faces, self-hosted from @fontsource (OFL): no request leaves the
+// machine for a font, so the app works offline and makes no third-party calls
+// (decision 2026-11-03). Weights are the ones the brand book uses.
+import "@fontsource/literata/400.css";
+import "@fontsource/literata/600.css";
+import "@fontsource/public-sans/400.css";
+import "@fontsource/public-sans/500.css";
+import "@fontsource/public-sans/600.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import "../globals.css";
 
 /**

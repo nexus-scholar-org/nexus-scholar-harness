@@ -58,6 +58,19 @@ CODE_N2_ASSERT = (
     "assert a.content=='boom','settings ref not resolved';"
     "pathlib.Path(a.out).write_text('n2')"
 )
+
+
+@pytest.fixture(autouse=True)
+def _allow_stub_commands(monkeypatch):
+    """These DAG tests run ``python -c`` stub nodes; production specs may not (INC-01)."""
+    from scholar_harness.pipeline import validation as pipeline_validation
+
+    monkeypatch.setattr(
+        pipeline_validation,
+        "ALLOWED_COMMAND_PREFIXES",
+        (*pipeline_validation.ALLOWED_COMMAND_PREFIXES, ("python", "-c")),
+    )
+
 CODE_BATCH = (
     "import pathlib,argparse,sys;"
     "p=argparse.ArgumentParser();p.add_argument('--out');"

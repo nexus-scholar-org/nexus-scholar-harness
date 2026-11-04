@@ -4,6 +4,100 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-04 — `accept-corpus` is the screening entry path until Packet B (M0)
+
+`nexus-scholar accept-corpus` builds the Contract-v1 corpus snapshot with the
+search kit's `build_corpus_snapshot_artifact` from `literature/verified.json`.
+It publishes the snapshot through the existing acceptance gate, which
+validates it against the frozen schema and journals the acceptance; `prepare`
+then works on a fresh workspace.
+- **RIS import:** `--ris <file>` imports a RIS export first. Each record gets
+  a record-derived `SCI-` id (from title, year, DOI and author names), so a
+  re-import yields the same ids. The import refuses to overwrite an existing
+  `verified.json`.
+- **Re-runs:** re-running on unchanged records publishes nothing.
+- **No CSV importer:** none exists yet, so CSV is deferred.
+- **Snapshot semantics unchanged:** the builder and acceptance are reused as
+  they are, so the lane stays STANDARD.
+- **Packet B:** full adoption, with discovery producing the snapshot itself,
+  remains M3.
+
+## 2026-11-04 — Console guards and the `--lan` threat model (INC-01)
+
+**Threats.** In stage 1 the console holds unpublished review data and can run
+kit commands. Three kinds of caller can reach it:
+- a web page in the researcher's browser: cross-site requests, and DNS
+  rebinding through a name that resolves to 127.0.0.1;
+- another process on the machine, including an AI agent's sandbox;
+- from M2, a device on the same LAN.
+
+**Guards, on every request** (`console/serve.py`):
+- **Host.** The `Host` must be a loopback name (`HOST_REFUSED`).
+- **Origin.** A browser `Origin` must be loopback (`ACTION_ORIGIN_REFUSED`,
+  the code the screening actions already used).
+- **Token.** Every route except `/healthz` needs `Authorization: Bearer
+  <token>` (`TOKEN_REQUIRED`). `serve` takes the token from
+  `NEXUS_CONSOLE_TOKEN`, or generates one and prints it once.
+- **Loopback bind.** `serve` refuses a non-loopback `--host`.
+
+**What a caller can run.**
+- **Pipeline nodes** may run only the kit CLIs and the screening handoff
+  script (`COMMAND_NOT_ALLOWED` in `validate_spec`). This applies in the
+  console and in `scholar-harness run`; tests that run `python -c` stub nodes
+  extend the list explicitly.
+- **Jobs** run only in the served workspace (`WORKSPACE_MISMATCH`).
+
+**The UI proxy** adds the token server-side, so the browser never holds it. It
+answers only on a loopback host and forwards a POST only when its `Origin` is
+the app's own.
+
+**Residual risk, accepted for stage 1.** A process running as the same user
+can forge `Origin` and POST through the proxy. It already has the user's
+files, so this grants no new privilege. M5-slim serves the UI from the same
+FastAPI process and replaces the proxy with a session cookie.
+
+**`--lan` (M2).** It never exposes this app. `nexus-scholar ui --lan` mounts a
+separate restricted sub-app on the LAN address:
+- **Routes:** screening reads and decision-event POSTs only. The jobs,
+  pipelines, streams and audit-writer routers are never mounted there; a test
+  proves they are unreachable.
+- **Pairing:** a phone pairs through a one-time token in the desktop QR code.
+  The token lives 2 minutes and is exchanged for a session cookie scoped to
+  the sub-app; no token appears in a URL after the first load.
+- **Session end:** on stop, on process exit, or after 12 hours.
+- **Transport:** plain HTTP on the LAN, so someone on the network can read
+  abstracts and decisions in transit. That is accepted for stage 1, shown on
+  the pairing screen, and fixed by opt-in HTTPS (`mkcert`) or the sync tier.
+- **Desktop only:** approval stays on the desktop (contract §4, §9.1).
+
+## 2026-11-04 — MCP tool paths are contained in the workspace (AGT-01)
+
+Every path argument of a `scholar-agent` tool, for reading and for writing, must
+resolve inside the MCP workspace (`--workspace`, else `NEXUS_MCP_WORKSPACE`, else
+the repository root). Relative paths are joined onto it; absolute paths are
+allowed only when they land inside it. Symlinks and `..` are resolved first. An
+escaping path raises `PathOutsideWorkspace` (`PATH_OUTSIDE_WORKSPACE`) before
+any I/O, which the MCP client sees as a tool error. Consequence: a researcher
+who wants a tool to read a file elsewhere (a PDF in Downloads) copies it into
+the workspace first. Reads are contained too, because an agent could otherwise
+use a reader tool to pull any local file into its context. Path parameters never pass
+anything through by its content (`'["/../x"]'` is valid JSON and, on POSIX, a
+legal path). Only the four parameters that accept an inline payload
+(`intent_json`, `protocol_json`, `screeners_json`, `adjudication_json`) keep a
+value that parses as JSON, and never open it as a path (review findings, M0).
+
+## 2026-11-04 — MCP keys stay in the env file, never in a config file (CORE-17)
+
+`setup-mcp` used to copy provider keys from `.env` into an `env:` block of each
+MCP config, including `<workspace>/.mcp.json` and `.cursor/mcp.json`, which git
+tracked. Now it adds `--env-file <path>` to the server command, and
+`scholar-agent` loads the approved keys (`SCHOLAR_*`, `NEXUS_*`, the three
+provider keys) from that file at start. Variables already set in the
+environment win. No config file holds a key value, VS Code works like the
+other targets, and `.env`, `.mcp.json` and `.cursor/mcp.json` are gitignored.
+Configs written by older versions keep their `env:` block until `setup-mcp` is
+run again.
+
 ## 2026-11-04 — Screening API contract accepted
 
 The researcher decided the contract's six open questions:
