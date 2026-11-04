@@ -40,7 +40,7 @@ const READ_METHODS = new Set(["GET", "HEAD"]);
 /** POST targets the browser may reach: screening actions and draft capture. */
 const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/batch\/\d+\/decisions$/,
-  /^api\/v1\/screening\/actions\/(redeem|defer|publish)$/,
+  /^api\/v1\/screening\/actions\/(pairing\/redeem|defer|publish)$/,
 ];
 
 /**

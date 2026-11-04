@@ -224,7 +224,9 @@ describe("console proxy — writes", () => {
     expect((call[1]?.headers as Record<string, string>)["content-type"]).toBe("application/json");
   });
 
-  it.each(["redeem", "defer", "publish"])("forwards the screening %s action", async (action) => {
+  // The console serves POST /actions/pairing/redeem, /actions/defer and
+  // /actions/publish (console/api/screening.py).
+  it.each(["pairing/redeem", "defer", "publish"])("forwards the screening %s action", async (action) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ shape: "x" })));
     vi.stubGlobal("fetch", fetchSpy);
@@ -235,12 +237,30 @@ describe("console proxy — writes", () => {
         headers: { "content-type": "application/json" },
         body: "{}",
       }),
-      context("api", "v1", "screening", "actions", action),
+      context("api", "v1", "screening", "actions", ...action.split("/")),
     );
 
     expect(response.status).toBe(200);
     const call = fetchSpy.mock.calls[0] as unknown as [unknown];
     expect(String(call[0])).toBe(`${CONSOLE}/api/v1/screening/actions/${action}`);
+  });
+
+  it("refuses the non-existent bare redeem action", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ shape: "x" })));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const response = await POST(
+      request("api/v1/screening/actions/redeem", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      }),
+      context("api", "v1", "screening", "actions", "redeem"),
+    );
+
+    expect(response.status).toBe(405);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
 
