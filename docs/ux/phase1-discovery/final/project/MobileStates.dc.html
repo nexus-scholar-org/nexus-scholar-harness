@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Failure on the phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <span class="body-strong">Discovery · run 3</span>
+      <span class="caption muted">[project title]</span>
+    </div>
+    <span class="offline">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 4-2.5M19 13a10 10 0 0 0-3-2M12 20h.01"/></svg>
+      Offline
+    </span>
+  </header>
+  <main class="m-body">
+    <span class="label">Engine unreachable</span>
+    <h1 class="m-h1">The desktop engine is not answering.</h1>
+
+    <section class="note n-blocked stack" aria-label="Engine unreachable" style="gap:var(--space-1)">
+      <span class="caption" style="color:var(--ink)">Showing the last status received at <span class="data">14:26 UTC</span>. A running harvest keeps going on the desktop; nothing is lost.</span>
+      <span class="data">ENGINE_UNREACHABLE</span>
+    </section>
+
+    <section class="card stack" style="gap:var(--space-1);padding:var(--space-3)">
+      <span class="body-strong">1 decision queued · will send when connected</span>
+      <span class="caption muted">Near-twin pair 3 · Merge · sent once when the engine answers. If the pair was decided on the desktop meanwhile, you choose which stands.</span>
+    </section>
+
+    <section class="swipe-card" aria-labelledby="fail-h" style="gap:var(--space-2);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between"><h2 id="fail-h" class="body-strong" style="margin:0">Semantic Scholar</h2><span class="badge b-blocked">Failed</span></div>
+      <span class="caption">Rate-limited after 10 records. Its count is missing from this run until it is retried.</span>
+      <span class="data">PROVIDER_RATE_LIMITED · HTTP 429</span>
+      <span class="caption muted">Retry from the desktop once the quota resets; the phone cannot start a run.</span>
+    </section>
+  </main>
+  <div class="m-actions">
+    <button class="btn">Scan the desktop QR again</button>
+    <button class="btn btn-primary">Try again</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

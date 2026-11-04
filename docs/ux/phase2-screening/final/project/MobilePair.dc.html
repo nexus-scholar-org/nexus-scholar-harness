@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Connect to desktop</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <span class="heading" style="font-family:var(--font-display)">Nexus Scholar</span>
+    <span class="badge b-exclude" style="margin-left:auto">Not connected</span>
+  </header>
+  <main class="m-body">
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Connect · step 1 of 1</span>
+      <h1 class="m-h1">Connect this phone to your desktop.</h1>
+      <p class="caption muted" style="margin:0">On the desktop, open Screening home and scan the QR code on the "Screen on your phone" card.</p>
+    </div>
+
+    <div role="img" aria-label="Camera view for scanning the QR code" style="height:200px;border-radius:var(--radius-lg);background:var(--surface-raised);border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center">
+      <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="var(--ink-muted)" stroke-width="1.5" aria-hidden="true"><path d="M3 8V4h4M17 4h4v4M21 16v4h-4M7 20H3v-4"/></svg>
+    </div>
+
+    <div class="field">
+      <label for="pc" class="caption">Or enter the code shown under the QR</label>
+      <input id="pc" class="in data" inputmode="numeric" autocomplete="one-time-code" placeholder="000-000" style="font-size:20px;letter-spacing:0.1em">
+    </div>
+
+    <section class="card stack" aria-labelledby="can-h" style="gap:var(--space-2);padding:var(--space-3)">
+      <h2 id="can-h" class="label" style="margin:0">This phone can</h2>
+      <span class="caption">Triage records · pick an exclusion reason · undo · approve a batch generation with the pairing code</span>
+      <h2 class="label" style="margin:var(--space-1) 0 0">It cannot</h2>
+      <span class="caption">Prepare batches · start the agent · change the protocol or settings · publish without the code</span>
+    </section>
+    <span class="caption muted">Works on your local network only. The link ends when the desktop app closes; nothing is stored in the address.</span>
+  </main>
+  <div class="m-actions">
+    <button class="btn btn-primary">Connect</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

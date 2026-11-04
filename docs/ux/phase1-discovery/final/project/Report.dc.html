@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search report</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Step 6 of 7 · Search report · PRISMA-S</span>
+        <h1 class="display" style="margin:0">Run 3: what each database was asked, what came back, and what you can claim.</h1>
+        <p class="lede">Every row carries the exact string sent, the database's own total, the fetched count and the UTC date. Counts at a cap are lower bounds.</p>
+      </div>
+      <span class="badge b-unclear">Partial · 1 of 4 failed</span>
+    </div>
+
+    <section class="card stack" aria-labelledby="id-h">
+      <h2 id="id-h" class="heading" style="margin:0">Records identified per database</h2>
+      <div class="scroll-x">
+        <table class="tbl">
+          <thead><tr><th>Database</th><th style="width:34%">Executed string</th><th class="num">Reported</th><th class="num">Fetched</th><th>Completeness</th><th class="num">No abstract</th><th>Cache</th><th>Searched (UTC)</th></tr></thead>
+          <tbody>
+            <tr><td class="body-strong">OpenAlex</td><td class="data" style="overflow-wrap:anywhere">filter=title_and_abstract.search:("lightweight cnn crop disease detection") AND … <a href="#">full</a></td><td class="num">1,344</td><td class="num">1,343</td><td><span class="badge b-unclear">1 not fetched</span></td><td class="num">3%</td><td class="caption">hit</td><td class="data">2026-11-02 13:58</td></tr>
+            <tr><td class="body-strong">Crossref</td><td class="data" style="overflow-wrap:anywhere">query.bibliographic=lightweight cnn crop disease detection … <a href="#">full</a></td><td class="num">~13,100</td><td class="num">2,000</td><td><span class="badge b-unclear">Lower bound · cap</span></td><td class="num">15%</td><td class="caption">live</td><td class="data">2026-11-02 14:20</td></tr>
+            <tr><td class="body-strong">Semantic Scholar</td><td class="data" style="overflow-wrap:anywhere">query=lightweight cnn crop disease detection … <a href="#">full</a></td><td class="num">unknown</td><td class="num">10</td><td><span class="badge b-blocked">Failed · 429</span></td><td class="num">—</td><td class="caption">live</td><td class="data">2026-11-02 14:21</td></tr>
+            <tr><td class="body-strong">arXiv</td><td class="data" style="overflow-wrap:anywhere">search_query=abs:"lightweight cnn crop disease detection" AND … <a href="#">full</a></td><td class="num">247</td><td class="num">153</td><td><span class="badge b-unclear">Stopped by you</span></td><td class="num">0%</td><td class="caption">live</td><td class="data">2026-11-02 14:20</td></tr>
+            <tr><td class="body-strong">Total</td><td></td><td></td><td class="num body-strong">3,506</td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <span class="caption muted">Not searched: PubMed (not selected), bioRxiv (off: cannot evaluate NOT or Boolean operators), Scopus and Web of Science (no connection; import an export). Records published outside the year window: 18, kept and flagged for screening.</span>
+    </section>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="imp-h" style="gap:var(--space-2)">
+          <h2 id="imp-h" class="heading" style="margin:0">Imports and duplicates</h2>
+          <table class="tbl">
+            <tbody>
+              <tr><td>Imported exports</td><td class="num">0</td><td class="caption muted">none in run 3 · <a href="#">Import an export</a></td></tr>
+              <tr><td>Records identified, all sources</td><td class="num">3,506</td><td></td></tr>
+              <tr><td>Duplicates removed</td><td class="num">265</td><td class="caption muted">231 identifier · 22 title · 12 fuzzy title</td></tr>
+              <tr><td>Near-twin pairs</td><td class="num">14</td><td class="caption t-unclear">2 decided by you · 12 kept separate until decided</td></tr>
+              <tr><td class="body-strong">Records after duplicates</td><td class="num body-strong">3,241</td><td></td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="draft stack" aria-labelledby="meth-h" style="gap:var(--space-2)">
+          <div class="row" style="justify-content:space-between">
+            <h2 id="meth-h" class="label" style="margin:0">Methods text · draft · not reviewed</h2>
+            <span class="data muted">built from run 003 legs · 3 Nov 2026</span>
+          </div>
+          <p class="body" style="margin:0;max-width:72ch">"OpenAlex, Crossref, Semantic Scholar and arXiv were searched on 2 November 2026 with the strings in Appendix [n]. OpenAlex returned 1,343 of the 1,344 records it reported within the strict filter; one could not be fetched. Crossref results were capped at 2,000 of about 13,100 and are a lower bound. Semantic Scholar was unavailable (rate-limited). The arXiv search was stopped at 153 of 247 records. 265 duplicates were removed, leaving 3,241 records."</p>
+          <div class="row" style="gap:var(--space-2)">
+            <button class="btn btn-small">Edit text</button>
+            <button class="btn btn-small">Mark as reviewed</button>
+            <a href="#" class="caption">Copy with the appendix of strings</a>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side">
+        <section class="card stack" aria-labelledby="hist-h" style="gap:var(--space-2)">
+          <h2 id="hist-h" class="heading" style="margin:0">Run history</h2>
+          <table class="tbl">
+            <thead><tr><th>Run</th><th>Date (UTC)</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr style="background:var(--brand-soft)"><td class="data">003</td><td class="data">2026-11-02 14:20</td><td><span class="badge b-unclear">Partial</span></td></tr>
+              <tr><td class="data">002</td><td class="data">[date]</td><td><span class="badge b-exclude">[status]</span></td></tr>
+              <tr><td class="data">001</td><td class="data">[date]</td><td><span class="badge b-exclude">[status]</span></td></tr>
+            </tbody>
+          </table>
+          <span class="caption muted">Each run keeps its own files; none is overwritten.</span>
+          <span class="data">literature/runs/003/raw.json</span>
+          <span class="data">literature/runs/003/manifest.json</span>
+          <span class="data">literature/runs/003/requests.json</span>
+          <a href="#" class="caption">Compare with run 2</a>
+        </section>
+        <section class="card stack" style="gap:var(--space-2)">
+          <span class="label">Journal</span>
+          <span class="caption"><span class="data">DISCOVERY_SEARCH</span> · Partial, with one leg per database: executed string, reported total, fetched, cap flag, cache, date.</span>
+          <span class="caption"><span class="data">DEDUPLICATION</span> · tier counts and each near-twin decision.</span>
+        </section>
+        <section class="card stack" style="gap:var(--space-2)">
+          <span class="label">Fill the gaps</span>
+          <button class="btn">Split Crossref by year</button>
+          <button class="btn">Retry Semantic Scholar</button>
+        </section>
+        <a class="btn btn-primary" href="#">Continue to hand-off</a>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1600}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

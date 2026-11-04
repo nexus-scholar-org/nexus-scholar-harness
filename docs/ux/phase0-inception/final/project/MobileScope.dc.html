@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scope on phone</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <div class="m-top">
+    <a href="#" class="btn btn-small" aria-label="Back to workspaces"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 8H3M7 4L3 8l4 4"/></svg>Back</a>
+    <span class="caption muted" style="margin-left:auto">Step 1 of 6 · <span class="data">rec_7f3a…</span></span>
+  </div>
+  <div class="m-body" style="gap:var(--space-4)">
+    <div class="stack" style="gap:var(--space-1)">
+      <span class="label">Step 1 of 6 · Scope</span>
+      <h1 class="m-h1">What will the first 25 papers be searched for?</h1>
+    </div>
+    <div class="field">
+      <label for="mtopic" class="body-strong">Research question</label>
+      <textarea id="mtopic" class="in" rows="3">Drone-mounted crop-disease detection with on-device deep learning</textarea>
+      <span class="caption t-include">One subject, 9 words, a good length</span>
+    </div>
+    <div class="row" style="gap:var(--space-3);flex-wrap:nowrap">
+      <div class="field" style="flex:1"><label for="my1" class="body-strong">From</label><input id="my1" class="in" value="2020" inputmode="numeric"></div>
+      <div class="field" style="flex:1"><label for="my2" class="body-strong">To</label><input id="my2" class="in" placeholder="present" inputmode="numeric"></div>
+    </div>
+    <div class="field">
+      <span class="body-strong" id="mlang">Languages</span>
+      <div class="row" role="group" aria-labelledby="mlang" style="gap:var(--space-2)"><button class="chip chip-on" aria-pressed="true" style="min-height:44px">English</button><button class="chip" style="min-height:44px">+ Add</button></div>
+    </div>
+    <div class="field">
+      <span class="body-strong" id="mmode">Search mode</span>
+      <div class="row" role="radiogroup" aria-labelledby="mmode" style="gap:var(--space-2)"><button class="chip chip-on" role="radio" aria-checked="true" style="min-height:44px">Semantic (recommended)</button><button class="chip" role="radio" aria-checked="false" style="min-height:44px">Keyword</button></div>
+    </div>
+    <div class="field">
+      <label for="mn" class="body-strong">Papers to sample</label>
+      <input id="mn" class="in num" value="25" inputmode="numeric">
+      <span class="caption muted">12 or more keeps directions reliable; 25 is the cap.</span>
+    </div>
+  </div>
+  <div class="m-actions">
+    <button class="btn">Save draft</button>
+    <button class="btn btn-primary">Search 25 papers</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

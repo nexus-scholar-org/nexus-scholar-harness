@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Approve and publish</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Screening steps" style="gap:var(--space-1)">
+      <a class="step" href="#">Home</a>
+      <a class="step step-done" href="#">1 Prepare</a>
+      <a class="step step-done" href="#">2 Agent proposals</a>
+      <a class="step step-done" href="#">3 Triage</a>
+      <a class="step step-done" href="#">4 Agreement</a>
+      <a class="step step-on" href="#" aria-current="page">5 Publish</a>
+    </nav>
+
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Screening · step 5 of 5 · Approve and publish · gate</span>
+      <h1 class="display" style="margin:0;max-width:36ch">All 3,241 records are decided. Approve this generation to publish the screening.</h1>
+      <p class="lede">One approval covers the whole generation and is bound to its exact content. Any later decision, including a late one from your phone, needs a new approval.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="prisma-h">
+          <div class="row" style="justify-content:space-between">
+            <h2 id="prisma-h" class="heading" style="margin:0">PRISMA 2020 · identification and screening · preview</h2>
+            <span class="badge b-brand">Preview · not written</span>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-4);align-items:start">
+            <div class="stack" style="gap:var(--space-2)">
+              <div class="raised stack" style="gap:2px;padding:var(--space-3);border-radius:var(--radius-md)"><span class="caption">Records identified</span><span class="title num">3,506</span><span class="caption muted">from Discovery, across databases</span></div>
+              <div class="caption muted" style="padding-left:var(--space-4)">265 duplicates removed</div>
+              <div class="raised stack" style="gap:2px;padding:var(--space-3);border-radius:var(--radius-md)"><span class="caption">Records screened (title and abstract)</span><span class="title num">3,241</span><span class="caption muted">each decided by you, method HUMAN</span></div>
+              <div class="raised stack" style="gap:2px;padding:var(--space-3);border-radius:var(--radius-md)"><span class="caption">Reports sought for retrieval</span><span class="title num">276</span><span class="caption muted">182 included · 94 unclear, to full text</span></div>
+            </div>
+            <div class="stack" style="gap:var(--space-2)">
+              <div class="raised stack" style="gap:2px;padding:var(--space-3);border-radius:var(--radius-md)"><span class="caption">Records excluded</span><span class="title num">2,965</span></div>
+              <table class="tbl">
+                <thead><tr><th>Reason</th><th class="num">Records</th></tr></thead>
+                <tbody>
+                  <tr><td>Fails INC-01 UAV platform</td><td class="num">1,212</td></tr>
+                  <tr><td>Fails INC-02 Crop disease task</td><td class="num">803</td></tr>
+                  <tr><td>Fails INC-03 Evaluated artifact</td><td class="num">488</td></tr>
+                  <tr><td>EXC-01 Opinion without evaluation</td><td class="num">247</td></tr>
+                  <tr><td>EXC-02 [exclusion criterion 2]</td><td class="num">131</td></tr>
+                  <tr><td>EXC-03 [exclusion criterion 3]</td><td class="num">84</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <span class="caption muted">Unclear records are kept apart from includes in <span class="data">fulltext_queue.json</span>, so the 94 are reported as unresolved, not as included.</span>
+        </section>
+
+        <section class="card stack" aria-labelledby="chk-h">
+          <h2 id="chk-h" class="heading" style="margin:0">Checks</h2>
+          <table class="tbl">
+            <tbody>
+              <tr><td>Every record has exactly one current decision</td><td class="num"><span class="badge b-include">3,241 of 3,241</span></td></tr>
+              <tr><td>Every decision carries provenance (you, HUMAN, time, protocol fingerprint)</td><td class="num"><span class="badge b-include">3,241 of 3,241</span></td></tr>
+              <tr><td>Conflicts between devices resolved</td><td class="num"><span class="badge b-include">1 of 1</span></td></tr>
+              <tr><td>Sample check of agreed exclusions</td><td class="num"><span class="badge b-include">60 checked · 0 wrong</span></td></tr>
+              <tr><td>Batches bound to protocol <span class="data">sha256:b81e…04d2</span></td><td class="num"><span class="badge b-include">163 of 163</span></td></tr>
+              <tr><td>Agreement with the agent report attached</td><td class="num"><span class="badge b-include">Attached</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <div class="side">
+        <section class="card stack" aria-labelledby="files-h" style="gap:var(--space-1)">
+          <h2 id="files-h" class="label eyebrow" style="margin:0 0 var(--space-2)">Will be written</h2>
+          <div class="row" style="justify-content:space-between"><span class="data">literature/included.json</span><span class="caption num">182</span></div>
+          <div class="row" style="justify-content:space-between"><span class="data">literature/fulltext_queue.json</span><span class="caption num">94</span></div>
+          <div class="row" style="justify-content:space-between"><span class="data">literature/excluded.json</span><span class="caption num">2,965</span></div>
+          <div class="row" style="justify-content:space-between"><span class="data">literature/prisma_screening_report.md</span></div>
+          <div class="row" style="justify-content:space-between"><span class="data">screening_decisions artifact (registry)</span></div>
+          <div class="row" style="justify-content:space-between"><span class="data">audit/journal.jsonl</span><span class="caption muted">+ approval event</span></div>
+          <span class="caption muted" style="margin-top:var(--space-2)">The approval is journaled with the generation fingerprint and the device it came from.</span>
+        </section>
+
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Approval gate</span>
+          <p class="body" style="margin:0">Nothing is written until you approve. Generation <span class="data">sha256:e4c1…77b0</span>.</p>
+          <div class="row" style="align-items:flex-start;flex-wrap:nowrap">
+            <svg width="96" height="96" viewBox="0 0 21 21" role="img" aria-label="QR code to approve this generation on your phone" style="flex-shrink:0;color:var(--ink);background:var(--surface)">
+              <g fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="6" height="6"/><rect x="14.5" y="0.5" width="6" height="6"/><rect x="0.5" y="14.5" width="6" height="6"/></g>
+              <g fill="currentColor"><rect x="2" y="2" width="3" height="3"/><rect x="16" y="2" width="3" height="3"/><rect x="2" y="16" width="3" height="3"/><rect x="9" y="1" width="2" height="1"/><rect x="8" y="3" width="1" height="2"/><rect x="11" y="4" width="2" height="1"/><rect x="9" y="8" width="1" height="2"/><rect x="12" y="9" width="2" height="1"/><rect x="2" y="9" width="1" height="2"/><rect x="5" y="8" width="1" height="1"/><rect x="16" y="9" width="1" height="2"/><rect x="18" y="8" width="2" height="1"/><rect x="10" y="12" width="2" height="1"/><rect x="15" y="14" width="2" height="1"/><rect x="18" y="16" width="1" height="2"/><rect x="9" y="16" width="2" height="1"/><rect x="12" y="18" width="1" height="2"/><rect x="16" y="19" width="2" height="1"/></g>
+            </svg>
+            <div class="stack" style="gap:var(--space-1)">
+              <span class="caption">Scan to approve on your phone, or type the code here.</span>
+              <span class="data" style="font-size:20px;line-height:28px;letter-spacing:0.1em">731-942</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="code" class="caption">Pairing code</label>
+            <input id="code" class="in data" inputmode="numeric" autocomplete="one-time-code" placeholder="000-000">
+          </div>
+          <button class="btn btn-primary">Approve and publish</button>
+          <button class="btn">Defer with a reason</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

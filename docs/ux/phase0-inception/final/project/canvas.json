@@ -1,0 +1,31 @@
+{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-03T12:00:00Z"},"title":"Phase 0 Inception — final desktop and mobile","launch":{"view":"canvas"},"pages":[],
+ "boards":{
+  "Main.dc.html":{"x":0,"y":0,"w":1280,"h":1100,"title":"D1 · Workspaces","expand":"fill"},
+  "Scope.dc.html":{"x":1360,"y":0,"w":1280,"h":1150,"title":"D2 · Step 1 Scope","expand":"fill"},
+  "Explore.dc.html":{"x":2720,"y":0,"w":1280,"h":1350,"title":"D3 · Step 2 Explore","expand":"fill"},
+  "Direction.dc.html":{"x":4080,"y":0,"w":1280,"h":1400,"title":"D4 · Step 3 Direction","expand":"fill"},
+  "Shape.dc.html":{"x":0,"y":1520,"w":1280,"h":1250,"title":"D5 · Step 4 Shape","expand":"fill"},
+  "Criteria.dc.html":{"x":1360,"y":1520,"w":1280,"h":2480,"title":"D6 · Step 5 Concepts and criteria","expand":"fill"},
+  "Review.dc.html":{"x":2720,"y":1520,"w":1280,"h":1700,"title":"D7 · Step 6 Review and emit","expand":"fill"},
+  "Done.dc.html":{"x":4080,"y":1520,"w":1280,"h":1100,"title":"D8 · Done and hand-off","expand":"fill"},
+  "States.dc.html":{"x":0,"y":3640,"w":1280,"h":1720,"title":"D9 · States","expand":"fill"},
+  "MobileWorkspaces.dc.html":{"x":0,"y":5800,"w":390,"h":844,"title":"M1 · Workspaces"},
+  "MobileScope.dc.html":{"x":470,"y":5800,"w":390,"h":844,"title":"M2 · Step 1 Scope"},
+  "MobileCriteria.dc.html":{"x":940,"y":5800,"w":390,"h":844,"title":"M3 · Criteria review"},
+  "MobileReview.dc.html":{"x":1410,"y":5800,"w":390,"h":844,"title":"M4 · Review, finish on desktop"}
+ },
+ "order":["Main.dc.html","Scope.dc.html","Explore.dc.html","Direction.dc.html","Shape.dc.html","Criteria.dc.html","Review.dc.html","Done.dc.html","States.dc.html","MobileWorkspaces.dc.html","MobileScope.dc.html","MobileCriteria.dc.html","MobileReview.dc.html"],
+ "notes":{
+  "t-desk":{"x":0,"y":-300,"text":"Phase 0 Inception: desktop","kind":"title1","maxW":5360},
+  "t-mob":{"x":0,"y":5480,"text":"Phase 0 Inception: mobile","kind":"title1","maxW":3600},
+  "q1":{"x":5480,"y":0,"w":420,"text":"Open M1 (major, method decision): unanchored synonyms such as 'uas' are kept off the search string, which can hurt recall. Keep dropping them, keep them with a warning, or let the researcher force them in?","fill":"orange"},
+  "q2":{"x":5480,"y":380,"w":420,"text":"Open M2 (major, design decision): directions are frequent phrases on a thin, query-shaped pool of 25 papers. Is a phrase count enough evidence to offer a direction at all?","fill":"orange"},
+  "q3":{"x":5480,"y":760,"w":420,"text":"Open M3 (major, needs multi-field validation): the gates (12-paper floor, 0.50 top-3 share) were calibrated on one trial. The boards show them as fixed numbers until validated.","fill":"orange"},
+  "q4":{"x":5480,"y":1140,"w":420,"text":"Open M4 (major, Contract v1 gate): semantic results drift; provider, search date and mode are shown in the draft but are not in protocol.json. Adding them is a contract change.","fill":"orange"},
+  "q5":{"x":5480,"y":1520,"w":420,"text":"Open M5 (major, roadmap): no multi-database choice, PRESS review of the search, criteria pilot, dual screening or registration step in Inception.","fill":"orange"},
+  "q6":{"x":5480,"y":1900,"w":420,"text":"Open M6 (moderate, contract decision): four keyword-detected paradigms only; no PICO / SPIDER / PEO question framework (D5 says so on screen).","fill":"orange"},
+  "q7":{"x":5480,"y":2280,"w":420,"text":"Open M7 (moderate, design decision): three machine-ranked directions can steer the researcher. D4 orders by anchor count and offers 'Write my own direction'; is that enough?","fill":"orange"},
+  "decided":{"x":6020,"y":0,"w":460,"text":"Decided in this pass: web app on localhost, CLI only as a 'Run from the terminal' disclosure. Nothing is written before Review and emit, the one write gate (D7). Every criterion shown verbatim with its source (you typed it / suggested from the pool / paradigm default) and accepted one by one; unaccepted items are drafts and block Continue (INC-22). Re-inception refuses to overwrite unless 'Replace and keep a backup' (INC-08, D9). Pool shows its age and Refresh; empty or failed searches are never cached (INC-09). Anchored means the term occurs in titles or abstracts, with the count (INC-21). Phase-4 trust settings labelled 'advisory · Phase 4 is parked' (PROT-01). SCREENING_CRITERIA preview renders date range and languages (PROT-08); dry run shows cross-field checks (PROT-02). One session id rec_7f3a… for desktop, phone, terminal and agent (UX#10). The agent path is a secondary entry. Phone reviews and accepts; the write gate stays on desktop; offline changes queue and conflicts go to you.","fill":"blue"},
+  "parked":{"x":6020,"y":900,"w":460,"text":"Not production: Full text, Synthesis, Matrix, Graph and Trust phases (struck through in the stepper). Phase-4 verification settings are recorded as advisory only. Matrix columns are saved in the protocol but the Matrix phase that fills them is parked.","fill":"gray"}
+ },
+ "designSystems":[{"title":"Nexus Scholar Provenance","namespace":"nexusscholar","artifact":"https://claude.ai/artifact/AX9uczVF5he8NDnurHfXDX","version":"1793662251-970b","copiedAt":"2026-11-03T12:00:00Z"}]}

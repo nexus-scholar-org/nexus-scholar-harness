@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screening states</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Screening · states</span>
+      <h1 class="display" style="margin:0;max-width:26ch">Every way screening can stop, and the next step from each.</h1>
+      <p class="lede">Each card replaces a log line with what happened, what it affects and what to do. Refusal codes are shown so a supervisor can find them in the journal.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-4)">
+
+      <section class="card stack" aria-labelledby="s-empty">
+        <span class="badge b-exclude" style="align-self:flex-start">Empty</span>
+        <h2 id="s-empty" class="heading" style="margin:0">No batches yet.</h2>
+        <p class="body" style="margin:0">Screening starts once batches are prepared from the protocol and an accepted corpus snapshot.</p>
+        <span class="caption muted">Affects: triage, proposals and agreement show nothing until then.</span>
+        <div class="row"><a class="btn" href="#">Prepare batches</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-load" aria-busy="true">
+        <span class="badge b-brand" style="align-self:flex-start">Loading</span>
+        <h2 id="s-load" class="heading" style="margin:0">Reading 163 batch files.</h2>
+        <div class="stack" style="gap:var(--space-2)" aria-hidden="true">
+          <div class="skel" style="width:70%;height:20px"></div>
+          <div class="skel" style="width:100%"></div>
+          <div class="skel" style="width:92%"></div>
+          <div class="skel" style="width:85%"></div>
+          <div class="row" style="gap:var(--space-2)"><div class="skel" style="width:30%;height:44px"></div><div class="skel" style="width:30%;height:44px"></div><div class="skel" style="width:30%;height:44px"></div></div>
+        </div>
+        <span class="caption muted">Counts appear only once every file is read; no partial number is shown as final.</span>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-stale">
+        <span class="badge b-blocked" style="align-self:flex-start">Protocol changed</span>
+        <h2 id="s-stale" class="heading" style="margin:0">Batches no longer match the protocol.</h2>
+        <p class="body" style="margin:0">The criteria were amended on 2 Nov, after these batches were prepared on 1 Nov.</p>
+        <span class="data"><span class="t-blocked">STALE_BINDING</span> · batches sha256:b81e…04d2 · protocol now sha256:c03a…91f7</span>
+        <span class="caption muted">Affects: triage is paused. Your 1,184 decisions are kept but can't be published against the new criteria.</span>
+        <div class="row"><button class="btn">Rebind and re-screen what changed</button><a href="#" class="caption">See the change</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-title">
+        <span class="badge b-unclear" style="align-self:flex-start">Title only</span>
+        <h2 id="s-title" class="heading" style="margin:0">421 records have no abstract.</h2>
+        <p class="body" style="margin:0">You and the agent can judge only the title. When it doesn't settle the criteria, the record goes to Unclear and on to full text; it is never excluded by default.</p>
+        <span class="caption muted">Affects: these 421 are counted apart in PRISMA if they stay unclear.</span>
+        <div class="row"><button class="btn">Fill abstracts from OpenAlex first</button><a href="#" class="caption">Screen them as they are</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-prov">
+        <span class="badge b-blocked" style="align-self:flex-start">Refused</span>
+        <h2 id="s-prov" class="heading" style="margin:0">A decisions file without provenance was refused.</h2>
+        <p class="body" style="margin:0"><span class="data">batch_057_decisions.json</span> has 12 rows with no decision and no method. Nothing was filled in for them.</p>
+        <span class="data"><span class="t-blocked">PROVENANCE_MISSING</span> · kept as batch_057_decisions.json.rejected</span>
+        <span class="caption muted">Affects: the 20 records of batch 057 are back in your queue. Other batches continue.</span>
+        <div class="row"><button class="btn">Re-screen batch 057</button><a href="#" class="caption">Open the refused file</a></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-engine">
+        <span class="badge b-blocked" style="align-self:flex-start">Engine unreachable</span>
+        <h2 id="s-engine" class="heading" style="margin:0">The screening engine on this computer is not answering.</h2>
+        <p class="body" style="margin:0">Your last 2 decisions are held in this tab and are sent when it answers. Closing the tab before then loses them.</p>
+        <span class="data"><span class="t-blocked">ENGINE_UNREACHABLE</span> · 127.0.0.1:[port] · last answer 15:58</span>
+        <span class="caption muted">Affects: triage on this computer and on your phone.</span>
+        <div class="row"><button class="btn">Try again</button></div>
+        <details class="caption muted"><summary>Run from the terminal</summary><span class="data">uv run nexus-scholar ui</span></details>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-conf">
+        <span class="badge b-unclear" style="align-self:flex-start">Conflict</span>
+        <h2 id="s-conf" class="heading" style="margin:0">One record was decided on both devices.</h2>
+        <table class="tbl">
+          <tbody>
+            <tr><td class="caption">Phone</td><td><span class="badge b-exclude">Exclude · EXC-01</span></td><td class="caption muted">14:09, sent 14:31</td></tr>
+            <tr><td class="caption">This computer</td><td><span class="badge b-include">Include</span></td><td class="caption muted">14:15</td></tr>
+          </tbody>
+        </table>
+        <span class="data"><span class="t-unclear">DECISION_CONFLICT</span> · STU-[id] · [paper title]</span>
+        <span class="caption muted">Neither counts until you choose. The other is kept as a superseded decision.</span>
+        <div class="row"><button class="btn">Keep Include</button><button class="btn">Keep Exclude · EXC-01</button></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-part">
+        <span class="badge b-unclear" style="align-self:flex-start">Partial</span>
+        <h2 id="s-part" class="heading" style="margin:0">The agent run stopped at 2,410 of 3,241.</h2>
+        <p class="body" style="margin:0">A provider rate limit stopped 6 shards at 15:42, before they wrote anything, so there is nothing to repair.</p>
+        <span class="data"><span class="t-unclear">RATE_LIMITED</span> · batches 121–163 without proposals</span>
+        <span class="caption muted">Affects: 831 records have no draft. You can decide them without one.</span>
+        <div class="row"><button class="btn">Resume at 4 at a time</button></div>
+      </section>
+
+      <section class="card stack" aria-labelledby="s-off">
+        <span class="badge b-unclear" style="align-self:flex-start">Phone offline</span>
+        <h2 id="s-off" class="heading" style="margin:0">Your phone dropped off the network at 14:12.</h2>
+        <p class="body" style="margin:0">Decisions made on it wait on the phone and arrive once, when it reconnects. This computer can't see how many are waiting.</p>
+        <span class="caption muted">Affects: nothing here. Approval waits until queued phone decisions have arrived.</span>
+        <div class="row"><a href="#" class="caption">Show the pairing QR again</a></div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1550}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

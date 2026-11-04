@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Import an export</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 4 of 7 · Import an export · optional</span>
+      <h1 class="display" style="margin:0">Which database did this file come from, when, and with what query?</h1>
+      <p class="lede">Scopus and Web of Science have no connection here, so you search them yourself and import the RIS or CSV export. PRISMA-S needs the database, the date and the exact query you ran there.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="file-h">
+          <h2 id="file-h" class="heading" style="margin:0">1 · The file</h2>
+          <label for="drop" style="display:flex;flex-direction:column;align-items:center;gap:var(--space-2);padding:var(--space-5);border:1.5px dashed var(--hairline);border-radius:var(--radius-md);background:var(--surface-raised);cursor:pointer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+            <span class="body-strong">Drop an RIS or CSV file, or choose one</span>
+            <span class="caption muted">Scopus, Web of Science or any database that exports RIS or CSV</span>
+          </label>
+          <input id="drop" type="file" accept=".ris,.csv,.txt" style="position:absolute;width:1px;height:1px;opacity:0">
+          <div class="row" style="justify-content:space-between">
+            <span class="data">scopus_export_[date].ris</span>
+            <span class="badge b-include">RIS detected</span>
+          </div>
+        </section>
+
+        <section class="card stack" aria-labelledby="src-h">
+          <h2 id="src-h" class="heading" style="margin:0">2 · Where it came from</h2>
+          <div class="row" style="gap:var(--space-4);align-items:flex-start">
+            <div class="field" style="flex:1;min-width:200px">
+              <label for="db" class="caption muted">Database name</label>
+              <select id="db" class="in">
+                <option>Scopus</option>
+                <option>Web of Science Core Collection</option>
+                <option>Other (name it)</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1;min-width:200px">
+              <label for="dt" class="caption muted">Date you ran the search</label>
+              <input id="dt" class="in" type="date" value="2026-11-02">
+            </div>
+          </div>
+          <div class="field">
+            <label for="q" class="caption muted">The query exactly as you ran it there</label>
+            <textarea id="q" class="in data" rows="4" style="resize:vertical">TITLE-ABS-KEY ( "lightweight cnn" AND ( "unmanned aerial vehicle" OR drone ) AND ( "plant disease" OR "leaf disease" ) ) AND PUBYEAR &gt; 2019</textarea>
+            <span class="caption muted">Stored verbatim and printed in the search report. It is not re-run or rewritten.</span>
+          </div>
+          <div class="field">
+            <label for="lim" class="caption muted">Limits you applied there, if any</label>
+            <input id="lim" class="in" placeholder="for example: document type, language, subject area">
+          </div>
+        </section>
+
+        <section class="card stack" aria-labelledby="prev-h">
+          <h2 id="prev-h" class="heading" style="margin:0">3 · Parse preview</h2>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-3)">
+            <div class="stack" style="gap:2px"><span class="label">Records in file</span><span class="title num">[n]</span></div>
+            <div class="stack" style="gap:2px"><span class="label">Parsed</span><span class="title num t-include">[n]</span></div>
+            <div class="stack" style="gap:2px"><span class="label">With a DOI</span><span class="title num">[n]</span></div>
+            <div class="stack" style="gap:2px"><span class="label">Rejected lines</span><span class="title num t-unclear">3</span></div>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Line</th><th>Code</th><th>What happened</th></tr></thead>
+            <tbody>
+              <tr><td class="data">[line]</td><td><span class="data">IMPORT_NO_TITLE</span></td><td>The record has no TI field, so it cannot be screened.</td></tr>
+              <tr><td class="data">[line]</td><td><span class="data">IMPORT_BAD_TAG</span></td><td>An unknown RIS tag broke the record; the rest of the file parsed.</td></tr>
+              <tr><td class="data">[line]</td><td><span class="data">IMPORT_BAD_YEAR</span></td><td>The year is not a number; kept out until you fix the file.</td></tr>
+            </tbody>
+          </table>
+          <span class="caption muted">Rejected lines are listed in the report as not imported. Parsed records get stable record ids from their identifiers, so importing the same file again adds nothing twice.</span>
+        </section>
+      </div>
+
+      <aside class="side">
+        <section class="card stack" style="gap:var(--space-2)">
+          <span class="label">After the import</span>
+          <span class="caption">The file appears as its own database in the report's identification table, with its date and query.</span>
+          <span class="caption">Duplicates against the connected databases are found in the next step, like any other records.</span>
+          <span class="caption muted">The original file is kept unchanged in <span class="data">literature/imports/001/</span>.</span>
+        </section>
+        <div class="gate">
+          <span class="label" style="color:var(--brand)">Gate · add to the corpus</span>
+          <p class="body" style="margin:0">Nothing is added until you confirm. The import is journaled with the file's hash, the database, the date and the query.</p>
+          <button class="btn btn-primary">Add as a Scopus import</button>
+          <button class="btn">Discard this file</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1450}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Near-twin decision</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <a href="#" class="btn btn-small" aria-label="Back to the near-twin list">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      Back
+    </a>
+    <span class="body-strong" style="flex:1">Pair 3 of 14</span>
+    <span class="badge b-include">Connected</span>
+  </header>
+  <main class="m-body">
+    <span class="label">Duplicates · your decision</span>
+    <h1 class="m-h1">Are these the same paper?</h1>
+
+    <section class="swipe-card" aria-label="Record A" style="gap:var(--space-1);padding:var(--space-3)">
+      <span class="label">A · Crossref</span>
+      <span class="body-strong">A <span class="hl">Lightweight CNN</span> for UAV Crop Disease Detection</span>
+      <span class="caption">2023 · [author] · [venue]</span>
+      <span class="data"><a href="#">10.xxxx/…</a></span>
+      <span class="data muted">REC-[a41c…]</span>
+    </section>
+
+    <section class="swipe-card" aria-label="Record B" style="gap:var(--space-1);padding:var(--space-3)">
+      <span class="label">B · OpenAlex</span>
+      <span class="body-strong">A <span class="hl">lightweight CNN</span> for UAV crop disease detection</span>
+      <span class="caption">2023 · [author] · [venue]</span>
+      <span class="data">W[xxxxxxxxxx] · no DOI</span>
+      <span class="data muted">REC-[0d7e…]</span>
+    </section>
+
+    <span class="caption muted">Case-only title difference, same first author and year, no shared identifier. A merge keeps B and is journaled with you, HUMAN, the time and the protocol fingerprint.</span>
+  </main>
+  <div class="m-actions">
+    <button class="btn">Keep both</button>
+    <button class="btn btn-primary">Merge</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

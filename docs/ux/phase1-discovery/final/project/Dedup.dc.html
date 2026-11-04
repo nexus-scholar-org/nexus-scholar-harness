@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Duplicates</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Step 5 of 7 · Duplicates · your decisions</span>
+        <h1 class="display" style="margin:0">3,506 records became 3,241 works. Are these 14 pairs the same paper?</h1>
+        <p class="lede">The tiers merged what identifiers and titles prove. Near-twins they could not prove are yours to decide, because a work counted twice can be both included and excluded.</p>
+      </div>
+      <div class="row" style="gap:var(--space-3)">
+        <span class="body-strong num">2 of 14 decided</span>
+        <div class="bar" style="width:160px" role="img" aria-label="2 of 14 decided"><span style="width:14%"></span></div>
+      </div>
+    </div>
+
+    <section aria-label="Merged by tier" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)">
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Same identifier</span><span class="title num">231</span><span class="caption muted">DOI, arXiv id, PMID or OpenAlex id</span></div>
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Same normalized title</span><span class="title num">22</span><span class="caption muted">a conflicting id blocks the merge</span></div>
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Fuzzy title</span><span class="title num">12</span><span class="caption muted">≥ 0.97, year ± 1, same first author</span></div>
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Removed in total</span><span class="title num">265 · 7.6%</span><span class="caption muted">journaled as <span class="data">DEDUPLICATION</span></span></div>
+    </section>
+
+    <div style="display:flex;gap:var(--space-5);flex-wrap:wrap;align-items:flex-start">
+      <section class="card" aria-labelledby="q-h" style="width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3)">
+        <h2 id="q-h" class="label" style="margin:0 var(--space-2)">Near-twins · 14</h2>
+        <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+          <button class="chip chip-on">To decide 12</button>
+          <button class="chip">Decided 2</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-1)">
+          <div style="padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--brand-soft);outline:1.5px solid var(--brand)"><div class="body-strong">[A lightweight CNN for UAV crop disease detection]</div><div class="caption muted">case-only difference · 0.99</div></div>
+          <div style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><div class="body-strong">[Edge deployment of plant disease models on drones]</div><div class="caption muted">possible extended version · 0.93</div></div>
+          <div style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><div class="body-strong">[paper title]</div><div class="caption muted">punctuation difference · 0.96</div></div>
+          <div style="padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--hairline)"><div class="body-strong">[paper title]</div><div class="caption muted">preprint and journal version · 0.91</div></div>
+        </div>
+        <span class="caption muted" style="padding:0 var(--space-2)">+ 8 more · similarity 0.90 to 0.97 or case-only</span>
+      </section>
+
+      <div style="flex:1;min-width:560px;display:flex;flex-direction:column;gap:var(--space-4)">
+        <section class="card stack" aria-labelledby="pair-h">
+          <div class="row" style="justify-content:space-between">
+            <h2 id="pair-h" class="heading" style="margin:0">Pair 3 of 14 · same paper?</h2>
+            <span class="badge b-unclear">Needs you</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)">
+            <div class="card raised stack" style="gap:var(--space-2)">
+              <span class="label">Record A · Crossref</span>
+              <span class="body-strong">A <span class="hl">Lightweight CNN</span> for UAV Crop Disease Detection</span>
+              <table class="tbl">
+                <tbody>
+                  <tr><td class="caption muted">Record id</td><td class="data">REC-[a41c…]</td></tr>
+                  <tr><td class="caption muted">DOI</td><td class="data"><a href="#">10.xxxx/…</a></td></tr>
+                  <tr><td class="caption muted">Year</td><td class="num">2023</td></tr>
+                  <tr><td class="caption muted">First author</td><td>[author]</td></tr>
+                  <tr><td class="caption muted">Venue</td><td>[venue]</td></tr>
+                  <tr><td class="caption muted">Abstract</td><td><span class="badge b-exclude">Not reported</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card raised stack" style="gap:var(--space-2)">
+              <span class="label">Record B · OpenAlex</span>
+              <span class="body-strong">A <span class="hl">lightweight CNN</span> for UAV crop disease detection</span>
+              <table class="tbl">
+                <tbody>
+                  <tr><td class="caption muted">Record id</td><td class="data">REC-[0d7e…]</td></tr>
+                  <tr><td class="caption muted">OpenAlex id</td><td class="data">W[xxxxxxxxxx]</td></tr>
+                  <tr><td class="caption muted">Year</td><td class="num">2023</td></tr>
+                  <tr><td class="caption muted">First author</td><td>[author]</td></tr>
+                  <tr><td class="caption muted">Venue</td><td>[venue]</td></tr>
+                  <tr><td class="caption muted">Abstract</td><td><span class="badge b-include">Present</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <span class="caption muted">Why the tiers did not merge: case-only title difference, no shared identifier (B has no DOI), same first author and year. Highlighted words are where the titles differ.</span>
+          <div class="row" style="gap:var(--space-3)">
+            <button class="btn" style="flex:1">Merge, keep B as the record <span class="key">M</span></button>
+            <button class="btn" style="flex:1">Keep both <span class="key">K</span></button>
+            <button class="btn" style="flex:1">Skip for now <span class="key">S</span></button>
+          </div>
+          <span class="caption muted">Merging keeps both originals in the snapshot taken before dedup; the kept record is a copy, never edited in place. Record ids stay the same across re-runs.</span>
+        </section>
+
+        <section class="card stack" aria-labelledby="dec-h" style="gap:var(--space-2)">
+          <h2 id="dec-h" class="label" style="margin:0">Decided · journaled</h2>
+          <table class="tbl">
+            <thead><tr><th>Pair</th><th>Decision</th><th>Provenance</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>1 · [paper title]</td><td><span class="badge b-include">Merged</span></td><td class="caption">you · HUMAN · <span class="data">2026-11-03 09:41 UTC</span> · <span class="data">sha256:[protocol]…</span></td><td><a href="#" class="caption">Undo</a></td></tr>
+              <tr><td>2 · [paper title]</td><td><span class="badge b-include">Kept both</span></td><td class="caption">you · HUMAN · <span class="data">2026-11-03 09:43 UTC</span> · <span class="data">sha256:[protocol]…</span></td><td><a href="#" class="caption">Undo</a></td></tr>
+            </tbody>
+          </table>
+          <span class="caption muted">Undo writes a superseding decision; nothing is deleted from the journal.</span>
+        </section>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end">
+      <div class="gate" style="width:400px">
+        <span class="label" style="color:var(--brand)">Gate · confirm the works</span>
+        <p class="body" style="margin:0">Nothing is final until you confirm. Undecided pairs stay as separate records and are listed in the report.</p>
+        <button class="btn btn-primary">Confirm 3,241 works</button>
+        <button class="btn">Save decisions and come back later</button>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

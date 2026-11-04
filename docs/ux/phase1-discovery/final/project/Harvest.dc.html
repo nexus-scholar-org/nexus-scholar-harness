@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Harvest running</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-on" href="#" aria-current="page">Discovery</a>
+      <a class="step" href="#">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Step 3 of 7 · Harvest · run 3 · started <span class="data">2026-11-02 14:20 UTC</span></span>
+        <h1 class="display" style="margin:0">3,506 records so far. Crossref stopped at its cap and Semantic Scholar failed.</h1>
+        <p class="lede">Each row compares what was fetched with the database's own reported total, so a cap or a quota problem shows while it happens.</p>
+      </div>
+      <span class="badge b-brand">Running · 1 of 4 still fetching</span>
+    </div>
+
+    <section class="card" aria-labelledby="legs-h" style="padding:var(--space-2) var(--space-4)">
+      <h2 id="legs-h" class="label" style="margin:var(--space-2) 0">One row per database</h2>
+      <div class="scroll-x">
+        <table class="tbl">
+          <thead><tr><th>Database</th><th style="width:30%">Fetched of reported total</th><th class="num">Count</th><th>Status</th><th>Detail</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="body-strong">OpenAlex</td><td><div class="bar" role="img" aria-label="1,343 of 1,344"><span style="width:100%"></span></div></td><td class="num">1,343 of 1,344</td><td><span class="badge b-unclear">1 not fetched</span></td><td class="caption muted">cache hit · <span class="data">13:58 UTC</span></td><td></td></tr>
+            <tr style="background:var(--unclear-soft)"><td class="body-strong">Crossref</td><td><div class="bar" role="img" aria-label="2,000 of about 13,100"><span style="width:15%"></span></div></td><td class="num">2,000 of ~13,100</td><td><span class="badge b-unclear">Cap reached · lower bound</span></td><td class="caption"><span class="data">CAP_REACHED</span> · this count is a lower bound</td><td><button class="btn btn-small">Split by year</button></td></tr>
+            <tr style="background:var(--blocked-soft)"><td class="body-strong">Semantic Scholar</td><td><div class="bar" role="img" aria-label="10 of unknown"><span style="width:2%"></span></div></td><td class="num">10 of unknown</td><td><span class="badge b-blocked">Failed</span></td><td class="caption"><span class="data">PROVIDER_RATE_LIMITED</span> · HTTP 429 · quota resets <span class="data">[time] UTC</span></td><td><button class="btn btn-small">Retry later</button></td></tr>
+            <tr><td class="body-strong">arXiv</td><td><div class="bar" role="img" aria-label="153 of 247"><span style="width:62%"></span></div></td><td class="num">153 of 247</td><td><span class="badge b-brand">Fetching · 1 req/s</span></td><td class="caption muted">live · page 4</td><td><button class="btn btn-small">Stop arXiv</button></td></tr>
+            <tr><td class="muted">PubMed</td><td class="caption muted" colspan="3">not selected in the plan</td><td><span class="badge b-exclude">Not selected</span></td><td></td></tr>
+            <tr><td class="muted">bioRxiv</td><td class="caption muted" colspan="3">off by default: cannot evaluate NOT or Boolean operators</td><td><span class="badge b-exclude">Off</span></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="yield-h" style="gap:var(--space-2)">
+          <h2 id="yield-h" class="heading" style="margin:0">Yield per query slice so far</h2>
+          <span class="caption muted">How many records in each slice share the seeds' vocabulary, so slices that bring only noise can stop early.</span>
+          <table class="tbl">
+            <thead><tr><th>Slice</th><th>Yield</th></tr></thead>
+            <tbody>
+              <tr><td>OpenAlex · strict filter</td><td><span class="badge b-include">High</span></td></tr>
+              <tr><td>Crossref · 2021 slice</td><td><span class="badge b-exclude">Low</span></td></tr>
+              <tr><td>Crossref · 2023 slice</td><td><span class="badge b-unclear">Near zero</span> <a href="#" class="caption">Stop this slice</a></td></tr>
+            </tbody>
+          </table>
+          <span class="caption muted">In the UAV v0.3 review, nine slices returned about 1,600 records and no include.</span>
+        </section>
+      </div>
+      <aside class="side">
+        <section class="card stack" style="gap:var(--space-2)">
+          <span class="label">If you stop</span>
+          <span class="caption">Fetched records are kept and the run is marked Partial with your reason. A failed database publishes nothing for that leg; run 2's files stay and are named stale.</span>
+          <span class="caption muted">Each leg is journaled with its executed string, reported total, fetched count, cap flag, cache use and UTC date.</span>
+          <button class="btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+            Cancel the run and keep results
+          </button>
+        </section>
+        <details class="caption muted">
+          <summary>Run from the terminal</summary>
+          <div class="data" style="margin-top:var(--space-2)">uv run scholar-harness discover run --run 3</div>
+        </details>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1150}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

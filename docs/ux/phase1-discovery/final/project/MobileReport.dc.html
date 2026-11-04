@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Report summary</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <span class="body-strong">Search report · run 3</span>
+      <span class="caption muted">[project title]</span>
+    </div>
+    <span class="badge b-unclear">Partial</span>
+  </header>
+  <main class="m-body">
+    <span class="label">PRISMA-S · summary</span>
+    <h1 class="m-h1">3,506 identified; 3,241 left after duplicates.</h1>
+
+    <section class="card" aria-labelledby="per-h" style="padding:var(--space-3)">
+      <h2 id="per-h" class="label" style="margin:0 0 var(--space-2)">Identified per database</h2>
+      <table class="tbl">
+        <tbody>
+          <tr><td>OpenAlex</td><td class="num">1,343</td><td><span class="badge b-unclear">1 not fetched</span></td></tr>
+          <tr><td>Crossref</td><td class="num">2,000</td><td><span class="badge b-unclear">Lower bound</span></td></tr>
+          <tr><td>Sem. Scholar</td><td class="num">10</td><td><span class="badge b-blocked">Failed</span></td></tr>
+          <tr><td>arXiv</td><td class="num">153</td><td><span class="badge b-unclear">Stopped</span></td></tr>
+          <tr><td>Imports</td><td class="num">0</td><td></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card stack" style="gap:var(--space-1);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between"><span class="caption">Duplicates removed</span><span class="body-strong num">265</span></div>
+      <div class="row" style="justify-content:space-between"><span class="caption">Near-twins to decide</span><span class="body-strong num t-unclear">12</span></div>
+      <div class="row" style="justify-content:space-between"><span class="caption">After duplicates</span><span class="body-strong num">3,241</span></div>
+      <span class="caption muted">Searched <span class="data">2026-11-02</span> UTC</span>
+    </section>
+
+    <div class="note n-exclude caption">The executed strings, run history and methods draft are on the desktop report.</div>
+  </main>
+  <div class="m-actions">
+    <a class="btn" href="#">Open full report on desktop</a>
+  </div>
+  <nav class="tabbar" aria-label="Discovery">
+    <a href="#">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Status
+    </a>
+    <a href="#" class="on" aria-current="page">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v5h5"/></svg>
+      Report
+    </a>
+    <a href="#">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="10" height="10" rx="1"/><rect x="10" y="10" width="10" height="10" rx="1"/></svg>
+      Near-twins 12
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

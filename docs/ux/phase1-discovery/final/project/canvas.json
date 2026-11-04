@@ -1,0 +1,31 @@
+{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-03T15:00:00Z"},"title":"Phase 1 Discovery — final desktop and mobile","launch":{"view":"canvas"},"pages":[],
+"boards":{
+"Main.dc.html":{"x":0,"y":0,"w":1280,"h":1100,"title":"D1 · Discovery home","expand":"fill"},
+"Plan.dc.html":{"x":1360,"y":0,"w":1280,"h":1540,"title":"D2 · Search plan","expand":"fill"},
+"Recall.dc.html":{"x":2720,"y":0,"w":1280,"h":1250,"title":"D3 · Recall check","expand":"fill"},
+"Harvest.dc.html":{"x":4080,"y":0,"w":1280,"h":1150,"title":"D4 · Harvest running","expand":"fill"},
+"Import.dc.html":{"x":0,"y":1660,"w":1280,"h":1450,"title":"D5 · Import an export","expand":"fill"},
+"Dedup.dc.html":{"x":1360,"y":1660,"w":1280,"h":1500,"title":"D6 · Duplicates","expand":"fill"},
+"Report.dc.html":{"x":2720,"y":1660,"w":1280,"h":1600,"title":"D7 · Search report (PRISMA-S)","expand":"fill"},
+"States.dc.html":{"x":4080,"y":1660,"w":1280,"h":1500,"title":"D8 · States","expand":"fill"},
+"Handoff.dc.html":{"x":0,"y":3380,"w":1280,"h":1200,"title":"D9 · Hand-off to screening","expand":"fill"},
+"MobileStatus.dc.html":{"x":0,"y":5000,"w":390,"h":844,"title":"M1 · Search status"},
+"MobileReport.dc.html":{"x":470,"y":5000,"w":390,"h":844,"title":"M2 · Report summary"},
+"MobileDedup.dc.html":{"x":940,"y":5000,"w":390,"h":844,"title":"M3 · Near-twin decision"},
+"MobileStates.dc.html":{"x":1410,"y":5000,"w":390,"h":844,"title":"M4 · A failure on the phone"}
+},
+"order":["Main.dc.html","Plan.dc.html","Recall.dc.html","Harvest.dc.html","Import.dc.html","Dedup.dc.html","Report.dc.html","States.dc.html","Handoff.dc.html","MobileStatus.dc.html","MobileReport.dc.html","MobileDedup.dc.html","MobileStates.dc.html"],
+"notes":{
+"t-desk":{"x":0,"y":-300,"text":"Phase 1 Discovery: desktop","kind":"title1","maxW":5360},
+"t-mob":{"x":0,"y":4700,"text":"Phase 1 Discovery: mobile","kind":"title1","maxW":3600},
+"q1":{"x":5480,"y":0,"w":420,"text":"Open: does the per-database retrieval cap move into a protocol field (target_candidate_pool_size semantics, SRCH-31), or stay a plan setting with no cap by default? D2 shows 2,000 as a plan limit.","fill":"orange"},
+"q2":{"x":5480,"y":340,"w":420,"text":"Open: is the recall check a hard gate, or advisory with 'Run anyway, 1 missed' recorded in the report (as drawn on D3)?","fill":"orange"},
+"q3":{"x":5480,"y":680,"w":420,"text":"Open: can the corpus be accepted with near-twin pairs still undecided (drawn: they stay separate and are listed), or must every pair be decided first?","fill":"orange"},
+"q4":{"x":5480,"y":1020,"w":420,"text":"Open: how long may a cached provider response be reused before a run must refetch? A cache hit carries its original fetch date into the report (D4, D7).","fill":"orange"},
+"q5":{"x":5480,"y":1360,"w":420,"text":"Open: is the contact email stored per workspace or per installation, and is it written into the run manifest (it is personal data)?","fill":"orange"},
+"q6":{"x":5480,"y":1700,"w":420,"text":"Open: in PRISMA-S, is an imported Scopus or Web of Science export reported as its own database row (as drawn on D5 and D7), and must the export's own limits be recorded?","fill":"orange"},
+"q7":{"x":5480,"y":2040,"w":420,"text":"Open: the typed codes on D4, D5, D8 and M4 (PROVIDER_RATE_LIMITED, CAP_REACHED, CONTACT_EMAIL_MISSING, IMPORT_LINE_REJECTED, ENGINE_UNREACHABLE, ...) are proposals; confirm the code list before the specs are marked FINAL.","fill":"orange"},
+"decided":{"x":5960,"y":0,"w":420,"text":"Decided in this pass: web app on localhost, terminal only as a secondary disclosure. Each database's executed string is shown verbatim and run exactly as written, no rewrite, with reported total vs fetched, cap flag (count is a lower bound), cache hit and UTC date. Providers: OpenAlex, Semantic Scholar (needs a key, else off), Crossref, arXiv, PubMed; bioRxiv off by default because it cannot evaluate NOT/Boolean. Contact email is a required setting, no placeholder address. RIS/CSV imports carry database name, search date and the query run there. Record ids stay stable across re-runs. Near-twins are your decision (Merge / Keep both), journaled with you, HUMAN, time and protocol fingerprint; undo supersedes. Methods text is a draft until you mark it reviewed. Phone: monitoring and near-twin decisions only, queued when offline.","fill":"blue"},
+"parked":{"x":5960,"y":680,"w":420,"text":"Not production: Full text, Synthesis, Matrix, Graph and Trust appear struck through in the phase stepper with a 'Not production' marker. Scopus and Web of Science have no connection; they come in only as imported exports.","fill":"gray"}
+},
+"designSystems":[{"title":"Nexus Scholar Provenance","namespace":"nexusscholar","artifact":"https://claude.ai/artifact/AX9uczVF5he8NDnurHfXDX","version":"1793662251-970b","copiedAt":"2026-11-03T15:00:00Z"}]}

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screening home</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Screening steps" style="gap:var(--space-1)">
+      <a class="step step-on" href="#" aria-current="page">Home</a>
+      <a class="step step-done" href="#">1 Prepare</a>
+      <a class="step" href="#">2 Agent proposals</a>
+      <a class="step" href="#">3 Triage</a>
+      <a class="step" href="#">4 Agreement</a>
+      <a class="step" href="#">5 Publish</a>
+    </nav>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-5);flex-wrap:wrap">
+      <div class="stack" style="gap:var(--space-2)">
+        <span class="label eyebrow">Screening · home · 163 batches of 20</span>
+        <h1 class="display" style="margin:0;max-width:36ch">1,184 of 3,241 records are decided; 2,057 still need you.</h1>
+        <p class="lede">The agent drafts a proposal for each record and you decide every one. Proposals stay hidden until you have decided.</p>
+      </div>
+      <button class="btn btn-primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        Open triage · 2,057 need you
+      </button>
+    </div>
+
+    <section class="card stack" aria-labelledby="prog-h">
+      <div class="row" style="justify-content:space-between">
+        <h2 id="prog-h" class="heading" style="margin:0">Progress across all batches</h2>
+        <span class="caption muted">Counted from the decision files on disk, not from what a screener reports about itself.</span>
+      </div>
+      <div style="display:flex;height:12px;border-radius:var(--radius-sm);overflow:hidden;background:var(--surface-raised)" role="img" aria-label="1,184 decided by you, 1,226 proposed by the agent and waiting for you, 831 with no proposal yet">
+        <span style="width:36.5%;background:var(--include)"></span>
+        <span style="width:37.8%;background:var(--unclear)"></span>
+        <span style="width:25.7%;background:var(--surface-raised)"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-3)">
+        <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)">
+          <span class="label">Decided by you</span>
+          <span class="title num">1,184</span>
+          <span class="caption muted">36.5% of 3,241 · each with provenance</span>
+        </div>
+        <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)">
+          <span class="label">Agent proposed · needs you</span>
+          <span class="title num">1,226</span>
+          <span class="caption muted">draft ready, hidden until you decide</span>
+        </div>
+        <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)">
+          <span class="label">Needs you · no proposal yet</span>
+          <span class="title num">831</span>
+          <span class="caption muted">you can decide these without one</span>
+        </div>
+        <div class="stack raised" style="gap:var(--space-1);padding:var(--space-3);border-radius:var(--radius-md)">
+          <span class="label">Queued from phone</span>
+          <span class="title num">3</span>
+          <span class="caption muted">arrived 14:31 after a dropped connection · <a href="#">1 conflict to resolve</a></span>
+        </div>
+      </div>
+      <div class="scroll-x">
+        <table class="tbl">
+          <thead><tr><th>Batches</th><th class="num">Records</th><th class="num">Agent proposals</th><th class="num">Decided by you</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="data">001–059</span></td><td class="num">1,180</td><td class="num">1,180</td><td class="num">1,180</td><td><span class="badge b-include">Decided</span></td></tr>
+            <tr><td><span class="data">060–120</span></td><td class="num">1,220</td><td class="num">1,220</td><td class="num">4</td><td><span class="badge b-unclear">Needs you</span></td></tr>
+            <tr><td><span class="data">121</span></td><td class="num">20</td><td class="num">10</td><td class="num">0</td><td><span class="badge b-brand">Agent running</span></td></tr>
+            <tr><td><span class="data">122–163</span></td><td class="num">821</td><td class="num">0</td><td class="num">0</td><td><span class="badge b-exclude">Queued</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="split">
+      <section class="main" aria-labelledby="lanes-h">
+        <h2 id="lanes-h" class="heading" style="margin:0">Who screens</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)">
+          <div class="draft stack">
+            <div class="row" style="justify-content:space-between"><span class="label">The agent · drafts only</span><span class="badge b-brand">Running</span></div>
+            <span class="body-strong">2,410 of 3,241 proposed</span>
+            <div class="bar" role="img" aria-label="74 percent"><span style="width:74%"></span></div>
+            <span class="caption muted">4 at a time · paused 2 min after a rate limit at 15:42</span>
+            <span class="data muted">claude-sonnet · prompt sha256:3f9c… · 3 Nov 2026</span>
+            <a href="#" class="caption">Run settings</a>
+          </div>
+          <div class="card stack">
+            <div class="row" style="justify-content:space-between"><span class="label">You · the decision</span><span class="badge b-unclear">2,057 left</span></div>
+            <span class="body-strong">1,184 decided</span>
+            <div class="bar" role="img" aria-label="36.5 percent"><span style="width:36.5%;background:var(--include)"></span></div>
+            <span class="caption muted">41 today on your phone · Reveal after my decision is on</span>
+            <a href="#" class="caption">Agreement with the agent</a>
+          </div>
+          <div class="parked stack" aria-disabled="true">
+            <div class="row" style="justify-content:space-between"><span class="label" style="color:var(--exclude)">Second screener</span><span class="badge b-exclude">Parked</span></div>
+            <span class="body-strong">Second screener · team feature, not production yet</span>
+            <span class="caption">A second human would screen blind and make Cohen's kappa possible. Not built.</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side" aria-labelledby="phone-h">
+        <div class="card stack">
+          <div class="row" style="gap:var(--space-2)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+            <h2 id="phone-h" class="heading" style="margin:0">Screen on your phone</h2>
+          </div>
+          <div class="row" style="align-items:flex-start;flex-wrap:nowrap">
+            <svg width="120" height="120" viewBox="0 0 21 21" role="img" aria-label="QR code with this computer's address and a per-launch token" style="flex-shrink:0;color:var(--ink);background:var(--surface)">
+              <g fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="6" height="6"/><rect x="14.5" y="0.5" width="6" height="6"/><rect x="0.5" y="14.5" width="6" height="6"/></g>
+              <g fill="currentColor"><rect x="2" y="2" width="3" height="3"/><rect x="16" y="2" width="3" height="3"/><rect x="2" y="16" width="3" height="3"/><rect x="8" y="1" width="1" height="1"/><rect x="10" y="2" width="2" height="1"/><rect x="9" y="4" width="1" height="2"/><rect x="11" y="5" width="2" height="1"/><rect x="8" y="8" width="2" height="1"/><rect x="12" y="8" width="1" height="2"/><rect x="1" y="9" width="2" height="1"/><rect x="4" y="10" width="2" height="1"/><rect x="15" y="9" width="2" height="1"/><rect x="18" y="10" width="2" height="2"/><rect x="9" y="11" width="3" height="1"/><rect x="14" y="13" width="1" height="2"/><rect x="16" y="15" width="2" height="1"/><rect x="9" y="15" width="1" height="2"/><rect x="11" y="17" width="2" height="1"/><rect x="15" y="18" width="1" height="2"/><rect x="18" y="17" width="2" height="1"/><rect x="8" y="19" width="2" height="1"/></g>
+            </svg>
+            <div class="stack" style="gap:var(--space-2)">
+              <span class="body">Scan with the phone's camera. It joins this computer over your local network.</span>
+              <span class="caption muted">Code <span class="data">731-942</span> · valid until you close the app</span>
+              <span class="badge b-include" style="align-self:flex-start">Phone connected · 14:31</span>
+            </div>
+          </div>
+          <span class="caption muted">The phone can triage and approve with the pairing code. It cannot prepare batches, run the agent or change the protocol.</span>
+        </div>
+        <details class="caption muted">
+          <summary>Run from the terminal</summary>
+          <span class="data">uv run python src/scholar_harness/agent_screen.py status workspaces/[project-slug]</span>
+        </details>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1200}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

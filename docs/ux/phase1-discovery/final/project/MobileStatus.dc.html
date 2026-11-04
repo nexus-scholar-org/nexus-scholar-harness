@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search status</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <span class="body-strong">Discovery · run 3</span>
+      <span class="caption muted">[project title]</span>
+    </div>
+    <span class="badge b-include">Connected</span>
+  </header>
+  <main class="m-body">
+    <span class="label">Harvest · started <span class="data">14:20 UTC</span></span>
+    <h1 class="m-h1">3,506 records so far; one count is a lower bound.</h1>
+
+    <section class="swipe-card" aria-label="OpenAlex" style="gap:var(--space-2);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between"><span class="body-strong">OpenAlex</span><span class="badge b-unclear">1 not fetched</span></div>
+      <div class="bar" role="img" aria-label="1,343 of 1,344"><span style="width:100%"></span></div>
+      <span class="caption num">1,343 of 1,344 reported</span>
+    </section>
+
+    <section class="swipe-card" aria-label="Crossref" style="gap:var(--space-2);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between"><span class="body-strong">Crossref</span><span class="badge b-unclear">Lower bound</span></div>
+      <div class="bar" role="img" aria-label="2,000 of about 13,100"><span style="width:15%"></span></div>
+      <span class="caption num">2,000 of ~13,100 reported</span>
+      <span class="caption t-unclear">Stopped at the 2,000 cap, so this count is a lower bound. Split it by year on the desktop.</span>
+    </section>
+
+    <section class="swipe-card" aria-label="Semantic Scholar" style="gap:var(--space-2);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between"><span class="body-strong">Semantic Scholar</span><span class="badge b-blocked">Failed</span></div>
+      <span class="caption num">10 of unknown · <span class="data">PROVIDER_RATE_LIMITED</span></span>
+    </section>
+
+    <section class="swipe-card" aria-label="arXiv" style="gap:var(--space-2);padding:var(--space-3)">
+      <div class="row" style="justify-content:space-between"><span class="body-strong">arXiv</span><span class="badge b-brand">Fetching</span></div>
+      <div class="bar" role="img" aria-label="153 of 247"><span style="width:62%"></span></div>
+      <span class="caption num">153 of 247 reported · 1 req/s</span>
+    </section>
+  </main>
+  <nav class="tabbar" aria-label="Discovery">
+    <a href="#" class="on" aria-current="page">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Status
+    </a>
+    <a href="#">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 3h7l5 5v13H7zM14 3v5h5"/></svg>
+      Report
+    </a>
+    <a href="#">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="10" height="10" rx="1"/><rect x="10" y="10" width="10" height="10" rx="1"/></svg>
+      Near-twins 12
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

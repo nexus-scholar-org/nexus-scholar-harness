@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agreement with the agent</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">[project title] · <span class="data">[project-slug]</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-done" href="#">Inception</a>
+      <a class="step step-done" href="#">Discovery</a>
+      <a class="step step-on" href="#" aria-current="page">Screening</a>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude" style="align-self:center">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Screening steps" style="gap:var(--space-1)">
+      <a class="step" href="#">Home</a>
+      <a class="step step-done" href="#">1 Prepare</a>
+      <a class="step step-done" href="#">2 Agent proposals</a>
+      <a class="step" href="#">3 Triage</a>
+      <a class="step step-on" href="#" aria-current="page">4 Agreement</a>
+      <a class="step" href="#">5 Publish</a>
+    </nav>
+
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Screening · step 4 of 5 · Agreement with the agent · so far</span>
+      <h1 class="display" style="margin:0;max-width:36ch">You and the agent agreed on 95.9% of records; it would have dropped 9 of your includes.</h1>
+      <p class="lede">Descriptive agreement between your decisions and the agent's drafts on the 1,160 records both decided as include or exclude. Not an inter-rater statistic: the agent is not a second reviewer.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)">
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Agreement with the agent</span><span class="title num">95.9%</span><span class="caption muted">1,113 of 1,160 · not an inter-rater statistic</span></div>
+      <div class="card stack" style="gap:var(--space-1);border-color:var(--unclear)"><span class="label">Your includes it proposed to exclude</span><span class="title num t-unclear">9 of 80</span><span class="caption muted">the number that matters most</span></div>
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Its includes you excluded</span><span class="title num">38 of 109</span><span class="caption muted">over-inclusion costs you time, not studies</span></div>
+      <div class="card stack" style="gap:var(--space-1)"><span class="label">Unclear on either side</span><span class="title num">24</span><span class="caption muted">sent to full text · outside the table</span></div>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <section class="card stack" aria-labelledby="mx-h">
+          <h2 id="mx-h" class="heading" style="margin:0">Agent draft against your decision</h2>
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th></th><th class="num">You include</th><th class="num">You exclude</th><th class="num">Total</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Agent include</th><td class="num">71</td><td class="num" style="background:var(--unclear-soft)">38</td><td class="num">109</td></tr>
+                <tr><th scope="row">Agent exclude</th><td class="num" style="background:var(--unclear-soft)"><span class="t-unclear">9</span></td><td class="num">1,042</td><td class="num">1,051</td></tr>
+                <tr><th scope="row">Total</th><td class="num">80</td><td class="num">1,080</td><td class="num body-strong">1,160</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="caption muted">Disagreement cells are tinted. Every one of the 47 was decided by you; none was settled by the agent. <a href="#">Open the 9 missed includes</a></span>
+        </section>
+
+        <section class="card stack" aria-labelledby="crit-h">
+          <h2 id="crit-h" class="heading" style="margin:0">Where you split, by criterion · 47</h2>
+          <div class="stack" style="gap:var(--space-2)">
+            <div style="display:grid;grid-template-columns:220px 1fr 48px;gap:var(--space-3);align-items:center"><span class="caption">INC-03 Evaluated artifact</span><div class="bar"><span style="width:100%"></span></div><span class="caption num" style="text-align:right">26</span></div>
+            <div style="display:grid;grid-template-columns:220px 1fr 48px;gap:var(--space-3);align-items:center"><span class="caption">INC-01 UAV platform</span><div class="bar"><span style="width:42%"></span></div><span class="caption num" style="text-align:right">11</span></div>
+            <div style="display:grid;grid-template-columns:220px 1fr 48px;gap:var(--space-3);align-items:center"><span class="caption">EXC-01 Opinion only</span><div class="bar"><span style="width:27%"></span></div><span class="caption num" style="text-align:right">7</span></div>
+            <div style="display:grid;grid-template-columns:220px 1fr 48px;gap:var(--space-3);align-items:center"><span class="caption">INC-02 Crop disease task</span><div class="bar"><span style="width:12%"></span></div><span class="caption num" style="text-align:right">3</span></div>
+          </div>
+          <span class="caption muted">INC-03 accounts for more than half the splits. Its wording, or allowing "not reported" for it, is the place to look before the next review.</span>
+        </section>
+      </div>
+
+      <div class="side">
+        <section class="parked stack" aria-disabled="true" aria-labelledby="kappa-h">
+          <div class="row" style="justify-content:space-between"><h2 id="kappa-h" class="heading" style="margin:0">Cohen's kappa</h2><span class="badge b-exclude">Parked</span></div>
+          <span class="title num" style="opacity:0.6">—</span>
+          <span class="body">Kappa is reported only between two human screeners.</span>
+          <span class="caption">Second screener · team feature, not production yet</span>
+        </section>
+
+        <section class="card stack" aria-labelledby="samp-h">
+          <h2 id="samp-h" class="heading" style="margin:0">Sample check of agreed exclusions</h2>
+          <p class="body" style="margin:0">60 of the 1,042 records you and the agent both excluded, drawn with seed <span class="data">20261103</span>. You see each again without your earlier answer.</p>
+          <div class="row"><span class="body-strong num">0 of 60 checked</span><div class="bar" style="width:120px"><span style="width:0%"></span></div></div>
+          <span class="caption muted">A single wrong exclusion reopens that criterion. Sample size and errors found go into the screening report.</span>
+          <button class="btn btn-primary">Start the sample check · 60 records</button>
+        </section>
+
+        <span class="caption muted">This report is written to <span class="data">literature/prisma_screening_report.md</span> at publish and recomputed from the decision files each time it opens.</span>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1230}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone home</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="phone">
+  <header class="m-top">
+    <span class="heading" style="font-family:var(--font-display)">Nexus Scholar</span>
+    <span class="badge b-include" style="margin-left:auto">Connected</span>
+  </header>
+  <main class="m-body">
+    <div class="stack" style="gap:var(--space-2)">
+      <span class="label eyebrow">Screening · [project-slug]</span>
+      <h1 class="m-h1">2,057 records still need you.</h1>
+      <p class="caption muted" style="margin:0">Each decision goes to your desktop and is recorded with your name and the time.</p>
+    </div>
+
+    <section class="card stack" aria-labelledby="today-h" style="gap:var(--space-2)">
+      <h2 id="today-h" class="label" style="margin:0">Today</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)">
+        <div class="stack" style="gap:0"><span class="title num">38</span><span class="caption muted">decided here</span></div>
+        <div class="stack" style="gap:0"><span class="title num">0</span><span class="caption muted">queued</span></div>
+        <div class="stack" style="gap:0"><span class="title num">1,184</span><span class="caption muted">decided in all</span></div>
+      </div>
+      <div class="bar" role="img" aria-label="36.5 percent of 3,241 decided"><span style="width:36.5%;background:var(--include)"></span></div>
+      <span class="caption muted">1,184 of 3,241 · 1,226 have an agent draft, hidden until you decide</span>
+    </section>
+
+    <section class="card stack" aria-labelledby="conn-h" style="gap:var(--space-2)">
+      <div class="row" style="gap:var(--space-2);flex-wrap:nowrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>
+        <h2 id="conn-h" class="body-strong" style="margin:0">Connected to your desktop</h2>
+      </div>
+      <span class="caption muted">[desktop name] on your local network · since 13:58 · ends when the desktop app closes</span>
+      <a href="#" class="caption">What this phone can do</a>
+    </section>
+  </main>
+  <div class="m-actions">
+    <button class="btn btn-primary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      Start triage
+    </button>
+  </div>
+  <nav class="tabbar" aria-label="Sections">
+    <a href="#" class="on" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>Home</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6"/></svg>Triage</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Queued 0</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>Approve</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

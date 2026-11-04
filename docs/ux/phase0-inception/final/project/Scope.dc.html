@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scope</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">New review · draft <span class="data">rec_7f3a…</span></span>
+    <nav class="steps" aria-label="Phases">
+      <a class="step step-on" href="#" aria-current="step">Inception</a>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <nav class="row" aria-label="Inception steps" style="gap:var(--space-1)">
+      <a class="step step-on" href="#" aria-current="step">1 Scope</a>
+      <span class="step">2 Explore</span>
+      <span class="step">3 Direction</span>
+      <span class="step">4 Shape</span>
+      <span class="step">5 Concepts and criteria</span>
+      <span class="step">6 Review and emit</span>
+      <span class="caption muted" style="margin-left:auto">Draft saved 3 Nov 2026 · <span class="data">rec_7f3a…</span></span>
+    </nav>
+
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      <span class="label eyebrow">Step 1 of 6 · Scope · before the first search</span>
+      <h1 class="display" style="margin:0">What will the first 25 papers be searched for?</h1>
+      <p class="lede">Years, languages and search mode feed the first search, so the anchor papers fall inside your review window. Nothing is written to a workspace in this step.</p>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <div class="card stack" style="gap:var(--space-5)">
+          <div class="field">
+            <label for="topic" class="body-strong">Research question, in one or two sentences</label>
+            <textarea id="topic" class="in" rows="3">Drone-mounted crop-disease detection with on-device deep learning</textarea>
+            <span class="caption t-include">One subject, 9 words, a good length</span>
+          </div>
+
+          <div class="row" style="gap:var(--space-4);align-items:flex-start">
+            <div class="field" style="flex:1;min-width:160px"><label for="y1" class="body-strong">From year</label><input id="y1" class="in" value="2020"></div>
+            <div class="field" style="flex:1;min-width:160px"><label for="y2" class="body-strong">To year</label><input id="y2" class="in" placeholder="present"><span class="caption muted">Empty means up to today</span></div>
+          </div>
+
+          <div class="field">
+            <span class="body-strong" id="lang-l">Languages</span>
+            <div class="row" role="group" aria-labelledby="lang-l" style="gap:var(--space-2)">
+              <button class="chip chip-on" aria-pressed="true">English</button>
+              <button class="chip"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><path d="M8 3v10M3 8h10"/></svg>Add a language</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="body-strong" id="mode-l">Search mode</span>
+            <div class="row" role="radiogroup" aria-labelledby="mode-l" style="gap:var(--space-2)">
+              <button class="chip chip-on" role="radio" aria-checked="true">Semantic · better topic match (recommended)</button>
+              <button class="chip" role="radio" aria-checked="false">Keyword · exact terms, matches older runs</button>
+            </div>
+            <span class="caption muted">Semantic uses OpenAlex embeddings. Results can drift between runs; the mode and date are recorded in the draft.</span>
+          </div>
+
+          <div class="field" style="max-width:320px">
+            <label for="n" class="body-strong">Papers to sample</label>
+            <input id="n" class="in num" value="25" inputmode="numeric">
+            <span class="caption muted">12 or more keeps directions reliable; 25 is the cap.</span>
+          </div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end">
+          <a href="#" class="btn">Back to workspaces</a>
+          <button class="btn">Save draft and exit</button>
+          <button class="btn btn-primary">Search 25 papers<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card stack">
+          <span class="label">The first search will use</span>
+          <table class="tbl">
+            <tbody>
+              <tr><td class="muted">Papers</td><td class="num">25</td></tr>
+              <tr><td class="muted">Years</td><td>2020 to present</td></tr>
+              <tr><td class="muted">Languages</td><td>English</td></tr>
+              <tr><td class="muted">Mode</td><td>Semantic</td></tr>
+              <tr><td class="muted">Source</td><td>OpenAlex</td></tr>
+            </tbody>
+          </table>
+          <span class="caption muted">One search, then the results are cached under this draft. Going back to change scope asks before searching again.</span>
+        </div>
+
+        <div class="card stack">
+          <span class="label">Topic checks as you type</span>
+          <span class="caption">Two subjects joined by "and" · fewer than 4 words · a question with no subject</span>
+          <div class="note n-unclear caption">Example: "AI and climate" is two subjects; pick one or narrow both.</div>
+        </div>
+
+        <div class="card stack">
+          <span class="label">Nothing written yet</span>
+          <span class="caption muted">Answers persist as a draft in the recon cache, not in <span class="data">workspaces/</span>. Resume later with session <span class="data">rec_7f3a…</span>, from this screen, your phone or the agent.</span>
+        </div>
+
+        <details class="card">
+          <summary class="caption" style="cursor:pointer;min-height:24px">Run from the terminal</summary>
+          <div class="stack" style="gap:var(--space-1);margin-top:var(--space-2)">
+            <span class="data">uv run scholar-harness inception --grounded</span>
+            <span class="caption muted">Asks the same scope questions with the same defaults.</span>
+          </div>
+        </details>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1150}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workspaces</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/nexusscholar/tokens.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="background: var(--ground); color: var(--ink); min-height: 100%;">
+  <header class="appbar">
+    <span class="name">Nexus Scholar</span>
+    <span class="caption muted">Workspaces · engine on this computer · <span class="data">localhost</span></span>
+    <nav class="steps" aria-label="Phases">
+      <span class="step">Inception</span>
+      <span class="step">Discovery</span>
+      <span class="step">Screening</span>
+      <span class="step step-parked">Full text</span>
+      <span class="step step-parked">Synthesis</span>
+      <span class="step step-parked">Matrix</span>
+      <span class="step step-parked">Graph</span>
+      <span class="step step-parked">Trust</span>
+      <span class="badge b-exclude">Not production</span>
+    </nav>
+  </header>
+  <main class="screen">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:var(--space-4);flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <span class="label eyebrow">Workspaces · 3 reviews · 2 drafts</span>
+        <h1 class="display" style="margin:0">Which review are you working on today?</h1>
+        <p class="lede">Each review is one workspace folder on this computer. A new review starts with six Inception steps; nothing is written until the last one.</p>
+      </div>
+      <button class="btn btn-primary"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>New review</button>
+    </div>
+
+    <div class="split">
+      <div class="main">
+        <div class="card" style="padding:var(--space-2) var(--space-4)">
+          <div class="scroll-x">
+            <table class="tbl">
+              <thead><tr><th>Review</th><th>Phase</th><th>Last activity</th><th><span class="muted">Open</span></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="body-strong">[project title]</div><span class="data muted">workspaces/[project-slug]/</span></td>
+                  <td><span class="badge b-brand">Screening</span></td>
+                  <td class="caption">3 Nov 2026 · batch 002 decided</td>
+                  <td><a href="#" class="btn btn-small">Open</a></td>
+                </tr>
+                <tr>
+                  <td><div class="body-strong">[project title]</div><span class="data muted">workspaces/[project-slug]/</span></td>
+                  <td><span class="badge b-brand">Discovery</span></td>
+                  <td class="caption">[date] · search plan reviewed</td>
+                  <td><a href="#" class="btn btn-small">Open</a></td>
+                </tr>
+                <tr>
+                  <td><div class="body-strong">[project title]</div><span class="data muted">workspaces/[project-slug]/</span></td>
+                  <td><span class="badge b-include">Inception done</span></td>
+                  <td class="caption">[date] · GENESIS logged</td>
+                  <td><a href="#" class="btn btn-small">Open</a></td>
+                </tr>
+                <tr>
+                  <td><div class="body-strong">Drone-mounted crop-disease detection with on-device deep learning</div><span class="data muted">no folder yet · draft <span>rec_7f3a…</span></span></td>
+                  <td><span class="badge b-unclear">Inception draft · step 5 of 6</span></td>
+                  <td class="caption">2 Nov 2026 · stopped at Concepts and criteria</td>
+                  <td><a href="#" class="btn btn-small">Resume</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <span class="caption muted">A draft is not a workspace. It lives in the recon cache under one session id and becomes a folder only at Review and emit.</span>
+
+        <div class="card stack">
+          <div class="row" style="justify-content:space-between">
+            <span class="heading">Resume your draft</span>
+            <span class="badge b-unclear">Needs you · 3 criteria to decide</span>
+          </div>
+          <span class="body">Drone-mounted crop-disease detection with on-device deep learning</span>
+          <span class="caption muted">Stopped at step 5, Concepts and criteria · 2 Nov 2026 · session <span class="data">rec_7f3a…</span></span>
+          <span class="caption muted">The 25-paper pool is cached (fetched 2 Nov 2026, 1 day old), so resuming runs no new search. You can refresh it on the Explore step.</span>
+          <div class="row">
+            <a href="#" class="btn">Resume at step 5<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+            <a href="#" class="btn">Start over from this question</a>
+            <a href="#">Discard draft</a>
+          </div>
+        </div>
+
+        <div class="draft stack">
+          <span class="label">Agent proposal · draft</span>
+          <span class="body">A draft started with your agent in Claude came back to this computer: scope, direction and 6 suggested criteria. None of it is accepted yet.</span>
+          <span class="data muted">claude-sonnet · prompt sha256:3f9c… · 3 Nov 2026 · session rec_[hex]</span>
+          <div class="row">
+            <a href="#" class="btn">Review it step by step</a>
+            <span class="caption muted">Every criterion is shown verbatim and waits for your Accept, Edit or Drop.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card stack">
+          <span class="label">Other ways in</span>
+          <div class="stack" style="gap:var(--space-2)">
+            <span class="body-strong"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/></svg>Do this with your agent in Claude</span>
+            <span class="caption muted">The agent asks the same six steps in chat, one decision per turn. Its answers come back here as a draft under the same session id; the write gate stays on this screen.</span>
+            <a href="#" class="btn btn-small" style="align-self:flex-start">Copy the agent prompt</a>
+          </div>
+          <div class="stack" style="gap:var(--space-2);border-top:1px solid var(--hairline);padding-top:var(--space-3)">
+            <span class="body-strong"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><rect x="4.5" y="1.5" width="7" height="13" rx="1"/><path d="M7 12.5h2"/></svg>Review on your phone</span>
+            <span class="caption muted">Read a draft and accept criteria from your phone on the same network. Writing the workspace stays on this computer.</span>
+            <a href="#" class="btn btn-small" style="align-self:flex-start">Show pairing code</a>
+          </div>
+        </div>
+
+        <div class="card stack">
+          <span class="label">This computer</span>
+          <span class="caption"><span class="t-include">Engine running</span> · <span class="data">workspaces/</span> · 3 reviews</span>
+          <span class="caption muted">Recon cache <span class="data">.cache/inception_recon</span> · 2 drafts</span>
+        </div>
+
+        <details class="card">
+          <summary class="caption" style="cursor:pointer;min-height:24px">Run from the terminal</summary>
+          <div class="stack" style="gap:var(--space-1);margin-top:var(--space-2)">
+            <span class="data">nexus-scholar init "[project title]"</span>
+            <span class="data">uv run scholar-harness inception --grounded</span>
+            <span class="caption muted">Same steps, same draft, same single write gate.</span>
+          </div>
+        </details>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
