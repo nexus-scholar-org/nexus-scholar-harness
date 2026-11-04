@@ -44,8 +44,8 @@ Screening API (contract §4, M1a rows)
 - [x] **Shared fixtures** `tests/fixtures/screening_api/*.json` and `tests/console/test_screening_api_contract.py`.
 
 End to end
-- [ ] **30-record fixture workspace screened end to end through the API** with HUMAN provenance on every decision; `scripts/check_golden_workspace.py` passes on it.
-- [ ] **Contract v1**: `generate_contract_baseline.py --check` passes throughout; any lock-set change stops as `BLOCKED_BASELINE_DRIFT`.
+- [x] **30-record fixture workspace screened end to end through the API** with HUMAN provenance on every decision; `scripts/check_golden_workspace.py` passes on it. Test: `tests/e2e/test_golden_screening_api.py` (a copy of `golden-uav-30`, 3 batches, 30 events, per-batch approval, collect; synthetic outcomes, labelled as such).
+- [x] **Contract v1**: `generate_contract_baseline.py --check` passes throughout; any lock-set change stops as `BLOCKED_BASELINE_DRIFT`.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
