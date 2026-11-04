@@ -26,7 +26,9 @@ def ws(tmp_path, monkeypatch) -> Path:
 
 # "[/.." and "{x}/.." look like inline JSON to a prefix check but are paths
 # (review finding, M0): they must be contained like any other path.
-ESCAPES = ["../escape", "ABSOLUTE", "[/../..", "{x}/../.."]
+# '["/../.."' parses as JSON and, on POSIX, is also a legal path (second
+# review pass): path parameters must never pass JSON through.
+ESCAPES = ["../escape", "ABSOLUTE", "[/../..", "{x}/../..", '["/../..']
 
 
 def _target(ws: Path, escape: str, name: str) -> str:
@@ -62,9 +64,19 @@ def test_reader_tool_refuses_input_outside_workspace(ws):
         server.nexus_dedup("../secret.json", "out.json")
 
 
-def test_inside_paths_and_inline_json_still_resolve(ws):
+def test_path_parameters_never_pass_json_through(ws):
     assert server._resolve_path("sub/x.json") == str((ws / "sub" / "x.json").resolve())
     assert server._resolve_path(str(ws / "x.json")) == str((ws / "x.json").resolve())
-    assert server._resolve_path('{"a": 1}') == '{"a": 1}'
-    assert server._resolve_path(' [1, 2]') == ' [1, 2]'
     assert server._resolve_path(None) is None
+    # Valid JSON in a path parameter is still a path, and contained.
+    assert server._resolve_path('{"a": 1}') == str((ws / '{"a": 1}').resolve())
+    with pytest.raises(server.PathOutsideWorkspace):
+        server._resolve_path('["/../../../esc.json"]')
+
+
+def test_json_capable_parameters_keep_inline_payloads(ws):
+    assert server._resolve_path_or_json('{"a": 1}') == '{"a": 1}'
+    assert server._resolve_path_or_json(" [1, 2]") == " [1, 2]"
+    assert server._resolve_path_or_json("p.json") == str((ws / "p.json").resolve())
+    with pytest.raises(server.PathOutsideWorkspace):
+        server._resolve_path_or_json("[/../../escape")

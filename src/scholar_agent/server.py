@@ -214,17 +214,12 @@ def _resolve_path(p: str | None) -> str | None:
     Relative paths are joined onto the anchor; absolute paths are kept. Either
     way the resolved path (symlinks followed, ``..`` collapsed) must lie inside
     the anchor, or :class:`PathOutsideWorkspace` is raised before any read or
-    write. Inline JSON (raw protocol/intent/screener payloads) passes through.
+    write. This is for path parameters only, and nothing passes through by its
+    content: ``'["/../../x"]'`` is valid JSON and, on POSIX, also a legal path.
+    Parameters that accept an inline payload use :func:`_resolve_path_or_json`.
     """
     if not p:
         return p
-    if p.lstrip().startswith(("{", "[")):
-        # Only a payload that really parses is inline JSON; "[/../x" is a path.
-        try:
-            json.loads(p)
-            return p
-        except ValueError:
-            pass
     anchor = _mcp_anchor()
     path = Path(p)
     resolved = (path if path.is_absolute() else anchor / path).resolve()
@@ -236,6 +231,24 @@ def _resolve_path(p: str | None) -> str | None:
             f"PATH_OUTSIDE_WORKSPACE: {p!r} resolves outside the MCP workspace {anchor}"
         )
     return str(resolved)
+
+
+def _resolve_path_or_json(p: str | None) -> str | None:
+    """For the parameters that take a file path *or* an inline JSON payload.
+
+    Only ``intent_json``, ``protocol_json``, ``screeners_json`` and
+    ``adjudication_json`` use this. A value that parses as JSON is returned
+    unchanged as a payload, and those tools read it through
+    :func:`_existing_file`, which never opens a ``{``/``[``-prefixed string as
+    a path. Anything else is a path and is contained by :func:`_resolve_path`.
+    """
+    if p and p.lstrip().startswith(("{", "[")):
+        try:
+            json.loads(p)
+            return p
+        except ValueError:
+            pass
+    return _resolve_path(p)
 
 
 def _existing_file(arg: str | None) -> Path | None:
@@ -280,7 +293,7 @@ def nexus_protocol_compile(intent_json: str) -> str:
     Returns the canonical protocol JSON string.
     """
     try:
-        intent_json = _resolve_path(intent_json) or intent_json
+        intent_json = _resolve_path_or_json(intent_json) or intent_json
         intent_file = _existing_file(intent_json)
         if intent_file is not None:
             intent_data = json.loads(intent_file.read_text(encoding="utf-8"))
@@ -357,7 +370,7 @@ def nexus_protocol_validate(protocol_json: str) -> str:
         )
 
     try:
-        protocol_json = _resolve_path(protocol_json) or protocol_json
+        protocol_json = _resolve_path_or_json(protocol_json) or protocol_json
         p = _existing_file(protocol_json)
         if p is not None:
             return _response(validate_protocol(p))
@@ -1080,8 +1093,8 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
         adjudication_json: Optional path to JSON file with adjudicated tie-breaking decisions.
     """
     try:
-        screeners_json = _resolve_path(screeners_json) or screeners_json
-        adjudication_json = _resolve_path(adjudication_json) or adjudication_json
+        screeners_json = _resolve_path_or_json(screeners_json) or screeners_json
+        adjudication_json = _resolve_path_or_json(adjudication_json) or adjudication_json
         screeners_map: dict[str, dict[str, str]] = {}
         screeners_dir = _existing_dir(screeners_json)
         screeners_file = _existing_file(screeners_json)

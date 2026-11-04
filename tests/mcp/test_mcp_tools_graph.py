@@ -404,7 +404,8 @@ def test_nexus_resolve_path_keeps_inside_absolute_and_inline_json(tmp_path, monk
     from scholar_agent import server
 
     assert server._resolve_path(str(tmp_path)) == str(tmp_path.resolve())
-    assert server._resolve_path('{"a": 1}') == '{"a": 1}'
+    # Inline JSON is kept only by the JSON-capable resolver (AGT-01 review).
+    assert server._resolve_path_or_json('{"a": 1}') == '{"a": 1}'
     assert server._resolve_path(None) is None
 
 
