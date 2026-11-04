@@ -1,4 +1,4 @@
-# 04 Triage, mobile    Status: DRAFT | Phase 2 Screening | Route `/screening/triage` (≤ 640 px, LAN sub-app) | Milestone M2 (on M1a routes)
+# 04 Triage, mobile    Status: FINAL | Phase 2 Screening | Route `/screening/triage` (≤ 640 px, LAN sub-app) | Milestone M2 (on M1a routes)
 
 Boards: `MobileTriage` (M3), `MobileReason` (M4), `MobileRevealed` (M5), `MobileOffline` (M6). Rules: production plan §4. Contract: `docs/architecture/screening-api-contract.md` §3, §6.
 
@@ -8,7 +8,7 @@ Boards: `MobileTriage` (M3), `MobileReason` (M4), `MobileRevealed` (M5), `Mobile
 - **Swipe is physical in RTL too**: right is Include, left is Exclude, up is Unclear. The hints on screen say it in words ("Swipe right · Include"), and the arrows do not mirror.
 - **Skip** is a button and a client-side deferral; it writes no event.
 - M5 "Undo" toast (5 s) posts a superseding event. Later undo from the record history is allowed, also as a superseding event.
-- Canvas M3 shows no checklist on the phone. The contract makes `criteria` optional on a swipe; whether the phone needs it stays open (contract §9.3).
+- Canvas M3 shows no checklist on the phone. The contract makes `criteria` optional on a swipe; the phone does not need it; an Exclude needs a reason only (contract §9.3).
 - The phone exposes only the restricted routes of contract §6; the Settings, Prepare, Proposals and Publish routes are not mounted on the LAN sub-app.
 - "Unclear" on the button; the long label "Unclear → full text" is used in text, sheet and provenance (stored `MAYBE`).
 - The M5 reveal of the agent draft appears only after the decision is recorded.
@@ -61,6 +61,6 @@ Every swipe has a button path. Toast is `role=status`; undo also reachable from 
 ## Acceptance tests
 Vitest: `record-card.swipe-physical-rtl.test.tsx`, `offline-queue.replay-once.test.ts`, `skip-writes-no-event.test.ts`. Playwright (WebKit mobile emulation): `screening/triage-mobile.spec.ts` (30 decisions with the network cut mid-run, all replayed once; a conflict surfaced; jobs and pipelines unreachable over LAN; `ar` layout).
 
-## Open questions
-1. Contract §9.3: does an Include on the phone require the checklist, or only a reason for an Exclude?
-2. Contract §9.4: is 200 events per request enough for a phone offline for a long session? The UI chunks the replay at 200.
+## Decisions
+1. Contract §9.3 (decided 2026-11-04): an Exclude on the phone requires a reason; an Include or Unclear requires nothing more. No checklist on the phone.
+2. Contract §9.4 (decided 2026-11-04): 200 events per request; the UI replays an offline backlog in chunks of 200, each retried on its own.

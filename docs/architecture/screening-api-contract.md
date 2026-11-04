@@ -1,6 +1,6 @@
 # Screening API contract (M1a ⇄ M1b, M2)
 
-**Status:** DRAFT 2026-11-03, for review before M1a starts. It defines the boundary between the engine (M1a) and the UI (M1b desktop, M2 phone), so the two can be built in parallel against shared fixtures.
+**Status:** ACCEPTED 2026-11-04 (open questions decided in §9; the methods wording is deferred to M5-slim). Proposed refusal codes are added to the registry in M1a. It defines the boundary between the engine (M1a) and the UI (M1b desktop, M2 phone), so the two can be built in parallel against shared fixtures.
 **Related:**
 - [`../roadmap/production-plan.md`](../roadmap/production-plan.md) §2, §4, §6;
 - [`agent-system.md`](agent-system.md) §3–§4;
@@ -180,11 +180,11 @@ A fixture change is a contract change and needs review by both tracks.
 
 **The MCP driver** starts no run through this API. The researcher's Claude Code or Claude Desktop reads the queue and calls `submit_proposal` over MCP (agent-system §2). The proposals screen shows that path as an instruction ("run it from Claude"), not as a `driver` value. A decision on a study with an open conflict returns the per-event result `conflict`; there is no separate refusal code.
 
-## 9. Open questions
+## 9. Decisions (researcher, 2026-11-04)
 
-1. **Approval code:** reuse the phone-pairing code, or issue a fresh one-time code per generation? Must every paired phone report zero queued events before approval (canvas sticky)?
-2. **Event-file locking:** single writer per process today. Is a file lock needed for CLI and console writing at the same time (CON-19)?
-3. **`criteria` on a phone swipe:** optional as drafted. Should an Include on the phone require the checklist, or only a reason for an Exclude?
-4. **Batch size limit:** is 200 events per request enough? The UI chunks at 200 after a long offline session.
-5. **Methods paragraph wording (PRISMA 2020 item 8):** how to word the automation statement, the uncertainty ordering and the AI-agreed-exclusion opt-in, and the default and minimum sample-audit size.
-6. **Cost display:** the price source and date behind the dollar estimate for the researcher's own key.
+1. **Approval code:** a fresh one-time code is issued for each batch generation; the pairing code is never reused for approval. Approval is refused while any paired phone still holds queued events (`APPROVAL_MISSING`, detail `queued_events`).
+2. **Event-file locking:** every append takes an exclusive OS file lock on `events/<screener_id>.jsonl` (Windows and Unix), so the CLI and the console can write at the same time without lost or interleaved lines (CON-19).
+3. **`criteria` on a phone swipe:** an Exclude requires a `reason_code`; an Include or Unclear requires nothing more. The checklist stays optional on the phone and is captured on desktop.
+4. **Batch size limit:** 200 events per request. The UI splits a larger offline backlog into chunks of 200 and retries each on its own; `event_id` makes replays harmless.
+5. **Methods paragraph wording (PRISMA 2020 item 8):** deferred to M5-slim, with the default and minimum sample-audit size. Specs 02 and 07 keep a placeholder until then.
+6. **Cost display:** a dated price table in the tasks folder, updated each release; the UI shows its "prices as of" date next to the estimate. No network call for prices.

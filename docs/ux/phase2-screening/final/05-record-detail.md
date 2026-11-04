@@ -1,4 +1,4 @@
-# 05 Record detail (shared component)    Status: DRAFT | Phase 2 Screening | Component `RecordDetail`, used in 03 and 04 | Milestone M1a (data) + M1b (UI)
+# 05 Record detail (shared component)    Status: FINAL | Phase 2 Screening | Component `RecordDetail`, used in 03 and 04 | Milestone M1a (data) + M1b (UI)
 
 Boards: `Triage` (D4), `TriageRevealed` (D5), `MobileTriage` (M3), `MobileRevealed` (M5). Brand components: `EvidenceQuote`, `DataCell`, `StatusBadge`. Contract: `screening-api-contract.md` §3-§5.
 
@@ -7,7 +7,7 @@ Boards: `Triage` (D4), `TriageRevealed` (D5), `MobileTriage` (M3), `MobileReveal
 **Changed from the canvas.**
 - Nothing structural. Spec rules added: the outcome row is the plain-code rule-table result returned by the server (`derived_outcome`); the UI never computes it.
 - The draft aside never shows an `include` tint (BRAND_BOOK principle 5); the badge "Not a decision" stays.
-- On the phone (M3) the checklist is absent; whether it is required there is open (contract §9.3). On desktop the checklist answers are required.
+- On the phone (M3) the checklist is absent; it is not required there; an Exclude needs a reason only (contract §9.3). On desktop the checklist answers are required.
 
 ## Entry / exit
 Embedded. Prop `studyId`; emits `onDecide({outcome, reasonCode, criteria, note})`, `onSkip()` (local only), `onUndo()`. No navigation.
@@ -59,5 +59,5 @@ Highlights are `<mark>` with a visually hidden "tied to INC-01". The aside is la
 ## Acceptance tests
 Vitest: `record-detail.hidden-until-decision.test.tsx`, `record-detail.draft-never-include-tint.test.tsx`, `record-detail.missing-field.test.tsx`, `record-detail.derived-outcome-from-server.test.tsx`.
 
-## Open questions
-1. Contract §9.3: does the phone card need the checklist?
+## Decisions
+1. Contract §9.3 (decided 2026-11-04): the phone card has no checklist; an Exclude needs a reason only. The checklist is required on desktop.

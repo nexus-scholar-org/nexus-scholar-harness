@@ -8,7 +8,7 @@ Board: `States` (D7, nine cards). Contract: `screening-api-contract.md` §4, §7
 - Codes follow contract §7: `DECISION_CONFLICT` is dropped (a conflict is the per-event result `conflict`, not a refusal); the Conflict card shows `conflict`. `RATE_LIMITED` is kept (exists in code). `PROVENANCE_MISSING` is in contract §7. `RUN_ALREADY_ACTIVE` and `COST_CEILING_REACHED` (contract §7) get cards too. `ENGINE_UNREACHABLE` is client-side only.
 - The Conflict card, the Engine-unreachable card and the Phone-offline card appear on the phone too (04).
 - Wherever a card would mention the agent's call for an undecided record it says "Available after you decide".
-- "Approval waits until queued phone decisions have arrived" (Phone offline card) depends on an open contract question (09).
+- "Approval waits until queued phone decisions have arrived" (Phone offline card) is decided: approval is refused while any paired phone has queued events (contract §9.1, spec 09).
 - New card (not on the canvas): **Not approved**, because `APPROVAL_MISSING` exists and publish needs it.
 
 ## Entry / exit

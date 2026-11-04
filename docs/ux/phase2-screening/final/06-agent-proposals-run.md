@@ -1,4 +1,4 @@
-# 06 Agent proposals run    Status: DRAFT | Phase 2 Screening | Route `/screening/proposals` | Milestone M1b (driver, routes, UI)
+# 06 Agent proposals run    Status: FINAL | Phase 2 Screening | Route `/screening/proposals` | Milestone M1b (driver, routes, UI)
 
 Board: `Proposals` (D3). Contract: `screening-api-contract.md` §4-§5; agent design `docs/architecture/agent-system.md` §2-§5.
 
@@ -68,5 +68,5 @@ Progress bar `role=img` with a sentence label; cost shown as text; state badges 
 ## Acceptance tests
 Vitest: `proposals.consent-required.test.tsx`, `proposals.cost-ceiling-hard-stop.test.tsx`, `proposals.no-content-before-decision.test.tsx`. Playwright: `screening/proposals.spec.ts` (dry run, consent, cancel, partial then resume).
 
-## Open questions
-1. Contract §9.6: price source and date behind the dollar estimate for the researcher's own key (canvas `$[estimate]`; the contract returns `cost_usd`).
+## Decisions
+1. Contract §9.6 (decided 2026-11-04): the estimate comes from a dated price table in the tasks folder, updated each release; the panel shows "prices as of <date>" beside the dollar figure.
