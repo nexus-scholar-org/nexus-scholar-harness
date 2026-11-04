@@ -4,6 +4,18 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-04 — MCP keys stay in the env file, never in a config file (CORE-17)
+
+`setup-mcp` used to copy provider keys from `.env` into an `env:` block of each
+MCP config, including `<workspace>/.mcp.json` and `.cursor/mcp.json`, which git
+tracked. Now it adds `--env-file <path>` to the server command, and
+`scholar-agent` loads the approved keys (`SCHOLAR_*`, `NEXUS_*`, the three
+provider keys) from that file at start. Variables already set in the
+environment win. No config file holds a key value, VS Code works like the
+other targets, and `.env`, `.mcp.json` and `.cursor/mcp.json` are gitignored.
+Configs written by older versions keep their `env:` block until `setup-mcp` is
+run again.
+
 ## 2026-11-04 — Screening API contract accepted
 
 The researcher decided the contract's six open questions:

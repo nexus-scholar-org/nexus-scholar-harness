@@ -293,7 +293,11 @@ starts this server on your workspace.
 | `NEXUS_SKILLS_SRC` | Override the skill-bundle source root (`init` picks it first) |
 
 Copy `.env.example` (created by `init`) to `.env` and fill in keys; `doctor` and
-`setup-mcp` read `<workspace>/.env` by default.
+`setup-mcp` read `<workspace>/.env` by default. `setup-mcp` never copies key
+values into an MCP config file: it adds `--env-file <path>` to the server
+command, and `scholar-agent` loads the keys from that file when it starts
+(variables already set in your environment win). `.env`, `.mcp.json` and
+`.cursor/mcp.json` are gitignored.
 
 ---
 
