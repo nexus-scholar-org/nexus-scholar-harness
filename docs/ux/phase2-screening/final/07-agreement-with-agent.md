@@ -1,4 +1,4 @@
-# 07 Agreement with the agent    Status: DRAFT | Phase 2 Screening | Route `/screening/agreement` | Milestone M1b (`GET /agreement` and UI)
+# 07 Agreement with the agent    Status: FINAL | Phase 2 Screening | Route `/screening/agreement` | Milestone M1b (`GET /agreement` and UI)
 
 Board: `Agreement` (D6). Contract: `screening-api-contract.md`.
 
@@ -62,5 +62,5 @@ Matrix is a real table; bars have value text; disabled kappa card uses `aria-dis
 ## Acceptance tests
 Vitest: `agreement.no-kappa-value.test.tsx`, `agreement.sample-only-with-optin.test.tsx`, `agreement.no-undecided-leak.test.tsx`. Playwright: `screening/agreement.spec.ts`.
 
-## Open questions
-1. Contract §9.5: default and minimum sample-audit size for the opt-in sample check (canvas draws 60).
+## Decisions
+1. Contract §9.5 (decided 2026-11-04): the sample-audit size is deferred to M5-slim; the card keeps the canvas figure as a placeholder.

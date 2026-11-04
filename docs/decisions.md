@@ -4,6 +4,19 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-04 — Screening API contract accepted
+
+The researcher decided the contract's six open questions:
+- a fresh approval code for each batch generation, refused while any phone has queued events;
+- an OS file lock on each screener's event file;
+- an Exclude on the phone needs a reason only, with no checklist;
+- 200 events per request, with the UI sending larger backlogs in chunks;
+- methods-paragraph wording and sample-audit size deferred to M5-slim;
+- a dated price table, updated each release, behind the cost estimate.
+
+All nine screening screen specs are now FINAL. Details:
+[`architecture/screening-api-contract.md`](architecture/screening-api-contract.md) §9.
+
 ## 2026-11-03 — Plan revised after independent review: screening wedge at week 6
 
 An independent review of the production plan found that screening could not be

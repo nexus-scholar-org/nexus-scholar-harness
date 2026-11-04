@@ -1,4 +1,4 @@
-# 02 Prepare and binding check    Status: DRAFT | Phase 2 Screening | Route `/screening/prepare` | Milestone M0 (`accept-corpus`) + M1a (`/prepare`, settings) + M1b (UI)
+# 02 Prepare and binding check    Status: FINAL | Phase 2 Screening | Route `/screening/prepare` | Milestone M0 (`accept-corpus`) + M1a (`/prepare`, settings) + M1b (UI)
 
 Board: `Prepare` (D2, snapshot-missing state). Contract: `docs/architecture/screening-api-contract.md`.
 
@@ -63,5 +63,5 @@ Checkbox/radio groups in `fieldset` + `legend`; table headers `th scope`. Blocke
 ## Acceptance tests
 Vitest: `prepare.snapshot-missing.test.tsx`, `prepare.rule-table-readonly.test.tsx`, `prepare.ai-agreed-needs-confirm.test.tsx`. Playwright: `screening/prepare.spec.ts` (accept snapshot then prepare the golden-uav-30 workspace; refusal copy).
 
-## Open questions
-1. Contract §9.5: wording of the AI-agreed-exclusion disclosure for the methods paragraph (PRISMA 2020 item 8), and the default and minimum sample-audit size.
+## Decisions
+1. Contract §9.5 (decided 2026-11-04): the methods-paragraph wording and the sample-audit size are deferred to M5-slim. The disclosure text is a placeholder until then.

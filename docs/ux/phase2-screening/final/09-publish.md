@@ -1,4 +1,4 @@
-# 09 Publish, approval and phone pairing    Status: DRAFT | Phase 2 Screening | Route `/screening/publish`; phone `/screening/connect` | Milestone M0 (redeem path fix) + M1a (preview, pairing begin) + M1b (UI) + M2 (`/lan/pair`, phone)
+# 09 Publish, approval and phone pairing    Status: FINAL | Phase 2 Screening | Route `/screening/publish`; phone `/screening/connect` | Milestone M0 (redeem path fix) + M1a (preview, pairing begin) + M1b (UI) + M2 (`/lan/pair`, phone)
 
 Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `screening-api-contract.md` §4, §6.
 
@@ -76,5 +76,5 @@ QR has a text alternative (the URL and code spelled out on request). Checks use 
 ## Acceptance tests
 Vitest: `publish.conflict-blocks.test.tsx`, `publish.mobile-has-no-approve.test.tsx`, `pairing.exchange.test.ts`. Playwright: `screening/publish.spec.ts` (approve with the code, publish golden-uav-30, `APPROVAL_MISSING`), `screening/pair-phone.spec.ts` (token exchange, reuse refused with `TOKEN_SCOPE_REFUSED`, publish route unreachable over LAN).
 
-## Open questions
-1. Contract §9.1: approval code reuse (phone-pairing code or a fresh one-time code per generation), and must every paired phone report zero queued events before approval (canvas notes q3 and q7)?
+## Decisions
+1. Contract §9.1 (decided 2026-11-04): a fresh one-time approval code per batch generation, never the pairing code. Approve and publish stays disabled while any paired phone has queued events, with the message "A phone still has unsent decisions. Open it on the same network to send them."
