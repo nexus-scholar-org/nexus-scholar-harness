@@ -4,6 +4,24 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-04 — `accept-corpus` is the screening entry path until Packet B (M0)
+
+`nexus-scholar accept-corpus` builds the Contract-v1 corpus snapshot with the
+search kit's `build_corpus_snapshot_artifact` from `literature/verified.json`.
+It publishes the snapshot through the existing acceptance gate, which
+validates it against the frozen schema and journals the acceptance; `prepare`
+then works on a fresh workspace.
+- **RIS import:** `--ris <file>` imports a RIS export first. Each record gets
+  a record-derived `SCI-` id (from title, year, DOI and author names), so a
+  re-import yields the same ids. The import refuses to overwrite an existing
+  `verified.json`.
+- **Re-runs:** re-running on unchanged records publishes nothing.
+- **No CSV importer:** none exists yet, so CSV is deferred.
+- **Snapshot semantics unchanged:** the builder and acceptance are reused as
+  they are, so the lane stays STANDARD.
+- **Packet B:** full adoption, with discovery producing the snapshot itself,
+  remains M3.
+
 ## 2026-11-04 — Console guards and the `--lan` threat model (INC-01)
 
 **Threats.** In stage 1 the console holds unpublished review data and can run

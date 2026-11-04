@@ -1009,6 +1009,40 @@ def export(
         raise typer.Exit(1)
 
 
+@app.command("accept-corpus")
+def accept_corpus_command(
+    workspace: Path = typer.Option(
+        Path("."), "--workspace", "-w", help="Path to research workspace directory"
+    ),
+    ris: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--ris",
+        help="Import a RIS export (Scopus, Web of Science, Zotero) into literature/verified.json first",
+    ),
+):
+    """Accept the workspace's corpus snapshot so screening can start.
+
+    Builds the Contract-v1 corpus snapshot from literature/verified.json (or a
+    RIS export) and publishes it through the acceptance gate. Run `prepare`
+    afterwards. Re-running on the same records is a no-op.
+    """
+    from .corpus_accept import AcceptCorpusRefused, accept_corpus
+
+    try:
+        result = accept_corpus(workspace, ris=ris)
+    except AcceptCorpusRefused as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]", markup=True, soft_wrap=True)
+        raise typer.Exit(1) from exc
+    state = "already accepted" if result.already_accepted else "accepted"
+    console.print(
+        f"[bold green]✅ Corpus snapshot {state}:[/bold green] "
+        f"{result.study_count} studies from {result.record_count} records",
+        soft_wrap=True,
+    )
+    console.print(f"[dim]{result.artifact_id}[/dim]")
+    console.print("[dim]Next: prepare the screening batches.[/dim]")
+
+
 @app.command("serve")
 def serve(
     workspace: Path = typer.Option(
