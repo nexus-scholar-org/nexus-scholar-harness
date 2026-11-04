@@ -77,6 +77,7 @@ End to end
 | checkpoint | 5762c48 + events/API working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4153 passed, 14 skipped; clean; baseline current | 280 s |
 | checkpoint | SRCH/AGT working tree | full suite once (`uv run pytest -n auto`); `ruff check scripts/`; contract `--check` | 4186 passed, 14 skipped; clean; baseline current | 310 s |
 | pr | be447ba | selector `--changed origin/main --stage pr` (areas screening, authority, console, search, agent-mcp): `git diff --check`; `ruff check scripts/`; `sync_skills_bundle.py --check`; contract `--check`; `generate_screening_api_fixtures.py --check`; `uv run pytest -n auto` (full suite once) | clean; clean; 13 OK; baseline current; 19 current; 4193 passed, 14 skipped | 323 s |
+| pr (after review) | ae8795d | same selection and commands | clean; clean; 13 OK; baseline current; 19 current; 4203 passed, 14 skipped | 357 s |
 
 ## Raised for the researcher
 - ~~Approval code over HTTP~~ and ~~approval from events~~: decided 2026-11-04 (see Decisions).
