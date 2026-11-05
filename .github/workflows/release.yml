@@ -53,6 +53,10 @@ jobs:
           NEXUS_WHEEL_REQUIRE_UI: "1"
         run: uv build --wheel
 
+      - name: Build the Claude Desktop Extension (.mcpb)
+        # M5-slim: scholar-agent for the researcher's own Claude, carrying the wheel.
+        run: uv run --no-project python scripts/build_mcpb.py --wheel dist/nexus_scholar-1.0.0-py3-none-any.whl
+
       - name: Create GitHub Release for the wheel
         shell: bash
         env:
@@ -63,6 +67,8 @@ jobs:
           DIST_DIR="$GITHUB_WORKSPACE/dist"
           WHEEL="$DIST_DIR/nexus_scholar-1.0.0-py3-none-any.whl"
           test -f "$WHEEL" || { echo "::error::wheel not found: $WHEEL"; exit 1; }
+          MCPB="$DIST_DIR/nexus-scholar-1.0.0.mcpb"
+          test -f "$MCPB" || { echo "::error::extension not found: $MCPB"; exit 1; }
 
           # Tag handling: on a tag push use the pushed tag (ref_name); on a
           # manual run default to the checked-out commit so no tag is required.
@@ -85,7 +91,7 @@ jobs:
 
           # A tag push and a manual dispatch can race through the guard above;
           # fall back to re-checking so the loser stays green.
-          if gh release create "$TAG" "$WHEEL" \
+          if gh release create "$TAG" "$WHEEL" "$MCPB" \
             --target "$TARGET_SHA" \
             --title "nexus-scholar $TAG" \
             --generate-notes; then
