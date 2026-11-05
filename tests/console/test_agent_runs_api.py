@@ -395,3 +395,19 @@ def test_a_lock_held_by_another_live_engine_is_never_taken_and_a_dead_one_is_rec
     assert runs.read_run(ws, run_id)["state"] == "failed"
     completed = [r for r in _journal(ws) if r["action"] == "AGENT_RUN_COMPLETED" and r["parameters"]["run_id"] == run_id]
     assert len(completed) == 1
+
+
+def test_pid_liveness_fails_safe(ws):
+    # Third review: an engine this one may not inspect was read as gone, and a
+    # pid out of range raised. Both now answer without taking a live run.
+    import os
+    import subprocess
+    import sys
+
+    assert runs._pid_alive(os.getpid()) and runs._pid_alive(os.getppid())
+    child = subprocess.Popen([sys.executable, "-c", "pass"])
+    child.wait()
+    assert runs._pid_alive(child.pid) is False
+    assert runs._pid_alive(2**40) is False and runs._pid_alive(0) is False and runs._pid_alive(-1) is False
+    if os.name == "nt":
+        assert runs._pid_alive(4)  # System: exists, and not ours to open

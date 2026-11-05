@@ -188,15 +188,17 @@ _UNWRITTEN_LOCK_SECONDS = 30.0
 
 
 def _pid_alive(pid: int) -> bool:
-    if pid <= 0:
+    """Whether a process exists. One this engine may not inspect counts as alive."""
+    if not 0 < pid < 2**31:
         return False
     if os.name == "nt":
         import ctypes
 
-        kernel = ctypes.windll.kernel32
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
         handle = kernel.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
         if not handle:
-            return False
+            # Access denied: it exists under another account, or is protected.
+            return ctypes.get_last_error() == 5
         try:
             code = ctypes.c_ulong()
             return bool(kernel.GetExitCodeProcess(handle, ctypes.byref(code))) and code.value == 259  # STILL_ACTIVE
