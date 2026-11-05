@@ -35,7 +35,11 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "mode": "human_sees_every_record",
     "sample_audit_size": None,
     "screener_id": "researcher:local",
+    # The order the queue is shown in (M5-slim, spec 10): a setting, so a
+    # change is journaled and the methods paragraph can state the order used.
+    "queue_order": "seeded",
 }
+QUEUE_ORDERS = ("seeded", "agent_uncertainty")
 VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided")
 
 
@@ -124,12 +128,17 @@ def queue(
     view: str = "needs_you",
     cursor: int = 0,
     limit: int = 50,
-    order: str = "seeded",
+    order: str | None = None,
 ) -> dict[str, Any]:
     if view not in VIEWS:
         raise _error(422, "INVALID_OUTPUT", f"view must be one of {VIEWS}")
     ws = _ws(request)
     context, settings, _events, winners = _state(ws)
+    # The order is the journaled setting; a request for another one is
+    # refused, so the order shown is always the order recorded.
+    if order is not None and order != settings["queue_order"]:
+        raise _error(422, "INVALID_OUTPUT", f"the queue order is the setting ({settings['queue_order']}); change it with PUT /settings")
+    order = settings["queue_order"]
     papers = _papers(ws, context)
     latest = {p["study_id"]: p for p in sorted(pr.read_proposals(ws), key=lambda p: p.get("created_at") or "")}
     order_ids = [s for index in sorted(context.batches) for s in context.batches[index].candidates]
@@ -333,6 +342,7 @@ class SettingsBody(BaseModel):
     mode: str | None = None
     sample_audit_size: int | None = None
     screener_id: str | None = None
+    queue_order: str | None = None
     confirm_ai_agreed_exclusion: bool = False
 
 
@@ -347,6 +357,8 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
     if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
         raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record or ai_agreed_exclusion")
+    if update.get("queue_order") not in (None, *QUEUE_ORDERS):
+        raise _error(422, "INVALID_OUTPUT", f"queue_order must be one of {QUEUE_ORDERS}")
     if update.get("mode") == "ai_agreed_exclusion" and current["mode"] != "ai_agreed_exclusion":
         if not body.confirm_ai_agreed_exclusion or not update.get("sample_audit_size", current["sample_audit_size"]):
             raise _error(

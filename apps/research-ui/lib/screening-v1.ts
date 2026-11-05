@@ -140,6 +140,8 @@ export interface Settings {
   mode: "human_sees_every_record" | "ai_agreed_exclusion";
   sample_audit_size: number | null;
   screener_id: string;
+  /** The order the queue is shown in (M5-slim); a journaled setting. */
+  queue_order?: "seeded" | "agent_uncertainty";
 }
 
 export interface PrismaCheck {
