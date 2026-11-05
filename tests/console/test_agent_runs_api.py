@@ -340,3 +340,58 @@ def test_calibration_passes_the_base_url_to_the_driver(ws, monkeypatch):
     body = {"study_ids": studies, "provider": "openai_compatible", "model": "local", "base_url": "http://127.0.0.1:9/v1"}
     assert client.post(f"{BASE}/proposals/calibrations", json=body).status_code == 200
     assert seen["base_url"] == "http://127.0.0.1:9/v1"
+
+
+def test_concurrent_starts_never_give_two_runs_the_lock(ws):
+    # Re-review finding 1: a fresh lock was taken for stale before its run was registered.
+    import threading
+
+    runs.record_consent(ws, "anthropic", model="m", prompt_sha256="sha256:x", accepted_at="2026-11-05T09:00:00Z")
+    ids = [s for s in ev.load_context(ws).study_batch]
+    for _ in range(30):
+        pending, outcomes, barrier = [], [], threading.Barrier(4)
+
+        def start():
+            barrier.wait()
+            try:
+                outcomes.append(runs.start_run(ws, provider="anthropic", model="claude-opus-5-5", effort="low", study_ids=ids,
+                                               cost_ceiling_usd=None, driver_factory=lambda p, k: FakeDriver(), executor=pending.append)["run_id"])
+            except runs.RunRefused as exc:
+                outcomes.append(exc.code)
+
+        threads = [threading.Thread(target=start) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        started = [o for o in outcomes if o.startswith("RUN-")]
+        assert len(started) == 1 and outcomes.count("RUN_ALREADY_ACTIVE") == 3
+        assert runs.active_run(ws) == started[0]
+        for work in pending:
+            work()
+        assert runs.active_run(ws) is None
+
+
+def test_a_lock_held_by_another_live_engine_is_never_taken_and_a_dead_one_is_recovered(ws):
+    # Re-review finding 2: "stale" meant "no worker in this process".
+    import os
+
+    client = _client(ws, FakeDriver(), executor=lambda fn: None)
+    run_id = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    lock = ws / runs.LOCK_FILE
+    runs._LIVE.clear()
+    # Another engine process that is still alive owns the run (this test's parent process).
+    lock.write_text(json.dumps({"run_id": run_id, "pid": os.getppid(), "engine": "other"}), encoding="utf-8")
+    refused = client.post(f"{BASE}/proposals/runs", json={})
+    assert refused.status_code == 409 and refused.json()["detail"]["code"] == "RUN_ALREADY_ACTIVE"
+    cancel = client.post(f"{BASE}/proposals/runs/{run_id}/cancel")
+    assert cancel.status_code == 409 and runs.read_run(ws, run_id)["state"] == "running"
+    # A lock still being written is held, not stale.
+    lock.write_text("", encoding="utf-8")
+    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 409
+    # The owning process is gone: the next run recovers it, journaling its end once.
+    lock.write_text(json.dumps({"run_id": run_id, "pid": 2**22 + 12345, "engine": "gone"}), encoding="utf-8")
+    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 200
+    assert runs.read_run(ws, run_id)["state"] == "failed"
+    completed = [r for r in _journal(ws) if r["action"] == "AGENT_RUN_COMPLETED" and r["parameters"]["run_id"] == run_id]
+    assert len(completed) == 1

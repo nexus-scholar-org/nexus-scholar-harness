@@ -12,9 +12,11 @@ driver's status, never dropped and never excluded.
   a provider without a key is refused `PROVIDER_KEY_MISSING`.
 - **One run per workspace** (`RUN_ALREADY_ACTIVE`), held by a lock file. The
   driver is built before the lock is taken, so a driver that cannot be built
-  is refused (`DRIVER_UNAVAILABLE`) and never holds it. A lock whose run has
-  no worker in this engine (the engine stopped mid-run) is stale: the next
-  run, or a cancel of that run, finishes it and frees the lock.
+  is refused (`DRIVER_UNAVAILABLE`) and never holds it. The lock names its
+  engine process, and it is stale only when that process is gone (or, in this
+  engine, when the run has no worker): the next run, or a cancel of that run,
+  then finishes it and frees the lock. A second engine on the same workspace
+  is refused rather than taking a run that is still going in the first.
 - **The cost ceiling is a hard stop:** when the measured cost passes it the
   run stops with `COST_CEILING_REACHED`; finished proposals are kept. Batches
   are sent in chunks of `CHUNK` records, so a Batch run checks the ceiling
@@ -40,6 +42,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import threading
 import time
 import uuid
@@ -174,15 +177,72 @@ def _write_run(ws: Path, run: dict[str, Any]) -> None:
     _retry(lambda: tmp.replace(path))
 
 
-def _lock_holder(lock: Path) -> str | None:
+#: This engine process. The lock names it, so another engine on the same
+#: workspace never takes a run that is still going here for a stale one.
+_ENGINE_ID = uuid.uuid4().hex
+#: Taking the lock and registering the run as live is one step, so a fresh
+#: lock is never seen without its live run.
+_START_GUARD = threading.RLock()
+#: A lock file still empty or partial after this long was never finished.
+_UNWRITTEN_LOCK_SECONDS = 30.0
+
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        import ctypes
+
+        kernel = ctypes.windll.kernel32
+        handle = kernel.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return False
+        try:
+            code = ctypes.c_ulong()
+            return bool(kernel.GetExitCodeProcess(handle, ctypes.byref(code))) and code.value == 259  # STILL_ACTIVE
+        finally:
+            kernel.CloseHandle(handle)
     try:
-        return _retry(lambda: lock.read_text(encoding="utf-8")).strip() or None
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _read_lock(lock: Path) -> dict[str, Any] | None:
+    """The lock's owner, `{}` while it is empty or unreadable, None when there is no lock."""
+    try:
+        text = _retry(lambda: lock.read_text(encoding="utf-8")).strip()
     except FileNotFoundError:
         return None
+    try:
+        info = json.loads(text) if text else {}
+    except ValueError:
+        info = {}
+    return info if isinstance(info, dict) else {}
+
+
+def _lock_holder(lock: Path) -> str | None:
+    info = _read_lock(lock)
+    return (info or {}).get("run_id") or None
 
 
 def active_run(ws: Path) -> str | None:
     return _lock_holder(ws / LOCK_FILE)
+
+
+def _lock_is_stale(ws: Path, lock: Path, info: dict[str, Any]) -> bool:
+    """True only when the owner of the lock is provably gone."""
+    if not info.get("run_id") or not isinstance(info.get("pid"), int):
+        try:
+            return time.time() - lock.stat().st_mtime > _UNWRITTEN_LOCK_SECONDS
+        except FileNotFoundError:
+            return True
+    if info["pid"] == os.getpid():
+        return info.get("engine") != _ENGINE_ID or _live(ws, info["run_id"]) is None
+    return not _pid_alive(info["pid"])
 
 
 def _unlink_lock(lock: Path) -> None:
@@ -193,7 +253,7 @@ def _unlink_lock(lock: Path) -> None:
 
 
 def _recover(ws: Path, run_id: str, state: str) -> dict[str, Any] | None:
-    """Finish a run left `running` with no worker in this engine, and free its lock."""
+    """Finish a run whose engine is gone, and free its lock. Call it under `_START_GUARD`."""
     path = _run_path(ws, run_id)
     run = _read_file(path) if run_id.startswith("RUN-") and path.is_file() else None
     if run is not None and run["state"] in ("running", "queued"):
@@ -204,25 +264,31 @@ def _recover(ws: Path, run_id: str, state: str) -> dict[str, Any] | None:
             run["journal_error"] = journal_error
             _write_run(ws, run)
     lock = ws / LOCK_FILE
-    if lock.is_file() and _lock_holder(lock) in (run_id or None, None):
+    if _lock_holder(lock) == run_id:
         _unlink_lock(lock)
     return run
 
 
 def _acquire(ws: Path, run_id: str) -> None:
+    """Take the workspace lock for `run_id`; call it under `_START_GUARD`."""
     lock = ws / LOCK_FILE
     lock.parent.mkdir(parents=True, exist_ok=True)
+    owner = json.dumps({"run_id": run_id, "pid": os.getpid(), "engine": _ENGINE_ID})
     for _ in range(2):
         try:
             with lock.open("x", encoding="utf-8") as handle:
-                handle.write(run_id)
+                handle.write(owner)
             return
         except FileExistsError as exc:
-            holder = active_run(ws)
-            if holder and _live(ws, holder) is not None:
-                raise RunRefused(RUN_ALREADY_ACTIVE, f"run {holder} is still active; one run per workspace") from exc
-            # A stale lock: its run has no worker in this engine.
-            _recover(ws, holder or "", "failed")
+            info = _read_lock(lock)
+            if info is None:
+                continue  # released meanwhile
+            if not _lock_is_stale(ws, lock, info):
+                raise RunRefused(RUN_ALREADY_ACTIVE, f"run {info.get('run_id') or '(starting)'} is still active; one run per workspace") from exc
+            if info.get("run_id"):
+                _recover(ws, info["run_id"], "failed")
+            else:
+                _unlink_lock(lock)
     raise RunRefused(RUN_ALREADY_ACTIVE, f"run {active_run(ws)} is still active; one run per workspace")
 
 
@@ -242,10 +308,15 @@ def request_cancel(ws: Path, run_id: str) -> dict[str, Any]:
                 _write_run(ws, live.run)
             return copy.deepcopy(live.run)
     run = read_run(ws, run_id)
-    if run["state"] in ("running", "queued"):
-        # No worker in this engine: finish it now, so the lock does not outlive it.
-        run = _recover(ws, run_id, "cancelled") or run
-    return run
+    if run["state"] not in ("running", "queued"):
+        return run
+    with _START_GUARD:
+        lock = ws / LOCK_FILE
+        info = _read_lock(lock)
+        if info and info.get("run_id") == run_id and not _lock_is_stale(ws, lock, info):
+            raise RunRefused(RUN_ALREADY_ACTIVE, f"run {run_id} is running in another engine process; cancel it there")
+        # Its engine is gone: finish it now, so the lock does not outlive it.
+        return _recover(ws, run_id, "cancelled") or run
 
 
 def _journal_completed(ws: Path, run: dict[str, Any]) -> str | None:
@@ -349,7 +420,6 @@ def start_run(
         raise RunRefused(DRIVER_UNAVAILABLE, str(exc), status=422) from exc
 
     run_id = "RUN-" + uuid.uuid4().hex[:24]
-    _acquire(ws, run_id)
     run = {
         "run_id": run_id,
         "kind": kind,
@@ -377,8 +447,10 @@ def start_run(
         "cancel_requested": False,
     }
     live = _Live(ws, run)
-    with _LIVE_GUARD:
-        _LIVE[_key(ws, run_id)] = live
+    with _START_GUARD:
+        _acquire(ws, run_id)
+        with _LIVE_GUARD:
+            _LIVE[_key(ws, run_id)] = live
     try:
         _write_run(ws, run)
         append_event(
