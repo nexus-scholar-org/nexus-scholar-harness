@@ -76,3 +76,36 @@ def test_a_non_object_answer_passes_through_and_fails_the_schema():
     for raw in (None, "not json", {"criteria": "x"}):
         (outcome, _), checks = _engine(task_mod.to_proposal_output(raw, TITLE, ABSTRACT))
         assert outcome == "MAYBE" and not all(c["ok"] for c in checks)
+
+
+def test_without_a_year_the_record_text_and_its_hash_are_unchanged():
+    """Decision 2026-11-05: the Published line is added only when a year is known."""
+    assert pr.record_text(TITLE, ABSTRACT) == f"{TITLE}\n\n{ABSTRACT}"
+    assert pr.input_sha256(TITLE, ABSTRACT) == pr.input_sha256(TITLE, ABSTRACT, None)
+    assert pr.input_sha256(TITLE, ABSTRACT, "2024") != pr.input_sha256(TITLE, ABSTRACT)
+    assert pr.record_text(TITLE, ABSTRACT, "2024").endswith("\n\nPublished: 2024")
+
+
+def test_a_year_quoted_from_the_published_line_validates_a_date_criterion():
+    protocol = {
+        "screening_criteria": {
+            "inclusion": [{"id": "INC-03", "criterion": "Published from 2020"}],
+            "exclusion": [{"id": "EXC-04", "criterion": "Published before 2020"}],
+        }
+    }
+    raw = {
+        "criteria": [
+            {"id": "INC-03", "answer": "yes", "quote": "Published: 2024"},
+            {"id": "EXC-04", "answer": "no", "quote": "Published: 2024"},
+        ],
+        "cannot_decide": False,
+        "reasoning": "2024 is inside the window.",
+    }
+    out = task_mod.to_proposal_output(raw, TITLE, ABSTRACT, "2024")
+    criteria = pr.Criteria.from_protocol(protocol)
+    checks = pr.validate_output(out, criteria, pr.record_text(TITLE, ABSTRACT, "2024"))
+    assert all(c["ok"] for c in checks)
+    assert pr.derive_outcome(out, criteria, checks) == ("INCLUDE", None)
+    assert "Published: 2024" in task_mod.record_message(TITLE, ABSTRACT, "2024")
+    # The protocol's `criterion` key is read for the prompt text.
+    assert task_mod.criteria_from_protocol(protocol)[0].text == "Published from 2020"

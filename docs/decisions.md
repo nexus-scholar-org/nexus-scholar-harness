@@ -4,6 +4,26 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — The checked record text carries the publication year (M1b-2)
+
+The text an agent sees and quotes, and that the engine checks quotes against
+(`proposals.record_text`), is the title, a blank line and the abstract, then,
+when the record has a year, a blank line and `Published: <year>`. Date
+criteria (v03 INC-03, EXC-04) can then be answered with a verifiable quote;
+before, the agent could only answer `not_reported`, so every record became
+Unclear and the prompt gate measured nothing useful (researcher, 2026-11-05).
+
+- Without a year the text and its `input_sha256` are unchanged, so earlier
+  proposals keep their ids. With one, the hash and `proposal_id` change; no
+  real proposals existed yet (only sandbox and test ones).
+- Language still has no field; a language criterion is answered from the
+  abstract or stays `not_reported`.
+- The MCP record tool returns this `text` with the year, so an agent using
+  MCP quotes the same string.
+- **Usefulness is reported, not gated:** the prompt-gate report also gives
+  the share of confirmed excludes the agent excludes and its Unclear rate;
+  the pass bar stays include-recall.
+
 ## 2026-11-05 — The screening prompt gate: bar, sample and models (M1b-2)
 
 The researcher set the prompt gate of agent-system §5 for the screening task:

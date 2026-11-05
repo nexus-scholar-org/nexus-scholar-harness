@@ -162,3 +162,23 @@ def test_review_6_a_proposal_needs_its_model_and_prompt_hash(ws, model, prompt):
     study = json.loads(server.nexus_screening_queue())["items"][0]["study_id"]
     result = json.loads(server.nexus_submit_proposal(study, "{}", model=model, prompt_sha256=prompt))
     assert result == {"status": "ERROR", "error": "PROVENANCE_MISSING"}
+
+
+def test_m1b2_record_text_is_what_quotes_are_checked_against_including_the_year(ws):
+    """Decision 2026-11-05: the agent sees and quotes the Published line."""
+    from scholar_harness.screening import proposals as pr
+
+    study = json.loads(server.nexus_screening_queue())["items"][0]["study_id"]
+    record = json.loads(server.nexus_screening_record(study))
+    assert record["text"] == pr.record_text(record["title"], record["abstract"], record["published"])
+    if record["published"]:
+        quote = f"Published: {record['published']}"
+        start = record["text"].index(quote)
+        answers = [
+            {"id": c["id"], "answer": "yes" if c["kind"] == "inclusion" else "no",
+             "evidence": {"text": quote, "start": start, "end": start + len(quote)}}
+            for c in record["criteria"]
+        ]
+        result = json.loads(server.nexus_submit_proposal(study, json.dumps({"criteria": answers, "cannot_decide": False}), model="m", prompt_sha256="sha256:" + "c" * 64))
+        assert all(v["ok"] for v in result["validators"]), result
+    assert all(c["text"] for c in record["criteria"])

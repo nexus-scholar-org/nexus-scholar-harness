@@ -84,9 +84,13 @@ def system_prompt(task: Task, criteria: list[Criterion]) -> str:
     return task.template.replace("{criteria}", "\n".join(lines))
 
 
-def record_message(title: str | None, abstract: str | None) -> str:
-    """The per-record user message; the record is wrapped as data (agent-system §7)."""
-    return f"<record>\nTitle: {title or ''}\n\nAbstract: {abstract or ''}\n</record>"
+def record_message(title: str | None, abstract: str | None, published: str | None = None) -> str:
+    """The per-record user message; the record is wrapped as data (agent-system §7).
+
+    It carries exactly the text the engine checks quotes against, so a year
+    quoted from the `Published:` line validates (decision 2026-11-05).
+    """
+    return f"<record>\n{record_text(title, abstract, published)}\n</record>"
 
 
 def output_schema(criterion_ids: tuple[str, ...] | list[str]) -> dict[str, Any]:
@@ -115,14 +119,14 @@ def output_schema(criterion_ids: tuple[str, ...] | list[str]) -> dict[str, Any]:
     }
 
 
-def record_text(title: str | None, abstract: str | None) -> str:
-    """The text the engine's validators index into (title, blank line, abstract)."""
+def record_text(title: str | None, abstract: str | None, published: str | None = None) -> str:
+    """The text the engine's validators index into (title, abstract, `Published:` line)."""
     from scholar_harness.screening.proposals import record_text as engine_record_text
 
-    return engine_record_text(title, abstract)
+    return engine_record_text(title, abstract, published)
 
 
-def to_proposal_output(raw: Any, title: str | None, abstract: str | None) -> Any:
+def to_proposal_output(raw: Any, title: str | None, abstract: str | None, published: str | None = None) -> Any:
     """Map the model's answer to the engine's proposal shape, locating each quote.
 
     Anything that is not the expected object is passed through unchanged, so
@@ -130,7 +134,7 @@ def to_proposal_output(raw: Any, title: str | None, abstract: str | None) -> Any
     """
     if not isinstance(raw, dict) or not isinstance(raw.get("criteria"), list):
         return raw
-    text = record_text(title, abstract)
+    text = record_text(title, abstract, published)
     criteria = []
     for item in raw["criteria"]:
         if not isinstance(item, dict):

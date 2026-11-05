@@ -2203,10 +2203,12 @@ def nexus_screening_queue(workspace_dir: str = ".", view: str = "needs_you", lim
 def nexus_screening_record(study_id: str, workspace_dir: str = ".") -> str:
     """One record to screen: title, abstract, the protocol criteria, its binding.
 
-    Quote evidence for `nexus_submit_proposal` verbatim from the record text
-    (the title, a blank line, then the abstract), with character offsets into it.
+    Quote evidence for `nexus_submit_proposal` verbatim from `text` (the
+    title, a blank line, the abstract and, when known, a blank line and
+    `Published: <year>`), with character offsets into it.
     """
     from scholar_harness.console.api.screening_v1 import _has_abstract, _papers, _state
+    from scholar_harness.screening import proposals as pr
 
     try:
         ws = _screening_workspace(workspace_dir)
@@ -2216,14 +2218,17 @@ def nexus_screening_record(study_id: str, workspace_dir: str = ".") -> str:
         paper = _papers(ws, context).get(study_id, {})
         protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
         criteria = protocol.get("screening_criteria") or {}
+        abstract = paper.get("abstract") if _has_abstract(paper) else None
         return json.dumps(
             {
                 "status": "SUCCESS",
                 "study_id": study_id,
                 "title": paper.get("title", ""),
-                "abstract": paper.get("abstract") if _has_abstract(paper) else None,
+                "abstract": abstract,
+                "published": paper.get("year"),
+                "text": pr.record_text(paper.get("title"), abstract, paper.get("year")),
                 "criteria": [
-                    {"id": c["id"], "kind": kind, "text": c.get("description") or c.get("text") or ""}
+                    {"id": c["id"], "kind": kind, "text": c.get("description") or c.get("text") or c.get("criterion") or ""}
                     for kind in ("inclusion", "exclusion")
                     for c in criteria.get(kind) or []
                     if isinstance(c, dict) and c.get("id")
@@ -2276,6 +2281,7 @@ def nexus_submit_proposal(
             study_id=study_id,
             title=paper.get("title"),
             abstract=paper.get("abstract") if _has_abstract(paper) else None,
+            published=paper.get("year"),
             output=output,
             protocol=protocol,
             protocol_fingerprint=context.protocol_fingerprint,

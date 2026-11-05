@@ -511,3 +511,15 @@ def test_m1b0_prisma_preview_reports_a_stale_projection(client, ws, monkeypatch)
     _post(client, [_event(client, study, "EXCLUDE", supersedes=first["event_id"])])
     checks = {c["name"]: c for c in client.get(f"{BASE}/prisma/preview").json()["checks"]}
     assert checks["projections_current"]["ok"] is False and "001" in checks["projections_current"]["detail"]
+
+
+def test_m1b2_record_detail_carries_the_criterion_text_of_a_real_protocol(client, ws):
+    """M1b-1 gap: protocols store the text under `criterion`; the record route read only
+    `description`/`text`, so the triage checklist showed ids without their text."""
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    stored = {c["id"]: c for kind in ("inclusion", "exclusion") for c in protocol["screening_criteria"][kind]}
+    detail = client.get(f"{BASE}/records/{_studies(client)[0]}").json()
+    for criterion in detail["criteria"]:
+        source = stored[criterion["id"]]
+        expected = source.get("description") or source.get("text") or source.get("criterion")
+        assert expected and criterion["text"] == expected

@@ -192,7 +192,7 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         "abstract": paper.get("abstract") if _has_abstract(paper) else None,
         "highlights": [],  # criterion highlights arrive with the M1b triage UI
         "criteria": [
-            {"id": c["id"], "text": c.get("description") or c.get("text") or "", "kind": kind}
+            {"id": c["id"], "text": c.get("description") or c.get("text") or c.get("criterion") or "", "kind": kind}
             for kind in ("inclusion", "exclusion")
             for c in criteria.get(kind) or []
             if isinstance(c, dict) and c.get("id")
