@@ -44,7 +44,10 @@ async function engine(page: Page, publication = "CURRENT") {
     if (path === "/ui/publication-status") {
       return route.fulfill({ json: { shape: "ui07.publication-status-v1", status: publication, code: publication === "CURRENT" ? null : "GENERATION_STALE", generation_id: "GEN-1", outputs: {}, message: "", details: {} } });
     }
-    if (path === "/screening/methods") return route.fulfill({ json: METHODS });
+    if (path === "/screening/methods") {
+      if (publication !== "CURRENT") return route.fulfill({ status: 409, json: { detail: { code: "GENERATION_STALE", message: "changed after publish" } } });
+      return route.fulfill({ json: METHODS });
+    }
     if (path === "/screening/prisma/preview") return route.fulfill({ json: PREVIEW });
     if (path === "/screening/export") {
       const format = url.searchParams.get("format") ?? "ris";

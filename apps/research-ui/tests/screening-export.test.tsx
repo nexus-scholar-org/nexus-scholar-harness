@@ -102,7 +102,10 @@ describe("export.states", () => {
   });
 
   it("refuses a stale publication with its code and a way to Publish, and offers no old generation", async () => {
-    engine({ "/api/v1/ui/publication-status": status("STALE", { code: "GENERATION_STALE" }) });
+    engine({
+      "/api/v1/ui/publication-status": status("STALE", { code: "GENERATION_STALE" }),
+      "/api/v1/screening/methods": () => json({ detail: { code: "GENERATION_STALE", message: "changed after publish" } }, 409),
+    });
     render(<ScreeningExport locale="en" />);
     await screen.findByRole("heading", { level: 1, name: "Changed since publication" });
     expect(screen.getByText("GENERATION_STALE")).toBeInTheDocument();
@@ -118,6 +121,39 @@ describe("export.states", () => {
     render(<ScreeningExport locale="en" />);
     await screen.findByText("METHODS_SOURCE_MISSING");
     expect(screen.getByText("prisma_report.json")).toBeInTheDocument();
+  });
+
+  it("shows the engine's code, not a guess, when a published file was changed", async () => {
+    engine({
+      "/api/v1/ui/publication-status": status("STALE", { code: "GENERATION_STALE", details: { output: "excluded.json" } }),
+      "/api/v1/screening/methods": () =>
+        json({ detail: { code: "EXPORT_SOURCE_MISMATCH", message: "excluded.json no longer matches its recorded digest", details: { output: "excluded.json" } } }, 409),
+    });
+    render(<ScreeningExport locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "A published file changed" });
+    expect(screen.getByText("EXPORT_SOURCE_MISMATCH")).toBeInTheDocument();
+    expect(screen.queryByText("GENERATION_STALE")).toBeNull();
+  });
+
+  it("names prisma_report.json when the engine says it is missing", async () => {
+    engine({
+      "/api/v1/ui/publication-status": status("STALE", { code: "GENERATION_STALE", details: { output: "prisma_report.json", actual_digest: null } }),
+      "/api/v1/screening/methods": () =>
+        json({ detail: { code: "METHODS_SOURCE_MISSING", message: "prisma_report.json is missing", details: { missing: "prisma_report.json" } } }, 409),
+    });
+    render(<ScreeningExport locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "A file the paragraph needs is missing" });
+    expect(screen.getByText("prisma_report.json")).toBeInTheDocument();
+  });
+
+  it("shows the engine's code when the generation record was deleted", async () => {
+    engine({
+      "/api/v1/ui/publication-status": status("MISMATCHED", { code: "GENERATION_MISMATCHED", details: { prior_generation_deleted: true } }),
+      "/api/v1/screening/methods": () => json({ detail: { code: "GENERATION_MISMATCHED", message: "generation.json is missing" } }, 409),
+    });
+    render(<ScreeningExport locale="en" />);
+    expect(await screen.findByText("GENERATION_MISMATCHED")).toBeInTheDocument();
+    expect(screen.queryByText("EXPORT_SOURCE_MISMATCH")).toBeNull();
   });
 
   it("says when the current decisions differ from the published ones", async () => {

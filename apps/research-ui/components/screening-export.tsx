@@ -226,14 +226,14 @@ function refusalOf(error: unknown): Refusal {
   return { code: error.code, message: error.serverMessage, missing: details?.missing ? String(details.missing) : undefined };
 }
 
-/** The refusal a publication status other than CURRENT stands for (spec 10, States). */
-function statusRefusal(status: PublicationStatus): Refusal | "not_published" {
-  if (status.status === "STALE") return { code: status.code ?? "GENERATION_STALE", message: status.message };
-  if (status.status === "SUPERSEDED") return { code: status.code ?? "GENERATION_SUPERSEDED", message: status.message };
-  if (status.status === "MISMATCHED" && status.code && !status.details?.lineage_without_generation) {
-    return { code: "EXPORT_SOURCE_MISMATCH", message: status.message };
-  }
-  return "not_published";
+/**
+ * Whether the status says nothing was ever published. Only that case is
+ * answered here, without asking for the paragraph; every other status goes to
+ * the engine, whose typed refusal decides the card (a stale generation, a
+ * missing or tampered published file, a deleted generation record).
+ */
+function neverPublished(status: PublicationStatus): boolean {
+  return status.status === "LEGACY_UNVERIFIED" || (status.status === "MISMATCHED" && Boolean(status.details?.lineage_without_generation));
 }
 
 type Loaded = { methods: Methods; preview: PrismaPreview | null };
@@ -258,11 +258,11 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
     setState({ status: "loading" });
     try {
       const status = await getPublicationStatus(origin);
-      if (status.status !== "CURRENT") {
-        const refused = statusRefusal(status);
-        setState(refused === "not_published" ? { status: "not_published" } : { status: "refused", refusal: refused });
+      if (neverPublished(status)) {
+        setState({ status: "not_published" });
         return;
       }
+      // Not CURRENT: the methods read refuses with the engine's own code.
       const methods = await getMethods(origin);
       // The live preview only tells whether decisions moved since publication;
       // a failed read of it hides that caption and nothing else.
