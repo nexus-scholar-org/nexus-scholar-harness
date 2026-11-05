@@ -132,6 +132,12 @@ def derive_outcome(
     return "INCLUDE", None
 
 
+class ProvenanceMissing(ValueError):
+    """A proposal without its model or prompt hash; nothing is stored."""
+
+    code = "PROVENANCE_MISSING"
+
+
 def submit_proposal(
     workspace: Path,
     *,
@@ -152,6 +158,10 @@ def submit_proposal(
     A failed check is recorded, and the outcome becomes Unclear.
     """
     ws = Path(workspace)
+    # M1b-0 (M1a review finding 6, library side): no blank provenance.
+    for field in ("model", "prompt_sha256"):
+        if not str(provenance.get(field) or "").strip():
+            raise ProvenanceMissing(f"a proposal needs its {field}")
     criteria = Criteria.from_protocol(protocol)
     text = record_text(title, abstract)
     checks = validate_output(output, criteria, text)

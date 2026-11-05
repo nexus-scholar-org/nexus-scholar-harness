@@ -18,6 +18,7 @@ from fastapi.testclient import TestClient
 
 from scholar_harness.console import create_app
 from scholar_harness.contracts import AcceptanceContext, accept_artifact
+from scholar_harness.screening import events as ev
 from scholar_harness.screening import proposals as pr
 from scholar_harness.screening.batcher import cmd_prepare
 from scholar_protocol.canonical import canonical_fingerprint
@@ -30,6 +31,7 @@ PROTOCOL = ROOT / "tests" / "kits" / "protocol" / "fixtures" / "canonical" / "id
 WS_ID = "WSP-" + "d" * 32
 BASE = "/api/v1/screening"
 DESKTOP, PHONE = "desktop-token", "phone-token"
+PROMPT = "sha256:" + "0" * 64
 
 
 def _workspace(root: Path, *, prepare: bool = True) -> Path:
@@ -169,7 +171,7 @@ def test_required_4_proposal_hidden_until_decided(client, ws):
         output={"criteria": [], "cannot_decide": True},
         protocol=protocol,
         protocol_fingerprint=client.get(f"{BASE}/records/{study}").json()["binding"]["protocol_fingerprint"],
-        provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "driver": "mcp"},
+        provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "driver": "mcp", "prompt_sha256": PROMPT},
         created_at="2026-11-04T09:00:00Z",
     )
     assert client.get(f"{BASE}/queue", params={"view": "proposal_ready"}).json()["items"][0]["has_proposal"]
@@ -299,7 +301,7 @@ def test_review_1_the_audit_feed_never_reveals_a_proposal_outcome(client, ws):
         ws, study_id=study, title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
         protocol=protocol,
         protocol_fingerprint=client.get(f"{BASE}/records/{study}").json()["binding"]["protocol_fingerprint"],
-        provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "driver": "mcp"},
+        provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "driver": "mcp", "prompt_sha256": PROMPT},
         created_at="2026-11-04T09:00:00Z",
     )
     journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
@@ -321,10 +323,10 @@ def test_review_10_agent_uncertainty_orders_unclear_drafts_first(client, ws):
           "cannot_decide": False}
     pr.submit_proposal(ws, study_id=studies[0], title=record["title"], abstract=record["abstract"], output=ok,
                        protocol=protocol, protocol_fingerprint=fingerprint,
-                       provenance={"task_version": "v", "model": "m"}, created_at="2026-11-04T09:00:00Z")
+                       provenance={"task_version": "v", "model": "m", "prompt_sha256": PROMPT}, created_at="2026-11-04T09:00:00Z")
     pr.submit_proposal(ws, study_id=studies[2], title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
                        protocol=protocol, protocol_fingerprint=fingerprint,
-                       provenance={"task_version": "v", "model": "m"}, created_at="2026-11-04T09:00:01Z")
+                       provenance={"task_version": "v", "model": "m", "prompt_sha256": PROMPT}, created_at="2026-11-04T09:00:01Z")
     ordered = client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).json()["items"]
     assert [i["study_id"] for i in ordered] == [studies[2], studies[0], studies[1]]
     assert "derived_outcome" not in json.dumps(ordered)
@@ -389,3 +391,123 @@ def test_review_b_a_lock_timeout_is_atomic_commit_failed_and_stores_nothing(clie
     result = _post(client, [_event(client, _studies(client)[0])])[0]
     assert (result["result"], result["refusal"]["code"]) == ("refused", "ATOMIC_COMMIT_FAILED")
     assert ev.read_events(ws) == []
+
+
+# --- M1b-0: reveal tracking (contract §3.1) -----------------------------------
+
+
+def _propose(client: TestClient, ws: Path, study: str) -> None:
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    pr.submit_proposal(
+        ws, study_id=study, title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+        protocol=protocol,
+        protocol_fingerprint=client.get(f"{BASE}/records/{study}").json()["binding"]["protocol_fingerprint"],
+        provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "prompt_sha256": PROMPT},
+        created_at="2026-11-04T09:00:00Z",
+    )
+
+
+def _stored(ws: Path, event_id: str) -> dict:
+    return next(e for e in ev.read_events(ws) if e["event_id"] == event_id)
+
+
+def _reveal_rows(ws: Path) -> list[dict]:
+    rows = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    return [r for r in rows if r["action"] == "SCREENING_PROPOSAL_REVEALED"]
+
+
+def test_m1b0_a_change_after_a_reveal_is_stamped_and_journaled(client, ws):
+    study = _studies(client)[0]
+    _propose(client, ws, study)
+    first = _event(client, study, "INCLUDE")
+    _post(client, [first])
+    assert client.get(f"{BASE}/records/{study}/proposal").json()["proposal"] is not None
+    client.get(f"{BASE}/records/{study}/proposal")  # a second read is not a second reveal
+    reveals = _reveal_rows(ws)
+    assert len(reveals) == 1 and reveals[0]["parameters"]["study_id"] == study
+    assert "MAYBE" not in json.dumps(reveals) and "derived" not in json.dumps(reveals)
+    change = _event(client, study, "EXCLUDE", supersedes=first["event_id"])
+    assert _post(client, [change])[0]["result"] == "accepted"
+    assert _stored(ws, change["event_id"])["changed_after_reveal"] is True
+    assert _stored(ws, first["event_id"])["changed_after_reveal"] is False
+
+
+def test_m1b0_a_change_before_any_reveal_is_not_stamped(client, ws):
+    study = _studies(client)[0]
+    _propose(client, ws, study)
+    assert client.get(f"{BASE}/records/{study}/proposal").status_code == 403  # hidden: no reveal
+    first = _event(client, study, "INCLUDE")
+    _post(client, [first])
+    change = _event(client, study, "EXCLUDE", supersedes=first["event_id"])
+    _post(client, [change])
+    assert _stored(ws, change["event_id"])["changed_after_reveal"] is False
+    assert _reveal_rows(ws) == [] and not (ws / ev.REVEALS_FILE).exists()
+
+
+def test_m1b0_an_empty_proposal_read_is_not_a_reveal(client, ws):
+    study = _studies(client)[0]
+    first = _event(client, study, "INCLUDE")
+    _post(client, [first])
+    assert client.get(f"{BASE}/records/{study}/proposal").json() == {"proposal": None}
+    change = _event(client, study, "EXCLUDE", supersedes=first["event_id"])
+    _post(client, [change])
+    assert _stored(ws, change["event_id"])["changed_after_reveal"] is False
+
+
+def test_m1b0_a_reveal_of_an_earlier_generation_does_not_stamp(client, ws):
+    study = _studies(client)[0]
+    _propose(client, ws, study)
+    _post(client, [_event(client, study, "INCLUDE")])
+    client.get(f"{BASE}/records/{study}/proposal")
+    assert len(_reveal_rows(ws)) == 1
+    _amend_protocol(ws)
+    first = _event(client, study, "INCLUDE")
+    _post(client, [first])
+    change = _event(client, study, "EXCLUDE", supersedes=first["event_id"])
+    _post(client, [change])
+    assert _stored(ws, change["event_id"])["changed_after_reveal"] is False
+
+
+def test_m1b0_replaying_a_stamped_event_keeps_the_stamp_and_the_bytes(client, ws):
+    study = _studies(client)[0]
+    _propose(client, ws, study)
+    first = _event(client, study, "INCLUDE")
+    _post(client, [first])
+    client.get(f"{BASE}/records/{study}/proposal")
+    change = _event(client, study, "EXCLUDE", supersedes=first["event_id"])
+    _post(client, [change])
+    decisions = ws / "literature" / "screening" / "batch_001_decisions.json"
+    before = decisions.read_bytes()
+    assert [r["result"] for r in _post(client, [first, change])] == ["duplicate", "duplicate"]
+    assert _stored(ws, change["event_id"])["changed_after_reveal"] is True
+    assert decisions.read_bytes() == before
+    assert ev.projection_is_current(ws, 1, decisions)
+
+
+def test_m1b0_a_reveal_is_refused_when_the_event_log_is_busy(client, ws, monkeypatch):
+    study = _studies(client)[0]
+    _propose(client, ws, study)
+    _post(client, [_event(client, study, "INCLUDE")])
+
+    def busy(_workspace):
+        raise ev.LockBusy("lock held")
+
+    monkeypatch.setattr(ev, "_locked", busy)
+    response = client.get(f"{BASE}/records/{study}/proposal")
+    assert response.status_code == 503 and response.json()["detail"]["code"] == "ATOMIC_COMMIT_FAILED"
+    assert _reveal_rows(ws) == []
+
+
+def test_m1b0_prisma_preview_reports_a_stale_projection(client, ws, monkeypatch):
+    study = _studies(client)[0]
+    first = _event(client, study, "INCLUDE")
+    _post(client, [first])
+    assert {c["name"]: c["ok"] for c in client.get(f"{BASE}/prisma/preview").json()["checks"]}["projections_current"]
+
+    def boom(*_a, **_k):
+        raise PermissionError("decisions file open elsewhere")
+
+    monkeypatch.setattr(ev, "write_projection", boom)
+    _post(client, [_event(client, study, "EXCLUDE", supersedes=first["event_id"])])
+    checks = {c["name"]: c for c in client.get(f"{BASE}/prisma/preview").json()["checks"]}
+    assert checks["projections_current"]["ok"] is False and "001" in checks["projections_current"]["detail"]

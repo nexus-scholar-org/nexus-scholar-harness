@@ -29,6 +29,8 @@ SNAPSHOT_NOT_ACCEPTED = "SNAPSHOT_NOT_ACCEPTED"
 UNKNOWN_STUDY = "UNKNOWN_STUDY"
 #: An EXCLUDE without a valid protocol reason code.
 REASON_CODE_INVALID = "REASON_CODE_INVALID"
+#: A decisions file differs from the decision events; publish refuses (M1b-0).
+PROJECTION_STALE = "PROJECTION_STALE"
 #: A phone-scoped token on a desktop-only route, or an expired token.
 TOKEN_SCOPE_REFUSED = "TOKEN_SCOPE_REFUSED"
 #: No recorded consent for this provider (M1b).
@@ -56,6 +58,7 @@ CONTRACT_ADDED = frozenset(
         RUN_ALREADY_ACTIVE,
         COST_CEILING_REACHED,
         PROVENANCE_MISSING,
+        PROJECTION_STALE,
     }
 )
 

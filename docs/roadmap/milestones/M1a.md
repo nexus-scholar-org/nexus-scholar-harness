@@ -1,7 +1,7 @@
 # M1a Screening backend
 Branch: dev/m1a/screening-backend · Lane: **RELEASE** (plan §6: artifact
 identity and acceptance semantics; it also changes public HTTP and MCP
-behaviour) · Status: READY FOR PR · Started: 2026-11-04
+behaviour) · Status: MERGED (PR #186, `0179157`, 2026-11-05) · Started: 2026-11-04
 
 Plan: [`production-plan.md`](../production-plan.md) §6 row M1a, §1.2 findings,
 §4 decision model. Contract: [`screening-api-contract.md`](../../architecture/screening-api-contract.md)
@@ -118,6 +118,7 @@ Third pass: **CHANGES** (B2: the B fix swallowed a projection failure, so after 
 | # | Finding | Fix | Test |
 | :-- | :-- | :-- | :-- |
 | B2 | A projection failure after commit was silent; after a batch approval, collect published the older file because the staged review still matched its bytes | the failure is journaled (`SCREENING_PROJECTION_FAILED`); `collect` refuses `PROJECTION_STALE` while any `decision-events` file differs from `project_batch` (the event log is the authority); `projection_is_current` is the one comparison, shared with the approval path | `test_review_b2_a_failed_projection_after_approval_blocks_collect` |
+| CI | a6716c8 (PR #186) | GitHub matrix: ubuntu/windows/macos × Python 3.11/3.12, lint, plugin, manifest | 12/12 green; merged as `0179157` | — |
 
 Fourth pass (B2 only): **APPROVE**, 2026-11-05.
 

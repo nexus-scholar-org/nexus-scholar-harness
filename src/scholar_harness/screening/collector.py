@@ -275,7 +275,7 @@ def cmd_collect(workspace_dir: Path) -> None:
 
     stale = decision_events.stale_projections(workspace_dir)
     if stale:
-        raise RuntimeError(
+        raise decision_events.ProjectionStale(
             "screening collection blocked (PROJECTION_STALE): batch(es) "
             f"{', '.join(f'{i:03d}' for i in stale)} differ from the decision events; "
             "re-submit the last decision or re-open the batch so its file is rewritten"

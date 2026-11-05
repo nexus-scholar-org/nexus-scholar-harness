@@ -512,6 +512,10 @@ def test_review_b2_a_failed_projection_after_approval_blocks_collect(tmp_path):
     rows = [_json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
     assert rows[-1]["action"] == "SCREENING_PROJECTION_FAILED"
     assert ev.stale_projections(ws) == [1]
-    with pytest.raises(RuntimeError, match="PROJECTION_STALE"):
+    with pytest.raises(RuntimeError, match="PROJECTION_STALE") as refused:
         cmd_collect(ws)
     assert not (ws / "literature" / "included.json").exists()
+    # M1b-0: a typed refusal, which publish returns as 409 PROJECTION_STALE.
+    from scholar_harness.console.refusals import CONSOLE_REFUSALS
+
+    assert refused.value.code == "PROJECTION_STALE" and "PROJECTION_STALE" in CONSOLE_REFUSALS

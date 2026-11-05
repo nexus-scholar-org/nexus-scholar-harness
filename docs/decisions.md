@@ -4,6 +4,30 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — M1b is three PRs; three screening providers
+
+M1b splits into **M1b-0** reveal tracking (RELEASE, backend only), **M1b-1**
+desktop triage UI (STANDARD) and **M1b-2** drivers and the prompt-gate eval
+(STANDARD). The researcher agreed the split on 2026-11-05. The reveal change is
+isolated so the strict lane covers only the engine change to stored decision
+events.
+
+**Providers (researcher, 2026-11-05):** one driver interface with Anthropic
+(the default), any **OpenAI-compatible** endpoint (a base URL and a key) and
+Gemini. They share the prompt, the output schema, the plain-code outcome rule
+and the rule that a refusal or a failed check becomes Unclear. Each provider
+and model is its own task version and must pass the prompt gate on its own.
+This settles agent-system §9 item 1: Gemini stays, behind the interface.
+
+**Reveal semantics (contract §3.1, applied literally):** a reveal is the first
+time the API returns a proposal for a study to a screener. It is recorded in
+`literature/screening/reveals.jsonl` under the events lock and journaled as
+`SCREENING_PROPOSAL_REVEALED` without the outcome. A superseding event received
+after a reveal of that study's proposal, by that screener and in the current
+generation, is stamped `changed_after_reveal: true`, whether or not the outcome
+changes; the methods paragraph can compare outcomes from the event chain.
+Events stored before M1b-0 keep `false`, which for them means "not tracked".
+
 ## 2026-11-04 — `accept-corpus` is the screening entry path until Packet B (M0)
 
 `nexus-scholar accept-corpus` builds the Contract-v1 corpus snapshot with the
