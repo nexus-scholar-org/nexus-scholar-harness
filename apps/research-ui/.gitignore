@@ -23,3 +23,7 @@ tsconfig.tsbuildinfo
 # entries above describe, and leaving it visible would pollute `git status` for
 # every developer who runs the gate.
 .next-longstrings/
+
+# The live screening gate's build (M1b-1): `playwright.live.config.ts` builds
+# into `.next-live` so it never overwrites a running `.next`.
+.next-live/

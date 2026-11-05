@@ -34,6 +34,13 @@ import { demoScreeningRecord } from "@/lib/mock-screening";
 import { ACTION_CHROME, PairingDialog, type PairingServerError } from "./pairing-dialog";
 import { ScreeningForm } from "./screening-form";
 
+/** Link to the M1b screening screens; the legacy page is retired at M5-slim. */
+export const NEW_SCREENS_LINK: Record<Locale, string> = {
+  en: "Open the screening home: prepare, triage and publish on this workspace",
+  fr: "Ouvrir l'accueil de la sélection : préparer, trier et publier sur cet espace",
+  ar: "افتح صفحة الفرز الرئيسية: التحضير والمراجعة والنشر في هذه المساحة",
+};
+
 /**
  * The screening workspace composition (packet UI-04, live read wiring HCM-06).
  *
@@ -812,6 +819,12 @@ export function ScreeningPage({ locale }: Readonly<{ locale: Locale }>) {
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-muted">
               {translate(locale, "screening.lede")}
+            </p>
+            {/* M1b-1: the screening screens over the decision-event API. */}
+            <p className="mt-4">
+              <a className="text-brand underline" href={`/${locale}/screening/home`}>
+                {NEW_SCREENS_LINK[locale]}
+              </a>
             </p>
           </div>
         </section>

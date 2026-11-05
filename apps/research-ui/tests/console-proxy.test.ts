@@ -3,7 +3,7 @@
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { GET, HEAD, POST } from "@/app/api/console/[...path]/route";
+import { GET, HEAD, POST, PUT } from "@/app/api/console/[...path]/route";
 
 /**
  * The same-origin console proxy (packet UI-09).
@@ -33,7 +33,7 @@ function request(
   init?: ConstructorParameters<typeof NextRequest>[1],
 ): NextRequest {
   // A browser always sends its own Origin on a fetch POST; the proxy requires it.
-  if (init?.method === "POST") {
+  if (init?.method === "POST" || init?.method === "PUT") {
     const headers = new Headers(init.headers);
     if (!headers.has("origin")) headers.set("origin", "http://localhost:3000");
     init = { ...init, headers };
@@ -232,7 +232,7 @@ describe("console proxy — writes", () => {
 
   // The console serves POST /actions/pairing/redeem, /actions/defer and
   // /actions/publish (console/api/screening.py).
-  it.each(["pairing/redeem", "defer", "publish"])("forwards the screening %s action", async (action) => {
+  it.each(["pairing/begin", "pairing/redeem", "defer", "publish"])("forwards the screening %s action", async (action) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ shape: "x" })));
     vi.stubGlobal("fetch", fetchSpy);
@@ -249,6 +249,90 @@ describe("console proxy — writes", () => {
     expect(response.status).toBe(200);
     const call = fetchSpy.mock.calls[0] as unknown as [unknown];
     expect(String(call[0])).toBe(`${CONSOLE}/api/v1/screening/actions/${action}`);
+  });
+
+  // M1b-1: the screening API write routes (contract §4).
+  it.each([
+    ["decisions/events", ["decisions", "events"]],
+    ["decisions/conflicts/STU-abc/resolve", ["decisions", "conflicts", "STU-abc", "resolve"]],
+    ["prepare", ["prepare"]],
+  ])("forwards the screening %s POST", async (route, segments) => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ results: [] })));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const response = await POST(
+      request(`api/v1/screening/${route}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      }),
+      context("api", "v1", "screening", ...segments),
+    );
+
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/screening/${route}`);
+  });
+
+  it("forwards PUT for the screening settings and nothing else", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ blinding: "show" })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const body = JSON.stringify({ blinding: "show" });
+
+    const ok = await PUT(
+      request("api/v1/screening/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body,
+      }),
+      context("api", "v1", "screening", "settings"),
+    );
+    expect(ok.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(call[1]?.method).toBe("PUT");
+    expect(call[1]?.body).toBe(body);
+
+    const refused = await PUT(
+      request("api/v1/workspace/status", { method: "PUT", body: "{}" }),
+      context("api", "v1", "workspace", "status"),
+    );
+    expect(refused.status).toBe(405);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a PUT from another origin", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const response = await PUT(
+      request("api/v1/screening/settings", {
+        method: "PUT",
+        headers: { origin: "http://evil.example" },
+        body: "{}",
+      }),
+      context("api", "v1", "screening", "settings"),
+    );
+
+    expect(response.status).toBe(403);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("refuses a cross-site draft read, which would record a reveal", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ proposal: null })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const path = ["api", "v1", "screening", "records", "STU-abc", "proposal"];
+
+    const crossSite = await GET(request(path.join("/"), { headers: { "sec-fetch-site": "cross-site" } }), context(...path));
+    expect(crossSite.status).toBe(403);
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    const own = await GET(request(path.join("/"), { headers: { "sec-fetch-site": "same-origin" } }), context(...path));
+    expect(own.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
   it("refuses the non-existent bare redeem action", async () => {

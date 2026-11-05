@@ -284,10 +284,16 @@ export function normalizeConsoleOrigin(origin: string): string {
       `refusing console origin outside plain http(s): ${origin}`,
     );
   }
+  // INC-01 on the client side: a `?console=` link must not route decisions,
+  // settings or a typed approval code to another machine (M1b-1 review).
+  const host = new URL(trimmed).hostname;
+  if (!["localhost", "127.0.0.1", "[::1]", "::1"].includes(host)) {
+    throw new ScreeningApiError("INVALID_CONSOLE_ORIGIN", 0, `refusing a console origin off this computer: ${origin}`);
+  }
   return trimmed;
 }
 
-async function readJson<T>(path: string, origin: string, signal?: AbortSignal): Promise<T> {
+export async function readJson<T>(path: string, origin: string, signal?: AbortSignal): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${origin}${path}`, { method: "GET", signal });
@@ -601,7 +607,8 @@ export interface RedeemResult {
   batch_index: number;
   snapshot_fingerprint: string;
   approval_fingerprint: string;
-  publication_approval_fingerprint: string;
+  /** Null until every batch is approved (CON-03 stages publication only then). */
+  publication_approval_fingerprint: string | null;
   operator_identity: string;
   superseded: boolean;
 }
@@ -641,11 +648,17 @@ export interface DraftResult {
   decisions_file: string;
 }
 
-async function postJson<T>(path: string, origin: string, body: unknown, signal?: AbortSignal): Promise<T> {
+export async function postJson<T>(
+  path: string,
+  origin: string,
+  body: unknown,
+  signal?: AbortSignal,
+  method: "POST" | "PUT" = "POST",
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${consoleBase(origin)}${path}`, {
-      method: "POST",
+      method,
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
       signal,

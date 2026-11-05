@@ -262,7 +262,6 @@ function hasClassToken(source: string, cls: string): boolean {
  */
 const COLLATERAL_EMITTED = new Set([
   "collapse", // "the columns collapse" — workflow-timeline.tsx
-  "contents", // "a contents page" — primary-nav.tsx
   "ordinal", // "a marginal ordinal" — evidence-chain / workflow-timeline
   "rounded", // "rounded" in the shape prose; not a group member of rounded-full
   "shadow", // "shadowed" / "drop shadow" in the shape prose
