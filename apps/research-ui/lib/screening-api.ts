@@ -287,7 +287,7 @@ export function normalizeConsoleOrigin(origin: string): string {
   return trimmed;
 }
 
-async function readJson<T>(path: string, origin: string, signal?: AbortSignal): Promise<T> {
+export async function readJson<T>(path: string, origin: string, signal?: AbortSignal): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${origin}${path}`, { method: "GET", signal });
@@ -641,11 +641,17 @@ export interface DraftResult {
   decisions_file: string;
 }
 
-async function postJson<T>(path: string, origin: string, body: unknown, signal?: AbortSignal): Promise<T> {
+export async function postJson<T>(
+  path: string,
+  origin: string,
+  body: unknown,
+  signal?: AbortSignal,
+  method: "POST" | "PUT" = "POST",
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${consoleBase(origin)}${path}`, {
-      method: "POST",
+      method,
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
       signal,

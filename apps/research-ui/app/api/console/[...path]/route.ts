@@ -18,8 +18,9 @@ import type { NextRequest } from "next/server";
  *    console, and every path segment must be a plain token. Nothing else is
  *    forwarded, so the proxy is not a general-purpose pass-through.
  * 3. **Reads plus the action routes, nothing else.** GET/HEAD are forwarded.
- *    POST is forwarded only for the screening action surface and the draft
- *    writer, whose own gates (pairing code, exact coverage, approval,
+ *    POST is forwarded only for the screening action surface, the decision
+ *    events, conflict resolution, prepare and the draft writer, and PUT only
+ *    for the screening settings, whose own gates (pairing code, exact coverage, approval,
  *    generation) still run inside the console. The audit-journal writer, job
  *    start and pipeline creation are deliberately **not** reachable through
  *    the browser.
@@ -42,11 +43,19 @@ const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 const SEGMENT = /^[A-Za-z0-9_-]+$/;
 const READ_METHODS = new Set(["GET", "HEAD"]);
 
-/** POST targets the browser may reach: screening actions and draft capture. */
+/** POST targets the browser may reach: screening actions, decisions and prepare. */
 const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/batch\/\d+\/decisions$/,
-  /^api\/v1\/screening\/actions\/(pairing\/redeem|defer|publish)$/,
+  /^api\/v1\/screening\/actions\/(pairing\/(begin|redeem)|defer|publish)$/,
+  // M1b-1: the screening API (contract §4). Each route runs its own checks in
+  // the console (binding, reason codes, coverage, an accepted snapshot).
+  /^api\/v1\/screening\/decisions\/events$/,
+  /^api\/v1\/screening\/decisions\/conflicts\/[A-Za-z0-9_-]+\/resolve$/,
+  /^api\/v1\/screening\/prepare$/,
 ];
+
+/** PUT targets: the screening settings only (journaled by the console). */
+const PUT_PATHS: ReadonlyArray<RegExp> = [/^api\/v1\/screening\/settings$/];
 
 /**
  * The console's long-lived SSE routes. They are GET-only (no allowlist
@@ -152,11 +161,15 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   }
 
   const method = request.method.toUpperCase();
-  if (method === "POST" && request.headers.get("origin") !== incoming.origin) {
-    return typedError(403, "CONSOLE_ORIGIN_REFUSED", "POST is accepted only from this app's own origin");
+  const writes = method === "POST" || method === "PUT";
+  if (writes && request.headers.get("origin") !== incoming.origin) {
+    return typedError(403, "CONSOLE_ORIGIN_REFUSED", `${method} is accepted only from this app's own origin`);
   }
-  if (!READ_METHODS.has(method) && method !== "POST") {
-    return typedError(405, "CONSOLE_METHOD_REFUSED", "the console proxy accepts GET, HEAD and POST");
+  if (!READ_METHODS.has(method) && !writes) {
+    return typedError(405, "CONSOLE_METHOD_REFUSED", "the console proxy accepts GET, HEAD, POST and PUT");
+  }
+  if (method === "PUT" && !PUT_PATHS.some((pattern) => pattern.test(path))) {
+    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings");
   }
   if (method === "POST" && !POST_PATHS.some((pattern) => pattern.test(path))) {
     return typedError(
@@ -190,7 +203,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   // sees it.
   const token = (process.env.NEXUS_CONSOLE_TOKEN ?? "").trim();
   if (token) init.headers = { ...init.headers, authorization: `Bearer ${token}` };
-  if (method === "POST") {
+  if (writes) {
     const contentType = request.headers.get("content-type");
     if (contentType) init.headers = { ...init.headers, "content-type": contentType };
     init.body = await request.text();
@@ -224,6 +237,11 @@ export async function HEAD(request: NextRequest, context: Context): Promise<Resp
 }
 
 export async function POST(request: NextRequest, context: Context): Promise<Response> {
+  const { path } = await context.params;
+  return forward(request, path);
+}
+
+export async function PUT(request: NextRequest, context: Context): Promise<Response> {
   const { path } = await context.params;
   return forward(request, path);
 }
