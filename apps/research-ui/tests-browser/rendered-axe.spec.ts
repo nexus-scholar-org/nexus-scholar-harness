@@ -228,6 +228,7 @@ test.describe("axe-core on rendered CSS", () => {
   const ROUTES = [
     { suffix: "/workspaces", title: "/workspaces" },
     { suffix: "/screening/home", title: "/screening/home" },
+    { suffix: "/screening/export", title: "/screening/export" },
   ] as const;
 
   for (const locale of SUPPORTED_LOCALES) {

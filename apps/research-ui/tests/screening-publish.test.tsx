@@ -38,7 +38,7 @@ function review(approved: boolean) {
   };
 }
 
-function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response } = {}) {
+function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; publication?: string } = {}) {
   let approved = options.approved ?? false;
   const log: { method: string; path: string; body: unknown }[] = [];
   vi.stubGlobal(
@@ -57,6 +57,10 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
         if (options.redeem) return options.redeem;
         approved = true;
         return ok({ shape: "screening-action-redeem-v1", batch_index: 1 });
+      }
+      if (path === "/api/console/api/v1/ui/publication-status") {
+        if (!options.publication) return new Response(JSON.stringify({ detail: { code: "NOT_FOUND" } }), { status: 404 });
+        return ok({ shape: "ui07.publication-status-v1", status: options.publication, code: null, generation_id: "GEN-1", outputs: {}, message: "", details: {} });
       }
       if (path === "/actions/publish") return ok({ shape: "screening-action-publish-v1", status: "CURRENT", generation_id: "GEN-1", generation_fingerprint: "sha256:g", outputs: {}, request_id: "r", journal_event_id: "e" });
       return new Response(JSON.stringify({ detail: { code: "NOT_FOUND" } }), { status: 404 });
@@ -120,6 +124,20 @@ describe("publish approval and publish", () => {
     fireEvent.click(screen.getByRole("button", { name: "Approve batch_001" }));
     await screen.findByText("PAIRING_CODE_INVALID");
     expect(screen.getByText("Wrong approval code", { selector: "h2" })).toBeInTheDocument();
+  });
+});
+
+describe("export.link on publish", () => {
+  it("links to Export and methods only while the publication is CURRENT (spec 10, decision 3)", async () => {
+    engine({ approved: true, publication: "CURRENT" });
+    const { unmount } = render(<ScreeningPublish locale="en" />);
+    expect(await screen.findByRole("link", { name: "Export and methods" })).toHaveAttribute("href", "/en/screening/export");
+    unmount();
+    vi.unstubAllGlobals();
+    engine({ approved: true, publication: "STALE" });
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByRole("link", { name: "Export and methods" })).toBeNull();
   });
 });
 

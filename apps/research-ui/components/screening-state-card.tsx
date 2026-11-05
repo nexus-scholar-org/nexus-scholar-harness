@@ -17,6 +17,11 @@ export function stepHref(locale: Locale, step: ScreeningStep, consoleOrigin = ""
   return `/${locale}/screening/${step}${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`;
 }
 
+/** The export and methods screen (spec 10): after Publish, not one of the five steps. */
+export function exportHref(locale: Locale, consoleOrigin = ""): string {
+  return `/${locale}/screening/export${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`;
+}
+
 const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
   en: { home: "Home", prepare: "1 Prepare", proposals: "2 Agent proposals", triage: "3 Triage", agreement: "4 Agreement", publish: "5 Publish" },
   fr: { home: "Accueil", prepare: "1 Préparer", proposals: "2 Propositions de l'agent", triage: "3 Trier", agreement: "4 Accord", publish: "5 Publier" },
@@ -27,7 +32,7 @@ const STEPS_LABEL: Record<Locale, string> = { en: "Screening steps", fr: "Étape
 /** The way back to the workspaces screen (spec 00, M5-slim). */
 const WORKSPACES_LABEL: Record<Locale, string> = { en: "All workspaces", fr: "Tous les espaces", ar: "كل مساحات العمل" };
 
-export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly<{ locale: Locale; current: ScreeningStep; consoleOrigin?: string }>) {
+export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly<{ locale: Locale; current?: ScreeningStep; consoleOrigin?: string }>) {
   return (
     <nav aria-label={STEPS_LABEL[locale]} className="mb-6">
       <ol className="flex flex-wrap gap-2 text-sm">

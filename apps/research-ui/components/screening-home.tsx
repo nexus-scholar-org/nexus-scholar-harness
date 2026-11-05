@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
-import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
-import { getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
+import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
+import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
 import { getConflicts, getSettings, getSummary, type Conflict, type Settings, type Summary } from "@/lib/screening-v1";
 
 /**
@@ -23,6 +23,7 @@ const COPY = {
     titleDone: "All {total} records are decided.",
     lede: "The agent drafts, you decide. Drafts stay hidden until you have decided each record.",
     live: "Live data from this workspace's screening engine",
+    exportLink: "Export and methods",
     openTriage: "Open triage · {n} need you",
     seeChange: "See the change",
     loading: "Counts appear only once every file is read; no partial number is shown as final.",
@@ -67,6 +68,7 @@ const COPY = {
     titleDone: "Les {total} notices sont toutes décidées.",
     lede: "L'agent rédige, vous décidez. Les brouillons restent masqués jusqu'à votre décision sur chaque notice.",
     live: "Données en direct du moteur de sélection de cet espace",
+    exportLink: "Export et méthodes",
     openTriage: "Ouvrir le tri · {n} à traiter",
     seeChange: "Voir la modification",
     loading: "Les totaux n'apparaissent qu'une fois tous les fichiers lus ; aucun chiffre partiel n'est présenté comme définitif.",
@@ -111,6 +113,7 @@ const COPY = {
     titleDone: "حُسمت السجلات الـ{total} كلها.",
     lede: "الوكيل يكتب المسودات وأنت تقرر. تبقى المسودات مخفية حتى تحسم كل سجل.",
     live: "بيانات حية من محرك الفرز لهذه المساحة",
+    exportLink: "التصدير والمنهجية",
     openTriage: "فتح المراجعة · {n} بانتظارك",
     seeChange: "عرض التغيير",
     loading: "لا تظهر الأعداد إلا بعد قراءة كل الملفات؛ ولا يُعرض رقم جزئي على أنه نهائي.",
@@ -166,7 +169,7 @@ function consoleOrigin(): string {
   return new URLSearchParams(window.location.search).get("console") ?? "";
 }
 
-type Loaded = { summary: Summary; batches: ScreeningBatches; conflicts: Conflict[]; settings: Settings };
+type Loaded = { summary: Summary; batches: ScreeningBatches; conflicts: Conflict[]; settings: Settings; published: boolean };
 
 export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: HomeCopyKey, values?: Record<string, string | number>) => fill(HOME_COPY[locale][key], values), [locale]);
@@ -177,13 +180,16 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
   const load = useCallback(async () => {
     setState({ status: "loading" });
     try {
-      const [summary, batches, conflicts, settings] = await Promise.all([
+      const [summary, batches, conflicts, settings, published] = await Promise.all([
         getSummary(origin),
         getScreeningBatches(origin),
         getConflicts(origin),
         getSettings(origin),
+        // The export link shows only while the publication is CURRENT (spec 10, decision 3);
+        // a failed read of the status hides the link and nothing else.
+        getPublicationStatus(origin).then((s) => s.status === "CURRENT", () => false),
       ]);
-      setState({ status: "ready", data: { summary, batches, conflicts, settings } });
+      setState({ status: "ready", data: { summary, batches, conflicts, settings, published } });
     } catch (error) {
       setState({
         status: "error",
@@ -233,7 +239,7 @@ function HomeReady({
   t: (key: HomeCopyKey, values?: Record<string, string | number>) => string;
   n: (value: number) => string;
 }>) {
-  const { summary, batches, conflicts, settings } = data;
+  const { summary, batches, conflicts, settings, published } = data;
   const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
   const percent = summary.total > 0 ? Math.round((summary.decided / summary.total) * 100) : 0;
   const triage = stepHref(locale, "triage", origin);
@@ -266,6 +272,13 @@ function HomeReady({
             mode: settings.mode === "ai_agreed_exclusion" ? t("modeAi") : t("modeEvery"),
           })}
         </p>
+        {published ? (
+          <p className="mt-2">
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={exportHref(locale, origin)} data-export-link>
+              {t("exportLink")}
+            </a>
+          </p>
+        ) : null}
       </header>
 
       {stale ? <StateCard locale={locale} code="STALE_BINDING" consoleOrigin={origin} /> : null}

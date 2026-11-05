@@ -319,6 +319,61 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("التشغيل غير موجود", "لا يوجد في هذه المساحة تشغيل للوكيل بهذا المعرّف.", "ذلك التشغيل", "إعادة التحميل"),
     },
   },
+  // Export and methods (spec 10).
+  EXPORT_NOT_PUBLISHED: {
+    role: "exclude",
+    action: "publish",
+    copy: {
+      en: T("Nothing is published yet", "The screening is not published yet. Approve and publish it first.", "Export and the methods paragraph", "Go to Publish"),
+      fr: T("Rien n'est encore publié", "La sélection n'est pas encore publiée. Approuvez-la et publiez-la d'abord.", "L'export et le paragraphe de méthodes", "Aller à Publier"),
+      ar: T("لم يُنشر شيء بعد", "لم يُنشر الفرز بعد. وافق عليه وانشره أولًا.", "التصدير وفقرة المنهجية", "الانتقال إلى النشر"),
+    },
+  },
+  GENERATION_STALE: {
+    role: "blocked",
+    action: "publish",
+    copy: {
+      en: T("Changed since publication", "The screening changed after it was published. Publish again before you export.", "Export and the methods paragraph", "Go to Publish"),
+      fr: T("Modifiée depuis la publication", "La sélection a changé après sa publication. Publiez de nouveau avant d'exporter.", "L'export et le paragraphe de méthodes", "Aller à Publier"),
+      ar: T("تغيّر منذ النشر", "تغيّر الفرز بعد نشره. انشره مجددًا قبل التصدير.", "التصدير وفقرة المنهجية", "الانتقال إلى النشر"),
+    },
+  },
+  GENERATION_SUPERSEDED: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("A newer publication exists", "A newer generation replaced this one. Reload the page to use the current one.", "Export and the methods paragraph", "Reload"),
+      fr: T("Une publication plus récente existe", "Une génération plus récente a remplacé celle-ci. Rechargez la page pour utiliser l'actuelle.", "L'export et le paragraphe de méthodes", "Recharger"),
+      ar: T("يوجد نشر أحدث", "حلّ جيل أحدث محل هذا الجيل. أعد تحميل الصفحة لاستخدام الحالي.", "التصدير وفقرة المنهجية", "إعادة التحميل"),
+    },
+  },
+  EXPORT_FORMAT_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Format not available", "That format is not available. Choose RIS or CSV.", "This download", "Choose RIS or CSV"),
+      fr: T("Format indisponible", "Ce format n'est pas disponible. Choisissez RIS ou CSV.", "Ce téléchargement", "Choisir RIS ou CSV"),
+      ar: T("الصيغة غير متاحة", "هذه الصيغة غير متاحة. اختر RIS أو CSV.", "هذا التنزيل", "اختر RIS أو CSV"),
+    },
+  },
+  EXPORT_SOURCE_MISMATCH: {
+    role: "blocked",
+    action: "publish",
+    copy: {
+      en: T("A published file changed", "A published file no longer matches its recorded digest, so nothing was exported.", "Export and the methods paragraph", "Publish again"),
+      fr: T("Un fichier publié a changé", "Un fichier publié ne correspond plus à son empreinte enregistrée ; rien n'a été exporté.", "L'export et le paragraphe de méthodes", "Publier de nouveau"),
+      ar: T("تغيّر ملف منشور", "لم يعد ملف منشور يطابق بصمته المسجلة، لذا لم يُصدَّر شيء.", "التصدير وفقرة المنهجية", "النشر مجددًا"),
+    },
+  },
+  METHODS_SOURCE_MISSING: {
+    role: "blocked",
+    action: "publish",
+    copy: {
+      en: T("A file the paragraph needs is missing", "The methods paragraph is not written with a guessed value. The missing file is named below.", "The methods paragraph", "Publish again"),
+      fr: T("Un fichier nécessaire au paragraphe manque", "Le paragraphe de méthodes n'est pas rédigé avec une valeur devinée. Le fichier manquant est nommé ci-dessous.", "Le paragraphe de méthodes", "Publier de nouveau"),
+      ar: T("ملف تحتاجه الفقرة مفقود", "لا تُكتب فقرة المنهجية بقيمة مخمَّنة. اسم الملف المفقود أدناه.", "فقرة المنهجية", "النشر مجددًا"),
+    },
+  },
   PROPOSAL_HIDDEN: {
     role: "exclude",
     action: "none",
