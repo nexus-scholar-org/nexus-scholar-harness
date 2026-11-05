@@ -280,6 +280,55 @@ def log_sync_index_command(
 app.add_typer(log_app, name="log")
 
 
+keys_app = typer.Typer(
+    name="keys",
+    help="Store provider API keys in the OS keychain (never in a file).",
+    add_completion=False,
+    no_args_is_help=True,
+)
+_PROVIDER_HELP = "anthropic | openai_compatible | gemini"
+
+
+@keys_app.command("set")
+def keys_set(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
+    """Store a key; it is typed at a hidden prompt and goes only to the keychain."""
+    from scholar_agent.keys import store_key
+
+    value = typer.prompt(f"{provider} API key", hide_input=True)
+    try:
+        store_key(provider, value)
+    except (ValueError, RuntimeError) as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(1) from exc
+    console.print(f"[green]✓ {provider} key stored in the OS keychain[/green]")
+
+
+@keys_app.command("status")
+def keys_status() -> None:
+    """Say where each provider's key is found (keychain, environment, none); never the key."""
+    from scholar_agent.keys import ENV_VARS, key_status
+
+    for provider in ENV_VARS:
+        status = key_status(provider)
+        console.print(f"{provider}: {status.source}")
+
+
+@keys_app.command("clear")
+def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
+    """Remove a provider's key from the OS keychain."""
+    from scholar_agent.keys import clear_key
+
+    try:
+        removed = clear_key(provider)
+    except ValueError as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(1) from exc
+    console.print(f"{provider}: {'removed from the keychain' if removed else 'no keychain entry'}")
+
+
+app.add_typer(keys_app, name="keys")
+
+
 extract_app = typer.Typer(
     name="extract",
     help=(
