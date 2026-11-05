@@ -4,6 +4,18 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — No demonstration marker on the live-only screening steps (M1b-2)
+
+The shell drew `Demonstration data` and "Read-only demonstrator" on every
+route, including the six screening steps (`/screening/home`, `prepare`,
+`proposals`, `triage`, `agreement`, `publish`) that only read the workspace's
+engine and record decisions. There the labels were false. On those six routes
+the shell now leaves the marker out and its footer says the data is live
+(`isLiveOnlyPath`, `tests/shell.test.tsx`). Every other route keeps both,
+including `/screening`, `/corpus`, `/lineage` and `/audit`, which still default
+to fixtures; the rule "no mock data without the label" is unchanged
+(researcher, 2026-11-05).
+
 ## 2026-11-05 — A minimal workspace screen joins M5-slim
 
 The researcher asked why workspace management, Inception and Discovery came

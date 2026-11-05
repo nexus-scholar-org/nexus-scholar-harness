@@ -23,6 +23,20 @@ import { PrimaryNav, currentItemIdFromPathname } from "./primary-nav";
  */
 export const MAIN_CONTENT_ID = "main-content";
 
+/** The screening steps that only ever read the workspace's engine (specs 01-07). */
+const LIVE_SCREENING_STEPS = ["home", "prepare", "proposals", "triage", "agreement", "publish"];
+
+/**
+ * Whether a route only ever shows live workspace data. Those routes have no
+ * fixture to fall back to, so the `Demonstration data` marker would be false
+ * there; every other route keeps it, including `/screening`, which still
+ * defaults to the demonstration record.
+ */
+export function isLiveOnlyPath(pathname: string, locale: Locale): boolean {
+  const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  return LIVE_SCREENING_STEPS.some((step) => path === `/${locale}/screening/${step}`);
+}
+
 /**
  * The application shell (packet UI-01; visual direction packet UI-01c).
  *
@@ -92,6 +106,7 @@ export function AppShell({
 }: Readonly<{ locale: Locale; children: ReactNode }>) {
   const pathname = usePathname();
   const currentItemId = currentItemIdFromPathname(pathname, locale);
+  const liveOnly = isLiveOnlyPath(pathname, locale);
 
   return (
     <>
@@ -124,11 +139,14 @@ export function AppShell({
               the stamp shape for, so the square hairline box is deliberate
               rather than a missing `rounded-full`. `tests/home-page.test.tsx`
               pins it inside this `<header>`, so it cannot be moved out of the
-              banner and demoted to page content.
+              banner and demoted to page content. It is left out only on the
+              live-only screening steps, which have no fixture (`isLiveOnlyPath`).
             */}
-            <span className="self-center border border-warning/50 px-2.5 py-1 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-warning rtl:tracking-normal rtl:text-[0.75rem]">
-              {translate(locale, "safety.demoDataLabel")}
-            </span>
+            {liveOnly ? null : (
+              <span className="self-center border border-warning/50 px-2.5 py-1 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-warning rtl:tracking-normal rtl:text-[0.75rem]">
+                {translate(locale, "safety.demoDataLabel")}
+              </span>
+            )}
             <PrimaryNav locale={locale} currentItemId={currentItemId} />
           </div>
           <MobileNav locale={locale} currentItemId={currentItemId} />
@@ -170,7 +188,7 @@ export function AppShell({
             repaired on the same token: 4.76:1 before, 9.19:1 now.
           */}
           <p className="max-w-3xl text-xs leading-5 text-ink-muted">
-            {translate(locale, "shell.authorityStatement")}
+            {translate(locale, liveOnly ? "shell.authorityStatementLive" : "shell.authorityStatement")}
           </p>
         </div>
       </footer>

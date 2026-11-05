@@ -82,6 +82,9 @@ test("a dry run needs consent, states the data flow, then polls and cancels", as
   await page.goto("/en/screening/proposals");
   const dry = page.getByRole("button", { name: "Dry run on 20 records" });
   await expect(page.getByText(/prices as of 2026-11-05/)).toBeVisible();
+  // A live-only step: no demonstration marker, and the footer says live data.
+  await expect(page.getByText("Demonstration data")).toHaveCount(0);
+  await expect(page.getByRole("contentinfo")).toContainText("Live workspace data.");
   await expect(dry).toBeDisabled();
   await page.getByRole("checkbox", { name: /I consent/ }).check();
   await dry.click();

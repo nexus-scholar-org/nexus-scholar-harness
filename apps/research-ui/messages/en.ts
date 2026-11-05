@@ -45,6 +45,8 @@ export const en = {
   "a11y.skipToMain": "Skip to main content",
   "shell.tagline": "Research integrity you can inspect",
   "safety.demoDataLabel": "Demonstration data",
+  "shell.authorityStatementLive":
+    "Live workspace data. Decisions are recorded by this workspace's screening engine; the Python harness remains authoritative for contracts, identity, acceptance, toolkit execution and audit events.",
   "shell.authorityStatement":
     "Read-only demonstrator. The Python harness remains authoritative for contracts, identity, acceptance, toolkit execution and audit events.",
 
