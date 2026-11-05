@@ -266,7 +266,6 @@ const COLLATERAL_EMITTED = new Set([
   "rounded", // "rounded" in the shape prose; not a group member of rounded-full
   "shadow", // "shadowed" / "drop shadow" in the shape prose
   "table", // "a single ruled table" — page.tsx / workflow-timeline
-  "visible", // prose "visible"; deliberately NOT scored via `overflow: visible`
 ]);
 
 test.describe("browser-suite hygiene", () => {

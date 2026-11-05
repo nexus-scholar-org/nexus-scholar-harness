@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { generateMetadata } from "@/app/[locale]/layout";
 import { OverviewPage } from "@/components/overview-page";
-import { AppShell, MAIN_CONTENT_ID } from "@/components/app-shell";
+import { AppShell, MAIN_CONTENT_ID, isLiveOnlyPath } from "@/components/app-shell";
 import { MOBILE_NAV_CLOSE_LABEL, MOBILE_NAV_TRIGGER_LABEL } from "@/components/mobile-nav";
 import { PRIMARY_NAV_ITEMS, UNAVAILABLE_NAV_TEXT } from "@/components/primary-nav";
 import { LOCALE_METADATA, SUPPORTED_LOCALES, type Locale } from "@/i18n";
@@ -153,6 +153,27 @@ describe("application shell (UI-01)", () => {
     expect(screen.getByText("Demonstration data")).toBeInTheDocument();
     // The page no longer carries it: the marker is chrome, not content.
     expect(within(screen.getByRole("main")).queryByText("Demonstration data")).toBeNull();
+  });
+
+  it("leaves the marker out, and states live data, only on the live-only screening steps", () => {
+    for (const step of ["home", "prepare", "proposals", "triage", "agreement", "publish"]) {
+      expect(isLiveOnlyPath(`/en/screening/${step}`, "en")).toBe(true);
+      expect(isLiveOnlyPath(`/ar/screening/${step}/`, "ar")).toBe(true);
+    }
+    // Routes that still default to fixtures keep the marker.
+    for (const path of ["/en", "/en/screening", "/en/corpus", "/en/lineage", "/en/audit", "/en/screening/other"]) {
+      expect(isLiveOnlyPath(path, "en")).toBe(false);
+    }
+
+    currentPath = "/en/screening/triage";
+    render(<AppShell locale="en">route content</AppShell>);
+    expect(screen.queryByText("Demonstration data")).toBeNull();
+    expect(screen.getByRole("contentinfo")).toHaveTextContent(/^Live workspace data\./);
+    cleanup();
+
+    renderRoute();
+    expect(screen.getByText("Demonstration data")).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toHaveTextContent(/^Read-only demonstrator\./);
   });
 
   it("keeps the Demonstration data marker out of the mobile disclosure and out of hidden subtrees", () => {

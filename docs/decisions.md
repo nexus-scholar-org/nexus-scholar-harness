@@ -4,6 +4,95 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — M1b-2 merges before its live prompt gate; the gate blocks M5-slim
+
+The live prompt gate (Opus 5.5 on the frozen v03 set, Wilson lower bound of
+include-recall >= 0.90; Sonnet 5.5 and Haiku 5.5 measured) needs API credit
+the researcher does not have yet. Two smoke attempts measured nothing: a
+placeholder key (401), then a real key on an account with no credit (400,
+credit balance too low); neither was billed. M1b-2 therefore merges as
+**code-complete with the prompt unmeasured** (researcher, 2026-11-05):
+
+- the PR says plainly that the bar is not yet measured: Opus 5.5 is not shown
+  to meet it, Sonnet and Haiku are unmeasured, and the agent-system §6 cost
+  per 1,000 records is still an estimate;
+- nothing in the product, its docs or its marketing may claim the agent passed
+  the gate, or quote a measured recall or cost, until a gate report exists;
+- the gate is a **blocking item for M5-slim**: no packaged release that runs
+  agent proposals ships before it passes on the default provider and model,
+  and its report and measured cost are recorded in the milestone file;
+- the stand-ins were declined: a free Gemini key would not test the decided
+  default and may let the provider use the records; a local model measures
+  the pipeline, not the product.
+
+
+The shell drew `Demonstration data` and "Read-only demonstrator" on every
+route, including the six screening steps (`/screening/home`, `prepare`,
+`proposals`, `triage`, `agreement`, `publish`) that only read the workspace's
+engine and record decisions. There the labels were false. On those six routes
+the shell now leaves the marker out and its footer says the data is live
+(`isLiveOnlyPath`, `tests/shell.test.tsx`). Every other route keeps both,
+including `/screening`, `/corpus`, `/lineage` and `/audit`, which still default
+to fixtures; the rule "no mock data without the label" is unchanged
+(researcher, 2026-11-05).
+
+## 2026-11-05 — A minimal workspace screen joins M5-slim
+
+The researcher asked why workspace management, Inception and Discovery came
+after screening. The order stands (2026-11-03 entry below): screening is the
+wedge, `accept-corpus` is its entry path, web Inception (M4) is past the
+horizon and Discovery (M3) is stretch. One gap is pulled forward: a packaged
+desktop app that can only open the single folder named on the command line is
+not sellable. M5-slim therefore adds a **minimal workspace screen**: list the
+workspaces under the workspaces root, open one, and create one (the same
+scaffold as `nexus-scholar init`), with no Inception wizard. Its spec is written
+before M5-slim starts; the M4 multi-workspace server and Inception spec 00 stay
+in M4 (researcher, 2026-11-05).
+
+## 2026-11-05 — The checked record text carries the publication year (M1b-2)
+
+The text an agent sees and quotes, and that the engine checks quotes against
+(`proposals.record_text`), is the title, a blank line and the abstract, then,
+when the record has a year, a blank line and `Published: <year>`. Date
+criteria (v03 INC-03, EXC-04) can then be answered with a verifiable quote;
+before, the agent could only answer `not_reported`, so every record became
+Unclear and the prompt gate measured nothing useful (researcher, 2026-11-05).
+
+- Without a year the text and its `input_sha256` are unchanged, so earlier
+  proposals keep their ids. With one, the hash and `proposal_id` change; no
+  real proposals existed yet (only sandbox and test ones).
+- Language still has no field; a language criterion is answered from the
+  abstract or stays `not_reported`.
+- The MCP record tool returns this `text` with the year, so an agent using
+  MCP quotes the same string.
+- **Usefulness is reported, not gated:** the prompt-gate report also gives
+  the share of confirmed excludes the agent excludes and its Unclear rate;
+  the pass bar stays include-recall.
+
+## 2026-11-05 — The screening prompt gate: bar, sample and models (M1b-2)
+
+The researcher set the prompt gate of agent-system §5 for the screening task:
+
+- **Bar:** the 95% Wilson lower bound of include-recall is at least **0.90**.
+  Include-recall counts an agent Unclear as not excluded, because Unclear goes
+  on to full text. The bar applies per task version (provider, model, prompt,
+  effort).
+- **Sample:** every human-confirmed include of `uav-crop-weed-v03` (644) and
+  1,000 of its confirmed excludes, drawn with a fixed, recorded seed. The set
+  is frozen as a list of study ids with its SHA-256, so every model and prompt
+  version is measured on the same records.
+- **Models:** `claude-opus-5-5` (the default), `claude-sonnet-5-5` and
+  `claude-haiku-5-5`. A cheaper model is adopted only if it meets the bar
+  (agent-system §9 item 3).
+- **The live run spends the researcher's key.** It runs only after the
+  researcher sees the token-counted estimate and starts it; the key is stored
+  in the OS keychain and never seen by the agent or written to a file.
+
+**Caveat (carried from 2026-11-04):** the v03 labels are confirmations of agent
+drafts. The gate measures recall against labels a person reviewed with a
+draft in view, not against independent blind screening; the methods text says
+so.
+
 ## 2026-11-05 — M1b is three PRs; three screening providers
 
 M1b splits into **M1b-0** reveal tracking (RELEASE, backend only), **M1b-1**

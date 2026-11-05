@@ -112,7 +112,7 @@ Each task lives in `src/scholar_agent/tasks/<task>/`:
 - **Caching:** the protocol and criteria form a stable prefix shared by every record, so they go first and are cached. The record goes last. The system prompt holds no timestamps or IDs.
 - **Bulk:** screening runs use Message Batches, which are asynchronous and half price. Results are matched by `custom_id` (the study ID), never by position.
 - **Refusals:** check `stop_reason` before reading content. A refusal becomes an Unclear proposal with the refusal category recorded. A refused record is never dropped.
-- **Estimate:** roughly **$5–10 per 1,000 records** on Opus 5.5 through Batches, before thinking-token variance. This is unmeasured arithmetic from list prices, with an assumed ~1.5k input and ~300 output tokens per record. For scale, the v03 corpus has 14,150 records. M1b replaces this figure with the measured per-1,000-record cost from the eval run. The UI shows a token-counted estimate before every run.
+- **Estimate:** roughly **$5–10 per 1,000 records** on Opus 5.5 through Batches, before thinking-token variance. This is unmeasured arithmetic from list prices, with an assumed ~1.5k input and ~300 output tokens per record. For scale, the v03 corpus has 14,150 records. M1b was to replace this figure with the measured per-1,000-record cost from the eval run; that run is deferred to before M5-slim (decision 2026-11-05), so the figure is still an estimate. The UI shows a token-counted estimate before every run.
 - **Who pays:** the researcher, on their own key (Driver A), or through their Claude subscription (Driver B). The maintainer runs no hosted proxy and pays for no tokens (`decisions.md`, deployment entry).
 
 ## 7. Privacy and prompt injection

@@ -302,3 +302,114 @@ export function decisionEvent(input: {
     binding: input.record.binding,
   };
 }
+
+// --- M1b-2: agent runs, calibration and agreement (contract §4, specs 06-07) ---
+
+export type Provider = "anthropic" | "openai_compatible" | "gemini";
+export type RunState = "queued" | "running" | "completed" | "stopped" | "cancelled" | "failed";
+
+export interface RunEstimate {
+  records: number;
+  tokens: { input_tokens: number; cache_read_tokens: number; cache_write_tokens: number; output_tokens: number };
+  assumptions: { chars_per_token: number; output_tokens_per_record: number };
+  cost_usd: number | null;
+  batch: boolean;
+  prices_as_of: string;
+  priced: boolean;
+}
+
+export interface Calibration {
+  include_recall: number | null;
+  ci_low: number | null;
+  missed_includes: string[];
+  compared: number;
+  advisory: true;
+}
+
+export interface RunView {
+  run_id: string;
+  kind: "proposals" | "calibration";
+  state: RunState;
+  code: string | null;
+  provider: Provider;
+  model: string;
+  effort: string;
+  records: number;
+  done: number;
+  failed: number;
+  refused: number;
+  truncated: number;
+  invalid: number;
+  check_failures: number;
+  cost_so_far: number | null;
+  cost_ceiling_usd: number | null;
+  started_at: string | null;
+  finished_at: string | null;
+  calibration?: Calibration;
+}
+
+export interface ProposalSetup {
+  task: { task_version: string; prompt_sha256: string; model: string; effort: string };
+  providers: { provider: Provider; key: "keychain" | "environment" | "none"; consent: { accepted_at: string; model: string; prompt_sha256: string } | null }[];
+  data_flow: string;
+  active_run: string | null;
+  latest_run: RunView | null;
+}
+
+export interface RunRequest {
+  provider: Provider;
+  model: string;
+  effort: string;
+  scope?: { view?: "needs_you" | "no_proposal"; study_ids?: string[] };
+  consent?: { provider: Provider; accepted_at: string };
+  cost_ceiling_usd?: number | null;
+  base_url?: string | null;
+  dry_run?: boolean;
+}
+
+export interface Agreement {
+  decided_with_proposal: number;
+  decided_after_seeing_the_draft: number;
+  agreement_pct: number | null;
+  table_2x2: { both_include: number; you_include_agent_exclude: number; you_exclude_agent_include: number; both_exclude: number };
+  splits_by_criterion: { criterion_id: string; n: number }[];
+  unclear_either_side: number;
+  kappa: null;
+  kappa_note: string;
+}
+
+export function getProposalSetup(origin: string, signal?: AbortSignal): Promise<ProposalSetup> {
+  return readJson<ProposalSetup>(`${BASE}/proposals/setup`, consoleBase(origin), signal);
+}
+
+/** The cost estimate for a run; sends nothing to a provider and needs no consent. */
+export async function estimateRun(origin: string, run: RunRequest, signal?: AbortSignal): Promise<RunEstimate> {
+  const body = await postJson<{ run_id: null; estimate: RunEstimate }>(`${BASE}/proposals/runs`, origin, { ...run, estimate_only: true }, signal);
+  return body.estimate;
+}
+
+/** Start a run. Records leave the machine only from here, and only with consent on file or in `run.consent`. */
+export function startRun(origin: string, run: RunRequest, signal?: AbortSignal): Promise<{ run_id: string; estimate: RunEstimate }> {
+  return postJson<{ run_id: string; estimate: RunEstimate }>(`${BASE}/proposals/runs`, origin, run, signal);
+}
+
+export function getRun(origin: string, runId: string, signal?: AbortSignal): Promise<RunView> {
+  return readJson<RunView>(`${BASE}/proposals/runs/${encodeURIComponent(runId)}`, consoleBase(origin), signal);
+}
+
+export function cancelRun(origin: string, runId: string, signal?: AbortSignal): Promise<{ run_id: string; state: RunState }> {
+  return postJson<{ run_id: string; state: RunState }>(`${BASE}/proposals/runs/${encodeURIComponent(runId)}/cancel`, origin, {}, signal);
+}
+
+/** Check the agent on records you have decided. Advisory: it never blocks a run. */
+export function startCalibration(
+  origin: string,
+  input: { study_ids: string[]; provider: Provider; model: string; effort: string; cost_ceiling_usd?: number | null },
+  signal?: AbortSignal,
+): Promise<{ run_id: string }> {
+  return postJson<{ run_id: string }>(`${BASE}/proposals/calibrations`, origin, input, signal);
+}
+
+export function getAgreement(origin: string, signal?: AbortSignal): Promise<Agreement> {
+  return readJson<Agreement>(`${BASE}/agreement`, consoleBase(origin), signal);
+}

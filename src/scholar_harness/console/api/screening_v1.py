@@ -192,7 +192,7 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         "abstract": paper.get("abstract") if _has_abstract(paper) else None,
         "highlights": [],  # criterion highlights arrive with the M1b triage UI
         "criteria": [
-            {"id": c["id"], "text": c.get("description") or c.get("text") or "", "kind": kind}
+            {"id": c["id"], "text": c.get("description") or c.get("text") or c.get("criterion") or "", "kind": kind}
             for kind in ("inclusion", "exclusion")
             for c in criteria.get(kind) or []
             if isinstance(c, dict) and c.get("id")
@@ -477,4 +477,249 @@ def pairing_begin(body: PairingBeginBody, request: Request) -> dict[str, Any]:
         "code_expires_at": staged["expires_at"],
         "attempt_cap": staged["attempt_cap"],
         "code_shown_on": "terminal",
+    }
+
+
+# --- M1b-2: agent runs, calibration, agreement (contract §4, spec 06/07) -------
+
+
+class RunConsent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    provider: str
+    accepted_at: str
+
+
+class RunScope(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    view: str | None = None
+    study_ids: list[str] | None = None
+
+
+class RunBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    driver: str = "api"
+    provider: str = "anthropic"
+    model: str = "claude-opus-5-5"
+    effort: str = "low"
+    scope: RunScope = Field(default_factory=RunScope)
+    consent: RunConsent | None = None
+    cost_ceiling_usd: float | None = None
+    base_url: str | None = None
+    dry_run: bool = False
+    estimate_only: bool = False
+
+
+def _scope_ids(ws: Path, scope: RunScope) -> list[str]:
+    context, _settings, _events, winners = _state(ws)
+    if scope.study_ids:
+        return list(dict.fromkeys(scope.study_ids))
+    order = [s for index in sorted(context.batches) for s in context.batches[index].candidates]
+    proposed = {p["study_id"] for p in pr.read_proposals(ws) if p.get("protocol_fingerprint") == context.protocol_fingerprint}
+    view = scope.view or "needs_you"
+    if view == "needs_you":
+        return [s for s in order if s not in winners]
+    if view == "no_proposal":
+        return [s for s in order if s not in winners and s not in proposed]
+    raise _error(422, "INVALID_OUTPUT", "scope.view must be needs_you or no_proposal")
+
+
+def _run_error(exc: Any) -> HTTPException:
+    return _error(exc.status, exc.code, exc.message)
+
+
+@router.post("/proposals/runs")
+def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
+    """Estimate, or start, an agent run over the scope; nothing leaves the machine without consent."""
+    from scholar_agent import prompt_gate as pg
+
+    from ...screening import agent_runs as runs
+
+    ws = _ws(request)
+    ids = _scope_ids(ws, body.scope)
+    if body.dry_run:
+        ids = ids[: pg.DIRECT_LIMIT]
+    if body.estimate_only:
+        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+        spec = pg.run_spec(protocol, model=body.model, effort=body.effort, max_tokens=4096)
+        context = ev.load_context(ws)
+        papers = runs._papers(ws, context)
+        records = [pg.EvalRecord(s, "", *runs._text(papers.get(s, {}))) for s in ids]
+        batch = body.provider == "anthropic" and len(ids) > pg.DIRECT_LIMIT
+        return {"run_id": None, "estimate": pg.estimate(records, spec, provider=body.provider, batch=batch)}
+    if not ids:
+        raise _error(422, "INVALID_OUTPUT", "the scope has no records")
+    try:
+        if body.consent is not None:
+            if body.consent.provider != body.provider:
+                raise _error(422, "INVALID_OUTPUT", "consent.provider must match provider")
+            from scholar_agent.tasks import screening as task_mod
+
+            runs.record_consent(
+                ws, body.provider, model=body.model, prompt_sha256=task_mod.load_task().prompt_sha256,
+                accepted_at=body.consent.accepted_at,
+            )
+        run = runs.start_run(
+            ws, provider=body.provider, model=body.model, effort=body.effort, study_ids=ids,
+            cost_ceiling_usd=body.cost_ceiling_usd,
+            driver_factory=getattr(request.app.state, "driver_factory", None),
+            executor=getattr(request.app.state, "run_executor", None),
+            base_url=body.base_url,
+        )
+    except runs.RunRefused as exc:
+        raise _run_error(exc) from exc
+    return {"run_id": run["run_id"], "estimate": run["estimate"]}
+
+
+def _run_view(run: dict[str, Any]) -> dict[str, Any]:
+    keys = ("run_id", "kind", "state", "code", "provider", "model", "effort", "records", "done", "failed", "refused",
+            "truncated", "invalid", "check_failures", "cost_so_far", "cost_ceiling_usd", "started_at", "finished_at")
+    view = {k: run.get(k) for k in keys}
+    if "calibration" in run:
+        view["calibration"] = run["calibration"]
+    return view
+
+
+@router.get("/proposals/setup")
+def proposal_setup(request: Request) -> dict[str, Any]:
+    """What the run screen needs before a run: key presence (never a key), the task, consent, runs."""
+    from scholar_agent import keys
+    from scholar_agent.tasks import screening as task_mod
+
+    from ...screening import agent_runs as runs
+
+    ws = _ws(request)
+    task = task_mod.load_task()
+    consent = runs.read_consent(ws)
+    providers = [
+        {"provider": p, "key": keys.key_status(p).source, "consent": consent.get(p)}
+        for p in keys.ENV_VARS
+    ]
+    recorded = runs.list_runs(ws)
+    latest = max(recorded, key=lambda r: (r.get("started_at") or "", r["run_id"]), default=None)
+    return {
+        "task": {
+            "task_version": task.task_version,
+            "prompt_sha256": task.prompt_sha256,
+            "model": task.defaults.get("model"),
+            "effort": task.defaults.get("effort"),
+        },
+        "providers": providers,
+        "data_flow": runs.DATA_FLOW,
+        "active_run": runs.active_run(ws),
+        "latest_run": _run_view(latest) if latest else None,
+    }
+
+
+@router.get("/proposals/runs/{run_id}")
+def proposal_run_status(run_id: str, request: Request) -> dict[str, Any]:
+    from ...screening import agent_runs as runs
+
+    try:
+        return _run_view(runs.read_run(_ws(request), run_id))
+    except runs.RunRefused as exc:
+        raise _run_error(exc) from exc
+
+
+@router.post("/proposals/runs/{run_id}/cancel")
+def cancel_proposal_run(run_id: str, request: Request) -> dict[str, Any]:
+    from ...screening import agent_runs as runs
+
+    try:
+        run = runs.request_cancel(_ws(request), run_id)
+    except runs.RunRefused as exc:
+        raise _run_error(exc) from exc
+    return {"run_id": run_id, "state": "cancelled" if run["state"] == "running" else run["state"]}
+
+
+class CalibrationBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    study_ids: list[str]
+    provider: str = "anthropic"
+    model: str = "claude-opus-5-5"
+    effort: str = "low"
+    cost_ceiling_usd: float | None = None
+    base_url: str | None = None
+
+
+@router.post("/proposals/calibrations")
+def start_calibration(body: CalibrationBody, request: Request) -> dict[str, Any]:
+    """Check the agent on records you have decided (advisory; never blocks a run)."""
+    from ...screening import agent_runs as runs
+
+    ws = _ws(request)
+    _context, _settings, _events, winners = _state(ws)
+    if not body.study_ids or any(s not in winners for s in body.study_ids):
+        raise _error(422, "INVALID_OUTPUT", "calibration uses records you have already decided")
+    try:
+        run = runs.start_run(
+            ws, provider=body.provider, model=body.model, effort=body.effort,
+            study_ids=list(dict.fromkeys(body.study_ids)), cost_ceiling_usd=body.cost_ceiling_usd, kind="calibration",
+            driver_factory=getattr(request.app.state, "driver_factory", None),
+            executor=getattr(request.app.state, "run_executor", None),
+            base_url=body.base_url,
+        )
+    except runs.RunRefused as exc:
+        raise _run_error(exc) from exc
+    return {"run_id": run["run_id"]}
+
+
+_PAIRS = {
+    ("INCLUDE", "INCLUDE"): "both_include",
+    ("INCLUDE", "EXCLUDE"): "you_include_agent_exclude",
+    ("EXCLUDE", "INCLUDE"): "you_exclude_agent_include",
+    ("EXCLUDE", "EXCLUDE"): "both_exclude",
+}
+
+
+@router.get("/agreement")
+def agreement(request: Request) -> dict[str, Any]:
+    """Your decisions beside the agent drafts, counting only decisions made before the reveal."""
+    from collections import Counter
+
+    ws = _ws(request)
+    context, settings, events, winners = _state(ws)
+    screener = settings["screener_id"]
+    reveals: dict[str, str] = {}
+    for r in ev.read_reveals(ws):
+        if r.get("screener_id") == screener and ev.is_current(r, context):
+            first = reveals.get(r["study_id"])
+            reveals[r["study_id"]] = min(first, r["revealed_at"]) if first else r["revealed_at"]
+    current = [p for p in pr.read_proposals(ws) if p.get("protocol_fingerprint") == context.protocol_fingerprint]
+    latest = {p["study_id"]: p for p in sorted(current, key=lambda p: (p.get("created_at") or "", p["proposal_id"]))}
+    table = dict.fromkeys(_PAIRS.values(), 0)
+    unclear, compared, after_seeing = 0, 0, 0
+    splits: Counter[str] = Counter()
+    for study, proposal in latest.items():
+        if study not in winners:
+            continue
+        revealed_at = reveals.get(study)
+        before = [
+            e for e in events
+            if e["study_id"] == study and (revealed_at is None or str(e.get("received_at") or "") < revealed_at)
+        ]
+        if not before:
+            after_seeing += 1  # decided with the draft already in view (blinding off)
+            continue
+        decision = max(before, key=lambda e: str(e.get("received_at") or ""))
+        compared += 1
+        you, agent = decision["outcome"], proposal["derived_outcome"]
+        if "MAYBE" in (you, agent):
+            unclear += 1
+        else:
+            table[_PAIRS[(you, agent)]] += 1
+        output = proposal.get("output") if isinstance(proposal.get("output"), dict) else {}
+        agent_answers = {a.get("id"): a.get("answer") for a in output.get("criteria", []) if isinstance(a, dict)}
+        for answer in decision.get("criteria") or []:
+            if agent_answers.get(answer["id"]) not in (None, answer["answer"]):
+                splits[answer["id"]] += 1
+    pairs = sum(table.values())
+    return {
+        "decided_with_proposal": compared,
+        "decided_after_seeing_the_draft": after_seeing,
+        "agreement_pct": round(100 * (table["both_include"] + table["both_exclude"]) / pairs, 1) if pairs else None,
+        "table_2x2": table,
+        "splits_by_criterion": [{"criterion_id": k, "n": v} for k, v in sorted(splits.items())],
+        "unclear_either_side": unclear,
+        "kappa": None,
+        "kappa_note": "needs a second human screener",
     }

@@ -280,6 +280,159 @@ def log_sync_index_command(
 app.add_typer(log_app, name="log")
 
 
+keys_app = typer.Typer(
+    name="keys",
+    help="Store provider API keys in the OS keychain (never in a file).",
+    add_completion=False,
+    no_args_is_help=True,
+)
+_PROVIDER_HELP = "anthropic | openai_compatible | gemini"
+
+
+@keys_app.command("set")
+def keys_set(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
+    """Store a key; it is typed at a hidden prompt and goes only to the keychain."""
+    from scholar_agent.keys import store_key
+
+    value = typer.prompt(f"{provider} API key", hide_input=True)
+    try:
+        store_key(provider, value)
+    except (ValueError, RuntimeError) as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(1) from exc
+    console.print(f"[green]✓ {provider} key stored in the OS keychain[/green]")
+
+
+@keys_app.command("status")
+def keys_status() -> None:
+    """Say where each provider's key is found (keychain, environment, none); never the key."""
+    from scholar_agent.keys import ENV_VARS, key_status
+
+    for provider in ENV_VARS:
+        status = key_status(provider)
+        console.print(f"{provider}: {status.source}")
+
+
+@keys_app.command("clear")
+def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
+    """Remove a provider's key from the OS keychain."""
+    from scholar_agent.keys import clear_key
+
+    try:
+        removed = clear_key(provider)
+    except ValueError as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(1) from exc
+    console.print(f"{provider}: {'removed from the keychain' if removed else 'no keychain entry'}")
+
+
+app.add_typer(keys_app, name="keys")
+
+
+gate_app = typer.Typer(
+    name="prompt-gate",
+    help="The screening prompt gate on the frozen v03 set (agent-system §5).",
+    add_completion=False,
+    no_args_is_help=True,
+)
+_V03 = Path("workspaces") / "uav-crop-weed-v03"
+
+
+def _gate_inputs(workspace: Path, limit: int | None, model: str, effort: str, max_tokens: int):
+    import json as _json
+
+    from scholar_agent import prompt_gate as pg
+
+    frozen = _json.loads(pg.SET_FILE.read_text(encoding="utf-8"))
+    records = pg.load_set(workspace, frozen)
+    if limit:
+        # A smoke run keeps both labels: the first includes and excludes in id order.
+        inc = [r for r in records if r.label == "INCLUDE"][: (limit + 1) // 2]
+        exc = [r for r in records if r.label == "EXCLUDE"][: limit // 2]
+        records = inc + exc
+    protocol = _json.loads((workspace / "protocol.json").read_text(encoding="utf-8"))
+    return frozen, records, protocol, pg.run_spec(protocol, model=model, effort=effort, max_tokens=max_tokens)
+
+
+@gate_app.command("estimate")
+def gate_estimate(
+    model: str = typer.Option("claude-opus-5-5", "--model"),
+    provider: str = typer.Option("anthropic", "--provider"),
+    effort: str = typer.Option("low", "--effort"),
+    limit: int = typer.Option(0, "--limit", help="Only the first N records (a smoke run)"),
+    workspace: Path = typer.Option(_V03, "--workspace"),
+) -> None:
+    """Estimate a gate run's tokens and cost from the dated price table; spends nothing."""
+    from scholar_agent import prompt_gate as pg
+
+    _frozen, records, _protocol, spec = _gate_inputs(workspace, limit or None, model, effort, 4096)
+    batch = provider == "anthropic" and len(records) > pg.DIRECT_LIMIT
+    result = pg.estimate(records, spec, provider=provider, batch=batch)
+    cost = f"${result['cost_usd']:.2f}" if result["cost_usd"] is not None else "not priced"
+    pricing = "Batches, half price" if batch else "direct calls, full price"
+    console.print(
+        f"{result['records']} records · {provider}/{model} at {effort} effort · estimate {cost} "
+        f"({pricing}, prices as of {result['prices_as_of']}; an estimate, not a measurement)"
+    )
+    console.print(f"assumptions: {result['assumptions']}  tokens: {result['tokens']}")
+
+
+@gate_app.command("run")
+def gate_run(
+    model: str = typer.Option("claude-opus-5-5", "--model"),
+    provider: str = typer.Option("anthropic", "--provider"),
+    effort: str = typer.Option("low", "--effort"),
+    max_tokens: int = typer.Option(4096, "--max-tokens"),
+    limit: int = typer.Option(0, "--limit", help="Only the first N records (a smoke run)"),
+    base_url: str = typer.Option("", "--base-url", help="OpenAI-compatible endpoint"),
+    yes: bool = typer.Option(False, "--yes", help="Confirm: this spends your provider key"),
+    workspace: Path = typer.Option(_V03, "--workspace"),
+) -> None:
+    """Run the gate on the provider (spends your key) and write its report."""
+    import json as _json
+    from datetime import UTC, datetime
+
+    from scholar_agent import prompt_gate as pg
+    from scholar_agent.drivers import make_driver
+    from scholar_agent.keys import resolve_key
+
+    frozen, records, protocol, spec = _gate_inputs(workspace, limit or None, model, effort, max_tokens)
+    batch = provider == "anthropic" and len(records) > pg.DIRECT_LIMIT
+    estimate = pg.estimate(records, spec, provider=provider, batch=batch)
+    if not yes:
+        console.print(f"[yellow]Not run. Estimate: {estimate['cost_usd']} USD for {estimate['records']} records. Add --yes to spend your key.[/yellow]")
+        raise typer.Exit(1)
+    key = resolve_key(provider)
+    if key is None and provider != "openai_compatible":
+        console.print(f"[bold red]❌ No {provider} key. Run: nexus-scholar keys set {provider}[/bold red]")
+        raise typer.Exit(1)
+    options = {"direct_limit": pg.DIRECT_LIMIT} if provider == "anthropic" else {}
+    driver = make_driver(provider, api_key=key, base_url=base_url or None, **options)
+    console.print(f"Running {len(records)} records on {provider}/{model} …")
+    results = driver.run(pg.requests_for(records), spec)
+    out = pg.report(frozen=frozen, records=records, results=results, protocol=protocol, provider=provider, spec=spec, batch=batch)
+    out["estimate"] = estimate
+    out["smoke_run"] = bool(limit)
+    out["finished_at"] = datetime.now(UTC).isoformat()
+    pg.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    path = pg.RESULTS_DIR / f"{stamp}_{provider}_{model}_{effort}{'_smoke' if limit else ''}.json"
+    path.write_text(_json.dumps(out, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    if not out["measured"]:
+        first = next((r["driver_detail"] for r in out["records"] if r["driver_detail"]), "no result")
+        console.print(f"[bold red]Not measured: none of the {len(records)} calls succeeded. First error: {first}. Report {path}[/bold red]")
+        raise typer.Exit(1)
+    s = out["score"]
+    console.print(
+        f"include-recall {s['include_recall']} (95% lower bound {s['include_recall_ci_low']}, bar {s['bar']}): "
+        f"{'PASS' if s['passes'] else 'FAIL'} · excludes caught {s['exclusion_rate_on_confirmed_excludes']} · "
+        f"unclear {s['unclear_rate']} · cost {out['cost_usd']} USD · report {path}"
+    )
+
+
+app.add_typer(gate_app, name="prompt-gate")
+
+
 extract_app = typer.Typer(
     name="extract",
     help=(

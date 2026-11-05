@@ -56,13 +56,20 @@ class Criteria:
         return self.inclusion + self.exclusion
 
 
-def record_text(title: str | None, abstract: str | None) -> str:
-    """The text evidence offsets index into: title, a blank line, abstract."""
-    return f"{title or ''}\n\n{abstract or ''}"
+def record_text(title: str | None, abstract: str | None, published: str | None = None) -> str:
+    """The text evidence offsets index into: title, a blank line, abstract.
+
+    With a publication year (decision 2026-11-05), a blank line and
+    ``Published: <year>`` follow, so a date criterion can be answered with a
+    verbatim quote. Without one the text, and so its hash, is unchanged.
+    """
+    text = f"{title or ''}\n\n{abstract or ''}"
+    year = str(published or "").strip()
+    return f"{text}\n\nPublished: {year}" if year else text
 
 
-def input_sha256(title: str | None, abstract: str | None) -> str:
-    return "sha256:" + hashlib.sha256(record_text(title, abstract).encode("utf-8")).hexdigest()
+def input_sha256(title: str | None, abstract: str | None, published: str | None = None) -> str:
+    return "sha256:" + hashlib.sha256(record_text(title, abstract, published).encode("utf-8")).hexdigest()
 
 
 def proposal_id(task_version: str, input_hash: str, protocol_fingerprint: str, model: str) -> str:
@@ -149,6 +156,7 @@ def submit_proposal(
     protocol_fingerprint: str,
     provenance: dict[str, Any],
     created_at: str,
+    published: str | None = None,
 ) -> dict[str, Any]:
     """Validate, derive the outcome, append one proposal line, journal it.
 
@@ -163,16 +171,18 @@ def submit_proposal(
         if not str(provenance.get(field) or "").strip():
             raise ProvenanceMissing(f"a proposal needs its {field}")
     criteria = Criteria.from_protocol(protocol)
-    text = record_text(title, abstract)
+    text = record_text(title, abstract, published)
     checks = validate_output(output, criteria, text)
     outcome, reason_code = derive_outcome(output, criteria, checks)
-    in_hash = input_sha256(title, abstract)
+    in_hash = input_sha256(title, abstract, published)
     task_version = str(provenance.get("task_version") or "")
     model = str(provenance.get("model") or "")
     record = {
         **{k: provenance.get(k) for k in (
             "task_id", "task_version", "prompt_sha256", "driver", "model", "effort",
             "batch_binding", "usage", "cost_estimate", "request_id", "batch_id",
+            # M1b-2: what the provider returned (ok, refusal, truncated, invalid, error).
+            "driver_status", "driver_detail", "run_id",
         )},
         "proposal_id": proposal_id(task_version, in_hash, protocol_fingerprint, model),
         "study_id": study_id,

@@ -11,7 +11,7 @@ import type { DecisionRole } from "@/components/ui/base";
  * card because the screens must show it, and its role is `unclear`.
  */
 
-export type StateAction = "prepare" | "triage" | "publish" | "home" | "retry" | "reload" | "terminal" | "none";
+export type StateAction = "prepare" | "proposals" | "triage" | "publish" | "home" | "retry" | "reload" | "terminal" | "none";
 
 interface StateEntry {
   role: DecisionRole;
@@ -191,6 +191,69 @@ export const STATES: Record<string, StateEntry> = {
       en: T("Record not in the corpus", "This record is not in the accepted corpus.", "That record", "Reload"),
       fr: T("Notice hors corpus", "Cette notice ne fait pas partie du corpus accepté.", "Cette notice", "Recharger"),
       ar: T("سجل خارج المجموعة", "هذا السجل ليس ضمن المجموعة المقبولة.", "ذلك السجل", "إعادة التحميل"),
+    },
+  },
+  CONSENT_REQUIRED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Consent needed", "Nothing is sent to the provider until you tick the consent box for it.", "This agent run", "Tick the consent box"),
+      fr: T("Consentement requis", "Rien n'est envoyé au fournisseur tant que vous n'avez pas coché la case de consentement.", "Ce passage de l'agent", "Cocher la case de consentement"),
+      ar: T("الموافقة مطلوبة", "لا يُرسل شيء إلى المزوّد حتى تحدد خانة الموافقة الخاصة به.", "تشغيل الوكيل هذا", "حدد خانة الموافقة"),
+    },
+  },
+  PROVIDER_KEY_MISSING: {
+    role: "blocked",
+    action: "terminal",
+    copy: {
+      en: T("No key for this provider", "The key is set in the engine's terminal and kept in the system keychain; the browser never takes it.", "Agent runs with this provider", "nexus-scholar keys set <provider>"),
+      fr: T("Aucune clé pour ce fournisseur", "La clé se saisit dans le terminal du moteur et reste dans le trousseau du système ; le navigateur ne la reçoit jamais.", "Les passages de l'agent avec ce fournisseur", "nexus-scholar keys set <provider>"),
+      ar: T("لا مفتاح لهذا المزوّد", "يُدخَل المفتاح في طرفية المحرك ويُحفظ في سلسلة مفاتيح النظام، ولا يستلمه المتصفح أبدًا.", "تشغيلات الوكيل مع هذا المزوّد", "nexus-scholar keys set <provider>"),
+    },
+  },
+  DRIVER_UNAVAILABLE: {
+    role: "blocked",
+    action: "terminal",
+    copy: {
+      en: T("This provider cannot be used yet", "Its driver is not installed in the engine, or a setting it needs, such as the base URL, is missing. Nothing was sent.", "Agent runs with this provider", "uv sync --extra ai"),
+      fr: T("Ce fournisseur n'est pas encore utilisable", "Son pilote n'est pas installé dans le moteur, ou un réglage requis, comme l'URL de base, manque. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "uv sync --extra ai"),
+      ar: T("لا يمكن استخدام هذا المزوّد بعد", "برنامج تشغيله غير مثبّت في المحرك، أو ينقصه إعداد مطلوب مثل عنوان URL الأساسي. لم يُرسَل شيء.", "تشغيلات الوكيل مع هذا المزوّد", "uv sync --extra ai"),
+    },
+  },
+  CEILING_NOT_PRICED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This model's cost cannot be measured", "It has no price on file, so a cost ceiling cannot be enforced. Run it without a ceiling, or pick a priced model.", "This run", "Remove the ceiling"),
+      fr: T("Le coût de ce modèle ne peut pas être mesuré", "Il n'a aucun prix enregistré : un plafond de coût ne peut pas être appliqué. Lancez-le sans plafond, ou choisissez un modèle tarifé.", "Ce passage", "Retirer le plafond"),
+      ar: T("لا يمكن قياس تكلفة هذا النموذج", "لا سعر مسجّل له، فلا يمكن فرض سقف للتكلفة. شغّله دون سقف أو اختر نموذجًا مسعّرًا.", "هذا التشغيل", "إزالة السقف"),
+    },
+  },
+  RUN_ALREADY_ACTIVE: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("A run is already going", "One agent run per workspace at a time. Wait for it, or cancel it.", "Starting another run", "Show the active run"),
+      fr: T("Un passage est déjà en cours", "Un seul passage de l'agent à la fois par espace. Attendez-le ou annulez-le.", "Le lancement d'un autre passage", "Afficher le passage en cours"),
+      ar: T("تشغيل جارٍ بالفعل", "تشغيل واحد للوكيل في كل مساحة في آن واحد. انتظره أو ألغه.", "بدء تشغيل آخر", "عرض التشغيل الجاري"),
+    },
+  },
+  COST_CEILING_REACHED: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("Cost ceiling reached", "The run stops at the ceiling you set. Drafts already made are kept; the rest stay in your queue without one.", "The rest of this run", "Raise the ceiling to resume"),
+      fr: T("Plafond de coût atteint", "Le passage s'arrête au plafond fixé. Les brouillons déjà faits sont conservés ; les autres notices restent dans votre file sans brouillon.", "La suite de ce passage", "Relever le plafond pour reprendre"),
+      ar: T("بلغ سقف التكلفة", "يتوقف التشغيل عند السقف الذي حددته. تُحفظ المسودات المنجزة، وتبقى البقية في قائمتك دون مسودة.", "بقية هذا التشغيل", "ارفع السقف للاستئناف"),
+    },
+  },
+  UNKNOWN_RUN: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("Run not found", "This workspace has no agent run with that id.", "That run", "Reload"),
+      fr: T("Passage introuvable", "Cet espace n'a aucun passage de l'agent avec cet identifiant.", "Ce passage", "Recharger"),
+      ar: T("التشغيل غير موجود", "لا يوجد في هذه المساحة تشغيل للوكيل بهذا المعرّف.", "ذلك التشغيل", "إعادة التحميل"),
     },
   },
   PROPOSAL_HIDDEN: {

@@ -10,18 +10,17 @@ import { AFFECTS_LABEL, stateCopy } from "@/lib/screening-states";
  * only cue: the badge names the state.
  */
 
-export type ScreeningStep = "home" | "prepare" | "triage" | "publish";
+export type ScreeningStep = "home" | "prepare" | "proposals" | "triage" | "agreement" | "publish";
 
 /** The new screening screens sit beside the legacy `/screening` page until M5-slim. */
 export function stepHref(locale: Locale, step: ScreeningStep, consoleOrigin = ""): string {
-  const path = { home: "home", prepare: "prepare", triage: "triage", publish: "publish" }[step];
-  return `/${locale}/screening/${path}${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`;
+  return `/${locale}/screening/${step}${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`;
 }
 
 const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
-  en: { home: "Home", prepare: "1 Prepare", triage: "2 Triage", publish: "3 Publish" },
-  fr: { home: "Accueil", prepare: "1 Préparer", triage: "2 Trier", publish: "3 Publier" },
-  ar: { home: "الرئيسية", prepare: "1 التحضير", triage: "2 المراجعة", publish: "3 النشر" },
+  en: { home: "Home", prepare: "1 Prepare", proposals: "2 Agent proposals", triage: "3 Triage", agreement: "4 Agreement", publish: "5 Publish" },
+  fr: { home: "Accueil", prepare: "1 Préparer", proposals: "2 Propositions de l'agent", triage: "3 Trier", agreement: "4 Accord", publish: "5 Publier" },
+  ar: { home: "الرئيسية", prepare: "1 التحضير", proposals: "2 مقترحات الوكيل", triage: "3 المراجعة", agreement: "4 الاتفاق", publish: "5 النشر" },
 };
 
 const STEPS_LABEL: Record<Locale, string> = { en: "Screening steps", fr: "Étapes de la sélection", ar: "خطوات الفرز" };
@@ -52,11 +51,12 @@ export function StateCard({
   consoleOrigin = "",
   onRetry,
   message,
-}: Readonly<{ locale: Locale; code: string; consoleOrigin?: string; onRetry?: () => void; message?: string }>) {
+  command,
+}: Readonly<{ locale: Locale; code: string; consoleOrigin?: string; onRetry?: () => void; message?: string; command?: string }>) {
   const state = stateCopy(locale, code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const href =
-    state.action === "prepare" || state.action === "triage" || state.action === "publish" || state.action === "home"
+    state.action === "prepare" || state.action === "proposals" || state.action === "triage" || state.action === "publish" || state.action === "home"
       ? stepHref(locale, state.action, consoleOrigin)
       : null;
   return (
@@ -86,7 +86,7 @@ export function StateCard({
           <Button onClick={() => window.location.reload()}>{state.actionLabel}</Button>
         ) : state.action === "terminal" ? (
           <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr">
-            {state.actionLabel}
+            {command ?? state.actionLabel}
           </code>
         ) : href ? (
           <a className="text-brand underline" href={href}>

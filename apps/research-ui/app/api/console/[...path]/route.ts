@@ -19,7 +19,8 @@ import type { NextRequest } from "next/server";
  *    forwarded, so the proxy is not a general-purpose pass-through.
  * 3. **Reads plus the action routes, nothing else.** GET/HEAD are forwarded.
  *    POST is forwarded only for the screening action surface, the decision
- *    events, conflict resolution, prepare and the draft writer, and PUT only
+ *    events, conflict resolution, prepare, agent runs and calibrations, and the
+ *    draft writer, and PUT only
  *    for the screening settings, whose own gates (pairing code, exact coverage, approval,
  *    generation) still run inside the console. The audit-journal writer, job
  *    start and pipeline creation are deliberately **not** reachable through
@@ -52,6 +53,11 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/decisions\/events$/,
   /^api\/v1\/screening\/decisions\/conflicts\/[A-Za-z0-9_-]+\/resolve$/,
   /^api\/v1\/screening\/prepare$/,
+  // M1b-2: agent runs and calibrations (contract §4). The console checks
+  // consent, the key, the one-run lock and the cost ceiling; an estimate sends
+  // nothing to a provider.
+  /^api\/v1\/screening\/proposals\/(runs|calibrations)$/,
+  /^api\/v1\/screening\/proposals\/runs\/[A-Za-z0-9_-]+\/cancel$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

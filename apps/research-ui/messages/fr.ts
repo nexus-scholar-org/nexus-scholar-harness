@@ -46,6 +46,8 @@ const fr: Record<MessageKey, string> = {
   "a11y.skipToMain": "Aller au contenu principal",
   "shell.tagline": "Une intégrité de la recherche que vous pouvez vérifier",
   "safety.demoDataLabel": "Données de démonstration",
+  "shell.authorityStatementLive":
+    "Données réelles de l'espace de travail. Les décisions sont enregistrées par le moteur de sélection de cet espace ; le harnais Python reste l'autorité pour les contrats, l'identité, l'acceptation, l'exécution des outils et les événements d'audit.",
   "shell.authorityStatement":
     "Démonstrateur en lecture seule. Le harnais Python reste l'autorité pour les contrats, l'identité, l'acceptation, l'exécution des outils et les événements d'audit.",
   "nav.overview": "Vue d'ensemble",

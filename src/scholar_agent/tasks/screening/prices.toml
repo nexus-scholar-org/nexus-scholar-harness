@@ -1,0 +1,31 @@
+# Dated price table for run estimates (spec 06 decision 1, contract §9.6).
+# The UI shows "prices as of <as_of>" beside every dollar figure. Update each
+# release; an estimate is never a measurement.
+#
+# Source: the Claude API model table, 2026-11-05. US dollars per million tokens.
+# `cache_write` is not stated there; it is assumed at 1.25 x input and marked so.
+# Batches bill every token at half price (`batch_discount`).
+as_of = "2026-11-05"
+batch_discount = 0.5
+cache_write_assumed = true
+
+[anthropic."claude-opus-5-5"]
+input = 4.00
+output = 20.00
+cache_read = 0.20
+cache_write = 5.00
+
+[anthropic."claude-sonnet-5-5"]
+input = 2.00
+output = 10.00
+cache_read = 0.20
+cache_write = 2.50
+
+[anthropic."claude-haiku-5-5"]
+# Prompts of 100K tokens or fewer (every screening request). Its cache-read
+# price is not stated in the source; it is assumed at the full input price
+# (conservative) until measured.
+input = 0.10
+output = 0.50
+cache_read = 0.10
+cache_write = 0.125
