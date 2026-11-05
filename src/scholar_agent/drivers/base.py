@@ -35,6 +35,8 @@ class ScreeningRequest:
 
 @dataclass(frozen=True)
 class Usage:
+    """`input_tokens` is the total input, cached tokens included, for every provider."""
+
     input_tokens: int = 0
     output_tokens: int = 0
     cache_read_tokens: int = 0

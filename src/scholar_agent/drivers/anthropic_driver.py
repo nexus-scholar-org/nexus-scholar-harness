@@ -37,12 +37,16 @@ def request_params(request: ScreeningRequest, spec: RunSpec) -> dict[str, Any]:
 
 
 def _usage(body: dict[str, Any]) -> Usage:
+    """Total input across providers: Anthropic's `input_tokens` excludes the
+    cached and cache-written tokens, so they are added back here."""
     u = body.get("usage") or {}
+    read = int(u.get("cache_read_input_tokens") or 0)
+    write = int(u.get("cache_creation_input_tokens") or 0)
     return Usage(
-        input_tokens=int(u.get("input_tokens") or 0),
+        input_tokens=int(u.get("input_tokens") or 0) + read + write,
         output_tokens=int(u.get("output_tokens") or 0),
-        cache_read_tokens=int(u.get("cache_read_input_tokens") or 0),
-        cache_write_tokens=int(u.get("cache_creation_input_tokens") or 0),
+        cache_read_tokens=read,
+        cache_write_tokens=write,
     )
 
 

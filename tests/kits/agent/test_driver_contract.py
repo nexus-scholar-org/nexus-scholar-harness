@@ -24,7 +24,7 @@ SPEC = RunSpec(system="criteria…", schema={"type": "object", "additionalProper
 
 
 def anthropic_body(case: str) -> dict:
-    base = {"id": "msg_1", "model": "claude-opus-5-5", "usage": {"input_tokens": 600, "output_tokens": 80, "cache_read_input_tokens": 500, "cache_creation_input_tokens": 0}}
+    base = {"id": "msg_1", "model": "claude-opus-5-5", "usage": {"input_tokens": 100, "output_tokens": 80, "cache_read_input_tokens": 500, "cache_creation_input_tokens": 0}}
     text = {"type": "text", "text": json.dumps(ANSWER)}
     return {
         "ok": {**base, "stop_reason": "end_turn", "content": [text]},
@@ -84,7 +84,8 @@ def test_anthropic_reads_the_stop_reason_before_content():
     body = anthropic_body("ok") | {"stop_reason": "refusal", "stop_details": {"category": "cyber"}}
     result = ad.parse_message("STU-1", body)
     assert (result.status, result.detail, result.output) == ("refusal", "cyber", None)
-    assert result.usage.cache_read_tokens == 500
+    # Anthropic's input_tokens excludes cached tokens; the driver reports the total.
+    assert (result.usage.input_tokens, result.usage.cache_read_tokens) == (600, 500)
 
 
 def test_anthropic_batch_entries_errored_canceled_expired_are_errors():
