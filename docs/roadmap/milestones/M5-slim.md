@@ -22,6 +22,7 @@ Plan: [`production-plan.md`](../production-plan.md) §6 (M5-slim row), §5.3 sta
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| CORE-17 (re-verified by phase-auditor: the original defect was fixed in 1656b8f; two residual gaps): the MCP server never read the keychain, so a key stored with `nexus-scholar keys set` did not reach its tools; a workspace made outside this repo had no ignore rules for `.env` / `.mcp.json` | `tests/mcp/test_mcp_setup.py::test_server_resolves_model_keys_from_keychain_at_start`, `::test_a_new_workspace_keeps_its_keys_out_of_git` | yes | yes |
 | Published PRISMA counted an exclusion that fails an inclusion criterion (`FAILS-INC-01`) as `UNSPECIFIED`; the live preview counted it by its code (found while writing spec 10; fixed in M5-slim, researcher 2026-11-05) | `tests/test_screening_events.py::test_published_prisma_counts_a_fails_inclusion_exclusion_by_its_reason` | yes | yes |
 
 ## Decisions

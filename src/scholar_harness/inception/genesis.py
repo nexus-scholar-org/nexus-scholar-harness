@@ -513,6 +513,28 @@ def write_mcp_json(ws_dir: Path) -> Path:
     return path
 
 
+#: What a workspace keeps out of git (CORE-17, M5-slim): your own key file, the
+#: generated MCP configs (they hold paths, and point at `.env`), and caches.
+WORKSPACE_GITIGNORE = (".env", ".mcp.json", ".cursor/", ".vscode/", ".cache/")
+
+
+def write_workspace_gitignore(target: Path) -> Path:
+    """Make sure the workspace's ``.gitignore`` names :data:`WORKSPACE_GITIGNORE`.
+
+    A workspace made outside this repository has no ignore rules of its own,
+    so a ``git init`` there would commit ``.env``. An existing ``.gitignore``
+    is never rewritten: only the missing lines are appended.
+    """
+    path = target / ".gitignore"
+    existing = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+    missing = [line for line in WORKSPACE_GITIGNORE if line not in {e.strip() for e in existing}]
+    if missing:
+        header = [] if existing else ["# Nexus Scholar: keep keys and generated configs out of git."]
+        lines = existing + ([""] if existing and existing[-1].strip() else []) + header + missing
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
 def install_workspace_support_files(target: Path) -> dict:
     """Vendor skills, ``.env.example`` and ``.mcp.json`` into ``target`` (P7.3).
 
@@ -547,6 +569,7 @@ def install_workspace_support_files(target: Path) -> dict:
             console.print(f"   [dim]skill {rec['name']}: kept existing[/dim]")
     env = write_env_example(target)
     mcp = write_mcp_json(target)
+    gitignore = write_workspace_gitignore(target)
     # Phase D (spec 03 §5): regenerate ``SKILL.meta.json`` per installed skill
     # from the pin manifest — the manifest is the only source of pins, and the
     # workspace copy binds the pin it was vendored under (timing metadata only).
@@ -557,6 +580,7 @@ def install_workspace_support_files(target: Path) -> dict:
         "skill_meta": skill_meta,
         "env_example": env,
         "mcp_config": mcp,
+        "gitignore": gitignore,
     }
 
 

@@ -2394,6 +2394,7 @@ def main(argv: list[str] | None = None) -> None:
     env_file = Path(args.env_file) if args.env_file else _mcp_anchor() / ".env"
     if env_file.is_file():
         _apply_env_file(env_file)
+    _apply_keychain_keys()
 
     mcp.run(transport=args.transport)
 
@@ -2412,6 +2413,27 @@ def _apply_env_file(path: Path) -> list[str]:
         if key not in os.environ:
             os.environ[key] = value
             loaded.append(key)
+    return loaded
+
+
+def _apply_keychain_keys() -> list[str]:
+    """Load provider keys stored with ``nexus-scholar keys set`` (M5-slim).
+
+    The tools that need a model key read the environment, so a key kept only
+    in the OS keychain is put into this process's environment at start; it is
+    never written to a file. A variable already set (the shell or ``.env``)
+    wins. Returns the names that were loaded.
+    """
+    from scholar_agent import keys
+
+    loaded = []
+    for provider, name in keys.ENV_VARS.items():
+        if os.environ.get(name, "").strip():
+            continue
+        value = keys._from_keychain(provider)
+        if value:
+            os.environ[name] = value
+            loaded.append(name)
     return loaded
 
 

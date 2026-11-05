@@ -465,3 +465,45 @@ def test_setup_mcp_refuses_directory_as_target(tmp_path, monkeypatch):
     assert result.exit_code == 1
     assert "directory" in result.stdout.lower()
     assert result.stdout.count("Traceback") == 0
+
+def test_server_resolves_model_keys_from_keychain_at_start(monkeypatch):
+    """M5-slim: a key stored with `nexus-scholar keys set` reaches the MCP
+    server's tools (RAG embedder, Gemini screening read the environment), with
+    no `.env`; a variable already in the environment wins."""
+    import os
+
+    from scholar_agent import keys
+
+    monkeypatch.setattr(keys, "_from_keychain", lambda provider: {"openai_compatible": "kc-openai", "gemini": "kc-gemini"}.get(provider))
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "from-shell")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    from scholar_agent.server import _apply_keychain_keys
+
+    loaded = _apply_keychain_keys()
+
+    assert loaded == ["OPENAI_API_KEY"]
+    assert os.environ["OPENAI_API_KEY"] == "kc-openai"
+    assert os.environ["GEMINI_API_KEY"] == "from-shell"
+    assert "ANTHROPIC_API_KEY" not in os.environ
+
+
+def test_a_new_workspace_keeps_its_keys_out_of_git(tmp_path):
+    """M5-slim, CORE-17: a workspace made outside this repository gets its own
+    ignore rules, and an existing .gitignore is extended, never rewritten."""
+    from scholar_harness.inception.genesis import WORKSPACE_GITIGNORE, write_workspace_gitignore
+
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    lines = write_workspace_gitignore(fresh).read_text(encoding="utf-8").splitlines()
+    assert set(WORKSPACE_GITIGNORE) <= set(lines)
+
+    kept = tmp_path / "kept"
+    kept.mkdir()
+    (kept / ".gitignore").write_text("notes/\n.env\n", encoding="utf-8")
+    text = write_workspace_gitignore(kept).read_text(encoding="utf-8")
+    assert text.startswith("notes/\n.env\n")
+    assert text.count(".env\n") == 1 and ".mcp.json" in text
+    before = text
+    assert write_workspace_gitignore(kept).read_text(encoding="utf-8") == before  # idempotent
