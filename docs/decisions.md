@@ -4,6 +4,19 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — A minimal workspace screen joins M5-slim
+
+The researcher asked why workspace management, Inception and Discovery came
+after screening. The order stands (2026-11-03 entry below): screening is the
+wedge, `accept-corpus` is its entry path, web Inception (M4) is past the
+horizon and Discovery (M3) is stretch. One gap is pulled forward: a packaged
+desktop app that can only open the single folder named on the command line is
+not sellable. M5-slim therefore adds a **minimal workspace screen**: list the
+workspaces under the workspaces root, open one, and create one (the same
+scaffold as `nexus-scholar init`), with no Inception wizard. Its spec is written
+before M5-slim starts; the M4 multi-workspace server and Inception spec 00 stay
+in M4 (researcher, 2026-11-05).
+
 ## 2026-11-05 — The checked record text carries the publication year (M1b-2)
 
 The text an agent sees and quotes, and that the engine checks quotes against
