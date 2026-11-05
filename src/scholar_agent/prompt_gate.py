@@ -274,6 +274,7 @@ def report(
             "outcome": outcome,
             "reason_code": reason,
             "driver_status": result.status if result else "missing",
+            "driver_detail": result.detail if result and result.status != "ok" else None,
             "failed_checks": [c["name"] for c in checks if not c["ok"]],
         })
     totals = {k: int(usage.get(k, 0)) for k in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens")}
@@ -289,6 +290,8 @@ def report(
         "set_sha256": frozen["set_sha256"],
         "counts": frozen["counts"],
         "driver_statuses": dict(Counter(r["driver_status"] for r in per_record)),
+        # A run where no call succeeded measured nothing about the prompt.
+        "measured": any(r["driver_status"] == "ok" for r in per_record),
         "score": score(outcomes, {r.study_id: r.label for r in records}),
         "usage": totals,
         "cost_usd": measured,

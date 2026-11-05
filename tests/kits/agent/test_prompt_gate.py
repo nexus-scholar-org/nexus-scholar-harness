@@ -138,3 +138,28 @@ def test_cli_run_spends_nothing_without_yes_and_without_a_key(tmp_path, monkeypa
     assert called == []
     estimate = runner.invoke(app, ["prompt-gate", "estimate", "--workspace", str(ws)])
     assert estimate.exit_code == 0 and "an estimate, not a measurement" in estimate.output
+
+
+def test_cli_run_where_every_call_failed_is_not_measured_and_keeps_the_error(tmp_path, monkeypatch):
+    # The first live smoke: a placeholder key made every call a 401, and the
+    # gate printed FAIL with no reason, as if the prompt had been measured.
+    ws = _workspace(tmp_path)
+    frozen = pg.build_set(ws, excludes=2)
+    set_file = tmp_path / "set.json"
+    set_file.write_text(json.dumps(frozen), encoding="utf-8")
+    monkeypatch.setattr(pg, "SET_FILE", set_file)
+    monkeypatch.setattr(pg, "RESULTS_DIR", tmp_path / "results")
+    monkeypatch.setattr("scholar_agent.keys.resolve_key", lambda provider: "k")
+    detail = "AuthenticationError: Error code: 401 - Invalid bearer token"
+
+    class Failing:
+        def run(self, requests, spec):
+            return [DriverResult(r.custom_id, "error", detail=detail) for r in requests]
+
+    monkeypatch.setattr("scholar_agent.drivers.make_driver", lambda *a, **k: Failing())
+    result = CliRunner().invoke(app, ["prompt-gate", "run", "--workspace", str(ws), "--yes"])
+    assert result.exit_code == 1
+    assert "Not measured" in result.output and "401" in result.output and "PASS" not in result.output and "FAIL" not in result.output
+    out = json.loads(next((tmp_path / "results").glob("*.json")).read_text(encoding="utf-8"))
+    assert out["measured"] is False
+    assert {r["driver_detail"] for r in out["records"]} == {detail}

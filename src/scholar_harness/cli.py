@@ -418,6 +418,10 @@ def gate_run(
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     path = pg.RESULTS_DIR / f"{stamp}_{provider}_{model}_{effort}{'_smoke' if limit else ''}.json"
     path.write_text(_json.dumps(out, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    if not out["measured"]:
+        first = next((r["driver_detail"] for r in out["records"] if r["driver_detail"]), "no result")
+        console.print(f"[bold red]Not measured: none of the {len(records)} calls succeeded. First error: {first}. Report {path}[/bold red]")
+        raise typer.Exit(1)
     s = out["score"]
     console.print(
         f"include-recall {s['include_recall']} (95% lower bound {s['include_recall_ci_low']}, bar {s['bar']}): "
