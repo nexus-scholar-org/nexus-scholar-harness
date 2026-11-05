@@ -22,7 +22,10 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+
+from . import browser
 
 from .api import audit as audit_api
 from .api import jobs as jobs_api
@@ -82,6 +85,9 @@ def create_app(
     phone_tokens: Iterable[str] | None = None,
     workspaces_root: str | Path | None = None,
     on_open: Callable[[Path], None] | None = None,
+    browser_session: str | None = None,
+    launch_codes: browser.LaunchCodes | None = None,
+    ui_dir: str | Path | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -95,6 +101,11 @@ def create_app(
     like ``nexus-scholar ui`` resolves it when omitted); ``on_open`` is the
     launcher's restart hook, without which opening another workspace answers
     ``RESTART_UNSUPPORTED`` (workspaces API §4).
+
+    The packaged app (``nexus-scholar ui``) also passes ``browser_session``,
+    ``launch_codes`` and ``ui_dir``: the static UI is served from this process,
+    and the browser reaches the API under ``/api/console`` with a session
+    cookie and the proxy's allowlist (``console/browser.py``).
     """
     ws = Path(workspace).resolve()
     if not ws.is_dir():
@@ -134,6 +145,9 @@ def create_app(
         allow_headers=["*"],
     )
 
+    ui_root = Path(ui_dir).resolve() if ui_dir is not None else None
+    if ui_root is not None and not (ui_root / "en").is_dir():
+        raise ValueError(f"not a static UI export (no en/): {ui_root}")
     hosts = frozenset(trusted_hosts if trusted_hosts is not None else _DEFAULT_HOSTS)
     expected = f"Bearer {token}".encode() if token else None
     # Phone-scoped tokens (contract §4, §6). M2's `/lan/pair` adds to this set;
@@ -152,7 +166,26 @@ def create_app(
                 403, "ACTION_ORIGIN_REFUSED", "refusing a request from a non-loopback origin"
             )
         request.state.token_scope = "desktop"
-        if request.method != "OPTIONS" and request.url.path not in _OPEN_PATHS:
+        path = request.url.path
+        if path.startswith(browser.BROWSER_PREFIX + "/") or path == browser.BROWSER_PREFIX:
+            if browser_session is None:
+                return _refusal(404, "CONSOLE_PATH_REFUSED", "the browser surface is served only by `nexus-scholar ui`")
+            if not browser.has_session(request.cookies.get(browser.SESSION_COOKIE), browser_session):
+                return _refusal(401, "TOKEN_REQUIRED", "open the app from `nexus-scholar ui` to start a session")
+            try:
+                inner = browser.check(
+                    request.method, path, origin=origin, host=request.headers.get("host", ""),
+                    fetch_site=request.headers.get("sec-fetch-site"),
+                )
+            except browser.BrowserRefused as exc:
+                return _refusal(exc.status, exc.code, exc.message)
+            # Served as the API route itself, with the desktop scope the proxy had.
+            request.scope["path"] = inner
+            request.scope["raw_path"] = inner.encode()
+            return await call_next(request)
+        if ui_root is not None and not path.startswith("/api/") and request.method in ("GET", "HEAD"):
+            return await call_next(request)  # the static UI holds no workspace data
+        if request.method != "OPTIONS" and path not in _OPEN_PATHS:
             supplied = request.headers.get("authorization", "").encode()
             phone = any(
                 hmac.compare_digest(supplied, f"Bearer {t}".encode())
@@ -180,5 +213,31 @@ def create_app(
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok", "workspace": str(ws)}
+
+    if launch_codes is not None and browser_session is not None:
+
+        @app.get(browser.LAUNCH_PATH)
+        def launch(code: str | None = None, next: str | None = None):  # noqa: A002 - the query name
+            if not launch_codes.redeem(code):
+                return _refusal(401, "LAUNCH_CODE_INVALID", "this launch link was used or has expired; start `nexus-scholar ui` again")
+            response = RedirectResponse(browser.safe_next(next), status_code=303)
+            response.set_cookie(browser.SESSION_COOKIE, browser_session, httponly=True, samesite="strict", path="/")
+            return response
+
+    if ui_root is not None:
+
+        @app.get("/")
+        def root_redirect() -> RedirectResponse:
+            return RedirectResponse("/en/", status_code=307)
+
+        not_found = ui_root / "404.html"
+        app.mount("/", StaticFiles(directory=ui_root, html=True), name="ui")
+
+        @app.exception_handler(404)
+        async def ui_not_found(request: Request, exc):  # noqa: ANN001
+            if not request.url.path.startswith("/api/") and not_found.is_file():
+                return FileResponse(not_found, status_code=404)
+            detail = getattr(exc, "detail", "Not Found")
+            return JSONResponse({"detail": detail}, status_code=404)
 
     return app

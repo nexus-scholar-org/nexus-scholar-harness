@@ -60,6 +60,12 @@ RESTART_UNSUPPORTED = "RESTART_UNSUPPORTED"
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
 ACTION_ORIGIN_REFUSED = "ACTION_ORIGIN_REFUSED"
+#: The packaged UI's browser surface (M5-slim, `console/browser.py`): the same
+#: codes the development proxy returns, plus a used or expired launch link.
+CONSOLE_PATH_REFUSED = "CONSOLE_PATH_REFUSED"
+CONSOLE_ORIGIN_REFUSED = "CONSOLE_ORIGIN_REFUSED"
+CONSOLE_METHOD_REFUSED = "CONSOLE_METHOD_REFUSED"
+LAUNCH_CODE_INVALID = "LAUNCH_CODE_INVALID"
 
 #: Codes the contract added in §7 "Proposed here" (``ENGINE_UNREACHABLE`` is
 #: client-side only and never sent by the engine, so it is not here).
@@ -95,6 +101,10 @@ CONSOLE_REFUSALS = CONTRACT_ADDED | frozenset(
         HOST_REFUSED,
         TOKEN_REQUIRED,
         ACTION_ORIGIN_REFUSED,
+        CONSOLE_PATH_REFUSED,
+        CONSOLE_ORIGIN_REFUSED,
+        CONSOLE_METHOD_REFUSED,
+        LAUNCH_CODE_INVALID,
         PAIRING_CODE_INVALID,
         COVERAGE_INCOMPLETE,
         STALE_BINDING,

@@ -4,6 +4,29 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — The packaged UI reaches the engine by a launch cookie and the proxy's allowlist (M5-slim)
+
+The packaged app serves the UI as a static export from the console process
+(plan §5.3), so the Next.js proxy, which held the token and allowed the
+browser only reads and a list of writes, is not there. Its job moves into the
+console (`src/scholar_harness/console/browser.py`), with the same rules:
+
+- The UI keeps calling `/api/console/api/v1/...`; those requests are checked,
+  then served as `/api/v1/...`. `/api/v1/...` itself still needs the bearer
+  token, which never reaches the browser.
+- The browser authenticates with an **HttpOnly, SameSite=Strict session
+  cookie**. `nexus-scholar ui` opens `/launch?code=<code>`: a one-time code,
+  valid 2 minutes, never the token. The session secret belongs to the launch,
+  so it survives the restart onto another workspace.
+- The **allowlist is the proxy's** (GET/HEAD on plain `/api/v1/...` paths; POST
+  and PUT only on its lists, only from this origin; the draft read only from
+  this app's pages), plus the packaged-only workspaces routes. A test keeps the
+  Python lists equal to `route.ts`.
+- The static UI holds no workspace data and is served without a session.
+
+New console codes: `CONSOLE_PATH_REFUSED`, `CONSOLE_ORIGIN_REFUSED`,
+`CONSOLE_METHOD_REFUSED` (the proxy's), `LAUNCH_CODE_INVALID`.
+
 ## 2026-11-05 — The minimal workspace screen: root, open, create (M5-slim)
 
 Spec `docs/ux/phase2-screening/final/00-workspaces.md` (FINAL). The
