@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...screening import events as ev
@@ -457,6 +457,31 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         "not_yet_decided": screened - len(winners),
         "checks": checks,
     }
+
+
+@router.get("/export")
+def export_decisions(request: Request, format: str = "ris", set: str | None = None) -> Response:
+    """The published decisions as RIS or CSV (spec 10). Read-only; no journal row."""
+    from ...screening import export as ex
+
+    try:
+        body, filename, media = ex.build_export(_ws(request), format, set)
+    except ex.ExportRefused as exc:
+        raise _error(exc.status, exc.code, exc.message, **exc.details) from exc
+    return Response(
+        content=body, media_type=media, headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+@router.get("/methods")
+def methods_paragraph(request: Request) -> dict[str, Any]:
+    """The methods paragraph of the published screening (spec 10). Read-only; no journal row."""
+    from ...screening import export as ex
+
+    try:
+        return ex.build_methods(_ws(request))
+    except ex.ExportRefused as exc:
+        raise _error(exc.status, exc.code, exc.message, **exc.details) from exc
 
 
 class PairingBeginBody(BaseModel):

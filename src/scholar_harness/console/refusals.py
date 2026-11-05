@@ -13,6 +13,12 @@ it here and to the contract in the same change.
 from __future__ import annotations
 
 from scholar_harness.authority.pairing import PAIRING_CODE_INVALID
+from scholar_harness.screening.export import (
+    EXPORT_FORMAT_INVALID,
+    EXPORT_NOT_PUBLISHED,
+    EXPORT_SOURCE_MISMATCH,
+    METHODS_SOURCE_MISSING,
+)
 from scholar_harness.screening.integrity import (
     COVERAGE_INCOMPLETE,
     PROVENANCE_MISSING,
@@ -55,6 +61,8 @@ WORKSPACE_ROOT_UNAVAILABLE = "WORKSPACE_ROOT_UNAVAILABLE"
 WORKSPACE_NOT_VALID = "WORKSPACE_NOT_VALID"
 WORKSPACE_BUSY = "WORKSPACE_BUSY"
 RESTART_UNSUPPORTED = "RESTART_UNSUPPORTED"
+#: The export and methods routes (M5-slim, spec 10) are re-exported from
+#: ``screening/export.py`` above.
 
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
@@ -92,6 +100,10 @@ CONTRACT_ADDED = frozenset(
         RESTART_UNSUPPORTED,
         PROVENANCE_MISSING,
         PROJECTION_STALE,
+        EXPORT_NOT_PUBLISHED,
+        EXPORT_FORMAT_INVALID,
+        EXPORT_SOURCE_MISMATCH,
+        METHODS_SOURCE_MISSING,
     }
 )
 
