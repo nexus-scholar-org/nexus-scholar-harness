@@ -519,3 +519,61 @@ def test_review_b2_a_failed_projection_after_approval_blocks_collect(tmp_path):
     from scholar_harness.console.refusals import CONSOLE_REFUSALS
 
     assert refused.value.code == "PROJECTION_STALE" and "PROJECTION_STALE" in CONSOLE_REFUSALS
+
+
+# --- M1b-1: direct HTTP checks deferred from the M1b-0 review (P3-5, P3-6) ------
+
+
+def _console(ws: Path):
+    from fastapi.testclient import TestClient
+
+    from scholar_harness.console import create_app
+
+    return TestClient(create_app(ws, token="t"), base_url="http://127.0.0.1", headers={"Authorization": "Bearer t"})
+
+
+def test_m1b1_publish_refuses_a_stale_decisions_file_with_a_typed_409(tmp_path):
+    """P3-5: publish answers 409 PROJECTION_STALE, not a generic refusal."""
+    from scholar_harness.authority.review import approve_command
+
+    ws = _build(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+    study = _studies(ws)[0]
+    head = next(e for e in ev.read_events(ws) if e["study_id"] == study)
+    change = _event(ws, study, "EXCLUDE", supersedes=head["event_id"], decided_at="2026-11-04T13:00:00.000Z")
+
+    def held_open(_stored):
+        raise PermissionError("decisions file held open")
+
+    assert ev.intake(ws, [change], token_scope="desktop", received_at="2026-11-04T13:00:05Z", after_commit=held_open)[0].result == "accepted"
+    response = _console(ws).post(
+        "/api/v1/screening/actions/publish", json={"request_id": None}, headers={"Origin": "http://127.0.0.1:3117"}
+    )
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"]["code"] == "PROJECTION_STALE"
+    assert not (ws / "literature" / "included.json").exists()
+
+
+def test_m1b1_replaying_the_approved_events_keeps_the_approval_and_publishes(tmp_path):
+    """P3-6: re-posting every approved event is a duplicate, and the approval still publishes."""
+    from scholar_harness.authority.review import approve_command
+
+    ws = _build(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    approve_command(ws, 1, approved_at="2026-11-04T12:00:00+00:00")
+    decisions = ws / "literature" / "screening" / "batch_001_decisions.json"
+    before = decisions.read_bytes()
+    stored = [{k: v for k, v in e.items() if k not in ev.ENGINE_FIELDS} for e in ev.read_events(ws)]
+
+    results = _console(ws).post("/api/v1/screening/decisions/events", json={"events": stored}).json()["results"]
+    assert {r["result"] for r in results} == {"duplicate"}
+    assert decisions.read_bytes() == before
+    response = _console(ws).post(
+        "/api/v1/screening/actions/publish", json={"request_id": None}, headers={"Origin": "http://127.0.0.1:3117"}
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "CURRENT"
+    assert (ws / "literature" / "included.json").is_file()
