@@ -24,11 +24,22 @@ const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
 };
 
 const STEPS_LABEL: Record<Locale, string> = { en: "Screening steps", fr: "Étapes de la sélection", ar: "خطوات الفرز" };
+/** The way back to the workspaces screen (spec 00, M5-slim). */
+const WORKSPACES_LABEL: Record<Locale, string> = { en: "All workspaces", fr: "Tous les espaces", ar: "كل مساحات العمل" };
 
 export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly<{ locale: Locale; current: ScreeningStep; consoleOrigin?: string }>) {
   return (
     <nav aria-label={STEPS_LABEL[locale]} className="mb-6">
       <ol className="flex flex-wrap gap-2 text-sm">
+        <li>
+          <a
+            href={`/${locale}/workspaces${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`}
+            className="inline-flex min-h-11 items-center px-3 text-brand underline"
+            data-workspaces-link
+          >
+            {WORKSPACES_LABEL[locale]}
+          </a>
+        </li>
         {(Object.keys(STEP_LABELS[locale]) as ScreeningStep[]).map((step) => (
           <li key={step}>
             <a
@@ -52,7 +63,18 @@ export function StateCard({
   onRetry,
   message,
   command,
-}: Readonly<{ locale: Locale; code: string; consoleOrigin?: string; onRetry?: () => void; message?: string; command?: string }>) {
+  pageHeading = false,
+}: Readonly<{
+  locale: Locale;
+  code: string;
+  consoleOrigin?: string;
+  onRetry?: () => void;
+  message?: string;
+  command?: string;
+  /** The card stands in for the whole screen (a failed first read): its title is the page's h1. */
+  pageHeading?: boolean;
+}>) {
+  const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const href =
@@ -62,9 +84,9 @@ export function StateCard({
   return (
     <section role="alert" aria-labelledby={`state-${code}`} className="rounded-lg border border-rule bg-leaf p-5" data-state={code}>
       <DecisionBadge role={state.role}>{state.title}</DecisionBadge>
-      <h2 id={`state-${code}`} className="mt-2 font-semibold text-ink">
+      <Heading id={`state-${code}`} className="mt-2 font-semibold text-ink">
         {state.title}
-      </h2>
+      </Heading>
       <p className="mt-1 text-ink">{state.body}</p>
       {message && !state.known ? (
         <p className="mt-1 text-sm text-ink-muted">

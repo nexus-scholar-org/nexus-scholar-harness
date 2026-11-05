@@ -74,7 +74,7 @@ On the supported development paths, Nexus binds accepted artifacts to their pare
 
 These are bounded engineering guarantees. Protected-publisher evidence is for the tested Windows MIC deployment; POSIX enforcement and hosted multi-user deployment are not established. Agent agreement or a critic PASS is not an independent human reference label. Valid provenance is not proof that a scientific conclusion is correct.
 
-Project events use an append-only journal, not protection against an administrator rewriting local files. Model outputs and external-provider results are not universally deterministic. Local storage does not imply local inference: configured services may receive research content.
+Project events use an append-only journal, not protection against an administrator rewriting local files. Model outputs and external-provider results are not universally deterministic. Local storage does not imply local inference: configured services may receive research content. [What leaves your computer](docs/data-flow.md) lists every such service, what it receives, and when.
 
 See the [AG record](docs/architecture/agent-controls/README.md), [evidence boundaries](docs/architecture/wp01/evidence-boundaries.md) and [assessment priority list](docs/assessment/README.md) for scope and residual limitations.
 
@@ -104,7 +104,7 @@ uv sync --extra dev --extra pdf --extra rag
 uv run pytest
 ```
 
-The harness and the eight kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
+The harness and the seven kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 

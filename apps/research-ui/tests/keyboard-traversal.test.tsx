@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 import { describe, expect, it, vi } from "vitest";
 
 import { LocaleDocument } from "@/components/locale-document";
-import { OverviewPage } from "@/components/overview-page";
 import { LOCALE_METADATA, SUPPORTED_LOCALES, type Locale } from "@/i18n";
 import { CATALOGS } from "@/messages";
 
@@ -24,7 +23,7 @@ function describeFocusable(element: Element): string {
  * the document under test. `usePathname()` is a client hook with no meaning
  * outside a running app router.
  */
-let currentPath = "/en";
+let currentPath = "/en/workspaces";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => currentPath,
@@ -44,22 +43,17 @@ vi.mock("next/navigation", () => ({
 function expectedTabStops(locale: Locale): string[] {
   return [
     `a:${CATALOGS[locale]["a11y.skipToMain"]}`,
-    `a:${CATALOGS[locale]["nav.overview"]}`,
-    // Packet UI-04 routed the screening surface, so its nav entry is a real
-    // link now — the tripwire is supposed to go red when that happens, and
-    // this line is where it was converted back to green. `nav.evidence` still
-    // contributes no stop; it is text, not an anchor.
+    // The wordmark links to the workspaces screen.
+    `a:${CATALOGS[locale]["brand.productName"]}`,
+    `a:${CATALOGS[locale]["nav.workspaces"]}`,
     `a:${CATALOGS[locale]["nav.screening"]}`,
-    // Packet UI-08 routed the corpus surface, so it is a real link too.
-    `a:${CATALOGS[locale]["nav.corpus"]}`,
-    // Packet UI-06 routed the audit surface, so it is a real link too.
-    `a:${CATALOGS[locale]["nav.audit"]}`,
+    // The language menu's button shows the current endonym.
+    `button:${LOCALE_METADATA[locale].endonym}`,
+    // The theme toolbar: three icon buttons, named by aria-label.
+    "button",
+    "button",
+    "button",
     `button:${CATALOGS[locale]["a11y.openMainNavigation"]}`,
-    ...SUPPORTED_LOCALES.map((code) => `a:${LOCALE_METADATA[code].endonym}`),
-    // The theme selector (production plan §3, M0) follows the locale links.
-    `button:${CATALOGS[locale]["theme.system"]}`,
-    `button:${CATALOGS[locale]["theme.light"]}`,
-    `button:${CATALOGS[locale]["theme.dark"]}`,
   ];
 }
 
@@ -127,7 +121,7 @@ describe("keyboard traversal", () => {
   });
 
   for (const locale of SUPPORTED_LOCALES) {
-    it(`routes the real locale page through the shell: skip link first, then the navigation, then the locale selector (${locale})`, async () => {
+    it(`routes the shell: skip link first, then the wordmark, the navigation, the language menu and the theme (${locale})`, async () => {
       // This is the converted UI-00 tripwire.
       //
       // UI-00 asserted that the route rendered ZERO focusable elements, on
@@ -181,7 +175,7 @@ describe("keyboard traversal", () => {
       // test name changes.
       const { unmount } = render(
         <LocaleDocument locale={locale}>
-          <OverviewPage locale={locale} />
+          <h1>Route</h1>
         </LocaleDocument>,
         { container: document },
       );
@@ -240,21 +234,6 @@ describe("keyboard traversal", () => {
       unmount();
     });
   }
-
-  it("records that the page component contributes no tab stops of its own", () => {
-    // The original UI-00 observation, kept because it is still true and still
-    // useful: every tab stop on the route belongs to the shell, so a later
-    // packet that adds an interactive control to page content is adding a new
-    // tab stop, not extending an existing sequence. This is asserted against
-    // `document.body` for the portal reason given above.
-    const { container } = render(<OverviewPage locale="en" />);
-
-    expect(document.body.querySelectorAll(FOCUSABLE)).toHaveLength(0);
-
-    // The container is genuinely a strict subset here (it is not merely
-    // equivalent by accident), so the weaker query really is insufficient.
-    expect(container.ownerDocument.body).toBe(document.body);
-  });
 
   it("control: the focusable tripwire is not blind to portaled DOM", () => {
     // Asserts nothing about the application. It exists so the tripwire above

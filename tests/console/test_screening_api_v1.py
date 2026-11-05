@@ -327,7 +327,9 @@ def test_review_10_agent_uncertainty_orders_unclear_drafts_first(client, ws):
     pr.submit_proposal(ws, study_id=studies[2], title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
                        protocol=protocol, protocol_fingerprint=fingerprint,
                        provenance={"task_version": "v", "model": "m", "prompt_sha256": PROMPT}, created_at="2026-11-04T09:00:01Z")
-    ordered = client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).json()["items"]
+    # The order is the journaled setting (M5-slim), not a free query parameter.
+    client.put(f"{BASE}/settings", json={"queue_order": "agent_uncertainty"})
+    ordered = client.get(f"{BASE}/queue").json()["items"]
     assert [i["study_id"] for i in ordered] == [studies[2], studies[0], studies[1]]
     assert "derived_outcome" not in json.dumps(ordered)
 
@@ -523,3 +525,20 @@ def test_m1b2_record_detail_carries_the_criterion_text_of_a_real_protocol(client
         source = stored[criterion["id"]]
         expected = source.get("description") or source.get("text") or source.get("criterion")
         assert expected and criterion["text"] == expected
+
+
+def test_queue_order_setting(client, ws):
+    # M5-slim, spec 10: the queue order is a journaled setting, so the methods
+    # paragraph can state the order that was used.
+    assert client.get(f"{BASE}/settings").json()["queue_order"] == "seeded"
+    assert client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).status_code == 422
+    bad = client.put(f"{BASE}/settings", json={"queue_order": "random"})
+    assert bad.status_code == 422 and bad.json()["detail"]["code"] == "INVALID_OUTPUT"
+    changed = client.put(f"{BASE}/settings", json={"queue_order": "agent_uncertainty"})
+    assert changed.json()["queue_order"] == "agent_uncertainty"
+    rows = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert rows[-1]["action"] == "SCREENING_SETTINGS_CHANGED"
+    assert rows[-1]["parameters"] == {"before": {"queue_order": "seeded"}, "after": {"queue_order": "agent_uncertainty"}}
+    assert client.get(f"{BASE}/queue").status_code == 200
+    assert client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).status_code == 200
+    assert client.get(f"{BASE}/queue", params={"order": "seeded"}).status_code == 422

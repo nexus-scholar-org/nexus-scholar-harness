@@ -261,11 +261,9 @@ function hasClassToken(source: string, cls: string): boolean {
  * that this list is not stale. A name not listed here is treated as a leak.
  */
 const COLLATERAL_EMITTED = new Set([
-  "collapse", // "the columns collapse" — workflow-timeline.tsx
-  "ordinal", // "a marginal ordinal" — evidence-chain / workflow-timeline
-  "rounded", // "rounded" in the shape prose; not a group member of rounded-full
+  "collapse", // the word "collapse" in prose comments; no class uses it
   "shadow", // "shadowed" / "drop shadow" in the shape prose
-  "table", // "a single ruled table" — page.tsx / workflow-timeline
+  "filter", // `items.filter(` in TypeScript (workspaces-screen.tsx); the bare word is harvested, no class uses it
 ]);
 
 test.describe("browser-suite hygiene", () => {
@@ -307,7 +305,7 @@ test.describe("browser-suite hygiene", () => {
   });
 
   test("the running page exposes no analytics globals", async ({ page }) => {
-    await page.goto("/en");
+    await page.goto("/en/workspaces");
     const globals = await page.evaluate(() =>
       ["gtag", "ga", "analytics", "_paq", "plausible", "segment", "intercom", "hotjar"]
         .filter((name) => (window as unknown as Record<string, unknown>)[name] !== undefined)
@@ -419,7 +417,7 @@ test.describe("browser-suite hygiene", () => {
     ).toEqual([]);
 
     // --- 3. the bytes the browser actually receives -------------------------
-    await page.goto("/en");
+    await page.goto("/en/workspaces");
     const hrefs = await page.evaluate(() =>
       Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="stylesheet"]')).map(
         (link) => link.href,

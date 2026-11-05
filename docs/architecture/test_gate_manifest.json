@@ -328,12 +328,6 @@
       "checkpoint": ["uv run pytest tests/kits/verify tests/unit/test_verification_stage.py -q"]
     },
     {
-      "name": "bib",
-      "paths": ["src/scholar_bib/**"],
-      "inner": ["uv run pytest tests/kits/bib -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/kits/bib tests/kits/search -q"]
-    },
-    {
       "name": "test-gate-selector",
       "paths": ["scripts/select_test_gate.py", "docs/architecture/test_gate_manifest.json"],
       "inner": ["uv run pytest tests/unit/test_select_test_gate.py -q", "uv run python scripts/select_test_gate.py --check", "uv run ruff check scripts/"],

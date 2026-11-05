@@ -58,6 +58,9 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // nothing to a provider.
   /^api\/v1\/screening\/proposals\/(runs|calibrations)$/,
   /^api\/v1\/screening\/proposals\/runs\/[A-Za-z0-9_-]+\/cancel$/,
+  // M5-slim: create and open a workspace (workspaces API §3). Open answers
+  // RESTART_UNSUPPORTED unless the console was started by `nexus-scholar ui`.
+  /^api\/v1\/workspaces(\/open)?$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

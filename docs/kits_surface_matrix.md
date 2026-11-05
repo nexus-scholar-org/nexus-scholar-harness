@@ -1,10 +1,18 @@
 # Kit Surface Matrix — API · CLI · MCP
 
-> **Status:** Live — generated 2026-09-13 by a full read-only sweep of all eight kits
+> **Status:** Live — generated 2026-09-13 by a full read-only sweep of all eight kits; `scholar_bib` was removed in M5-slim (2026-11-05), leaving seven
 > (one exploration agent per kit, evidence cited inline). This is the **agent-facing
 > knowledge base** that backstops the `SKILL.md` files and the MCP tools.
 > **Regenerate:** re-run the sweep when kit APIs/CLIs change; skill content mirrors this
 > matrix and is synced to the plugin bundle by `scripts/sync_skills_bundle.py`.
+
+> **Parked, not production (M5-slim, production plan §8).** Version 1.0 ships
+> **screening** (import → prepare → screen → publish, with optional agent
+> proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
+> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
+> `--help` says so first, their MCP tools say so in their descriptions, and the
+> app labels any screen that shows them. Do not rely on them for a review.
 
 ## Purpose
 
@@ -22,11 +30,10 @@ that no single skill covers.
 | :-- | :-- | :-- | :-- | :-- |
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
 | pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest/**acquire**/**extract-run**/extract) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
-| bib (`scholar_bib`) | `BibParser`, `BibLinter`, `BibDeduplicator`, `BibResolver` | `scholar-bib` (lint/merge/dedup/resolve) | `nexus_bib_clean` (lint only) | bibliography hygiene |
 | rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
-| agent (`scholar_agent`) | MCP server (**28 tools**, incl. `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
+| agent (`scholar_agent`) | MCP server (**27 tools**, incl. `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
 | verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (Phase-4 streams) | Phase-4 trust |
 | harness (`scholar_harness`) | thin wrapper over the 8 kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
@@ -70,15 +77,7 @@ latent bug**, with the working path in parentheses.
    passes them through `metadata=`; `engine=` now routes to `docling`/`grobid`
    (both fall back to PyMuPDF, which still receives the metadata). Regression tests:
    `tests/test_mcp_tools_graph.py::test_nexus_extract_pdf_*`.
-4. **`nexus_bib_clean` is lint-only.** Name/docstring say "clean, standardize keys,
-   and deduplicate" but it calls `lint(generate_keys=False)` — no key
-   standardization, no dedup. (Run `uv run scholar-bib lint --generate-keys` +
-   `dedup`/`merge --dedup` for the documented pipeline. Output defaults to
-   **in-place overwrite**.)
-   **RESOLVED:** the tool now runs the full documented pipeline —
-   `BibLinter.lint(..., generate_keys=True)` then `BibDeduplicator.dedup(...)`, saved
-   to the output path (still in-place by default). Regression tests:
-   `tests/test_mcp_tools_graph.py::test_nexus_bib_clean_*`.
+4. **`nexus_bib_clean`** was removed with `scholar_bib` in M5-slim (its dedup merged distinct works; see `docs/assessment/kit-bib.md`).
 5. **`nexus_protocol_validate` string mode skips cross-field rules.** Passing
    inline JSON only runs Pydantic structural validation; passing a **file path**
    runs the full rule set (`_check_cross_field`: duplicate IDs, date/pool
@@ -338,19 +337,7 @@ Declared facts (all harness-enforced by
   evidence that extraction works.
 
 ### scholar-bib-kit
-- **Public API:** `BibParser.load/save` (bibtexparser v2), `BibLinter.lint(lib,
-  generate_keys=False)` — only **AuthorYear** key mode (no sequential mode);
-  `BibDeduplicator.dedup` (cleaned-DOI match first, then cleaned-title; survivor =
-  first occurrence, graft missing fields); `BibResolver.resolve_doi/search/entry/library`
-  (async, Crossref `transform/application/x-bibtex`, replaces whole entry).
-- **CLI:** lint/merge/dedup/resolve. **lint/dedup/resolve overwrite input in place**
-  when `--output` omitted; `merge` default output = CWD `merged.bib`.
-- **MCP:** `nexus_bib_clean` = in-place `lint` only (finding 4).
-- **Knowledge:** bibtexparser **2.0.0b9** (beta); title brace-wrapping idempotent;
-  dedup identity = case/punct-insensitive DOI then title (`attentionisallyouneed`);
-  resolver silently swallows Crossref failures; DOI normalization only strips
-  `https?://doi.org/`; `pydantic` declared-but-unused dep; Crossref polite client at
-  10/s; `print()`-based output in resolve.
+Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and resolver could silently damage a `.bib` file (`docs/assessment/kit-bib.md`, BIB-01 to BIB-03).
 
 ### scholar-rag-kit
 - **Public API (typed E3 path):** `scholar_rag.index_service.index_workspace(request, backend=…, reader=…, embedder=…, workspace_root=…)` (`tools/scholar-rag-kit/src/scholar_rag/index_service.py:722`) over an explicit `IndexServiceRequest` (`index_service.py:370`) — request limbs, the accepted `parent_view`, the embedder identity, and the journal/docs destinations are all stated, none inferred. Chunking is `MarkdownChunker.chunk` with content-derived `CHK-` identities minted by `mint_chunk_id` (`chunker.py:121`) from the ten §5.1 limbs read from `base_metadata` only — no fallback to frontmatter, filename, DOI, title, CWD, or `project.json` (`chunker.py:18-28,593`); `min_chunk_chars` is the honored micro-chunk merge threshold (`chunker.py:530`), inside the closed option set (`chunker.py:83`). Each run publishes an `IndexManifest` v1 sidecar (`MANIFEST_SCHEMA_VERSION = "index-manifest-v1"`, `index_manifest.py:130`) through the R1–R7 replacement protocol (`IndexReplacement.run`, `replacement.py:1385`; intent at `replacement.py:638`) with live-set proof via `verify_backend` (`index_verifier.py:563`). Also: `ScholarRetriever.query(…, alpha=0.25, beta=0.15, graph_source=None, boost_dois=None)` (hybrid `cos + α·PR + β·seed`, over-fetch ×4 when boosting, `retriever.py:205`), `GroundedSynthesisEngine.synthesize(…, llm_callable=None)` (deterministic bullets when no LLM), `ConsensusCartographer(threshold=0.30)` (`consensus.py:203`; verdicts from **study counts**), `MatrixExtractor(protocol…)` (dynamic dims via `build_extraction_model`, writes `synthesis_matrix.{json,csv,md}`). Legacy `ScholarIndexer.index_markdown/index_directory` (`indexer.py:84,280`, `collection.upsert` at `indexer.py:126`) is the superseded path Stage 6 no longer uses (the harness keeps only a monkeypatch stub, `src/scholar_harness/orchestrator.py:58`; Stage 6 calls `index_workspace`, `orchestrator.py:1402`).
@@ -402,7 +389,7 @@ Declared facts (all harness-enforced by
   JSON strings, not MCP failures; matrix-extract validates only structurally.
 
 ### scholar-agent-kit (MCP front-door)
-- **28 tools** (25 `nexus_*` + 3 `recon_*`); `--help` lists all 28 (listing parity enforced
+- **27 tools** (24 `nexus_*` + 3 `recon_*`); `--help` lists all 27 (listing parity enforced
   by `tests/conformance/test_mcp_tool_parity.py`). Full inventory and signatures in
   `server.py` (tool list at lines 203-1782); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in
@@ -481,11 +468,9 @@ Declared facts (all harness-enforced by
 
 ```text
 scholar-search-kit ──http_client──► scholar-pdf-kit        (AcademicHttpClient)
-                ├──http_client──► scholar-bib-kit          (resolver)
                 ├──http_client──► scholar-graph-kit        (mandatory ctor arg)
                 ├──SearchEngine─► scholar-agent-kit/recon  (adapter make_engine search_fn)
                 │                 scholar_harness.recon.adapter
-scholar-bib-kit ────────────────► (rag declares, unused in code)
 scholar-protocol-kit ──build_extraction_model──► scholar-rag-kit (matrix, UNDECLARED dep)
 scholar-protocol-kit ──────────► scholar-agent-kit (compile/validate/render)
 scholar-rag-kit ────────────────► scholar-agent-kit (index/query/synthesize/matrix)
@@ -509,7 +494,7 @@ Known pins: protocol `1.0.0`; all other kits `0.1.0` (Phase-7 doc's `>=0.2.0`
 requirement unsatisfiable today); bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
 sentence-transformers `6.0.0`; networkx `3.6.1`; mcp `2.1.1` (agent kit);
 pymupdf `1.28.2` (`import fitz`); docling `2.123.0` (only with `[extract]` extra);
-`plugins.json` pins all 8 kits to `default_rev` full commit SHAs (freshness enforced by
+`plugins.json` lists all 7 kits to `default_rev` full commit SHAs (freshness enforced by
 `tests/conformance/test_count_freshness.py`); `nexus-scholar doctor` (P7.5) reports
 importability + that pinned rev from the repo `plugins.json` (wheel fallback: the bundled
 `nexus_scholar_pins.json`).

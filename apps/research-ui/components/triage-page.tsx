@@ -422,7 +422,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   if (bootError) {
     return (
       <section role="alert" className="rounded-lg border border-rule-strong bg-leaf p-6">
-        <p className="text-ink">{t("unreachable", { code: bootError })}</p>
+        <h1 className="text-ink">{t("unreachable", { code: bootError })}</h1>
         <p className="mt-2 font-mono text-[0.8125rem] text-blocked" dir="ltr">
           {bootError}
         </p>

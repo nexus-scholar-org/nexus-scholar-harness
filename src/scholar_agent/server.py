@@ -102,9 +102,6 @@ from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
 
 # Bib Imports
-from scholar_bib.deduplicator import BibDeduplicator
-from scholar_bib.linter import BibLinter
-from scholar_bib.parser import BibParser
 
 # WP01-E1 declared MCP capability boundary (Packet E1 section 4.7, E1-016).
 # This kit owns the *declaration and rejection* only: the canonical
@@ -1112,33 +1109,6 @@ def nexus_graph_build(
         return f"Citation graph built ({G.number_of_nodes()} nodes, {G.number_of_edges()} edges). Exported to {output_html} and {json_output}."
     except Exception as e:
         return f"Error building graph: {e}"
-
-
-@mcp.tool()
-@_journaled("MCP_BIB_CLEAN")
-def nexus_bib_clean(input_bib_path: str, output_bib_path: str = None) -> str:
-    """
-    Clean, standardize keys, and deduplicate a BibTeX file.
-    """
-    input_bib_path = _resolve_path(input_bib_path) or input_bib_path
-    output_bib_path = _resolve_path(output_bib_path) or output_bib_path
-    input_path = Path(input_bib_path)
-    if not input_path.exists():
-        return f"Error: {input_bib_path} not found."
-    try:
-        output_path = Path(output_bib_path or input_bib_path)
-        library = BibParser.load(input_path)
-        initial_count = len(library.entries)
-        library = BibLinter.lint(library, generate_keys=True)
-        library = BibDeduplicator.dedup(library)
-        final_count = len(library.entries)
-        BibParser.save(library, output_path)
-        return (
-            f"Cleaned BibTeX saved to {output_path} "
-            f"({initial_count} entries -> {final_count} unique, keys standardized)."
-        )
-    except Exception as e:
-        return f"Error cleaning BibTeX: {e}"
 
 
 # ==============================================================================
@@ -2309,6 +2279,37 @@ def nexus_submit_proposal(
         return json.dumps({"status": "ERROR", "error": str(getattr(e, "detail", e))})
 
 
+#: Tools over parked work (production plan §8, M5-slim): synthesis, the matrix,
+#: the graph, verification/trust, full text and the full pipeline. They keep
+#: working, and their description says first that they are not production, so
+#: an agent reading the tool list sees it before calling one. The two
+#: declared-unsupported boundaries (nexus_pdf_acquire, nexus_rag_index,
+#: nexus_pdf_extraction) already refuse with a typed envelope.
+PARKED_TOOLS = (
+    "nexus_rag_query",
+    "nexus_rag_synthesize",
+    "nexus_matrix_extract",
+    "nexus_graph_build",
+    "nexus_graph_narrative",
+    "nexus_verify_claims",
+    "nexus_verify_phase4",
+    "nexus_extract_pdf",
+    "nexus_critique_methodology",
+    "nexus_pipeline_run",
+)
+PARKED_NOTICE = "PARKED, not production (Nexus Scholar 1.0 ships screening only)."
+
+
+def _label_parked_tools() -> None:
+    for name in PARKED_TOOLS:
+        tool = mcp._tool_manager.get_tool(name)
+        if tool is not None and not (tool.description or "").startswith(PARKED_NOTICE):
+            tool.description = f"{PARKED_NOTICE} {tool.description or ''}".rstrip()
+
+
+_label_parked_tools()
+
+
 def main(argv: list[str] | None = None) -> None:
     """Start the FastMCP server or display help."""
     import argparse
@@ -2341,7 +2342,6 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_rag_synthesize: Grounded synthesis with claim entailment verification\n"
             "  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies\n"
             "  - nexus_graph_build: Build citation graph from included studies or DOIs\n"
-            "  - nexus_bib_clean: Clean and deduplicate BibTeX databases\n"
             "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
             "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
             "  - nexus_screening_record: One record with its criteria, to draft a proposal\n"
@@ -2394,6 +2394,7 @@ def main(argv: list[str] | None = None) -> None:
     env_file = Path(args.env_file) if args.env_file else _mcp_anchor() / ".env"
     if env_file.is_file():
         _apply_env_file(env_file)
+    _apply_keychain_keys()
 
     mcp.run(transport=args.transport)
 
@@ -2412,6 +2413,27 @@ def _apply_env_file(path: Path) -> list[str]:
         if key not in os.environ:
             os.environ[key] = value
             loaded.append(key)
+    return loaded
+
+
+def _apply_keychain_keys() -> list[str]:
+    """Load provider keys stored with ``nexus-scholar keys set`` (M5-slim).
+
+    The tools that need a model key read the environment, so a key kept only
+    in the OS keychain is put into this process's environment at start; it is
+    never written to a file. A variable already set (the shell or ``.env``)
+    wins. Returns the names that were loaded.
+    """
+    from scholar_agent import keys
+
+    loaded = []
+    for provider, name in keys.ENV_VARS.items():
+        if os.environ.get(name, "").strip():
+            continue
+        value = keys._from_keychain(provider)
+        if value:
+            os.environ[name] = value
+            loaded.append(name)
     return loaded
 
 

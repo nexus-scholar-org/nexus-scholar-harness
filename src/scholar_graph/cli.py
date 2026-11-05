@@ -20,7 +20,7 @@ if sys.platform == "win32":
         pass
 
 app = typer.Typer(
-    help="Scholar Graph Kit: Build and visualize citation graphs from Open Access DOIs.",
+    help="PARKED, not production (Nexus Scholar 1.0 ships screening only). Scholar Graph Kit: Build and visualize citation graphs from Open Access DOIs.",
     no_args_is_help=True,
 )
 console = Console()

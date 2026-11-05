@@ -10,7 +10,6 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 
 - Page shells, navigation, responsive layout, accessibility, and visual states.
 - Presentation-only TypeScript interfaces under `lib/`.
-- Clearly labelled fixture data under `lib/mock-*.ts`.
 - Component tests and visual/browser tests contained in this application.
 - Tailwind Plus component adaptation through the local `tailwind-plus` MCP.
 
@@ -20,7 +19,7 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 - Inventing or computing Nexus Scholar identifiers, fingerprints, checksums, acceptance results, or refusal codes.
 - Calling kit CLIs directly from Node or browser code.
 - Writing workspace JSON, Markdown, BibTeX, PDFs, vector stores, or `audit/journal.jsonl`.
-- Presenting mock data without the visible `Demonstration data` label.
+- Shipping mock or fixture data in the app: every screen reads a live workspace (the demonstration screens were removed on 2026-11-05).
 - Copying the local Tailwind Plus catalog or complete templates into this repository.
 
 ## Implementation rules
@@ -30,7 +29,7 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 3. Search Tailwind Plus by capability; adapt only the component needed.
 4. Use semantic HTML, keyboard navigation, visible focus, and text labels in addition to color.
 5. Keep server data behind `lib/api-client.ts` once that boundary exists.
-6. Use mock data only until an API contract is approved.
+6. Build against an approved API contract; fixtures belong in tests only.
 7. Run targeted type, component, and browser checks for the changed surface.
 8. Report files changed, screenshots checked, tests run, and any missing API capability.
 

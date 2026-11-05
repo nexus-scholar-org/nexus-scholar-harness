@@ -6,192 +6,60 @@ import { usePathname } from "next/navigation";
 
 import { translate, type Locale } from "@/i18n";
 
-import { LocaleSwitcher } from "./locale-switcher";
-import { ThemeToggle } from "./theme-toggle";
-import { MobileNav } from "./mobile-nav";
-import { PrimaryNav, currentItemIdFromPathname } from "./primary-nav";
+import { SiteHeader } from "./site-header";
 
 /**
  * The id the skip link targets.
  *
- * This constant is the contract between the layout and every route. The shell
- * renders `<main id={MAIN_CONTENT_ID} tabIndex={-1}>` around the route's
- * content. The `tabIndex={-1}` makes that landmark a programmatic skip-link
- * target without adding a stop to the tab order, so a focusable selector of the
- * form `[tabindex]:not([tabindex="-1"])` still matches exactly the real tab
- * stops.
+ * The shell renders `<main id={MAIN_CONTENT_ID} tabIndex={-1}>` around the
+ * route's content. `tabIndex={-1}` makes the landmark a skip-link target
+ * without adding a stop to the tab order.
  */
 export const MAIN_CONTENT_ID = "main-content";
 
-/** The screening steps that only ever read the workspace's engine (specs 01-07). */
-const LIVE_SCREENING_STEPS = ["home", "prepare", "proposals", "triage", "agreement", "publish"];
-
 /**
- * Whether a route only ever shows live workspace data. Those routes have no
- * fixture to fall back to, so the `Demonstration data` marker would be false
- * there; every other route keeps it, including `/screening`, which still
- * defaults to the demonstration record.
- */
-export function isLiveOnlyPath(pathname: string, locale: Locale): boolean {
-  const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
-  return LIVE_SCREENING_STEPS.some((step) => path === `/${locale}/screening/${step}`);
-}
-
-/**
- * The application shell (packet UI-01; visual direction packet UI-01c).
+ * The application shell: the skip link, the header (banner), the route's
+ * content in the one `main` landmark, and the footer (contentinfo).
  *
- * Owns, in document order: the skip link, the banner landmark with the project
- * identity and the demonstration-data marker, the primary navigation, the
- * narrow-screen disclosure, the locale selector, the route's own content, and a
- * minimal footer.
+ * The banner and the footer are siblings of `main`, never inside it, and a
+ * route must not render a `main` of its own: a second one is a
+ * `landmark-one-main` violation and a dead skip link.
  *
- * The banner is a *sibling* of `main`, never an ancestor or descendant of it.
- * Nested banner/main is a real landmark defect: assistive technology then
- * reports the site identity as part of the page's main content.
+ * Every route the shell wraps reads live workspace data (the workspaces screen
+ * and the screening steps); the demonstration screens and their
+ * "Demonstration data" marker were removed on 2026-11-05.
  *
- * The shell owns **exactly one** `main` landmark, and it is the skip link's
- * target. Because a layout renders `{children}`, that landmark wraps the route's
- * content, so a route must **not** render a `main` of its own: a nested second
- * one is both a `critical` `landmark-one-main` violation and a dead skip link,
- * because the shell's skip link would land on the outer, near-empty landmark.
- *
- * The obligation is therefore one-directional, and the shell discharges it for
- * every route rather than leaving it to each route author. See
- * `tests/shell.test.tsx` and the landmark-contract note in `GATES.md` §4.3.
- *
- * Visually, the banner and footer are `--color-leaf`: a slightly brighter sheet
- * than the `--color-paper` ground of the route, divided by hairlines rather than
- * by floating cards. That is the whole chrome treatment — two rules, one type
- * swap, no shadow and no radius anywhere in it.
- *
- * **Localization (packet UI-01d).** Every string in this file is now a catalog
- * lookup, and `locale` is a required prop rather than something read from a
- * context (D-I18N-05): the shell is rendered by the locale layout, the prop makes
- * the language an explicit input, and a component test can render any locale
- * without a provider. The `<html lang dir>` pair is owned one level up by
- * `LocaleDocument` and is not repeated here; nothing in this file declares a
- * direction.
- *
- * **Client boundary (packet UI-04).** This file became a client component for
- * exactly one reason: packet UI-04 added a second route, so "which nav surface
- * is current" can no longer be a constant. The shell reads the pathname with
- * `usePathname()` once, derives `currentItemId` from it with
- * `currentItemIdFromPathname` (exported from `primary-nav.tsx`, which stays a
- * plain module so server components can still import `PRIMARY_NAV_ITEMS` as a
- * value), and hands that id to both nav presentations. Three consequences are
- * worth stating rather than discovering:
- *
- * - the derivation uses the router's own pathname, which the server render and
- *   the first client render see identically (it is seeded from the RSC payload),
- *   so there is nothing to mismatch at hydration;
- * - `tests/shell.test.tsx` and the other in-process suites already mock
- *   `next/navigation`, so they keep rendering the real shell unchanged;
- * - `MAIN_CONTENT_ID` still lives here and is still imported only by that test
- *   file, never by a server component — a server import of this module would
- *   receive a client reference proxy for it rather than the string.
- *
- * The `LocaleSwitcher` is the **last** item in the header, after `MobileNav`
- * (D-I18N-11). That position is load-bearing and not aesthetic: it keeps the
- * measured focus-indicator counts in `tests-browser/responsive-nav.spec.ts` and
- * `tests-browser/focus-visibility.spec.ts` correct without editing their press
- * counts, and it confines the indicator's growth to the wide viewport's union. It
- * also carries no breakpoint of its own — a reader at 375px gets the same
- * affordance as a reader at 1440px, because with the URL as the only source of
- * locale truth a hidden selector would leave a narrow screen no way to change
- * language at all.
+ * `locale` is a required prop (D-I18N-05), so a test can render any locale
+ * without a provider; `<html lang dir>` is owned by `LocaleDocument`.
  */
 export function AppShell({
   locale,
   children,
 }: Readonly<{ locale: Locale; children: ReactNode }>) {
-  const pathname = usePathname();
-  const currentItemId = currentItemIdFromPathname(pathname, locale);
-  const liveOnly = isLiveOnlyPath(pathname, locale);
+  const pathname = usePathname() ?? `/${locale}`;
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <a className="skip-link" href={`#${MAIN_CONTENT_ID}`}>
         {translate(locale, "a11y.skipToMain")}
       </a>
 
-      <header className="border-b border-rule-strong bg-leaf">
-        <div className="mx-auto max-w-7xl px-6 py-5 lg:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
-            <div className="min-w-0">
-              <p className="font-display text-lg leading-tight text-ink">
-                {translate(locale, "brand.productName")}
-              </p>
-              {/*
-                The product's one-line position. It was the F2 thin-margin site
-                at 4.76:1; `--color-ink-muted` on `--color-leaf` measures
-                9.19:1. See `GATES.md` §3.7.
-              */}
-              <p className="mt-1 text-xs leading-5 text-ink-muted">
-                {translate(locale, "shell.tagline")}
-              </p>
-            </div>
-            {/*
-              The demonstration-data marker is a safety label, not chrome: it is
-              rendered in the always-present banner, at every viewport width, and
-              never inside the mobile disclosure.
+      <SiteHeader locale={locale} pathname={pathname} />
 
-              It is a provenance stamp, which is one of the two things A4 reserves
-              the stamp shape for, so the square hairline box is deliberate
-              rather than a missing `rounded-full`. `tests/home-page.test.tsx`
-              pins it inside this `<header>`, so it cannot be moved out of the
-              banner and demoted to page content. It is left out only on the
-              live-only screening steps, which have no fixture (`isLiveOnlyPath`).
-            */}
-            {liveOnly ? null : (
-              <span className="self-center border border-warning/50 px-2.5 py-1 text-[0.6875rem] font-medium uppercase leading-4 tracking-[0.14em] text-warning rtl:tracking-normal rtl:text-[0.75rem]">
-                {translate(locale, "safety.demoDataLabel")}
-              </span>
-            )}
-            <PrimaryNav locale={locale} currentItemId={currentItemId} />
-          </div>
-          <MobileNav locale={locale} currentItemId={currentItemId} />
-          {/*
-            Last, and at every width. The label arrives as a prop so this
-            switcher's own module stays catalog-free: the three link texts are
-            locale metadata, not messages, and come from inside the switcher.
-            (The shell as a whole is a client component since packet UI-04 — see
-            the note above — so the prop is a module boundary, not a bundle
-            claim.)
-          */}
-          <LocaleSwitcher
-            locale={locale}
-            selectorLabel={translate(locale, "locale.selectorLabel")}
-          />
-          <ThemeToggle
-            selectorLabel={translate(locale, "theme.selectorLabel")}
-            labels={{
-              system: translate(locale, "theme.system"),
-              light: translate(locale, "theme.light"),
-              dark: translate(locale, "theme.dark"),
-            }}
-          />
-        </div>
-      </header>
-
-      {/*
-        The route's content, inside the shell's `main`. The route renders no
-        landmark of its own; see the note on `AppShell` above.
-      */}
-      <main id={MAIN_CONTENT_ID} tabIndex={-1}>
+      <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1 focus:outline-none">
         {children}
       </main>
 
       <footer className="border-t border-rule bg-leaf">
-        <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
-          {/*
-            The read-only authority statement. The other F2 thin-margin site, and
-            repaired on the same token: 4.76:1 before, 9.19:1 now.
-          */}
-          <p className="max-w-3xl text-xs leading-5 text-ink-muted">
-            {translate(locale, liveOnly ? "shell.authorityStatementLive" : "shell.authorityStatement")}
+        <div className="mx-auto flex max-w-7xl flex-col gap-1.5 px-4 py-5 text-xs leading-5 text-ink-muted sm:px-6 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8">
+          <p className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-3">
+            <span className="font-display text-sm font-semibold text-ink">{translate(locale, "brand.productName")}</span>
+            <span aria-hidden="true" className="hidden h-3 w-px bg-rule md:inline-block" />
+            <span>{translate(locale, "footer.local")}</span>
           </p>
+          <p>{translate(locale, "footer.journal")}</p>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

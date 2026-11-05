@@ -122,7 +122,6 @@ PRE_EXISTING_TOOLS = frozenset(
         "nexus_rag_synthesize",
         "nexus_matrix_extract",
         "nexus_graph_build",
-        "nexus_bib_clean",
         "nexus_screen_reconcile",
         "nexus_verify_claims",
         "nexus_verify_phase4",
@@ -751,7 +750,7 @@ def test_e3_neg_040_e3_adds_no_tool_and_drops_none():
     registered = _registered_tool_names()
     assert PRE_EXISTING_TOOLS <= registered
     assert registered == PRE_EXISTING_TOOLS | M1A_SCREENING_TOOLS
-    assert len(registered) == 28
+    assert len(registered) == 27
 
 
 def _help_text() -> str:

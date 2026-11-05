@@ -1,20 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ComputerDesktopIcon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 
 /**
- * The theme selector (production plan §3, M0).
+ * The light/dark selector (production plan §3, M0).
  *
- * Three choices, as buttons with `aria-pressed`: follow the system, or force
- * light or dark. A forced choice sets `data-theme` on `<html>`, which
- * `app/theme.css` reads; "system" removes it, so `prefers-color-scheme`
- * decides. The choice is remembered in `localStorage` under
- * {@link THEME_STORAGE_KEY}; storage can be missing or blocked, so every
- * access is guarded and the page works without it.
+ * `system` follows `prefers-color-scheme`; `light` and `dark` set
+ * `data-theme` on `<html>`, which the generated `app/theme.css` honours. The
+ * choice is stored in `localStorage` and restored before paint by
+ * {@link THEME_BOOT_SCRIPT}, so a forced theme never flashes the other one.
  *
- * {@link THEME_BOOT_SCRIPT} applies a remembered choice before first paint
- * (the document component inlines it in `<head>`), so a reader who chose dark
- * never sees a light flash on load.
+ * Two presentations of the same three buttons: `compact` is the header's
+ * icon toolbar (each button named by `aria-label`, as the brand book allows in
+ * a toolbar), `full` is the mobile menu's labelled row with 44px targets.
  */
 
 export type ThemeChoice = "system" | "light" | "dark";
@@ -23,6 +22,13 @@ export const THEME_STORAGE_KEY = "nexus-scholar-theme";
 
 const CHOICES: readonly ThemeChoice[] = ["system", "light", "dark"];
 
+const ICONS: Readonly<Record<ThemeChoice, ComponentType<SVGProps<SVGSVGElement>>>> = {
+  system: ComputerDesktopIcon,
+  light: SunIcon,
+  dark: MoonIcon,
+};
+
+/** Runs in `<head>` before the body paints. */
 export const THEME_BOOT_SCRIPT = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
   THEME_STORAGE_KEY,
 )});if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();`;
@@ -45,7 +51,12 @@ function storedTheme(): ThemeChoice {
 export function ThemeToggle({
   selectorLabel,
   labels,
-}: Readonly<{ selectorLabel: string; labels: Readonly<Record<ThemeChoice, string>> }>) {
+  variant = "compact",
+}: Readonly<{
+  selectorLabel: string;
+  labels: Readonly<Record<ThemeChoice, string>>;
+  variant?: "compact" | "full";
+}>) {
   const [choice, setChoice] = useState<ThemeChoice>("system");
 
   useEffect(() => {
@@ -63,24 +74,39 @@ export function ThemeToggle({
     }
   }
 
+  const compact = variant === "compact";
   return (
     <div
       role="group"
       aria-label={selectorLabel}
       data-nav-region="theme"
-      className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1"
+      className={
+        compact
+          ? "flex items-center gap-0.5 rounded-md border border-rule bg-paper p-0.5"
+          : "grid grid-cols-3 gap-1 rounded-md border border-rule bg-paper p-1"
+      }
     >
-      {CHOICES.map((value) => (
-        <button
-          key={value}
-          type="button"
-          aria-pressed={choice === value}
-          onClick={() => choose(value)}
-          className="block min-h-11 px-2 py-1.5 text-sm font-medium text-ink-muted underline decoration-2 underline-offset-4 decoration-transparent hover:text-ink hover:decoration-rule-strong aria-pressed:text-evidence aria-pressed:decoration-evidence"
-        >
-          {labels[value]}
-        </button>
-      ))}
+      {CHOICES.map((value) => {
+        const Icon = ICONS[value];
+        return (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={choice === value}
+            aria-label={compact ? labels[value] : undefined}
+            title={compact ? labels[value] : undefined}
+            onClick={() => choose(value)}
+            className={
+              compact
+                ? "inline-flex size-8 items-center justify-center rounded-sm text-ink-muted hover:text-ink aria-pressed:bg-leaf aria-pressed:text-ink aria-pressed:shadow-[0_0_0_1px_var(--color-rule)]"
+                : "inline-flex min-h-11 items-center justify-center gap-2 rounded-sm text-sm font-medium text-ink-muted hover:text-ink aria-pressed:bg-leaf aria-pressed:text-ink aria-pressed:shadow-[0_0_0_1px_var(--color-rule)]"
+            }
+          >
+            <Icon aria-hidden="true" className="size-4" />
+            {compact ? null : labels[value]}
+          </button>
+        );
+      })}
     </div>
   );
 }

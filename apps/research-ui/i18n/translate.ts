@@ -1,5 +1,3 @@
-import type { EvidenceNode, WorkflowState } from "../lib/contracts";
-import type { OverviewCountField, ProjectOverviewPhase } from "../lib/project-state";
 import { CATALOGS, type MessageKey } from "../messages";
 import { inflate } from "./long-strings";
 import type { Locale } from "./locales";
@@ -21,7 +19,7 @@ export type MessageValues = Readonly<Record<string, string | number>>;
  *
  * It is an error, never a fallback. The two tempting alternatives are both
  * wrong in ways a reader pays for: rendering the raw key produces a document
- * full of `overview.eyebrow` in production, and rendering `""` or silently
+ * full of `nav.workspaces` in production, and rendering `""` or silently
  * substituting English produces chrome that looks translated while not being.
  * Failing at render makes the missing key a red test in the locale that lost
  * it, which is the moment it can still be fixed (N3).
@@ -62,132 +60,23 @@ export class UnmappedTokenError extends Error {
 }
 
 /**
- * Token → catalog key maps, one per controlled vocabulary.
+ * The catalog key for each primary navigation entry.
  *
- * Declared as `Record<Token, MessageKey>` rather than built by string
- * concatenation, so a vocabulary that gains a token without gaining a key is a
- * **compile** error in this file instead of a `state.wat` that renders. This is
- * the display-label half of D-I18N-07: the canonical token stays the data, and
- * only what a reader sees is translated.
- *
- * The types are imported from the presentation contracts with `import type`, so
- * this module keeps no runtime dependency on the view layer.
+ * Declared as a table rather than built by string concatenation, so a nav entry
+ * without a key fails here instead of rendering `nav.wat`.
  */
 const NAV_KEYS: Readonly<Record<string, MessageKey>> = {
-  overview: "nav.overview",
+  workspaces: "nav.workspaces",
   screening: "nav.screening",
-  corpus: "nav.corpus",
-  evidence: "nav.evidence",
-  audit: "nav.audit",
 };
 
-const STATE_KEYS: Readonly<Record<WorkflowState, MessageKey>> = {
-  complete: "state.complete",
-  active: "state.active",
-  waiting: "state.waiting",
-  refused: "state.refused",
-};
-
-const EVIDENCE_KIND_KEYS: Readonly<Record<EvidenceNode["kind"], MessageKey>> = {
-  claim: "evidenceKind.claim",
-  chunk: "evidenceKind.chunk",
-  document: "evidenceKind.document",
-  study: "evidenceKind.study",
-  decision: "evidenceKind.decision",
-};
-
-/**
- * The nine project-overview phases (packet UI-02), label and description kept
- * as two tables rather than one key built by string concatenation, because a
- * component must never assemble a `MessageKey` at runtime: a phase whose label
- * exists but whose description does not would then fail only in the locales
- * that lost the description, instead of failing to compile here.
- */
-const PHASE_KEYS: Readonly<Record<ProjectOverviewPhase, MessageKey>> = {
-  empty: "phase.empty",
-  setup: "phase.setup",
-  search: "phase.search",
-  screening: "phase.screening",
-  extraction: "phase.extraction",
-  indexing: "phase.indexing",
-  refusal: "phase.refusal",
-  degraded: "phase.degraded",
-  ready: "phase.ready",
-};
-
-const PHASE_DESCRIPTION_KEYS: Readonly<Record<ProjectOverviewPhase, MessageKey>> = {
-  empty: "phase.empty.description",
-  setup: "phase.setup.description",
-  search: "phase.search.description",
-  screening: "phase.screening.description",
-  extraction: "phase.extraction.description",
-  indexing: "phase.indexing.description",
-  refusal: "phase.refusal.description",
-  degraded: "phase.degraded.description",
-  ready: "phase.ready.description",
-};
-
-/** The five corpus statistics, each with its own catalog label. */
-const COUNT_KEYS: Readonly<Record<OverviewCountField, MessageKey>> = {
-  recordsDiscovered: "counts.recordsDiscovered",
-  studiesIncluded: "counts.studiesIncluded",
-  decisionsPending: "counts.decisionsPending",
-  documentsExtracted: "counts.documentsExtracted",
-  chunksIndexed: "counts.chunksIndexed",
-};
-
-function lookup<T extends string>(
-  table: Readonly<Record<T, MessageKey>>,
-  token: string,
-  namespace: string,
-): MessageKey {
-  const key = table[token as T];
+/** The catalog key for a nav id; an unknown id throws {@link UnmappedTokenError}. */
+export function navKey(id: string): MessageKey {
+  const key = NAV_KEYS[id];
   if (!key) {
-    throw new UnmappedTokenError(token, namespace);
+    throw new UnmappedTokenError(id, "nav");
   }
   return key;
-}
-
-/** The catalog key for a frozen nav id. */
-export function navKey(id: string): MessageKey {
-  return lookup(NAV_KEYS, id, "nav");
-}
-
-/** The catalog key for a `WorkflowState`, the canonical token preserved as data. */
-export function stateKey(state: WorkflowState): MessageKey {
-  return lookup(STATE_KEYS, state, "state");
-}
-
-/** The catalog key for an `EvidenceNode.kind`, the canonical token preserved as data. */
-export function evidenceKindKey(kind: EvidenceNode["kind"]): MessageKey {
-  return lookup(EVIDENCE_KIND_KEYS, kind, "evidenceKind");
-}
-
-/**
- * The catalog key for a `ProjectOverviewPhase` (packet UI-02).
- *
- * Same contract as {@link stateKey}: the phase token stays the data, only the
- * word a reader sees is translated, and a token with no key throws
- * {@link UnmappedTokenError} rather than rendering something invented.
- */
-export function phaseKey(phase: string): MessageKey {
-  return lookup(PHASE_KEYS, phase, "phase");
-}
-
-/** The catalog key for the one-sentence explanation of a phase. */
-export function phaseDescriptionKey(phase: string): MessageKey {
-  return lookup(PHASE_DESCRIPTION_KEYS, phase, "phase");
-}
-
-/**
- * The catalog key for one corpus statistic's label (packet UI-02).
- *
- * The *value* is never looked up here: a count is a fixture number formatted by
- * `Intl`, or it is absent and renders `counts.unknown`. This maps only the
- * label that sits beside it.
- */
-export function countKey(field: string): MessageKey {
-  return lookup(COUNT_KEYS, field, "counts");
 }
 
 /** Matches a `{name}` hole. Names are dotted-safe so keys can be reused. */
@@ -303,8 +192,9 @@ export function translate(
  * The same message, but as the ordered pieces a renderer needs when a
  * substituted value has to stay its own element.
  *
- * The only current caller is `overview.lastEvent`, whose `{event}` is fixture
- * text that must sit inside a `<bdi>` next to a translated prefix (D-I18N-02).
+ * The only current caller is `notFound.unsupportedLocale`, whose `{requested}`
+ * is the reader's own URL segment and must sit inside a `<bdi>` next to a
+ * translated prefix (D-I18N-02).
  * Slicing the *rendered* string to find the value would break the moment a
  * translation put the hole first, inside a quotation mark, or twice; reading the
  * hole's position from the template does not, because the template is where the
@@ -317,12 +207,9 @@ export function translate(
  * from, and this function does not reorder them.
  *
  * One difference from {@link translate} is deliberate: only the translator's
- * literals are inflated here, never a substituted value. That value is fixture
- * text whose bytes are frozen (D-I18N-02), and the long-string build inflates
- * chrome, not records. `translate` inflates the whole rendered message, which is
- * what the long-string gate measures; both messages it measures
- * (`overview.traceLede`, `overview.asideBody`) are pure-literal templates, so
- * the two rules cannot be observed to disagree.
+ * literals are inflated here, never a substituted value. That value is the
+ * reader's input, whose bytes are frozen (D-I18N-02), and the long-string build
+ * inflates chrome, not input.
  */
 export function translateParts(
   locale: Locale,

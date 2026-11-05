@@ -163,3 +163,67 @@ def test_cli_run_where_every_call_failed_is_not_measured_and_keeps_the_error(tmp
     out = json.loads(next((tmp_path / "results").glob("*.json")).read_text(encoding="utf-8"))
     assert out["measured"] is False
     assert {r["driver_detail"] for r in out["records"]} == {detail}
+
+
+# --- the MCP route: export, agents answer, import ------------------------------
+
+
+def _export(tmp_path, monkeypatch, limit=0):
+    ws = _workspace(tmp_path, n_inc=4, n_exc=6)
+    frozen = pg.build_set(ws, excludes=6)
+    set_file = tmp_path / "set.json"
+    set_file.write_text(json.dumps(frozen), encoding="utf-8")
+    monkeypatch.setattr(pg, "SET_FILE", set_file)
+    monkeypatch.setattr(pg, "RESULTS_DIR", tmp_path / "results")
+    out = tmp_path / "export"
+    args = ["prompt-gate", "export", "--out", str(out), "--workspace", str(ws)] + (["--limit", str(limit)] if limit else [])
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 0, result.output
+    return ws, frozen, out
+
+
+def test_the_export_carries_no_label_and_no_label_order(tmp_path, monkeypatch):
+    ws, frozen, out = _export(tmp_path, monkeypatch, limit=6)
+    text = "\n".join(p.read_text(encoding="utf-8") for p in out.rglob("*") if p.is_file())
+    for word in ("INCLUDE", "EXCLUDE", '"label"', "decision", "HUMAN_CONFIRMATION"):
+        assert word not in text, word
+    labels = {r["study_id"]: r["label"] for r in frozen["records"]}
+    order = [item["study_id"] for name in json.loads((out / "manifest.json").read_text())["batches"]
+             for item in json.loads((out / name).read_text(encoding="utf-8"))["records"]]
+    assert len(order) == 6
+    # The smoke selection is includes first; the export must not keep that order.
+    assert [labels[s] for s in order] != sorted((labels[s] for s in order), key=lambda l: l != "INCLUDE")
+    assert all("<record>" in item["message"] for name in json.loads((out / "manifest.json").read_text())["batches"]
+               for item in json.loads((out / name).read_text(encoding="utf-8"))["records"])
+
+
+def test_imported_answers_are_scored_like_a_run_and_a_bad_or_missing_answer_is_unclear(tmp_path, monkeypatch):
+    ws, frozen, out = _export(tmp_path, monkeypatch)
+    manifest = json.loads((out / "manifest.json").read_text())
+    records = {r.study_id: r for r in pg.load_set(ws, frozen)}
+    labels = {r["study_id"]: r["label"] for r in frozen["records"]}
+    ids = manifest["study_ids"]
+    for sid in ids[:-2]:
+        inc = "yes" if labels[sid] == "INCLUDE" else "no"
+        answer = {"criteria": [{"id": "INC-01", "answer": inc, "quote": records[sid].title},
+                               {"id": "EXC-01", "answer": "no", "quote": "Published: 2024"}],
+                  "cannot_decide": False, "reasoning": "r"}
+        (out / "answers" / f"{sid}.json").write_text(json.dumps(answer), encoding="utf-8")
+    (out / "answers" / f"{ids[-2]}.json").write_text("not json", encoding="utf-8")  # invalid; ids[-1] missing
+    result = CliRunner().invoke(app, ["prompt-gate", "import", "--export", str(out), "--model", "claude-opus-5-5", "--workspace", str(ws)])
+    assert result.exit_code == 0, result.output
+    report = json.loads(next((tmp_path / "results").glob("*.json")).read_text(encoding="utf-8"))
+    assert report["provider"] == "claude-code-mcp" and report["cost_usd"] is None and report["measured"] is True
+    by_id = {r["study_id"]: r for r in report["records"]}
+    assert by_id[ids[-2]]["driver_status"] == "invalid" and by_id[ids[-2]]["outcome"] == "MAYBE"
+    assert by_id[ids[-1]]["driver_status"] == "missing" and by_id[ids[-1]]["outcome"] == "MAYBE"
+    assert report["score"]["include_recall"] == 1.0
+
+
+def test_an_export_from_another_prompt_is_refused(tmp_path, monkeypatch):
+    ws, _frozen, out = _export(tmp_path, monkeypatch)
+    manifest = json.loads((out / "manifest.json").read_text())
+    manifest["prompt_sha256"] = "sha256:other"
+    (out / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    result = CliRunner().invoke(app, ["prompt-gate", "import", "--export", str(out), "--model", "m", "--workspace", str(ws)])
+    assert result.exit_code == 1 and "another set or prompt" in result.output

@@ -283,6 +283,35 @@ describe("console proxy — writes", () => {
     expect(String(call[0])).toBe(`${CONSOLE}/api/v1/screening/${route}`);
   });
 
+  // M5-slim: the workspaces routes (workspaces API §3).
+  it.each([
+    ["workspaces", ["workspaces"]],
+    ["workspaces/open", ["workspaces", "open"]],
+  ])("forwards the %s POST", async (route, segments) => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ slug: "s" })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const response = await POST(
+      request(`api/v1/${route}`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }),
+      context("api", "v1", ...segments),
+    );
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/${route}`);
+  });
+
+  it("refuses a POST to another workspaces path", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const response = await POST(
+      request("api/v1/workspaces/delete", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }),
+      context("api", "v1", "workspaces", "delete"),
+    );
+    expect(response.status).toBe(405);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("forwards PUT for the screening settings and nothing else", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ blinding: "show" })));

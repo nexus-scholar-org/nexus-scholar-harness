@@ -3705,12 +3705,11 @@ def test_run_role_refuses_a_workspace_equal_to_the_root(tmp_path: Path) -> None:
 # T-ALP-D1: ``resolve_env`` binds the full skill vocabulary (spec 04 §1)
 # ---------------------------------------------------------------------------
 
-#: The nine ``{CLI:<short>}`` names a shipped skill uses. The registry
+#: The eight ``{CLI:<short>}`` names a shipped skill uses. The registry
 #: (``variables.CLI_SHORTS``) is the source of truth; this literal tuple is the
 #: assertion, so extending the kit set is a deliberate edit here too.
 CLI_SHORT_NAMES = (
     "agent",
-    "bib",
     "graph",
     "harness",
     "pdf",
@@ -3720,11 +3719,10 @@ CLI_SHORT_NAMES = (
     "verify",
 )
 
-#: The eight kits that own a ``{KIT_ROOT:<short>}`` binding (the harness is a
+#: The seven kits that own a ``{KIT_ROOT:<short>}`` binding (the harness is a
 #: CLI, not a kit: ``tools/scholar-harness`` does not exist).
 KIT_SHORT_NAMES = (
     "agent",
-    "bib",
     "graph",
     "pdf",
     "protocol",
@@ -3812,7 +3810,7 @@ def test_binding_vocabulary_matches_the_registry() -> None:
     """The literal assertions above cannot drift from the registry."""
     assert set(CLI_SHORT_NAMES) == set(CLI_SHORTS)
     assert set(KIT_SHORT_NAMES) == set(KIT_SHORTS)
-    assert len(_shipped_skill_names()) == 14, (
+    assert len(_shipped_skill_names()) == 13, (
         "the shipped skill set changed; update the expectation deliberately"
     )
 

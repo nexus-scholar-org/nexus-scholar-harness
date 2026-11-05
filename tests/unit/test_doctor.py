@@ -82,7 +82,7 @@ def test_doctor_command_registered():
 
 def test_kits_all_importable_dev_env():
     manifest = load_kit_manifest()
-    assert len(manifest) == 8  # all 8 scholar_* packages bundled
+    assert len(manifest) == 7  # all 7 scholar_* packages bundled
     results = check_kits()
     assert [r.name for r in results] == list(manifest)
     assert all(r.status == Status.PASS for r in results)

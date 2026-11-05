@@ -4,6 +4,101 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — The demonstration screens are removed; a new header and footer (M5-slim)
+
+At the researcher's request the stale demonstration screens are gone: the
+overview, the single-record `/screening` page, corpus, lineage and audit, with
+their mock data (`lib/mock-*.ts`, `lib/contracts.ts`, `lib/project-state.ts`),
+components and tests. Every remaining route reads a live workspace, so the
+"Demonstration data" marker is gone too. `/<locale>` now forwards to
+`/workspaces`, and `/<locale>/screening` forwards to `/screening/home`, so old
+links still land somewhere real. The packaged app now opens on
+`/en/screening/home/` (it opened the old demonstration page before).
+
+This supersedes plan §8's "`corpus`, `lineage` and `audit` stay". Audit is
+the loss that matters, since it carried provenance. The removed page showed
+fixtures only, and a live audit view is follow-up work. The `ParkedNotice`
+went with the screens it labelled; the parked CLI help and MCP descriptions
+are unchanged.
+
+The header is one 64px bar: the wordmark (no logo yet, per the brand book),
+`Workspaces` and `Screening` with a brand underline on the current one, then a
+language menu and a three-icon theme toolbar. Below `lg` these move into one
+menu dialog. The footer is one line: the app runs on this computer, nothing is
+sent unless agent proposals are started, and every decision is recorded in the
+workspace's audit journal. The catalog shrank from 150 keys to 22 (the shell
+chrome only); the screening screens keep their own per-locale copy.
+
+## 2026-11-05 — The Claude Desktop Extension carries the wheel and launches it with uvx (M5-slim)
+
+`scripts/build_mcpb.py` builds `nexus-scholar-<version>.mcpb` (MCPB `manifest_version` 0.4, the schema shipped with `@anthropic-ai/mcpb` 2.1.2). It bundles the `nexus-scholar` wheel and starts the server as `uvx --from ${__dirname}/<wheel> scholar-agent --workspace ${user_config.workspace}`, so it works before anything is on PyPI and needs only `uv` on the computer. Its one setting is the workspace folder. It holds no key and asks for none: provider keys stay in the OS keychain, which the server now reads at start (CORE-17 follow-up). The release workflow attaches it beside the wheel. Not chosen: the experimental `uv` server type (it would ship the source tree), and `sensitive` key fields in the extension (a second place for keys). Not verified here: installing it in Claude Desktop, and `npx @anthropic-ai/mcpb validate` (running the packer was not allowed in this session; the manifest is checked against the schema's required fields and types by `tests/test_build_mcpb.py`).
+
+## 2026-11-05 — The packaged UI reaches the engine by a launch cookie and the proxy's allowlist (M5-slim)
+
+The packaged app serves the UI as a static export from the console process
+(plan §5.3), so the Next.js proxy, which held the token and allowed the
+browser only reads and a list of writes, is not there. Its job moves into the
+console (`src/scholar_harness/console/browser.py`), with the same rules:
+
+- The UI keeps calling `/api/console/api/v1/...`; those requests are checked,
+  then served as `/api/v1/...`. `/api/v1/...` itself still needs the bearer
+  token, which never reaches the browser.
+- The browser authenticates with an **HttpOnly, SameSite=Strict session
+  cookie**. `nexus-scholar ui` opens `/launch?code=<code>`: a one-time code,
+  valid 2 minutes, never the token. The session secret belongs to the launch,
+  so it survives the restart onto another workspace.
+- The **allowlist is the proxy's** (GET/HEAD on plain `/api/v1/...` paths; POST
+  and PUT only on its lists, only from this origin; the draft read only from
+  this app's pages); the workspaces routes join both lists. A test keeps the
+  Python lists equal to `route.ts`.
+- The static UI holds no workspace data and is served without a session.
+
+New console codes: `CONSOLE_PATH_REFUSED`, `CONSOLE_ORIGIN_REFUSED`,
+`CONSOLE_METHOD_REFUSED` (the proxy's), `LAUNCH_CODE_INVALID`.
+
+## 2026-11-05 — The minimal workspace screen: root, open, create (M5-slim)
+
+Spec `docs/ux/phase2-screening/final/00-workspaces.md` (FINAL). The
+researcher's answers, 2026-11-05:
+
+- **Root:** `--root`, then `NEXUS_WORKSPACES_ROOT`, then
+  `~/Documents/Nexus Scholar/workspaces`; `--workspace <path>` still opens one
+  folder and skips the screen. No settings screen or config file.
+- **Open restarts** the engine and UI on the chosen folder (no in-place
+  rebind, so no run state, pairing, phone token or cache crosses workspaces).
+  It is refused `WORKSPACE_BUSY` while an agent run or an approval pairing is
+  active, since a restart would kill it. Opening writes no journal event.
+- **Create** asks for a title only; the folder is `{root}/{slug}`; an existing
+  folder is refused `WORKSPACE_EXISTS`, never suffixed. It runs the same
+  scaffold and support files as `nexus-scholar init --scaffold-only`, and its
+  placeholder protocol is shown as a draft (no Contract v1 change).
+- **Listing:** a folder counts as a workspace when it has `protocol.json`,
+  `project.json` and `audit/journal.jsonl` (`.mcp.json` is not required);
+  others are hidden behind "n folders skipped · Show them". `GET /workspaces`
+  returns absolute paths (desktop-only, local).
+- `docs/architecture/workspaces-api.md` is written and agreed before the
+  engine work, with the codes `WORKSPACE_TITLE_INVALID`, `WORKSPACE_EXISTS`,
+  `WORKSPACE_PATH_REFUSED`, `WORKSPACE_ROOT_UNAVAILABLE`, `WORKSPACE_NOT_VALID`,
+  `WORKSPACE_BUSY`.
+
+## 2026-11-05 — The prompt gate may be met on the MCP route
+
+With no API credit, the researcher's own Claude (Claude Code subagents on the
+subscription) answers the frozen v03 set through `nexus-scholar prompt-gate
+export|import`: a blind export (prompt, schema and record text only; no label,
+nothing ordered by label), one JSON answer per record, scored by the same
+checks, rule table and bar as an API run. **A pass on this route is enough for
+the M5-slim prompt-gate requirement for now** (researcher, 2026-11-05).
+
+- The report names the route (`provider: "claude-code-mcp"`) and the model;
+  its cost is null (the subscription is not metered per record).
+- It measures the MCP route, not the API driver: the prompt runs inside
+  Claude Code's own instructions, the output format is checked after the fact
+  rather than enforced, and effort cannot be set. The API route stays
+  unmeasured, and the agent-system §6 cost per 1,000 records stays an
+  estimate, until an API run.
+- Nothing may claim an API-route pass on the strength of an MCP-route one.
+
 ## 2026-11-05 — M1b-2 merges before its live prompt gate; the gate blocks M5-slim
 
 The live prompt gate (Opus 5.5 on the frozen v03 set, Wilson lower bound of

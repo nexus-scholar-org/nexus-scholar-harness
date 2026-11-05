@@ -135,7 +135,7 @@ def test_three_recon_tools_registered_on_mcp():
     # The 22 nexus_* tools (F1/F2 + the WP01-E1 acquisition-boundary tool
     # ``nexus_pdf_acquire`` + the WP01-E2 declared-unsupported extraction-boundary
     # tool ``nexus_pdf_extraction``), plus the 3 recon_* tools asserted above.
-    assert len(names) == 28
+    assert len(names) == 27
     assert "nexus_discover" in names
 
 
@@ -692,6 +692,7 @@ def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
     import importlib
 
     canonical = tmp_path / "canonical"
+    original = dict(server.__dict__)
     monkeypatch.setenv("NEXUS_RECON_ROOT", str(canonical))
     try:
         module = importlib.reload(server)
@@ -707,6 +708,11 @@ def test_mcp_recon_root_reads_nexus_recon_root_env(tmp_path, monkeypatch):
         # Env unset: P4 default, repo-anchored and CWD-independent (absolute,
         # under the checkout), NOT the old CWD-relative fallback.
         assert server.RECON_CACHE_ROOT == (_repo_root() / ".cache" / "inception_recon")
+        # A reload rebinds every module attribute (a new `mcp` server among
+        # them); put the originals back so tests that imported them earlier in
+        # this worker still see the same objects.
+        server.__dict__.clear()
+        server.__dict__.update(original)
 
 
 # ---------------------------------------------------------------------------

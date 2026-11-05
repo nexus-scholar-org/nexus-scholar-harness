@@ -167,7 +167,6 @@ PRE_EXISTING_TOOLS = frozenset(
         "nexus_rag_synthesize",
         "nexus_matrix_extract",
         "nexus_graph_build",
-        "nexus_bib_clean",
         "nexus_screen_reconcile",
         "nexus_verify_claims",
         "nexus_verify_phase4",
@@ -670,7 +669,7 @@ def test_e1_neg_047_pre_existing_tools_are_untouched():
         "nexus_pdf_acquire",
         "nexus_pdf_extraction",
     ]
-    assert len(registered) == len(PRE_EXISTING_TOOLS) + 2 + len(M1A_SCREENING_TOOLS) == 28
+    assert len(registered) == len(PRE_EXISTING_TOOLS) + 2 + len(M1A_SCREENING_TOOLS) == 27
 
 
 # --------------------------------------------------------------------------- #

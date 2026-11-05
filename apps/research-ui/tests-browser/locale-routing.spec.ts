@@ -26,7 +26,7 @@ import { LOCALE_METADATA, SUPPORTED_LOCALES, resolveLocale } from "../i18n";
 const UNSUPPORTED_SEGMENTS = ["de"] as const;
 
 test.describe("locale routing", () => {
-  test("N1: `/` redirects to the default locale and never renders the overview itself", async ({
+  test("N1: `/` redirects to the default locale, which forwards to the workspaces screen", async ({
     page,
     request,
   }) => {
@@ -39,10 +39,10 @@ test.describe("locale routing", () => {
     expect(status).toBeLessThan(400);
     expect(location).toBe("/en");
 
-    // Following it must land on the English overview: a redirect that answered
-    // 307 to somewhere unusable is a redirect that has not done its job.
+    // Following it must land on a screen: `/en` forwards to the workspaces
+    // screen, which is where the app starts.
     await page.goto("/");
-    expect(new URL(page.url()).pathname).toBe("/en");
+    await page.waitForURL(/\/en\/workspaces\/?$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
   });
 
@@ -71,8 +71,9 @@ test.describe("locale routing", () => {
       expect(lang).toBe(metadata.lang);
       expect(dir).toBe(metadata.dir);
 
-      // Verify localized chrome is present (sample: the tagline)
-      await expect(page.locator("text=" + CATALOGS[locale]["shell.tagline"])).toBeVisible();
+      // The locale root forwards to the workspaces screen, in the same language.
+      await page.waitForURL(new RegExp(`/${locale}/workspaces/?$`));
+      await expect(page.getByRole("banner")).toContainText(CATALOGS[locale]["nav.workspaces"]);
     });
   }
 
@@ -83,7 +84,7 @@ test.describe("locale routing", () => {
       // current nav surface, and a pathname-dependent render is exactly where
       // a server/client mismatch would appear if the derivation disagreed
       // between the prerendered HTML and the first client render.
-      for (const path of ["", "/screening"] as const) {
+      for (const path of ["/workspaces", "/screening/home", "/screening/triage"] as const) {
         const problems: string[] = [];
         const console_ = (message: { type: () => string; text: () => string }) => {
           if (message.type() !== "error" && message.type() !== "warning") return;
@@ -110,7 +111,7 @@ test.describe("locale routing", () => {
     }
   });
 
-  test("UI-04: the screening route answers raw in every locale, and /de/screening is the catalog's 404", async ({
+  test("the screening home answers raw in every locale, /screening forwards to it, and /de/screening is the catalog's 404", async ({
     page,
     request,
   }) => {
@@ -119,23 +120,24 @@ test.describe("locale routing", () => {
     // only got its language after hydration would pass a DOM assertion and
     // fail every reader who never executes the bundle.
     for (const locale of SUPPORTED_LOCALES) {
-      const response = await request.get(`/${locale}/screening`);
-      expect(response.status(), `/${locale}/screening must be 200`).toBe(200);
+      const response = await request.get(`/${locale}/screening/home`);
+      expect(response.status(), `/${locale}/screening/home must be 200`).toBe(200);
 
       const html = await response.text();
       const tag = /<html[^>]*>/.exec(html)?.[0] ?? "";
       const metadata = LOCALE_METADATA[locale];
-      report(`/${locale}/screening raw <html> = ${tag}`);
+      report(`/${locale}/screening/home raw <html> = ${tag}`);
       expect(tag).toContain(`lang="${metadata.lang}"`);
       expect(tag).toContain(`dir="${metadata.dir}"`);
 
       // Refresh keeps the same document (AC-1's second half, for the new route).
+      // The old single-record page's address forwards to the screening home.
       await page.goto(`/${locale}/screening`);
+      await page.waitForURL(new RegExp(`/${locale}/screening/home/?$`));
       await page.reload();
       await page.waitForLoadState("networkidle");
       await expect(page.locator("html")).toHaveAttribute("lang", metadata.lang);
       await expect(page.locator("html")).toHaveAttribute("dir", metadata.dir);
-      await expect(page.locator("h1")).toHaveCount(1);
     }
 
     // An unsupported segment under the new route is the same refusal the
@@ -171,7 +173,7 @@ test.describe("locale routing", () => {
 
     // The reader must be able to get back to a working document.
     const back = page.getByRole("link", { name: CATALOGS.en["notFound.backToDefault"] });
-    await expect(back).toHaveAttribute("href", "/en");
+    await expect(back).toHaveAttribute("href", "/en/workspaces");
   });
 
   test("N2 (D-I18N-13B): locale resolution is case-insensitive and falls back to base language", async ({

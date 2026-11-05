@@ -33,8 +33,8 @@ from .genesis import (
     log_genesis,
     require_uninitialized,
     scaffold_project,
+    scaffold_placeholder_workspace,
     scaffold_raw_project,
-    _scaffold_only_intent,
 )
 
 class Responder(Protocol):
@@ -434,33 +434,9 @@ def init_command(
     require_uninitialized(target)
 
     if scaffold_only:
-        target.mkdir(parents=True, exist_ok=True)
-        ts = _now_iso()
-        intent = _scaffold_only_intent(project_title, slug, ts)
-        ws_dir = scaffold_raw_project(
-            target,
-            project_title,
-            slug,
-            intent["primary_paradigm"],
-            [rq["text"] for rq in intent["research_questions"]],
-        )
-        compiled = compile_protocol_files(ws_dir, intent)
-        log_genesis(
-            ws_dir,
-            f"nexus-scholar init (--scaffold-only): '{project_title}' compiled "
-            f"placeholder protocol fingerprint {compiled['protocol_fingerprint']}",
-            agent="nexus-scholar/init",
-        )
-        result = {
-            "intent": intent,
-            "slug": slug,
-            "title": project_title,
-            "playbook": intent["playbook_type"],
-            "paradigm": intent["primary_paradigm"],
-            "protocol_fingerprint": compiled["protocol_fingerprint"],
-            "workspace_dir": str(ws_dir),
-            "recon_context": None,
-        }
+        # The same path the workspaces API takes (M5-slim).
+        result = scaffold_placeholder_workspace(target, project_title, agent="nexus-scholar/init", timestamp=_now_iso())
+        support = result.pop("support")
     else:
         # Full Socratic interview, emitted into the raw target dir (not
         # root/workspaces/<slug>) by reusing run_wizard's existing machinery.
@@ -470,8 +446,7 @@ def init_command(
             target_dir=target,
             init_title=project_title,
         )
-
-    support = install_workspace_support_files(target)
+        support = install_workspace_support_files(target)
 
     console.print(f"[bold green]✅ New Nexus Scholar workspace: {target}[/bold green]")
     if scaffold_only:

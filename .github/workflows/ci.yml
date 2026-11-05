@@ -12,8 +12,8 @@ on:
 
 jobs:
   build-wheel:
-    # Single build; the wheel is pure Python (py3-none-any) and feeds every
-    # job below through the shared artifact.
+    # Single build; the wheel is pure Python (py3-none-any), carries the app's
+    # static export, and feeds every job below through the shared artifact.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,24 @@ jobs:
         with:
           version: "0.12.5"
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/research-ui/package-lock.json
+
+      - name: Build the app's static export
+        # The wheel carries it as scholar_harness_data/ui (hatch_build.py);
+        # NEXUS_WHEEL_REQUIRE_UI makes a missing export a build error.
+        working-directory: apps/research-ui
+        run: |
+          npm ci
+          npm run build:export
+
       - name: Build the nexus-scholar wheel
+        env:
+          NEXUS_WHEEL_REQUIRE_UI: "1"
         run: uv build --wheel
 
       - name: Upload wheel artifact
@@ -186,6 +203,28 @@ jobs:
             *) : ;;
           esac
           echo "uvx flow e2e OK"
+
+      - name: nexus-scholar ui from the wheel serves the app and its engine
+        # M5-slim: one process, one origin; a one-time launch link sets the
+        # session; the app's pages and the workspaces API answer.
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel="$(ls "$GITHUB_WORKSPACE"/dist/nexus_scholar-*-py3-none-any.whl)"
+          root="$RUNNER_TEMP/nexus-ui-root"
+          log="$RUNNER_TEMP/nexus-ui.log"
+          uvx --from "$wheel" nexus-scholar ui --root "$root" --port 8799 --no-browser > "$log" 2>&1 &
+          pid=$!
+          for i in $(seq 1 120); do curl -sf -o /dev/null http://127.0.0.1:8799/healthz && break; sleep 1; done
+          link="$(grep -o 'http://127.0.0.1:8799/launch?[^ ]*' "$log" | tr -d '\r' | head -1)"
+          test -n "$link" || { cat "$log"; echo "::error::no launch link printed"; exit 1; }
+          jar="$RUNNER_TEMP/jar"
+          test "$(curl -s -c "$jar" -o /dev/null -w '%{http_code}' "$link")" = "303"
+          test "$(curl -s -b "$jar" -o /dev/null -w '%{http_code}' http://127.0.0.1:8799/en/screening/home/)" = "200"
+          curl -sf -b "$jar" http://127.0.0.1:8799/api/console/api/v1/workspaces | grep -q '"root_source":"flag"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8799/api/console/api/v1/workspaces)" = "401"
+          kill "$pid" || true
+          echo "nexus-scholar ui smoke OK"
 
   research-ui:
     # The vitest suite includes live-console tests that spawn

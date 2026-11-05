@@ -171,13 +171,13 @@ describe("direction and literal-string source guards", () => {
   });
 
   it("mirrors no icon (N11)", () => {
-    // The disclosure affordance is a chevron, and a chevron is a shape that reads
-    // the same in both directions, so flipping it would be a false signal. If a
-    // directional icon is ever added, this is where it has to be declared
+    // The header's icons (menu, close, language, a down chevron, a check) read
+    // the same in both directions, so flipping them would be a false signal. If
+    // a directional icon is ever added, this is where it has to be declared
     // deliberately rather than inherited from a class name.
-    const mobile = readFileSync(join(APP_ROOT, "components/mobile-nav.tsx"), "utf8");
-    expect(mobile).not.toMatch(/scale-x-\[-1\]/);
-    expect(mobile).not.toMatch(/rtl:scale-x/);
+    const header = readFileSync(join(APP_ROOT, "components/site-header.tsx"), "utf8");
+    expect(header).not.toMatch(/scale-x-\[-1\]/);
+    expect(header).not.toMatch(/rtl:scale-x/);
   });
 
   it("reaches for no browser state and no network at render time (N12)", () => {

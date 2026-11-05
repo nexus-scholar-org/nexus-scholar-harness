@@ -32,8 +32,30 @@ jobs:
         with:
           version: "0.12.5"
 
-      - name: Build nexus-scholar metapackage wheel
-        run: uv build --wheel packaging/nexus-scholar
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/research-ui/package-lock.json
+
+      - name: Build the app's static export
+        # The wheel carries it as scholar_harness_data/ui (hatch_build.py);
+        # NEXUS_WHEEL_REQUIRE_UI makes a missing export a build error.
+        working-directory: apps/research-ui
+        run: |
+          npm ci
+          npm run build:export
+
+      - name: Build the nexus-scholar wheel
+        # The root package since the 2026-11-03 kit merge; it carries the app.
+        env:
+          NEXUS_WHEEL_REQUIRE_UI: "1"
+        run: uv build --wheel
+
+      - name: Build the Claude Desktop Extension (.mcpb)
+        # M5-slim: scholar-agent for the researcher's own Claude, carrying the wheel.
+        run: uv run --no-project python scripts/build_mcpb.py --wheel dist/nexus_scholar-1.0.0-py3-none-any.whl
 
       - name: Create GitHub Release for the wheel
         shell: bash
@@ -42,9 +64,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          DIST_DIR="$GITHUB_WORKSPACE/packaging/nexus-scholar/dist"
+          DIST_DIR="$GITHUB_WORKSPACE/dist"
           WHEEL="$DIST_DIR/nexus_scholar-1.0.0-py3-none-any.whl"
           test -f "$WHEEL" || { echo "::error::wheel not found: $WHEEL"; exit 1; }
+          MCPB="$DIST_DIR/nexus-scholar-1.0.0.mcpb"
+          test -f "$MCPB" || { echo "::error::extension not found: $MCPB"; exit 1; }
 
           # Tag handling: on a tag push use the pushed tag (ref_name); on a
           # manual run default to the checked-out commit so no tag is required.
@@ -67,7 +91,7 @@ jobs:
 
           # A tag push and a manual dispatch can race through the guard above;
           # fall back to re-checking so the loser stays green.
-          if gh release create "$TAG" "$WHEEL" \
+          if gh release create "$TAG" "$WHEEL" "$MCPB" \
             --target "$TARGET_SHA" \
             --title "nexus-scholar $TAG" \
             --generate-notes; then

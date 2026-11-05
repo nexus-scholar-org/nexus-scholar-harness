@@ -18,6 +18,24 @@ npm run build
 `npm run test:browser` is packet UI-00b's suite. It starts and stops its own
 server and needs a Chromium build (`npx playwright install chromium`).
 
+
+> **2026-11-05: the demonstration screens were removed** (`docs/decisions.md`).
+> The overview, the single-record `/screening` page, corpus, lineage and audit
+> are gone, with their mock data and tests. Every row below that names
+> `StatusBadge`, `WorkflowTimeline`, `EvidenceChain`, the `/` overview, the
+> `Demonstration data` marker, `home-page`, `status-badge`, `workflow-timeline*`,
+> `evidence-chain`, `project-state-record`, `corpus`, `audit`, `lineage`,
+> `screening-form`, `screening-actions`, `screening-draft`, `screening-live`,
+> `parked-notice`, or the browser specs `direction`, `focus-visibility`,
+> `locale-switch`, `responsive-nav`, `tab-order`, `screenshots`, `screening` or
+> `workflow-timeline-narrow` is **retired**: it no longer runs. The shell's
+> landmarks, skip link, navigation, keyboard ring, focus rings, language menu,
+> right-to-left placement and theme are now covered by `tests/shell.test.tsx`,
+> `tests/keyboard-traversal.test.tsx` and `tests-browser/shell.spec.ts`. Axe on
+> rendered CSS, overflow, hygiene, locale routing and long strings run on
+> `/workspaces` and `/screening/home`. The rows are kept as history, not as
+> current evidence.
+
 ## 1. Gates that are now executable
 
 `npm run test` runs Vitest in-process against jsdom (`vitest.config.ts`), with

@@ -13,6 +13,12 @@ it here and to the contract in the same change.
 from __future__ import annotations
 
 from scholar_harness.authority.pairing import PAIRING_CODE_INVALID
+from scholar_harness.screening.export import (
+    EXPORT_FORMAT_INVALID,
+    EXPORT_NOT_PUBLISHED,
+    EXPORT_SOURCE_MISMATCH,
+    METHODS_SOURCE_MISSING,
+)
 from scholar_harness.screening.integrity import (
     COVERAGE_INCOMPLETE,
     PROVENANCE_MISSING,
@@ -47,11 +53,27 @@ UNKNOWN_RUN = "UNKNOWN_RUN"
 DRIVER_UNAVAILABLE = "DRIVER_UNAVAILABLE"
 #: A cost ceiling on a provider/model the price table does not price, so its cost cannot be measured (M1b-2).
 CEILING_NOT_PRICED = "CEILING_NOT_PRICED"
+#: The workspaces routes (M5-slim, `docs/architecture/workspaces-api.md` §5).
+WORKSPACE_TITLE_INVALID = "WORKSPACE_TITLE_INVALID"
+WORKSPACE_EXISTS = "WORKSPACE_EXISTS"
+WORKSPACE_PATH_REFUSED = "WORKSPACE_PATH_REFUSED"
+WORKSPACE_ROOT_UNAVAILABLE = "WORKSPACE_ROOT_UNAVAILABLE"
+WORKSPACE_NOT_VALID = "WORKSPACE_NOT_VALID"
+WORKSPACE_BUSY = "WORKSPACE_BUSY"
+RESTART_UNSUPPORTED = "RESTART_UNSUPPORTED"
+#: The export and methods routes (M5-slim, spec 10) are re-exported from
+#: ``screening/export.py`` above.
 
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
 ACTION_ORIGIN_REFUSED = "ACTION_ORIGIN_REFUSED"
+#: The packaged UI's browser surface (M5-slim, `console/browser.py`): the same
+#: codes the development proxy returns, plus a used or expired launch link.
+CONSOLE_PATH_REFUSED = "CONSOLE_PATH_REFUSED"
+CONSOLE_ORIGIN_REFUSED = "CONSOLE_ORIGIN_REFUSED"
+CONSOLE_METHOD_REFUSED = "CONSOLE_METHOD_REFUSED"
+LAUNCH_CODE_INVALID = "LAUNCH_CODE_INVALID"
 
 #: Codes the contract added in §7 "Proposed here" (``ENGINE_UNREACHABLE`` is
 #: client-side only and never sent by the engine, so it is not here).
@@ -69,8 +91,19 @@ CONTRACT_ADDED = frozenset(
         UNKNOWN_RUN,
         DRIVER_UNAVAILABLE,
         CEILING_NOT_PRICED,
+        WORKSPACE_TITLE_INVALID,
+        WORKSPACE_EXISTS,
+        WORKSPACE_PATH_REFUSED,
+        WORKSPACE_ROOT_UNAVAILABLE,
+        WORKSPACE_NOT_VALID,
+        WORKSPACE_BUSY,
+        RESTART_UNSUPPORTED,
         PROVENANCE_MISSING,
         PROJECTION_STALE,
+        EXPORT_NOT_PUBLISHED,
+        EXPORT_FORMAT_INVALID,
+        EXPORT_SOURCE_MISMATCH,
+        METHODS_SOURCE_MISSING,
     }
 )
 
@@ -80,6 +113,10 @@ CONSOLE_REFUSALS = CONTRACT_ADDED | frozenset(
         HOST_REFUSED,
         TOKEN_REQUIRED,
         ACTION_ORIGIN_REFUSED,
+        CONSOLE_PATH_REFUSED,
+        CONSOLE_ORIGIN_REFUSED,
+        CONSOLE_METHOD_REFUSED,
+        LAUNCH_CODE_INVALID,
         PAIRING_CODE_INVALID,
         COVERAGE_INCOMPLETE,
         STALE_BINDING,

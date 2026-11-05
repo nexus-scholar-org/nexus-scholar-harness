@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "nexus-scholar"
 version = "1.0.0"
-description = "Nexus Scholar: a harness for systematic literature reviews and the eight scholar_* packages it drives, in one distribution."
+description = "Nexus Scholar: a harness for systematic literature reviews and the seven scholar_* packages it drives, in one distribution."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -94,7 +94,6 @@ Homepage = "https://github.com/nexus-scholar-org/nexus-scholar-harness"
 nexus-scholar = "scholar_harness.cli:app"
 scholar-harness = "scholar_harness.cli:app"
 scholar-agent = "scholar_agent.server:main"
-scholar-bib = "scholar_bib.cli:app"
 scholar-graph = "scholar_graph.cli:app"
 scholar-pdf = "scholar_pdf.cli:app"
 scholar-protocol = "scholar_protocol.cli:app"
@@ -106,7 +105,6 @@ scholar-verify = "scholar_verify.cli:app"
 packages = [
     "src/scholar_harness",
     "src/scholar_agent",
-    "src/scholar_bib",
     "src/scholar_graph",
     "src/scholar_pdf",
     "src/scholar_protocol",
@@ -115,6 +113,9 @@ packages = [
     "src/scholar_verify",
 ]
 
+# The Research UI static export, when built (hatch_build.py; M5-slim).
+[tool.hatch.build.targets.wheel.hooks.custom]
+
 # Shipped skills bundle (the dev-only pull-request-gate skill is excluded).
 [tool.hatch.build.targets.wheel.force-include]
 ".agents/skills/critic-contract" = "scholar_harness_data/skills/critic-contract"
@@ -122,7 +123,6 @@ packages = [
 ".agents/skills/inception-agent" = "scholar_harness_data/skills/inception-agent"
 ".agents/skills/methodology-copilot" = "scholar_harness_data/skills/methodology-copilot"
 ".agents/skills/scholar-agent-kit" = "scholar_harness_data/skills/scholar-agent-kit"
-".agents/skills/scholar-bib-kit" = "scholar_harness_data/skills/scholar-bib-kit"
 ".agents/skills/scholar-graph-kit" = "scholar_harness_data/skills/scholar-graph-kit"
 ".agents/skills/scholar-pdf-kit" = "scholar_harness_data/skills/scholar-pdf-kit"
 ".agents/skills/scholar-protocol-kit" = "scholar_harness_data/skills/scholar-protocol-kit"
@@ -132,6 +132,7 @@ packages = [
 ".agents/skills/workspace-manager" = "scholar_harness_data/skills/workspace-manager"
 ".agents/plugins/nexus-scholar/plugins.json" = "nexus_scholar_plugins.json"
 "docs/kits_surface_matrix.md" = "scholar_harness_data/docs/kits_surface_matrix.md"
+"docs/data-flow.md" = "scholar_harness_data/docs/data-flow.md"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

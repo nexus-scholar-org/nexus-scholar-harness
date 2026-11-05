@@ -73,13 +73,6 @@ SKILL_CONTRACTS: dict[str, dict[str, Any]] = {
         "layer": "domain",
         "base_variables": ["CLI", "CONFIG", "WORKSPACE", "SKILL_DIR"],
     },
-    "scholar-bib-kit": {
-        "applies_to": ["inception-agent"],
-        "requires": ["scholar-bib"],
-        "returns": "json",
-        "layer": "domain",
-        "base_variables": ["CLI", "CONFIG", "WORKSPACE", "SKILL_DIR"],
-    },
     "scholar-rag-kit": {
         "applies_to": ["extractor-a", "extractor-b"],
         "requires": ["scholar-rag"],
@@ -162,11 +155,10 @@ def _frontmatter_block(name: str, text: str) -> str:
     else:
         # Existing skills open with a role paragraph; derive a short sentence.
         description = {
-            "scholar-agent-kit": "The MCP front-door to the eight kit CLIs: discovery, screening hand-off, retrieval, verification, and recon — with declared-unsupported refusals.",
+            "scholar-agent-kit": "The MCP front-door to the seven kit CLIs: discovery, screening hand-off, retrieval, verification, and recon — with declared-unsupported refusals.",
             "scholar-search-kit": "Federated academic search, deduplication, verification, screening batches, and export across OpenAlex, Crossref, PubMed, arXiv, and bioRxiv.",
             "scholar-pdf-kit": "Open Access discovery, resilient download, magic-byte validation, and fulltext extraction with YAML frontmatter.",
             "scholar-protocol-kit": "Deterministic research-protocol compilation, validation, fingerprinting, and criteria rendering.",
-            "scholar-bib-kit": "Bibliography parse, lint, merge, dedup, and DOI/reference resolution for BibTeX databases.",
             "scholar-rag-kit": "Structural AST chunking, methodology tagging, hybrid graph-boosted retrieval, and grounded synthesis.",
             "scholar-graph-kit": "Citation knowledge networks, normalized PageRank, and interactive HTML graphs.",
             "scholar-verify-kit": "Retraction status, open-science DAS/CAS scanning, COI audit, and QUADAS-2/PROBAST risk-of-bias scoring.",

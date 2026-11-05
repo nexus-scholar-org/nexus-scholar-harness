@@ -226,8 +226,8 @@ test.describe("axe-core on rendered CSS", () => {
    * suffix keeps them byte-identical to what the report already records.
    */
   const ROUTES = [
-    { suffix: "", title: "" },
-    { suffix: "/screening", title: "/screening" },
+    { suffix: "/workspaces", title: "/workspaces" },
+    { suffix: "/screening/home", title: "/screening/home" },
   ] as const;
 
   for (const locale of SUPPORTED_LOCALES) {
@@ -295,7 +295,7 @@ test.describe("axe-core on rendered CSS", () => {
   for (const locale of SUPPORTED_LOCALES) {
     test(`${locale}/375px: zero real violations with the mobile dialog open`, async ({ page }) => {
       await page.setViewportSize(MOBILE_VIEWPORT);
-      await page.goto(`/${locale}`);
+      await page.goto(`/${locale}/workspaces`);
       await page.waitForLoadState("networkidle");
 
       // Use the data-nav-region hook instead of English accessible name (P2-1, M13)
@@ -338,7 +338,7 @@ test.describe("axe-core on rendered CSS", () => {
 
   test("negative control: axe really runs on the live page", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/en");
+    await page.goto("/en/workspaces");
 
     // A deliberately broken element, injected into the rendered document only
     // for this test. No application file is touched.
