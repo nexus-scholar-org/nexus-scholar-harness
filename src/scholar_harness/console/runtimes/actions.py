@@ -252,3 +252,24 @@ def actions_payload(workspace: str = DEFAULT_WORKSPACE) -> dict[str, Any]:
             for a in ACTIONS
         ]
     }
+
+
+#: The screening script as the action table names it, and the module it is.
+_AGENT_SCREEN_SCRIPT = "src/scholar_harness/agent_screen.py"
+_AGENT_SCREEN_MODULE = "scholar_harness.agent_screen"
+
+
+def executable_argv(command: list[str]) -> list[str]:
+    """The argv a job actually runs, for a rendered action command.
+
+    The table keeps the `uv run python src/...` form developers read (and the
+    actions table shows), but that path exists only in a source checkout, and a
+    job runs with the workspace as its folder. The screening script therefore
+    runs as its module, with this process's own Python, which is the same
+    interpreter in a checkout and in an installed app (golden run, 2026-11-05).
+    """
+    if command[:3] == ["uv", "run", "python"] and len(command) > 3 and command[3].replace("\\", "/") == _AGENT_SCREEN_SCRIPT:
+        import sys
+
+        return [sys.executable, "-m", _AGENT_SCREEN_MODULE, *command[4:]]
+    return command

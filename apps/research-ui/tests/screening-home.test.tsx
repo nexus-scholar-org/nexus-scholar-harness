@@ -95,6 +95,18 @@ describe("screening-home.no-agent-call-leak", () => {
   });
 });
 
+describe("screening-home.not-prepared", () => {
+  it("does not call an unprepared workspace decided (golden run)", async () => {
+    engine({
+      "/summary": { total: 0, decided: 0, by_outcome: { INCLUDE: 0, EXCLUDE: 0, MAYBE: 0 }, agent_proposed: 0, needs_you: 0, conflicts: 0, lanes: { agent: 0, you: 0, second_screener: "PARKED" } },
+      "/ui/batches": { ...BATCHES, count: 0, batches: [] },
+    });
+    render(<ScreeningHome locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "Nothing to screen yet: prepare the batches first." });
+    expect(screen.getByText("NOT_PREPARED")).toBeInTheDocument();
+  });
+});
+
 describe("states.copy-for-every-code", () => {
   it("has a title, body, affects and action for every code in every locale", () => {
     for (const [code, entry] of Object.entries(STATES)) {

@@ -250,6 +250,20 @@ export function prepare(origin: string, batchSize: number, signal?: AbortSignal)
   return postJson<{ job_id: string }>(`${BASE}/prepare`, origin, { batch_size: batchSize }, signal);
 }
 
+/** One console job, as `GET /api/v1/jobs/{id}` reports it (prepare runs as one). */
+export interface JobView {
+  job_id: string;
+  action_id: string;
+  state: "queued" | "running" | "success" | "failed" | "cancelled";
+  exit_code: number | null;
+  error: string | null;
+}
+
+export async function getJob(origin: string, jobId: string, signal?: AbortSignal): Promise<JobView> {
+  const body = await readJson<{ job: JobView }>(`/api/v1/jobs/${encodeURIComponent(jobId)}`, consoleBase(origin), signal);
+  return body.job;
+}
+
 export function getPrismaPreview(origin: string, signal?: AbortSignal): Promise<PrismaPreview> {
   return readJson<PrismaPreview>(`${BASE}/prisma/preview`, consoleBase(origin), signal);
 }

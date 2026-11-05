@@ -21,6 +21,7 @@ const COPY = {
     eyebrow: "Screening",
     title: "{decided} of {total} records are decided; {needs} still need you.",
     titleDone: "All {total} records are decided.",
+    titleEmpty: "Nothing to screen yet: prepare the batches first.",
     lede: "The agent drafts, you decide. Drafts stay hidden until you have decided each record.",
     live: "Live data from this workspace's screening engine",
     exportLink: "Export and methods",
@@ -66,6 +67,7 @@ const COPY = {
     eyebrow: "Sélection",
     title: "{decided} notices sur {total} sont décidées ; {needs} vous attendent encore.",
     titleDone: "Les {total} notices sont toutes décidées.",
+    titleEmpty: "Rien à examiner pour l'instant : préparez d'abord les lots.",
     lede: "L'agent rédige, vous décidez. Les brouillons restent masqués jusqu'à votre décision sur chaque notice.",
     live: "Données en direct du moteur de sélection de cet espace",
     exportLink: "Export et méthodes",
@@ -111,6 +113,7 @@ const COPY = {
     eyebrow: "الفرز",
     title: "حُسم {decided} من {total} سجلًا؛ وما زال {needs} بانتظارك.",
     titleDone: "حُسمت السجلات الـ{total} كلها.",
+    titleEmpty: "لا شيء للفرز بعد: حضّر الدفعات أولًا.",
     lede: "الوكيل يكتب المسودات وأنت تقرر. تبقى المسودات مخفية حتى تحسم كل سجل.",
     live: "بيانات حية من محرك الفرز لهذه المساحة",
     exportLink: "التصدير والمنهجية",
@@ -249,7 +252,9 @@ function HomeReady({
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
         <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">
-          {summary.needs_you === 0
+          {summary.total === 0
+            ? t("titleEmpty")
+            : summary.needs_you === 0
             ? t("titleDone", { total: n(summary.total) })
             : t("title", { decided: n(summary.decided), total: n(summary.total), needs: n(summary.needs_you) })}
         </h1>
