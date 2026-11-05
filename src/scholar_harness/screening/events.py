@@ -23,6 +23,7 @@ console can write at the same time.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from collections.abc import Iterator
@@ -37,9 +38,13 @@ from scholar_harness.contracts.identifiers import IdentifierKind
 from scholar_harness.screening.integrity import PROVENANCE_MISSING, STALE_BINDING
 from scholar_harness.workspace.audit import append_event
 
+logger = logging.getLogger(__name__)
+
 EVENTS_DIR = Path("literature") / "screening" / "events"
 OUTCOMES = frozenset({"INCLUDE", "EXCLUDE", "MAYBE"})
 DEVICES = frozenset({"desktop", "phone"})
+REVEALS_FILE = Path("literature") / "screening" / "reveals.jsonl"
+REVEAL_ACTION = "SCREENING_PROPOSAL_REVEALED"
 PROJECTION_FAILED_ACTION = "SCREENING_PROJECTION_FAILED"
 JOURNAL_ACTION = "SCREENING_DECISIONS_RECEIVED"
 
@@ -49,6 +54,7 @@ REASON_CODE_INVALID = "REASON_CODE_INVALID"
 IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
 ATOMIC_COMMIT_FAILED = "ATOMIC_COMMIT_FAILED"
 INVALID_OUTPUT = "INVALID_OUTPUT"
+PROJECTION_STALE = "PROJECTION_STALE"
 
 #: Fields the engine stamps on intake; the client cannot set them, and they do
 #: not count when an `event_id` is replayed (idempotency compares the rest).
@@ -268,6 +274,86 @@ def current_events(events: list[dict[str, Any]], context: ScreeningContext) -> l
     return [e for e in events if is_current(e, context)]
 
 
+class ProjectionStale(RuntimeError):
+    """A decisions file claims the event log but differs from it; collect refuses."""
+
+    code = PROJECTION_STALE
+
+
+def read_reveals(workspace: Path) -> list[dict[str, Any]]:
+    path = Path(workspace) / REVEALS_FILE
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _revealed(reveals: list[dict[str, Any]], study_id: str, screener_id: str, context: ScreeningContext) -> bool:
+    """True when the study's proposal was revealed to the screener in the current generation."""
+    return any(
+        r.get("study_id") == study_id and r.get("screener_id") == screener_id and is_current(r, context)
+        for r in reveals
+    )
+
+
+def record_reveal(
+    workspace: Path,
+    *,
+    study_id: str,
+    screener_id: str,
+    proposal_id: str,
+    context: ScreeningContext,
+    revealed_at: str,
+) -> bool:
+    """Record the first reveal of a proposal to a screener (contract §3.1).
+
+    Written under the events lock, so an intake either sees the reveal or ran
+    before it. The journal row names the proposal, never its outcome. Returns
+    False when this proposal was already revealed to this screener. Raises
+    `LockBusy` when the lock cannot be taken; the caller must not show the
+    proposal then, or a later change would go unstamped.
+    """
+    ws = Path(workspace)
+    batch = context.batches[context.study_batch[study_id]]
+    record = {
+        "study_id": study_id,
+        "screener_id": screener_id,
+        "proposal_id": proposal_id,
+        "revealed_at": revealed_at,
+        "binding": {
+            "protocol_fingerprint": context.protocol_fingerprint,
+            "batch_id": batch.batch_id,
+            "batch_sha256": batch.batch_sha256,
+        },
+    }
+    with _locked(ws):
+        if any(
+            r.get("proposal_id") == proposal_id and r.get("screener_id") == screener_id and is_current(r, context)
+            for r in read_reveals(ws)
+        ):
+            return False
+        path = ws / REVEALS_FILE
+        path.parent.mkdir(parents=True, exist_ok=True)
+        size = path.stat().st_size if path.exists() else 0
+        with path.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(record, sort_keys=True, ensure_ascii=False) + "\n")
+        try:
+            append_event(
+                ws,
+                REVEAL_ACTION,
+                f"Showed the agent proposal for {study_id} to {screener_id}",
+                agent="scholar-harness/screening-events",
+                outputs=[str(REVEALS_FILE).replace("\\", "/")],
+                parameters={"study_id": study_id, "screener_id": screener_id, "proposal_id": proposal_id},
+                metrics={},
+                refresh_index=False,
+            )
+        except Exception:
+            with path.open("r+b") as handle:
+                handle.truncate(size)
+            raise
+    return True
+
+
 def _superseded(events: list[dict[str, Any]]) -> set[str]:
     gone: set[str] = set()
     for event in events:
@@ -345,6 +431,7 @@ def intake(
 def _intake_locked(ws, events, token_scope, received_at, device, context, after_commit):
     results: list[IntakeResult] = []
     stored = read_events(ws)
+    reveals = read_reveals(ws)
     known = {e["event_id"]: e for e in stored}
     pending: list[dict[str, Any]] = []
     for raw in events:
@@ -381,7 +468,12 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
                 )
             )
             continue
-        record = {**raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": False}
+        # M1b-0: a superseding event after a reveal of this study's proposal
+        # (same screener, current generation) is a change made after seeing it.
+        after_reveal = bool(supersedes) and _revealed(reveals, raw["study_id"], raw["screener_id"], context)
+        record = {
+            **raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": after_reveal,
+        }
         pending.append(record)
         known[event_id] = record
         live = heads(current_events(stored, context) + pending, raw["study_id"], raw["screener_id"])
@@ -418,8 +510,9 @@ def _journal_projection_failure(ws: Path, events: list[dict[str, Any]], exc: Exc
             metrics={"events": len(events)},
             refresh_index=False,
         )
-    except OSError:
-        pass  # the collect gate below still refuses the stale file
+    except OSError as journal_exc:
+        # The collect gate still refuses the stale file; say so on stderr.
+        logger.warning("could not journal a failed projection: %s", journal_exc)
 
 
 def projection_is_current(workspace: Path, batch_index: int, path: Path) -> bool:

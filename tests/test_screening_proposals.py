@@ -96,7 +96,7 @@ def test_submit_stores_provenance_and_journals(tmp_path: Path):
         output=_output(),
         protocol=PROTOCOL,
         protocol_fingerprint="sha256:" + "1" * 64,
-        provenance={"task_id": "screen", "task_version": "screen-v1", "driver": "mcp", "model": "claude-opus-5-5"},
+        provenance={"task_id": "screen", "task_version": "screen-v1", "driver": "mcp", "model": "claude-opus-5-5", "prompt_sha256": "sha256:" + "a" * 64},
         created_at="2026-11-04T12:00:00Z",
     )
     assert record["derived_outcome"] == "INCLUDE"
@@ -114,3 +114,20 @@ def test_review_5_an_answer_without_an_id_is_unclear_not_a_crash():
     output = {"criteria": [{"answer": "yes"}, {"id": "INC-02", "answer": "yes"}], "cannot_decide": False}
     checks = pr.validate_output(output, CRITERIA, TEXT)
     assert pr.derive_outcome(output, CRITERIA, checks) == ("MAYBE", None)
+
+
+@pytest.mark.parametrize("missing", ["model", "prompt_sha256"])
+def test_m1b0_the_library_refuses_a_proposal_without_its_provenance(tmp_path: Path, missing):
+    """M1a deferred: the library call, not only the MCP tool, needs model and prompt hash."""
+    ws = tmp_path / "ws"
+    (ws / "audit").mkdir(parents=True)
+    (ws / "audit" / "journal.jsonl").touch()
+    provenance = {"task_version": "screen-v1", "model": "claude-opus-5-5", "prompt_sha256": "sha256:" + "a" * 64}
+    provenance[missing] = "  "
+    with pytest.raises(pr.ProvenanceMissing):
+        pr.submit_proposal(
+            ws, study_id="STU-a", title=TITLE, abstract=ABSTRACT, output=_output(), protocol=PROTOCOL,
+            protocol_fingerprint="sha256:" + "1" * 64, provenance=provenance, created_at="2026-11-04T12:00:00Z",
+        )
+    assert not (ws / pr.PROPOSALS_FILE).exists()
+    assert (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8") == ""

@@ -218,6 +218,14 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
     proposal = pr.latest_proposal(ws, study_id)
     if proposal is None:
         return {"proposal": None}
+    try:
+        # M1b-0: recorded before it is shown, so a later change is stamped.
+        ev.record_reveal(
+            ws, study_id=study_id, screener_id=settings["screener_id"], proposal_id=proposal["proposal_id"],
+            context=context, revealed_at=_now(),
+        )
+    except ev.LockBusy as exc:
+        raise _error(503, ev.ATOMIC_COMMIT_FAILED, "the event log is busy; retry") from exc
     output = proposal.get("output") if isinstance(proposal.get("output"), dict) else {}
     return {
         "proposal": {
@@ -418,6 +426,14 @@ def prisma_preview(request: Request) -> dict[str, Any]:
             "detail": context.protocol_fingerprint,
         },
         {"name": "every_record_decided", "ok": len(winners) == screened, "detail": f"{screened - len(winners)} not yet decided"},
+        {
+            "name": "projections_current",
+            "ok": not (stale := ev.stale_projections(ws)),
+            "detail": (
+                f"{ev.PROJECTION_STALE}: batch(es) {', '.join(f'{i:03d}' for i in stale)} differ from the decision events"
+                if stale else "every decisions file matches the decision events"
+            ),
+        },
     ]
     return {
         "identified": identified,

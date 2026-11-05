@@ -55,6 +55,9 @@
 - `criteria` is optional on a phone swipe and required for a desktop checklist decision.
 - `proposal_shown` is `null` when the researcher decided before any proposal was revealed. With blinding on (the default) it is always `null` at decision time; the reveal is recorded afterwards as a separate `REVEAL` audit row, not as a decision.
 - `changed_after_reveal` is set by the engine, not the client, when a superseding event follows a reveal of the agent proposal for that study. It lets the methods paragraph report how often the researcher changed their mind after seeing the agent.
+  - **A reveal** (M1b-0) is the first time `GET /records/{id}/proposal` returns a proposal to a screener. The engine appends it to `literature/screening/reveals.jsonl` under the events lock, bound to the study's current batch and protocol, and journals `SCREENING_PROPOSAL_REVEALED` with the proposal id and never its outcome. If the lock cannot be taken the read is refused (`ATOMIC_COMMIT_FAILED`, 503) rather than shown unrecorded.
+  - **The stamp** is `true` on a superseding event from the same screener received after a current-generation reveal of that study's proposal, whether or not the outcome changes; the event chain shows what changed. A reveal from an earlier protocol or batch does not count.
+  - Events stored before M1b-0 carry `false`, which for them means "not tracked".
 - **Skip** is client-side deferral. It writes no event.
 - `screener_id` is an unauthenticated local attestation (CON-02 relabel). The engine stamps `received_at` and the `device` token scope on intake; the client cannot set them.
 
@@ -153,6 +156,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `RUN_ALREADY_ACTIVE` | `/proposals/runs`, `/proposals/calibrations` | one agent run per workspace at a time |
 | `COST_CEILING_REACHED` | run status | the run stopped at its per-run hard cost ceiling; done proposals are kept |
 | `PROVENANCE_MISSING` | events intake, collect | a decision lacks screener, method or `decided_at`; refused, never filled in (CON-11) |
+| `PROJECTION_STALE` | publish, PRISMA preview check | a `batch_NNN_decisions.json` differs from the decision events (its rewrite failed); publish refuses until a retry re-projects it (M1b-0) |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 
 ## 8. Shared fixtures and tests
