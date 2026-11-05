@@ -12,7 +12,7 @@
  * it only after the researcher has decided that record, never to prefetch.
  */
 
-import { consoleBase, postJson, readJson } from "./screening-api";
+import { ScreeningApiError, consoleBase, postJson, readJson } from "./screening-api";
 
 const BASE = "/api/v1/screening";
 
@@ -414,4 +414,89 @@ export function startCalibration(
 
 export function getAgreement(origin: string, signal?: AbortSignal): Promise<Agreement> {
   return readJson<Agreement>(`${BASE}/agreement`, consoleBase(origin), signal);
+}
+
+// --- Export and methods (spec 10) -------------------------------------------
+
+export type ExportFormat = "ris" | "csv";
+export type ExportSet = "included" | "unclear" | "excluded";
+
+/** The sets a format holds when none is chosen (spec 10, decision 2). */
+export const DEFAULT_EXPORT_SETS: Record<ExportFormat, ExportSet[]> = {
+  ris: ["included", "unclear"],
+  csv: ["included", "unclear", "excluded"],
+};
+
+export interface MethodsSource {
+  name: string;
+  path: string;
+  digest?: string;
+}
+
+/** `GET /screening/methods`: the paragraph is engine-written English, shown and copied only. */
+export interface Methods {
+  generation_id: string;
+  generation_fingerprint: string;
+  published_at: string | null;
+  language: "en";
+  paragraph: string;
+  figures: {
+    identified: number;
+    duplicates_removed: number;
+    screened: number;
+    excluded: number;
+    unclear: number;
+    included: number;
+    exclusion_reasons: Record<string, number>;
+    [more: string]: unknown;
+  };
+  sources: MethodsSource[];
+  caveats: string[];
+  not_stated: string[];
+}
+
+export function getMethods(origin: string, signal?: AbortSignal): Promise<Methods> {
+  return readJson<Methods>(`${BASE}/methods`, consoleBase(origin), signal);
+}
+
+export function exportPath(format: ExportFormat, sets: readonly ExportSet[]): string {
+  const query = new URLSearchParams({ format, set: sets.join(",") });
+  return `${BASE}/export?${query.toString()}`;
+}
+
+/**
+ * Download the published decisions. The engine builds the file; the browser
+ * only receives its bytes and the name from `Content-Disposition`. A refusal
+ * comes back as the engine's typed code, as for every other read.
+ */
+export async function downloadExport(
+  origin: string,
+  format: ExportFormat,
+  sets: readonly ExportSet[],
+  signal?: AbortSignal,
+): Promise<{ blob: Blob; filename: string }> {
+  let response: Response;
+  try {
+    response = await fetch(`${consoleBase(origin)}${exportPath(format, sets)}`, { method: "GET", signal });
+  } catch (error) {
+    throw new ScreeningApiError("CONSOLE_UNREACHABLE", 0, error instanceof Error ? error.message : "the console could not be reached");
+  }
+  if (!response.ok) {
+    let detail: unknown = null;
+    try {
+      detail = ((await response.json()) as { detail?: unknown }).detail ?? null;
+    } catch {
+      // Not JSON: the status alone names the failure.
+    }
+    const d = typeof detail === "object" && detail !== null ? (detail as { code?: unknown; message?: unknown; details?: unknown }) : {};
+    throw new ScreeningApiError(
+      d.code ? String(d.code) : `HTTP_${response.status}`,
+      response.status,
+      d.message ? String(d.message) : response.statusText,
+      d.details,
+    );
+  }
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? `screening.${format}`;
+  return { blob: await response.blob(), filename };
 }

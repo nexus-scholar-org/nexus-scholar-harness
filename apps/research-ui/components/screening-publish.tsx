@@ -4,9 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
-import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
+import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import {
   getBatchReview,
+  getPublicationStatus,
   getScreeningBatches,
   isScreeningApiError,
   postDeferBatch,
@@ -36,6 +37,7 @@ const COPY = {
     title: "Approve each batch, then publish the screening.",
     titleBlocked: "Publishing waits until every check passes.",
     live: "Live data from this workspace's screening engine",
+    exportLink: "Export and methods",
     loading: "Reading the preview…",
     prisma: "PRISMA 2020 screening preview",
     preview: "Preview · not written",
@@ -81,6 +83,7 @@ const COPY = {
     title: "Approuvez chaque lot, puis publiez la sélection.",
     titleBlocked: "La publication attend que tous les contrôles soient satisfaits.",
     live: "Données en direct du moteur de sélection de cet espace",
+    exportLink: "Export et méthodes",
     loading: "Lecture de l'aperçu…",
     prisma: "Aperçu de sélection PRISMA 2020",
     preview: "Aperçu · non écrit",
@@ -126,6 +129,7 @@ const COPY = {
     title: "اعتمد كل دفعة، ثم انشر نتائج الفرز.",
     titleBlocked: "ينتظر النشر حتى تنجح كل الفحوص.",
     live: "بيانات حية من محرك الفرز لهذه المساحة",
+    exportLink: "التصدير والمنهجية",
     loading: "جارٍ قراءة المعاينة…",
     prisma: "معاينة فرز PRISMA 2020",
     preview: "معاينة · لم تُكتب",
@@ -187,7 +191,7 @@ function codeOf(error: unknown): { code: string; message: string } {
   return isScreeningApiError(error) ? { code: error.code, message: error.serverMessage } : { code: "ENGINE_UNREACHABLE", message: "" };
 }
 
-type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState> };
+type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState>; current: boolean };
 
 export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: PublishCopyKey, values?: Record<string, string | number>) => fill(PUBLISH_COPY[locale][key], values), [locale]);
@@ -203,11 +207,16 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
 
   const load = useCallback(async () => {
     try {
-      const [preview, batches] = await Promise.all([getPrismaPreview(origin), getScreeningBatches(origin)]);
+      const [preview, batches, current] = await Promise.all([
+        getPrismaPreview(origin),
+        getScreeningBatches(origin),
+        // Spec 10, decision 3: the export link shows only while the publication is CURRENT.
+        getPublicationStatus(origin).then((status) => status.status === "CURRENT", () => false),
+      ]);
       const reviews = Object.fromEntries(
         await Promise.all(batches.batches.map(async (b) => [b.batch_index, await getBatchReview(origin, b.batch_index)] as const)),
       );
-      setState({ status: "ready", data: { preview, batches, reviews } });
+      setState({ status: "ready", data: { preview, batches, reviews, current } });
     } catch (error) {
       setState({ status: "error", ...codeOf(error) });
     }
@@ -233,7 +242,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const body = (() => {
     if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
-    const { preview, batches, reviews } = state.data;
+    const { preview, batches, reviews, current } = state.data;
     const allPass = preview.checks.every((c) => c.ok);
     const allApproved = batches.batches.every((b) => reviews[b.batch_index]?.review.present);
     const reasons = Object.entries(preview.excluded.by_reason).sort(([a], [b]) => a.localeCompare(b));
@@ -244,6 +253,13 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
           <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">{allPass ? t("title") : t("titleBlocked")}</h1>
           <p className="mt-2 inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted">{t("live")}</p>
+          {current ? (
+            <p className="mt-3">
+              <a className="inline-flex min-h-11 items-center text-brand underline" href={exportHref(locale, origin)} data-export-link>
+                {t("exportLink")}
+              </a>
+            </p>
+          ) : null}
         </header>
 
         {refusal ? <StateCard locale={locale} code={refusal.code} message={refusal.message} consoleOrigin={origin} /> : null}
