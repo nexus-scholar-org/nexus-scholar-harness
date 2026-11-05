@@ -10,7 +10,7 @@ Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `scre
 - "Sample check of agreed exclusions · 60 checked · 0 wrong" is shown only when the AI-agreed-exclusion opt-in was on; otherwise the check row reads "You decided every record".
 - The PRISMA box has no "agreed by the agent" exclusions unless the opt-in was on. The methods paragraph carries the automation-use statement (disclosure of agent use, queue ordering, and opt-in).
 - "Agreement with the agent report attached" shows concordance, never kappa.
-- "Unclear, to full text" (94) goes to `fulltext_queue.json` (stored `MAYBE`).
+- "Unclear, to full text" (94) is stored `MAYBE` and is written into `included.json` with `screening.decision = "MAYBE"`; there is no `fulltext_queue.json` (the D8 file row and note are removed; researcher, 2026-11-05, spec 10 decision 6). The unclear export on `/screening/export` (spec 10) is the full-text list, linked from this screen once the status is CURRENT.
 - Check "Conflicts between devices resolved" blocks Publish while any study has an open conflict.
 
 ## Entry / exit
@@ -48,7 +48,7 @@ Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `scre
 | `POST /api/v1/screening/lan/pair` | ✗ M2 |
 
 ## States
-- **Default (D8)**: h1 "All 3,241 records are decided. Approve this generation to publish the screening." PRISMA 2020 preview card (badge "Preview · not written"): identified, duplicates removed, screened, reports sought, excluded with reasons table, note on `fulltext_queue.json`. Checks card. Side: "Will be written" list, gate panel (generation fingerprint, code field, "Approve and publish" brand, "Defer with a reason"), and the phone card (QR) from 01.
+- **Default (D8)**: h1 "All 3,241 records are decided. Approve this generation to publish the screening." PRISMA 2020 preview card (badge "Preview · not written"): identified, duplicates removed, screened, reports sought, excluded with reasons table, note that unclear records are kept in `included.json` as "Unclear, to full text". Checks card. Side: "Will be written" list (the five published files `included.json`, `excluded.json`, `conflicts.json`, `prisma_screening_report.md`, `prisma_report.json`, plus `generation.json`; no `fulltext_queue.json`), gate panel (generation fingerprint, code field, "Approve and publish" brand, "Defer with a reason"), and the phone card (QR) from 01.
 - **Empty**: nothing decided → Publish disabled, link to 03.
 - **Loading**: skeleton PRISMA cards; publish shows job status.
 - **Error**: `APPROVAL_MISSING` (✓ `src/scholar_harness/authority/binding.py:42`), `PAIRING_CODE_INVALID` (✓ `src/scholar_harness/authority/pairing.py:65`), `APPROVAL_NOT_OPERATOR` (✓ `src/scholar_harness/authority/binding.py:43`), `COVERAGE_INCOMPLETE` (✓ `src/scholar_harness/screening/integrity.py:20`), `UNRESOLVED_FINALIZE_REFUSED` (✓ `integrity.py:24`), `STALE_BINDING` (✓ `integrity.py:28`), `ACTION_ORIGIN_REFUSED` (✓ `screening.py:1319`), `BATCH_INCOMPLETE` (conflicted study left out of the projection), `TOKEN_SCOPE_REFUSED` (phone connect), `ENGINE_UNREACHABLE` (client-side).

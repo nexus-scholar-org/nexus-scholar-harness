@@ -353,6 +353,9 @@ def cmd_collect(workspace_dir: Path) -> None:
 
     # Collect all decisions
     all_decisions: list[ScreeningDecision] = []
+    # Each decision's reason code, for the PRISMA exclusion reasons (an
+    # exclusion failing an inclusion criterion has no violated exclusion).
+    reason_codes: dict[str, str] = {}
     missing_batches: list[int] = []
     # AG-02 lineage recorded per batch index on acceptance: decision-file
     # hash plus the parent binding it was collected against. Merged into
@@ -628,6 +631,8 @@ def cmd_collect(workspace_dir: Path) -> None:
             matched = list(final_source.get("matched_inclusion_criteria") or [])
             violated = list(final_source.get("violated_exclusion_criteria") or [])
             rqs = list(final_source.get("relevant_rqs") or [])
+            if final_source.get("reason_code"):
+                reason_codes[wid] = str(final_source["reason_code"])
 
             all_decisions.append(
                 ScreeningDecision(
@@ -1024,6 +1029,8 @@ def cmd_collect(workspace_dir: Path) -> None:
                     )
                 )
                 legacy_appends.append(sd)
+                if entry.get("reason_code"):
+                    reason_codes[wsid] = str(entry["reason_code"])
 
             if contract_decisions:
                 run_id = manifest.get("screening_run_id") or batch_env["run_id"]
@@ -1188,6 +1195,7 @@ def cmd_collect(workspace_dir: Path) -> None:
         all_decisions,
         total_identified=total_identified,
         duplicates_removed=duplicates_removed,
+        reason_codes=reason_codes,
     )
 
     # AG-03C shared authorization gate (BEGIN)

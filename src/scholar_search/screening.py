@@ -457,6 +457,7 @@ def partition_screening_results(
     decisions: list[ScreeningDecision],
     total_identified: int = 0,
     duplicates_removed: int = 0,
+    reason_codes: dict[str, str] | None = None,
 ) -> tuple[
     list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], PrismaFlowReport
 ]:
@@ -466,6 +467,11 @@ def partition_screening_results(
     Bug fix: Build doc_map with DOI as a secondary fallback key so that documents
     whose workspace_id was not assigned (None) during the pipeline can still be
     matched by their DOI, preserving their full metadata (especially abstract).
+
+    ``reason_codes`` maps a study to the reason code its decision carried. An
+    exclusion with no violated exclusion criterion (for example one that
+    fails an inclusion criterion, ``FAILS-INC-01``) is counted under that
+    code, as the PRISMA preview counts it, never as ``UNSPECIFIED``.
     """
     # Primary key: workspace_id. Secondary fallback: DOI.
     doc_map_by_wsid: dict[str, Document] = {}
@@ -508,7 +514,8 @@ def partition_screening_results(
             included_items.append(doc_dict)
         else:
             excluded_items.append(doc_dict)
-            for exc_code in dec.violated_exclusion_criteria or ["UNSPECIFIED"]:
+            code = (reason_codes or {}).get(dec.workspace_id)
+            for exc_code in dec.violated_exclusion_criteria or [code or "UNSPECIFIED"]:
                 reason_counts[exc_code] = reason_counts.get(exc_code, 0) + 1
 
     report = PrismaFlowReport(

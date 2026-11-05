@@ -601,3 +601,22 @@ def test_m1b1_redeeming_one_batch_of_several_approves_it_without_staging_publica
     assert final["publication_approval_fingerprint"]  # the last batch stages publication
     cmd_collect(ws)
     assert (ws / "literature" / "included.json").is_file()
+
+
+def test_published_prisma_counts_a_fails_inclusion_exclusion_by_its_reason(ws):
+    # M5-slim: an EXCLUDE whose reason is a failed inclusion criterion was
+    # counted as UNSPECIFIED in the published prisma_report.json, while the
+    # live PRISMA preview counted it by its code.
+    studies = _studies(ws)
+    inclusion = sorted(ev.load_context(ws).inclusion_ids)[0]
+    _intake(ws, [
+        _event(ws, studies[0], "EXCLUDE", reason_code=f"FAILS-{inclusion}"),
+        _event(ws, studies[1], "EXCLUDE"),
+        *[_event(ws, s, "INCLUDE") for s in studies[2:]],
+    ])
+    ev.write_projection(ws, 1, SCREENER, workspace_id=WS_ID)
+    _stage_approval(ws)
+    cmd_collect(ws)
+    report = json.loads((ws / "literature" / "prisma_report.json").read_text(encoding="utf-8"))
+    assert report["exclusion_reasons_breakdown"] == {f"FAILS-{inclusion}": 1, "EXC-01": 1}
+    assert "UNSPECIFIED" not in (ws / "literature" / "prisma_screening_report.md").read_text(encoding="utf-8")

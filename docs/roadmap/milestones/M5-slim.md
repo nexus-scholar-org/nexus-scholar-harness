@@ -8,8 +8,8 @@ Plan: [`production-plan.md`](../production-plan.md) §6 (M5-slim row), §5.3 sta
 - [x] **Static export served by FastAPI:** the UI is a static export served by the one FastAPI process, same origin, behind a per-launch token; the dev proxy and the `/` → `/en` redirect move into FastAPI; `next dev` stays for development only. Test: the exported app and `/api/v1` answer from one origin without the Next server. Done: `npm run build:export` (`NEXT_STATIC_EXPORT=1`, `.next-export/`); the console serves it and its browser surface (`console/browser.py`: launch cookie, the proxy's allowlist kept equal to `route.ts`); `tests/console/test_browser_access.py`; decision 2026-11-05 "launch cookie and the proxy's allowlist".
 - [x] **`nexus-scholar ui [--workspace <path> | --root <folder>]`** starts the server and opens the browser; Open on the workspace screen restarts it on the chosen folder (spec 00). Test: launch, token required, restart on open, `WORKSPACE_BUSY`. Done: `console/launcher.py`, `tests/test_ui_launcher.py` (a real server restarts and the session survives); no workspace open → only the workspaces routes answer. The UI's "Opening {title}" handling is part of the screen item.
 - [x] **Minimal workspace screen** (spec `docs/ux/phase2-screening/final/00-workspaces.md`): list, open, create; its vitest and Playwright checks. Done: `components/workspaces-screen.tsx` at `/workspaces` (en/fr/ar, live-only), the seven refusal cards in `lib/screening-states.ts`, an "All workspaces" link in the screening steps bar; `tests/workspaces.test.tsx` (13), `tests-browser/workspaces.spec.ts` (create, open with the restart wait, busy, RTL, phone; light and dark). The dev proxy also allows the two workspace writes, kept equal to `console/browser.py`.
-- [ ] **Decision export** (RIS/CSV) of the published screening; spec first (screen 09 or a new spec), FINAL before UI.
-- [ ] **Methods paragraph** with PRISMA counts and the automation-use statement; spec first.
+- [ ] **Decision export** (RIS/CSV) of the published screening. Spec `10-export-and-methods.md` FINAL (researcher, 2026-11-05); needs the `queue_order` setting first.
+- [ ] **Methods paragraph** with PRISMA counts and the automation-use statement; spec 10 (facts and counts only, show and copy).
 - [ ] **Data-flow statement**, one page: what leaves the machine, to which provider (API drivers, MCP route).
 - [ ] **`.mcpb` Desktop Extension** for `scholar-agent`, and `nexus-scholar setup-mcp` writing no key to any file (CORE-17).
 - [ ] **Honest "not production" labels** (§8): a shared `ParkedNotice` on parked routes/panels; parked kits marked in `docs/kits_surface_matrix.md` and the user guide; parked CLI `--help` notices; parked MCP tools return a typed refusal or warning.
@@ -22,6 +22,7 @@ Plan: [`production-plan.md`](../production-plan.md) §6 (M5-slim row), §5.3 sta
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| Published PRISMA counted an exclusion that fails an inclusion criterion (`FAILS-INC-01`) as `UNSPECIFIED`; the live preview counted it by its code (found while writing spec 10; fixed in M5-slim, researcher 2026-11-05) | `tests/test_screening_events.py::test_published_prisma_counts_a_fails_inclusion_exclusion_by_its_reason` | yes | yes |
 
 ## Decisions
 - [2026-11-05 — The minimal workspace screen: root, open, create](../../decisions.md)
