@@ -366,11 +366,13 @@ def gate_estimate(
     from scholar_agent import prompt_gate as pg
 
     _frozen, records, _protocol, spec = _gate_inputs(workspace, limit or None, model, effort, 4096)
-    result = pg.estimate(records, spec, provider=provider)
+    batch = provider == "anthropic" and len(records) > pg.DIRECT_LIMIT
+    result = pg.estimate(records, spec, provider=provider, batch=batch)
     cost = f"${result['cost_usd']:.2f}" if result["cost_usd"] is not None else "not priced"
+    pricing = "Batches, half price" if batch else "direct calls, full price"
     console.print(
         f"{result['records']} records · {provider}/{model} at {effort} effort · estimate {cost} "
-        f"(Batches, prices as of {result['prices_as_of']}; an estimate, not a measurement)"
+        f"({pricing}, prices as of {result['prices_as_of']}; an estimate, not a measurement)"
     )
     console.print(f"assumptions: {result['assumptions']}  tokens: {result['tokens']}")
 
@@ -395,7 +397,8 @@ def gate_run(
     from scholar_agent.keys import resolve_key
 
     frozen, records, protocol, spec = _gate_inputs(workspace, limit or None, model, effort, max_tokens)
-    estimate = pg.estimate(records, spec, provider=provider)
+    batch = provider == "anthropic" and len(records) > pg.DIRECT_LIMIT
+    estimate = pg.estimate(records, spec, provider=provider, batch=batch)
     if not yes:
         console.print(f"[yellow]Not run. Estimate: {estimate['cost_usd']} USD for {estimate['records']} records. Add --yes to spend your key.[/yellow]")
         raise typer.Exit(1)
@@ -403,10 +406,10 @@ def gate_run(
     if key is None and provider != "openai_compatible":
         console.print(f"[bold red]❌ No {provider} key. Run: nexus-scholar keys set {provider}[/bold red]")
         raise typer.Exit(1)
-    driver = make_driver(provider, api_key=key, base_url=base_url or None)
+    options = {"direct_limit": pg.DIRECT_LIMIT} if provider == "anthropic" else {}
+    driver = make_driver(provider, api_key=key, base_url=base_url or None, **options)
     console.print(f"Running {len(records)} records on {provider}/{model} …")
     results = driver.run(pg.requests_for(records), spec)
-    batch = provider == "anthropic" and len(records) > getattr(driver, "direct_limit", 0)
     out = pg.report(frozen=frozen, records=records, results=results, protocol=protocol, provider=provider, spec=spec, batch=batch)
     out["estimate"] = estimate
     out["smoke_run"] = bool(limit)

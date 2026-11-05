@@ -39,6 +39,8 @@ BAR = 0.90
 SEED = 20261105
 EXCLUDES = 1000
 SET_FILE = task_mod.HERE / "eval" / "v03_set.json"
+#: Runs this small use direct calls (full price) instead of Message Batches.
+DIRECT_LIMIT = 20
 RESULTS_DIR = task_mod.HERE / "eval" / "results"
 
 
@@ -211,7 +213,15 @@ def cost_usd(usage: dict[str, int], price: dict[str, float], *, batch: bool) -> 
     return round(total * factor, 4)
 
 
-def estimate(records: list[EvalRecord], spec: RunSpec, *, provider: str, output_tokens_per_record: int = 600, chars_per_token: float = 3.5) -> dict[str, Any]:
+def estimate(
+    records: list[EvalRecord],
+    spec: RunSpec,
+    *,
+    provider: str,
+    batch: bool = True,
+    output_tokens_per_record: int = 600,
+    chars_per_token: float = 3.5,
+) -> dict[str, Any]:
     """A pre-run estimate: input from text length, output assumed (thinking included).
 
     It is an estimate, never a measurement: the tokenizer differs by model, and
@@ -232,7 +242,8 @@ def estimate(records: list[EvalRecord], spec: RunSpec, *, provider: str, output_
         "records": n,
         "tokens": usage,
         "assumptions": {"chars_per_token": chars_per_token, "output_tokens_per_record": output_tokens_per_record},
-        "cost_usd": cost_usd(usage, price, batch=True) if price else None,
+        "cost_usd": cost_usd(usage, price, batch=batch) if price else None,
+        "batch": batch,
         "prices_as_of": prices["as_of"],
         "priced": price is not None,
     }
