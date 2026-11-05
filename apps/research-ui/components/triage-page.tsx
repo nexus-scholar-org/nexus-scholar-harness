@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
+import { ScreeningSteps, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
 import {
   decisionEvent,
@@ -101,6 +102,7 @@ function Abstract({ text, highlights }: Readonly<{ text: string; highlights: Rec
 export function TriagePage({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+      <ScreeningSteps locale={locale} current="triage" consoleOrigin={consoleOrigin()} />
       <TriageScreen locale={locale} />
     </div>
   );
@@ -437,10 +439,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
               <p>{view === "needs_you" ? t("allDecided") : t("queueEmpty")}</p>
               {view === "needs_you" ? (
                 <p className="mt-2 flex flex-col gap-1">
-                  <a className="text-brand underline" href={`/${locale}/screening/publish${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}>
+                  <a className="text-brand underline" href={stepHref(locale, "publish", origin)}>
                     {t("toPublish")}
                   </a>
-                  <a className="text-brand underline" href={`/${locale}/screening`}>
+                  <a className="text-brand underline" href={stepHref(locale, "home", origin)}>
                     {t("toHome")}
                   </a>
                 </p>
