@@ -1,5 +1,5 @@
-// The packaged app's static export (M5-slim). `next build` with
-// NEXT_STATIC_EXPORT=1 writes every page as HTML to `.next-static/`, which the
+// The packaged app's prerendered export (M5-slim). `next build` with
+// NEXT_STATIC_EXPORT=1 writes every page as HTML to `.next-export/`, which the
 // console serves (`nexus-scholar ui`) and the wheel bundles (`hatch_build.py`).
 // A script rather than `NEXT_STATIC_EXPORT=1 next build` in package.json, so it
 // runs the same way on Windows.

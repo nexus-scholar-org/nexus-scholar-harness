@@ -45,7 +45,7 @@ jobs:
         working-directory: apps/research-ui
         run: |
           npm ci
-          npm run build:static
+          npm run build:export
 
       - name: Build the nexus-scholar wheel
         # The root package since the 2026-11-03 kit merge; it carries the app.

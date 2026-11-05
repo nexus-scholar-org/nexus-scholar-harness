@@ -229,6 +229,69 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لا يمكن قياس تكلفة هذا النموذج", "لا سعر مسجّل له، فلا يمكن فرض سقف للتكلفة. شغّله دون سقف أو اختر نموذجًا مسعّرًا.", "هذا التشغيل", "إزالة السقف"),
     },
   },
+  WORKSPACE_TITLE_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That title cannot name a folder", "It has no letters or digits to make a folder name from. Use a longer title.", "Creating this workspace", "Change the title"),
+      fr: T("Ce titre ne peut pas nommer un dossier", "Il ne contient ni lettre ni chiffre pour former un nom de dossier. Utilisez un titre plus long.", "La création de cet espace", "Modifier le titre"),
+      ar: T("لا يصلح هذا العنوان اسمًا لمجلد", "لا يحتوي على حروف أو أرقام تكفي لاسم مجلد. استخدم عنوانًا أطول.", "إنشاء مساحة العمل هذه", "تعديل العنوان"),
+    },
+  },
+  WORKSPACE_EXISTS: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("A workspace for this title already exists", "Its folder is already in the workspaces folder. Open it, or choose another title.", "Creating this workspace", "Choose another title"),
+      fr: T("Un espace existe déjà pour ce titre", "Son dossier est déjà dans le dossier des espaces. Ouvrez-le, ou choisissez un autre titre.", "La création de cet espace", "Choisir un autre titre"),
+      ar: T("توجد مساحة عمل بهذا العنوان", "مجلدها موجود في مجلد مساحات العمل. افتحها أو اختر عنوانًا آخر.", "إنشاء مساحة العمل هذه", "اختيار عنوان آخر"),
+    },
+  },
+  WORKSPACE_PATH_REFUSED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That folder is outside the workspaces folder", "Only folders directly inside the workspaces folder can be created or opened here.", "This workspace", "Choose another"),
+      fr: T("Ce dossier est hors du dossier des espaces", "Seuls les dossiers placés directement dans le dossier des espaces peuvent être créés ou ouverts ici.", "Cet espace", "En choisir un autre"),
+      ar: T("هذا المجلد خارج مجلد مساحات العمل", "لا يمكن هنا إنشاء أو فتح إلا المجلدات الموجودة مباشرة داخل مجلد مساحات العمل.", "مساحة العمل هذه", "اختيار غيرها"),
+    },
+  },
+  WORKSPACE_ROOT_UNAVAILABLE: {
+    role: "blocked",
+    action: "retry",
+    copy: {
+      en: T("The workspaces folder cannot be used", "It cannot be read or written, or the new workspace could not be written there. The reason is below.", "Listing and creating workspaces", "Try again"),
+      fr: T("Le dossier des espaces est inutilisable", "Il ne peut être lu ou écrit, ou le nouvel espace n'a pas pu y être écrit. La raison figure ci-dessous.", "La liste et la création des espaces", "Réessayer"),
+      ar: T("تعذّر استخدام مجلد مساحات العمل", "لا يمكن قراءته أو الكتابة فيه، أو تعذّرت كتابة مساحة العمل الجديدة فيه. السبب أدناه.", "عرض مساحات العمل وإنشاؤها", "إعادة المحاولة"),
+    },
+  },
+  WORKSPACE_NOT_VALID: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("Not a Nexus Scholar workspace", "This folder lacks a workspace file, or it no longer exists. Choose another workspace.", "Opening this workspace", "Reload the list"),
+      fr: T("Pas un espace Nexus Scholar", "Il manque à ce dossier un fichier d'espace, ou il n'existe plus. Choisissez un autre espace.", "L'ouverture de cet espace", "Recharger la liste"),
+      ar: T("ليست مساحة عمل Nexus Scholar", "ينقص هذا المجلد ملف من ملفات مساحة العمل، أو لم يعد موجودًا. اختر مساحة عمل أخرى.", "فتح مساحة العمل هذه", "إعادة تحميل القائمة"),
+    },
+  },
+  WORKSPACE_BUSY: {
+    role: "unclear",
+    action: "home",
+    copy: {
+      en: T("Work in progress would be stopped", "Opening another workspace restarts the app, which would end the agent run or the open approval in this one. Finish or cancel it first.", "Opening another workspace", "Go to screening home"),
+      fr: T("Un travail en cours serait interrompu", "Ouvrir un autre espace redémarre l'application, ce qui mettrait fin au passage de l'agent ou à l'approbation ouverte ici. Terminez-les ou annulez-les d'abord.", "L'ouverture d'un autre espace", "Aller à l'accueil de la sélection"),
+      ar: T("سيتوقف عمل جارٍ", "فتح مساحة عمل أخرى يعيد تشغيل التطبيق، فينهي تشغيل الوكيل أو الموافقة المفتوحة هنا. أكمِلهما أو ألغِهما أولًا.", "فتح مساحة عمل أخرى", "الانتقال إلى صفحة الفرز الرئيسية"),
+    },
+  },
+  RESTART_UNSUPPORTED: {
+    role: "blocked",
+    action: "terminal",
+    copy: {
+      en: T("This app cannot switch workspaces", "It was not started with `nexus-scholar ui`, so it cannot restart on another folder. Start it from the terminal instead.", "Opening another workspace", "nexus-scholar ui"),
+      fr: T("Cette application ne peut pas changer d'espace", "Elle n'a pas été lancée avec `nexus-scholar ui` et ne peut donc pas redémarrer sur un autre dossier. Lancez-la depuis le terminal.", "L'ouverture d'un autre espace", "nexus-scholar ui"),
+      ar: T("لا يستطيع هذا التطبيق تبديل مساحة العمل", "لم يُشغَّل بالأمر `nexus-scholar ui`، فلا يمكنه إعادة التشغيل على مجلد آخر. شغّله من الطرفية بدلًا من ذلك.", "فتح مساحة عمل أخرى", "nexus-scholar ui"),
+    },
+  },
   RUN_ALREADY_ACTIVE: {
     role: "unclear",
     action: "reload",

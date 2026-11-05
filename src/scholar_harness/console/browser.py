@@ -36,7 +36,7 @@ LAUNCH_CODE_SECONDS = 120.0
 
 _SEGMENT = re.compile(r"[A-Za-z0-9_-]+")
 
-#: POST targets the browser may reach; the proxy's list plus the workspaces routes.
+#: POST targets the browser may reach: exactly the proxy's list.
 POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
     re.compile(p)
     for p in (
@@ -47,10 +47,9 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/screening/prepare",
         r"api/v1/screening/proposals/(runs|calibrations)",
         r"api/v1/screening/proposals/runs/[A-Za-z0-9_-]+/cancel",
+        r"api/v1/workspaces(/open)?",
     )
 )
-#: Packaged-app only (the dev proxy has no workspace switching).
-PACKAGED_POST_PATHS: tuple[re.Pattern[str], ...] = (re.compile(r"api/v1/workspaces(/open)?"),)
 PUT_PATHS: tuple[re.Pattern[str], ...] = (re.compile(r"api/v1/screening/settings"),)
 #: The one GET with an effect: reading a draft records a reveal.
 READ_PROPOSAL = re.compile(r"api/v1/screening/records/[A-Za-z0-9_-]+/proposal")
@@ -109,7 +108,7 @@ def check(method: str, path: str, *, origin: str | None, host: str, fetch_site: 
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "the browser may use GET, HEAD, POST and PUT")
     if method == "PUT" and not any(p.fullmatch(inner) for p in PUT_PATHS):
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "PUT is served only for the screening settings")
-    if method == "POST" and not any(p.fullmatch(inner) for p in POST_PATHS + PACKAGED_POST_PATHS):
+    if method == "POST" and not any(p.fullmatch(inner) for p in POST_PATHS):
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "POST is served only for the screening actions and the workspaces")
     if READ_PROPOSAL.fullmatch(inner) and fetch_site not in (None, "same-origin", "none"):
         raise BrowserRefused(403, "CONSOLE_ORIGIN_REFUSED", "the agent's draft is read only from this app's own pages")

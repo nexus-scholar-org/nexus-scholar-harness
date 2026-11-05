@@ -27,7 +27,7 @@ from . import browser
 UI_DIR_ENV = "NEXUS_UI_DIR"
 DEFAULT_PORT = 8770
 _BUNDLE_PACKAGE = "scholar_harness_data"
-_REPO_EXPORT = Path(__file__).resolve().parents[3] / "apps" / "research-ui" / ".next-static"
+_REPO_EXPORT = Path(__file__).resolve().parents[3] / "apps" / "research-ui" / ".next-export"
 
 
 def resolve_ui_dir() -> Path | None:

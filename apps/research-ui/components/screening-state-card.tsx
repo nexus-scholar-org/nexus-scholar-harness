@@ -24,11 +24,22 @@ const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
 };
 
 const STEPS_LABEL: Record<Locale, string> = { en: "Screening steps", fr: "Étapes de la sélection", ar: "خطوات الفرز" };
+/** The way back to the workspaces screen (spec 00, M5-slim). */
+const WORKSPACES_LABEL: Record<Locale, string> = { en: "All workspaces", fr: "Tous les espaces", ar: "كل مساحات العمل" };
 
 export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly<{ locale: Locale; current: ScreeningStep; consoleOrigin?: string }>) {
   return (
     <nav aria-label={STEPS_LABEL[locale]} className="mb-6">
       <ol className="flex flex-wrap gap-2 text-sm">
+        <li>
+          <a
+            href={`/${locale}/workspaces${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`}
+            className="inline-flex min-h-11 items-center px-3 text-brand underline"
+            data-workspaces-link
+          >
+            {WORKSPACES_LABEL[locale]}
+          </a>
+        </li>
         {(Object.keys(STEP_LABELS[locale]) as ScreeningStep[]).map((step) => (
           <li key={step}>
             <a

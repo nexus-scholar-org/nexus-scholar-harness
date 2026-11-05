@@ -1330,7 +1330,7 @@ def ui(
     if ui_dir is None:
         console.print(
             "[bold red]❌ This install has no app bundle. From a source checkout, build it with "
-            "`npm --prefix apps/research-ui run build:static`, or point NEXUS_UI_DIR at a static export.[/bold red]"
+            "`npm --prefix apps/research-ui run build:export`, or point NEXUS_UI_DIR at a static export.[/bold red]"
         )
         raise typer.Exit(1)
     folder, _source = resolve_root(root)

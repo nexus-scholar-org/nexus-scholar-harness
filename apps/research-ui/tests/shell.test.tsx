@@ -156,6 +156,8 @@ describe("application shell (UI-01)", () => {
   });
 
   it("leaves the marker out, and states live data, only on the live-only screening steps", () => {
+    expect(isLiveOnlyPath("/en/workspaces", "en")).toBe(true);
+    expect(isLiveOnlyPath("/fr/workspaces/", "fr")).toBe(true);
     for (const step of ["home", "prepare", "proposals", "triage", "agreement", "publish"]) {
       expect(isLiveOnlyPath(`/en/screening/${step}`, "en")).toBe(true);
       expect(isLiveOnlyPath(`/ar/screening/${step}/`, "ar")).toBe(true);

@@ -483,8 +483,10 @@ describe("byte pins", () => {
       sha256: "b7a4c9c7c25ac1fde060f36bbcc7d7ab2ca6628e12f5a0fa51ce17ba36b1b3fb",
     },
     {
+      // M5-slim added the `build:export` script (the packaged app's export);
+      // no dependency changed, and package-lock.json keeps its pin.
       path: "package.json",
-      sha256: "41a417d2e5ef1267eae889acd6d3788a65c91167a619b0fa25a8689838636d29",
+      sha256: "d3b9d4d77871be9660116c89d2f6a60ff5ffacc301b37b74a3deb82a68e8df1d",
     },
     {
       path: "package-lock.json",

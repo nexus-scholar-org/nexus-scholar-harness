@@ -20,7 +20,7 @@ console (`src/scholar_harness/console/browser.py`), with the same rules:
   so it survives the restart onto another workspace.
 - The **allowlist is the proxy's** (GET/HEAD on plain `/api/v1/...` paths; POST
   and PUT only on its lists, only from this origin; the draft read only from
-  this app's pages), plus the packaged-only workspaces routes. A test keeps the
+  this app's pages); the workspaces routes join both lists. A test keeps the
   Python lists equal to `route.ts`.
 - The static UI holds no workspace data and is served without a session.
 

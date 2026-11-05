@@ -29,7 +29,7 @@ const staticExport = process.env.NEXT_STATIC_EXPORT === "1";
 const nextConfig: NextConfig = staticExport
   ? {
       output: "export",
-      distDir: process.env.NEXT_DIST_DIR ?? ".next-static",
+      distDir: process.env.NEXT_DIST_DIR ?? ".next-export",
       trailingSlash: true,
       pageExtensions: ["tsx"],
       images: { unoptimized: true },

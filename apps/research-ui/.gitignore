@@ -28,6 +28,6 @@ tsconfig.tsbuildinfo
 # into `.next-live` so it never overwrites a running `.next`.
 .next-live/
 
-# The packaged app's static export (M5-slim): `npm run build:static` writes it
+# The packaged app's prerendered export (M5-slim): `npm run build:export` writes it
 # here and the wheel bundles it (`hatch_build.py`).
-.next-static/
+.next-export/

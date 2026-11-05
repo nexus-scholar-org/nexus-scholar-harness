@@ -36,7 +36,7 @@ jobs:
         working-directory: apps/research-ui
         run: |
           npm ci
-          npm run build:static
+          npm run build:export
 
       - name: Build the nexus-scholar wheel
         env:

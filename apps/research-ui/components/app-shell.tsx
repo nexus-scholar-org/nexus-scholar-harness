@@ -27,14 +27,15 @@ export const MAIN_CONTENT_ID = "main-content";
 const LIVE_SCREENING_STEPS = ["home", "prepare", "proposals", "triage", "agreement", "publish"];
 
 /**
- * Whether a route only ever shows live workspace data. Those routes have no
+ * Whether a route only ever shows live workspace data (the six screening steps
+ * and, since M5-slim, the workspaces screen). Those routes have no
  * fixture to fall back to, so the `Demonstration data` marker would be false
  * there; every other route keeps it, including `/screening`, which still
  * defaults to the demonstration record.
  */
 export function isLiveOnlyPath(pathname: string, locale: Locale): boolean {
   const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
-  return LIVE_SCREENING_STEPS.some((step) => path === `/${locale}/screening/${step}`);
+  return path === `/${locale}/workspaces` || LIVE_SCREENING_STEPS.some((step) => path === `/${locale}/screening/${step}`);
 }
 
 /**

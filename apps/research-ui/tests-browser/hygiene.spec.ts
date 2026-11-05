@@ -265,7 +265,6 @@ const COLLATERAL_EMITTED = new Set([
   "ordinal", // "a marginal ordinal" — evidence-chain / workflow-timeline
   "rounded", // "rounded" in the shape prose; not a group member of rounded-full
   "shadow", // "shadowed" / "drop shadow" in the shape prose
-  "table", // "a single ruled table" — page.tsx / workflow-timeline
 ]);
 
 test.describe("browser-suite hygiene", () => {

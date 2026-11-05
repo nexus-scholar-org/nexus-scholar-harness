@@ -15,7 +15,7 @@
     "test:related": "vitest related --run --passWithNoTests",
     "test:browser": "playwright test",
     "test:watch": "vitest",
-    "build:static": "node scripts/build-static.mjs"
+    "build:export": "node scripts/build-export.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
