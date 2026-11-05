@@ -4,6 +4,31 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — The minimal workspace screen: root, open, create (M5-slim)
+
+Spec `docs/ux/phase2-screening/final/00-workspaces.md` (FINAL). The
+researcher's answers, 2026-11-05:
+
+- **Root:** `--root`, then `NEXUS_WORKSPACES_ROOT`, then
+  `~/Documents/Nexus Scholar/workspaces`; `--workspace <path>` still opens one
+  folder and skips the screen. No settings screen or config file.
+- **Open restarts** the engine and UI on the chosen folder (no in-place
+  rebind, so no run state, pairing, phone token or cache crosses workspaces).
+  It is refused `WORKSPACE_BUSY` while an agent run or an approval pairing is
+  active, since a restart would kill it. Opening writes no journal event.
+- **Create** asks for a title only; the folder is `{root}/{slug}`; an existing
+  folder is refused `WORKSPACE_EXISTS`, never suffixed. It runs the same
+  scaffold and support files as `nexus-scholar init --scaffold-only`, and its
+  placeholder protocol is shown as a draft (no Contract v1 change).
+- **Listing:** a folder counts as a workspace when it has `protocol.json`,
+  `project.json` and `audit/journal.jsonl` (`.mcp.json` is not required);
+  others are hidden behind "n folders skipped · Show them". `GET /workspaces`
+  returns absolute paths (desktop-only, local).
+- `docs/architecture/workspaces-api.md` is written and agreed before the
+  engine work, with the codes `WORKSPACE_TITLE_INVALID`, `WORKSPACE_EXISTS`,
+  `WORKSPACE_PATH_REFUSED`, `WORKSPACE_ROOT_UNAVAILABLE`, `WORKSPACE_NOT_VALID`,
+  `WORKSPACE_BUSY`.
+
 ## 2026-11-05 — M1b-2 merges before its live prompt gate; the gate blocks M5-slim
 
 The live prompt gate (Opus 5.5 on the frozen v03 set, Wilson lower bound of
