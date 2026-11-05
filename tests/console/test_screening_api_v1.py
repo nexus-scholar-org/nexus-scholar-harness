@@ -244,6 +244,22 @@ def test_prepare_refuses_without_an_accepted_snapshot(tmp_path):
     assert response.json()["detail"]["code"] == "SNAPSHOT_NOT_ACCEPTED"
 
 
+def test_summary_before_prepare_is_an_empty_progress_not_a_refusal(tmp_path):
+    """Golden run, 2026-11-05: before batches exist the home must offer Prepare.
+
+    `/summary` refused SNAPSHOT_NOT_ACCEPTED (a `/prepare` code, contract §7)
+    whenever no batch was prepared, so an accepted corpus read as unaccepted.
+    """
+    ws = _workspace(tmp_path, prepare=False)
+    client = TestClient(create_app(ws), base_url="http://127.0.0.1")
+    response = client.get(f"{BASE}/summary")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert (body["total"], body["decided"], body["needs_you"], body["conflicts"]) == (0, 0, 0, 0)
+    assert body["by_outcome"] == {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
+    assert body["lanes"] == {"agent": 0, "you": 0, "second_screener": "PARKED"}
+
+
 def test_pairing_begin_needs_an_operator_context(client):
     response = client.post(f"{BASE}/actions/pairing/begin", json={"batch": 1})
     assert response.status_code == 409
