@@ -155,6 +155,8 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `CONSENT_REQUIRED` | `/proposals/runs` | no recorded consent for this provider |
 | `RUN_ALREADY_ACTIVE` | `/proposals/runs`, `/proposals/calibrations` | one agent run per workspace at a time |
 | `COST_CEILING_REACHED` | run status | the run stopped at its per-run hard cost ceiling; done proposals are kept |
+| `PROVIDER_KEY_MISSING` | `/proposals/runs`, `/proposals/calibrations` | no key for the provider in the OS keychain or the environment; set it with `nexus-scholar keys set <provider>` on this computer (M1b-2) |
+| `UNKNOWN_RUN` | `/proposals/runs/{id}` | no agent run with that id in this workspace (M1b-2) |
 | `PROVENANCE_MISSING` | events intake, collect | a decision lacks screener, method or `decided_at`; refused, never filled in (CON-11) |
 | `PROJECTION_STALE` | publish, PRISMA preview check | a `batch_NNN_decisions.json` differs from the decision events (its rewrite failed); publish refuses until a retry re-projects it (M1b-0) |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |

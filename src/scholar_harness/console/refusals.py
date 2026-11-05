@@ -39,6 +39,10 @@ CONSENT_REQUIRED = "CONSENT_REQUIRED"
 RUN_ALREADY_ACTIVE = "RUN_ALREADY_ACTIVE"
 #: A run stopped at its per-run cost ceiling; finished proposals are kept (M1b).
 COST_CEILING_REACHED = "COST_CEILING_REACHED"
+#: No key for the provider in the OS keychain or the environment (M1b-2).
+PROVIDER_KEY_MISSING = "PROVIDER_KEY_MISSING"
+#: No agent run with that id in this workspace (M1b-2).
+UNKNOWN_RUN = "UNKNOWN_RUN"
 
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
@@ -57,6 +61,8 @@ CONTRACT_ADDED = frozenset(
         CONSENT_REQUIRED,
         RUN_ALREADY_ACTIVE,
         COST_CEILING_REACHED,
+        PROVIDER_KEY_MISSING,
+        UNKNOWN_RUN,
         PROVENANCE_MISSING,
         PROJECTION_STALE,
     }
