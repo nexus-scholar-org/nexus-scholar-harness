@@ -644,3 +644,56 @@ def _scaffold_only_intent(title: str, slug: str, genesis_timestamp: str) -> dict
         matrix_dimensions=[],
     )
     return make_intent(survey, slug, genesis_timestamp)
+
+
+class WorkspaceScaffoldRefused(Exception):
+    """A placeholder workspace cannot be created; ``code`` names why."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code, self.message = code, message
+
+
+def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, timestamp: str | None = None) -> dict:
+    """The ``nexus-scholar init --scaffold-only`` workspace, without a console.
+
+    Shared by the CLI and the workspaces API (M5-slim): the canonical layout, a
+    deterministic placeholder protocol, the ``PROJECT_INITIALIZED`` + ``GENESIS``
+    journal rows written by ``log_genesis`` under ``agent``, then the support
+    files (skills, ``.env.example``, ``.mcp.json``). Refuses
+    ``WORKSPACE_TITLE_INVALID`` for a title with no slug and ``WORKSPACE_EXISTS``
+    for a folder that already carries an :data:`INIT_MARKERS` file or is a file.
+    """
+    from .intent import slugify
+
+    target = target.resolve()
+    slug = slugify(title)
+    if not slug:
+        raise WorkspaceScaffoldRefused("WORKSPACE_TITLE_INVALID", "the title has no letters or digits to make a folder name from")
+    if target.is_file() or (target.exists() and any((target / marker).exists() for marker in INIT_MARKERS)):
+        raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", f"{target} already holds a Nexus Scholar workspace")
+    target.mkdir(parents=True, exist_ok=True)
+    # A fixed timestamp gives a reproducible placeholder protocol (its fingerprint).
+    intent = _scaffold_only_intent(title, slug, timestamp or datetime.now(UTC).isoformat())
+    ws_dir = scaffold_raw_project(
+        target, title, slug, intent["primary_paradigm"], [rq["text"] for rq in intent["research_questions"]]
+    )
+    compiled = compile_protocol_files(ws_dir, intent)
+    log_genesis(
+        ws_dir,
+        f"nexus-scholar init (--scaffold-only): '{title}' compiled "
+        f"placeholder protocol fingerprint {compiled['protocol_fingerprint']}",
+        agent=agent,
+    )
+    support = install_workspace_support_files(target)
+    return {
+        "intent": intent,
+        "slug": slug,
+        "title": title,
+        "playbook": intent["playbook_type"],
+        "paradigm": intent["primary_paradigm"],
+        "protocol_fingerprint": compiled["protocol_fingerprint"],
+        "workspace_dir": str(ws_dir),
+        "recon_context": None,
+        "support": support,
+    }

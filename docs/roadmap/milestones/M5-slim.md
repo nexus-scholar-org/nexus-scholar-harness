@@ -4,7 +4,7 @@ Branch: dev/m5/package · Lane: **RELEASE** (closure; plan §6) · Status: IN PR
 Plan: [`production-plan.md`](../production-plan.md) §6 (M5-slim row), §5.3 stage 1 (A0 + MCP), §8 (parked labels). The branch also carries the workspace screen spec (`00-workspaces.md`, FINAL) and the MCP-route prompt-gate tool (`prompt-gate export|import`), both written after M1b-2 and merged in at the start.
 
 ## Definition of done
-- [ ] **Workspaces API contract** `docs/architecture/workspaces-api.md` agreed before engine work (decision 2026-11-05): `GET /workspaces`, `POST /workspaces`, `POST /workspaces/open`; the six `WORKSPACE_*` codes.
+- [x] **Workspaces API contract** `docs/architecture/workspaces-api.md` agreed before engine work (researcher, 2026-11-05): `GET /workspaces`, `POST /workspaces`, `POST /workspaces/open`; six `WORKSPACE_*` codes plus `RESTART_UNSUPPORTED`. Routes built: `src/scholar_harness/workspace/catalog.py`, `console/api/workspaces.py`; tests `tests/console/test_workspaces_api.py` (the restart itself is the launcher item below).
 - [ ] **Static export served by FastAPI:** the UI is a static export served by the one FastAPI process, same origin, behind a per-launch token; the dev proxy and the `/` → `/en` redirect move into FastAPI; `next dev` stays for development only. Test: the exported app and `/api/v1` answer from one origin without the Next server.
 - [ ] **`nexus-scholar ui [--workspace <path> | --root <folder>]`** starts the server and opens the browser; Open on the workspace screen restarts it on the chosen folder (spec 00). Test: launch, token required, restart on open, `WORKSPACE_BUSY`.
 - [ ] **Minimal workspace screen** (spec `docs/ux/phase2-screening/final/00-workspaces.md`): list, open, create; its vitest and Playwright checks.

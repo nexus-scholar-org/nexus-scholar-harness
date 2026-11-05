@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import hmac
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +31,7 @@ from .api import screening as screening_api
 from .api import screening_v1 as screening_v1_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
+from .api import workspaces as workspaces_api
 from .runtimes.job_runner import JobRunner
 
 #: Host names a loopback console answers to. ``serve`` passes exactly these.
@@ -79,6 +80,8 @@ def create_app(
     token: str | None = None,
     trusted_hosts: Iterable[str] | None = None,
     phone_tokens: Iterable[str] | None = None,
+    workspaces_root: str | Path | None = None,
+    on_open: Callable[[Path], None] | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -87,6 +90,11 @@ def create_app(
     ``token`` is set every route except ``/healthz`` needs
     ``Authorization: Bearer <token>``. ``serve`` always passes a token and
     :data:`LOOPBACK_HOSTS`; ``token=None`` is for in-process tests only.
+
+    ``workspaces_root`` is the folder the workspaces routes list (resolved
+    like ``nexus-scholar ui`` resolves it when omitted); ``on_open`` is the
+    launcher's restart hook, without which opening another workspace answers
+    ``RESTART_UNSUPPORTED`` (workspaces API §4).
     """
     ws = Path(workspace).resolve()
     if not ws.is_dir():
@@ -108,6 +116,12 @@ def create_app(
     app.state.workspace = ws
     app.state.job_runner = runner
     app.state.job_broadcast = broadcast
+    from scholar_harness.workspace.catalog import resolve_root
+
+    root, source = resolve_root(Path(workspaces_root) if workspaces_root is not None else None)
+    app.state.workspaces_root = root
+    app.state.workspaces_root_source = source
+    app.state.on_open = on_open
 
     # Loopback-only CORS for GET from a loopback page (e.g. `next dev` on
     # :3000). CORS alone does not stop writes: a cross-origin "simple" POST
@@ -155,6 +169,7 @@ def create_app(
         return await call_next(request)
 
     app.include_router(workspace_api.router)
+    app.include_router(workspaces_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)
     app.include_router(screening_v1_api.router)

@@ -160,6 +160,13 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `UNKNOWN_RUN` | `/proposals/runs/{id}` | no agent run with that id in this workspace (M1b-2) |
 | `DRIVER_UNAVAILABLE` | `/proposals/runs`, `/proposals/calibrations` | the provider's driver cannot be built: its SDK is not installed (the `ai` extra, 409) or a required setting such as the OpenAI-compatible base URL is missing (422); refused before the workspace lock is taken (M1b-2) |
 | `CEILING_NOT_PRICED` | `/proposals/runs`, `/proposals/calibrations` | a cost ceiling on a provider/model the dated price table does not price, so its cost cannot be measured; run it without a ceiling (M1b-2) |
+| `WORKSPACE_TITLE_INVALID` | `/workspaces` (create) | the title yields an empty folder name |
+| `WORKSPACE_EXISTS` | `/workspaces` (create) | the target folder already exists; never suffixed |
+| `WORKSPACE_PATH_REFUSED` | `/workspaces`, `/workspaces/open` | the folder is outside the workspaces root |
+| `WORKSPACE_ROOT_UNAVAILABLE` | `/workspaces` | the root is missing and cannot be created, unreadable, or not writable |
+| `WORKSPACE_NOT_VALID` | `/workspaces/open` | the folder is not a workspace, or no longer exists |
+| `WORKSPACE_BUSY` | `/workspaces/open` | an agent run is active or an approval is open; the restart would end it |
+| `RESTART_UNSUPPORTED` | `/workspaces/open` | the server was not started by `nexus-scholar ui` (M5-slim; all seven in `workspaces-api.md` §5) |
 | `PROVENANCE_MISSING` | events intake, collect | a decision lacks screener, method or `decided_at`; refused, never filled in (CON-11) |
 | `PROJECTION_STALE` | publish, PRISMA preview check | a `batch_NNN_decisions.json` differs from the decision events (its rewrite failed); publish refuses until a retry re-projects it (M1b-0) |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |

@@ -1,6 +1,6 @@
 # Workspaces API (M5-slim)
 
-Status: **PROPOSED**, for the researcher's agreement before any engine work (decision 2026-11-05, "The minimal workspace screen: root, open, create"). Screen: [`docs/ux/phase2-screening/final/00-workspaces.md`](../ux/phase2-screening/final/00-workspaces.md) (FINAL). Same conventions as [`screening-api-contract.md`](screening-api-contract.md): JSON over the console's `/api/v1`, refusals as `{"detail": {"code", "message"}}`, desktop-only unless a route is listed in `_PHONE_ROUTES` (`src/scholar_harness/console/serve.py`).
+Status: **AGREED** (researcher, 2026-11-05), before any engine work (decision 2026-11-05, "The minimal workspace screen: root, open, create"). Screen: [`docs/ux/phase2-screening/final/00-workspaces.md`](../ux/phase2-screening/final/00-workspaces.md) (FINAL). Same conventions as [`screening-api-contract.md`](screening-api-contract.md): JSON over the console's `/api/v1`, refusals as `{"detail": {"code", "message"}}`, desktop-only unless a route is listed in `_PHONE_ROUTES` (`src/scholar_harness/console/serve.py`).
 
 ## 1. What it is for
 
@@ -23,7 +23,7 @@ A folder under the root **is a workspace** when it contains `protocol.json`, `pr
 | Route | Purpose | Request → response | Scope |
 | :-- | :-- | :-- | :-- |
 | `GET /api/v1/workspaces?include_invalid=` | list the root | → `{root, root_source: "flag"\|"environment"\|"default", writable, current: {slug?, path}, busy: {run_active, pairing_open}, skipped_count, items: [{slug, title, path, valid, invalid_reason?, has_corpus, screening_started, last_event: {at, action}?, is_current}]}`. `items` holds valid workspaces; invalid folders are returned only with `include_invalid=true`, each with `valid: false` and `invalid_reason` (which marker is missing, or "unreadable"). `path` is absolute. `title` comes from `project.json`; `has_corpus` from the accepted corpus snapshot; `screening_started` from any decision event; `last_event` from the last line of `audit/journal.jsonl` | desktop |
-| `POST /api/v1/workspaces` | create | `{title}` → `201 {slug, path, protocol_fingerprint}`. The slug is derived as `init_command` derives it; the folder is `{root}/{slug}`. The server runs the same steps as `nexus-scholar init --scaffold-only`, then `install_workspace_support_files`. The journal gets the `PROJECT_INITIALIZED` and `GENESIS` rows that `log_genesis` already writes, with agent `nexus-scholar/ui`. A failure part-way removes the folder the request created and journals nothing | desktop, loopback origin |
+| `POST /api/v1/workspaces` | create | `{title}` → `201 {slug, path, protocol_fingerprint}`. The slug is derived as `init_command` derives it; the folder is `{root}/{slug}`. The server runs the same steps as `nexus-scholar init --scaffold-only`, then `install_workspace_support_files`. The journal gets the same `PROJECT_INITIALIZED` (agent `workspace-manager`) and `GENESIS` (agent `nexus-scholar/ui`) rows as the CLI writes. A failure part-way removes the folder the request created and journals nothing | desktop, loopback origin |
 | `POST /api/v1/workspaces/open` | switch workspace | `{slug}` → `202 {slug, path, restarting: true}`; then the server restarts on that folder (§4). Writes nothing and journals nothing | desktop, loopback origin |
 
 The `POST` routes check the loopback `Origin` like the screening actions (`ACTION_ORIGIN_REFUSED`). No delete, rename, move or import route.
@@ -48,7 +48,7 @@ New console codes (not Contract v1). They go in `src/scholar_harness/console/ref
 | Code | HTTP | Route | Meaning |
 | :-- | :-- | :-- | :-- |
 | `WORKSPACE_TITLE_INVALID` | 422 | create | the title yields an empty slug |
-| `WORKSPACE_EXISTS` | 409 | create | `{root}/{slug}` already holds an `INIT_MARKERS` file; never suffixed |
+| `WORKSPACE_EXISTS` | 409 | create | `{root}/{slug}` already exists (a workspace or any other folder); never suffixed. `details.path` names it |
 | `WORKSPACE_PATH_REFUSED` | 422 | create, open | the resolved folder is outside the root, a traversal, or a symlink out of it |
 | `WORKSPACE_ROOT_UNAVAILABLE` | 409 | list, create | the root is missing and cannot be created, unreadable, or not writable (create only) |
 | `WORKSPACE_NOT_VALID` | 409 | open | the folder lacks a canonical marker, or no longer exists |
