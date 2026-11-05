@@ -170,3 +170,23 @@ def test_agreement_counts_only_decisions_made_before_the_reveal(ws):
     assert body["decided_with_proposal"] == 1 and body["unclear_either_side"] == 1  # the pre-reveal INCLUDE vs an Unclear draft
     assert body["kappa"] is None and body["kappa_note"]
     assert body["table_2x2"] == {"both_include": 0, "you_include_agent_exclude": 0, "you_exclude_agent_include": 0, "both_exclude": 0}
+
+
+def test_setup_names_key_sources_never_keys_and_the_latest_run(ws, monkeypatch):
+    monkeypatch.setattr("scholar_agent.keys._from_keychain", lambda provider: "sk-secret" if provider == "anthropic" else None)
+    for var in ("OPENAI_API_KEY", "GEMINI_API_KEY"):
+        monkeypatch.delenv(var, raising=False)
+    client = _client(ws)
+    empty = client.get(f"{BASE}/proposals/setup").json()
+    assert empty["active_run"] is None and empty["latest_run"] is None
+    assert empty["task"]["prompt_sha256"] == task_mod.load_task().prompt_sha256
+    started = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()
+    body = client.get(f"{BASE}/proposals/setup")
+    assert "sk-secret" not in body.text
+    setup = body.json()
+    keys = {p["provider"]: p["key"] for p in setup["providers"]}
+    assert keys == {"anthropic": "keychain", "openai_compatible": "none", "gemini": "none"}
+    assert next(p for p in setup["providers"] if p["provider"] == "anthropic")["consent"]["accepted_at"] == CONSENT["accepted_at"]
+    assert setup["latest_run"]["run_id"] == started["run_id"] and setup["latest_run"]["state"] == "completed"
+    phone = client.get(f"{BASE}/proposals/setup", headers={"Authorization": f"Bearer {PHONE}"})
+    assert phone.status_code == 403

@@ -579,6 +579,38 @@ def _run_view(run: dict[str, Any]) -> dict[str, Any]:
     return view
 
 
+@router.get("/proposals/setup")
+def proposal_setup(request: Request) -> dict[str, Any]:
+    """What the run screen needs before a run: key presence (never a key), the task, consent, runs."""
+    from scholar_agent import keys
+    from scholar_agent.tasks import screening as task_mod
+
+    from ...screening import agent_runs as runs
+
+    ws = _ws(request)
+    task = task_mod.load_task()
+    consent = runs.read_consent(ws)
+    providers = [
+        {"provider": p, "key": keys.key_status(p).source, "consent": consent.get(p)}
+        for p in keys.ENV_VARS
+    ]
+    folder = ws / runs.RUNS_DIR
+    recorded = [json.loads(f.read_text(encoding="utf-8")) for f in folder.glob("RUN-*.json")] if folder.is_dir() else []
+    latest = max(recorded, key=lambda r: (r.get("started_at") or "", r["run_id"]), default=None)
+    return {
+        "task": {
+            "task_version": task.task_version,
+            "prompt_sha256": task.prompt_sha256,
+            "model": task.defaults.get("model"),
+            "effort": task.defaults.get("effort"),
+        },
+        "providers": providers,
+        "data_flow": runs.DATA_FLOW,
+        "active_run": runs.active_run(ws),
+        "latest_run": _run_view(latest) if latest else None,
+    }
+
+
 @router.get("/proposals/runs/{run_id}")
 def proposal_run_status(run_id: str, request: Request) -> dict[str, Any]:
     from ...screening import agent_runs as runs

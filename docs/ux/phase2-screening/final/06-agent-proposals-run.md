@@ -5,7 +5,7 @@ Board: `Proposals` (D3). Contract: `screening-api-contract.md` §4-§5; agent de
 **Purpose.** Decide whether and how the agent drafts proposals: choose the provider, see what leaves the machine and the cost, consent, run, and watch progress. Optional: check the agent on 30 of your labels first.
 
 **Changed from the canvas.**
-- **Provider at launch is Anthropic only** (M1b). The driver is the engine calling the API with the researcher's key (`driver: "api"`). Gemini is open (agent-system §9); there is no local model.
+- **Providers:** Anthropic (default), an OpenAI-compatible endpoint (with its URL) and Gemini (decision 2026-11-05, M1b split). The driver is the engine calling the API with the researcher's key (`driver: "api"`); there is no local model. The key is set in the terminal (`nexus-scholar keys set <provider>`) and kept in the OS keychain; the screen shows only where it is stored (`GET /proposals/setup`).
 - **Cost ceiling is a hard stop, set per run** (new field on the run gate; not on the canvas).
 - Canvas "Pause run" becomes **Cancel** (the contract has `POST /proposals/runs/{run_id}/cancel`, no pause). A cancelled or partial run can be resumed by starting a new run over the records without a draft.
 - **Ordering:** after a run, the queue can be ordered by the agent's uncertainty. That is a server-side queue view (03), disclosed in the methods paragraph, not a separate run.
@@ -24,6 +24,7 @@ Board: `Proposals` (D3). Contract: `screening-api-contract.md` §4-§5; agent de
 | :-- | :-- |
 | `{run_id, estimate{records, input_tokens, cost_usd}}` | response of `POST /proposals/runs` ✗ M1b (dry-run on one batch via the "Dry run" button) |
 | `{state, done, failed, refused, truncated, cost_so_far}` | `GET /proposals/runs/{run_id}` ✗ M1b |
+| `{task, providers[{provider, key, consent}], data_flow, active_run, latest_run}` | `GET /proposals/setup` (M1b-2) |
 | settings | `GET /settings` ✗ M1a |
 | previous runs, quarantined files | `GET /ui/audit-feed` ✓ `screening.py:1173`; `GET /ui/batches` ✓ `screening.py:572` |
 

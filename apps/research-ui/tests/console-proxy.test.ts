@@ -178,6 +178,10 @@ describe("console proxy — refusals", () => {
       ["api", "v1", "jobs", "start"],
       ["api", "v1", "pipelines"],
       ["api", "v1", "audit", "events"],
+      // The run routes are exact: no other proposals write is reachable.
+      ["api", "v1", "screening", "proposals"],
+      ["api", "v1", "screening", "proposals", "runs", "RUN-abc"],
+      ["api", "v1", "screening", "proposals", "setup"],
     ]) {
       const response = await POST(
         request(path.join("/"), {
@@ -256,6 +260,10 @@ describe("console proxy — writes", () => {
     ["decisions/events", ["decisions", "events"]],
     ["decisions/conflicts/STU-abc/resolve", ["decisions", "conflicts", "STU-abc", "resolve"]],
     ["prepare", ["prepare"]],
+    // M1b-2: agent runs and calibrations.
+    ["proposals/runs", ["proposals", "runs"]],
+    ["proposals/runs/RUN-abc/cancel", ["proposals", "runs", "RUN-abc", "cancel"]],
+    ["proposals/calibrations", ["proposals", "calibrations"]],
   ])("forwards the screening %s POST", async (route, segments) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ results: [] })));
