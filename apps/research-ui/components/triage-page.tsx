@@ -335,9 +335,16 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     setFocusIndex((i) => Math.min(i + 1, record.criteria.length - 1));
   }
 
-  // The keyboard map (spec 03); off inside text fields.
+  // The keyboard map (spec 03); off inside text fields. One listener for the
+  // screen's life calls the latest handler, so no key reads a stale render.
+  const keyHandler = useRef<(event: KeyboardEvent) => void>(() => undefined);
   useEffect(() => {
-    function onKey(event: KeyboardEvent) {
+    const listener = (event: KeyboardEvent) => keyHandler.current(event);
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, []);
+  useEffect(() => {
+    keyHandler.current = function onKey(event: KeyboardEvent) {
       if (event.key === "Enter" && reasonOpen && reason && deciding && complete) {
         event.preventDefault();
         void submit("EXCLUDE", { reasonCode: reason });
@@ -371,9 +378,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         else if (key === "unclear") void submit("MAYBE");
         else if (key === "exclude") setReasonOpen(true);
       }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    };
   });
 
   if (bootError) {
