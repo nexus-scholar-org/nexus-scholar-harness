@@ -4,7 +4,27 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-05 — No demonstration marker on the live-only screening steps (M1b-2)
+## 2026-11-05 — M1b-2 merges before its live prompt gate; the gate blocks M5-slim
+
+The live prompt gate (Opus 5.5 on the frozen v03 set, Wilson lower bound of
+include-recall >= 0.90; Sonnet 5.5 and Haiku 5.5 measured) needs API credit
+the researcher does not have yet. Two smoke attempts measured nothing: a
+placeholder key (401), then a real key on an account with no credit (400,
+credit balance too low); neither was billed. M1b-2 therefore merges as
+**code-complete with the prompt unmeasured** (researcher, 2026-11-05):
+
+- the PR says plainly that the bar is not yet measured: Opus 5.5 is not shown
+  to meet it, Sonnet and Haiku are unmeasured, and the agent-system §6 cost
+  per 1,000 records is still an estimate;
+- nothing in the product, its docs or its marketing may claim the agent passed
+  the gate, or quote a measured recall or cost, until a gate report exists;
+- the gate is a **blocking item for M5-slim**: no packaged release that runs
+  agent proposals ships before it passes on the default provider and model,
+  and its report and measured cost are recorded in the milestone file;
+- the stand-ins were declined: a free Gemini key would not test the decided
+  default and may let the provider use the records; a local model measures
+  the pipeline, not the product.
+
 
 The shell drew `Demonstration data` and "Read-only demonstrator" on every
 route, including the six screening steps (`/screening/home`, `prepare`,
