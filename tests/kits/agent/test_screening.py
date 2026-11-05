@@ -139,16 +139,15 @@ def test_screen_llm_happy_path_mock_llm(
         )
 
     data = json.loads(result)
-    assert data["status"] == "SUCCESS"
-    assert data["included"] >= 1
-    assert data["excluded"] >= 1
+    assert data["status"] == "PROPOSALS_ONLY"
+    assert data["proposed_include"] >= 1
+    assert data["proposed_exclude"] >= 1
 
     out = tmp_path / "literature"
-    assert (out / "included.json").exists()
-    assert (out / "excluded.json").exists()
-    assert (out / "conflicts.json").exists()
-    assert (out / "prisma_report.json").exists()
-    assert (out / "prisma_screening_report.md").exists()
+    # AGT-16 (M1a): MCP screening writes proposals only, never the published partition.
+    assert (out / "screening_proposals.json").exists()
+    for name in ("included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md"):
+        assert not (out / name).exists(), name
 
 
 # ---------------------------------------------------------------------------
@@ -172,14 +171,13 @@ def test_screen_llm_fallback_on_llm_failure(
         )
 
     data = json.loads(result)
-    assert data["status"] == "SUCCESS"
+    assert data["status"] == "PROPOSALS_ONLY"
 
     out = tmp_path / "literature"
-    assert (out / "included.json").exists()
-    assert (out / "excluded.json").exists()
-    assert (out / "conflicts.json").exists()
-    assert (out / "prisma_report.json").exists()
-    assert (out / "prisma_screening_report.md").exists()
+    # AGT-16 (M1a): MCP screening writes proposals only, never the published partition.
+    assert (out / "screening_proposals.json").exists()
+    for name in ("included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md"):
+        assert not (out / name).exists(), name
 
 
 def test_screen_llm_fallback_on_constructor_error(
@@ -197,11 +195,13 @@ def test_screen_llm_fallback_on_constructor_error(
         )
 
     data = json.loads(result)
-    assert data["status"] == "SUCCESS"
+    assert data["status"] == "PROPOSALS_ONLY"
 
     out = tmp_path / "literature"
-    assert (out / "included.json").exists()
-    assert (out / "excluded.json").exists()
+    # AGT-16 (M1a): MCP screening writes proposals only, never the published partition.
+    assert (out / "screening_proposals.json").exists()
+    for name in ("included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md"):
+        assert not (out / name).exists(), name
 
 
 # ---------------------------------------------------------------------------
@@ -237,5 +237,5 @@ def test_screen_llm_checklist_schema_used(
         )
 
     data = json.loads(result)
-    assert data["status"] == "SUCCESS"
+    assert data["status"] == "PROPOSALS_ONLY"
     mock_schema.assert_called_once()

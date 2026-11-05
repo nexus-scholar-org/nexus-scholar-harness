@@ -1,0 +1,47 @@
+{
+  "name": "prisma_preview",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/prisma/preview",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "checks": [
+        {
+          "detail": "every decision is a human decision event",
+          "name": "human_provenance",
+          "ok": true
+        },
+        {
+          "detail": "0 open",
+          "name": "no_open_conflicts",
+          "ok": true
+        },
+        {
+          "detail": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+          "name": "bound_to_current_protocol",
+          "ok": true
+        },
+        {
+          "detail": "0 not yet decided",
+          "name": "every_record_decided",
+          "ok": true
+        }
+      ],
+      "duplicates_removed": 0,
+      "excluded": {
+        "by_reason": {
+          "EXC-01": 1
+        },
+        "total": 1
+      },
+      "identified": 3,
+      "included": 1,
+      "not_yet_decided": 0,
+      "screened": 3,
+      "unclear_to_full_text": 1
+    },
+    "status": 200
+  }
+}

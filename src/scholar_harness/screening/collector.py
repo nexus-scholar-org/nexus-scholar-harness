@@ -41,6 +41,7 @@ from .integrity import (
     STALE_BINDING,
     ScreeningIntegrityRefused,
     bind_batch,
+    check_decision_provenance,
     check_exact_coverage,
     check_no_unresolved_for_finalize,
     decision_file_sha256,
@@ -231,6 +232,28 @@ def _refuse_single_batch(
         missing_batches.append(batch_index)
 
 
+def require_single_batch_parent(envelope: dict, registry: dict) -> None:
+    """Refuse a decisions artifact without exactly one batch parent (CON-13).
+
+    The frozen acceptance gate (``contracts/acceptance.py``, ``chain.py``) runs
+    its batch-id, binding and membership checks only when there is exactly one
+    ``screening_batch`` parent, and those files are locked by the Contract v1
+    baseline. The harness therefore checks this before every submission
+    (decision 2026-11-04). A caller that bypasses the harness is not covered;
+    that gap is recorded for Contract v1.1.
+    """
+    parents = envelope.get("inputs") or []
+    types = [
+        (registry.get("artifacts", {}).get(str(p.get("artifact_id"))) or {}).get("artifact_type")
+        for p in parents
+    ]
+    if types != ["screening_batch"]:
+        raise RuntimeError(
+            "screening collection blocked: a screening_decisions artifact needs "
+            f"exactly one screening_batch parent, got {types}"
+        )
+
+
 def cmd_collect(workspace_dir: Path) -> None:
     """Assemble all decision files into the final screening outputs."""
     screening_dir = _screening_dir(workspace_dir)
@@ -244,6 +267,19 @@ def cmd_collect(workspace_dir: Path) -> None:
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     raw_verified: list[dict] = json.loads(verified_path.read_text(encoding="utf-8"))
+
+    # Review B2: the event log is the authority. A decisions file that claims
+    # it but differs (its rewrite failed after a later decision) would publish
+    # an older decision that the staged review still matches; refuse instead.
+    from scholar_harness.screening import events as decision_events
+
+    stale = decision_events.stale_projections(workspace_dir)
+    if stale:
+        raise RuntimeError(
+            "screening collection blocked (PROJECTION_STALE): batch(es) "
+            f"{', '.join(f'{i:03d}' for i in stale)} differ from the decision events; "
+            "re-submit the last decision or re-open the batch so its file is rewritten"
+        )
 
     registry_path = workspace_dir / "audit" / "artifact_registry.json"
     registry = (
@@ -335,7 +371,9 @@ def cmd_collect(workspace_dir: Path) -> None:
     screener2_files = sorted(screening_dir.glob("batch_*_decisions_screener2.json"))
     adj_files = sorted(screening_dir.glob("_adjudication_resolved_group_*.json"))
 
-    if screener2_files and adj_files:
+    # CON-10: a second screener's file alone starts dual mode. Agreements need
+    # no adjudication; every disagreement still does (refused below).
+    if screener2_files:
         if corpus_env is None:
             raise RuntimeError(
                 "dual screening blocked: no accepted corpus snapshot is available"
@@ -419,6 +457,23 @@ def cmd_collect(workspace_dir: Path) -> None:
                 "refusing collection"
             )
 
+        def _dual_integrity(batch_idx: int, entries: list[dict], *, label: str) -> None:
+            """CON-14: the single path's gates, for each screener's file.
+
+            Exact coverage (no missing, extra or duplicate study) and no
+            CONFLICT row. MAYBE is terminal ("Unclear → full text").
+            """
+            canonical = [{**entry, "workspace_id": _canonical_wid(entry)} for entry in entries]
+            try:
+                check_exact_coverage(_batch_candidate_ids(batch_idx), canonical)
+                check_no_unresolved_for_finalize(canonical)
+            except ScreeningIntegrityRefused as refusal:
+                missing_batches.append(batch_idx)
+                raise RuntimeError(
+                    f"dual screening blocked: batch {batch_idx} {label} decisions "
+                    f"refused ({refusal.code}: {refusal.message})"
+                ) from refusal
+
         # Load Screener 1 decisions
         s1_map: dict[str, dict] = {}
         for b in manifest["batches"]:
@@ -430,6 +485,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                 except Exception:
                     continue
                 _check_batch_membership(idx, s1_entries, label="screener 1")
+                _dual_integrity(idx, s1_entries, label="screener 1")
                 for r in s1_entries:
                     s1_map[_canonical_wid(r)] = r
 
@@ -445,6 +501,7 @@ def cmd_collect(workspace_dir: Path) -> None:
             except Exception:
                 continue
             _check_batch_membership(idx, s2_entries, label="screener 2")
+            _dual_integrity(idx, s2_entries, label="screener 2")
             for r in s2_entries:
                 s2_map[_canonical_wid(r)] = r
 
@@ -565,7 +622,9 @@ def cmd_collect(workspace_dir: Path) -> None:
             ]
             decision = final_contract.decision.value
             final_source = a_entry if is_disputed else s2_entry
-            conf = float(final_source.get("confidence", 0.8))
+            # CON-11: no invented confidence.
+            raw_conf = final_source.get("confidence")
+            conf = None if raw_conf is None else float(raw_conf)
             matched = list(final_source.get("matched_inclusion_criteria") or [])
             violated = list(final_source.get("violated_exclusion_criteria") or [])
             rqs = list(final_source.get("relevant_rqs") or [])
@@ -631,6 +690,8 @@ def cmd_collect(workspace_dir: Path) -> None:
                     {
                         "kind": "screening-decisions-artifact",
                         "batch_id": batch_env["data"]["batch_id"],
+                        # CON-15: different decisions give a different id.
+                        "decision_ids": [item.decision_id for item in contract_decisions],
                     },
                 )
 
@@ -665,6 +726,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
 
+                require_single_batch_parent(dec_env, registry)
                 res = accept_artifact(
                     workspace_dir,
                     dec_env,
@@ -784,6 +846,11 @@ def cmd_collect(workspace_dir: Path) -> None:
                 }
                 check_exact_coverage(batch_candidate_ids, raw_decisions)
                 check_no_unresolved_for_finalize(raw_decisions)
+                check_decision_provenance(
+                    raw_decisions,
+                    wrapper_reviewer=decision_metadata["reviewed_by"],
+                    wrapper_timestamp=decision_metadata["timestamp"],
+                )
             except ScreeningIntegrityRefused as refusal:
                 _refuse_single_batch(
                     workspace_dir,
@@ -848,29 +915,31 @@ def cmd_collect(workspace_dir: Path) -> None:
                             or entry.get("doi"),
                         )
                     else:
-                        raw_dec = str(entry.get("decision", "INCLUDE")).upper()
+                        # CON-11: the provenance gate guarantees a decision.
+                        raw_dec = str(entry["decision"]).upper()
                         valid = {item.value for item in ScreeningDecisionValue}
                         if raw_dec not in valid:
                             raise ValueError(
                                 f"{decisions_file.name}: invalid decision {raw_dec!r}"
                             )
-                        # AG-02: explicit terminal values only. MAYBE/CONFLICT
-                        # were refused by the finalize gate above, so the
-                        # non-INCLUDE branch below only ever sees EXCLUDE:
-                        # unresolved rows are never silently coerced.
-                        if raw_dec == "INCLUDE":
-                            decision = "INCLUDE"
-                        elif raw_dec == "EXCLUDE":
-                            decision = "EXCLUDE"
+                        # AG-02: explicit terminal values only. CONFLICT was
+                        # refused by the finalize gate above; MAYBE is the
+                        # terminal outcome "Unclear → full text" (M1a).
+                        # Nothing is silently coerced.
+                        if raw_dec in ("INCLUDE", "EXCLUDE", "MAYBE"):
+                            decision = raw_dec
                         else:  # pragma: no cover - refused by the gate above
                             raise ValueError(
                                 f"{decisions_file.name}: unresolved decision "
                                 f"{raw_dec!r} cannot be finalized"
                             )
+                        # CON-11: no invented confidence. A human decision has
+                        # none; a model's is kept when it gave one.
                         try:
-                            confidence = float(entry.get("confidence", 0.80))
+                            raw_conf = entry.get("confidence")
+                            confidence = None if raw_conf is None else float(raw_conf)
                         except (TypeError, ValueError):
-                            confidence = 0.80
+                            confidence = None
 
                         sd = ScreeningDecision(
                             workspace_id=wsid,
@@ -884,7 +953,8 @@ def cmd_collect(workspace_dir: Path) -> None:
                             ),
                             relevant_rqs=list(entry.get("relevant_rqs") or []),
                             screening_reasoning=str(
-                                entry.get("screening_reasoning", "Agent screened.")
+                                entry.get("screening_reasoning")
+                                or entry.get("reason_code")
                             ),
                             document_title=doc.title if doc else entry.get("title", ""),
                             doi=doc.external_ids.doi if doc else None,
@@ -916,16 +986,15 @@ def cmd_collect(workspace_dir: Path) -> None:
                     or entry.get("timestamp")
                     or decision_metadata["timestamp"]
                 )
-                if not decided_at:
-                    # F-002: Stable fallback for legacy payloads missing timestamps
-                    decided_at = "1970-01-01T00:00:00+00:00"
+                # CON-11: the provenance gate guaranteed a real time, a
+                # screener and a method; nothing is defaulted here.
                 screener_id = str(
                     entry.get("screener_id") or decision_metadata["reviewed_by"]
                 )
-                method = MethodProvenance(str(entry.get("method") or "LLM").upper())
+                method = MethodProvenance(str(entry["method"]).upper())
                 dec_val = ScreeningDecisionValue(str(sd.decision).upper())
                 parent_ids = list(entry.get("parent_decision_ids") or [])
-                reason = str(sd.screening_reasoning or "Agent screened.")
+                reason = str(sd.screening_reasoning)
                 decision_id = deterministic_id(
                     IdentifierKind.SCREENING_DECISION,
                     batch_env["workspace_id"],
@@ -1017,6 +1086,7 @@ def cmd_collect(workspace_dir: Path) -> None:
                     corpus_fingerprint=batch_env["corpus_fingerprint"],
                 )
 
+                require_single_batch_parent(dec_env, registry)
                 res = accept_artifact(
                     workspace_dir, dec_env, expected=ctx, actor="agent_screen.collect"
                 )

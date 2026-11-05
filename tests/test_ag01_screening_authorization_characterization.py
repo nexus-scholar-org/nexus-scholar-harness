@@ -58,6 +58,12 @@ PROTOCOL_FIXTURE = (
     / "canonical"
     / "identity_base.json"
 )
+# CON-11: bare-list decision rows carry their own screener and decision time
+# so each test reaches the gate it characterizes, not PROVENANCE_MISSING.
+_ROW_PROVENANCE = {
+    "screener_id": "ag01-agent-screener",
+    "decided_at": "2026-10-11T12:00:00+00:00",
+}
 
 
 def _workspace(tmp_path: Path, n_docs: int = 1) -> tuple[Path, list[dict]]:
@@ -209,6 +215,7 @@ def test_publication_happens_with_no_authorization_record_anywhere(
                     "decision": "INCLUDE",
                     "method": "LLM",
                     "screening_reasoning": "Agent recommendation.",
+                    **_ROW_PROVENANCE,
                 }
             ]
         ),
@@ -261,6 +268,7 @@ def test_collect_takes_no_critique_input_and_needs_none(tmp_path: Path) -> None:
                     "decision": "EXCLUDE",
                     "method": "LLM",
                     "screening_reasoning": "No critique was ever written.",
+                    **_ROW_PROVENANCE,
                 }
             ]
         ),
@@ -295,6 +303,7 @@ def test_coverage_incomplete_file_is_accepted_today(tmp_path: Path) -> None:
         "decision": "INCLUDE",
         "method": "LLM",
         "screening_reasoning": "Only the first candidate was screened.",
+        **_ROW_PROVENANCE,
     }
     decisions_path.write_text(json.dumps([entry]), encoding="utf-8")
 
@@ -355,12 +364,14 @@ def test_duplicate_study_entries_are_accepted_today(tmp_path: Path) -> None:
             "decision": "INCLUDE",
             "method": "LLM",
             "screening_reasoning": "First row for the study.",
+            **_ROW_PROVENANCE,
         },
         {
             "workspace_id": studies[0]["study_id"],
             "decision": "INCLUDE",
             "method": "LLM",
             "screening_reasoning": "Second row for the same study.",
+            **_ROW_PROVENANCE,
         },
     ]
     decisions_path.write_text(json.dumps(entries), encoding="utf-8")
@@ -403,7 +414,7 @@ def test_duplicate_study_entries_are_accepted_today(tmp_path: Path) -> None:
     assert excinfo.value.code == "DUPLICATE_ENTRY"
 
 
-def test_maybe_decision_is_silently_coerced_to_exclude_today(
+def test_unresolved_conflict_is_refused_never_coerced_to_exclude(
     tmp_path: Path,
 ) -> None:
     """AG-01 fidelity gap, now fail-closed (AG-02 target met).
@@ -413,6 +424,9 @@ def test_maybe_decision_is_silently_coerced_to_exclude_today(
     and published as a terminal exclusion. Post-AG-02: typed fail-closed
     refusal UNRESOLVED_FINALIZE_REFUSED. Historical evidence retained;
     assertion updated to prevent regression to the defect.
+
+    M1a, decision 2026-11-04: MAYBE is now the terminal outcome "Unclear ->
+    full text", so the unresolved case characterized here is CONFLICT.
     """
     workspace, studies = _workspace(tmp_path)
     cmd_prepare(workspace, batch_size=20)
@@ -420,9 +434,10 @@ def test_maybe_decision_is_silently_coerced_to_exclude_today(
     decisions_path = screening / "batch_001_decisions.json"
     entry = {
         "workspace_id": studies[0]["study_id"],
-        "decision": "MAYBE",
+        "decision": "CONFLICT",
         "method": "LLM",
         "screening_reasoning": "Cannot tell from the abstract alone.",
+        **_ROW_PROVENANCE,
     }
     decisions_path.write_text(json.dumps([entry]), encoding="utf-8")
 
@@ -467,6 +482,8 @@ def test_maybe_decision_is_silently_coerced_to_exclude_today(
         check_no_unresolved_for_finalize([entry])
     assert excinfo.value.code == UNRESOLVED_FINALIZE_REFUSED
     assert excinfo.value.code == "UNRESOLVED_FINALIZE_REFUSED"
+    # M1a, decision 2026-11-04: MAYBE (Unclear) passes finalize as terminal.
+    check_no_unresolved_for_finalize([{**entry, "decision": "MAYBE"}])
 
 
 def test_console_decisions_body_accepts_any_reviewed_by_string() -> None:

@@ -145,7 +145,7 @@ new success event. The rebuild case constructs a **separate generation**; it doe
 
 ## Documented surface fact (cross-checked by conformance)
 
-The MCP surface is 25 registered tools (22 `nexus_*` + 3 `recon_*`).
+The MCP surface is 28 registered tools (25 `nexus_*` + 3 `recon_*`; M1a added the three screening-proposal tools).
 
 `tests/conformance/test_e2_extraction_boundary.py` asserts this number against the
 live registry; `tests/conformance/test_mcp_tool_parity.py` and

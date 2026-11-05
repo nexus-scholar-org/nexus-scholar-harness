@@ -179,6 +179,8 @@ def _write_decisions(
             "workspace_id": study["study_id"],
             "decision": decision,
             "method": "HUMAN",
+            "screener_id": OPERATOR,
+            "decided_at": NOW,
             "screening_reasoning": f"UI-07 researcher resolution {i}.",
         }
         for i, (study, decision) in enumerate(zip(studies, resolved))
@@ -557,11 +559,14 @@ def test_redeem_refuses_low_integrity(
 
 
 def test_unresolved_leaves_challenge_staged(tmp_path: Path) -> None:
-    """MAYBE rows refuse approval (AG-02); the staged code survives for re-begin."""
+    """CONFLICT rows refuse approval (AG-02); the staged code survives for re-begin.
+
+    M1a, decision 2026-11-04: MAYBE is terminal now, so CONFLICT is the probe.
+    """
     workspace, studies = _scaffold(tmp_path)
     _write_operator_context(workspace)
     run_recommend(workspace, 1, produced_at=NOW)
-    _write_decisions(workspace, studies, decisions=["MAYBE", "INCLUDE"])
+    _write_decisions(workspace, studies, decisions=["CONFLICT", "INCLUDE"])
     staged = begin_pairing(workspace, 1)
     with pytest.raises(ScreeningIntegrityRefused) as excinfo:
         redeem_pairing(workspace, 1, staged["code"])

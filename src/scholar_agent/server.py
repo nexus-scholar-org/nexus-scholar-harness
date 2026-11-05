@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import inspect
 import json
 import os
 import re
@@ -281,6 +282,107 @@ def _existing_dir(arg: str | None) -> Path | None:
         return None
 
 
+#: AGT-16: what MCP screening writes. Proposals only, never the published
+#: partition (included/excluded/conflicts/PRISMA), which only the harness
+#: collector writes after a human approves.
+SCREENING_PROPOSALS_FILE = "screening_proposals.json"
+
+
+def _journal_mcp(action: str, description: str, *, outputs: list[str] | None = None,
+                 parameters: dict | None = None) -> None:
+    """AGT-19: a state-changing MCP tool appends one journal row.
+
+    Written only when the MCP workspace is a research workspace (it has
+    ``audit/journal.jsonl``); outside one there is no ledger to append to.
+    """
+    anchor = _mcp_anchor()
+    if not (anchor / "audit" / "journal.jsonl").is_file():
+        return
+    from scholar_harness.workspace.audit import append_event
+
+    append_event(
+        anchor,
+        action,
+        description,
+        agent="scholar-agent/mcp",
+        outputs=[
+            str(Path(o).resolve().relative_to(anchor)).replace("\\", "/")
+            if Path(o).resolve().is_relative_to(anchor) else str(o)
+            for o in (outputs or [])
+        ],
+        parameters=parameters or {},
+        refresh_index=False,
+    )
+
+
+def _succeeded(result: object) -> bool:
+    """A tool result that is not an error (prose `Error: ...` or JSON ERROR)."""
+    text = str(result)
+    if text.lstrip().startswith("Error"):
+        return False
+    try:
+        parsed = json.loads(text)
+    except ValueError:
+        return True
+    return not (isinstance(parsed, dict) and str(parsed.get("status", "")).upper() == "ERROR")
+
+
+def _journaled(action: str):
+    """AGT-19: journal a state-changing tool's successful call in the workspace."""
+    import functools
+
+    def wrap(func):
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            result = func(*args, **kwargs)
+            if _succeeded(result):
+                bound = inspect.signature(func).bind_partial(*args, **kwargs)
+                params = {
+                    k: v for k, v in bound.arguments.items()
+                    if isinstance(v, (str, int, float, bool)) and "key" not in k
+                }
+                _journal_mcp(action, f"{func.__name__} ran over MCP", parameters={"tool": func.__name__, **params})
+            return result
+
+        return inner
+
+    return wrap
+
+
+def _write_screening_proposals(out_d: Path, docs, decisions, *, tool: str, model: str | None) -> dict:
+    """Write MCP screening output as proposals and journal it (AGT-16/19)."""
+    included, excluded, conflicts, report = partition_screening_results(docs, decisions)
+    out_d.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": "mcp-screening-proposals-v1",
+        "status": "PROPOSALS_ONLY",
+        "note": (
+            "Agent screening proposals, not decisions. Nothing here is published: "
+            "a human decides each record and the harness collector writes the "
+            "published partition after approval."
+        ),
+        "tool": tool,
+        "model": model,
+        "proposals": [asdict(d) for d in decisions],
+        "preview": asdict(report),
+    }
+    path = out_d / SCREENING_PROPOSALS_FILE
+    path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    _journal_mcp(
+        "MCP_SCREENING_PROPOSED",
+        f"{tool} proposed decisions for {len(decisions)} records (proposals only)",
+        outputs=[str(path)],
+        parameters={"tool": tool, "model": model},
+    )
+    return {
+        "proposed_include": len(included) - report.records_unclear,
+        "proposed_unclear": report.records_unclear,
+        "proposed_exclude": len(excluded),
+        "flagged": len(conflicts),
+        "path": str(path),
+    }
+
+
 # ==============================================================================
 # Phase 0: Socratic Protocol & Compiler Tools
 # ==============================================================================
@@ -436,6 +538,7 @@ async def nexus_discover(query: str, limit: int = 10, start_year: int = 2020) ->
 
 
 @mcp.tool()
+@_journaled("MCP_DEDUP")
 def nexus_dedup(input_path: str, output_path: str = "./deduped.json") -> str:
     """
     Deduplicate a collection of raw search papers by PID clustering and title similarity.
@@ -482,34 +585,14 @@ def nexus_screen(
         protocol_data = json.loads(proto.read_text(encoding="utf-8"))
 
         decisions = [evaluate_heuristic_screening(d, protocol_data) for d in raw_docs]
-        included, excluded, conflicts, report = partition_screening_results(
-            raw_docs, decisions
+        summary = _write_screening_proposals(
+            Path(output_dir), raw_docs, decisions, tool="nexus_screen", model=None
         )
-
-        out_d = Path(output_dir)
-        out_d.mkdir(parents=True, exist_ok=True)
-        (out_d / "included.json").write_text(
-            json.dumps(included, indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "excluded.json").write_text(
-            json.dumps(excluded, indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "conflicts.json").write_text(
-            json.dumps(conflicts, indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "prisma_report.json").write_text(
-            json.dumps(asdict(report), indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "prisma_screening_report.md").write_text(
-            report.to_markdown() if hasattr(report, "to_markdown") else str(report),
-            encoding="utf-8",
-        )
-
         return (
-            f"Screening complete: {len(included)} included, {len(excluded)} excluded, "
-            f"{len(conflicts)} conflicts flagged. "
-            f"Artifacts in {out_d} (included.json, excluded.json, conflicts.json, "
-            f"prisma_report.json, prisma_screening_report.md)."
+            f"Proposals only (AGT-16): {summary['proposed_include']} include, "
+            f"{summary['proposed_unclear']} unclear, {summary['proposed_exclude']} exclude, "
+            f"{summary['flagged']} flagged. Written to {summary['path']}; nothing is "
+            "published until a human decides and approves."
         )
     except Exception as e:
         return f"Error during screening: {e}"
@@ -586,35 +669,11 @@ def nexus_screen_llm(
                 evaluate_heuristic_screening(d, protocol_data) for d in raw_docs
             ]
 
-        included, excluded, conflicts, report = partition_screening_results(
-            raw_docs, decisions
+        summary = _write_screening_proposals(
+            out_d, raw_docs, decisions, tool="nexus_screen_llm", model=model
         )
-
-        (out_d / "included.json").write_text(
-            json.dumps(included, indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "excluded.json").write_text(
-            json.dumps(excluded, indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "conflicts.json").write_text(
-            json.dumps(conflicts, indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "prisma_report.json").write_text(
-            json.dumps(asdict(report), indent=2, default=str), encoding="utf-8"
-        )
-        (out_d / "prisma_screening_report.md").write_text(
-            report.to_markdown() if hasattr(report, "to_markdown") else str(report),
-            encoding="utf-8",
-        )
-
         return json.dumps(
-            {
-                "status": "SUCCESS",
-                "included": len(included),
-                "excluded": len(excluded),
-                "conflicts": len(conflicts),
-                "output_dir": str(out_d),
-            },
+            {"status": "PROPOSALS_ONLY", **summary, "output_dir": str(out_d)},
             indent=2,
         )
     except Exception as e:
@@ -703,6 +762,7 @@ def _pdf_metadata(pdf: Path) -> dict:
 
 
 @mcp.tool()
+@_journaled("MCP_EXTRACT_PDF")
 def nexus_extract_pdf(
     pdf_path: str, output_dir: str = "./extracted", engine: str = "pymupdf"
 ) -> str:
@@ -978,6 +1038,7 @@ def nexus_rag_synthesize(
 
 
 @mcp.tool()
+@_journaled("MCP_MATRIX_EXTRACT")
 def nexus_matrix_extract(
     workspace_dir: str = ".",
     protocol_path: str = None,
@@ -1007,6 +1068,7 @@ def nexus_matrix_extract(
 
 
 @mcp.tool()
+@_journaled("MCP_GRAPH_BUILD")
 def nexus_graph_build(
     input_path: str,
     output_html: str = "./graph.html",
@@ -1053,6 +1115,7 @@ def nexus_graph_build(
 
 
 @mcp.tool()
+@_journaled("MCP_BIB_CLEAN")
 def nexus_bib_clean(input_bib_path: str, output_bib_path: str = None) -> str:
     """
     Clean, standardize keys, and deduplicate a BibTeX file.
@@ -1245,6 +1308,7 @@ def nexus_verify_claims(
 
 
 @mcp.tool()
+@_journaled("MCP_VERIFY_PHASE4")
 def nexus_verify_phase4(
     workspace_dir: str = ".",
     stream: str = "all",
@@ -1449,6 +1513,7 @@ def _summarize_communities(graph_data: dict) -> list[dict]:
 
 
 @mcp.tool()
+@_journaled("MCP_CRITIQUE_METHODOLOGY")
 def nexus_critique_methodology(
     workspace_dir: str,
     protocol_path: str | None = None,
@@ -1576,6 +1641,7 @@ def nexus_critique_methodology(
 
 
 @mcp.tool()
+@_journaled("MCP_GRAPH_NARRATIVE")
 def nexus_graph_narrative(
     workspace_dir: str,
     graph_json_path: str,
@@ -2086,6 +2152,157 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
 # ==============================================================================
 
 
+# ==============================================================================
+# Screening proposals over MCP (agent-system §2, M1a)
+# ==============================================================================
+# The researcher's own Claude Code or Claude Desktop reads the queue and records
+# and submits one proposal per record. Nothing here writes a decision or a
+# published output: proposals go to the append-only proposal store, the outcome
+# comes from the plain-code rule table, and a human decides with it hidden.
+
+
+def _screening_workspace(workspace_dir: str) -> Path:
+    return Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
+
+
+@mcp.tool()
+def nexus_screening_queue(workspace_dir: str = ".", view: str = "needs_you", limit: int = 50) -> str:
+    """List records to screen, in server order (no agent outcomes are shown).
+
+    `view` is `needs_you` (no human decision yet), `no_proposal` (no agent
+    proposal yet) or `decided`. Returns study ids, titles and whether a
+    proposal exists.
+    """
+    from scholar_harness.console.api.screening_v1 import _papers, _state
+    from scholar_harness.screening import proposals as pr
+
+    try:
+        ws = _screening_workspace(workspace_dir)
+        context, _settings, _events, winners = _state(ws)
+        papers = _papers(ws, context)
+        proposed = {p["study_id"] for p in pr.read_proposals(ws)}
+        keep = {
+            "needs_you": lambda sid: sid not in winners,
+            "no_proposal": lambda sid: sid not in winners and sid not in proposed,
+            "decided": lambda sid: sid in winners,
+        }.get(view)
+        if keep is None:
+            return json.dumps({"status": "ERROR", "error": "view must be needs_you, no_proposal or decided"})
+        ordered = [sid for i in sorted(context.batches) for sid in context.batches[i].candidates]
+        items = [
+            {"study_id": sid, "title": papers.get(sid, {}).get("title", ""), "has_proposal": sid in proposed}
+            for sid in ordered
+            if keep(sid)
+        ][: max(1, min(limit, 200))]
+        return json.dumps({"status": "SUCCESS", "items": items}, indent=2)
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "error": str(getattr(e, "detail", e))})
+
+
+@mcp.tool()
+def nexus_screening_record(study_id: str, workspace_dir: str = ".") -> str:
+    """One record to screen: title, abstract, the protocol criteria, its binding.
+
+    Quote evidence for `nexus_submit_proposal` verbatim from the record text
+    (the title, a blank line, then the abstract), with character offsets into it.
+    """
+    from scholar_harness.console.api.screening_v1 import _has_abstract, _papers, _state
+
+    try:
+        ws = _screening_workspace(workspace_dir)
+        context, _settings, _events, _winners = _state(ws)
+        if study_id not in context.study_batch:
+            return json.dumps({"status": "ERROR", "error": "UNKNOWN_STUDY"})
+        paper = _papers(ws, context).get(study_id, {})
+        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+        criteria = protocol.get("screening_criteria") or {}
+        return json.dumps(
+            {
+                "status": "SUCCESS",
+                "study_id": study_id,
+                "title": paper.get("title", ""),
+                "abstract": paper.get("abstract") if _has_abstract(paper) else None,
+                "criteria": [
+                    {"id": c["id"], "kind": kind, "text": c.get("description") or c.get("text") or ""}
+                    for kind in ("inclusion", "exclusion")
+                    for c in criteria.get(kind) or []
+                    if isinstance(c, dict) and c.get("id")
+                ],
+                "answers": ["yes", "no", "not_reported"],
+            },
+            indent=2,
+        )
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "error": str(getattr(e, "detail", e))})
+
+
+@mcp.tool()
+def nexus_submit_proposal(
+    study_id: str,
+    proposal_json: str,
+    model: str,
+    task_version: str = "screen-v1",
+    prompt_sha256: str | None = None,
+    workspace_dir: str = ".",
+) -> str:
+    """Store one screening proposal (never a decision).
+
+    `proposal_json`: {"criteria": [{"id", "answer": "yes|no|not_reported",
+    "evidence": {"text", "start", "end"}}], "cannot_decide": bool}. The
+    outcome is derived in plain code; a failed check makes it Unclear, never
+    Exclude. Returns the proposal id, the derived outcome and the checks.
+    """
+    from scholar_harness.console.api.screening_v1 import _has_abstract, _papers, _state
+    from scholar_harness.screening import proposals as pr
+
+    try:
+        # Review finding 6: a proposal without its model and prompt hash has
+        # no provenance and is refused, never stored blank.
+        if not str(model or "").strip() or not str(prompt_sha256 or "").strip():
+            return json.dumps({"status": "ERROR", "error": "PROVENANCE_MISSING"})
+        ws = _screening_workspace(workspace_dir)
+        context, _settings, _events, _winners = _state(ws)
+        if study_id not in context.study_batch:
+            return json.dumps({"status": "ERROR", "error": "UNKNOWN_STUDY"})
+        try:
+            output = json.loads(proposal_json)
+        except ValueError:
+            output = proposal_json  # recorded as-is; the schema check fails it
+        paper = _papers(ws, context).get(study_id, {})
+        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+        batch = context.batches[context.study_batch[study_id]]
+        record = pr.submit_proposal(
+            ws,
+            study_id=study_id,
+            title=paper.get("title"),
+            abstract=paper.get("abstract") if _has_abstract(paper) else None,
+            output=output,
+            protocol=protocol,
+            protocol_fingerprint=context.protocol_fingerprint,
+            provenance={
+                "task_id": "screening-proposal",
+                "task_version": task_version,
+                "prompt_sha256": prompt_sha256,
+                "driver": "mcp",
+                "model": model,
+                "batch_id": batch.batch_id,
+                "batch_binding": {"batch_id": batch.batch_id, "batch_sha256": batch.batch_sha256},
+            },
+            created_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        )
+        return json.dumps(
+            {
+                "status": "SUCCESS",
+                "proposal_id": record["proposal_id"],
+                "derived_outcome": record["derived_outcome"],
+                "validators": record["validators"],
+            },
+            indent=2,
+        )
+    except Exception as e:
+        return json.dumps({"status": "ERROR", "error": str(getattr(e, "detail", e))})
+
+
 def main(argv: list[str] | None = None) -> None:
     """Start the FastMCP server or display help."""
     import argparse
@@ -2120,6 +2337,9 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_graph_build: Build citation graph from included studies or DOIs\n"
             "  - nexus_bib_clean: Clean and deduplicate BibTeX databases\n"
             "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
+            "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
+            "  - nexus_screening_record: One record with its criteria, to draft a proposal\n"
+            "  - nexus_submit_proposal: Store one screening proposal (never a decision)\n"
             "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
             "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"
             "  - nexus_critique_methodology: Evaluate methodological rigor via risk-of-bias scoring\n"

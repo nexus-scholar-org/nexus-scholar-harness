@@ -326,9 +326,13 @@ def test_extra_ids_still_refuse(tmp_path: Path) -> None:
     _assert_fail_closed_fresh(workspace, decisions_path, "COVERAGE_INCOMPLETE")
 
 
-def test_maybe_and_conflict_refuse_finalize(tmp_path: Path) -> None:
-    """AG-C02: MAYBE/CONFLICT rows refuse finalize; nothing is coerced."""
-    for value in ("MAYBE", "CONFLICT"):
+def test_conflict_refuses_finalize(tmp_path: Path) -> None:
+    """AG-C02: CONFLICT rows refuse finalize; nothing is coerced.
+
+    MAYBE ("Unclear → full text") is a terminal outcome since M1a (decision
+    2026-11-04) and has its own test below; CONFLICT stays unresolved.
+    """
+    for value in ("CONFLICT",):
         workspace, studies = _workspace(tmp_path, tag=f"ws-{value.lower()}")
         cmd_prepare(workspace, batch_size=20)
         decisions_path = _write_decisions(
@@ -354,6 +358,67 @@ def test_maybe_and_conflict_refuse_finalize(tmp_path: Path) -> None:
         assert decisions_path.with_name(decisions_path.name + ".rejected").is_file()
         assert _batch_row(workspace)["status"] == "MISSING"
         assert _refusal_rows(workspace, "UNRESOLVED_FINALIZE_REFUSED")
+
+
+def test_maybe_passes_finalize_as_unclear_to_full_text(tmp_path: Path) -> None:
+    """M1a: MAYBE is "Unclear → full text": published, forwarded, counted apart."""
+    workspace, studies = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    _write_decisions(
+        workspace,
+        [
+            _entry(studies[0]["study_id"], "INCLUDE"),
+            _entry(
+                studies[1]["study_id"],
+                "MAYBE",
+                screening_reasoning="Cannot tell from the abstract alone.",
+            ),
+        ],
+    )
+    _stage_approval_for_collected(workspace)
+    cmd_collect(workspace)
+    literature = workspace / "literature"
+    included = json.loads((literature / "included.json").read_text(encoding="utf-8"))
+    excluded = json.loads((literature / "excluded.json").read_text(encoding="utf-8"))
+    prisma = json.loads((literature / "prisma_report.json").read_text(encoding="utf-8"))
+    assert {d["screening"]["decision"] for d in included} == {"INCLUDE", "MAYBE"}
+    assert excluded == []
+    assert prisma["records_included"] == 1
+    assert prisma["records_unclear"] == 1
+    assert prisma["records_excluded"] == 0
+    decisions = _decision_artifacts(workspace)[0][2]["data"]["decisions"]
+    assert sorted(d["decision"] for d in decisions) == ["INCLUDE", "MAYBE"]
+
+
+@pytest.mark.parametrize(
+    ("override", "absent"),
+    [
+        ({}, "decision"),
+        ({}, "method"),
+        ({"decided_at": "1970-01-01T00:00:00+00:00"}, None),
+        ({"screening_reasoning": ""}, None),
+    ],
+    ids=["no-decision", "no-method", "epoch-time", "no-reason"],
+)
+def test_missing_provenance_refuses_instead_of_defaulting(
+    tmp_path: Path, override: dict, absent: str | None
+) -> None:
+    """CON-11: no default INCLUDE, LLM, 1970 time or "Agent screened." reason."""
+    workspace, studies = _workspace(tmp_path)
+    cmd_prepare(workspace, batch_size=20)
+    broken = _entry(studies[1]["study_id"], "EXCLUDE", **override)
+    if absent is not None:
+        broken.pop(absent)
+    path = workspace / "literature" / "screening" / "batch_001_decisions.json"
+    payload = {
+        "batch": 1,
+        "reviewed_by": "reviewer-1",
+        "decisions": [_entry(studies[0]["study_id"], "INCLUDE"), broken],
+    }
+    if override.get("decided_at") is None:
+        payload["timestamp"] = STAMP
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    _assert_fail_closed_fresh(workspace, path, "PROVENANCE_MISSING")
 
 
 def test_no_silent_exclusion_regression(tmp_path: Path) -> None:
@@ -767,3 +832,134 @@ def test_no_authorization_concept_in_new_code() -> None:
         elif isinstance(node, ast.ImportFrom):
             imported.add((node.module or "").split(".")[0])
     assert imported <= {"__future__", "hashlib", "typing"}, imported
+
+
+# --- M1a: dual screening (CON-10, CON-13, CON-14/15) --------------------------
+
+
+def _dual_files(
+    workspace: Path,
+    studies: list[dict],
+    s1: list[str],
+    s2: list[str],
+    *,
+    s2_extra: list[dict] | None = None,
+) -> None:
+    screening = workspace / "literature" / "screening"
+
+    def rows(values: list[str], screener: str) -> list[dict]:
+        return [
+            {
+                "workspace_id": study["study_id"],
+                "decision": value,
+                "method": "HUMAN",
+                "screening_reasoning": f"{value} by {screener}.",
+                "decision_id": f"SCR-{screener}-{i}",
+                "screener_id": screener,
+                "decided_at": "2026-11-04T12:00:00Z",
+            }
+            for i, (study, value) in enumerate(zip(studies, values))
+        ]
+
+    (screening / "batch_001_decisions.json").write_text(json.dumps(rows(s1, "reviewer-1")), encoding="utf-8")
+    (screening / "batch_001_decisions_screener2.json").write_text(
+        json.dumps(rows(s2, "reviewer-2") + (s2_extra or [])), encoding="utf-8"
+    )
+
+
+def test_con10_a_second_screener_starts_dual_mode_without_an_adjudication_file(tmp_path: Path) -> None:
+    """CON-10: screener 2 was ignored unless an adjudication file existed."""
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "EXCLUDE"], ["INCLUDE", "EXCLUDE"])
+    _stage_approval_for_collected(workspace)
+    cmd_collect(workspace)
+    decisions = _decision_artifacts(workspace)[0][2]["data"]["decisions"]
+    assert {d["screener_id"] for d in decisions} >= {"reviewer-1", "reviewer-2", "dual-consensus"}
+
+
+def test_con10_a_disagreement_without_adjudication_refuses(tmp_path: Path) -> None:
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "EXCLUDE"], ["INCLUDE", "INCLUDE"])
+    with pytest.raises(RuntimeError, match="disagreement requires adjudication"):
+        cmd_collect(workspace)
+    for name in PARTITION_FILES:
+        assert not (workspace / "literature" / name).exists()
+
+
+def test_con14_a_dual_conflict_is_never_finalized(tmp_path: Path) -> None:
+    """CON-14: the dual path skipped the unresolved gate entirely."""
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "CONFLICT"], ["INCLUDE", "CONFLICT"])
+    with pytest.raises(RuntimeError, match="UNRESOLVED_FINALIZE_REFUSED"):
+        cmd_collect(workspace)
+    assert _decision_artifacts(workspace) == []
+
+
+def test_con14_both_unclear_is_an_agreement_forwarded_to_full_text(tmp_path: Path) -> None:
+    """Decision 2026-11-04: MAYBE/MAYBE is two screeners saying "full text"."""
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    _dual_files(workspace, studies, ["INCLUDE", "MAYBE"], ["INCLUDE", "MAYBE"])
+    _stage_approval_for_collected(workspace)
+    cmd_collect(workspace)
+    prisma = json.loads((workspace / "literature" / "prisma_report.json").read_text(encoding="utf-8"))
+    assert prisma["records_unclear"] == 1
+
+
+def test_con14_dual_duplicate_rows_refuse(tmp_path: Path) -> None:
+    workspace, studies = _workspace(tmp_path, n_docs=2)
+    cmd_prepare(workspace, batch_size=20)
+    duplicate = {
+        "workspace_id": studies[0]["study_id"],
+        "decision": "EXCLUDE",
+        "method": "HUMAN",
+        "screening_reasoning": "late second opinion",
+        "decision_id": "SCR-reviewer-2-dup",
+        "screener_id": "reviewer-2",
+        "decided_at": "2026-11-04T12:05:00Z",
+    }
+    _dual_files(workspace, studies, ["INCLUDE", "EXCLUDE"], ["INCLUDE", "EXCLUDE"], s2_extra=[duplicate])
+    with pytest.raises(RuntimeError, match="DUPLICATE_ENTRY"):
+        cmd_collect(workspace)
+
+
+def test_con15_dual_artifact_id_depends_on_the_decisions(tmp_path: Path) -> None:
+    """CON-15: the dual artifact id came from batch_id alone."""
+    ids = []
+    for tag, value in (("a", "INCLUDE"), ("b", "EXCLUDE")):
+        workspace, studies = _workspace(tmp_path, n_docs=1, tag=tag)
+        cmd_prepare(workspace, batch_size=20)
+        _dual_files(workspace, studies, [value], [value])
+        _stage_approval_for_collected(workspace)
+        cmd_collect(workspace)
+        ids.append(_decision_artifacts(workspace)[0][0])
+    assert ids[0] != ids[1]
+
+
+@pytest.mark.parametrize("parents", [0, 2])
+def test_con13_a_decisions_artifact_needs_exactly_one_batch_parent(parents: int) -> None:
+    """CON-13, guarded outside the Contract v1 lock (decision 2026-11-04)."""
+    from scholar_harness.screening.collector import require_single_batch_parent
+
+    envelope = {
+        "artifact_type": "screening_decisions",
+        "inputs": [{"artifact_id": f"ART-{i}", "sha256": "sha256:" + "0" * 64} for i in range(parents)],
+    }
+    registry = {"artifacts": {"ART-0": {"artifact_type": "screening_batch"}, "ART-1": {"artifact_type": "screening_batch"},
+                              "ART-c": {"artifact_type": "corpus_snapshot"}}}
+    with pytest.raises(RuntimeError, match="exactly one screening_batch parent"):
+        require_single_batch_parent(envelope, registry)
+    require_single_batch_parent({**envelope, "inputs": [{"artifact_id": "ART-0"}]}, registry)
+    # Review finding 9: the one parent must be a screening_batch.
+    with pytest.raises(RuntimeError, match="exactly one screening_batch parent"):
+        require_single_batch_parent({**envelope, "inputs": [{"artifact_id": "ART-c"}]}, registry)
+
+
+def test_con13_every_decisions_submission_goes_through_the_guard() -> None:
+    source = (SRC_ROOT / "collector.py").read_text(encoding="utf-8")
+    submissions = source.count("accept_artifact(")
+    guarded = source.count("require_single_batch_parent(dec_env, registry)")
+    assert submissions >= 2 and guarded == submissions

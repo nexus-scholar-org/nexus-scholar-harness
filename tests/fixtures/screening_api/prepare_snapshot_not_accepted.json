@@ -1,0 +1,20 @@
+{
+  "name": "prepare_snapshot_not_accepted",
+  "request": {
+    "json": {
+      "batch_size": 20
+    },
+    "method": "POST",
+    "path": "/api/v1/screening/prepare",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "detail": {
+        "code": "SNAPSHOT_NOT_ACCEPTED",
+        "message": "no accepted corpus snapshot; run `nexus-scholar accept-corpus`"
+      }
+    },
+    "status": 409
+  }
+}

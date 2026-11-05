@@ -22,6 +22,68 @@ then works on a fresh workspace.
 - **Packet B:** full adoption, with discovery producing the snapshot itself,
   remains M3.
 
+## 2026-11-04 — Approval: terminal-only code; event-decided batches need no worker step (CON-02/03)
+
+**The code stays on the terminal.** The approval code is printed only in the
+terminal running `nexus-scholar serve`, never returned over HTTP, and the
+researcher types it into the publish screen. This keeps the existing pinned
+rule: something that can call the console API (a malicious page that got the
+token, another local process) still cannot approve on its own. The contract's
+`qr_payload` for `pairing/begin` is dropped; spec 09 follows.
+
+**Events replace the worker step.** A batch decided entirely by human decision
+events is approved on its event projection. No worker recommendation is
+required. The approval binds that batch's projected bytes only, never another
+batch's (CON-03), and the approver is recorded as an unauthenticated local
+attestation, not an identity (CON-02). The worker path stays for
+agent-screened batches. Researcher's choices, 2026-11-04.
+
+## 2026-11-04 — The v03 screening labels are human-confirmed: the M1b eval set
+
+`uav-crop-weed-v03` has a signed screening confirmation:
+`literature/screening/HUMAN_CONFIRMATION.json` (`HumanConfirmation@1`, PR
+#172, 2026-10-31). Its lead reviewer, Mouadh BEKHOUCHE, confirmed all 14,150
+agent decisions and changed none, and the record pins the 283 decision files
+by SHA-256. The M0 note that v03 had no human labels was wrong: it read the
+README and the `decision_status: FINAL_AGENT_UNCONFIRMED` fields and missed
+this record.
+
+**Consequences:**
+- The v03 labels are the human-confirmed eval set for the M1b prompt gate
+  (agent-system §5).
+- The 200-record AI reference screening (`method: LLM`, 2026-11-04) is no
+  longer needed as a stopgap. It stays available only as a model-versus-human
+  comparison.
+- The stale status fields are not rewritten: they sit in hashed decision
+  files, a published report and the append-only journal. The README says so,
+  and a `SCREENING_CONFIRMATION_RECOGNISED` journal row records that the
+  confirmation supersedes them.
+
+**Caveat for the methods text:** these are confirmations of agent drafts,
+none changed. The eval measures recall against labels a human reviewed with
+the draft in view, not against independent blind screening.
+
+## 2026-11-04 — Unclear records go forward to full text (PRISMA)
+
+A record the researcher marks Unclear (stored as `MAYBE`, labelled "Unclear →
+full text") passes title and abstract screening. In the PRISMA flow it is
+counted in "records sought for retrieval" with the includes, and shown on its
+own line (`unclear_to_full_text`), never with the exclusions. The collector
+stops refusing `MAYBE` at finalize (M1a), and `check_golden_workspace.py`
+reconciles included + unclear + excluded + conflicts with records screened.
+Researcher's choice, 2026-11-04.
+
+## 2026-11-04 — CON-13 is guarded outside the Contract v1 lock
+
+`contracts/acceptance.py` and `contracts/chain.py` check batch identity,
+binding and membership only when a `screening_decisions` artifact has exactly
+one `screening_batch` parent; zero or several parents skip those checks
+(CON-13). Both files are locked by the Contract v1 baseline. Rather than a
+contract change, the harness refuses to submit a decisions artifact without
+exactly one batch parent, before it calls the frozen gate (M1a). A caller that
+bypasses the harness and calls `accept_artifact` directly is not covered; that
+gap is recorded for Contract v1.1. Researcher's choice, 2026-11-04.
+
 ## 2026-11-04 — Console guards and the `--lan` threat model (INC-01)
 
 **Threats.** In stage 1 the console holds unpublished review data and can run

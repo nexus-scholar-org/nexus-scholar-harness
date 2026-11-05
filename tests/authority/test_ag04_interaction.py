@@ -216,6 +216,7 @@ def _write_decisions(
             "decision": decision,
             "method": "HUMAN",
             "screener_id": OPERATOR,
+            "decided_at": NOW,
             "screening_reasoning": f"AG-04 researcher resolution {i}.",
             **fields,
         }
@@ -611,9 +612,11 @@ def test_stale_approval_refused(tmp_path: Path) -> None:
 # --- AG04-06/07: unresolved-or-defer; cancel/defer states ---------------------- #
 
 
-@pytest.mark.parametrize("value", ["MAYBE", "CONFLICT"], ids=["maybe", "conflict"])
+# M1a, decision 2026-11-04: MAYBE ("Unclear → full text") is terminal; CONFLICT
+# stays unresolved, so it carries the refusal case.
+@pytest.mark.parametrize("value", ["CONFLICT"], ids=["conflict"])
 def test_unresolved_refuses_approve_unless_deferred(tmp_path: Path, value: str) -> None:
-    """AG04-06: MAYBE/CONFLICT refuse approval; deferral with reason is the way out."""
+    """AG04-06: CONFLICT refuses approval; deferral with reason is the way out."""
     workspace, studies = _scaffold(tmp_path)
     _write_operator_context(workspace)
     _recommend(workspace)
@@ -970,6 +973,8 @@ def test_approve_accepts_custom_decisions_file(tmp_path: Path) -> None:
                     "workspace_id": study["study_id"],
                     "decision": decision,
                     "method": "HUMAN",
+                    "screener_id": OPERATOR,
+                    "decided_at": NOW,
                     "screening_reasoning": "Custom path resolution.",
                 }
                 for study, decision in zip(studies, ["INCLUDE", "EXCLUDE"])

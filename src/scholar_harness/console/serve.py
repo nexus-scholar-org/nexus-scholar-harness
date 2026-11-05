@@ -28,6 +28,7 @@ from .api import audit as audit_api
 from .api import jobs as jobs_api
 from .api import pipelines as pipelines_api
 from .api import screening as screening_api
+from .api import screening_v1 as screening_v1_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .runtimes.job_runner import JobRunner
@@ -42,6 +43,23 @@ _LOOPBACK_ORIGIN = re.compile(
     r"https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?", re.IGNORECASE
 )
 _OPEN_PATHS = frozenset({"/healthz"})
+
+#: What a phone-scoped token may reach (contract §4 "Scope" column): screening
+#: reads and decision events. Approval, publish, prepare, proposal runs, jobs,
+#: pipelines and settings changes are desktop-only (`TOKEN_SCOPE_REFUSED`).
+_PHONE_ROUTES: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
+    (method, re.compile(pattern))
+    for method, pattern in (
+        ("GET", r"/api/v1/screening/(summary|queue|settings|prisma/preview|decisions/conflicts|actions/pairing/status)"),
+        ("GET", r"/api/v1/screening/records/[A-Za-z0-9_-]+(/proposal)?"),
+        ("POST", r"/api/v1/screening/decisions/events"),
+        ("POST", r"/api/v1/screening/decisions/conflicts/[A-Za-z0-9_-]+/resolve"),
+    )
+)
+
+
+def _phone_may_reach(method: str, path: str) -> bool:
+    return any(m == method and p.fullmatch(path) for m, p in _PHONE_ROUTES)
 
 
 def _refusal(status: int, code: str, message: str) -> JSONResponse:
@@ -60,6 +78,7 @@ def create_app(
     *,
     token: str | None = None,
     trusted_hosts: Iterable[str] | None = None,
+    phone_tokens: Iterable[str] | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -103,6 +122,9 @@ def create_app(
 
     hosts = frozenset(trusted_hosts if trusted_hosts is not None else _DEFAULT_HOSTS)
     expected = f"Bearer {token}".encode() if token else None
+    # Phone-scoped tokens (contract §4, §6). M2's `/lan/pair` adds to this set;
+    # tests pass them in. A phone token reaches only `_PHONE_ROUTES`.
+    app.state.phone_tokens = {t for t in (phone_tokens or ()) if t}
 
     # Registered after CORS, so it is the outer layer and runs first.
     @app.middleware("http")
@@ -115,19 +137,27 @@ def create_app(
             return _refusal(
                 403, "ACTION_ORIGIN_REFUSED", "refusing a request from a non-loopback origin"
             )
-        if (
-            expected is not None
-            and request.method != "OPTIONS"
-            and request.url.path not in _OPEN_PATHS
-        ):
+        request.state.token_scope = "desktop"
+        if request.method != "OPTIONS" and request.url.path not in _OPEN_PATHS:
             supplied = request.headers.get("authorization", "").encode()
-            if not hmac.compare_digest(supplied, expected):
+            phone = any(
+                hmac.compare_digest(supplied, f"Bearer {t}".encode())
+                for t in app.state.phone_tokens
+            )
+            if phone:
+                request.state.token_scope = "phone"
+                if not _phone_may_reach(request.method, request.url.path):
+                    return _refusal(
+                        403, "TOKEN_SCOPE_REFUSED", "this route is desktop-only"
+                    )
+            elif expected is not None and not hmac.compare_digest(supplied, expected):
                 return _refusal(401, "TOKEN_REQUIRED", "a valid console token is required")
         return await call_next(request)
 
     app.include_router(workspace_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)
+    app.include_router(screening_v1_api.router)
     app.include_router(pipelines_api.router)
     app.include_router(audit_api.router)
     app.include_router(streams_api.router)

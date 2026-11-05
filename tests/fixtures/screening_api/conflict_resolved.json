@@ -1,0 +1,22 @@
+{
+  "name": "conflict_resolved",
+  "request": {
+    "json": {
+      "keep_event_id": "0193f4a2-7c1e-7b2a-9e55-000000000001"
+    },
+    "method": "POST",
+    "path": "/api/v1/screening/decisions/conflicts/STU-5501d9dbf159a23a786423d1b11f46f4/resolve",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "results": [
+        {
+          "event_id": "383538d1-4c0c-5bb4-8a89-e64063948cfb",
+          "result": "accepted"
+        }
+      ]
+    },
+    "status": 200
+  }
+}

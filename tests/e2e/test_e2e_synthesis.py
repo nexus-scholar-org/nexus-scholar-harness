@@ -185,10 +185,19 @@ def test_phase3_e2e_full_lifecycle(phase3_test_workspace, monkeypatch):
 
     # Screen
     screen_msg = nexus_screen(str(dedup_file), str(proto_file), str(lit_dir))
-    assert "Screening complete" in screen_msg
-    assert (lit_dir / "included.json").exists()
-    assert (lit_dir / "excluded.json").exists()
-    assert (lit_dir / "prisma_screening_report.md").exists()
+    # AGT-16 (M1a): MCP screening writes proposals only. The published
+    # partition comes from the harness collector after a human approves; this
+    # parked-synthesis test stands in for that step by writing included.json
+    # from the proposed includes, so the downstream stages still have input.
+    assert "Proposals only" in screen_msg
+    assert not (lit_dir / "included.json").exists()
+    proposals = json.loads((lit_dir / "screening_proposals.json").read_text(encoding="utf-8"))
+    include_ids = {p["workspace_id"] for p in proposals["proposals"] if p["decision"] == "INCLUDE"}
+    deduped = json.loads(dedup_file.read_text(encoding="utf-8"))
+    deduped = deduped if isinstance(deduped, list) else deduped.get("documents", deduped.get("results", []))
+    (lit_dir / "included.json").write_text(
+        json.dumps([d for d in deduped if d.get("workspace_id") in include_ids]), encoding="utf-8"
+    )
 
     # Extract Markdown & Index
     ext_dir = workspace / "extracted"

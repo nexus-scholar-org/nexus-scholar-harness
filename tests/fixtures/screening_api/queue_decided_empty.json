@@ -1,0 +1,15 @@
+{
+  "name": "queue_decided_empty",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/queue?view=decided",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "items": [],
+      "next_cursor": null
+    },
+    "status": 200
+  }
+}

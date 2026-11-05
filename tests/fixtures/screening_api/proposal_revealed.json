@@ -1,0 +1,59 @@
+{
+  "name": "proposal_revealed",
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/screening/records/STU-5501d9dbf159a23a786423d1b11f46f4/proposal",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "proposal": {
+        "cannot_decide": false,
+        "criteria": [
+          {
+            "answer": "yes",
+            "evidence": {
+              "end": 72,
+              "start": 59,
+              "text": "drone imagery"
+            },
+            "id": "INC-01"
+          },
+          {
+            "answer": "no",
+            "evidence": {
+              "end": 72,
+              "start": 59,
+              "text": "drone imagery"
+            },
+            "id": "EXC-01"
+          }
+        ],
+        "derived_outcome": "INCLUDE",
+        "model": "claude-opus-5-5",
+        "prompt_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "proposal_id": "PRP-3a5ed2a6cc2866ee09ba0fb0df4514e3",
+        "reason_code": null,
+        "task_version": "screen-v1",
+        "validators": [
+          {
+            "detail": "",
+            "name": "schema",
+            "ok": true
+          },
+          {
+            "detail": "",
+            "name": "one_answer_per_criterion",
+            "ok": true
+          },
+          {
+            "detail": "",
+            "name": "quote_in_source",
+            "ok": true
+          }
+        ]
+      }
+    },
+    "status": 200
+  }
+}

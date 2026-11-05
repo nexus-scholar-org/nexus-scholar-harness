@@ -17,14 +17,26 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ScreeningDecision:
     workspace_id: str
-    decision: Literal["INCLUDE", "EXCLUDE"]
-    confidence: float
+    # MAYBE is "Unclear → full text": forwarded to full-text retrieval and
+    # counted on its own PRISMA line (harness decision 2026-11-04).
+    decision: Literal["INCLUDE", "EXCLUDE", "MAYBE"]
+    # None for a human decision: a confidence is never invented (CON-11).
+    confidence: float | None
     screening_reasoning: str
     matched_inclusion_criteria: list[str] = field(default_factory=list)
     violated_exclusion_criteria: list[str] = field(default_factory=list)
     relevant_rqs: list[str] = field(default_factory=list)
     document_title: str = ""
     doi: str | None = None
+    # SRCH-35: who or what decided. `method` is HUMAN, LLM, HEURISTIC, ...
+    method: str | None = None
+    screener_id: str | None = None
+    model_id: str | None = None
+    prompt_version: str | None = None
+
+
+#: Version of the LLM batch screening prompt (`generate_batch_screening_prompt`).
+LLM_PROMPT_VERSION = "gemini-batch-screen-v1"
 
 
 @dataclass
@@ -36,6 +48,8 @@ class PrismaFlowReport:
     records_included: int
     conflicts_flagged: int
     exclusion_reasons_breakdown: dict[str, int] = field(default_factory=dict)
+    #: MAYBE ("Unclear → full text"): forwarded with the includes, counted apart.
+    records_unclear: int = 0
 
     def to_mermaid(self) -> str:
         """Generate a PRISMA 2020 flow diagram in Mermaid syntax."""
@@ -97,7 +111,9 @@ class PrismaFlowReport:
             "## 2. Screening Phase (Title & Abstract)",
             f"- **Records Screened**: `{self.records_screened}`",
             f"- **Records Excluded**: `{self.records_excluded}`",
-            f"- **Records Eligible for Full-Text Retrieval**: `{self.records_included}`",
+            f"- **Records Eligible for Full-Text Retrieval**: `{self.records_included + self.records_unclear}`",
+            f"  - Included at title/abstract: `{self.records_included}`",
+            f"  - Unclear → full text: `{self.records_unclear}`",
             f"- **Borderline Conflicts Flagged for Human Audit**: `{self.conflicts_flagged}`",
             "",
             "### Exclusion Reasons Breakdown",
@@ -261,6 +277,16 @@ _EXC_PHRASE_SIGNALS: dict[str, list[str]] = {
 
 
 def evaluate_heuristic_screening(
+    doc: Document,
+    protocol_data: dict[str, Any],
+) -> ScreeningDecision:
+    """The keyword baseline, labelled `method: HEURISTIC` (SRCH-35)."""
+    decision = _evaluate_heuristic(doc, protocol_data)
+    decision.method = "HEURISTIC"
+    return decision
+
+
+def _evaluate_heuristic(
     doc: Document,
     protocol_data: dict[str, Any],
 ) -> ScreeningDecision:
@@ -472,11 +498,13 @@ def partition_screening_results(
 
         doc_dict["screening"] = asdict(dec)
 
-        # Flag borderline confidence (0.40-0.70) as conflict for human audit
-        if 0.40 <= dec.confidence <= 0.70:
+        # Flag borderline model confidence (0.40-0.70) as conflict for human
+        # audit. A human decision carries no confidence and is never flagged.
+        if dec.confidence is not None and 0.40 <= dec.confidence <= 0.70:
             conflict_items.append(doc_dict)
 
-        if dec.decision == "INCLUDE":
+        if dec.decision in ("INCLUDE", "MAYBE"):
+            # Unclear goes forward to full text with the includes.
             included_items.append(doc_dict)
         else:
             excluded_items.append(doc_dict)
@@ -488,9 +516,10 @@ def partition_screening_results(
         duplicates_removed=duplicates_removed,
         records_screened=len(decisions),
         records_excluded=len(excluded_items),
-        records_included=len(included_items),
+        records_included=sum(1 for d in decisions if d.decision == "INCLUDE"),
         conflicts_flagged=len(conflict_items),
         exclusion_reasons_breakdown=reason_counts,
+        records_unclear=sum(1 for d in decisions if d.decision == "MAYBE"),
     )
 
     return included_items, excluded_items, conflict_items, report
@@ -547,14 +576,18 @@ def _parse_llm_screening_response(
             continue
         seen_wsids.add(wsid)
 
-        raw_decision = str(entry.get("decision", "INCLUDE")).upper()
-        decision: Literal["INCLUDE", "EXCLUDE"] = (
-            "INCLUDE" if raw_decision == "INCLUDE" else "EXCLUDE"
+        # SRCH-16: only an explicit INCLUDE or EXCLUDE is taken at its word.
+        # A missing, unclear or unknown answer is MAYBE ("Unclear → full
+        # text"), so the uncertainty reaches a human instead of being imputed.
+        raw_decision = str(entry.get("decision") or "").strip().upper()
+        decision: Literal["INCLUDE", "EXCLUDE", "MAYBE"] = (
+            raw_decision if raw_decision in ("INCLUDE", "EXCLUDE") else "MAYBE"
         )
         try:
-            confidence = float(entry.get("confidence", 0.75))
+            raw_conf = entry.get("confidence")
+            confidence = None if raw_conf is None else float(raw_conf)
         except (TypeError, ValueError):
-            confidence = 0.75
+            confidence = None
 
         decisions.append(
             ScreeningDecision(
@@ -569,10 +602,13 @@ def _parse_llm_screening_response(
                 ),
                 relevant_rqs=list(entry.get("relevant_rqs") or []),
                 screening_reasoning=str(
-                    entry.get("screening_reasoning", "LLM screened.")
+                    entry.get("screening_reasoning")
+                    or "(the model returned no reasoning)"
                 ),
                 document_title=doc.title,
                 doi=doc.external_ids.doi,
+                method="LLM",
+                prompt_version=LLM_PROMPT_VERSION,
             )
         )
 
@@ -676,6 +712,9 @@ class LLMBatchScreener:
         try:
             raw_text = await self._call_gemini(prompt)
             decisions = _parse_llm_screening_response(raw_text, batch, protocol_data)
+            for decision in decisions:
+                if decision.method == "LLM":
+                    decision.model_id = self.model
             logger.info(
                 "Batch %d: %d INCLUDE, %d EXCLUDE",
                 batch_index + 1,
@@ -728,7 +767,7 @@ class LLMBatchScreener:
 def calculate_fleiss_kappa(
     rater_decisions: list[list[str]],
     categories: list[str] | None = None,
-) -> float:
+) -> float | None:
     """Calculate Fleiss' multi-rater Kappa for N subjects rated by n raters.
 
     Args:
@@ -739,8 +778,10 @@ def calculate_fleiss_kappa(
     Returns:
         Fleiss' kappa score (-1.0 to 1.0).
     """
+    # AGT-18: agreement is undefined without subjects or with one rater; 1.0
+    # would read as perfect agreement.
     if not rater_decisions:
-        return 1.0
+        return None
 
     if categories is None:
         categories = ["INCLUDE", "EXCLUDE"]
@@ -748,7 +789,7 @@ def calculate_fleiss_kappa(
     N = len(rater_decisions)
     n = len(rater_decisions[0])
     if N == 0 or n <= 1:
-        return 1.0
+        return None
 
     k = len(categories)
     cat_to_idx = {c: i for i, c in enumerate(categories)}
@@ -804,7 +845,8 @@ def reconcile_multi_screener_decisions(
             "ties": [],
             "majority_count": 0,
             "adjudicated_count": 0,
-            "fleiss_kappa": 1.0,
+            "fleiss_kappa": None,
+            "incomplete": [],
         }
 
     all_ids = sorted(list(set.union(*(set(s.keys()) for s in screeners_map.values()))))
@@ -818,20 +860,25 @@ def reconcile_multi_screener_decisions(
     majority_count = 0
     adjudicated_count = 0
 
+    incomplete: list[str] = []
     for wid in all_ids:
-        ratings = [
-            screeners_map[sk].get(wid, "EXCLUDE").upper() for sk in screener_keys
-        ]
+        # SRCH-17: a screener who did not rate a study casts no vote; it is
+        # never counted as an EXCLUDE. Such a study needs a person.
+        if any(wid not in screeners_map[sk] for sk in screener_keys):
+            incomplete.append(wid)
+            reconciled[wid] = "CONFLICT"
+            continue
+        ratings = [screeners_map[sk][wid].upper() for sk in screener_keys]
         subject_ratings.append(ratings)
 
-        inc_votes = ratings.count("INCLUDE")
-        exc_votes = ratings.count("EXCLUDE")
-
-        if inc_votes > n_raters / 2:
-            reconciled[wid] = "INCLUDE"
-            majority_count += 1
-        elif exc_votes > n_raters / 2:
-            reconciled[wid] = "EXCLUDE"
+        # Review finding 4: MAYBE ("Unclear → full text") is a category of its
+        # own, so a MAYBE majority is MAYBE, as in the harness collector.
+        winner = next(
+            (c for c in ("INCLUDE", "EXCLUDE", "MAYBE") if ratings.count(c) > n_raters / 2),
+            None,
+        )
+        if winner is not None:
+            reconciled[wid] = winner
             majority_count += 1
         else:
             # Deadlock tie
@@ -840,17 +887,18 @@ def reconcile_multi_screener_decisions(
                 reconciled[wid] = adjudication_map[wid].upper()
                 adjudicated_count += 1
             else:
-                # Fallback before adjudication
-                reconciled[wid] = "EXCLUDE"
+                # SRCH-17: an unadjudicated tie stays unresolved for a person.
+                reconciled[wid] = "CONFLICT"
 
-    kappa = calculate_fleiss_kappa(subject_ratings, categories=["INCLUDE", "EXCLUDE"])
+    kappa = calculate_fleiss_kappa(subject_ratings, categories=["INCLUDE", "EXCLUDE", "MAYBE"])
 
     return {
         "reconciled": reconciled,
         "ties": ties,
         "majority_count": majority_count,
         "adjudicated_count": adjudicated_count,
-        "fleiss_kappa": round(kappa, 4),
+        "fleiss_kappa": None if kappa is None else round(kappa, 4),
+        "incomplete": incomplete,
         "total_records": len(all_ids),
         "included_count": sum(1 for d in reconciled.values() if d == "INCLUDE"),
         "excluded_count": sum(1 for d in reconciled.values() if d == "EXCLUDE"),

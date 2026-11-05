@@ -172,25 +172,40 @@ def check_prisma(ws: Path) -> CheckResult:
         expect("total_identified", records, "the corpus snapshot")
         expect("duplicates_removed", records - studies, "the corpus snapshot")
         expect("records_screened", studies, "the corpus snapshot")
-    for field_name, name in (
-        ("records_included", "included.json"),
-        ("records_excluded", "excluded.json"),
-        ("conflicts_flagged", "conflicts.json"),
-    ):
+    included = int(prisma.get("records_included") or 0)
+    unclear = int(prisma.get("records_unclear") or 0)
+    excluded = int(prisma.get("records_excluded") or 0)
+    files: dict[str, int] = {}
+    for name in ("included.json", "excluded.json", "conflicts.json"):
         file = literature / name
         if not file.is_file():
             result.problems.append(f"literature/{name} is missing")
-            continue
-        expect(field_name, len(_read_json(file)), name)
-    parts = sum(int(prisma.get(k) or 0) for k in ("records_included", "records_excluded", "conflicts_flagged"))
-    if parts != prisma.get("records_screened"):
+        else:
+            files[name] = len(_read_json(file))
+    # Unclear (MAYBE) is forwarded to full text with the includes (decision
+    # 2026-11-04), so included.json holds both.
+    if "included.json" in files and files["included.json"] != included + unclear:
         result.problems.append(
-            f"included + excluded + conflicts = {parts}, records_screened is {prisma.get('records_screened')}"
+            f"records_included + records_unclear is {included + unclear}, "
+            f"included.json gives {files['included.json']}"
         )
-    breakdown = prisma.get("exclusion_reasons_breakdown") or {}
-    if breakdown and sum(breakdown.values()) != prisma.get("records_excluded"):
+    if "excluded.json" in files:
+        expect("records_excluded", files["excluded.json"], "excluded.json")
+    if "conflicts.json" in files:
+        expect("conflicts_flagged", files["conflicts.json"], "conflicts.json")
+    # Conflicts are borderline rows flagged for audit; they are also partitioned,
+    # so they are a subset of the screened records, not an extra bucket.
+    if included + unclear + excluded != prisma.get("records_screened"):
         result.problems.append(
-            f"exclusion reasons sum to {sum(breakdown.values())}, records_excluded is {prisma.get('records_excluded')}"
+            f"included + unclear + excluded = {included + unclear + excluded}, "
+            f"records_screened is {prisma.get('records_screened')}"
+        )
+    # A record breaking several criteria counts once under each reason.
+    breakdown = prisma.get("exclusion_reasons_breakdown") or {}
+    if breakdown and sum(breakdown.values()) < excluded:
+        result.problems.append(
+            f"exclusion reasons sum to {sum(breakdown.values())}, fewer than "
+            f"records_excluded ({excluded})"
         )
     return result
 

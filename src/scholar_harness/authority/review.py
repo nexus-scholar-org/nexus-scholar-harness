@@ -21,7 +21,7 @@ Authority comes ONLY from the publisher-owned operator context
 string, or editable approval file is never trusted identity, and identity is
 never taken from CLI args. On Windows, ``approve`` refuses when its own
 process token is Low integrity — the worker cannot invoke the operator
-action. MAYBE/CONFLICT (and worker-pending rows) stay unresolved until the
+action. CONFLICT (and worker-pending rows) stay unresolved until the
 researcher resolves them or defers publication.
 
 Single-screener flow only. Dual-screening and checklist-derived inputs
@@ -112,7 +112,7 @@ REVIEW_REASON_MISSING = "REVIEW_REASON_MISSING"
 REVIEW_BEGIN_ARGS_REFUSED = "REVIEW_BEGIN_ARGS_REFUSED"
 
 #: Decisions that count as final (anything else refuses as unresolved).
-TERMINAL_DECISIONS = frozenset({"INCLUDE", "EXCLUDE"})
+TERMINAL_DECISIONS = frozenset({"INCLUDE", "EXCLUDE", "MAYBE"})  # MAYBE: Unclear → full text (M1a)
 
 
 class ReviewRefused(RuntimeError):
@@ -357,6 +357,65 @@ def _read_recommendation_bytes(workspace_dir: Path, batch_index: int) -> bytes:
     return path.read_bytes()
 
 
+#: The approver is whoever the local operator context names: an unauthenticated
+#: local attestation, not a verified identity (CON-02). Real authentication
+#: arrives with the sync tier.
+IDENTITY_BASIS = "unauthenticated-local-attestation"
+
+
+def _is_event_projection(path: Path) -> bool:
+    """A decisions file the engine projected from human decision events."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return isinstance(payload, dict) and payload.get("source") == "decision-events"
+
+
+def _reviewed_bytes(
+    workspace_dir: Path, batch_index: int, decisions_path: Path
+) -> tuple[bytes, str]:
+    """What the researcher reviews, and where it came from.
+
+    A batch decided entirely by human decision events is reviewed on its
+    projection; there was no worker step, so none is required and nothing is
+    overridden (decision 2026-11-04). Otherwise the worker recommendation is
+    required, as before.
+    """
+    if not recommendation_path(workspace_dir, batch_index).is_file() and (
+        decisions_path.is_file() and _is_event_projection(decisions_path)
+    ):
+        # Review finding 2: the claim is believed only if the bytes are exactly
+        # what the event log projects; a hand-written file needs the worker step.
+        from scholar_harness.screening import events as decision_events
+
+        if decision_events.projection_is_current(workspace_dir, batch_index, decisions_path):
+            return decisions_path.read_bytes(), "decision-events"
+    return _read_recommendation_bytes(workspace_dir, batch_index), "worker-recommendation"
+
+
+def _pending_batches(
+    workspace_dir: Path, approved_index: int, approved_bytes: bytes
+) -> list[int]:
+    """Batches without a current approval of their present decision bytes (CON-03)."""
+    manifest_path = _screening_dir(workspace_dir) / "MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    pending: list[int] = []
+    for batch in manifest.get("batches", []):
+        index = int(batch["batch_index"])
+        if index == approved_index:
+            continue
+        decisions = default_decisions_path(workspace_dir, index)
+        approval = batch_approval_path(workspace_dir, index)
+        if not decisions.is_file() or not approval.is_file():
+            pending.append(index)
+            continue
+        stored = json.loads(approval.read_text(encoding="utf-8"))["approval"]
+        if stored.get("final_decision_sha256") != content_sha256(decisions.read_bytes()):
+            pending.append(index)
+    return sorted(pending)
+
+
 def _parse_decisions(path: Path) -> list[dict[str, Any]]:
     try:
         entries = _load_decisions(path)
@@ -380,7 +439,8 @@ def _parse_decisions(path: Path) -> list[dict[str, Any]]:
 def _require_resolved(entries: list[dict[str, Any]]) -> None:
     """Refuse any non-terminal decision presented for approval.
 
-    AG-02 MAYBE/CONFLICT stay unresolved (never coerced); worker-pending
+    AG-02 CONFLICT stays unresolved (never coerced); MAYBE is the terminal
+    outcome "Unclear → full text" since M1a (decision 2026-11-04); worker-pending
     rows and any other non-terminal value refuse under the same code instead
     of being coerced into terminal exclusions.
     """
@@ -415,13 +475,13 @@ def load_review_snapshot(
     displayable, never approvable).
     """
     ws = Path(workspace_dir).resolve()
-    recommendation_bytes = _read_recommendation_bytes(ws, batch_index)
-    batch_env = _resolve_batch_env(ws, batch_index)
     decisions_path = (
         Path(decisions_file)
         if decisions_file is not None
         else default_decisions_path(ws, batch_index)
     )
+    recommendation_bytes, _source = _reviewed_bytes(ws, batch_index, decisions_path)
+    batch_env = _resolve_batch_env(ws, batch_index)
     final_bytes = decisions_path.read_bytes() if decisions_path.is_file() else None
     snapshot = capture_snapshot(
         recommendation_bytes,
@@ -697,16 +757,20 @@ def _compute_single_screener_content(
             wsid = str(entry.get("workspace_id") or entry.get("study_id") or "")
             doc = doc_by_wsid.get(wsid)
             raw_dec = str(entry.get("decision", "")).strip().upper()
-            if raw_dec not in ("INCLUDE", "EXCLUDE"):
+            # MAYBE is "Unclear → full text", a terminal outcome since M1a.
+            if raw_dec not in ("INCLUDE", "EXCLUDE", "MAYBE"):
                 raise ReviewRefused(
                     REVIEW_INVALID_DECISIONS,
                     f"batch {idx} carries non-terminal decision {raw_dec!r}",
                     batch_index=idx,
                 )
+            # Mirrors the collector (CON-11): no invented confidence or reason,
+            # so approval and collect compute byte-identical content.
             try:
-                confidence = float(entry.get("confidence", 0.80))
+                raw_conf = entry.get("confidence")
+                confidence = None if raw_conf is None else float(raw_conf)
             except (TypeError, ValueError):
-                confidence = 0.80
+                confidence = None
             all_decisions.append(
                 ScreeningDecision(
                     workspace_id=wsid,
@@ -720,7 +784,7 @@ def _compute_single_screener_content(
                     ),
                     relevant_rqs=list(entry.get("relevant_rqs") or []),
                     screening_reasoning=str(
-                        entry.get("screening_reasoning", "Agent screened.")
+                        entry.get("screening_reasoning") or entry.get("reason_code")
                     ),
                     document_title=doc.title if doc else entry.get("title", ""),
                     doi=doc.external_ids.doi if doc else None,
@@ -788,12 +852,12 @@ def approve_command(
     operator = load_operator_context(ws)
     moment = approved_at if approved_at is not None else _utcnow_iso()
 
-    recommendation_bytes = _read_recommendation_bytes(ws, batch_index)
     decisions_path = (
         Path(decisions_file)
         if decisions_file is not None
         else default_decisions_path(ws, batch_index)
     )
+    recommendation_bytes, source = _reviewed_bytes(ws, batch_index, decisions_path)
     if not decisions_path.is_file():
         raise AuthorityRefused(
             APPROVAL_MISSING,
@@ -852,6 +916,8 @@ def approve_command(
         "superseded": superseded,
         "approval_fingerprint": record.fingerprint(),
         "operator_identity": record.operator_identity,
+        "identity_basis": IDENTITY_BASIS,
+        "source": source,
         "message": message,
         "reviewed_at": moment,
     }
@@ -873,6 +939,33 @@ def approve_command(
         ),
         encoding="utf-8",
     )
+
+    # CON-03: the corpus-wide publication approval is staged only when every
+    # batch has a current approval of its present bytes. Approving one batch
+    # never seals another batch's unreviewed decisions.
+    pending = _pending_batches(ws, batch_index, final_bytes)
+    deferral_file = deferral_path(ws, batch_index)
+    deferral_lifted = deferral_file.is_file()
+    if deferral_lifted:
+        deferral_file.unlink()
+    result = {
+        "batch_index": batch_index,
+        "review_path": str(review_out),
+        "approval_path": str(approval_out),
+        "binding": snapshot.binding.as_dict(),
+        "superseded": superseded,
+        "recommendation_sha256": snapshot.recommendation_sha256,
+        "final_decision_sha256": snapshot.final_decision_sha256,
+        "approval_fingerprint": record.fingerprint(),
+        "operator_identity": record.operator_identity,
+        "identity_basis": IDENTITY_BASIS,
+        "source": source,
+        "deferral_lifted": deferral_lifted,
+        "publication_staged": not pending,
+        "publication_pending_batches": pending,
+    }
+    if pending:
+        return result
 
     # Stage the publication approval the existing collect gate verifies:
     # same scope resolution, same content, same snapshot construction. The
@@ -911,26 +1004,10 @@ def approve_command(
     publication_out = write_publication_approval(
         screening_dir, publication_record, staged_at=moment
     )
-
-    # A successful approval lifts any prior deferral for this batch.
-    deferral_file = deferral_path(ws, batch_index)
-    deferral_lifted = deferral_file.is_file()
-    if deferral_lifted:
-        deferral_file.unlink()
-
     return {
-        "batch_index": batch_index,
-        "review_path": str(review_out),
-        "approval_path": str(approval_out),
+        **result,
         "publication_approval_path": str(publication_out),
-        "binding": snapshot.binding.as_dict(),
-        "superseded": superseded,
-        "recommendation_sha256": snapshot.recommendation_sha256,
-        "final_decision_sha256": snapshot.final_decision_sha256,
-        "approval_fingerprint": record.fingerprint(),
         "publication_approval_fingerprint": publication_record.fingerprint(),
-        "operator_identity": record.operator_identity,
-        "deferral_lifted": deferral_lifted,
     }
 
 

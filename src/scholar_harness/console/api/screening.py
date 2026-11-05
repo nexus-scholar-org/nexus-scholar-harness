@@ -31,7 +31,7 @@ from .audit import log_event
 
 router = APIRouter(prefix="/api/v1/screening", tags=["screening"])
 
-_DECISION_CODES = ("INCLUDE", "EXCLUDE")
+_DECISION_CODES = ("INCLUDE", "EXCLUDE", "MAYBE")  # MAYBE: Unclear → full text (M1a)
 _CONFIDENCE_WORDS = {"high": 0.9, "medium": 0.7, "low": 0.5}
 
 
@@ -41,7 +41,11 @@ class Decision(BaseModel):
     workspace_id: str | None = None
     study_id: str | None = None
     decision: str
-    confidence: float | str = 0.8
+    # CON-11: no invented confidence. A human decision carries none.
+    confidence: float | str | None = None
+    # CON-11: the console is the human draft writer, so rows are HUMAN unless
+    # the caller says otherwise (an agent posting through it must say LLM).
+    method: str = "HUMAN"
     matched_inclusion_criteria: list[str] = []
     violated_exclusion_criteria: list[str] = []
     relevant_rqs: list[str] = []
@@ -52,7 +56,7 @@ class Decision(BaseModel):
     def _decision_upper(cls, v: str) -> str:
         raw = (v or "").strip().upper()
         if raw not in _DECISION_CODES:
-            raise ValueError(f"decision must be INCLUDE or EXCLUDE, got {v!r}")
+            raise ValueError(f"decision must be INCLUDE, EXCLUDE or MAYBE, got {v!r}")
         return raw
 
     @property
@@ -62,13 +66,14 @@ class Decision(BaseModel):
     def to_record(self) -> dict[str, Any]:
         confidence = self.confidence
         if isinstance(confidence, str):
-            confidence = _CONFIDENCE_WORDS.get(confidence.strip().lower(), 0.8)
-        c = float(confidence)
-        if not 0 <= c <= 1:
+            confidence = _CONFIDENCE_WORDS.get(confidence.strip().lower())
+        c = None if confidence is None else float(confidence)
+        if c is not None and not 0 <= c <= 1:
             raise ValueError(f"confidence must be in [0,1], got {confidence!r}")
         return {
             "workspace_id": self.resolved_id,
             "decision": self.decision,
+            "method": self.method.strip().upper(),
             "confidence": c,
             "matched_inclusion_criteria": list(self.matched_inclusion_criteria),
             "violated_exclusion_criteria": list(self.violated_exclusion_criteria),
@@ -126,6 +131,7 @@ def post_batch_decisions(
 
     records: list[dict[str, Any]] = []
     unknown: list[str] = []
+    received_at = datetime.now(UTC).isoformat()
     for dec in body.decisions:
         try:
             record = dec.to_record()
@@ -135,6 +141,10 @@ def post_batch_decisions(
             ) from exc
         if record["workspace_id"] not in known_ids:
             unknown.append(record["workspace_id"])
+        # CON-11: every row carries who decided and when; the time is the
+        # caller's, else the moment the console received it, never 1970.
+        record["screener_id"] = body.reviewed_by
+        record["decided_at"] = body.timestamp or received_at
         records.append(record)
 
     if unknown:
@@ -199,6 +209,9 @@ def post_batch_decisions(
         for key in mergeable:
             if key in explicit:
                 merged[position][key] = record[key]
+        # CON-11: provenance describes this save, so it is always restamped.
+        for key in ("method", "screener_id", "decided_at"):
+            merged[position][key] = record[key]
 
     timestamp = body.timestamp or datetime.now(UTC).isoformat()
     payload = {

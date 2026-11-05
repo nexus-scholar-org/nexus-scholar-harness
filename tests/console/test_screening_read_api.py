@@ -616,7 +616,8 @@ def test_ui_review_draft_vs_unresolved_vs_approved(tmp_path):
     assert draft["review"] == {"present": False}
     assert draft["deferral"] == {"present": False}
 
-    # Unresolved-only: MAYBE rows are named, never coerced. (Written after
+    # Unresolved-only: CONFLICT rows are named, never coerced (M1a, decision
+    # 2026-11-04: MAYBE is the terminal "Unclear → full text"). (Written after
     # the approval below would break approve_command's whole-manifest content
     # computation, so the unresolved probe runs on batch 1 last.)
     # Approved: operator approval over content differing from the worker draft
@@ -644,7 +645,7 @@ def test_ui_review_draft_vs_unresolved_vs_approved(tmp_path):
     (ws / "literature" / "screening" / "batch_001_decisions.json").write_text(
         json.dumps(
             [
-                {"workspace_id": "SCI-000003", "decision": "MAYBE"},
+                {"workspace_id": "SCI-000003", "decision": "CONFLICT"},
                 {"workspace_id": "SCI-000004", "decision": "CONFLICT"},
             ]
         ),

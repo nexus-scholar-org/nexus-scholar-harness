@@ -99,10 +99,11 @@ def test_nexus_dedup_and_screen(tmp_path, sample_intent_json):
     # Screen
     lit_dir = tmp_path / "literature"
     screen_res = nexus_screen(str(dedup_file), str(proto_file), str(lit_dir))
-    assert "Screening complete" in screen_res
-    assert (lit_dir / "included.json").exists()
-    assert (lit_dir / "excluded.json").exists()
-    assert (lit_dir / "prisma_screening_report.md").exists()
+    # AGT-16 (M1a): MCP screening writes proposals only, never the published partition.
+    assert "Proposals only" in screen_res
+    assert (lit_dir / "screening_proposals.json").exists()
+    for name in ("included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md"):
+        assert not (lit_dir / name).exists(), name
 
 
 @pytest.mark.slow

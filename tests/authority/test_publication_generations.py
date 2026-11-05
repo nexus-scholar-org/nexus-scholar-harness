@@ -1319,6 +1319,8 @@ def _write_decisions(
             "workspace_id": study["study_id"],
             "decision": decision,
             "method": "LLM",
+            "screener_id": "ag03c-llm-screener",
+            "decided_at": NOW,
             "screening_reasoning": "AG-03C synthetic review.",
             **fields,
         }
@@ -1583,7 +1585,8 @@ def test_collect_changed_parents_refuse(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     "decisions",
     [
-        [{"decision": "MAYBE"}],
+        # M1a, decision 2026-11-04: MAYBE is terminal (Unclear); CONFLICT stays unresolved.
+        [{"decision": "CONFLICT"}],
         [{"decision": "INCLUDE"}, {"decision": "INCLUDE"}],
     ],
     ids=["unresolved", "duplicate"],
@@ -1598,6 +1601,8 @@ def test_ag02_refusals_fire_first_through_gated_collect(
         entry = {
             "workspace_id": studies[0]["study_id"],
             "method": "LLM",
+            "screener_id": "ag03c-llm-screener",
+            "decided_at": NOW,
             "screening_reasoning": "AG-03C AG-02 pin.",
         }
         entry.update(decision)
@@ -1630,6 +1635,8 @@ def test_ag02_coverage_refusal_fires_first_through_gated_collect(
                     "workspace_id": studies[0]["study_id"],
                     "decision": "INCLUDE",
                     "method": "LLM",
+                    "screener_id": "ag03c-llm-screener",
+                    "decided_at": NOW,
                     "screening_reasoning": "Only the first candidate screened.",
                 }
             ]

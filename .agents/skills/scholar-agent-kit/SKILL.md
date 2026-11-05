@@ -10,7 +10,7 @@ layer: domain
 # `scholar-agent-kit` Skill Instructions
 
 MCP front-door for most Nexus Scholar surfaces — **not** every API/CLI capability.
-25 tools: 22 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 25 registered tools; parity
+28 tools: 25 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 28 registered tools; parity
 enforced by `tests/conformance/test_mcp_tool_parity.py`). Pinned source:
 `{KIT_ROOT:agent}/src/scholar_agent/server.py` (tool list/signatures,
 `_resolve_path`, refusals) + `capabilities.py` (registry; pin: see `{CONFIG}`).
@@ -52,7 +52,7 @@ files — this page stays the small-footprint entrypoint.
 - Known gap: client auto-setup should set `NEXUS_RECON_ROOT` explicitly since
   `mcp_config.json` declares no `env`.
 
-## 2. Tool inventory — Exposed MCP Tools (25 total) — signature → return
+## 2. Tool inventory — Exposed MCP Tools (28 total) — signature → return
 
 | # | Tool | Key signature (defaults) | Returns |
 |---|------|--------------------------|---------|
@@ -61,8 +61,8 @@ files — this page stays the small-footprint entrypoint.
 | 3 | `nexus_protocol_render_criteria` | `(protocol_path: str)` path-only | raw markdown prose (`Error: …` on failure) |
 | 4 | `nexus_discover` | `(query, limit=10, start_year=2020)`; 4 providers (OpenAlex/S2/Crossref/arXiv — no PubMed/bioRxiv), `dedup=True` forced | prose; writes anchored `.cache/mcp/discover_<slug>_<ts>.json` + preview |
 | 5 | `nexus_dedup` | `(input_path, output_path="./deduped.json")` PID + title clustering | prose (`Error: …`) |
-| 6 | `nexus_screen` | `(input_path, protocol_path, output_dir="./literature")` heuristic PRISMA | prose; writes `included/excluded/conflicts.json` + `prisma_report.json` + `prisma_screening_report.md` |
-| 7 | `nexus_screen_llm` | `(input_path, protocol_path, output_dir="./literature", api_key=None, model="gemini-2.0-flash", batch_size=20, temperature=0.1)`; any LLM failure → heuristic fallback | **JSON** `{status, included, excluded, conflicts, output_dir}`; same 5 files as #6 |
+| 6 | `nexus_screen` | `(input_path, protocol_path, output_dir="./literature")` heuristic | prose; **proposals only** (AGT-16): writes `screening_proposals.json` (status `PROPOSALS_ONLY`, proposals + preview counts), never the published partition; journals `MCP_SCREENING_PROPOSED` inside a workspace |
+| 7 | `nexus_screen_llm` | `(input_path, protocol_path, output_dir="./literature", api_key=None, model="gemini-2.0-flash", batch_size=20, temperature=0.1)`; any LLM failure → heuristic fallback (labelled `method: HEURISTIC`) | **JSON** `{status: PROPOSALS_ONLY, proposed_include, proposed_unclear, proposed_exclude, flagged, path, output_dir}`; same proposals file as #6 |
 | 8 | `nexus_extract_pdf` | `(pdf_path, output_dir="./extracted", engine="pymupdf")`; `title`/`doi`/`workspace_id` heuristically derived from path (§5) | prose (`Error…` prefix); **not** an envelope |
 | 9 | `nexus_pdf_acquire` | 14 E1-shaped args, all default `""`, discoverability only | JSON refusal envelope (§4) |
 | 10 | `nexus_pdf_extraction` | `(pdf_path="", output_dir="", engine="")`, discoverability only | JSON refusal envelope (§4) |
@@ -81,8 +81,11 @@ files — this page stays the small-footprint entrypoint.
 | 23 | `recon_probe` | `(topic, session_id=None, start_year=2020, limit=10, semantic=False)`; pool capped at 25; `semantic=True` → OpenAlex `search.semantic` (`/m/semantic/` cache-key segment); upserts `rec_<hex>` sessions | JSON `{session_id, cache_key, status: probe_ok, n_docs, pool_path}` |
 | 24 | `recon_distill` | `(session_id, lexicon_json=None)`; str **or** dict; optional `metrics/datasets/schools` regex→label maps merged over default; lexicon hash in artifact name; carries `pool` sufficiency + `purity` gates (`qei` never standalone) | JSON `{session_id, cache_key, terms_path, qei, pool, purity, metrics, datasets, schools, topics, micro_taxonomy_top}` |
 | 25 | `recon_delta` | `(session_id, followups=3)`; hard cap 3; thin schools `n ≤ 2`; gap reason verbatim under `reason` **and** `confidence.detail` (`label: gap`); `corpus_total` + `saturation_label` per follow-up; `dropped_n` counts 25-cap discards | JSON `{session_id, merged_cache_keys, followups, pool_path, terms_path, topics, dropped_n, pool_size_before/after}` |
+| 26 | `nexus_screening_queue` | `(workspace_dir=".", view="needs_you", limit=50)`; views `needs_you`, `no_proposal`, `decided` | JSON `{status, items:[{study_id, title, has_proposal}]}`; never shows an agent outcome |
+| 27 | `nexus_screening_record` | `(study_id, workspace_dir=".")` | JSON `{status, study_id, title, abstract, criteria, answers}`; evidence offsets index into title + blank line + abstract |
+| 28 | `nexus_submit_proposal` | `(study_id, proposal_json, model, task_version="screen-v1", prompt_sha256=None, workspace_dir=".")`; one answer per criterion with a verbatim evidence span | JSON `{status, proposal_id, derived_outcome, validators}`; appends to the proposal store, journals, **never** writes a decision |
 
-Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #17–#25.
+Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #17–#28.
 **Prose** (`"Error: …"` prefixes, no envelope) = #3–#6, #8, #12–#16.
 
 ## 3. Declared-unsupported capabilities (E1, E2, E3)

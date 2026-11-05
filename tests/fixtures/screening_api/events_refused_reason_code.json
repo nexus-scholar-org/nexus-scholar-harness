@@ -1,0 +1,46 @@
+{
+  "name": "events_refused_reason_code",
+  "request": {
+    "json": {
+      "events": [
+        {
+          "binding": {
+            "batch_id": "batch-943f93bf12ff2ce60f2c43c0db28b683",
+            "batch_sha256": "sha256:bbf9d560a5c6c465b0d86cb1ca6ee95c32ef5ba697f5ce2d02cbce5ed0b8d549",
+            "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5"
+          },
+          "criteria": [],
+          "decided_at": "2026-11-04T09:20:00.000Z",
+          "device": "desktop",
+          "event_id": "0193f4a2-7c1e-7b2a-9e55-000000000002",
+          "method": "HUMAN",
+          "note": null,
+          "outcome": "EXCLUDE",
+          "proposal_shown": null,
+          "reason_code": null,
+          "screener_id": "researcher:local",
+          "study_id": "STU-7e6cbe603ca705ba542aaf6b76d9ff25",
+          "supersedes": null
+        }
+      ]
+    },
+    "method": "POST",
+    "path": "/api/v1/screening/decisions/events",
+    "scope": "desktop"
+  },
+  "response": {
+    "body": {
+      "results": [
+        {
+          "event_id": "0193f4a2-7c1e-7b2a-9e55-000000000002",
+          "refusal": {
+            "code": "REASON_CODE_INVALID",
+            "message": "an EXCLUDE needs a protocol exclusion code or FAILS-<inclusion id>"
+          },
+          "result": "refused"
+        }
+      ]
+    },
+    "status": 200
+  }
+}

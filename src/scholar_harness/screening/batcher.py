@@ -171,13 +171,14 @@ def _load_decision_payload(path: Path) -> tuple[list[dict], dict[str, str]]:
         if not isinstance(decisions, list):
             raise ValueError(f"{path.name}: 'decisions' key must be a list")
         return decisions, {
-            "reviewed_by": str(payload.get("reviewed_by") or "agent-unknown"),
+            "reviewed_by": str(payload.get("reviewed_by") or ""),
             "timestamp": str(payload.get("timestamp") or ""),
         }
     if isinstance(payload, list):
-        # F-002: Use stable fallback for legacy missing provenance instead of mutable mtime
-        timestamp = "1970-01-01T00:00:00+00:00"
-        return payload, {"reviewed_by": "agent-legacy", "timestamp": timestamp}
+        # CON-11: a bare list carries no file-level provenance. Nothing is
+        # invented here (it used to be "agent-legacy" at the 1970 epoch); each
+        # row must carry its own, or the provenance gate refuses the file.
+        return payload, {"reviewed_by": "", "timestamp": ""}
     raise ValueError(
         f"{path.name}: expected a JSON list or wrapper object, got {type(payload).__name__}"
     )
