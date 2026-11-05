@@ -301,3 +301,61 @@ def report(
         "prices_as_of": task_mod.load_prices()["as_of"],
         "records": per_record,
     }
+
+
+# --- the MCP route: agents answer exported files (decision 2026-11-05) ----------
+#
+# The researcher's own Claude (Claude Code, over MCP) can stand in for the API
+# driver: `export_set` writes the system prompt, the output schema and the record
+# messages for a set of records, and `import_answers` reads one answer per record
+# back as driver results, so `report` scores them exactly as it scores a run.
+# The export is blind: it holds no label, no decision and nothing ordered by
+# label, so an agent that reads it cannot learn the answer key.
+
+MCP_PROVIDER = "claude-code-mcp"
+EXPORT_BATCH = 10
+
+
+def _blind_order(study_id: str) -> str:
+    return hashlib.sha256(f"blind:{study_id}".encode()).hexdigest()
+
+
+def export_set(records: list[EvalRecord], spec: RunSpec, out: Path, *, set_sha256: str, batch_size: int = EXPORT_BATCH) -> dict[str, Any]:
+    """Write the blind export for `records` to `out`; returns its manifest."""
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "answers").mkdir(exist_ok=True)
+    (out / "system_prompt.md").write_text(spec.system, encoding="utf-8")
+    (out / "output_schema.json").write_text(json.dumps(spec.schema, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    ordered = sorted(records, key=lambda r: _blind_order(r.study_id))
+    batches = []
+    for start in range(0, len(ordered), batch_size):
+        name = f"batch_{start // batch_size + 1:03d}.json"
+        items = [{"study_id": r.study_id, "message": task_mod.record_message(r.title, r.abstract, r.published)} for r in ordered[start : start + batch_size]]
+        (out / name).write_text(json.dumps({"records": items}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        batches.append(name)
+    task = task_mod.load_task()
+    manifest = {
+        "task_version": task.task_version,
+        "prompt_sha256": task.prompt_sha256,
+        "set_sha256": set_sha256,
+        "records": len(ordered),
+        "study_ids": sorted(r.study_id for r in ordered),
+        "batches": batches,
+        "answers": "answers/<study_id>.json: one JSON object matching output_schema.json",
+    }
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    return manifest
+
+
+def import_answers(out: Path, records: list[EvalRecord], *, model: str) -> list[DriverResult]:
+    """One driver result per record that has an answer file; a bad answer is `invalid`, never dropped."""
+    from scholar_agent.drivers.base import parse_json_text
+
+    results = []
+    for record in records:
+        path = out / "answers" / f"{record.study_id}.json"
+        if not path.is_file():
+            continue  # reported as `missing`, so Unclear
+        status, value, detail = parse_json_text(path.read_text(encoding="utf-8"))
+        results.append(DriverResult(record.study_id, status, output=value, detail=detail, model=model))
+    return results

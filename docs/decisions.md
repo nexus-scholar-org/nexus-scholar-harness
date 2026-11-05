@@ -4,6 +4,24 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — The prompt gate may be met on the MCP route
+
+With no API credit, the researcher's own Claude (Claude Code subagents on the
+subscription) answers the frozen v03 set through `nexus-scholar prompt-gate
+export|import`: a blind export (prompt, schema and record text only; no label,
+nothing ordered by label), one JSON answer per record, scored by the same
+checks, rule table and bar as an API run. **A pass on this route is enough for
+the M5-slim prompt-gate requirement for now** (researcher, 2026-11-05).
+
+- The report names the route (`provider: "claude-code-mcp"`) and the model;
+  its cost is null (the subscription is not metered per record).
+- It measures the MCP route, not the API driver: the prompt runs inside
+  Claude Code's own instructions, the output format is checked after the fact
+  rather than enforced, and effort cannot be set. The API route stays
+  unmeasured, and the agent-system §6 cost per 1,000 records stays an
+  estimate, until an API run.
+- Nothing may claim an API-route pass on the strength of an MCP-route one.
+
 ## 2026-11-05 — M1b-2 merges before its live prompt gate; the gate blocks M5-slim
 
 The live prompt gate (Opus 5.5 on the frozen v03 set, Wilson lower bound of

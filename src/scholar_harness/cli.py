@@ -430,6 +430,59 @@ def gate_run(
     )
 
 
+
+@gate_app.command("export")
+def gate_export(
+    out: Path = typer.Option(..., "--out", help="Folder for the blind export (prompt, schema, record batches)"),
+    limit: int = typer.Option(0, "--limit", help="Only the first N records (a smoke run)"),
+    workspace: Path = typer.Option(_V03, "--workspace"),
+) -> None:
+    """Export the set for agents to answer (the MCP route); no label leaves with it."""
+    from scholar_agent import prompt_gate as pg
+
+    frozen, records, _protocol, spec = _gate_inputs(workspace, limit or None, "claude-code", "n/a", 4096)
+    manifest = pg.export_set(records, spec, out, set_sha256=frozen["set_sha256"])
+    console.print(f"Exported {manifest['records']} records in {len(manifest['batches'])} batches to {out}; answers go in {out / 'answers'}")
+
+
+@gate_app.command("import")
+def gate_import(
+    export: Path = typer.Option(..., "--export", help="The folder written by `prompt-gate export`, with its answers/"),
+    model: str = typer.Option(..., "--model", help="The model the agents ran on"),
+    workspace: Path = typer.Option(_V03, "--workspace"),
+) -> None:
+    """Score agents' answers to an export with the same checks, rule table and bar as a run."""
+    import json as _json
+    from datetime import UTC, datetime
+
+    from scholar_agent import prompt_gate as pg
+
+    manifest = _json.loads((export / "manifest.json").read_text(encoding="utf-8"))
+    frozen, records, protocol, spec = _gate_inputs(workspace, None, model, "n/a", 4096)
+    if manifest["set_sha256"] != frozen["set_sha256"] or manifest["prompt_sha256"] != pg.task_mod.load_task().prompt_sha256:
+        console.print("[bold red]The export was made from another set or prompt; export again.[/bold red]")
+        raise typer.Exit(1)
+    wanted = set(manifest["study_ids"])
+    records = [r for r in records if r.study_id in wanted]
+    results = pg.import_answers(export, records, model=model)
+    out = pg.report(frozen=frozen, records=records, results=results, protocol=protocol, provider=pg.MCP_PROVIDER, spec=spec, batch=False)
+    out["smoke_run"] = len(records) < sum(frozen["counts"].values())
+    out["finished_at"] = datetime.now(UTC).isoformat()
+    pg.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    path = pg.RESULTS_DIR / f"{stamp}_{pg.MCP_PROVIDER}_{model}{'_smoke' if out['smoke_run'] else ''}.json"
+    path.write_text(_json.dumps(out, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    if not out["measured"]:
+        console.print(f"[bold red]Not measured: no answer of the {len(records)} was usable. Report {path}[/bold red]")
+        raise typer.Exit(1)
+    s = out["score"]
+    console.print(
+        f"include-recall {s['include_recall']} (95% lower bound {s['include_recall_ci_low']}, bar {s['bar']}): "
+        f"{'PASS' if s['passes'] else 'FAIL'} · excludes caught {s['exclusion_rate_on_confirmed_excludes']} · "
+        f"unclear {s['unclear_rate']} · statuses {out['driver_statuses']} · report {path}"
+    )
+
+
 app.add_typer(gate_app, name="prompt-gate")
 
 
