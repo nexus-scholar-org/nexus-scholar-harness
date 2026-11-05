@@ -1,3 +1,4 @@
+import { NEW_SCREENS_LINK } from "../components/screening-page";
 import {
   DESKTOP_VIEWPORT,
   MOBILE_NAV_TRIGGER,
@@ -167,7 +168,7 @@ test.describe("rendered tab order — the screening workspace", () => {
   const RADIO = "input:screening-decision-include";
   const REASON = "textarea:screening-reason";
 
-  test("1440px/en: [skip, Overview, Screening, Corpus, Audit, three locales, three themes, include radio, reason field]", async ({
+  test("1440px/en: [skip, Overview, Screening, Corpus, Audit, three locales, three themes, screening-home link, include radio, reason field]", async ({
     page,
   }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
@@ -184,6 +185,8 @@ test.describe("rendered tab order — the screening workspace", () => {
       `a:${CATALOGS.en["nav.audit"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
       ...themeStops("en"),
+      // M1b-1: the lede links to the new screening home.
+      `a:${NEW_SCREENS_LINK.en}`,
       RADIO,
       REASON,
     ]);
@@ -202,6 +205,7 @@ test.describe("rendered tab order — the screening workspace", () => {
       `button:${CATALOGS.ar["a11y.openMainNavigation"]}`,
       ...LOCALE_ENDONYMS.map((endonym) => `a:${endonym}`),
       ...themeStops("ar"),
+      `a:${NEW_SCREENS_LINK.ar}`,
       RADIO,
       REASON,
     ]);

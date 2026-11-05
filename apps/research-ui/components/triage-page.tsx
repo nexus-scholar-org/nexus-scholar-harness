@@ -727,8 +727,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           {proposal.status === "hidden" ? (
             <div className="mt-3 space-y-2" aria-hidden="false">
               <p className="text-ink-muted">{t("proposalHiddenBody")}</p>
-              <div className="h-3 w-3/4 rounded bg-rule" />
-              <div className="h-3 w-1/2 rounded bg-rule" />
+              <div className="h-3 w-3/4 rounded-sm bg-rule" />
+              <div className="h-3 w-1/2 rounded-sm bg-rule" />
             </div>
           ) : proposal.status === "none" ? (
             <p className="mt-3 text-ink-muted">{t("proposalNone")}</p>

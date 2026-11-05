@@ -35,7 +35,7 @@ import { ACTION_CHROME, PairingDialog, type PairingServerError } from "./pairing
 import { ScreeningForm } from "./screening-form";
 
 /** Link to the M1b screening screens; the legacy page is retired at M5-slim. */
-const NEW_SCREENS_LINK: Record<Locale, string> = {
+export const NEW_SCREENS_LINK: Record<Locale, string> = {
   en: "Open the screening home: prepare, triage and publish on this workspace",
   fr: "Ouvrir l'accueil de la sélection : préparer, trier et publier sur cet espace",
   ar: "افتح صفحة الفرز الرئيسية: التحضير والمراجعة والنشر في هذه المساحة",

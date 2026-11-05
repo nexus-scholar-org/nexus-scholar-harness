@@ -275,8 +275,8 @@ function HomeReady({
         <h2 id="home-progress" className="font-semibold text-ink">
           {t("progress")}
         </h2>
-        <div role="img" aria-label={t("progressLabel", { decided: n(summary.decided), total: n(summary.total) })} className="mt-3 h-2 w-full rounded bg-rule">
-          <div className="h-2 rounded bg-brand" style={{ width: `${percent}%` }} />
+        <div role="img" aria-label={t("progressLabel", { decided: n(summary.decided), total: n(summary.total) })} className="mt-3 h-2 w-full rounded-sm bg-rule">
+          <div className="h-2 rounded-sm bg-brand" style={{ width: `${percent}%` }} />
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Tile label={t("needsYou")} value={n(summary.needs_you)} />
