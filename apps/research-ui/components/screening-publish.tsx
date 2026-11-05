@@ -59,7 +59,8 @@ const COPY = {
     fail: "Fails",
     batches: "Approval, one batch at a time",
     batchesBody: "Approval needs the one-time code the engine prints in its terminal. Ask for it, read it there, and type it here. A decision changed after approval makes the approval stale.",
-    approved: "Approved",
+    approved: "Approval on file",
+    approvedNote: "A decision changed after this approval makes it stale; approve again. Publish refuses a stale approval.",
     notApproved: "Not approved",
     deferred: "Deferred",
     askCode: "Show a code in the terminal",
@@ -103,7 +104,8 @@ const COPY = {
     fail: "Échoue",
     batches: "Approbation, lot par lot",
     batchesBody: "L'approbation exige le code à usage unique que le moteur affiche dans son terminal. Demandez-le, lisez-le là-bas et saisissez-le ici. Une décision modifiée après approbation rend l'approbation périmée.",
-    approved: "Approuvé",
+    approved: "Approbation enregistrée",
+    approvedNote: "Une décision modifiée après cette approbation la rend périmée ; approuvez à nouveau. La publication refuse une approbation périmée.",
     notApproved: "Non approuvé",
     deferred: "Reporté",
     askCode: "Afficher un code dans le terminal",
@@ -147,7 +149,8 @@ const COPY = {
     fail: "فاشل",
     batches: "الاعتماد، دفعة تلو الأخرى",
     batchesBody: "يحتاج الاعتماد إلى رمز لمرة واحدة يطبعه المحرك في طرفيته. اطلبه واقرأه هناك ثم اكتبه هنا. أي قرار يتغيّر بعد الاعتماد يجعل الاعتماد قديمًا.",
-    approved: "معتمدة",
+    approved: "اعتماد مسجّل",
+    approvedNote: "أي قرار يتغيّر بعد هذا الاعتماد يجعله قديمًا؛ اعتمد من جديد. يرفض النشر الاعتماد القديم.",
     notApproved: "غير معتمدة",
     deferred: "مؤجلة",
     askCode: "عرض رمز في الطرفية",
@@ -353,7 +356,8 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                           <DecisionBadge role="unclear">{t("notApproved")}</DecisionBadge>
                         )}
                       </p>
-                      {!approved ? (
+                      {approved ? <p className="mt-1 text-xs text-ink-muted">{t("approvedNote")}</p> : null}
+                      {(
                         <div className="mt-2 space-y-2">
                           <Button
                             disabled={busy}
@@ -413,7 +417,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                             </Button>
                           </details>
                         </div>
-                      ) : null}
+                      )}
                     </li>
                   );
                 })}

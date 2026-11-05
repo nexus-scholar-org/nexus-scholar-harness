@@ -42,6 +42,8 @@ interface Engine {
   blinding: "reveal_after_decision" | "show";
   proposals: Set<string>;
   conflicts?: unknown[];
+  criteria?: typeof CRITERIA;
+  proposalDelay?: Promise<void>;
 }
 
 let engine: Engine;
@@ -86,13 +88,13 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
     }
     if (!engine.proposals.has(study)) return Promise.resolve(json({ proposal: null }));
     engine.reveals.add(study);
-    return Promise.resolve(json({ proposal: PROPOSAL }));
+    return (engine.proposalDelay ?? Promise.resolve()).then(() => json({ proposal: PROPOSAL }));
   }
   const record = path.match(/^\/records\/([^/]+)$/);
   if (record) {
     const s = studies().find((x) => x.study_id === record[1])!;
     return Promise.resolve(
-      json({ ...s, year: 2024, venue: null, doi: null, highlights: [], criteria: CRITERIA, binding: BINDING, my_decision: head(s.study_id), history: engine.events.filter((e) => e.study_id === s.study_id) }),
+      json({ ...s, year: 2024, venue: null, doi: null, highlights: [], criteria: engine.criteria ?? CRITERIA, binding: BINDING, my_decision: head(s.study_id), history: engine.events.filter((e) => e.study_id === s.study_id) }),
     );
   }
   if (path === "/decisions/events" && method === "POST") {
@@ -122,8 +124,9 @@ async function ready() {
 }
 
 function answerAll() {
-  for (const id of ["INC-01", "EXC-01"]) {
-    fireEvent.click(within(screen.getByRole("group", { name: id })).getByRole("button", { name: "Yes" }));
+  for (const group of document.querySelectorAll('[role="group"][aria-label]')) {
+    const yes = within(group as HTMLElement).queryByRole("button", { name: "Yes" });
+    if (yes) fireEvent.click(yes);
   }
 }
 
@@ -224,6 +227,90 @@ describe("triage conflict from another device", () => {
     expect(screen.getByRole("button", { name: "Keep Include" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Keep Exclude · EXC-01" })).toBeInTheDocument();
     expect(proposalReads()).toEqual([]);
+  });
+});
+
+describe("review 1: a late draft never lands on another record", () => {
+  it("keeps the aside hidden on an undecided record when the previous record's draft arrives late", async () => {
+    let release: () => void = () => undefined;
+    engine.proposalDelay = new Promise<void>((resolve) => (release = resolve));
+    await ready();
+    answerAll();
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await waitFor(() => expect(proposalReads()).toHaveLength(1)); // A's draft is in flight
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "j" });
+    });
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    await act(async () => release());
+    await new Promise((r) => setTimeout(r, 20));
+    const aside = screen.getByTestId("proposal-aside");
+    expect(aside).toHaveTextContent("Hidden until you decide.");
+    expect(aside).not.toHaveTextContent("Not a decision");
+  });
+});
+
+describe("review 2: show mode names the draft that was on screen", () => {
+  it("sends proposal_shown with revealed_after_decision false, and true for a change after a reveal", async () => {
+    engine.blinding = "show";
+    await ready();
+    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
+    answerAll();
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0].proposal_shown).toEqual({ proposal_id: "PRP-1", revealed_after_decision: false });
+    await screen.findByRole("button", { name: "Change my decision" });
+    fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Unclear/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(2));
+    expect(postedEvents()[1].proposal_shown).toEqual({ proposal_id: "PRP-1", revealed_after_decision: true });
+  });
+
+  it("sends proposal_shown null when no draft was on screen", async () => {
+    await ready();
+    answerAll();
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0].proposal_shown).toBeNull();
+  });
+});
+
+describe("review 3 and 7: reason keys and Enter", () => {
+  it("picks reason chip 4 by keyboard and confirms with Enter", async () => {
+    engine.criteria = [
+      { id: "INC-01", text: "UAV imagery", kind: "inclusion" },
+      { id: "EXC-01", text: "a", kind: "exclusion" },
+      { id: "EXC-02", text: "b", kind: "exclusion" },
+      { id: "EXC-03", text: "c", kind: "exclusion" },
+    ];
+    await ready();
+    answerAll();
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "e" });
+    });
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "4" });
+    });
+    expect(screen.getByRole("button", { name: "4. FAILS-INC-01" })).toHaveAttribute("aria-pressed", "true");
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "Enter" });
+    });
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "FAILS-INC-01" });
+  });
+
+  it("does not submit when Enter is pressed in the note", async () => {
+    await ready();
+    answerAll();
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "e" });
+    });
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "1" });
+    });
+    fireEvent.keyDown(screen.getByRole("textbox"), { key: "Enter" });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(postedEvents()).toEqual([]);
   });
 });
 

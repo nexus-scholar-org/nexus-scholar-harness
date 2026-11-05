@@ -320,6 +320,21 @@ describe("console proxy — writes", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("refuses a cross-site draft read, which would record a reveal", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ proposal: null })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const path = ["api", "v1", "screening", "records", "STU-abc", "proposal"];
+
+    const crossSite = await GET(request(path.join("/"), { headers: { "sec-fetch-site": "cross-site" } }), context(...path));
+    expect(crossSite.status).toBe(403);
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    const own = await GET(request(path.join("/"), { headers: { "sec-fetch-site": "same-origin" } }), context(...path));
+    expect(own.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("refuses the non-existent bare redeem action", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ shape: "x" })));

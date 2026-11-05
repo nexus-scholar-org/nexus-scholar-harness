@@ -100,7 +100,9 @@ describe("publish approval and publish", () => {
     const field = screen.getByLabelText("Approval code for batch_001");
     fireEvent.change(field, { target: { value: " AB12C-DE34F " } });
     fireEvent.click(screen.getByRole("button", { name: "Approve batch_001" }));
-    await screen.findByText("Approved");
+    await screen.findByText("Approval on file");
+    // The UI cannot tell whether an approval on file is still current, so re-approval stays available (review 4).
+    expect(screen.getByRole("button", { name: "Approve batch_001" })).toBeInTheDocument();
     expect(log.find((l) => l.path === "/actions/pairing/redeem")?.body).toMatchObject({ batch: 1, code: "AB12C-DE34F" });
     expect(field).toHaveValue("");
 

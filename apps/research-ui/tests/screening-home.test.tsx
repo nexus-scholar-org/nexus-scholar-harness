@@ -72,6 +72,15 @@ describe("screening-home.summary", () => {
   });
 });
 
+describe("review 6: the engine's code is shown verbatim", () => {
+  it("shows SNAPSHOT_NOT_ACCEPTED as itself, not renamed", async () => {
+    engine({ "/summary": new Response(JSON.stringify({ detail: { code: "SNAPSHOT_NOT_ACCEPTED", message: "no prepared batches" } }), { status: 409, headers: { "content-type": "application/json" } }) });
+    render(<ScreeningHome locale="en" />);
+    await screen.findByText("SNAPSHOT_NOT_ACCEPTED");
+    expect(screen.queryByText("NOT_PREPARED")).toBeNull();
+  });
+});
+
 describe("screening-home.no-agent-call-leak", () => {
   it("counts drafts without saying what any draft proposes", async () => {
     engine();

@@ -283,6 +283,8 @@ export function decisionEvent(input: {
   supersedes?: string | null;
   decidedAt?: string;
   eventId?: string;
+  /** The draft on screen when deciding, if any (contract §3.1). */
+  proposalShown?: DecisionEvent["proposal_shown"];
 }): DecisionEvent {
   return {
     event_id: input.eventId ?? newEventId(),
@@ -296,7 +298,7 @@ export function decisionEvent(input: {
     decided_at: input.decidedAt ?? new Date().toISOString(),
     device: "desktop",
     supersedes: input.supersedes ?? null,
-    proposal_shown: null,
+    proposal_shown: input.proposalShown ?? null,
     binding: input.record.binding,
   };
 }

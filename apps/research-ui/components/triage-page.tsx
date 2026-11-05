@@ -35,6 +35,7 @@ import {
   mayReadProposal,
   reasonOptions,
   triageKey,
+  isTextField,
   undoTarget,
 } from "@/lib/triage-logic";
 
@@ -59,7 +60,7 @@ type ProposalState =
   | { status: "hidden" }
   | { status: "none" }
   | { status: "loading" }
-  | { status: "ready"; proposal: Proposal }
+  | { status: "ready"; proposal: Proposal; studyId: string }
   | { status: "error"; code: string };
 
 const OUTCOME_ROLE: Record<Outcome, DecisionRole> = { INCLUDE: "include", EXCLUDE: "exclude", MAYBE: "unclear" };
@@ -134,6 +135,9 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [help, setHelp] = useState(false);
   const cache = useRef(new Map<string, RecordDetail>());
   const revealedHeading = useRef<HTMLHeadingElement>(null);
+  // The record on screen. Every async result checks it, so a late response for a
+  // record the researcher has left never lands on the one now shown (review 1).
+  const current = useRef<string | null>(null);
 
   const item = items.find((i) => i.study_id === selected) ?? null;
 
@@ -158,21 +162,25 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   );
 
   const showProposal = useCallback(
-    async (detail: RecordDetail, queueItem: QueueItem | null, current: Settings) => {
+    async (detail: RecordDetail, queueItem: QueueItem | null, active: Settings) => {
       const hasProposal = queueItem?.has_proposal ?? false;
       if (!hasProposal) {
-        setProposal({ status: detail.my_decision || current.blinding === "show" ? "none" : "hidden" });
+        setProposal({ status: detail.my_decision || active.blinding === "show" ? "none" : "hidden" });
         return;
       }
-      if (!mayReadProposal({ hasProposal, decided: detail.my_decision !== null, blinding: current.blinding })) {
+      if (!mayReadProposal({ hasProposal, decided: detail.my_decision !== null, blinding: active.blinding })) {
         setProposal({ status: "hidden" });
         return;
       }
+      const study = detail.study_id;
+      if (current.current !== study) return;
       setProposal({ status: "loading" });
       try {
-        const draft = await getProposal(origin, detail.study_id);
-        setProposal(draft ? { status: "ready", proposal: draft } : { status: "none" });
+        const draft = await getProposal(origin, study);
+        if (current.current !== study) return;
+        setProposal(draft ? { status: "ready", proposal: draft, studyId: study } : { status: "none" });
       } catch (error) {
+        if (current.current !== study) return;
         const code = codeOf(error);
         setProposal(code === "PROPOSAL_HIDDEN" ? { status: "hidden" } : { status: "error", code });
       }
@@ -181,7 +189,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   );
 
   const open = useCallback(
-    async (studyId: string, list: QueueItem[], current: Settings, fresh = false) => {
+    async (studyId: string, list: QueueItem[], active: Settings, fresh = false) => {
+      current.current = studyId;
       setSelected(studyId);
       setReasonOpen(false);
       setReason(null);
@@ -194,15 +203,16 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       setProposal({ status: "hidden" });
       try {
         const [detail, open] = await Promise.all([fetchRecord(studyId, fresh), getConflicts(origin)]);
+        if (current.current !== studyId) return;
         setRecord(detail);
         const own = detail.my_decision?.criteria ?? [];
         setAnswers(Object.fromEntries(own.map((a) => [a.id, a.answer])));
         // A conflict from another device locks the record too, not only one this tab caused.
         const rival = open.find((c) => c.study_id === studyId) ?? null;
         setConflict(rival);
-        if (rival === null) await showProposal(detail, list.find((i) => i.study_id === studyId) ?? null, current);
+        if (rival === null) await showProposal(detail, list.find((i) => i.study_id === studyId) ?? null, active);
       } catch (error) {
-        setRefusal(codeOf(error));
+        if (current.current === studyId) setRefusal(codeOf(error));
       }
       // Prefetch the next records' text only (spec 03); never their drafts.
       const at = list.findIndex((i) => i.study_id === studyId);
@@ -254,6 +264,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   async function submit(outcome: Outcome, options: { reasonCode?: string | null; restore?: StoredEvent } = {}) {
     if (!record || !settings || busy || stale) return;
     const restore = options.restore;
+    const study = record.study_id;
+    const shown = visibleProposal;
     const event = decisionEvent({
       record,
       screenerId: settings.screener_id,
@@ -262,6 +274,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       criteria: restore ? restore.criteria : answersInOrder(record.criteria, answers),
       note: restore ? restore.note : note.trim() || null,
       supersedes: record.my_decision?.event_id ?? null,
+      // Contract §3.1: name the draft that was on screen when deciding (review 2).
+      proposalShown: shown ? { proposal_id: shown.proposal_id, revealed_after_decision: record.my_decision !== null } : null,
     });
     setBusy(true);
     setRefusal(null);
@@ -275,6 +289,11 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     }
     setBusy(false);
     if (!result) return;
+    const accepted = result.result !== "refused";
+    const decidedItems = items.map((i) => (i.study_id === study && accepted ? { ...i, decided: true } : i));
+    setItems(decidedItems);
+    // The researcher may have moved on while the event was in flight.
+    if (current.current !== study) return;
     if (result.result === "refused") {
       const code = result.refusal?.code ?? "REFUSED";
       if (code === "STALE_BINDING") setStale(true);
@@ -282,20 +301,20 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       setMessage(t("refused", { code }));
       return;
     }
-    const decidedItems = items.map((i) => (i.study_id === record.study_id ? { ...i, decided: true } : i));
-    setItems(decidedItems);
-    const detail = await fetchRecord(record.study_id, true);
+    const detail = await fetchRecord(study, true);
+    if (current.current !== study) return;
     setRecord(detail);
     setReasonOpen(false);
     setEditing(false);
     if (result.result === "conflict") {
       const open = await getConflicts(origin);
-      setConflict(open.find((c) => c.study_id === record.study_id) ?? null);
+      if (current.current !== study) return;
+      setConflict(open.find((c) => c.study_id === study) ?? null);
       setMessage(t("conflictTitle"));
       return;
     }
     setMessage(t("saved"));
-    await showProposal(detail, decidedItems.find((i) => i.study_id === record.study_id) ?? null, settings);
+    await showProposal(detail, decidedItems.find((i) => i.study_id === study) ?? null, settings);
     revealedHeading.current?.focus();
   }
 
@@ -329,6 +348,15 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const deciding = record !== null && (decided === null || editing) && conflict === null;
   const complete = record !== null && checklistComplete(record.criteria, answers);
   const reasons = record ? reasonOptions(record.criteria) : [];
+  // The draft may be on screen only for the record it belongs to, once that
+  // record is decided or the researcher chose to see drafts beside records.
+  const visibleProposal =
+    proposal.status === "ready" &&
+    record !== null &&
+    proposal.studyId === record.study_id &&
+    (record.my_decision !== null || settings?.blinding === "show")
+      ? proposal.proposal
+      : null;
 
   function answer(value: Answer) {
     if (!record || !deciding) return;
@@ -348,9 +376,22 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   }, []);
   useEffect(() => {
     keyHandler.current = function onKey(event: KeyboardEvent) {
-      if (event.key === "Enter" && reasonOpen && reason && deciding && complete) {
+      // Enter confirms the chosen reason, but never from a text field or a
+      // focused button, which keep their own Enter (review 7).
+      if (event.key === "Enter") {
+        const target = event.target;
+        const own = isTextField(target) || (typeof HTMLButtonElement !== "undefined" && target instanceof HTMLButtonElement);
+        if (!own && reasonOpen && reason && deciding && complete) {
+          event.preventDefault();
+          void submit("EXCLUDE", { reasonCode: reason });
+        }
+        return;
+      }
+      // Reason chips take 1-9 while the panel is open (spec 03: chips 1-7; review 3).
+      if (reasonOpen && /^[1-9]$/.test(event.key) && !isTextField(event.target) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        const pick = reasons[Number(event.key) - 1];
+        if (pick) setReason(pick);
         event.preventDefault();
-        void submit("EXCLUDE", { reasonCode: reason });
         return;
       }
       if (event.key === "Escape") {
@@ -360,12 +401,6 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       }
       const key = triageKey(event, event.target);
       if (key === null) return;
-      if (reasonOpen && /^[1-9]$/.test(event.key)) {
-        const pick = reasons[Number(event.key) - 1];
-        if (pick) setReason(pick);
-        event.preventDefault();
-        return;
-      }
       event.preventDefault();
       if (key === "help") setHelp((h) => !h);
       else if (key === "down") move(1);
@@ -400,8 +435,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
   if (!settings) return <p className="text-ink-muted">{t("loading")}</p>;
 
-  const comparison = proposal.status === "ready" && decided ? compareAnswers(record!.criteria, decided.criteria, proposal.proposal) : [];
-  const failed = proposal.status === "ready" ? failedChecks(proposal.proposal) : [];
+  const comparison = visibleProposal && decided ? compareAnswers(record!.criteria, decided.criteria, visibleProposal) : [];
+  const failed = visibleProposal ? failedChecks(visibleProposal) : [];
 
   return (
     <div className="space-y-6">
@@ -541,10 +576,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               ) : null}
 
-              {proposal.status === "ready" && decided ? (
+              {visibleProposal && decided ? (
                 <section className="rounded-lg border border-rule bg-leaf p-5">
                   <h2 ref={revealedHeading} tabIndex={-1} className="font-semibold text-ink">
-                    {proposal.proposal.derived_outcome === decided.outcome ? t("agrees") : t("disagrees")}
+                    {visibleProposal.derived_outcome === decided.outcome ? t("agrees") : t("disagrees")}
                   </h2>
                   <table className="mt-3 w-full text-sm">
                     <caption className="text-start text-ink-muted">{t("compareTitle")}</caption>
@@ -719,12 +754,12 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
         {/* The agent's draft (spec 05 aside): plain surface, never an include tint */}
         <aside
-          aria-label={proposal.status === "ready" ? t("proposalRevealed") : t("proposalHiddenTitle")}
+          aria-label={visibleProposal ? t("proposalRevealed") : t("proposalHiddenTitle")}
           className="w-full flex-[1_1_260px] rounded-lg border border-dashed border-rule-strong bg-leaf p-5"
           data-testid="proposal-aside"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.05em] text-ink-muted rtl:tracking-normal">{t("proposalHiddenTitle")}</p>
-          {proposal.status === "hidden" ? (
+          {visibleProposal === null && (proposal.status === "hidden" || proposal.status === "ready") ? (
             <div className="mt-3 space-y-2" aria-hidden="false">
               <p className="text-ink-muted">{t("proposalHiddenBody")}</p>
               <div className="h-3 w-3/4 rounded-sm bg-rule" />
@@ -741,8 +776,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
               <p className="flex flex-wrap items-center gap-2">
                 <span className="text-ink-muted">{t("draftOutcome")}</span>
                 <span className="rounded-sm border border-rule-strong px-2 py-0.5 text-xs font-semibold text-ink">
-                  {t(OUTCOME_KEY[proposal.proposal.derived_outcome])}
-                  {proposal.proposal.reason_code ? ` · ${proposal.proposal.reason_code}` : ""}
+                  {t(OUTCOME_KEY[visibleProposal!.derived_outcome])}
+                  {visibleProposal!.reason_code ? ` · ${visibleProposal!.reason_code}` : ""}
                 </span>
                 <span className="text-xs text-ink-muted">{t("notADecision")}</span>
               </p>
@@ -751,8 +786,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                   {t("proposalRejected")} · {t("failedChecks", { checks: failed.join(", ") })}
                 </p>
               ) : null}
-              {proposal.proposal.cannot_decide ? <p className="text-unclear">{t("cannotDecide")}</p> : null}
-              {proposal.proposal.criteria
+              {visibleProposal!.cannot_decide ? <p className="text-unclear">{t("cannotDecide")}</p> : null}
+              {visibleProposal!.criteria
                 .filter((c) => c.evidence?.text)
                 .slice(0, 3)
                 .map((c) => (
@@ -763,15 +798,15 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
               <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
                 <dt className="text-ink-muted">{t("model")}</dt>
                 <dd>
-                  <DataCell>{proposal.proposal.model ?? t("notStored")}</DataCell>
+                  <DataCell>{visibleProposal!.model ?? t("notStored")}</DataCell>
                 </dd>
                 <dt className="text-ink-muted">{t("prompt")}</dt>
                 <dd>
-                  <DataCell>{(proposal.proposal.prompt_sha256 ?? t("notStored")).slice(0, 19)}</DataCell>
+                  <DataCell>{(visibleProposal!.prompt_sha256 ?? t("notStored")).slice(0, 19)}</DataCell>
                 </dd>
                 <dt className="text-ink-muted">{t("proposalId")}</dt>
                 <dd>
-                  <DataCell>{proposal.proposal.proposal_id}</DataCell>
+                  <DataCell>{visibleProposal!.proposal_id}</DataCell>
                 </dd>
               </dl>
             </div>

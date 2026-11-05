@@ -284,6 +284,12 @@ export function normalizeConsoleOrigin(origin: string): string {
       `refusing console origin outside plain http(s): ${origin}`,
     );
   }
+  // INC-01 on the client side: a `?console=` link must not route decisions,
+  // settings or a typed approval code to another machine (M1b-1 review).
+  const host = new URL(trimmed).hostname;
+  if (!["localhost", "127.0.0.1", "[::1]", "::1"].includes(host)) {
+    throw new ScreeningApiError("INVALID_CONSOLE_ORIGIN", 0, `refusing a console origin off this computer: ${origin}`);
+  }
   return trimmed;
 }
 

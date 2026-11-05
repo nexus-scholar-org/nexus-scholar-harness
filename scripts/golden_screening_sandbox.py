@@ -10,6 +10,8 @@ research UI's proxy, started with the same variable, can reach it.
 ``sandbox-fixture``: test data, never a real agent run) so the UI's reveal can
 be exercised. ``--terminal-log`` copies the console's terminal output to a
 file, which is where the approval code appears (it is never sent over HTTP).
+That file holds live approval codes: it is for this test sandbox only, never
+for a researcher's workspace.
 
 Usage::
 
@@ -27,17 +29,32 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GOLDEN = ROOT / "workspaces" / "golden-uav-30"
+#: Written into every sandbox; an existing `--dest` is replaced only if it carries it.
+MARKER = ".golden-screening-sandbox"
+
+
+def check_dest(dest: Path) -> Path:
+    """Refuse a destination whose removal could reach the repository or workspaces/."""
+    dest = dest.resolve()
+    workspaces = (ROOT / "workspaces").resolve()
+    root = ROOT.resolve()
+    if workspaces in (dest, *dest.parents):
+        raise SystemExit(f"refusing to build the sandbox inside workspaces/: {dest}")
+    if dest == root or dest in root.parents:
+        raise SystemExit(f"refusing a sandbox destination that contains the repository: {dest}")
+    if dest.exists() and not (dest / MARKER).is_file() and any(dest.iterdir()):
+        raise SystemExit(f"refusing to replace a non-empty directory this script did not create: {dest}")
+    return dest
 
 
 def build(dest: Path, *, batch_size: int) -> Path:
     from scholar_harness.screening.batcher import cmd_prepare
 
-    dest = dest.resolve()
-    if (ROOT / "workspaces").resolve() in (dest, *dest.parents):
-        raise SystemExit(f"refusing to build the sandbox inside workspaces/: {dest}")
+    dest = check_dest(dest)
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(GOLDEN, dest)
+    (dest / MARKER).write_text("built by scripts/golden_screening_sandbox.py; safe to delete\n", encoding="utf-8")
     context = dest / "literature" / "screening" / "operator_context.json"
     context.parent.mkdir(parents=True, exist_ok=True)
     context.write_text(

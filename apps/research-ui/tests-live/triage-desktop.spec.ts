@@ -141,7 +141,7 @@ test("the golden workspace screened, revealed, changed, reconciled and published
     expect(code, `terminal code for batch ${batch}`).toBeTruthy();
     await item.getByLabel(/Approval code for/).fill(code!);
     await item.getByRole("button", { name: /^Approve / }).click();
-    await expect(item.getByText("Approved", { exact: true })).toBeVisible();
+    await expect(item.getByText("Approval on file", { exact: true })).toBeVisible();
   }
   await page.getByRole("button", { name: "Publish the screening" }).click();
   await expect(page.getByText(/^Published generation /)).toBeVisible();

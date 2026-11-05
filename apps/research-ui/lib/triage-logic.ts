@@ -53,6 +53,11 @@ export function answersInOrder(
  *
  * The event log has no "undecided" entry, so a first decision cannot be
  * undone, only changed. Returns null then.
+ *
+ * Undo is one step: it restores the decision the current one replaced, as a
+ * new event. Pressing it again restores the one that undo replaced, so two
+ * presses toggle between the last two decisions rather than walking the
+ * history back (review 8). The decision history lists every step.
  */
 export function undoTarget(current: StoredEvent | null, history: readonly StoredEvent[]): StoredEvent | null {
   if (current === null || current.supersedes === null) return null;
@@ -110,7 +115,7 @@ export function triageKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKe
   return KEYMAP[event.key.toLowerCase()] ?? null;
 }
 
-function isTextField(target: EventTarget | null): boolean {
+export function isTextField(target: EventTarget | null): boolean {
   if (typeof HTMLElement === "undefined" || !(target instanceof HTMLElement)) return false;
   if (target.isContentEditable) return true;
   const tag = target.tagName;

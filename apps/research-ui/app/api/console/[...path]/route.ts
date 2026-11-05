@@ -54,6 +54,9 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/prepare$/,
 ];
 
+/** The one GET with a side effect: the engine records a reveal when a draft is read. */
+const READ_PROPOSAL = /^api\/v1\/screening\/records\/[A-Za-z0-9_-]+\/proposal$/;
+
 /** PUT targets: the screening settings only (journaled by the console). */
 const PUT_PATHS: ReadonlyArray<RegExp> = [/^api\/v1\/screening\/settings$/];
 
@@ -170,6 +173,12 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   }
   if (method === "PUT" && !PUT_PATHS.some((pattern) => pattern.test(path))) {
     return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings");
+  }
+  // Reading a draft records a reveal (M1b-0), so this GET has an effect: a
+  // browser request from another site (an <img> or a link) must not trigger it.
+  const site = request.headers.get("sec-fetch-site");
+  if (READ_PROPOSAL.test(path) && site !== null && site !== "same-origin" && site !== "none") {
+    return typedError(403, "CONSOLE_ORIGIN_REFUSED", "the agent's draft is read only from this app's own pages");
   }
   if (method === "POST" && !POST_PATHS.some((pattern) => pattern.test(path))) {
     return typedError(

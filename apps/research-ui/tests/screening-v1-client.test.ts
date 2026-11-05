@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { isScreeningApiError } from "@/lib/screening-api";
+import { isScreeningApiError, normalizeConsoleOrigin } from "@/lib/screening-api";
 import {
   decisionEvent,
   getConflicts,
@@ -139,5 +139,16 @@ describe("decision events built by the client", () => {
     expect(exclude).toMatchObject({ reason_code: "EXC-01", supersedes: include.event_id });
     // Engine fields are never set by the client.
     for (const field of ["received_at", "token_scope", "changed_after_reveal"]) expect(exclude).not.toHaveProperty(field);
+  });
+});
+
+
+describe("console origin", () => {
+  it("accepts only this computer, so a link cannot send decisions or codes elsewhere", () => {
+    expect(normalizeConsoleOrigin("http://127.0.0.1:8765/")).toBe("http://127.0.0.1:8765");
+    expect(normalizeConsoleOrigin("http://localhost:8765")).toBe("http://localhost:8765");
+    for (const foreign of ["http://evil.example:8765", "https://192.168.1.20:8765", "http://127.0.0.1.evil.example"]) {
+      expect(() => normalizeConsoleOrigin(foreign), foreign).toThrow(/off this computer/);
+    }
   });
 });

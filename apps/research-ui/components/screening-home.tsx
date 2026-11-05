@@ -207,7 +207,7 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
       ) : state.status === "error" ? (
         <StateCard
           locale={locale}
-          code={state.code === "SNAPSHOT_NOT_ACCEPTED" ? "NOT_PREPARED" : state.code}
+          code={state.code}
           message={state.message}
           consoleOrigin={origin}
           onRetry={() => void load()}
