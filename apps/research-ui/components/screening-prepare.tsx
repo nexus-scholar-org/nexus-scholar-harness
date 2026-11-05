@@ -6,7 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
 import { getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
-import { getSettings, prepare, putSettings, type Settings } from "@/lib/screening-v1";
+import { getJob, getSettings, prepare, putSettings, type JobView, type Settings } from "@/lib/screening-v1";
 
 /**
  * Prepare (spec 02): the reveal and mode settings, the rule table (read-only:
@@ -49,6 +49,8 @@ const COPY = {
     confirm: "Prepare now",
     cancel: "Cancel",
     started: "Preparing (job {job}). The batches appear here when it finishes.",
+    prepared: "Batches prepared (job {job}).",
+    prepareFailed: "Preparing failed (job {job}). Nothing was prepared. The engine said: {reason}",
     refresh: "Refresh",
   },
   fr: {
@@ -82,6 +84,8 @@ const COPY = {
     confirm: "Préparer maintenant",
     cancel: "Annuler",
     started: "Préparation en cours (tâche {job}). Les lots apparaissent ici une fois terminée.",
+    prepared: "Lots préparés (tâche {job}).",
+    prepareFailed: "La préparation a échoué (tâche {job}). Rien n'a été préparé. Le moteur indique : {reason}",
     refresh: "Actualiser",
   },
   ar: {
@@ -115,6 +119,8 @@ const COPY = {
     confirm: "حضّر الآن",
     cancel: "إلغاء",
     started: "جارٍ التحضير (المهمة {job}). تظهر الدفعات هنا عند الانتهاء.",
+    prepared: "حُضّرت الدفعات (المهمة {job}).",
+    prepareFailed: "فشل التحضير (المهمة {job}). لم يُحضَّر شيء. قال المحرك: {reason}",
     refresh: "تحديث",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
@@ -150,6 +156,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
   const [size, setSize] = useState(20);
   const [confirming, setConfirming] = useState(false);
   const [job, setJob] = useState<string | null>(null);
+  const [jobView, setJobView] = useState<JobView | null>(null);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -187,12 +194,40 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     }
   }
 
+  // Follow the prepare job: a failed job must say so, not look like a slow one
+  // (golden run, 2026-11-05). On success the batches are re-read.
+  useEffect(() => {
+    if (!job) return;
+    let stopped = false;
+    let timer: number | undefined;
+    const tick = async () => {
+      try {
+        const view = await getJob(origin, job);
+        if (stopped) return;
+        setJobView(view);
+        if (view.state === "queued" || view.state === "running") {
+          timer = window.setTimeout(() => void tick(), 1000);
+        } else if (view.state === "success") {
+          await load();
+        }
+      } catch (e) {
+        if (!stopped) setRefusal(codeOf(e));
+      }
+    };
+    void tick();
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+    };
+  }, [job, origin, load]);
+
   async function runPrepare() {
     setConfirming(false);
     setRefusal(null);
     try {
       const started = await prepare(origin, size);
       setJob(started.job_id);
+      setJobView(null);
     } catch (e) {
       setRefusal(codeOf(e));
     }
@@ -302,9 +337,19 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                 </>
               )}
               {job ? (
-                <div className="mt-3 space-y-2">
-                  <p className="text-sm text-ink">{t("started", { job })}</p>
-                  <Button onClick={() => void load()}>{t("refresh")}</Button>
+                <div className="mt-3 space-y-2" data-job={jobView?.state ?? "running"}>
+                  {jobView?.state === "success" ? (
+                    <p role="status" className="rounded-md bg-include-soft px-3 py-2 text-sm text-include">{t("prepared", { job })}</p>
+                  ) : jobView && jobView.state !== "queued" && jobView.state !== "running" ? (
+                    <p role="alert" className="rounded-md bg-blocked-soft px-3 py-2 text-sm text-blocked">
+                      {t("prepareFailed", { job, reason: jobView.error || `exit code ${jobView.exit_code ?? "?"}` })}
+                    </p>
+                  ) : (
+                    <>
+                      <p role="status" className="text-sm text-ink">{t("started", { job })}</p>
+                      <Button onClick={() => void load()}>{t("refresh")}</Button>
+                    </>
+                  )}
                 </div>
               ) : null}
             </section>

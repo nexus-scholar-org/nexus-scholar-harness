@@ -24,6 +24,8 @@ The latest listed release is [v1.0.0](https://github.com/nexus-scholar-org/nexus
 
 ## Start a workspace
 
+**New here?** [Getting started](docs/getting-started.md) walks you from cloning the code to a published screening and an exported reference list.
+
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and inspect the command surface without checking out the repository:
 
 ```sh

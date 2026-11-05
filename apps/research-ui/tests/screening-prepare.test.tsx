@@ -12,7 +12,8 @@ import { SUPPORTED_LOCALES } from "@/i18n";
 const FIXTURES = `${resolve(process.cwd(), "../../tests/fixtures/screening_api")}/`;
 const fixture = (name: string) => JSON.parse(readFileSync(`${FIXTURES}${name}.json`, "utf-8")).response;
 
-function engine() {
+function engine(job?: { state: string; error?: string | null }) {
+  let polls = 0;
   const log: { method: string; path: string; body: unknown }[] = [];
   vi.stubGlobal(
     "fetch",
@@ -26,8 +27,14 @@ function engine() {
       if (path === "/settings" && method === "PUT") return json({ ...fixture("settings_default").body, ...body });
       if (path === "/ui/batches") return json({ shape: "ui07.screening-batches-v1", run_id: null, count: 0, batches: [], missing: [] });
       if (path === "/prepare") {
+        if (job) return json({ job_id: "job_1" });
         const refused = fixture("prepare_snapshot_not_accepted");
         return json(refused.body, refused.status);
+      }
+      if (path === "/api/console/api/v1/jobs/job_1" && job) {
+        polls += 1;
+        const state = polls < 2 ? "running" : job.state;
+        return json({ job: { job_id: "job_1", action_id: "screen_prepare", state, exit_code: state === "success" ? 0 : 1, error: job.error ?? null } });
       }
       return json({ detail: { code: "NOT_FOUND" } }, 404);
     }),
@@ -49,6 +56,38 @@ describe("prepare.snapshot-missing", () => {
     await screen.findByText("SNAPSHOT_NOT_ACCEPTED");
     expect(screen.getByText("nexus-scholar accept-corpus")).toBeInTheDocument();
     expect(log.find((l) => l.path === "/prepare")?.body).toEqual({ batch_size: 20 });
+  });
+});
+
+describe("prepare.job-followed", () => {
+  it("says when the prepare job failed instead of waiting forever (golden run)", async () => {
+    engine({ state: "failed", error: "No module named scholar_harness" });
+    render(<ScreeningPrepare locale="en" />);
+    await screen.findByText("No batches yet.");
+    fireEvent.click(screen.getByRole("button", { name: "Prepare batches" }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare now" }));
+    const alert = await screen.findByRole("alert", {}, { timeout: 4000 });
+    expect(alert).toHaveTextContent("Preparing failed (job job_1). Nothing was prepared. The engine said: No module named scholar_harness");
+  });
+
+  it("gives the exit code when the job failed without an error message", async () => {
+    // A non-zero exit sets no `error` in the runner; only a timeout or exception does.
+    engine({ state: "failed", error: null });
+    render(<ScreeningPrepare locale="en" />);
+    await screen.findByText("No batches yet.");
+    fireEvent.click(screen.getByRole("button", { name: "Prepare batches" }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare now" }));
+    expect(await screen.findByRole("alert", {}, { timeout: 4000 })).toHaveTextContent("The engine said: exit code 1");
+  });
+
+  it("says the batches are prepared and re-reads them when the job succeeds", async () => {
+    const log = engine({ state: "success" });
+    render(<ScreeningPrepare locale="en" />);
+    await screen.findByText("No batches yet.");
+    fireEvent.click(screen.getByRole("button", { name: "Prepare batches" }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare now" }));
+    expect(await screen.findByText("Batches prepared (job job_1).", {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(log.filter((l) => l.path === "/ui/batches").length).toBeGreaterThanOrEqual(2);
   });
 });
 

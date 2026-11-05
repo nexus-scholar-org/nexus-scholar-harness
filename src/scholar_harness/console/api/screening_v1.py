@@ -104,6 +104,12 @@ def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], d
 @router.get("/summary")
 def summary(request: Request) -> dict[str, Any]:
     ws = _ws(request)
+    if (ws / "protocol.json").is_file() and not ev.load_context(ws).batches:
+        # Nothing prepared yet is a state, not a refusal: the home shows it and
+        # offers Prepare, whose own refusal names a missing snapshot.
+        empty = {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
+        lanes = {"agent": 0, "you": 0, "second_screener": "PARKED"}
+        return {"total": 0, "decided": 0, "by_outcome": empty, "agent_proposed": 0, "needs_you": 0, "conflicts": 0, "lanes": lanes}
     context, settings, events, winners = _state(ws)
     proposed = {p["study_id"] for p in pr.read_proposals(ws)}
     by_outcome = {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}

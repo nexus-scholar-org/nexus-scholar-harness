@@ -34,7 +34,7 @@ DESKTOP, PHONE = "desktop-token", "phone-token"
 PROMPT = "sha256:" + "0" * 64
 
 
-def _workspace(root: Path, *, prepare: bool = True) -> Path:
+def _workspace(root: Path, *, prepare: bool | str = True) -> Path:
     ws = root / "ws"
     ws.mkdir()
     (ws / "project.json").write_text(
@@ -81,6 +81,8 @@ def _workspace(root: Path, *, prepare: bool = True) -> Path:
         json.dumps([{"workspace_id": d.workspace_id, "title": d.title, "abstract": d.abstract} for d in docs]),
         encoding="utf-8",
     )
+    if prepare == "accept_only":
+        return ws
     cmd_prepare(ws, batch_size=20)
     return ws
 
@@ -242,6 +244,56 @@ def test_prepare_refuses_without_an_accepted_snapshot(tmp_path):
     response = client.post(f"{BASE}/prepare", json={"batch_size": 20})
     assert response.status_code == 409
     assert response.json()["detail"]["code"] == "SNAPSHOT_NOT_ACCEPTED"
+
+
+def test_summary_before_prepare_is_an_empty_progress_not_a_refusal(tmp_path):
+    """Golden run, 2026-11-05: before batches exist the home must offer Prepare.
+
+    `/summary` refused SNAPSHOT_NOT_ACCEPTED (a `/prepare` code, contract §7)
+    whenever no batch was prepared, so an accepted corpus read as unaccepted.
+    """
+    ws = _workspace(tmp_path, prepare=False)
+    client = TestClient(create_app(ws), base_url="http://127.0.0.1")
+    response = client.get(f"{BASE}/summary")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert (body["total"], body["decided"], body["needs_you"], body["conflicts"]) == (0, 0, 0, 0)
+    assert body["by_outcome"] == {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
+    assert body["lanes"] == {"agent": 0, "you": 0, "second_screener": "PARKED"}
+
+
+def test_prepare_job_runs_from_the_workspace_folder(tmp_path):
+    """Golden run, 2026-11-05: Prepare did nothing in the installed app.
+
+    The job ran `uv run python src/scholar_harness/agent_screen.py` with the
+    workspace as its folder, a path that exists only in a source checkout. It
+    must prepare the batches from any workspace folder, as an install has no
+    `src/`.
+    """
+    import time
+
+    ws = _workspace(tmp_path, prepare="accept_only")
+    assert not (ws / "src").exists()
+    # One event loop for the whole test (`with`), so the job keeps running between requests.
+    with TestClient(create_app(ws, token=DESKTOP), base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"}) as client:
+        job_id = client.post(f"{BASE}/prepare", json={"batch_size": 20}).json()["job_id"]
+        for _ in range(600):
+            job = client.get(f"/api/v1/jobs/{job_id}").json()["job"]
+            if job["state"] not in ("queued", "running"):
+                break
+            time.sleep(0.1)
+        assert job["state"] == "success" and job["exit_code"] == 0, job
+        assert list((ws / "literature" / "screening").glob("batch_*.json"))
+        assert client.get(f"{BASE}/summary").json()["total"] == 3
+
+
+def test_a_job_command_keeps_a_workspace_path_with_spaces_whole():
+    """The default root is `Documents/Nexus Scholar/workspaces`: the path must stay one argument."""
+    from scholar_harness.console.runtimes.actions import executable_argv, get_action, render_command
+
+    ws = "C:/Users/r/Documents/Nexus Scholar/workspaces/my review"
+    argv = executable_argv(render_command(get_action("screen_prepare"), workspace=ws))
+    assert argv[-2:] == ["prepare", ws]
 
 
 def test_pairing_begin_needs_an_operator_context(client):

@@ -209,13 +209,16 @@ def render_command(
         "q": query if query is not None else "...",
         "pipeline": pipeline if pipeline is not None else "...",
     }
-    text = action.command_template
-    for token, value in values.items():
-        text = text.replace("{" + token + "}", str(value))
-
-    # shlex is not used: command templates are simple whitespace-separated,
-    # double-quoted argv - split while respecting double quotes.
-    return _split_command(text)
+    # Split the template first, then substitute into each argument, so a value
+    # with spaces (the default root is `Documents/Nexus Scholar/...`) stays one
+    # argument. shlex is not used: templates are simple whitespace-separated,
+    # double-quoted argv.
+    argv: list[str] = []
+    for part in _split_command(action.command_template):
+        for token, value in values.items():
+            part = part.replace("{" + token + "}", str(value))
+        argv.append(part)
+    return argv
 
 
 def _split_command(text: str) -> list[str]:
@@ -252,3 +255,24 @@ def actions_payload(workspace: str = DEFAULT_WORKSPACE) -> dict[str, Any]:
             for a in ACTIONS
         ]
     }
+
+
+#: The screening script as the action table names it, and the module it is.
+_AGENT_SCREEN_SCRIPT = "src/scholar_harness/agent_screen.py"
+_AGENT_SCREEN_MODULE = "scholar_harness.agent_screen"
+
+
+def executable_argv(command: list[str]) -> list[str]:
+    """The argv a job actually runs, for a rendered action command.
+
+    The table keeps the `uv run python src/...` form developers read (and the
+    actions table shows), but that path exists only in a source checkout, and a
+    job runs with the workspace as its folder. The screening script therefore
+    runs as its module, with this process's own Python, which is the same
+    interpreter in a checkout and in an installed app (golden run, 2026-11-05).
+    """
+    if command[:3] == ["uv", "run", "python"] and len(command) > 3 and command[3].replace("\\", "/") == _AGENT_SCREEN_SCRIPT:
+        import sys
+
+        return [sys.executable, "-m", _AGENT_SCREEN_MODULE, *command[4:]]
+    return command

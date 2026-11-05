@@ -23,7 +23,7 @@ from typing import Any
 
 from ...pipeline import PipelineSpec, validate_spec
 from ..api.pipelines import BUILTIN_TEMPLATES, store_path
-from .actions import Action, get_action, render_command
+from .actions import Action, executable_argv, get_action, render_command
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +166,7 @@ class JobRunner:
             return job
 
         proc = await asyncio.create_subprocess_exec(
-            *command,
+            *executable_argv(command),
             cwd=str(self.workspace),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
