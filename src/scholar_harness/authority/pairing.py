@@ -225,7 +225,7 @@ def _store_idempotent_success(
     final_decision_sha256: str,
     parent_sha256: str,
     approval_fingerprint: str,
-    publication_approval_fingerprint: str,
+    publication_approval_fingerprint: str | None,
     operator_identity: str,
     superseded: bool,
 ) -> None:
@@ -657,8 +657,8 @@ def redeem_pairing(
                             "batch_index": batch_index,
                             "snapshot_fingerprint": str(stored["snapshot_fingerprint"]),
                             "approval_fingerprint": str(stored["approval_fingerprint"]),
-                            "publication_approval_fingerprint": str(
-                                stored["publication_approval_fingerprint"]
+                            "publication_approval_fingerprint": stored.get(
+                                "publication_approval_fingerprint"
                             ),
                             "operator_identity": str(stored["operator_identity"]),
                             "superseded": bool(stored["superseded"]),
@@ -785,8 +785,10 @@ def redeem_pairing(
                 final_decision_sha256=str(live_key.get("final_decision_sha256", "")),
                 parent_sha256=str(live_parent.get("parent_sha256", "")),
                 approval_fingerprint=str(result["approval_fingerprint"]),
-                publication_approval_fingerprint=str(
-                    result["publication_approval_fingerprint"]
+                # CON-03: staged only once every batch is approved, so it is
+                # absent (None) for all but the last batch approved.
+                publication_approval_fingerprint=result.get(
+                    "publication_approval_fingerprint"
                 ),
                 operator_identity=str(result["operator_identity"]),
                 superseded=bool(result["superseded"]),
@@ -795,9 +797,9 @@ def redeem_pairing(
                 "batch_index": batch_index,
                 "snapshot_fingerprint": live_fingerprint,
                 "approval_fingerprint": result["approval_fingerprint"],
-                "publication_approval_fingerprint": result[
+                "publication_approval_fingerprint": result.get(
                     "publication_approval_fingerprint"
-                ],
+                ),
                 "operator_identity": result["operator_identity"],
                 "superseded": result["superseded"],
                 "request_id": req,

@@ -577,3 +577,27 @@ def test_m1b1_replaying_the_approved_events_keeps_the_approval_and_publishes(tmp
     assert response.status_code == 200, response.text
     assert response.json()["status"] == "CURRENT"
     assert (ws / "literature" / "included.json").is_file()
+
+
+def test_m1b1_redeeming_one_batch_of_several_approves_it_without_staging_publication(tmp_path):
+    """Found by the M1b-1 live gate: since CON-03, approving one batch of several
+    stages no publication approval, and redeem_pairing read that key
+    unconditionally, so every batch but the last failed with a KeyError (500)."""
+    from scholar_harness.authority.pairing import begin_pairing, redeem_pairing
+
+    ws = _two_batch_workspace(tmp_path)
+    _operator(ws)
+    _decide_all(ws)
+    staged = begin_pairing(ws, 1)
+    result = redeem_pairing(ws, 1, staged["code"], request_id="REQ-m1b1-a")
+    assert result["batch_index"] == 1
+    assert result["publication_approval_fingerprint"] is None  # batch 2 is not approved yet
+    # The idempotent retry returns the same summary rather than failing.
+    retry = redeem_pairing(ws, 1, staged["code"], request_id="REQ-m1b1-a")
+    assert retry.pop("idempotent") is True and retry == result
+
+    last = begin_pairing(ws, 2)
+    final = redeem_pairing(ws, 2, last["code"], request_id="REQ-m1b1-b")
+    assert final["publication_approval_fingerprint"]  # the last batch stages publication
+    cmd_collect(ws)
+    assert (ws / "literature" / "included.json").is_file()

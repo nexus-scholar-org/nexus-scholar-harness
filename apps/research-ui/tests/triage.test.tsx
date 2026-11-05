@@ -41,6 +41,7 @@ interface Engine {
   reveals: Set<string>;
   blinding: "reveal_after_decision" | "show";
   proposals: Set<string>;
+  conflicts?: unknown[];
 }
 
 let engine: Engine;
@@ -101,7 +102,7 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
     });
     return Promise.resolve(json({ results }));
   }
-  if (path === "/decisions/conflicts") return Promise.resolve(json({ items: [] }));
+  if (path === "/decisions/conflicts") return Promise.resolve(json({ items: engine.conflicts ?? [] }));
   return Promise.resolve(json({ detail: { code: "NOT_FOUND", message: path } }, 404));
 }
 
@@ -211,6 +212,18 @@ describe("triage.undo-superseding and triage.changed-after-reveal", () => {
     expect(undoTarget(first, [first])).toBeNull();
     const second = { event_id: "e2", supersedes: "e1" } as StoredEvent;
     expect(undoTarget(second, [first, second])).toBe(first);
+  });
+});
+
+describe("triage conflict from another device", () => {
+  it("locks the record with the conflict card on open, and reads no draft", async () => {
+    const rival = (outcome: string, id: string) => ({ event_id: id, study_id: "STU-a", outcome, reason_code: outcome === "EXCLUDE" ? "EXC-01" : null, supersedes: null });
+    engine.conflicts = [{ study_id: "STU-a", screener_id: "researcher:local", events: [rival("INCLUDE", "e1"), rival("EXCLUDE", "e2")] }];
+    await ready();
+    await screen.findByText("Decided differently on two devices");
+    expect(screen.getByRole("button", { name: "Keep Include" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Keep Exclude · EXC-01" })).toBeInTheDocument();
+    expect(proposalReads()).toEqual([]);
   });
 });
 

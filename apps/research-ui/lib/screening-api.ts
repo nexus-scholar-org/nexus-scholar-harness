@@ -601,7 +601,8 @@ export interface RedeemResult {
   batch_index: number;
   snapshot_fingerprint: string;
   approval_fingerprint: string;
-  publication_approval_fingerprint: string;
+  /** Null until every batch is approved (CON-03 stages publication only then). */
+  publication_approval_fingerprint: string | null;
   operator_identity: string;
   superseded: boolean;
 }

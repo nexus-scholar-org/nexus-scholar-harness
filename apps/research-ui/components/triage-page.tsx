@@ -193,11 +193,14 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       setRecord(null);
       setProposal({ status: "hidden" });
       try {
-        const detail = await fetchRecord(studyId, fresh);
+        const [detail, open] = await Promise.all([fetchRecord(studyId, fresh), getConflicts(origin)]);
         setRecord(detail);
         const own = detail.my_decision?.criteria ?? [];
         setAnswers(Object.fromEntries(own.map((a) => [a.id, a.answer])));
-        await showProposal(detail, list.find((i) => i.study_id === studyId) ?? null, current);
+        // A conflict from another device locks the record too, not only one this tab caused.
+        const rival = open.find((c) => c.study_id === studyId) ?? null;
+        setConflict(rival);
+        if (rival === null) await showProposal(detail, list.find((i) => i.study_id === studyId) ?? null, current);
       } catch (error) {
         setRefusal(codeOf(error));
       }
@@ -207,7 +210,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         if (!cache.current.has(next.study_id)) void fetchRecord(next.study_id).catch(() => undefined);
       }
     },
-    [fetchRecord, showProposal],
+    [fetchRecord, origin, showProposal],
   );
 
   const boot = useCallback(async () => {
