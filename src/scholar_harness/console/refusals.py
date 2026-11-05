@@ -43,6 +43,10 @@ COST_CEILING_REACHED = "COST_CEILING_REACHED"
 PROVIDER_KEY_MISSING = "PROVIDER_KEY_MISSING"
 #: No agent run with that id in this workspace (M1b-2).
 UNKNOWN_RUN = "UNKNOWN_RUN"
+#: The provider's driver cannot be built: its SDK is not installed, or a base URL is missing (M1b-2).
+DRIVER_UNAVAILABLE = "DRIVER_UNAVAILABLE"
+#: A cost ceiling on a provider/model the price table does not price, so its cost cannot be measured (M1b-2).
+CEILING_NOT_PRICED = "CEILING_NOT_PRICED"
 
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
@@ -63,6 +67,8 @@ CONTRACT_ADDED = frozenset(
         COST_CEILING_REACHED,
         PROVIDER_KEY_MISSING,
         UNKNOWN_RUN,
+        DRIVER_UNAVAILABLE,
+        CEILING_NOT_PRICED,
         PROVENANCE_MISSING,
         PROJECTION_STALE,
     }

@@ -341,7 +341,7 @@ export interface RunView {
   truncated: number;
   invalid: number;
   check_failures: number;
-  cost_so_far: number;
+  cost_so_far: number | null;
   cost_ceiling_usd: number | null;
   started_at: string | null;
   finished_at: string | null;

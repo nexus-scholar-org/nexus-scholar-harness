@@ -127,6 +127,37 @@ describe("proposals.cost-ceiling-hard-stop", () => {
   });
 });
 
+describe("proposals.unpriced-model", () => {
+  it("disables the ceiling, sends none, and shows the cost as not measured", async () => {
+    const log: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = new URL(url, "http://localhost").pathname.replace("/api/console/api/v1/screening", "");
+        const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null;
+        const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200, headers: { "content-type": "application/json" } });
+        if (path === "/proposals/setup") return ok(setup({ consent: true }));
+        if (path === "/queue") return ok({ items: [], next_cursor: null });
+        if (path === "/proposals/runs" && body?.estimate_only) return ok({ run_id: null, estimate: { ...ESTIMATE, cost_usd: null, priced: false } });
+        if (path === "/proposals/runs") {
+          log.push(body ?? {});
+          return ok({ run_id: "RUN-1", estimate: ESTIMATE });
+        }
+        if (path === "/proposals/runs/RUN-1") return ok(view({ cost_so_far: null }));
+        return new Response(JSON.stringify({ detail: { code: "NOT_FOUND" } }), { status: 404 });
+      }),
+    );
+    render(<ScreeningProposals locale="en" />);
+    await screen.findByText(/No price on file for this model, so its cost cannot be measured/);
+    const ceiling = screen.getByLabelText("Cost ceiling (USD)");
+    expect(ceiling).toBeDisabled();
+    fireEvent.click(await startButton());
+    fireEvent.click(await screen.findByRole("button", { name: "Start the run" }));
+    await screen.findByText("Cost so far: not measured (no price on file for this model)");
+    expect(log[0].cost_ceiling_usd).toBeNull();
+  });
+});
+
 describe("proposals.no-content-before-decision", () => {
   it("never reads a draft and shows only counts", async () => {
     const log = engine({ setup: setup({ consent: true, latest: view({ refused: 1, done: 3 }) }) });

@@ -190,3 +190,153 @@ def test_setup_names_key_sources_never_keys_and_the_latest_run(ws, monkeypatch):
     assert setup["latest_run"]["run_id"] == started["run_id"] and setup["latest_run"]["state"] == "completed"
     phone = client.get(f"{BASE}/proposals/setup", headers={"Authorization": f"Bearer {PHONE}"})
     assert phone.status_code == 403
+
+
+# --- review findings (M1b-2): the lock, the ceiling and concurrent access ---------
+
+
+def _thread_like(pending):
+    """Runs the work like a thread does: an exception ends the thread, nothing propagates."""
+
+    def run(fn):
+        def body():
+            try:
+                fn()
+            except BaseException:  # noqa: BLE001 - a dead thread, as in production
+                pass
+
+        pending.append(body)
+
+    return run
+
+
+@pytest.mark.parametrize(("error", "status"), [(ImportError("No module named 'anthropic'"), 409), (ValueError("the OpenAI-compatible driver needs a base URL"), 422)])
+def test_a_driver_that_cannot_be_built_is_refused_and_never_holds_the_lock(ws, error, status):
+    app = create_app(ws, token=DESKTOP, phone_tokens={PHONE})
+
+    def raising(provider, key):
+        raise error
+
+    app.state.driver_factory = raising
+    app.state.run_executor = lambda fn: fn()
+    client = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
+    refused = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT})
+    assert refused.status_code == status and refused.json()["detail"]["code"] == "DRIVER_UNAVAILABLE"
+    assert runs.active_run(ws) is None
+    app.state.driver_factory = lambda provider, key: FakeDriver()
+    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 200
+
+
+def test_a_run_that_crashes_in_its_thread_ends_failed_and_frees_the_lock(ws):
+    class Crashing(FakeDriver):
+        def run(self, requests, spec, **kwargs):
+            raise RuntimeError("provider SDK blew up")
+
+    pending = []
+    client = _client(ws, Crashing(), executor=_thread_like(pending))
+    run_id = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    pending.pop()()
+    status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
+    assert status["state"] == "failed" and runs.active_run(ws) is None
+    assert any(e.get("action") == "AGENT_RUN_COMPLETED" and e["parameters"]["state"] == "failed" for e in _journal(ws))
+    client.app.state.driver_factory = lambda provider, key: FakeDriver()
+    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 200
+
+
+def test_a_lock_left_by_a_stopped_engine_is_recovered_by_the_next_run_or_a_cancel(ws):
+    pending = []
+    client = _client(ws, FakeDriver(), executor=pending.append)
+    stale = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    # The engine stops: the worker never runs and this process forgets the run.
+    runs._LIVE.clear()
+    pending.clear()
+    assert client.get(f"{BASE}/proposals/runs/{stale}").json()["state"] == "running"
+    assert client.post(f"{BASE}/proposals/runs/{stale}/cancel").json()["state"] == "cancelled"
+    assert runs.active_run(ws) is None and runs.read_run(ws, stale)["state"] == "cancelled"
+
+    again = client.post(f"{BASE}/proposals/runs", json={}).json()["run_id"]
+    runs._LIVE.clear()
+    pending.clear()
+    fresh = client.post(f"{BASE}/proposals/runs", json={})
+    assert fresh.status_code == 200, fresh.json()
+    assert runs.read_run(ws, again)["state"] == "failed"
+    assert "engine stopped" in runs.read_run(ws, again)["error"]
+
+
+def test_an_unpriced_provider_refuses_a_ceiling_and_reports_its_cost_as_unknown(ws):
+    gemini = {"provider": "gemini", "accepted_at": "2026-11-05T09:00:00Z"}
+    client = _client(ws, FakeDriver(usage=Usage(input_tokens=10_000_000, output_tokens=1)))
+    refused = client.post(f"{BASE}/proposals/runs", json={"provider": "gemini", "model": "gemini-x", "consent": gemini, "cost_ceiling_usd": 0.0001})
+    assert refused.status_code == 422 and refused.json()["detail"]["code"] == "CEILING_NOT_PRICED"
+    run_id = client.post(f"{BASE}/proposals/runs", json={"provider": "gemini", "model": "gemini-x"}).json()["run_id"]
+    status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
+    assert status["state"] == "completed" and status["cost_so_far"] is None
+    assert {"DRIVER_UNAVAILABLE", "CEILING_NOT_PRICED"} <= CONSOLE_REFUSALS
+
+
+def test_a_real_threaded_run_survives_concurrent_reads_and_keeps_a_mid_run_cancel(ws):
+    import threading
+    import time
+
+    gate = threading.Event()
+
+    class Slow(FakeDriver):
+        def run(self, requests, spec, *, on_result=None, cancelled=lambda: False):
+            for i, request in enumerate(requests):
+                if cancelled():
+                    break
+                ids = spec.schema["properties"]["criteria"]["items"]["properties"]["id"]["enum"]
+                answers = [{"id": c, "answer": "not_reported", "quote": ""} for c in ids]
+                on_result(DriverResult(request.custom_id, "ok", output={"criteria": answers, "cannot_decide": False, "reasoning": "r"}, usage=self.usage, model=spec.model))
+                if i == 0:
+                    gate.wait(5)  # hold after the first record until the cancel is sent
+            return []
+
+    app = create_app(ws, token=DESKTOP, phone_tokens={PHONE})
+    app.state.driver_factory = lambda provider, key: Slow()
+    client = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
+    run_id = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    errors, stop = [], threading.Event()
+
+    def poll():
+        while not stop.is_set():
+            try:
+                runs.read_run(ws, run_id)
+                runs.list_runs(ws)
+            except Exception as exc:  # noqa: BLE001 - collected and asserted below
+                errors.append(exc)
+
+    readers = [threading.Thread(target=poll) for _ in range(4)]
+    for t in readers:
+        t.start()
+    assert client.post(f"{BASE}/proposals/runs/{run_id}/cancel").json()["state"] == "cancelled"
+    gate.set()
+    deadline = time.time() + 10
+    while runs.active_run(ws) is not None and time.time() < deadline:
+        time.sleep(0.02)
+    stop.set()
+    for t in readers:
+        t.join()
+    status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
+    assert errors == []
+    assert status["state"] == "cancelled" and status["done"] == 1 and runs.active_run(ws) is None
+    assert json.loads((ws / runs.RUNS_DIR / f"{run_id}.json").read_text(encoding="utf-8"))["state"] == "cancelled"
+
+
+def test_calibration_passes_the_base_url_to_the_driver(ws, monkeypatch):
+    client = _client(ws)
+    studies = _studies(client)
+    _post(client, [_event(client, s, "INCLUDE") for s in studies])
+    runs.record_consent(ws, "openai_compatible", model="m", prompt_sha256="sha256:x", accepted_at="2026-11-05T09:00:00Z")
+    client.app.state.driver_factory = None
+    seen = {}
+
+    def make(provider, *, api_key, base_url=None, **options):
+        seen["base_url"] = base_url
+        return FakeDriver()
+
+    monkeypatch.setattr("scholar_agent.drivers.make_driver", make)
+    monkeypatch.setattr("scholar_agent.keys.resolve_key", lambda provider: None)
+    body = {"study_ids": studies, "provider": "openai_compatible", "model": "local", "base_url": "http://127.0.0.1:9/v1"}
+    assert client.post(f"{BASE}/proposals/calibrations", json=body).status_code == 200
+    assert seen["base_url"] == "http://127.0.0.1:9/v1"

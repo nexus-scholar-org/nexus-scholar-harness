@@ -41,7 +41,9 @@ EXCLUDES = 1000
 SET_FILE = task_mod.HERE / "eval" / "v03_set.json"
 #: Runs this small use direct calls (full price) instead of Message Batches.
 DIRECT_LIMIT = 20
-RESULTS_DIR = task_mod.HERE / "eval" / "results"
+#: Gate reports go to the working directory's gitignored cache, never inside the
+#: package (an installed copy would otherwise write into site-packages).
+RESULTS_DIR = Path(".cache") / "prompt-gate"
 
 
 def _has_abstract(abstract: str | None) -> bool:

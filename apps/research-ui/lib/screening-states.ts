@@ -211,6 +211,24 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لا مفتاح لهذا المزوّد", "يُدخَل المفتاح في طرفية المحرك ويُحفظ في سلسلة مفاتيح النظام، ولا يستلمه المتصفح أبدًا.", "تشغيلات الوكيل مع هذا المزوّد", "nexus-scholar keys set <provider>"),
     },
   },
+  DRIVER_UNAVAILABLE: {
+    role: "blocked",
+    action: "terminal",
+    copy: {
+      en: T("This provider cannot be used yet", "Its driver is not installed in the engine, or a setting it needs, such as the base URL, is missing. Nothing was sent.", "Agent runs with this provider", "uv sync --extra ai"),
+      fr: T("Ce fournisseur n'est pas encore utilisable", "Son pilote n'est pas installé dans le moteur, ou un réglage requis, comme l'URL de base, manque. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "uv sync --extra ai"),
+      ar: T("لا يمكن استخدام هذا المزوّد بعد", "برنامج تشغيله غير مثبّت في المحرك، أو ينقصه إعداد مطلوب مثل عنوان URL الأساسي. لم يُرسَل شيء.", "تشغيلات الوكيل مع هذا المزوّد", "uv sync --extra ai"),
+    },
+  },
+  CEILING_NOT_PRICED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This model's cost cannot be measured", "It has no price on file, so a cost ceiling cannot be enforced. Run it without a ceiling, or pick a priced model.", "This run", "Remove the ceiling"),
+      fr: T("Le coût de ce modèle ne peut pas être mesuré", "Il n'a aucun prix enregistré : un plafond de coût ne peut pas être appliqué. Lancez-le sans plafond, ou choisissez un modèle tarifé.", "Ce passage", "Retirer le plafond"),
+      ar: T("لا يمكن قياس تكلفة هذا النموذج", "لا سعر مسجّل له، فلا يمكن فرض سقف للتكلفة. شغّله دون سقف أو اختر نموذجًا مسعّرًا.", "هذا التشغيل", "إزالة السقف"),
+    },
+  },
   RUN_ALREADY_ACTIVE: {
     role: "unclear",
     action: "reload",

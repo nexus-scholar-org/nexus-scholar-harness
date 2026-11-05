@@ -72,7 +72,8 @@ const COPY = {
     "pricing.direct": "Direct-call",
     tokens: "{input} input and {output} output tokens",
     ceiling: "Cost ceiling (USD)",
-    hardStop: "A hard stop: the run stops when its measured cost reaches the ceiling, and finished drafts are kept.",
+    hardStop: "A hard stop: the run stops when its measured cost reaches the ceiling, and finished drafts are kept. A Batch run checks it every 200 records, so it can pass the ceiling by up to one chunk.",
+    ceilingNotPriced: "No price on file for this model, so its cost cannot be measured and a ceiling cannot be enforced. The run goes without one.",
     consent: "I consent to send the records above to {provider} for this run.",
     consentOnFile: "Consent on file since {date}.",
     calibration: "Check the agent on your labels first",
@@ -95,6 +96,7 @@ const COPY = {
     idle: "No run yet.",
     progress: "{done} of {records} proposed",
     costSoFar: "Cost so far: {cost}",
+    costUnmeasured: "Cost so far: not measured (no price on file for this model)",
     counts: "{refused} refused · {truncated} cut off · {invalid} unreadable · {failed} failed · {checks} failed a check",
     countsNote: "Each of these is kept as an Unclear draft; no record is dropped.",
     "state.queued": "Queued",
@@ -142,7 +144,8 @@ const COPY = {
     "pricing.direct": "par appel direct",
     tokens: "{input} jetons en entrée et {output} en sortie",
     ceiling: "Plafond de coût (USD)",
-    hardStop: "Un arrêt ferme : le passage s'arrête quand son coût mesuré atteint le plafond, et les brouillons terminés sont conservés.",
+    hardStop: "Un arrêt ferme : le passage s'arrête quand son coût mesuré atteint le plafond, et les brouillons terminés sont conservés. Un passage par lots le vérifie tous les 200 enregistrements et peut donc le dépasser d'un lot au plus.",
+    ceilingNotPriced: "Aucun prix enregistré pour ce modèle : son coût ne peut pas être mesuré et aucun plafond ne peut être appliqué. Le passage se fait sans plafond.",
     consent: "J'accepte d'envoyer les notices ci-dessus à {provider} pour ce passage.",
     consentOnFile: "Consentement enregistré depuis le {date}.",
     calibration: "Vérifier d'abord l'agent sur vos décisions",
@@ -165,6 +168,7 @@ const COPY = {
     idle: "Aucun passage pour l'instant.",
     progress: "{done} sur {records} proposées",
     costSoFar: "Coût à ce stade : {cost}",
+    costUnmeasured: "Coût à ce stade : non mesuré (aucun prix enregistré pour ce modèle)",
     counts: "{refused} refusées · {truncated} tronquées · {invalid} illisibles · {failed} en échec · {checks} contrôles échoués",
     countsNote: "Chacune est conservée comme brouillon Incertain ; aucune notice n'est écartée.",
     "state.queued": "En attente",
@@ -212,7 +216,8 @@ const COPY = {
     "pricing.direct": "الاستدعاء المباشر",
     tokens: "{input} وحدة إدخال و{output} وحدة إخراج",
     ceiling: "سقف التكلفة (دولار)",
-    hardStop: "توقف حتمي: يتوقف التشغيل حين تبلغ تكلفته المقيسة السقف، وتُحفظ المسودات المنجزة.",
+    hardStop: "توقف حتمي: يتوقف التشغيل حين تبلغ تكلفته المقيسة السقف، وتُحفظ المسودات المنجزة. يتحقق تشغيل الدفعات من السقف كل 200 سجل، فقد يتجاوزه بدفعة واحدة على الأكثر.",
+    ceilingNotPriced: "لا سعر مسجّل لهذا النموذج، فلا يمكن قياس تكلفته ولا فرض سقف لها. يجري التشغيل دون سقف.",
     consent: "أوافق على إرسال السجلات أعلاه إلى {provider} في هذا التشغيل.",
     consentOnFile: "الموافقة مسجّلة منذ {date}.",
     calibration: "اختبر الوكيل على قراراتك أولًا",
@@ -235,6 +240,7 @@ const COPY = {
     idle: "لا تشغيل بعد.",
     progress: "{done} من {records} مقترحة",
     costSoFar: "التكلفة حتى الآن: {cost}",
+    costUnmeasured: "التكلفة حتى الآن: غير مقيسة (لا سعر مسجّل لهذا النموذج)",
     counts: "{refused} مرفوضة · {truncated} مقطوعة · {invalid} غير مقروءة · {failed} فاشلة · {checks} أخفقت في فحص",
     countsNote: "تُحفظ كلٌّ منها مسودةً غير واضحة، ولا يُسقط أي سجل.",
     "state.queued": "في الانتظار",
@@ -317,10 +323,11 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
       effort,
       scope: { view: "no_proposal" },
       base_url: provider === "openai_compatible" ? baseUrl.trim() || null : null,
-      cost_ceiling_usd: ceiling.trim() === "" ? null : Number(ceiling),
+      // An unpriced model cannot be measured, so it never carries a ceiling.
+      cost_ceiling_usd: ceiling.trim() === "" || estimate?.priced === false ? null : Number(ceiling),
       ...extra,
     }),
-    [provider, model, effort, baseUrl, ceiling],
+    [provider, model, effort, baseUrl, ceiling, estimate],
   );
 
   // The estimate follows the provider and model; it sends nothing to a provider.
@@ -527,9 +534,9 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
               )}
               <label className="mt-4 block text-sm text-ink">
                 {t("ceiling")}
-                <input type="number" min="0" step="0.01" inputMode="decimal" value={ceiling} onChange={(e) => setCeiling(e.target.value)} dir="ltr" className="mt-1 block min-h-11 w-40 rounded-md border border-rule bg-paper px-2 text-ink" />
+                <input type="number" min="0" step="0.01" inputMode="decimal" value={ceiling} onChange={(e) => setCeiling(e.target.value)} disabled={estimate?.priced === false} dir="ltr" className="mt-1 block min-h-11 w-40 rounded-md border border-rule bg-paper px-2 text-ink disabled:opacity-60" />
               </label>
-              <p className="mt-1 text-xs text-ink-muted">{t("hardStop")}</p>
+              <p className="mt-1 text-xs text-ink-muted" data-ceiling-note>{estimate?.priced === false ? t("ceilingNotPriced") : t("hardStop")}</p>
             </section>
 
             <section aria-labelledby="run-calibration" className="rounded-lg border border-rule bg-leaf p-5">
@@ -587,7 +594,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
                     <div className="h-full bg-brand" style={{ width: `${run.records ? Math.round((100 * run.done) / run.records) : 0}%` }} />
                   </div>
                   <p className="text-ink-muted">
-                    {t("costSoFar", { cost: usd(locale, run.cost_so_far) })}
+                    {run.cost_so_far === null ? t("costUnmeasured") : t("costSoFar", { cost: usd(locale, run.cost_so_far) })}
                     {run.cost_ceiling_usd !== null ? ` / ${usd(locale, run.cost_ceiling_usd)}` : ""}
                   </p>
                   <p className="text-ink-muted">

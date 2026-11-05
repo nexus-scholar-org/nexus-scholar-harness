@@ -10,13 +10,26 @@ driver's status, never dropped and never excluded.
   (`SCREENING_AGENT_CONSENT`); a run without it is refused `CONSENT_REQUIRED`.
 - **Keys** come from the OS keychain or the environment (`scholar_agent.keys`);
   a provider without a key is refused `PROVIDER_KEY_MISSING`.
-- **One run per workspace** (`RUN_ALREADY_ACTIVE`), held by a lock file.
+- **One run per workspace** (`RUN_ALREADY_ACTIVE`), held by a lock file. The
+  driver is built before the lock is taken, so a driver that cannot be built
+  is refused (`DRIVER_UNAVAILABLE`) and never holds it. A lock whose run has
+  no worker in this engine (the engine stopped mid-run) is stale: the next
+  run, or a cancel of that run, finishes it and frees the lock.
 - **The cost ceiling is a hard stop:** when the measured cost passes it the
   run stops with `COST_CEILING_REACHED`; finished proposals are kept. Batches
-  are sent in chunks so the ceiling is checked between them.
+  are sent in chunks of `CHUNK` records, so a Batch run checks the ceiling
+  between chunks. A provider or model without a price cannot be measured, so
+  a ceiling on it is refused (`CEILING_NOT_PRICED`) and its `cost_so_far` is
+  null, never 0.
+- **A live run is held in memory** under one lock per run: the status and
+  cancel routes read and change that record, and every write of the run file
+  happens under the same lock. There is no read-modify-write of the file
+  (which lost cancels, and which Windows refuses while another handle has the
+  file open).
 - **Journal:** `AGENT_RUN_STARTED` and `AGENT_RUN_COMPLETED` with counts of
   proposals, refusals, truncations, invalid answers, errors and failed checks,
-  never with outcomes (the journal is readable before a decision).
+  never with outcomes (the journal is readable before a decision). A journal
+  row that cannot be written is recorded as `journal_error` on the run.
 
 Calibration runs are the same over records the researcher has decided; their
 result is include-recall with its Wilson bound and the missed includes, and it
@@ -25,8 +38,10 @@ is advisory (it never blocks a run).
 
 from __future__ import annotations
 
+import copy
 import json
 import threading
+import time
 import uuid
 from collections import Counter
 from collections.abc import Callable
@@ -45,6 +60,8 @@ CONSENT_REQUIRED = "CONSENT_REQUIRED"
 RUN_ALREADY_ACTIVE = "RUN_ALREADY_ACTIVE"
 COST_CEILING_REACHED = "COST_CEILING_REACHED"
 PROVIDER_KEY_MISSING = "PROVIDER_KEY_MISSING"
+DRIVER_UNAVAILABLE = "DRIVER_UNAVAILABLE"
+CEILING_NOT_PRICED = "CEILING_NOT_PRICED"
 UNKNOWN_RUN = "UNKNOWN_RUN"
 #: What leaves the machine, stated in the consent and on the run screen.
 DATA_FLOW = "titles, abstracts and publication years of every record in the run, and the screening criteria"
@@ -90,52 +107,162 @@ def record_consent(ws: Path, provider: str, *, model: str, prompt_sha256: str, a
 # --- run records ---------------------------------------------------------------
 
 
+class _Live:
+    """A run with a worker in this engine: its record, the lock every change takes, its cancel."""
+
+    def __init__(self, ws: Path, run: dict[str, Any]):
+        self.ws, self.run = ws, run
+        self.lock = threading.Lock()
+        self.cancel = threading.Event()
+
+
+_LIVE: dict[tuple[str, str], _Live] = {}
+_LIVE_GUARD = threading.Lock()
+
+
+def _key(ws: Path, run_id: str) -> tuple[str, str]:
+    return (str(ws.resolve()), run_id)
+
+
+def _live(ws: Path, run_id: str) -> _Live | None:
+    with _LIVE_GUARD:
+        return _LIVE.get(_key(ws, run_id))
+
+
 def _run_path(ws: Path, run_id: str) -> Path:
     return ws / RUNS_DIR / f"{run_id}.json"
 
 
+def _retry(fn: Callable[[], Any]) -> Any:
+    # Windows refuses to open or replace a file that another handle has open;
+    # a short retry covers a reader meeting a write in progress.
+    for attempt in range(20):
+        try:
+            return fn()
+        except PermissionError:
+            if attempt == 19:
+                raise
+            time.sleep(0.05)
+    return None
+
+
+def _read_file(path: Path) -> dict[str, Any]:
+    return _retry(lambda: json.loads(path.read_text(encoding="utf-8")))
+
+
 def read_run(ws: Path, run_id: str) -> dict[str, Any]:
+    live = _live(ws, run_id) if run_id.startswith("RUN-") else None
+    if live is not None:
+        with live.lock:
+            return copy.deepcopy(live.run)
     path = _run_path(ws, run_id)
     if not (run_id.startswith("RUN-") and path.is_file()):
         raise RunRefused(UNKNOWN_RUN, f"no run {run_id}", status=404)
-    return json.loads(path.read_text(encoding="utf-8"))
+    return _read_file(path)
+
+
+def list_runs(ws: Path) -> list[dict[str, Any]]:
+    folder = ws / RUNS_DIR
+    return [read_run(ws, f.stem) for f in sorted(folder.glob("RUN-*.json"))] if folder.is_dir() else []
 
 
 def _write_run(ws: Path, run: dict[str, Any]) -> None:
     path = _run_path(ws, run["run_id"])
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
+    tmp = path.with_name(f"{path.stem}.{uuid.uuid4().hex[:8]}.tmp")
     tmp.write_text(json.dumps(run, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    tmp.replace(path)
+    _retry(lambda: tmp.replace(path))
+
+
+def _lock_holder(lock: Path) -> str | None:
+    try:
+        return _retry(lambda: lock.read_text(encoding="utf-8")).strip() or None
+    except FileNotFoundError:
+        return None
 
 
 def active_run(ws: Path) -> str | None:
+    return _lock_holder(ws / LOCK_FILE)
+
+
+def _unlink_lock(lock: Path) -> None:
+    try:
+        _retry(lock.unlink)
+    except FileNotFoundError:
+        pass
+
+
+def _recover(ws: Path, run_id: str, state: str) -> dict[str, Any] | None:
+    """Finish a run left `running` with no worker in this engine, and free its lock."""
+    path = _run_path(ws, run_id)
+    run = _read_file(path) if run_id.startswith("RUN-") and path.is_file() else None
+    if run is not None and run["state"] in ("running", "queued"):
+        run.update(state=state, finished_at=_now(), error="the engine stopped while this run was active")
+        _write_run(ws, run)
+        journal_error = _journal_completed(ws, run)
+        if journal_error is not None:
+            run["journal_error"] = journal_error
+            _write_run(ws, run)
     lock = ws / LOCK_FILE
-    return lock.read_text(encoding="utf-8").strip() or None if lock.is_file() else None
+    if lock.is_file() and _lock_holder(lock) in (run_id or None, None):
+        _unlink_lock(lock)
+    return run
 
 
 def _acquire(ws: Path, run_id: str) -> None:
     lock = ws / LOCK_FILE
     lock.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        with lock.open("x", encoding="utf-8") as handle:
-            handle.write(run_id)
-    except FileExistsError as exc:
-        raise RunRefused(RUN_ALREADY_ACTIVE, f"run {active_run(ws)} is still active; one run per workspace") from exc
+    for _ in range(2):
+        try:
+            with lock.open("x", encoding="utf-8") as handle:
+                handle.write(run_id)
+            return
+        except FileExistsError as exc:
+            holder = active_run(ws)
+            if holder and _live(ws, holder) is not None:
+                raise RunRefused(RUN_ALREADY_ACTIVE, f"run {holder} is still active; one run per workspace") from exc
+            # A stale lock: its run has no worker in this engine.
+            _recover(ws, holder or "", "failed")
+    raise RunRefused(RUN_ALREADY_ACTIVE, f"run {active_run(ws)} is still active; one run per workspace")
 
 
 def _release(ws: Path, run_id: str) -> None:
     lock = ws / LOCK_FILE
-    if lock.is_file() and lock.read_text(encoding="utf-8").strip() == run_id:
-        lock.unlink()
+    if _lock_holder(lock) == run_id:
+        _unlink_lock(lock)
 
 
 def request_cancel(ws: Path, run_id: str) -> dict[str, Any]:
+    live = _live(ws, run_id) if run_id.startswith("RUN-") else None
+    if live is not None:
+        with live.lock:
+            if live.run["state"] in ("running", "queued"):
+                live.run["cancel_requested"] = True
+                live.cancel.set()
+                _write_run(ws, live.run)
+            return copy.deepcopy(live.run)
     run = read_run(ws, run_id)
     if run["state"] in ("running", "queued"):
-        run["cancel_requested"] = True
-        _write_run(ws, run)
+        # No worker in this engine: finish it now, so the lock does not outlive it.
+        run = _recover(ws, run_id, "cancelled") or run
     return run
+
+
+def _journal_completed(ws: Path, run: dict[str, Any]) -> str | None:
+    try:
+        append_event(
+            ws,
+            "AGENT_RUN_COMPLETED",
+            f"Agent run {run['run_id']} {run['state']}: {run['done']} of {run['records']} record(s) proposed",
+            agent="scholar-harness/agent-runs",
+            outputs=[str(RUNS_DIR / f"{run['run_id']}.json").replace("\\", "/")],
+            parameters={"run_id": run["run_id"], "state": run["state"], "code": run.get("code")},
+            metrics={k: run[k] for k in ("records", "done", "failed", "refused", "truncated", "invalid", "check_failures", "cost_so_far")},
+            refresh_index=False,
+        )
+    except OSError as exc:
+        return f"{type(exc).__name__}: {exc}"
+    return None
 
 
 # --- the records of a run -------------------------------------------------------
@@ -197,8 +324,29 @@ def start_run(
     records = [pg.EvalRecord(s, "", *_text(papers.get(s, {}))) for s in study_ids]
     batch = provider == "anthropic" and len(study_ids) > pg.DIRECT_LIMIT
     estimate = pg.estimate(records, spec, provider=provider, batch=batch)
+    priced = pg.price_for(provider, model) is not None
+    if cost_ceiling_usd is not None and not priced:
+        raise RunRefused(
+            CEILING_NOT_PRICED,
+            f"{provider}/{model} has no price in the price table, so its cost cannot be measured; run it without a ceiling",
+            status=422,
+        )
     if cost_ceiling_usd is not None and estimate["cost_usd"] is not None and estimate["cost_usd"] > cost_ceiling_usd:
         raise RunRefused(COST_CEILING_REACHED, f"the estimate (${estimate['cost_usd']:.2f}) is above the ceiling (${cost_ceiling_usd:.2f})")
+
+    def build(p: str, k: str | None) -> Any:
+        if driver_factory is not None:
+            return driver_factory(p, k)
+        options = {"direct_limit": pg.DIRECT_LIMIT, "max_per_batch": CHUNK} if p == "anthropic" else {}
+        return make_driver(p, api_key=k, base_url=base_url, **options)
+
+    # Built before the lock: a driver that cannot be built never holds it.
+    try:
+        driver = build(provider, key)
+    except ImportError as exc:
+        raise RunRefused(DRIVER_UNAVAILABLE, f"the {provider} driver is not installed (install the `ai` extra): {exc}") from exc
+    except ValueError as exc:
+        raise RunRefused(DRIVER_UNAVAILABLE, str(exc), status=422) from exc
 
     run_id = "RUN-" + uuid.uuid4().hex[:24]
     _acquire(ws, run_id)
@@ -220,7 +368,7 @@ def start_run(
         "truncated": 0,
         "invalid": 0,
         "check_failures": 0,
-        "cost_so_far": 0.0,
+        "cost_so_far": 0.0 if priced else None,
         "cost_ceiling_usd": cost_ceiling_usd,
         "estimate": estimate,
         "code": None,
@@ -228,45 +376,51 @@ def start_run(
         "finished_at": None,
         "cancel_requested": False,
     }
-    _write_run(ws, run)
-    append_event(
-        ws,
-        "AGENT_RUN_STARTED",
-        f"Started a {kind} run of {len(study_ids)} record(s) on {provider} ({model})",
-        agent="scholar-harness/agent-runs",
-        outputs=[str(RUNS_DIR / f"{run_id}.json").replace("\\", "/")],
-        parameters={"run_id": run_id, "kind": kind, "provider": provider, "model": model, "effort": effort, "prompt_sha256": task.prompt_sha256},
-        metrics={"records": len(study_ids)},
-        refresh_index=False,
-    )
-
-    def factory(p: str, k: str | None) -> Any:
-        if driver_factory is not None:
-            return driver_factory(p, k)
-        options = {"direct_limit": pg.DIRECT_LIMIT, "max_per_batch": CHUNK} if p == "anthropic" else {}
-        return make_driver(p, api_key=k, base_url=base_url, **options)
+    live = _Live(ws, run)
+    with _LIVE_GUARD:
+        _LIVE[_key(ws, run_id)] = live
+    try:
+        _write_run(ws, run)
+        append_event(
+            ws,
+            "AGENT_RUN_STARTED",
+            f"Started a {kind} run of {len(study_ids)} record(s) on {provider} ({model})",
+            agent="scholar-harness/agent-runs",
+            outputs=[str(RUNS_DIR / f"{run_id}.json").replace("\\", "/")],
+            parameters={"run_id": run_id, "kind": kind, "provider": provider, "model": model, "effort": effort, "prompt_sha256": task.prompt_sha256},
+            metrics={"records": len(study_ids)},
+            refresh_index=False,
+        )
+    except BaseException as exc:
+        _finish(live, f"{type(exc).__name__}: {exc}")
+        raise
 
     def work() -> None:
-        _execute(ws, run_id, factory(provider, key), requests, spec, papers, protocol, batch)
+        error = None
+        try:
+            _execute(live, driver, requests, spec, papers, protocol, batch)
+        except BaseException as exc:  # noqa: BLE001 - a crashed run is recorded, never left running
+            error = f"{type(exc).__name__}: {exc}"
+        finally:
+            _finish(live, error)
 
     (executor or (lambda fn: threading.Thread(target=fn, name=f"agent-run-{run_id}", daemon=True).start()))(work)
-    return run
+    return read_run(ws, run_id)
 
 
-def _execute(ws, run_id, driver, requests, spec, papers, protocol, batch) -> None:
+def _execute(live: _Live, driver, requests, spec, papers, protocol, batch) -> None:
     from scholar_agent import prompt_gate as pg
 
+    ws, run_id = live.ws, live.run["run_id"]
     context = ev.load_context(ws)
-    price = pg.price_for(read_run(ws, run_id)["provider"], spec.model)
+    price = pg.price_for(live.run["provider"], spec.model)
     stats = Counter()
     state = {"cost": 0.0}
 
     def stopped() -> bool:
-        run = read_run(ws, run_id)
-        return bool(run.get("cancel_requested")) or run.get("code") == COST_CEILING_REACHED
+        return live.cancel.is_set() or live.run.get("code") == COST_CEILING_REACHED
 
     def on_result(result) -> None:
-        run = read_run(ws, run_id)
         title, abstract, published = _text(papers.get(result.custom_id, {}))
         batch_binding = context.batches[context.study_batch[result.custom_id]]
         output = None
@@ -274,87 +428,89 @@ def _execute(ws, run_id, driver, requests, spec, papers, protocol, batch) -> Non
             from scholar_agent.tasks import screening as task_mod
 
             output = task_mod.to_proposal_output(result.output, title, abstract, published)
-        cost = pg.cost_usd(result.usage.as_dict(), price, batch=batch) if price else 0.0
-        record = pr.submit_proposal(
-            ws,
-            study_id=result.custom_id,
-            title=title,
-            abstract=abstract,
-            published=published,
-            output=output,
-            protocol=protocol,
-            protocol_fingerprint=context.protocol_fingerprint,
-            provenance={
-                "task_id": "screening",
-                "task_version": run["task_version"],
-                "prompt_sha256": run["prompt_sha256"],
-                "driver": run["provider"],
-                "model": result.model or spec.model,
-                "effort": spec.effort,
-                "batch_binding": {"batch_id": batch_binding.batch_id, "batch_sha256": batch_binding.batch_sha256},
-                "usage": result.usage.as_dict(),
-                "cost_estimate": cost,
-                "request_id": result.request_id,
-                "batch_id": result.batch_id,
-                "driver_status": result.status,
-                "driver_detail": result.detail,
-                "run_id": run_id,
-            },
-            created_at=_now(),
-        )
-        stats[result.status] += 1
-        if result.status == "ok" and not all(c["ok"] for c in record["validators"]):
-            stats["check_failures"] += 1
-        state["cost"] += cost
-        run.update(
-            done=run["done"] + 1,
-            failed=stats["error"],
-            refused=stats["refusal"],
-            truncated=stats["truncated"],
-            invalid=stats["invalid"],
-            check_failures=stats["check_failures"],
-            cost_so_far=round(state["cost"], 4),
-        )
-        ceiling = run.get("cost_ceiling_usd")
-        if ceiling is not None and state["cost"] >= ceiling:
-            run["code"] = COST_CEILING_REACHED
-        _write_run(ws, run)
+        cost = pg.cost_usd(result.usage.as_dict(), price, batch=batch) if price else None
+        with live.lock:
+            run = live.run
+            record = pr.submit_proposal(
+                ws,
+                study_id=result.custom_id,
+                title=title,
+                abstract=abstract,
+                published=published,
+                output=output,
+                protocol=protocol,
+                protocol_fingerprint=context.protocol_fingerprint,
+                provenance={
+                    "task_id": "screening",
+                    "task_version": run["task_version"],
+                    "prompt_sha256": run["prompt_sha256"],
+                    "driver": run["provider"],
+                    "model": result.model or spec.model,
+                    "effort": spec.effort,
+                    "batch_binding": {"batch_id": batch_binding.batch_id, "batch_sha256": batch_binding.batch_sha256},
+                    "usage": result.usage.as_dict(),
+                    "cost_estimate": cost,
+                    "request_id": result.request_id,
+                    "batch_id": result.batch_id,
+                    "driver_status": result.status,
+                    "driver_detail": result.detail,
+                    "run_id": run_id,
+                },
+                created_at=_now(),
+            )
+            stats[result.status] += 1
+            if result.status == "ok" and not all(c["ok"] for c in record["validators"]):
+                stats["check_failures"] += 1
+            if cost is not None:
+                state["cost"] += cost
+            run.update(
+                done=run["done"] + 1,
+                failed=stats["error"],
+                refused=stats["refusal"],
+                truncated=stats["truncated"],
+                invalid=stats["invalid"],
+                check_failures=stats["check_failures"],
+                cost_so_far=round(state["cost"], 4) if price else None,
+            )
+            ceiling = run.get("cost_ceiling_usd")
+            if ceiling is not None and price and state["cost"] >= ceiling:
+                run["code"] = COST_CEILING_REACHED
+            _write_run(ws, run)
 
-    final = "completed"
+    driver.run(requests, spec, on_result=on_result, cancelled=stopped)
+
+
+def _finish(live: _Live, error: str | None) -> None:
+    """Record the run's end, free the lock and journal it, whatever happened."""
+    ws, run_id = live.ws, live.run["run_id"]
     try:
-        driver.run(requests, spec, on_result=on_result, cancelled=stopped)
-    except Exception as exc:  # noqa: BLE001 - a crashed run is recorded, never silent
-        final = "failed"
-        run = read_run(ws, run_id)
-        run["error"] = f"{type(exc).__name__}: {exc}"
+        with live.lock:
+            run = live.run
+            if error is not None:
+                run["state"], run["error"] = "failed", error
+            elif run.get("code") == COST_CEILING_REACHED:
+                run["state"] = "stopped"
+            elif run.get("cancel_requested"):
+                run["state"] = "cancelled"
+            else:
+                run["state"] = "completed"
+            run["finished_at"] = _now()
+            if run["kind"] == "calibration":
+                try:
+                    run["calibration"] = calibration_result(ws, run["study_ids"])
+                except Exception as exc:  # noqa: BLE001 - the run's end is still recorded
+                    run["calibration_error"] = f"{type(exc).__name__}: {exc}"
+            _write_run(ws, run)
+    finally:
+        try:
+            _release(ws, run_id)
+        finally:
+            with _LIVE_GUARD:
+                _LIVE.pop(_key(ws, run_id), None)
+    journal_error = _journal_completed(ws, run)
+    if journal_error is not None:
+        run["journal_error"] = journal_error
         _write_run(ws, run)
-    run = read_run(ws, run_id)
-    if final != "failed":
-        if run.get("code") == COST_CEILING_REACHED:
-            final = "stopped"
-        elif run.get("cancel_requested"):
-            final = "cancelled"
-    run["state"] = final
-    run["finished_at"] = _now()
-    if run["kind"] == "calibration":
-        run["calibration"] = calibration_result(ws, run["study_ids"])
-    _write_run(ws, run)
-    _release(ws, run_id)
-    try:
-        append_event(
-            ws,
-            "AGENT_RUN_COMPLETED",
-            f"Agent run {run_id} {final}: {run['done']} of {run['records']} record(s) proposed",
-            agent="scholar-harness/agent-runs",
-            outputs=[str(RUNS_DIR / f"{run_id}.json").replace("\\", "/")],
-            parameters={"run_id": run_id, "state": final, "code": run.get("code")},
-            metrics={k: run[k] for k in ("records", "done", "failed", "refused", "truncated", "invalid", "check_failures", "cost_so_far")},
-            refresh_index=False,
-        )
-    except OSError:
-        # The run record already holds the outcome; a journal that cannot be
-        # written must not leave the lock held or the run looking active.
-        pass
 
 
 def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:

@@ -594,8 +594,7 @@ def proposal_setup(request: Request) -> dict[str, Any]:
         {"provider": p, "key": keys.key_status(p).source, "consent": consent.get(p)}
         for p in keys.ENV_VARS
     ]
-    folder = ws / runs.RUNS_DIR
-    recorded = [json.loads(f.read_text(encoding="utf-8")) for f in folder.glob("RUN-*.json")] if folder.is_dir() else []
+    recorded = runs.list_runs(ws)
     latest = max(recorded, key=lambda r: (r.get("started_at") or "", r["run_id"]), default=None)
     return {
         "task": {
@@ -639,6 +638,7 @@ class CalibrationBody(BaseModel):
     model: str = "claude-opus-5-5"
     effort: str = "low"
     cost_ceiling_usd: float | None = None
+    base_url: str | None = None
 
 
 @router.post("/proposals/calibrations")
@@ -656,6 +656,7 @@ def start_calibration(body: CalibrationBody, request: Request) -> dict[str, Any]
             study_ids=list(dict.fromkeys(body.study_ids)), cost_ceiling_usd=body.cost_ceiling_usd, kind="calibration",
             driver_factory=getattr(request.app.state, "driver_factory", None),
             executor=getattr(request.app.state, "run_executor", None),
+            base_url=body.base_url,
         )
     except runs.RunRefused as exc:
         raise _run_error(exc) from exc
