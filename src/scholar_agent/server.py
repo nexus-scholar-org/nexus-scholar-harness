@@ -102,9 +102,6 @@ from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
 
 # Bib Imports
-from scholar_bib.deduplicator import BibDeduplicator
-from scholar_bib.linter import BibLinter
-from scholar_bib.parser import BibParser
 
 # WP01-E1 declared MCP capability boundary (Packet E1 section 4.7, E1-016).
 # This kit owns the *declaration and rejection* only: the canonical
@@ -1112,33 +1109,6 @@ def nexus_graph_build(
         return f"Citation graph built ({G.number_of_nodes()} nodes, {G.number_of_edges()} edges). Exported to {output_html} and {json_output}."
     except Exception as e:
         return f"Error building graph: {e}"
-
-
-@mcp.tool()
-@_journaled("MCP_BIB_CLEAN")
-def nexus_bib_clean(input_bib_path: str, output_bib_path: str = None) -> str:
-    """
-    Clean, standardize keys, and deduplicate a BibTeX file.
-    """
-    input_bib_path = _resolve_path(input_bib_path) or input_bib_path
-    output_bib_path = _resolve_path(output_bib_path) or output_bib_path
-    input_path = Path(input_bib_path)
-    if not input_path.exists():
-        return f"Error: {input_bib_path} not found."
-    try:
-        output_path = Path(output_bib_path or input_bib_path)
-        library = BibParser.load(input_path)
-        initial_count = len(library.entries)
-        library = BibLinter.lint(library, generate_keys=True)
-        library = BibDeduplicator.dedup(library)
-        final_count = len(library.entries)
-        BibParser.save(library, output_path)
-        return (
-            f"Cleaned BibTeX saved to {output_path} "
-            f"({initial_count} entries -> {final_count} unique, keys standardized)."
-        )
-    except Exception as e:
-        return f"Error cleaning BibTeX: {e}"
 
 
 # ==============================================================================
@@ -2341,7 +2311,6 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_rag_synthesize: Grounded synthesis with claim entailment verification\n"
             "  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies\n"
             "  - nexus_graph_build: Build citation graph from included studies or DOIs\n"
-            "  - nexus_bib_clean: Clean and deduplicate BibTeX databases\n"
             "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
             "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
             "  - nexus_screening_record: One record with its criteria, to draft a proposal\n"

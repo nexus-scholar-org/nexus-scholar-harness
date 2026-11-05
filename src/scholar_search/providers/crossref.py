@@ -113,14 +113,14 @@ class CrossrefProvider(BaseAPIProvider):
 
     # --- Snowballing features are not supported well by Crossref (use OpenAlex or S2) ---
 
-    # --- Integration Hook for scholar-bib-kit ---
+    # --- Reference validation ---
 
     async def validate_reference(self, messy_citation: str) -> Document | None:
         """
         Validates a messy citation string (e.g. from a PDF or a dirty .bib file)
         and returns the canonical Crossref Document with a verified DOI.
 
-        This is an exposed capability meant to be used by the `scholar-bib-kit`.
+        No caller in the harness uses it yet (scholar-bib-kit was removed in M5-slim).
         """
         # Crossref has a specific query.bibliographic field for this
         params = {

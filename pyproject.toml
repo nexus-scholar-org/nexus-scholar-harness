@@ -94,7 +94,6 @@ Homepage = "https://github.com/nexus-scholar-org/nexus-scholar-harness"
 nexus-scholar = "scholar_harness.cli:app"
 scholar-harness = "scholar_harness.cli:app"
 scholar-agent = "scholar_agent.server:main"
-scholar-bib = "scholar_bib.cli:app"
 scholar-graph = "scholar_graph.cli:app"
 scholar-pdf = "scholar_pdf.cli:app"
 scholar-protocol = "scholar_protocol.cli:app"
@@ -106,7 +105,6 @@ scholar-verify = "scholar_verify.cli:app"
 packages = [
     "src/scholar_harness",
     "src/scholar_agent",
-    "src/scholar_bib",
     "src/scholar_graph",
     "src/scholar_pdf",
     "src/scholar_protocol",
@@ -125,7 +123,6 @@ packages = [
 ".agents/skills/inception-agent" = "scholar_harness_data/skills/inception-agent"
 ".agents/skills/methodology-copilot" = "scholar_harness_data/skills/methodology-copilot"
 ".agents/skills/scholar-agent-kit" = "scholar_harness_data/skills/scholar-agent-kit"
-".agents/skills/scholar-bib-kit" = "scholar_harness_data/skills/scholar-bib-kit"
 ".agents/skills/scholar-graph-kit" = "scholar_harness_data/skills/scholar-graph-kit"
 ".agents/skills/scholar-pdf-kit" = "scholar_harness_data/skills/scholar-pdf-kit"
 ".agents/skills/scholar-protocol-kit" = "scholar_harness_data/skills/scholar-protocol-kit"

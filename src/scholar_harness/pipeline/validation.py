@@ -83,7 +83,6 @@ ALLOWED_COMMAND_PREFIXES: tuple[tuple[str, ...], ...] = (
     ("scholar-rag",),
     ("scholar-protocol",),
     ("scholar-verify",),
-    ("scholar-bib",),
     ("scholar-graph",),
     ("python", "src/scholar_harness/agent_screen.py"),
 )

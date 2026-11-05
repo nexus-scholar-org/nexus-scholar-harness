@@ -147,7 +147,6 @@ KIT_COMMANDS: dict[str, str] = {
     "scholar-protocol": "protocol",
     "scholar-search": "search",
     "scholar-pdf": "pdf",
-    "scholar-bib": "bib",
     "scholar-rag": "rag",
     "scholar-graph": "graph",
     "scholar-agent": "agent",

@@ -15,7 +15,6 @@ from pathlib import Path
 import networkx as nx
 import pytest
 from scholar_agent.server import (
-    nexus_bib_clean,
     nexus_extract_pdf,
     nexus_graph_build,
     nexus_screen,
@@ -160,60 +159,6 @@ def test_nexus_extract_pdf_doi_regex_from_plain_name(tmp_path, monkeypatch):
 
     assert captured["metadata"]["doi"] == ""
     assert captured["metadata"]["title"] == "scott2020"
-
-
-# ---------------------------------------------------------------------------
-# nexus_bib_clean: full pipeline (lint + generate-keys + dedup)
-# ---------------------------------------------------------------------------
-
-BIB_WITH_DUPLICATES = """\
-@article{dummy_key_1,
-  author = {Smith, John and Doe, Jane},
-  title = {A study of citation networks},
-  year = {2020},
-  doi = {10.1000/abc123},
-  journal = {Test Journal}
-}
-
-@article{DummyKey-2,
-  author = {Smith, John and Doe, Jane},
-  title = {A study of citation networks},
-  year = {2020},
-  doi = {10.1000/abc123},
-  journal = {Test Journal}
-}
-"""
-
-
-def test_nexus_bib_clean_standardizes_keys_and_deduplicates(tmp_path):
-    bib = tmp_path / "library.bib"
-    bib.write_text(BIB_WITH_DUPLICATES, encoding="utf-8")
-    out = tmp_path / "cleaned.bib"
-
-    result = nexus_bib_clean(str(bib), str(out))
-
-    assert out.exists()
-    assert "2 entries -> 1 unique" in result
-
-    from scholar_bib.parser import BibParser
-
-    cleaned = BibParser.load(out)
-    keys = [e.key for e in cleaned.entries]
-    assert len(cleaned.entries) == 1, keys
-    assert keys == ["Smith2020"]
-
-
-def test_nexus_bib_clean_inplace_when_no_output(tmp_path):
-    bib = tmp_path / "library.bib"
-    bib.write_text(BIB_WITH_DUPLICATES, encoding="utf-8")
-
-    result = nexus_bib_clean(str(bib))
-
-    assert "1 unique" in result
-    from scholar_bib.parser import BibParser
-
-    library = BibParser.load(bib)
-    assert len(library.entries) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -377,23 +322,16 @@ def test_nexus_relative_paths_resolve_to_anchor(tmp_path, monkeypatch):
 
 
 def test_nexus_mcp_workspace_env_anchors_relative_args(tmp_path, monkeypatch):
+    # The anchor comes from NEXUS_MCP_WORKSPACE itself, not a patched helper.
     monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(tmp_path))
-    bib_in = tmp_path / "in"
-    bib_in.mkdir(parents=True)
-    (bib_in / "input.bib").write_text(
-        "@article{key2020,\n"
-        "  title = {A Study of Anchoring},\n"
-        "  author = {Doe, Jane},\n"
-        "  year = {2020}\n"
-        "}\n",
-        encoding="utf-8",
-    )
+    inputs = tmp_path / "inputs"
+    inputs.mkdir(parents=True)
+    _write_screening_fixtures(inputs, candidates=[])
 
-    result = nexus_bib_clean("in/input.bib", "cleaned.bib")
+    result = nexus_screen("inputs/candidates.json", "inputs/protocol.json", "literature")
 
-    assert (tmp_path / "cleaned.bib").exists()
-    assert (tmp_path / "in" / "input.bib").exists()
-    assert "unique" in result
+    assert (tmp_path / "literature" / "screening_proposals.json").exists()
+    assert "flagged" in result
 
 
 def test_nexus_resolve_path_keeps_inside_absolute_and_inline_json(tmp_path, monkeypatch):

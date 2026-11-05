@@ -10,7 +10,7 @@ layer: domain
 # `scholar-agent-kit` Skill Instructions
 
 MCP front-door for most Nexus Scholar surfaces — **not** every API/CLI capability.
-28 tools: 25 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 28 registered tools; parity
+27 tools: 24 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 27 registered tools; parity
 enforced by `tests/conformance/test_mcp_tool_parity.py`). Pinned source:
 `{KIT_ROOT:agent}/src/scholar_agent/server.py` (tool list/signatures,
 `_resolve_path`, refusals) + `capabilities.py` (registry; pin: see `{CONFIG}`).
@@ -52,7 +52,7 @@ files — this page stays the small-footprint entrypoint.
 - Known gap: client auto-setup should set `NEXUS_RECON_ROOT` explicitly since
   `mcp_config.json` declares no `env`.
 
-## 2. Tool inventory — Exposed MCP Tools (28 total) — signature → return
+## 2. Tool inventory — Exposed MCP Tools (27 total) — signature → return
 
 | # | Tool | Key signature (defaults) | Returns |
 |---|------|--------------------------|---------|
@@ -71,21 +71,20 @@ files — this page stays the small-footprint entrypoint.
 | 13 | `nexus_rag_synthesize` | `(query, rq_id="RQ1", db_path="./chroma_db", section_category=None, paradigm=None, n_chunks=5)`; entailment = embedding-cosine wording (§5) | prose synthesis + verified-count header (`Error…`) |
 | 14 | `nexus_matrix_extract` | `(workspace_dir=".", protocol_path=None→<ws>/protocol.json, output_dir="./literature")`; retriever db pinned to `<workspace_dir>/chroma_db` | prose (`Error…`) |
 | 15 | `nexus_graph_build` | `(input_path, output_html="./graph.html", json_output="./graph.json")`; real `AcademicHttpClient(name="openalex-graph", rate_limit=10)`; accepts list or `{results\|items}` dicts; DOI precedence `external_ids.doi → doi`; errors on zero DOIs | prose (`Error…`) |
-| 16 | `nexus_bib_clean` | `(input_bib_path, output_bib_path=None)` → in-place by default; `lint(generate_keys=True)` + `dedup` | prose (`Error…`) |
-| 17 | `nexus_screen_reconcile` | `(screeners_json, adjudication_json=None)`; dir of `batch_*_decisions*.json` or screener→decision map | JSON majority-vote + Fleiss' κ (`{"status":"ERROR"…}` on failure) |
-| 18 | `nexus_verify_claims` | `(claims_json_path, extracted_dir_path, threshold=0.90)`; accepts `{claims:[…]}` or bare list, `claim_text` as quote; surfaces RAG `entailment_status` as `rag_entailment_status` | JSON `{status, metrics, failures_by_reason, claims}` |
-| 19 | `nexus_verify_phase4` | `(workspace_dir=".", stream="all", sleep_s=0.2, skip_retraction=True, rq_id=None)`; streams `retraction\|open-science\|coi\|risk-of-bias\|trust-context\|all`; `retraction` is network-bound; `trust-context` SKIPS cleanly without `synthesis/consensus.json` | JSON `{status, stream, written}`; writes `<ws>/phase4/<name>.{json,md}` |
-| 20 | `nexus_critique_methodology` | `(workspace_dir, protocol_path=None, rq_id=None)`; needs `literature/extraction/merged/records.json` + `phase4/_manifest.json`; QUADAS-2/PROBAST via verify kit | JSON `{status, overall_risk, domain_ratings, per_study_count, output_path}`; writes `phase4/methodological_critique.md` |
-| 21 | `nexus_graph_narrative` | `(workspace_dir, graph_json_path, top_hubs=10)`; hubs by PageRank, communities by `group` | JSON `{status, n_hubs, n_communities, output_path}`; writes `synthesis/visual_synthesis.md` |
-| 22 | `nexus_pipeline_run` | `(workspace_dir, query=None, protocol_path=None, skip_stages=None)`; 10-stage `ResearchOrchestrator`, comma-separated skips | JSON result (`{"status":"ERROR"…}` on failure) |
-| 23 | `recon_probe` | `(topic, session_id=None, start_year=2020, limit=10, semantic=False)`; pool capped at 25; `semantic=True` → OpenAlex `search.semantic` (`/m/semantic/` cache-key segment); upserts `rec_<hex>` sessions | JSON `{session_id, cache_key, status: probe_ok, n_docs, pool_path}` |
-| 24 | `recon_distill` | `(session_id, lexicon_json=None)`; str **or** dict; optional `metrics/datasets/schools` regex→label maps merged over default; lexicon hash in artifact name; carries `pool` sufficiency + `purity` gates (`qei` never standalone) | JSON `{session_id, cache_key, terms_path, qei, pool, purity, metrics, datasets, schools, topics, micro_taxonomy_top}` |
-| 25 | `recon_delta` | `(session_id, followups=3)`; hard cap 3; thin schools `n ≤ 2`; gap reason verbatim under `reason` **and** `confidence.detail` (`label: gap`); `corpus_total` + `saturation_label` per follow-up; `dropped_n` counts 25-cap discards | JSON `{session_id, merged_cache_keys, followups, pool_path, terms_path, topics, dropped_n, pool_size_before/after}` |
-| 26 | `nexus_screening_queue` | `(workspace_dir=".", view="needs_you", limit=50)`; views `needs_you`, `no_proposal`, `decided` | JSON `{status, items:[{study_id, title, has_proposal}]}`; never shows an agent outcome |
-| 27 | `nexus_screening_record` | `(study_id, workspace_dir=".")` | JSON `{status, study_id, title, abstract, criteria, answers}`; evidence offsets index into title + blank line + abstract |
-| 28 | `nexus_submit_proposal` | `(study_id, proposal_json, model, task_version="screen-v1", prompt_sha256=None, workspace_dir=".")`; one answer per criterion with a verbatim evidence span | JSON `{status, proposal_id, derived_outcome, validators}`; appends to the proposal store, journals, **never** writes a decision |
+| 16 | `nexus_screen_reconcile` | `(screeners_json, adjudication_json=None)`; dir of `batch_*_decisions*.json` or screener→decision map | JSON majority-vote + Fleiss' κ (`{"status":"ERROR"…}` on failure) |
+| 17 | `nexus_verify_claims` | `(claims_json_path, extracted_dir_path, threshold=0.90)`; accepts `{claims:[…]}` or bare list, `claim_text` as quote; surfaces RAG `entailment_status` as `rag_entailment_status` | JSON `{status, metrics, failures_by_reason, claims}` |
+| 18 | `nexus_verify_phase4` | `(workspace_dir=".", stream="all", sleep_s=0.2, skip_retraction=True, rq_id=None)`; streams `retraction\|open-science\|coi\|risk-of-bias\|trust-context\|all`; `retraction` is network-bound; `trust-context` SKIPS cleanly without `synthesis/consensus.json` | JSON `{status, stream, written}`; writes `<ws>/phase4/<name>.{json,md}` |
+| 19 | `nexus_critique_methodology` | `(workspace_dir, protocol_path=None, rq_id=None)`; needs `literature/extraction/merged/records.json` + `phase4/_manifest.json`; QUADAS-2/PROBAST via verify kit | JSON `{status, overall_risk, domain_ratings, per_study_count, output_path}`; writes `phase4/methodological_critique.md` |
+| 20 | `nexus_graph_narrative` | `(workspace_dir, graph_json_path, top_hubs=10)`; hubs by PageRank, communities by `group` | JSON `{status, n_hubs, n_communities, output_path}`; writes `synthesis/visual_synthesis.md` |
+| 21 | `nexus_pipeline_run` | `(workspace_dir, query=None, protocol_path=None, skip_stages=None)`; 10-stage `ResearchOrchestrator`, comma-separated skips | JSON result (`{"status":"ERROR"…}` on failure) |
+| 22 | `recon_probe` | `(topic, session_id=None, start_year=2020, limit=10, semantic=False)`; pool capped at 25; `semantic=True` → OpenAlex `search.semantic` (`/m/semantic/` cache-key segment); upserts `rec_<hex>` sessions | JSON `{session_id, cache_key, status: probe_ok, n_docs, pool_path}` |
+| 23 | `recon_distill` | `(session_id, lexicon_json=None)`; str **or** dict; optional `metrics/datasets/schools` regex→label maps merged over default; lexicon hash in artifact name; carries `pool` sufficiency + `purity` gates (`qei` never standalone) | JSON `{session_id, cache_key, terms_path, qei, pool, purity, metrics, datasets, schools, topics, micro_taxonomy_top}` |
+| 24 | `recon_delta` | `(session_id, followups=3)`; hard cap 3; thin schools `n ≤ 2`; gap reason verbatim under `reason` **and** `confidence.detail` (`label: gap`); `corpus_total` + `saturation_label` per follow-up; `dropped_n` counts 25-cap discards | JSON `{session_id, merged_cache_keys, followups, pool_path, terms_path, topics, dropped_n, pool_size_before/after}` |
+| 25 | `nexus_screening_queue` | `(workspace_dir=".", view="needs_you", limit=50)`; views `needs_you`, `no_proposal`, `decided` | JSON `{status, items:[{study_id, title, has_proposal}]}`; never shows an agent outcome |
+| 26 | `nexus_screening_record` | `(study_id, workspace_dir=".")` | JSON `{status, study_id, title, abstract, criteria, answers}`; evidence offsets index into title + blank line + abstract |
+| 27 | `nexus_submit_proposal` | `(study_id, proposal_json, model, task_version="screen-v1", prompt_sha256=None, workspace_dir=".")`; one answer per criterion with a verbatim evidence span | JSON `{status, proposal_id, derived_outcome, validators}`; appends to the proposal store, journals, **never** writes a decision |
 
-Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #17–#28.
+Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #16–#27.
 **Prose** (`"Error: …"` prefixes, no envelope) = #3–#6, #8, #12–#16.
 
 ## 3. Declared-unsupported capabilities (E1, E2, E3)
@@ -159,8 +158,7 @@ Conformance: `test_e1_acquired_document_boundary.py`,
   CLIs (`scholar-search`, `scholar-pdf`, `scholar-rag`, `scholar-graph`,
   `scholar-verify`, `scholar-protocol`).
 - **Direct CLI fallbacks**: `{CLI:graph} build --input
-  <ws>/literature/included.json` (real client, same as #15 builds); `{CLI:bib} lint --generate-keys` + `dedup`/`merge --dedup` for the full bib
-  pipeline behind #16; `{CLI:verify} <stream> --workspace <ws>` mirrors #19.
+  <ws>/literature/included.json` (real client, same as #15 builds); `{CLI:verify} <stream> --workspace <ws>` mirrors #18.
 - **Screening contract**: #6/#7 are heuristic/LLM-checklist screening that
   persist the 5 PRISMA files; the harness agent-in-the-loop batch handoff
   (`agent_screen.py` `batch_NNN.json` → `batch_NNN_decisions.json`) is a
