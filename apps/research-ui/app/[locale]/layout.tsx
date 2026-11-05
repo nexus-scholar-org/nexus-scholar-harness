@@ -25,7 +25,8 @@ import "../globals.css";
  * that needs it. Next permits exactly one such layout, which is why the previous
  * root layout was deleted rather than kept alongside this one.
  *
- * `dynamicParams = true` on purpose. The three shipped locales are prerendered
+ * `dynamicParams` is left at its default, `true`, on purpose (it is not
+ * exported: the static export refuses an explicit `true`, see below). The three shipped locales are prerendered
  * by `generateStaticParams`, so `/en`, `/fr` and `/ar` are served as prerendered
  * documents; every other
  * segment is still rendered on demand, and that is what lets an unsupported one
@@ -64,8 +65,14 @@ import "../globals.css";
  * Separately, `/EN` and `/Fr` are answered with 200 and the English/French
  * overview: Next serves the prerendered `en.html`/`fr.html` case-insensitively
  * on Windows, ahead of the locale check. That belongs to the same amendment.
+ *
+ * **Static export (M5-slim).** The packaged app is a static export
+ * (`NEXT_STATIC_EXPORT=1`), which cannot render a segment on demand: only the
+ * three locales exist as pages there, and the console answers any other path
+ * with the exported 404 page (`console/serve.py`). Next refuses an explicit
+ * `dynamicParams = true` in an export and accepts the default, which is why the
+ * field is not exported.
  */
-export const dynamicParams = true;
 
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ locale }));

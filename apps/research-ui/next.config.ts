@@ -24,18 +24,28 @@ import type { NextConfig } from "next";
  *    pass while measuring nothing. The normal build is unaffected: no variable,
  *    default value.
  */
-const nextConfig: NextConfig = {
-  output: "standalone",
-  distDir: process.env.NEXT_DIST_DIR ?? ".next",
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/en",
-        permanent: false,
+const staticExport = process.env.NEXT_STATIC_EXPORT === "1";
+
+const nextConfig: NextConfig = staticExport
+  ? {
+      output: "export",
+      distDir: process.env.NEXT_DIST_DIR ?? ".next-static",
+      trailingSlash: true,
+      pageExtensions: ["tsx"],
+      images: { unoptimized: true },
+    }
+  : {
+      output: "standalone",
+      distDir: process.env.NEXT_DIST_DIR ?? ".next",
+      async redirects() {
+        return [
+          {
+            source: "/",
+            destination: "/en",
+            permanent: false,
+          },
+        ];
       },
-    ];
-  },
-};
+    };
 
 export default nextConfig;

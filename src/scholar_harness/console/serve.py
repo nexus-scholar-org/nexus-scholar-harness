@@ -70,6 +70,15 @@ def _refusal(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"detail": {"code": code, "message": message}}, status_code=status)
 
 
+def _workspace_free(path: str) -> bool:
+    """API routes that answer with no workspace open (workspaces API §2)."""
+    return path == "/api/v1/workspaces" or path.startswith("/api/v1/workspaces/")
+
+
+def _no_workspace() -> JSONResponse:
+    return _refusal(409, "WORKSPACE_NOT_VALID", "no workspace is open; create or open one on the workspaces screen")
+
+
 def _host_name(header: str) -> str:
     """``Host`` without its port; IPv6 brackets removed."""
     if header.startswith("["):
@@ -78,7 +87,7 @@ def _host_name(header: str) -> str:
 
 
 def create_app(
-    workspace: str | Path,
+    workspace: str | Path | None,
     *,
     token: str | None = None,
     trusted_hosts: Iterable[str] | None = None,
@@ -107,8 +116,10 @@ def create_app(
     and the browser reaches the API under ``/api/console`` with a session
     cookie and the proxy's allowlist (``console/browser.py``).
     """
-    ws = Path(workspace).resolve()
-    if not ws.is_dir():
+    # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
+    # Then only the workspaces routes, the static UI and /healthz answer.
+    ws = Path(workspace).resolve() if workspace is not None else None
+    if ws is not None and not ws.is_dir():
         raise ValueError(f"workspace path does not exist: {ws}")
 
     app = FastAPI(
@@ -122,7 +133,7 @@ def create_app(
     def on_job_event(event: dict[str, Any]) -> None:
         broadcast.put(event)
 
-    runner = JobRunner(ws, on_event=on_job_event)
+    runner = JobRunner(ws, on_event=on_job_event) if ws is not None else None
 
     app.state.workspace = ws
     app.state.job_runner = runner
@@ -182,6 +193,8 @@ def create_app(
             # Served as the API route itself, with the desktop scope the proxy had.
             request.scope["path"] = inner
             request.scope["raw_path"] = inner.encode()
+            if ws is None and not _workspace_free(inner):
+                return _no_workspace()
             return await call_next(request)
         if ui_root is not None and not path.startswith("/api/") and request.method in ("GET", "HEAD"):
             return await call_next(request)  # the static UI holds no workspace data
@@ -199,6 +212,8 @@ def create_app(
                     )
             elif expected is not None and not hmac.compare_digest(supplied, expected):
                 return _refusal(401, "TOKEN_REQUIRED", "a valid console token is required")
+        if ws is None and path.startswith("/api/") and not _workspace_free(path):
+            return _no_workspace()
         return await call_next(request)
 
     app.include_router(workspace_api.router)
@@ -211,8 +226,8 @@ def create_app(
     app.include_router(streams_api.router)
 
     @app.get("/healthz")
-    def healthz() -> dict[str, str]:
-        return {"status": "ok", "workspace": str(ws)}
+    def healthz() -> dict[str, str | None]:
+        return {"status": "ok", "workspace": str(ws) if ws is not None else None}
 
     if launch_codes is not None and browser_session is not None:
 

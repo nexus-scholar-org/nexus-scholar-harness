@@ -1311,6 +1311,48 @@ def serve(
     uvicorn.run(app, host=host, port=port, reload=reload)
 
 
+@app.command("ui")
+def ui(
+    workspace: Path | None = typer.Option(  # noqa: B008
+        None, "--workspace", "-w", help="Open this workspace folder directly (skips the workspaces screen)"
+    ),
+    root: Path | None = typer.Option(  # noqa: B008
+        None, "--root", help="Folder holding your workspaces (else NEXUS_WORKSPACES_ROOT, else ~/Documents/Nexus Scholar/workspaces)"
+    ),
+    port: int = typer.Option(8770, "--port", "-p", help="Port on 127.0.0.1 (another free one is used if taken)"),
+    no_browser: bool = typer.Option(False, "--no-browser", help="Print the link instead of opening the browser"),
+):
+    """Open Nexus Scholar in your browser: the app and its engine, on this computer only."""
+    from .console.launcher import Launcher, free_port, resolve_ui_dir
+    from .workspace.catalog import most_recent, resolve_root, validity
+
+    ui_dir = resolve_ui_dir()
+    if ui_dir is None:
+        console.print(
+            "[bold red]❌ This install has no app bundle. From a source checkout, build it with "
+            "`npm --prefix apps/research-ui run build:static`, or point NEXUS_UI_DIR at a static export.[/bold red]"
+        )
+        raise typer.Exit(1)
+    folder, _source = resolve_root(root)
+    target = workspace.resolve() if workspace is not None else None
+    if target is not None and not validity(target)[0]:
+        console.print(f"[bold red]❌ Not a Nexus Scholar workspace: {target} ({validity(target)[1]})[/bold red]")
+        raise typer.Exit(1)
+    launcher = Launcher(
+        root=folder,
+        workspace=target if target is not None else most_recent(folder),
+        ui_dir=ui_dir,
+        port=free_port("127.0.0.1", port),
+        open_browser=not no_browser,
+        start_on_workspaces=workspace is None,
+        say=lambda line: console.print(line, markup=False, highlight=False, soft_wrap=True),
+    )
+    try:
+        launcher.run()
+    except KeyboardInterrupt:
+        pass
+
+
 def main():
     app()
 

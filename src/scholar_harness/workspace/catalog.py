@@ -92,20 +92,28 @@ def _title(ws: Path) -> str | None:
         return None
 
 
-def describe(folder: Path, current: Path) -> dict[str, Any]:
+def describe(folder: Path, current: Path | None) -> dict[str, Any]:
     valid, reason = validity(folder)
     item: dict[str, Any] = {
         "slug": folder.name,
         "title": _title(folder) if valid else None,
         "path": str(folder),
         "valid": valid,
-        "is_current": folder.resolve() == current.resolve(),
+        "is_current": current is not None and folder.resolve() == current.resolve(),
     }
     if not valid:
         item["invalid_reason"] = reason
         return item
     item.update(has_corpus=_has_corpus(folder), screening_started=_screening_started(folder), last_event=_last_event(folder))
     return item
+
+
+def most_recent(root: Path) -> Path | None:
+    """The valid workspace under the root with the latest journal row, if any."""
+    if not root.is_dir():
+        return None
+    ranked = [((d["last_event"] or {}).get("at") or "", c) for c in _children(root) if (d := describe(c, None))["valid"]]
+    return max(ranked)[1] if ranked else None
 
 
 def busy(ws: Path) -> dict[str, bool]:
@@ -139,7 +147,7 @@ def _children(root: Path) -> list[Path]:
     return out
 
 
-def listing(root: Path, source: str, current: Path, *, include_invalid: bool = False) -> dict[str, Any]:
+def listing(root: Path, source: str, current: Path | None, *, include_invalid: bool = False) -> dict[str, Any]:
     if not root.is_dir():
         try:
             root.mkdir(parents=True, exist_ok=True)
@@ -153,7 +161,7 @@ def listing(root: Path, source: str, current: Path, *, include_invalid: bool = F
     valid = [d for d in described if d["valid"]]
     invalid = [d for d in described if not d["valid"]]
     current_item = next((d for d in valid if d["is_current"]), None)
-    if current_item is None and validity(current)[0]:
+    if current_item is None and current is not None and validity(current)[0]:
         # `--workspace` may open a folder outside the root; it is still the current row.
         current_item = describe(current, current)
         valid.insert(0, current_item)
@@ -161,8 +169,8 @@ def listing(root: Path, source: str, current: Path, *, include_invalid: bool = F
         "root": str(root),
         "root_source": source,
         "writable": _writable(root),
-        "current": {"slug": current.name, "path": str(current)},
-        "busy": busy(current),
+        "current": {"slug": current.name, "path": str(current)} if current is not None else None,
+        "busy": busy(current) if current is not None else {"run_active": False, "pairing_open": False},
         "skipped_count": len(invalid),
         "items": valid + (invalid if include_invalid else []),
     }
@@ -204,18 +212,27 @@ def create(root: Path, title: str) -> dict[str, Any]:
     except WorkspaceScaffoldRefused as exc:
         shutil.rmtree(target, ignore_errors=True)
         raise WorkspaceRefused(exc.code, exc.message, status=422 if exc.code == "WORKSPACE_TITLE_INVALID" else 409) from exc
+    except (OSError, shutil.Error) as exc:
+        # The folder did not exist before this request: remove all of it. On
+        # Windows a deep root can pass the 260-character path limit while the
+        # skills are copied; the reason is named, not hidden in a 500.
+        shutil.rmtree(target, ignore_errors=True)
+        raise WorkspaceRefused(
+            "WORKSPACE_ROOT_UNAVAILABLE", f"the workspace could not be written under {root}: {type(exc).__name__}: {str(exc)[:300]}"
+        ) from exc
     except BaseException:
-        # The folder did not exist before this request: remove all of it.
         shutil.rmtree(target, ignore_errors=True)
         raise
     return {"slug": result["slug"], "path": str(target), "protocol_fingerprint": result["protocol_fingerprint"]}
 
 
-def check_open(root: Path, slug: str, current: Path) -> Path:
+def check_open(root: Path, slug: str, current: Path | None) -> Path:
     """The folder to restart on, after the validity and busy checks."""
     target = _target(root, slug)
     if not target.is_dir() or not validity(target)[0]:
         raise WorkspaceRefused("WORKSPACE_NOT_VALID", f"{target} is not a Nexus Scholar workspace ({validity(target)[1] or 'missing'})")
+    if current is None:
+        return target
     if target == current.resolve():
         return target
     state = busy(current)

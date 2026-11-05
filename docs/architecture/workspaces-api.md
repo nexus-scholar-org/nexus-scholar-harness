@@ -16,6 +16,8 @@ The launcher resolves the workspaces root once, in this order, and passes it to 
 
 `nexus-scholar ui --workspace <path>` opens that folder directly and skips the screen. The root is still resolved, so the screen works from the app bar; the open workspace may sit outside the root, and is then shown as the current row with its own path. No config file and no settings route.
 
+**No workspace open.** Started without `--workspace`, the launcher binds the server to the most recently active workspace under the root (by its last journal row) and opens the workspaces screen. When the root holds none, the server runs with no workspace: only the three workspaces routes, the static UI and `/healthz` answer, and every other API route is refused `409 WORKSPACE_NOT_VALID` ("no workspace is open"). `GET /workspaces` then returns `current: null`. (Added during M5-slim; the screen's empty state covers it.)
+
 A folder under the root **is a workspace** when it contains `protocol.json`, `project.json` and `audit/journal.jsonl`. `.mcp.json`, skills and `.env.example` are not required. Only direct children of the root are listed; the scan does not recurse and follows no symlink out of the root.
 
 ## 3. Routes
@@ -50,7 +52,7 @@ New console codes (not Contract v1). They go in `src/scholar_harness/console/ref
 | `WORKSPACE_TITLE_INVALID` | 422 | create | the title yields an empty slug |
 | `WORKSPACE_EXISTS` | 409 | create | `{root}/{slug}` already exists (a workspace or any other folder); never suffixed. `details.path` names it |
 | `WORKSPACE_PATH_REFUSED` | 422 | create, open | the resolved folder is outside the root, a traversal, or a symlink out of it |
-| `WORKSPACE_ROOT_UNAVAILABLE` | 409 | list, create | the root is missing and cannot be created, unreadable, or not writable (create only) |
+| `WORKSPACE_ROOT_UNAVAILABLE` | 409 | list, create | the root is missing and cannot be created, unreadable, or not writable; or the new workspace could not be written (the OS reason is in the message, e.g. a Windows path over 260 characters), and nothing is left behind |
 | `WORKSPACE_NOT_VALID` | 409 | open | the folder lacks a canonical marker, or no longer exists |
 | `WORKSPACE_BUSY` | 409 | open | an agent run is active or an approval pairing is open; `details` names which |
 | `RESTART_UNSUPPORTED` | 501 | open | the server was not started by the `nexus-scholar ui` launcher |

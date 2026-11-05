@@ -34,8 +34,26 @@ jobs:
         with:
           version: "0.12.5"
 
-      - name: Build nexus-scholar metapackage wheel
-        run: uv build --wheel packaging/nexus-scholar
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/research-ui/package-lock.json
+
+      - name: Build the app's static export
+        # The wheel carries it as scholar_harness_data/ui (hatch_build.py);
+        # NEXUS_WHEEL_REQUIRE_UI makes a missing export a build error.
+        working-directory: apps/research-ui
+        run: |
+          npm ci
+          npm run build:static
+
+      - name: Build the nexus-scholar wheel
+        # The root package since the 2026-11-03 kit merge; it carries the app.
+        env:
+          NEXUS_WHEEL_REQUIRE_UI: "1"
+        run: uv build --wheel
 
       - name: Publish to PyPI (Trusted Publishing / OIDC)
-        run: uv publish packaging/nexus-scholar/dist/nexus_scholar-1.0.0-py3-none-any.whl
+        run: uv publish dist/nexus_scholar-1.0.0-py3-none-any.whl

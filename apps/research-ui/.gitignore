@@ -27,3 +27,7 @@ tsconfig.tsbuildinfo
 # The live screening gate's build (M1b-1): `playwright.live.config.ts` builds
 # into `.next-live` so it never overwrites a running `.next`.
 .next-live/
+
+# The packaged app's static export (M5-slim): `npm run build:static` writes it
+# here and the wheel bundles it (`hatch_build.py`).
+.next-static/

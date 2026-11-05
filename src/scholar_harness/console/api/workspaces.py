@@ -61,12 +61,12 @@ class OpenBody(BaseModel):
 @router.post("/workspaces/open")
 def open_workspace(body: OpenBody, request: Request, background: BackgroundTasks) -> JSONResponse:
     root, _source = _root(request)
-    current: Path = request.app.state.workspace
+    current: Path | None = request.app.state.workspace
     try:
         target = catalog.check_open(root, body.slug, current)
     except catalog.WorkspaceRefused as exc:
         raise _error(exc) from exc
-    if target == current.resolve():
+    if current is not None and target == current.resolve():
         return JSONResponse({"slug": target.name, "path": str(target), "restarting": False}, status_code=200)
     on_open = getattr(request.app.state, "on_open", None)
     if on_open is None:

@@ -108,8 +108,9 @@ def test_a_create_that_fails_part_way_leaves_nothing(root, current, monkeypatch)
         raise OSError("disk full")
 
     monkeypatch.setattr("scholar_harness.inception.genesis.scaffold_placeholder_workspace", broken)
-    with pytest.raises(OSError):
+    with pytest.raises(catalog.WorkspaceRefused) as refused:
         catalog.create(root, "Half Made")
+    assert refused.value.code == "WORKSPACE_ROOT_UNAVAILABLE" and "disk full" in refused.value.message
     assert not (root / "half-made").exists()
 
 

@@ -115,6 +115,9 @@ packages = [
     "src/scholar_verify",
 ]
 
+# The Research UI static export, when built (hatch_build.py; M5-slim).
+[tool.hatch.build.targets.wheel.hooks.custom]
+
 # Shipped skills bundle (the dev-only pull-request-gate skill is excluded).
 [tool.hatch.build.targets.wheel.force-include]
 ".agents/skills/critic-contract" = "scholar_harness_data/skills/critic-contract"
