@@ -4,6 +4,30 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-05 — The screening prompt gate: bar, sample and models (M1b-2)
+
+The researcher set the prompt gate of agent-system §5 for the screening task:
+
+- **Bar:** the 95% Wilson lower bound of include-recall is at least **0.90**.
+  Include-recall counts an agent Unclear as not excluded, because Unclear goes
+  on to full text. The bar applies per task version (provider, model, prompt,
+  effort).
+- **Sample:** every human-confirmed include of `uav-crop-weed-v03` (644) and
+  1,000 of its confirmed excludes, drawn with a fixed, recorded seed. The set
+  is frozen as a list of study ids with its SHA-256, so every model and prompt
+  version is measured on the same records.
+- **Models:** `claude-opus-5-5` (the default), `claude-sonnet-5-5` and
+  `claude-haiku-5-5`. A cheaper model is adopted only if it meets the bar
+  (agent-system §9 item 3).
+- **The live run spends the researcher's key.** It runs only after the
+  researcher sees the token-counted estimate and starts it; the key is stored
+  in the OS keychain and never seen by the agent or written to a file.
+
+**Caveat (carried from 2026-11-04):** the v03 labels are confirmations of agent
+drafts. The gate measures recall against labels a person reviewed with a
+draft in view, not against independent blind screening; the methods text says
+so.
+
 ## 2026-11-05 — M1b is three PRs; three screening providers
 
 M1b splits into **M1b-0** reveal tracking (RELEASE, backend only), **M1b-1**
