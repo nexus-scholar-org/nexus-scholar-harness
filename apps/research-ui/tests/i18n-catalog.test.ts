@@ -44,12 +44,13 @@ describe("catalog parity", () => {
     // (including `nav.corpus`) = 117, +20 `audit.*` added by packet UI-06 = 137, +5 draft-capture keys added
     // by the UI-07 action wiring = 142, +4 theme-selector keys (production plan
     // §3, M0) = 146, +1 `shell.authorityStatementLive` for the live-only
-    // screening steps (M1b-2) = 147.
+    // screening steps (M1b-2) = 147, +3 `parked.*` for the parked notice
+    // (M5-slim, plan §8) = 150.
     // The number is asserted rather than trusted; `messages/en.ts`'s header
     // states the same figure, and `docs/I18N.md` §3 repeats it.
     const expected = Object.keys(en).sort();
 
-    expect(expected).toHaveLength(147);
+    expect(expected).toHaveLength(150);
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
     }

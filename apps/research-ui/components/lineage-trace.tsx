@@ -16,6 +16,7 @@ import {
 } from "@/lib/screening-api";
 
 import { EvidenceChain } from "./evidence-chain";
+import { ParkedNotice } from "./parked-notice";
 
 /**
  * The evidence lineage composition (packet UI-05).
@@ -479,6 +480,7 @@ export function LineagePage({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+        <ParkedNotice locale={locale} feature="lineage" />
         {/* ---- masthead: eyebrow in the leading margin, as on the overview --- */}
         <section className="grid gap-x-8 gap-y-3 lg:grid-cols-[9rem_minmax(0,1fr)]">
           <p className="text-[0.6875rem] uppercase leading-5 tracking-[0.16em] text-evidence rtl:tracking-normal rtl:text-[0.75rem]">

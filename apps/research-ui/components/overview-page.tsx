@@ -5,6 +5,7 @@ import { demoOverviewState } from "@/lib/mock-project-states";
 import { EvidenceChain } from "./evidence-chain";
 import { ProjectStateRecord } from "./project-state-record";
 import { WorkflowTimeline } from "./workflow-timeline";
+import { ParkedNotice } from "./parked-notice";
 
 /**
  * A translated sentence whose substituted values are fixture text.
@@ -71,6 +72,7 @@ export function OverviewPage({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+        <ParkedNotice locale={locale} feature="overview" />
         {/* ---- masthead: the record's title block -------------------------- */}
         <section className="grid gap-x-8 gap-y-3 lg:grid-cols-[9rem_minmax(0,1fr)]">
           <p className="text-[0.6875rem] uppercase leading-5 tracking-[0.16em] text-evidence rtl:tracking-normal rtl:text-[0.75rem]">

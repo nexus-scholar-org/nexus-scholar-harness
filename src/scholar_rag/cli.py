@@ -73,7 +73,7 @@ assert tuple(sorted(DEFAULT_CHUNKER_CONFIGURATION)) == tuple(sorted(CHUNKER_CONF
 _ABSOLUTE_OR_ESCAPING = re.compile(r"^(?:[A-Za-z]:|[\\/]{1,2})")
 
 app = typer.Typer(
-    help="Scholar RAG Kit: Structural chunking, hybrid graph-boosted retrieval, and grounded synthesis for scientific literature.",
+    help="PARKED, not production (Nexus Scholar 1.0 ships screening only). Scholar RAG Kit: Structural chunking, hybrid graph-boosted retrieval, and grounded synthesis for scientific literature.",
     no_args_is_help=True,
 )
 console = Console(force_terminal=True, legacy_windows=False)

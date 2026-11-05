@@ -2279,6 +2279,37 @@ def nexus_submit_proposal(
         return json.dumps({"status": "ERROR", "error": str(getattr(e, "detail", e))})
 
 
+#: Tools over parked work (production plan §8, M5-slim): synthesis, the matrix,
+#: the graph, verification/trust, full text and the full pipeline. They keep
+#: working, and their description says first that they are not production, so
+#: an agent reading the tool list sees it before calling one. The two
+#: declared-unsupported boundaries (nexus_pdf_acquire, nexus_rag_index,
+#: nexus_pdf_extraction) already refuse with a typed envelope.
+PARKED_TOOLS = (
+    "nexus_rag_query",
+    "nexus_rag_synthesize",
+    "nexus_matrix_extract",
+    "nexus_graph_build",
+    "nexus_graph_narrative",
+    "nexus_verify_claims",
+    "nexus_verify_phase4",
+    "nexus_extract_pdf",
+    "nexus_critique_methodology",
+    "nexus_pipeline_run",
+)
+PARKED_NOTICE = "PARKED, not production (Nexus Scholar 1.0 ships screening only)."
+
+
+def _label_parked_tools() -> None:
+    for name in PARKED_TOOLS:
+        tool = mcp._tool_manager.get_tool(name)
+        if tool is not None and not (tool.description or "").startswith(PARKED_NOTICE):
+            tool.description = f"{PARKED_NOTICE} {tool.description or ''}".rstrip()
+
+
+_label_parked_tools()
+
+
 def main(argv: list[str] | None = None) -> None:
     """Start the FastMCP server or display help."""
     import argparse

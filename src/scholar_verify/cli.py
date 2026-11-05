@@ -21,7 +21,7 @@ import typer
 
 from . import coi, open_science, retraction, risk_of_bias, trust_context, verbatim
 
-app = typer.Typer(help="Verify the trustworthiness of a screened corpus (retraction status, open-science artifacts, COI, risk of bias).")
+app = typer.Typer(help="PARKED, not production (Nexus Scholar 1.0 ships screening only). Verify the trustworthiness of a screened corpus (retraction status, open-science artifacts, COI, risk of bias).")
 
 
 def _resolve_workspace(workspace: Path) -> Path:

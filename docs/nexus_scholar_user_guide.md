@@ -6,6 +6,14 @@ workspace, wires it into AI agents (MCP), audits every step, and checks its own
 health. Everything runs from a single pure-Python wheel published on PyPI and
 GitHub Releases — no source checkout, no per-kit installs.
 
+> **Parked, not production (M5-slim, production plan §8).** Version 1.0 ships
+> **screening** (import → prepare → screen → publish, with optional agent
+> proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
+> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
+> `--help` says so first, their MCP tools say so in their descriptions, and the
+> app labels any screen that shows them. Do not rely on them for a review.
+
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
 - The wheel bundles the harness CLI **plus all eight scholar kits** and the
   twelve skill bundles, so a workspace initialized here is self-contained and

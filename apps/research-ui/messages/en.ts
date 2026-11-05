@@ -1,7 +1,7 @@
 /**
  * The English catalog — structural source of truth (D-I18N-03).
  *
- * This file defines the 147 keys that `fr.ts` and `ar.ts` must mirror exactly
+ * This file defines the 150 keys that `fr.ts` and `ar.ts` must mirror exactly
  * (compile-time via `Record<MessageKey, string>` and runtime via
  * `tests/i18n-catalog.test.ts`). A key added, removed, or misspelled here
  * cascades as a `tsc` error in the translations and a test failure in the
@@ -45,6 +45,11 @@ export const en = {
   "a11y.skipToMain": "Skip to main content",
   "shell.tagline": "Research integrity you can inspect",
   "safety.demoDataLabel": "Demonstration data",
+  "parked.label": "Not production — parked",
+  "parked.overview":
+    "Full text, extraction and synthesis are not part of this release. Their stages below are shown to explain the workflow; only screening is production.",
+  "parked.lineage":
+    "The trail from a claim back to its full-text passage belongs to the parked full-text and synthesis work. It is shown to explain the design, not to be relied on.",
   "shell.authorityStatementLive":
     "Live workspace data. Decisions are recorded by this workspace's screening engine; the Python harness remains authoritative for contracts, identity, acceptance, toolkit execution and audit events.",
   "shell.authorityStatement":

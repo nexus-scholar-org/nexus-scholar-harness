@@ -6,6 +6,14 @@
 > **Regenerate:** re-run the sweep when kit APIs/CLIs change; skill content mirrors this
 > matrix and is synced to the plugin bundle by `scripts/sync_skills_bundle.py`.
 
+> **Parked, not production (M5-slim, production plan §8).** Version 1.0 ships
+> **screening** (import → prepare → screen → publish, with optional agent
+> proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
+> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
+> `--help` says so first, their MCP tools say so in their descriptions, and the
+> app labels any screen that shows them. Do not rely on them for a review.
+
 ## Purpose
 
 One place that answers, for every kit: *what is the public API, what does the CLI

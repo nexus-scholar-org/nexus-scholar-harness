@@ -35,6 +35,7 @@ from .publisher_patterns import PROXY_STYLES
 
 app = typer.Typer(
     help=(
+        "PARKED, not production (Nexus Scholar 1.0 ships screening only). "
         "Scholar PDF Kit: automated PDF discovery, deterministic acquisition, "
         "and parent-bound text extraction."
     )

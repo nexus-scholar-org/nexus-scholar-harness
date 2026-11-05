@@ -46,6 +46,11 @@ const fr: Record<MessageKey, string> = {
   "a11y.skipToMain": "Aller au contenu principal",
   "shell.tagline": "Une intégrité de la recherche que vous pouvez vérifier",
   "safety.demoDataLabel": "Données de démonstration",
+  "parked.label": "Hors production — en attente",
+  "parked.overview":
+    "Le texte intégral, l'extraction et la synthèse ne font pas partie de cette version. Leurs étapes ci-dessous expliquent le déroulé ; seule la sélection est en production.",
+  "parked.lineage":
+    "Le chemin d'une affirmation jusqu'à son passage en texte intégral relève du travail en attente sur le texte intégral et la synthèse. Il illustre la conception et ne doit pas servir de référence.",
   "shell.authorityStatementLive":
     "Données réelles de l'espace de travail. Les décisions sont enregistrées par le moteur de sélection de cet espace ; le harnais Python reste l'autorité pour les contrats, l'identité, l'acceptation, l'exécution des outils et les événements d'audit.",
   "shell.authorityStatement":
