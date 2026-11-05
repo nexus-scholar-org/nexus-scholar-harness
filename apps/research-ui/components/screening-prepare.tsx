@@ -199,13 +199,14 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
   useEffect(() => {
     if (!job) return;
     let stopped = false;
+    let timer: number | undefined;
     const tick = async () => {
       try {
         const view = await getJob(origin, job);
         if (stopped) return;
         setJobView(view);
         if (view.state === "queued" || view.state === "running") {
-          window.setTimeout(() => void tick(), 1000);
+          timer = window.setTimeout(() => void tick(), 1000);
         } else if (view.state === "success") {
           await load();
         }
@@ -216,6 +217,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     void tick();
     return () => {
       stopped = true;
+      window.clearTimeout(timer);
     };
   }, [job, origin, load]);
 

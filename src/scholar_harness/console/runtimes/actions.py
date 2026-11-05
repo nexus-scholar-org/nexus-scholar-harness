@@ -209,13 +209,16 @@ def render_command(
         "q": query if query is not None else "...",
         "pipeline": pipeline if pipeline is not None else "...",
     }
-    text = action.command_template
-    for token, value in values.items():
-        text = text.replace("{" + token + "}", str(value))
-
-    # shlex is not used: command templates are simple whitespace-separated,
-    # double-quoted argv - split while respecting double quotes.
-    return _split_command(text)
+    # Split the template first, then substitute into each argument, so a value
+    # with spaces (the default root is `Documents/Nexus Scholar/...`) stays one
+    # argument. shlex is not used: templates are simple whitespace-separated,
+    # double-quoted argv.
+    argv: list[str] = []
+    for part in _split_command(action.command_template):
+        for token, value in values.items():
+            part = part.replace("{" + token + "}", str(value))
+        argv.append(part)
+    return argv
 
 
 def _split_command(text: str) -> list[str]:

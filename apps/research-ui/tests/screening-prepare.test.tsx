@@ -70,6 +70,16 @@ describe("prepare.job-followed", () => {
     expect(alert).toHaveTextContent("Preparing failed (job job_1). Nothing was prepared. The engine said: No module named scholar_harness");
   });
 
+  it("gives the exit code when the job failed without an error message", async () => {
+    // A non-zero exit sets no `error` in the runner; only a timeout or exception does.
+    engine({ state: "failed", error: null });
+    render(<ScreeningPrepare locale="en" />);
+    await screen.findByText("No batches yet.");
+    fireEvent.click(screen.getByRole("button", { name: "Prepare batches" }));
+    fireEvent.click(screen.getByRole("button", { name: "Prepare now" }));
+    expect(await screen.findByRole("alert", {}, { timeout: 4000 })).toHaveTextContent("The engine said: exit code 1");
+  });
+
   it("says the batches are prepared and re-reads them when the job succeeds", async () => {
     const log = engine({ state: "success" });
     render(<ScreeningPrepare locale="en" />);

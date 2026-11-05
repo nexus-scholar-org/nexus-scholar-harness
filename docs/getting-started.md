@@ -85,8 +85,9 @@ and it is where approval codes appear later. Stop the app with **Ctrl+C**.
 > **About the protocol.** A workspace made this way has a placeholder protocol
 > (shown as a draft). It is enough to try the app. For a real review, write your
 > inclusion and exclusion criteria with the guided interview instead:
-> `nexus-scholar init "Your review title" --dir "<your workspaces folder>"`
-> (beta), then open that workspace in the app.
+> `nexus-scholar init "Your review title" --dir "<your workspaces folder>/<review-name>"`
+> (beta). The folder you give becomes the workspace, so give a new folder inside
+> your workspaces folder, then open it in the app.
 
 ## 6. Bring in your records
 

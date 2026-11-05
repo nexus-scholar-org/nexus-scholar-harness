@@ -287,6 +287,15 @@ def test_prepare_job_runs_from_the_workspace_folder(tmp_path):
         assert client.get(f"{BASE}/summary").json()["total"] == 3
 
 
+def test_a_job_command_keeps_a_workspace_path_with_spaces_whole():
+    """The default root is `Documents/Nexus Scholar/workspaces`: the path must stay one argument."""
+    from scholar_harness.console.runtimes.actions import executable_argv, get_action, render_command
+
+    ws = "C:/Users/r/Documents/Nexus Scholar/workspaces/my review"
+    argv = executable_argv(render_command(get_action("screen_prepare"), workspace=ws))
+    assert argv[-2:] == ["prepare", ws]
+
+
 def test_pairing_begin_needs_an_operator_context(client):
     response = client.post(f"{BASE}/actions/pairing/begin", json={"batch": 1})
     assert response.status_code == 409
