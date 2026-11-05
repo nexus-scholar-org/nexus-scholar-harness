@@ -107,7 +107,7 @@ class Launcher:
 
     def landing(self) -> str:
         """Where the first page opens: the workspaces screen unless one was named."""
-        return "/en/workspaces/" if self.start_on_workspaces else "/en/screening/"
+        return "/en/workspaces/" if self.start_on_workspaces else "/en/screening/home/"
 
     def launch_url(self) -> str:
         query = urlencode({"code": self.codes.issue(), "next": self.landing()})

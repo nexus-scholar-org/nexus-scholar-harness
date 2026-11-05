@@ -199,7 +199,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   const body = (() => {
-    if (error) return <StateCard locale={locale} code={error.code} message={error.message} consoleOrigin={origin} onRetry={() => void load()} />;
+    if (error) return <StateCard pageHeading locale={locale} code={error.code} message={error.message} consoleOrigin={origin} onRetry={() => void load()} />;
     if (!settings || !draft || !batches) return <p className="text-ink-muted" role="status">{t("loading")}</p>;
     const aiNeedsConfirm = draft.mode === "ai_agreed_exclusion" && settings.mode !== "ai_agreed_exclusion";
     const canSave = !aiNeedsConfirm || (aiConfirmed && (draft.sample_audit_size ?? 0) > 0);

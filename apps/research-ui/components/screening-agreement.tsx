@@ -154,7 +154,7 @@ export function ScreeningAgreement({ locale }: Readonly<{ locale: Locale }>) {
 
   const body = (() => {
     if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
-    if (state.status === "error") return <StateCard locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
+    if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { agreement: a, summary, settings } = state.data;
     const header = (title: string) => (
       <header>

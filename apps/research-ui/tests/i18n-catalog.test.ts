@@ -14,18 +14,11 @@ import {
   translate,
   MissingMessageError,
   UnmappedTokenError,
-  evidenceKindKey,
   navKey,
-  stateKey,
-  countKey,
-  phaseKey,
-  phaseDescriptionKey,
   translateParts,
 } from "@/i18n";
 import en, { type MessageKey } from "@/messages/en";
 import { CATALOGS } from "@/messages";
-import type { EvidenceNode, WorkflowState } from "@/lib/contracts";
-import type { OverviewCountField, ProjectOverviewPhase } from "@/lib/project-state";
 
 /**
  * Catalog integrity (packet UI-01d, N1-N8).
@@ -39,18 +32,13 @@ import type { OverviewCountField, ProjectOverviewPhase } from "@/lib/project-sta
  */
 describe("catalog parity", () => {
   it("ships exactly the keys the packets inventory, in every locale", () => {
-    // 42 keys at UI-01d, +32 in packet UI-02's state model = 74, +19 in packet
-    // UI-04's screening workspace = 93, +24 in packet UI-08's corpus screen
-    // (including `nav.corpus`) = 117, +20 `audit.*` added by packet UI-06 = 137, +5 draft-capture keys added
-    // by the UI-07 action wiring = 142, +4 theme-selector keys (production plan
-    // §3, M0) = 146, +1 `shell.authorityStatementLive` for the live-only
-    // screening steps (M1b-2) = 147, +3 `parked.*` for the parked notice
-    // (M5-slim, plan §8) = 150.
-    // The number is asserted rather than trusted; `messages/en.ts`'s header
-    // states the same figure, and `docs/I18N.md` §3 repeats it.
+    // 150 keys until M5-slim; the demonstration screens and their 128 keys
+    // were removed on 2026-11-05, and the new header and footer added 6
+    // (`nav.workspaces`, `shell.descriptor`, `footer.*`): 22, the shell
+    // chrome only. `messages/en.ts`'s header states the same figure.
     const expected = Object.keys(en).sort();
 
-    expect(expected).toHaveLength(150);
+    expect(expected).toHaveLength(22);
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
     }
@@ -137,23 +125,6 @@ describe("catalog parity", () => {
     }
   });
 
-  it("keeps the translated state and evidence-kind labels distinct from each other", () => {
-    // The status badge and the evidence stamp are told apart by text alone (no
-    // colour-only signal). If two states or two kinds collapsed to one word in a
-    // translation, the four distinct badge styles in
-    // `tests/status-badge.test.tsx` would stop being distinguishable.
-    for (const locale of SUPPORTED_LOCALES) {
-      const states = Object.keys(en)
-        .filter((key) => key.startsWith("state."))
-        .map((key) => CATALOGS[locale][key as MessageKey]);
-      expect(new Set(states).size, locale).toBe(states.length);
-
-      const kinds = Object.keys(en)
-        .filter((key) => key.startsWith("evidenceKind."))
-        .map((key) => CATALOGS[locale][key as MessageKey]);
-      expect(new Set(kinds).size, locale).toBe(kinds.length);
-    }
-  });
 });
 
 describe("locale resolution", () => {
@@ -240,7 +211,7 @@ describe("translate", () => {
   it("returns the catalog value, with no key and no leftover placeholder", () => {
     for (const locale of SUPPORTED_LOCALES) {
       for (const key of Object.keys(en) as MessageKey[]) {
-        const rendered = translate(locale, key, { event: "x", number: "1", requested: "de", available: "a", destination: "Screening" });
+        const rendered = translate(locale, key, { requested: "de", available: "a" });
         expect(rendered, `${locale} / ${key}`).not.toContain(key);
         expect(rendered, `${locale} / ${key}`).not.toMatch(/\{[a-zA-Z]/);
         expect(rendered.trim(), `${locale} / ${key}`).not.toBe("");
@@ -264,8 +235,8 @@ describe("translate", () => {
   it("renders the long-string probe messages unchanged when expansion is off", () => {
     // The default in `npm test` and in every production build. If this fails,
     // something has made the test-only transform unconditional.
-    expect(translate("en", "overview.traceLede")).toBe(en["overview.traceLede"]);
-    expect(translate("fr", "overview.asideBody")).toBe(CATALOGS.fr["overview.asideBody"]);
+    expect(translate("en", "footer.local")).toBe(en["footer.local"]);
+    expect(translate("fr", "notFound.body")).toBe(CATALOGS.fr["notFound.body"]);
   });
 
   it("throws rather than rendering a key, an empty string, or another language", () => {
@@ -276,12 +247,13 @@ describe("translate", () => {
       expect(() => translate(locale, "a11y.skipToMain", { name: "" }), locale).toThrow(
         MissingMessageError,
       );
-      expect(() => translate(locale, "workflow.stageOrdinal", {}), locale).toThrow(
+      expect(() => translate(locale, "notFound.unsupportedLocale", {}), locale).toThrow(
         MissingMessageError,
       );
-      expect(() => translate(locale, "overview.lastEvent", { event: "   " }), locale).toThrow(
-        MissingMessageError,
-      );
+      expect(
+        () => translate(locale, "notFound.unsupportedLocale", { requested: "   ", available: "en" }),
+        locale,
+      ).toThrow(MissingMessageError);
     }
   });
 
@@ -300,136 +272,28 @@ describe("translate", () => {
   });
 });
 
-describe("controlled vocabulary keys", () => {
-  it("maps every canonical token to a key that exists in every catalog", () => {
-    const states: WorkflowState[] = ["complete", "active", "waiting", "refused"];
-    const kinds: EvidenceNode["kind"][] = ["claim", "chunk", "document", "study", "decision"];
-
+describe("navigation keys", () => {
+  it("maps every nav id to a key that exists in every catalog", () => {
     for (const locale of SUPPORTED_LOCALES) {
-      for (const state of states) {
-        expect(CATALOGS[locale][stateKey(state)]).toBeTruthy();
-      }
-      for (const kind of kinds) {
-        expect(CATALOGS[locale][evidenceKindKey(kind)]).toBeTruthy();
-      }
-      for (const id of ["overview", "screening", "evidence", "audit"]) {
-        expect(CATALOGS[locale][navKey(id)]).toBeTruthy();
+      for (const id of ["workspaces", "screening"]) {
+        expect(CATALOGS[locale][navKey(id)], `${locale} / ${id}`).toBeTruthy();
       }
     }
   });
 
-  it("throws UnmappedTokenError for a token nobody decided on", () => {
-    // The canonical token sets are frozen by packet UI-01c, so a token with no
-    // label is a decision nobody made - a different failure from a lost string,
-    // and it must not render as one.
-    expect(() => stateKey("done" as WorkflowState)).toThrow(UnmappedTokenError);
-    expect(() => evidenceKindKey("quote" as EvidenceNode["kind"])).toThrow(UnmappedTokenError);
-    expect(() => navKey("reports")).toThrow(UnmappedTokenError);
-  });
-
-  it("maps a token to the same key in every locale, because the token is the data", () => {
-    // The token set is canonical; the *label* is translated. A locale whose token
-    // resolved to a different key would mean the data itself had been translated.
-    for (const state of ["complete", "active", "waiting", "refused"] as WorkflowState[]) {
-      const key = stateKey(state);
-      expect(CATALOGS.en[key]).toBe(state);
-    }
-  });
-});
-
-describe("state-model vocabulary (packet UI-02)", () => {
-  const PHASES: ProjectOverviewPhase[] = [
-    "empty",
-    "setup",
-    "search",
-    "screening",
-    "extraction",
-    "indexing",
-    "refusal",
-    "degraded",
-    "ready",
-  ];
-  const COUNTS: OverviewCountField[] = [
-    "recordsDiscovered",
-    "studiesIncluded",
-    "decisionsPending",
-    "documentsExtracted",
-    "chunksIndexed",
-  ];
-  const ARRIVAL_LABELS = ["overview.recordLoadingLabel", "overview.recordErrorLabel"] as const;
-
-  it("maps every phase and every statistic to a key that exists in every catalog", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const phase of PHASES) {
-        expect(CATALOGS[locale][phaseKey(phase)], `${locale} / ${phase}`).toBeTruthy();
-        expect(
-          CATALOGS[locale][phaseDescriptionKey(phase)],
-          `${locale} / ${phase} description`,
-        ).toBeTruthy();
-      }
-      for (const field of COUNTS) {
-        expect(CATALOGS[locale][countKey(field)], `${locale} / ${field}`).toBeTruthy();
-      }
-    }
-  });
-
-  it("throws UnmappedTokenError for a phase or a statistic nobody declared", () => {
-    // The phase token set is the presentation contract of `lib/project-state.ts`;
-    // a token with no label is a decision nobody made, and it must not render as
-    // a raw token on screen.
-    expect(() => phaseKey("declined")).toThrow(UnmappedTokenError);
-    expect(() => phaseDescriptionKey("paused")).toThrow(UnmappedTokenError);
-    expect(() => countKey("recordsRead")).toThrow(UnmappedTokenError);
-  });
-
-  it("keeps all nine phase words distinct in every locale, and apart from the arrival words", () => {
-    // The stamp is text first (GATES §3.7): two phases sharing a word, or a
-    // phase colliding with the record-arrival stamps, would make the
-    // "distinguishable without colour" claim in
-    // `components/project-state-record.tsx` false rather than merely weak.
-    for (const locale of SUPPORTED_LOCALES) {
-      const phases = PHASES.map((phase) => CATALOGS[locale][phaseKey(phase)]);
-      expect(new Set(phases).size, locale).toBe(PHASES.length);
-
-      const arrivals = ARRIVAL_LABELS.map((key) => CATALOGS[locale][key]);
-      expect(new Set(arrivals).size, locale).toBe(arrivals.length);
-      for (const arrival of arrivals) {
-        expect(phases, `${locale} / ${arrival}`).not.toContain(arrival);
-      }
-    }
-  });
-
-  it("keeps the five statistic labels distinct in every locale, and apart from 'unknown'", () => {
-    // The value column is read against its row label; two rows claiming the
-    // same statistic would make the unknown-versus-zero cell ambiguous, and a
-    // label equal to the unknown word would defeat the negative case itself.
-    for (const locale of SUPPORTED_LOCALES) {
-      const labels = COUNTS.map((field) => CATALOGS[locale][countKey(field)]);
-      expect(new Set(labels).size, locale).toBe(COUNTS.length);
-      expect(labels, locale).not.toContain(CATALOGS[locale]["counts.unknown"]);
-    }
+  it("throws UnmappedTokenError for a nav id nobody declared", () => {
+    expect(() => navKey("overview")).toThrow(UnmappedTokenError);
   });
 });
 
 describe("translateParts", () => {
-  it("separates the translator's words from the fixture value, in template order", () => {
-    // `overview.lastEvent` is the only message today whose substituted value must
-    // sit in its own element, so this is what the `<bdi>` split depends on.
-    for (const locale of SUPPORTED_LOCALES) {
-      const parts = translateParts(locale, "overview.lastEvent", { event: "Protocol sealed" });
-      expect(parts.map((part) => part.kind)).toEqual(["text", "isolated"]);
-      expect(parts[0]?.value).toBe(CATALOGS[locale]["overview.lastEvent"].replace("{event}", ""));
-      expect(parts[1]?.value).toBe("Protocol sealed");
-    }
-  });
-
   it("keeps the substituted value byte-identical to what it was given", () => {
-    // D-I18N-02: the record's own text is never rewritten, and this holds even
+    // D-I18N-02: the reader's own text is never rewritten, and this holds even
     // if the long-string transform is on.
-    const fixture = "142 records screened - 14 excluded";
+    const requested = "de-AT_x";
     for (const locale of SUPPORTED_LOCALES) {
-      const parts = translateParts(locale, "overview.lastEvent", { event: fixture });
-      expect(parts.find((part) => part.kind === "isolated")?.value).toBe(fixture);
+      const parts = translateParts(locale, "notFound.unsupportedLocale", { requested, available: "en" });
+      expect(parts.filter((part) => part.kind === "isolated").map((part) => part.value)).toEqual([requested, "en"]);
     }
   });
 
@@ -469,20 +333,12 @@ describe("translateParts", () => {
   });
 
   it("throws on an unfilled hole rather than rendering a blank", () => {
-    expect(() => translateParts("fr", "overview.lastEvent", {})).toThrow(MissingMessageError);
+    expect(() => translateParts("fr", "notFound.unsupportedLocale", {})).toThrow(MissingMessageError);
   });
 });
 
 describe("byte pins", () => {
   const FILES = [
-    {
-      path: "lib/mock-project.ts",
-      sha256: "9df4e8d104719cf3fd372267afbb6b07a8977f262bf1ca67946200b1a8e478c4",
-    },
-    {
-      path: "lib/contracts.ts",
-      sha256: "b7a4c9c7c25ac1fde060f36bbcc7d7ab2ca6628e12f5a0fa51ce17ba36b1b3fb",
-    },
     {
       // M5-slim added the `build:export` script (the packaged app's export);
       // no dependency changed, and package-lock.json keeps its pin.

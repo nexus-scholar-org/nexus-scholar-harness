@@ -1,8 +1,20 @@
 # Nexus Scholar Research UI
 
-Researcher-facing Next.js application for demonstrating and eventually driving the Nexus Scholar harness.
+The researcher's screening app. Every screen reads a live workspace through
+the engine; none reads workspace files directly.
 
-The scaffold is intentionally read-only and uses `lib/mock-project.ts`. It does not read workspace files directly and contains no Contract v1 implementation. The future API boundary belongs in `src/scholar_harness/api/`; the browser consumes presentation models derived by that boundary.
+Routes (`/<locale>/…`, locales `en`, `fr`, `ar`):
+
+| Route | Screen |
+| :-- | :-- |
+| `/workspaces` | the workspaces screen (spec 00); `/<locale>` forwards here |
+| `/screening/home` … `/screening/publish` | the screening steps (specs 01–09); `/screening` forwards to the home |
+
+The header (`components/site-header.tsx`) holds the wordmark, the two
+destinations, the language menu and the theme; below `lg` they move into one
+menu dialog. The demonstration screens (overview, the single-record screening
+page, corpus, lineage, audit) and their mock data were removed on 2026-11-05;
+see `docs/decisions.md`.
 
 ## Local commands
 
@@ -29,8 +41,7 @@ Do not commit `node_modules/` or `.next/`; both are ignored.
 
 ## Live data and the console proxy
 
-Every screen defaults to labelled demonstration data and performs no request.
-Append `?source=live` to read the local Harness Console instead:
+In development the screens read the local Harness Console through the proxy:
 
 ```powershell
 # both terminals share one per-launch token (any long random string)
@@ -39,7 +50,7 @@ $env:NEXUS_CONSOLE_TOKEN = [guid]::NewGuid().ToString("N") + [guid]::NewGuid().T
 uv run scholar-harness serve --workspace workspaces/uav-crop-weed-v03 --port 8765
 # terminal 2 — the product surface (set the same NEXUS_CONSOLE_TOKEN first)
 cd apps/research-ui && npm run dev
-# then open http://localhost:3000/en/screening?source=live
+# then open http://localhost:3000/en/workspaces
 ```
 
 The console requires `Authorization: Bearer <token>` on every route except
@@ -54,26 +65,13 @@ Reads, event streams and the allowlisted screening POSTs go to this
 application's own origin at `/api/console/...`; the route handler
 `app/api/console/[...path]/route.ts` forwards them server-side. SSE responses
 (`/api/v1/events/tick`, `/api/v1/jobs/{id}/stream`) are streamed through, not
-buffered. The live audit screen subscribes to `/events/tick` and re-reads the
-feed when the workspace changes. Set
+buffered. Set
 `NEXUS_CONSOLE_URL` to move that upstream (it must be a plain loopback
 `http(s)` origin; default `http://127.0.0.1:8765`). The browser never sees the
 console's port, and the console's GET-only CORS policy stays as reviewed.
 
 `?console=http://127.0.0.1:8765` is a test-only override for pointing a live
 screen at a console directly; it is not part of normal use.
-
-Each live screening row can record a draft decision. That posts one record to
-the console's sanctioned draft writer (merged by workspace id, so siblings are
-untouched) and the page re-reads the batch. A saved draft is **not** an
-approval: coverage, pairing, approval and publication still run separately, and
-saving never publishes.
-
-The corpus screen reads paged rows from `GET /api/v1/ui/corpus/{kind}`
-(`limit`/`offset`, plus a server-side `q` filter). The excluded set is 13.5k
-rows on the pilot workspace, so it is never downloaded whole: the screen asks
-for one 25-row page at a time, and "show more" requests the next offset. The
-excluded page is only requested when the reader clicks "load excluded".
 
 ## Visual direction
 

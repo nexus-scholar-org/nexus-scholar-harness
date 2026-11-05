@@ -120,13 +120,12 @@ function reportInflation(reading: InflationReading): void {
 }
 
 test.describe("30 % long-string expansion (AC-9P precondition, then AC-9)", () => {
-  test("AC-9P: /en serves prose at least 30 % longer than the catalog source", async ({
+  test("AC-9P: /en/workspaces serves prose at least 30 % longer than the catalog source", async ({
     request,
   }) => {
-    // `overview.traceLede` is body prose (packet §13.2.3 step 2), not a short
-    // label, so the 30 % filler dominates any incidental whitespace
-    // normalisation.
-    const reading = await measureInflation(request, "en", "overview.traceLede");
+    // `footer.local` is a full sentence, not a short label, so the 30 % filler
+    // dominates any incidental whitespace normalisation.
+    const reading = await measureInflation(request, "en", "footer.local", "/workspaces");
     reportInflation(reading);
 
     expect(reading.servedLength, "strictly longer, not merely equal").toBeGreaterThan(
@@ -135,24 +134,24 @@ test.describe("30 % long-string expansion (AC-9P precondition, then AC-9)", () =
     expect(reading.ratio).toBeGreaterThanOrEqual(1.3);
   });
 
-  test("AC-9P: /ar serves Arabic prose at least 30 % longer than the catalog source", async ({
+  test("AC-9P: /ar/workspaces serves Arabic prose at least 30 % longer than the catalog source", async ({
     request,
   }) => {
     // The Arabic path is proved separately on purpose: a Latin-only measurement
     // would not establish that the Arabic filler is applied, and Arabic filler is
     // the one that exercises the script's real glyph metrics (D-I18N-15).
-    const reading = await measureInflation(request, "ar", "overview.asideBody");
+    const reading = await measureInflation(request, "ar", "footer.local", "/workspaces");
     reportInflation(reading);
 
     expect(reading.servedLength).toBeGreaterThan(reading.sourceLength);
     expect(reading.ratio).toBeGreaterThanOrEqual(1.3);
   });
 
-  test("AC-9P: /fr serves prose at least 30 % longer than the catalog source", async ({ request }) => {
+  test("AC-9P: /fr/workspaces serves prose at least 30 % longer than the catalog source", async ({ request }) => {
     // French is not named in §13.2.3, but it is the longest of the three by
     // volume and it is the locale whose punctuation would otherwise distort the
     // ratio above, so it is measured rather than assumed.
-    const reading = await measureInflation(request, "fr", "overview.asideBody");
+    const reading = await measureInflation(request, "fr", "footer.local", "/workspaces");
     reportInflation(reading);
 
     expect(reading.servedLength).toBeGreaterThan(reading.sourceLength);
@@ -160,16 +159,12 @@ test.describe("30 % long-string expansion (AC-9P precondition, then AC-9)", () =
   });
 
   for (const locale of ["en", "fr", "ar"] as const) {
-    test(`AC-9P: /${locale}/screening serves its lede at least 30 % longer than the catalog source`, async ({
+    test(`AC-9P: /${locale}/screening/home serves the header descriptor at least 30 % longer than the catalog source`, async ({
       request,
     }) => {
-      // The screening workspace is a second served document with its own
-      // catalogued prose (packet UI-04). Proving the precondition on the
-      // overview does not prove it here: a route that shipped without the
-      // `NEXT_PUBLIC` inlining, or whose prose bypassed `translate`, would
-      // leave the AC-9 overflow loop below measuring an un-inflated page and
-      // reporting it as evidence about inflated text.
-      const reading = await measureInflation(request, locale, "screening.lede", "/screening");
+      // A second served document: proving the precondition on one route does
+      // not prove it on another, and the AC-9 loop below measures both.
+      const reading = await measureInflation(request, locale, "footer.journal", "/screening/home");
       reportInflation(reading);
 
       expect(reading.servedLength).toBeGreaterThan(reading.sourceLength);
@@ -177,7 +172,7 @@ test.describe("30 % long-string expansion (AC-9P precondition, then AC-9)", () =
     });
   }
 
-  const ROUTES = ["", "/screening"] as const;
+  const ROUTES = ["/workspaces", "/screening/home"] as const;
 
   for (const locale of ["en", "fr", "ar"] as const) {
     for (const path of ROUTES) {

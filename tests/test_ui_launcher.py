@@ -27,8 +27,8 @@ def ui(tmp_path):
     folder = tmp_path / "ui"
     (folder / "en").mkdir(parents=True)
     (folder / "en" / "index.html").write_text("<html>app</html>", encoding="utf-8")
-    for page in ("screening", "workspaces"):
-        (folder / "en" / page).mkdir()
+    for page in ("screening/home", "workspaces"):
+        (folder / "en" / page).mkdir(parents=True)
         (folder / "en" / page / "index.html").write_text(f"<html>{page}</html>", encoding="utf-8")
     return folder
 
@@ -79,8 +79,8 @@ def test_the_landing_page_and_the_empty_root(tmp_path, ui):
     quiet = {"ui_dir": ui, "open_browser": False, "say": lambda _: None}
     assert launcher.Launcher(root=empty, workspace=None, **quiet).landing() == "/en/workspaces/"
     named = launcher.Launcher(root=empty, workspace=tmp_path, **quiet)
-    assert named.landing() == "/en/screening/"
-    assert "code=" in named.launch_url() and "next=%2Fen%2Fscreening%2F" in named.launch_url()
+    assert named.landing() == "/en/screening/home/"
+    assert "code=" in named.launch_url() and "next=%2Fen%2Fscreening%2Fhome%2F" in named.launch_url()
     # No workspace open: only the workspaces routes answer.
     app = launcher.Launcher(root=empty, workspace=None, **quiet)
     client = TestClient(app.build_app(None), base_url="http://127.0.0.1:8770", headers={"Authorization": f"Bearer {app.token}"})

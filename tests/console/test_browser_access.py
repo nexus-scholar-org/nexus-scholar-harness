@@ -63,8 +63,8 @@ def test_a_launch_code_sets_the_session_once(ws, ui):
     client = TestClient(app, base_url="http://127.0.0.1:8765", follow_redirects=False)
     assert client.get("/launch", params={"code": "guess"}).json()["detail"]["code"] == "LAUNCH_CODE_INVALID"
     code = codes.issue()
-    landed = client.get("/launch", params={"code": code, "next": "/en/screening/"})
-    assert landed.status_code == 303 and landed.headers["location"] == "/en/screening/"
+    landed = client.get("/launch", params={"code": code, "next": "/en/screening/home/"})
+    assert landed.status_code == 303 and landed.headers["location"] == "/en/screening/home/"
     cookie = landed.headers["set-cookie"].lower()
     assert f"{browser.SESSION_COOKIE}={SESSION}".lower() in cookie and "httponly" in cookie and "samesite=strict" in cookie
     assert client.get("/launch", params={"code": code}).status_code == 401  # single use

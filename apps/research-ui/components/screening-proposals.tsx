@@ -410,7 +410,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
 
   const body = (() => {
     if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
-    if (state.status === "error") return <StateCard locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
+    if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { setup, decided } = state.data;
     const chosen = setup.providers.find((p) => p.provider === provider);
     const keyMissing = chosen?.key === "none";

@@ -63,7 +63,18 @@ export function StateCard({
   onRetry,
   message,
   command,
-}: Readonly<{ locale: Locale; code: string; consoleOrigin?: string; onRetry?: () => void; message?: string; command?: string }>) {
+  pageHeading = false,
+}: Readonly<{
+  locale: Locale;
+  code: string;
+  consoleOrigin?: string;
+  onRetry?: () => void;
+  message?: string;
+  command?: string;
+  /** The card stands in for the whole screen (a failed first read): its title is the page's h1. */
+  pageHeading?: boolean;
+}>) {
+  const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const href =
@@ -73,9 +84,9 @@ export function StateCard({
   return (
     <section role="alert" aria-labelledby={`state-${code}`} className="rounded-lg border border-rule bg-leaf p-5" data-state={code}>
       <DecisionBadge role={state.role}>{state.title}</DecisionBadge>
-      <h2 id={`state-${code}`} className="mt-2 font-semibold text-ink">
+      <Heading id={`state-${code}`} className="mt-2 font-semibold text-ink">
         {state.title}
-      </h2>
+      </Heading>
       <p className="mt-1 text-ink">{state.body}</p>
       {message && !state.known ? (
         <p className="mt-1 text-sm text-ink-muted">

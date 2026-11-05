@@ -20,63 +20,26 @@ import type { MessageKey } from "./en";
  *    decision, which is why a template is one entry and never two fragments.
  * 3. No French value may normalise to its English counterpart
  *    (whitespace-collapsed, case-folded, diacritic-stripped), because a reader
- *    seeing both would be looking at untranslated chrome. That rule is why
- *    `nav.audit` is "Registre" rather than the very common "Audit", and why
- *    `evidenceKind.document` is "article": both would otherwise read as
- *    untranslated English to a normalised comparison and in a screenshot.
+ *    seeing both would be looking at untranslated chrome.
  * 4. Latin script throughout, so the direction-neutral markup and the
  *    long-string filler need no special case for this locale.
  */
 const fr: Record<MessageKey, string> = {
   "app.meta.description":
     "Des méthodes de revue systématique traçables pour les équipes de recherche.",
-  "overview.eyebrow": "Vue d'ensemble du projet",
-  "overview.lastEvent": "Dernière étape : {event}",
-  "overview.workflowHeading": "Méthode",
-  "overview.workflowLede":
-    "Chaque étape expose ses décisions, ses preuves et ses refus.",
-  "overview.traceHeading": "De la revue à la source",
-  "overview.traceLede":
-    "Suivez une affirmation jusqu'à la décision qui la rattache au protocole.",
-  "overview.asideEyebrow": "Pourquoi c'est important",
-  "overview.asideHeading":
-    "Une synthèse n'est pas crédible simplement parce qu'elle sonne convaincante.",
-  "overview.asideBody":
-    "Nexus Scholar rend le chemin des preuves inspectable et refuse les artefacts qui ne respectent pas la filiation déclarée.",
   "a11y.skipToMain": "Aller au contenu principal",
-  "shell.tagline": "Une intégrité de la recherche que vous pouvez vérifier",
-  "safety.demoDataLabel": "Données de démonstration",
-  "parked.label": "Hors production — en attente",
-  "parked.overview":
-    "Le texte intégral, l'extraction et la synthèse ne font pas partie de cette version. Leurs étapes ci-dessous expliquent le déroulé ; seule la sélection est en production.",
-  "parked.lineage":
-    "Le chemin d'une affirmation jusqu'à son passage en texte intégral relève du travail en attente sur le texte intégral et la synthèse. Il illustre la conception et ne doit pas servir de référence.",
-  "shell.authorityStatementLive":
-    "Données réelles de l'espace de travail. Les décisions sont enregistrées par le moteur de sélection de cet espace ; le harnais Python reste l'autorité pour les contrats, l'identité, l'acceptation, l'exécution des outils et les événements d'audit.",
-  "shell.authorityStatement":
-    "Démonstrateur en lecture seule. Le harnais Python reste l'autorité pour les contrats, l'identité, l'acceptation, l'exécution des outils et les événements d'audit.",
-  "nav.overview": "Vue d'ensemble",
+  "shell.descriptor": "Sélection pour revues systématiques",
+  "footer.local":
+    "Fonctionne sur cet ordinateur. Rien n'est envoyé ailleurs, sauf si vous lancez les propositions de l'agent.",
+  "footer.journal":
+    "Chaque décision est consignée dans le journal d'audit de l'espace de travail.",
   "nav.screening": "Sélection",
-  "nav.evidence": "Preuves",
-  "nav.audit": "Registre",
-  "nav.unavailable": "Pas encore disponible",
+  "nav.workspaces": "Espaces de travail",
   "nav.landmark.primary": "Principal",
   "a11y.openMainNavigation": "Ouvrir la navigation principale",
   "a11y.closeMainNavigation": "Fermer la navigation principale",
   "nav.landmark.primaryMobile": "Principal (menu mobile)",
   "nav.mobileDialogTitle": "Menu principal",
-  "workflow.listLabel": "Méthode de la revue",
-  "workflow.stageOrdinal": "Étape {number}",
-  "workflow.stageOrdinal.prefix": "Étape ",
-  "state.complete": "terminée",
-  "state.active": "en cours",
-  "state.waiting": "en attente",
-  "state.refused": "refusée",
-  "evidenceKind.claim": "affirmation",
-  "evidenceKind.chunk": "extrait",
-  "evidenceKind.document": "article",
-  "evidenceKind.study": "étude",
-  "evidenceKind.decision": "décision",
   "locale.selectorLabel": "Langue",
   "theme.selectorLabel": "Thème",
   "theme.system": "Système",
@@ -84,144 +47,13 @@ const fr: Record<MessageKey, string> = {
   "theme.dark": "Sombre",
   "notFound.heading": "Page introuvable",
   "notFound.body":
-    "Cette démonstration n'a pas de page à cette adresse. Utilisez l'un des liens de langue ci-dessous, ou revenez à la vue d'ensemble.",
+    "Il n'y a aucune page à cette adresse. Utilisez la navigation ci-dessus, ou revenez à vos espaces de travail.",
   "notFound.unsupportedLocale":
     'La locale « {requested} » n\'est pas disponible. Locales disponibles : {available}.',
-  "notFound.backToDefault": "Revenir à la vue d'ensemble en anglais",
-
-  // ---- Modèle d'état du projet (paquet UI-02) : 32 clés ----
-  "overview.stateHeading": "Étape actuelle",
-  "overview.stateLede":
-    "Où en est ce projet et les statistiques que comporte le dossier. Une statistique absente du dossier s'affiche comme inconnue, jamais comme zéro.",
-  "overview.recordLoadingLabel": "Chargement",
-  "overview.recordLoading":
-    "Le dossier du projet n'est pas encore parvenu. Rien n'est déduit pendant qu'il est en attente.",
-  "overview.recordErrorLabel": "Indisponible",
-  "overview.recordError":
-    "Le dossier de la vue d'ensemble n'a pas pu être chargé. Il s'agit d'une lecture échouée, non d'une décision refusée.",
-  "overview.nextDestination": "Poursuivre dans {destination}.",
-  "phase.empty": "Aucun projet",
-  "phase.empty.description":
-    "Aucun projet n'a encore été créé : ni corpus, ni décisions, ni preuves à montrer.",
-  "phase.setup": "Préparation",
-  "phase.setup.description":
-    "Le protocole et ses critères sont en cours de rédaction. Le travail commence quand le protocole est scellé.",
-  "phase.search": "Recherche",
-  "phase.search.description":
-    "Les notices sont découvertes et dédoublonnées avant toute sélection.",
-  "phase.screening": "Sélection",
-  "phase.screening.description":
-    "Les décisions d'inclusion et d'exclusion attendent une personne qui doit les prendre. Rien n'est décidé automatiquement.",
-  "phase.extraction": "Extraction des études",
-  "phase.extraction.description":
-    "Les études retenues sont en cours d'extraction, et chaque passage extrait conserve son chemin vers sa source.",
-  "phase.indexing": "Indexation",
-  "phase.indexing.description":
-    "Les passages extraits sont indexés pour qu'une synthèse ultérieure puisse les retrouver avec leur filiation intacte.",
-  "phase.refusal": "Refusée",
-  "phase.refusal.description":
-    "Une étape a été refusée par l'autorité qui l'exécute : aucun résultat partiel ne prend sa place.",
-  "phase.degraded": "Dégradée",
-  "phase.degraded.description":
-    "Une partie du dossier est indisponible. Ce que le dossier ne contient pas s'affiche comme inconnu, sans estimation.",
-  "phase.ready": "Prête",
-  "phase.ready.description":
-    "La sélection, le texte intégral et l'extraction ont produit les études retenues. Le rapport guidé n'a pas commencé.",
-  "counts.heading": "Statistiques du corpus",
-  "counts.recordsDiscovered": "Notices découvertes",
-  "counts.studiesIncluded": "Études retenues",
-  "counts.decisionsPending": "Décisions en attente d'une personne",
-  "counts.documentsExtracted": "Documents extraits",
-  "counts.chunksIndexed": "Passages indexés",
-  "counts.unknown": "inconnu",
+  "notFound.backToDefault":
+    "Revenir à vos espaces de travail",
 
   "brand.productName": "Nexus Scholar",
-
-  // ---- Espace de sélection (paquet UI-04) : 19 clés ----
-  "screening.eyebrow": "Revue d'un enregistrement",
-  "screening.heading": "Évaluer un enregistrement d'étude",
-  "screening.lede":
-    "Lisez la citation et le résumé ci-dessous selon les critères scellés, puis inscrivez votre décision. Rien n'est décidé automatiquement.",
-  "screening.recordHeading": "Enregistrement d'étude",
-  "screening.citationLabel": "Référence bibliographique",
-  "screening.abstractLabel": "Résumé",
-  "screening.criteriaHeading": "Critères de sélection",
-  "screening.criteriaLede":
-    "Les critères auxquels cet enregistrement est soumis, tels que le protocole les déclare.",
-  "screening.decisionHeading": "Inscrire une décision",
-  "screening.decisionLegend": "Choix de décision",
-  "screening.decision.include": "Inclure",
-  "screening.decision.exclude": "Exclure",
-  "screening.decision.unclear": "Incertain",
-  "screening.reasonLabel": "Motif",
-  "screening.reasonHint": "Obligatoire lorsque l'enregistrement est exclu.",
-  "screening.reasonRequired": "Indiquez un motif avant d'exclure cet enregistrement.",
-  "screening.submit": "Inscrire la décision",
-  "screening.submitDisabledExplanation":
-    "L'inscription est désactivée : cette démonstration n'a pas d'API de décision, aucune décision n'est envoyée, enregistrée ni comptée.",
-  "screening.noPersistence":
-    "Rien sur cette page n'est écrit dans un espace de travail, dans un fichier ni dans ce navigateur.",
-  "nav.corpus": "Études",
-  "corpus.eyebrow": "Corpus de sélection",
-  "corpus.heading": "Études incluses et exclues",
-  "corpus.lede":
-    "Chaque notice décidée par la sélection, avec la raison que le harnais a enregistrée. Les totaux viennent du harnais ; cette page ne décide rien.",
-  "corpus.countsHeading": "Totaux du corpus",
-  "corpus.includedLabel": "Incluses",
-  "corpus.excludedLabel": "Exclues",
-  "corpus.includedHeading": "Notices incluses",
-  "corpus.excludedHeading": "Notices exclues",
-  "corpus.filterLabel": "Filtrer ces lignes",
-  "corpus.filterHint":
-    "Ne filtre que les lignes déjà chargées sur cette page ; aucune requête n'est envoyée à l'espace de travail.",
-  "corpus.emptyIncluded": "Le harnais ne signale aucune notice incluse.",
-  "corpus.emptyExcluded": "Le harnais ne signale aucune notice exclue.",
-  "corpus.loadExcluded": "Charger les notices exclues",
-  "corpus.loadExcludedHint":
-    "L'ensemble exclu est volumineux ; il n'est lu depuis la console que si vous le demandez.",
-  "corpus.showMore": "Afficher plus de notices",
-  "corpus.reasonLabel": "Raison",
-  "corpus.noReason": "Aucune raison enregistrée",
-  "corpus.criterionLabel": "Critère",
-  "corpus.agentNote":
-    "Chaque décision de cette page a été enregistrée par l'étape de sélection et ne constitue pas une confirmation humaine. L'état de publication est lu depuis la console.",
-  "corpus.noMatch": "Aucune ligne ne correspond à ce filtre.",
-  "corpus.fixtureLede":
-    "Corpus de démonstration : les lignes ci-dessous sont des exemples, pas un espace de travail.",
-  "corpus.liveUnavailable": "Données en direct indisponibles",
-  "corpus.liveEmpty":
-    "La console ne signale aucun corpus de sélection pour cet espace de travail.",
-  "audit.eyebrow": "Activité du registre",
-  "audit.heading": "Ce que le harnais a consigné",
-  "audit.lede":
-    "Un flux d'événements consignés : qui a agi, ce qui a été fait, sur quel objet, et avec quel résultat. Cette page affiche les événements ; elle ne les crée pas, ne les modifie pas, ne les réordonne pas et n'en change pas l'heure.",
-  "audit.fixtureLede":
-    "Flux de démonstration : les événements ci-dessous sont des exemples, pas le journal d'un espace de travail.",
-  "audit.liveLede":
-    "Flux en direct : les événements ci-dessous ont été lus dans le journal d'audit de cet espace de travail via le relais de console de même origine, et s'actualisent lorsque l'espace de travail change.",
-  "audit.liveStamp": "Données en direct de la console",
-  "audit.liveUnavailable": "Données en direct indisponibles",
-  "audit.feedHeading": "Événements consignés",
-  "audit.newestNote":
-    "Du plus récent au plus ancien, exactement tels que le journal les a enregistrés. Une ligne illisible est ignorée par la console et n'est pas réparée ici.",
-  "audit.countLabel": "Événements dans cette vue",
-  "audit.empty": "Le journal ne contient aucun événement pour cette vue.",
-  "audit.showMore": "Afficher les événements plus anciens",
-  "audit.technical": "Provenance technique",
-  "audit.timestampLabel": "Horodatage",
-  "audit.eventIdLabel": "Identifiant d'événement",
-  "audit.actionLabel": "Opération",
-  "audit.notRecorded": "Non consigné",
-  "audit.noAgent": "Aucun agent consigné",
-  "audit.noDescription": "Aucune description consignée",
-  "audit.noStatus": "Aucun résultat consigné",
-  "screening.draftOpen": "Consigner une décision provisoire",
-  "screening.draftReasonHint":
-    "Obligatoire. Enregistré tel quel comme motif de sélection du brouillon.",
-  "screening.draftNote":
-    "Enregistré comme brouillon de recherche, et non comme une approbation. Les contrôles de couverture et de publication restent exécutés à l'approbation et au collect.",
-  "screening.draftSaved": "Brouillon enregistré pour cette notice.",
-  "screening.draftError": "Brouillon non enregistré.",
 };
 
 export default fr;

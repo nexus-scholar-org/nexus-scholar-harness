@@ -1,11 +1,23 @@
 import { render } from "@testing-library/react";
 import axe from "axe-core";
 import type { AxeResults, ImpactValue, Result } from "axe-core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { AuditPage } from "@/components/audit-page";
-import { CorpusPage } from "@/components/corpus-page";
-import { OverviewPage } from "@/components/overview-page";
+import { AppShell } from "@/components/app-shell";
+import type { Locale } from "@/i18n";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/en/screening/home",
+}));
+
+/** The shell around a stand-in route: the chrome every screen shares. */
+function Shell({ locale }: Readonly<{ locale: Locale }>) {
+  return (
+    <AppShell locale={locale}>
+      <h1>Route</h1>
+    </AppShell>
+  );
+}
 
 /** Renders a violation as a reviewable one-liner so a red build is diagnosable. */
 function describeViolation(violation: Result): string {
@@ -73,8 +85,8 @@ function resultsWith(violations: Result[]): AxeResults {
  *   - responsive rendering at 375px / 1440px.
  */
 describe("in-process accessibility (jsdom + axe-core)", () => {
-  it("reports zero critical and zero serious violations on the rendered overview page", async () => {
-    const { container } = render(<OverviewPage locale="en" />);
+  it("reports zero critical and zero serious violations on the rendered shell", async () => {
+    const { container } = render(<Shell locale="en" />);
 
     const results = await axe.run(container);
 
@@ -95,26 +107,17 @@ describe("in-process accessibility (jsdom + axe-core)", () => {
     expect(blockingViolations(results).map(describeViolation)).toEqual([]);
   });
 
-  it("reports zero critical and zero serious violations on the rendered corpus page", async () => {
-    const { container } = render(<CorpusPage locale="en" />);
-
-    const results = await axe.run(container);
-
-    expect(results.violations.length + results.incomplete.length + results.passes.length).toBeGreaterThan(0);
-    expect(blockingViolations(results).map(describeViolation)).toEqual([]);
-  });
-
-  it("reports zero critical and zero serious violations on the rendered audit page", async () => {
-    const { container } = render(<AuditPage locale="en" />);
-
-    const results = await axe.run(container);
-
-    expect(results.violations.length + results.incomplete.length + results.passes.length).toBeGreaterThan(0);
-    expect(blockingViolations(results).map(describeViolation)).toEqual([]);
-  });
+  for (const locale of ["fr", "ar"] as const) {
+    it(`reports zero critical and zero serious violations on the shell in ${locale}`, async () => {
+      const { container } = render(<Shell locale={locale} />);
+      const results = await axe.run(container);
+      expect(results.violations.length + results.incomplete.length + results.passes.length).toBeGreaterThan(0);
+      expect(blockingViolations(results).map(describeViolation)).toEqual([]);
+    });
+  }
 
   it("actually ran the engine: the result set is populated and the rule engine executed", async () => {
-    const { container } = render(<OverviewPage locale="en" />);
+    const { container } = render(<Shell locale="en" />);
 
     const results = await axe.run(container);
 

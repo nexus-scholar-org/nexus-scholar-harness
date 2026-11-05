@@ -206,6 +206,7 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
         </p>
       ) : state.status === "error" ? (
         <StateCard
+          pageHeading
           locale={locale}
           code={state.code}
           message={state.message}

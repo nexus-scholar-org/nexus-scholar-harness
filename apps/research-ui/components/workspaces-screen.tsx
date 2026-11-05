@@ -335,7 +335,7 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
   const busyDetails = (busyCode ? refusal?.details : listing?.busy) as { run_active?: boolean; pairing_open?: boolean } | undefined;
 
   const desktop = (() => {
-    if (loadError) return <StateCard locale={locale} code={loadError.code} message={loadError.message} consoleOrigin={origin} onRetry={() => void load()} />;
+    if (loadError) return <StateCard pageHeading locale={locale} code={loadError.code} message={loadError.message} consoleOrigin={origin} onRetry={() => void load()} />;
     if (!listing) return <p role="status" className="text-ink-muted">{t("loading")}</p>;
     if (opening) return <p role="status" className="text-lg text-ink" data-opening>{t("opening", { title: opening })}</p>;
     return (
@@ -498,8 +498,9 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
       <section className="rounded-lg border border-rule bg-leaf p-5 sm:hidden" data-phone>
-        <p className="text-ink">{t("phone.desktopOnly")}</p>
-        <a className="mt-3 inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/screening/`}>{t("phone.toScreening")}</a>
+        {/* On a phone this sentence is the whole screen, so it is the page's h1. */}
+        <h1 className="text-base font-normal text-ink">{t("phone.desktopOnly")}</h1>
+        <a className="mt-3 inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/screening/home/`}>{t("phone.toScreening")}</a>
       </section>
       <div className="hidden sm:block">{desktop}</div>
     </div>

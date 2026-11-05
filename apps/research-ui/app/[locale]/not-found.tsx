@@ -79,7 +79,7 @@ export function LocaleNotFound({ requested }: Readonly<{ requested: string }>) {
       </p>
       <p className="mt-6">
         <Link
-          href={`/${DEFAULT_LOCALE}`}
+          href={`/${DEFAULT_LOCALE}/workspaces`}
           className="text-sm font-medium text-evidence underline decoration-2 underline-offset-4"
         >
           {translate(DEFAULT_LOCALE, "notFound.backToDefault")}
@@ -111,7 +111,7 @@ export default function LocaleNotFoundBoundary() {
       </p>
       <p className="mt-6">
         <Link
-          href={`/${DEFAULT_LOCALE}`}
+          href={`/${DEFAULT_LOCALE}/workspaces`}
           className="text-sm font-medium text-evidence underline decoration-2 underline-offset-4"
         >
           {translate(DEFAULT_LOCALE, "notFound.backToDefault")}

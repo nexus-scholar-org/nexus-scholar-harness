@@ -59,7 +59,6 @@ export default defineConfig({
       // The committed screenshots stay light-only; they are evidence files.
       name: "chromium-dark",
       use: { browserName: "chromium", colorScheme: "dark" },
-      testIgnore: /screenshots\.spec\.ts$/,
     },
   ],
   webServer: {

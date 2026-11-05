@@ -1,11 +1,8 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import LocaleNotFoundBoundary, { LocaleNotFound } from "@/app/[locale]/not-found";
-import { EvidenceChain } from "@/components/evidence-chain";
 import { LocaleDocument } from "@/components/locale-document";
-import { OverviewPage } from "@/components/overview-page";
-import { demoEvidence, demoProject } from "@/lib/mock-project";
 import {
   DEFAULT_LOCALE,
   LOCALE_METADATA,
@@ -22,7 +19,7 @@ import { CATALOGS } from "@/messages";
  * with no meaning outside a running app router. The mock reports the path of the
  * locale under test.
  */
-let currentPath = "/en";
+let currentPath = "/en/workspaces";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => currentPath,
@@ -51,10 +48,10 @@ function renderDocument(locale: Locale) {
   // from a fresh root. (The file's `render hygiene` test already runs that
   // unmount -> cleanup sequence today, so double-unmount is a proven-safe path.)
   cleanup();
-  currentPath = `/${locale}`;
+  currentPath = `/${locale}/workspaces`;
   return render(
     <LocaleDocument locale={locale}>
-      <OverviewPage locale={locale} />
+      <p>route</p>
     </LocaleDocument>,
     { container: document },
   );
@@ -137,7 +134,7 @@ function englishChromeIn(locale: Locale): string[] {
   cleanup();
   render(
     <LocaleDocument locale={locale}>
-      <OverviewPage locale={locale} />
+      <p>route</p>
     </LocaleDocument>,
     { container: document },
   );
@@ -254,87 +251,11 @@ describe("document attributes", () => {
   it("keeps every locale's own chrome on screen", () => {
     for (const locale of SUPPORTED_LOCALES) {
       const { unmount } = renderDocument(locale);
-      expect(screen.getByText(CATALOGS[locale]["overview.eyebrow"]), locale).toBeInTheDocument();
-      expect(screen.getByText(CATALOGS[locale]["overview.workflowHeading"]), locale).toBeInTheDocument();
-      expect(screen.getByText(CATALOGS[locale]["overview.traceHeading"]), locale).toBeInTheDocument();
-      expect(screen.getByText(CATALOGS[locale]["overview.asideHeading"]), locale).toBeInTheDocument();
-      expect(screen.getByText(CATALOGS[locale]["safety.demoDataLabel"]), locale).toBeInTheDocument();
-      unmount();
-    }
-  });
-});
-
-describe("fixture isolation", () => {
-  it("keeps every fixture string byte-identical inside a bdi element", () => {
-    // D-I18N-02. The frozen demonstration record is not translated, and the
-    // elements that hold it are the ones that keep an English string from being
-    // reordered inside an Arabic sentence.
-    for (const locale of SUPPORTED_LOCALES) {
-      const { unmount } = renderDocument(locale);
-      const scope = renderedBody();
-
-      const expected = [
-        demoProject.title,
-        demoProject.researchQuestion,
-        demoProject.lastEvent,
-        ...demoProject.stages.flatMap((stage) => [stage.label, stage.description]),
-        ...demoEvidence.flatMap((node) => [node.label, node.detail]),
-      ];
-
-      for (const text of expected) {
-        const bdi = Array.from(scope.querySelectorAll("bdi")).find(
-          (node) => node.textContent === text,
-        );
-        expect(bdi, `${locale}: ${text.slice(0, 40)}`).not.toBeUndefined();
+      for (const key of ["nav.workspaces", "nav.screening", "shell.descriptor", "footer.local", "footer.journal"] as const) {
+        expect(screen.getAllByText(CATALOGS[locale][key]).length, `${locale} / ${key}`).toBeGreaterThan(0);
       }
-
-      // And nothing outside a `<bdi>` carries those strings.
-      const outside = scope.cloneNode(true) as HTMLElement;
-      for (const isolated of outside.querySelectorAll("bdi")) {
-        isolated.remove();
-      }
-      expect(outside.textContent ?? "").not.toContain(demoProject.title);
-      expect(outside.textContent ?? "").not.toContain(demoProject.researchQuestion);
-
       unmount();
     }
-  });
-
-  it("isolates the fixture value inside the translated ledger caption", () => {
-    // The one message that mixes the two: a translated prefix and the record's own
-    // last event. The `<bdi>` is inside the sentence, not a wrapper around it.
-    for (const locale of SUPPORTED_LOCALES) {
-      const { unmount } = renderDocument(locale);
-      const caption = screen.getByText(
-        (_content, element) =>
-          element?.tagName === "P" &&
-          (element.textContent ?? "").includes(demoProject.lastEvent) &&
-          (element.textContent ?? "").includes(
-            CATALOGS[locale]["overview.lastEvent"].split("{event}")[0]!.trim(),
-          ),
-      );
-      expect(within(caption).getByText(demoProject.lastEvent).tagName).toBe("BDI");
-      unmount();
-    }
-  });
-
-  it("leaves the evidence ordinals as bare formatted text, not bdi", () => {
-    // The ordinal is generated by `Intl`, not read out of the record, so it is
-    // chrome in every locale: it follows the locale's digits, and it is not
-    // isolated. `EvidenceChain` is rendered on its own here so "the ordinals of
-    // the evidence trail" cannot be confused with the workflow list's.
-    const { container, unmount } = render(<EvidenceChain locale="ar" nodes={demoEvidence} />);
-    const items = container.querySelectorAll("li");
-
-    expect(items).toHaveLength(demoEvidence.length);
-    for (const [index, item] of Array.from(items).entries()) {
-      const ordinal = item.firstElementChild;
-      expect(ordinal, `item ${index + 1}`).not.toBeNull();
-      expect(ordinal?.tagName, `item ${index + 1} is not an isolation wrapper`).not.toBe("BDI");
-      expect(ordinal?.textContent).toBe(formatNumber("ar", index + 1));
-      expect(ordinal?.textContent, "Arabic-Indic digits, not Latin").not.toBe(String(index + 1));
-    }
-    unmount();
   });
 });
 
@@ -359,60 +280,6 @@ describe("untranslated-chrome scan", () => {
   });
 });
 
-describe("locale switcher", () => {
-  it("renders one link per shipped locale, each pointing at that locale's path", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      const { unmount } = renderDocument(locale);
-      const selector = within(
-        screen.getByRole("navigation", { name: CATALOGS[locale]["locale.selectorLabel"] }),
-      );
-      const links = selector.getAllByRole("link");
-
-      expect(links.map((link) => link.getAttribute("href")), locale).toEqual(
-        SUPPORTED_LOCALES.map((code) => `/${code}`),
-      );
-      expect(
-        links.map((link) => link.textContent),
-        locale,
-      ).toEqual(SUPPORTED_LOCALES.map((code) => LOCALE_METADATA[code].endonym));
-      unmount();
-    }
-  });
-
-  it("marks the current locale and no other", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      const { unmount } = renderDocument(locale);
-      const current = Array.from(document.querySelectorAll("[aria-current]")).filter(
-        (node) =>
-          node.getAttribute("aria-current") === "true" &&
-          node.getAttribute("href") === `/${locale}`,
-      );
-      expect(current, locale).toHaveLength(1);
-      unmount();
-    }
-  });
-
-  it("gives each link the language it switches to", () => {
-    renderDocument("en");
-    const links = Array.from(document.querySelectorAll("[data-nav-region='locale'] a[href]"));
-
-    expect(links.map((link) => link.getAttribute("lang"))).toEqual([...SUPPORTED_LOCALES]);
-    expect(links.map((link) => link.getAttribute("hreflang"))).toEqual([...SUPPORTED_LOCALES]);
-  });
-
-  it("offers the selector in the Arabic document too, at every width", () => {
-    // D-I18N-11: no breakpoint on the selector. jsdom cannot compute `display`,
-    // so the structural claim is that the element carries no responsive class at
-    // all; the rendered claim is `tests-browser/locale-switch.spec.ts`.
-    const { unmount } = renderDocument("ar");
-    const selector = renderedBody().querySelector("[data-nav-region='locale']");
-
-    expect(selector).not.toBeNull();
-    expect(selector?.className).not.toMatch(/(^|\s)(sm|md|lg|xl|2xl):/);
-    unmount();
-  });
-});
-
 describe("translated numerals", () => {
   it("formats counts in the locale's own digits", () => {
     // F01/F03. The Arabic-Indic digits are what a real Arabic reader expects,
@@ -420,13 +287,6 @@ describe("translated numerals", () => {
     // than a literal, so it stays true if the tag ever changes to `ar-SA`.
     expect(formatNumber("en", 143)).toBe(new Intl.NumberFormat("en-US").format(143));
     expect(formatNumber("ar", 143)).toBe(new Intl.NumberFormat("ar-EG").format(143));
-
-    renderDocument("ar");
-    // Two surfaces now show the same corpus figure — the workflow timeline's
-    // stage 1 count and the current-stage record's "records discovered" row —
-    // so the claim is that the document renders the Arabic-Indic form at least
-    // once, not that exactly one node holds it.
-    expect(screen.getAllByText(formatNumber("ar", 143)).length).toBeGreaterThan(0);
   });
 
   it("uses grouping off, so a count never wraps mid-number", () => {
@@ -496,7 +356,7 @@ describe("render hygiene", () => {
     for (const locale of SUPPORTED_LOCALES) {
       const { unmount } = renderDocument(locale);
       const text = document.body.textContent ?? "";
-      expect(text, locale).not.toMatch(/\b(overview|nav|state|evidenceKind|notFound|shell|a11y|app|locale|workflow)\.[a-zA-Z]/);
+      expect(text, locale).not.toMatch(/\b(nav|notFound|shell|footer|a11y|app|locale|theme)\.[a-zA-Z]/);
       unmount();
       cleanup();
     }

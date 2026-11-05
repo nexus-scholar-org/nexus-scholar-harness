@@ -67,7 +67,8 @@ describe("screening-home.summary", () => {
   it("shows the engine's code when it cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("fetch failed"))));
     render(<ScreeningHome locale="en" />);
-    await screen.findByText("Engine unreachable", { selector: "h2" });
+    // A failed first read replaces the screen, so its title is the page h1.
+    await screen.findByText("Engine unreachable", { selector: "h1" });
     expect(screen.getByText("CONSOLE_UNREACHABLE")).toBeInTheDocument();
   });
 });

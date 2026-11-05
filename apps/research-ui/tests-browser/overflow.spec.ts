@@ -29,7 +29,7 @@ test.describe("horizontal overflow", () => {
   for (const [name, viewport] of VIEWPORTS) {
     test(`${name}: nothing scrolls sideways`, async ({ page }) => {
       await page.setViewportSize(viewport);
-      await page.goto("/en");
+      await page.goto("/en/screening/home");
 
       const measured = await measureOverflow(page);
       report(`${name} overflow: ${JSON.stringify(measured)}`);
@@ -41,7 +41,7 @@ test.describe("horizontal overflow", () => {
     for (const [name, viewport] of VIEWPORTS) {
       test(`${name}/${locale}: nothing scrolls sideways`, async ({ page }) => {
         await page.setViewportSize(viewport);
-        await page.goto(`/${locale}`);
+        await page.goto(`/${locale}/workspaces`);
 
         const measured = await measureOverflow(page);
         report(`${name}/${locale} overflow: ${JSON.stringify(measured)}`);
@@ -57,7 +57,7 @@ test.describe("horizontal overflow", () => {
     // synthetic long token injected here: inventing one would be fabricating
     // data to make a gate look covered.
     await page.setViewportSize(MOBILE_VIEWPORT);
-    await page.goto("/en");
+    await page.goto("/en/screening/home");
 
     const widest = await page.evaluate(() => {
       let longest = { text: "", width: 0 };
