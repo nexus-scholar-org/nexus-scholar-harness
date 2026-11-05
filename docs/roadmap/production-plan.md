@@ -303,7 +303,7 @@ One PR per milestone, from `main`, through the fork. Lane declared up front; the
 
 ## 8. Parked, labelled honestly
 
-- **UI:** ~~`corpus`, `lineage` and `audit` stay.~~ Superseded 2026-11-05: the demonstration screens, these three included, were removed at the researcher's request (see `docs/decisions.md`). `audit` is in scope because it carries provenance. Any route or panel touching synthesis, matrix, graph, RoB/trust or full-text shows a visible "Not production — parked" banner (a shared `ParkedNotice` component), never a silent removal.
+- **UI:** ~~`corpus`, `lineage` and `audit` stay.~~ Superseded 2026-11-05: the demonstration screens, these three included, were removed at the researcher's request (see `docs/decisions.md`). `audit` is in scope because it carries provenance. Any route or panel touching synthesis, matrix, graph, RoB/trust or full-text shows a visible "Not production — parked" banner, never a silent removal. No such route exists after the 2026-11-05 removal, so the `ParkedNotice` component went with them; a parked UI surface added later needs the notice re-added.
 - **Docs:** `docs/kits_surface_matrix.md` and the user guide mark `scholar_rag`, `scholar_graph`, `scholar_verify` and full-text (`scholar_pdf`, PDF-07/08) as parked.
 - **CLI:** `--help` for parked commands prints a one-line "parked, not production" notice.
 - **MCP:** parked tools return a typed refusal or a warning field.
