@@ -302,6 +302,40 @@ def test_pairing_begin_needs_an_operator_context(client):
     assert response.json()["detail"]["code"] == "OPERATOR_CONTEXT_MISSING"
 
 
+def test_the_approver_name_is_set_on_the_desktop_and_journaled(client, ws, capsys):
+    """Golden run 2026-11-06: nothing in the app wrote the operator context, so
+    the first approval refused OPERATOR_CONTEXT_MISSING. The Publish screen sets it."""
+    assert client.get(f"{BASE}/approver").json() == {"name": None, "set_at": None, "basis": "typed-name"}
+
+    saved = client.put(f"{BASE}/approver", json={"name": "  Mouadh   Bekhouche "})
+    assert saved.status_code == 200, saved.text
+    assert saved.json()["name"] == "Mouadh Bekhouche" and saved.json()["set_at"]
+    context = json.loads((ws / "literature" / "screening" / "operator_context.json").read_text(encoding="utf-8"))
+    assert context["operator_identity"] == "Mouadh Bekhouche" and context["basis"] == "typed-name"
+    rows = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert [r["parameters"] for r in rows if r["action"] == "SCREENING_APPROVER_SET"] == [
+        {"before": None, "after": "Mouadh Bekhouche", "basis": "typed-name"}
+    ]
+
+    # The same name again writes nothing new.
+    client.put(f"{BASE}/approver", json={"name": "Mouadh Bekhouche"})
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert journal.count("SCREENING_APPROVER_SET") == 1
+
+    # The approval now finds an operator.
+    studies = _studies(client)
+    _post(client, [_event(client, s) for s in studies])
+    assert client.post(f"{BASE}/actions/pairing/begin", json={"batch": 1}).status_code == 200
+    capsys.readouterr()
+
+
+@pytest.mark.parametrize(("name", "code"), [("", "INVALID_OUTPUT"), ("x" * 121, "INVALID_OUTPUT"), ("Unknown", "APPROVAL_NOT_OPERATOR"), ("a\tb\x07", "INVALID_OUTPUT")])
+def test_an_approver_name_that_cannot_stand_for_a_person_is_refused(client, ws, name, code):
+    response = client.put(f"{BASE}/approver", json={"name": name})
+    assert response.status_code == 422 and response.json()["detail"]["code"] == code
+    assert not (ws / "literature" / "screening" / "operator_context.json").exists()
+
+
 def test_pairing_begin_for_an_event_batch_keeps_the_code_on_the_terminal(client, ws, capsys):
     """Decision 2026-11-04: an event-decided batch needs no worker step, and the
     approval code is printed on the console's terminal, never returned."""

@@ -115,9 +115,11 @@ across the top:
    code), or unclear (goes to full text). The keyboard keys are shown on the
    buttons. Your decisions are saved as you go.
 4. **Agreement.** Only meaningful if an agent proposed drafts.
-5. **Publish.** For each batch, click **Show a code in the terminal**, read the
-   code in the terminal where the app runs, type it, and approve. When every
-   check passes, **Publish the screening**.
+5. **Publish.** First type your name under **Approver** and **Save name**:
+   approvals are recorded under it (a name typed on this computer, not a
+   verified sign-in). Then, for each batch, click **Show a code in the
+   terminal**, read the code in the terminal where the app runs, type it, and
+   approve. When every check passes, **Publish the screening**.
 
 ## 8. Export and write your methods
 
@@ -154,6 +156,8 @@ uv tool install --force dist/nexus_scholar-1.0.0-py3-none-any.whl
 | `nexus-scholar` is not found | Run `uv tool update-shell`, then open a new terminal. |
 | The app opens with an old look, or says it has no app bundle | Step 3 did not finish. Run `build:export` again and check that it does not say `Failed`, then repeat `uv build --wheel` and step 4. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Run step 6 for that workspace. |
+| `OPERATOR_CONTEXT_MISSING` when approving | Save your name under **Approver** on the Publish screen, then ask for a new code. |
+| `APPROVAL_CONTENT_CHANGED` when publishing | A decision changed after the last approval. Approve the last batch again (a new code), then publish. |
 | A card with a code in capitals | The card says what happened and the next step; the code is what to quote if you ask for help. |
 | You are not sure which workspace is open | The terminal prints its folder when it starts or switches. To list only one folder's workspaces, start with `nexus-scholar ui --root <folder>`. |
 | The browser did not open | Start with `nexus-scholar ui --no-browser` and open the one-time link it prints. |

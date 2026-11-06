@@ -388,6 +388,76 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
     return new
 
 
+#: What the approver name is: a name typed on this computer, not a verified
+#: sign-in (CON-02/03). Stored in the operator context the approval reads.
+APPROVER_BASIS = "typed-name"
+APPROVER_MAX_LENGTH = 120
+
+
+def _approver(ws: Path) -> dict[str, Any]:
+    from ...authority.review import operator_context_path
+
+    path = operator_context_path(ws)
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        payload = {}
+    name = payload.get("operator_identity") if isinstance(payload, dict) else None
+    return {
+        "name": name.strip() if isinstance(name, str) and name.strip() else None,
+        "set_at": payload.get("set_at") if isinstance(payload, dict) else None,
+        "basis": APPROVER_BASIS,
+    }
+
+
+@router.get("/approver")
+def get_approver(request: Request) -> dict[str, Any]:
+    """The name approvals are recorded under (`null` until it is set)."""
+    return _approver(_ws(request))
+
+
+class ApproverBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str
+
+
+@router.put("/approver")
+def put_approver(body: ApproverBody, request: Request) -> dict[str, Any]:
+    """Set the approver's name (desktop only, journaled).
+
+    It writes the operator context the approval reads. Approvals already made
+    keep the name they were made under. Names the engine never trusts as an
+    operator ("unknown", …) refuse `APPROVAL_NOT_OPERATOR`.
+    """
+    from ...authority.binding import UNTRUSTED_OPERATOR_IDENTITIES
+    from ...authority.review import operator_context_path
+    from ...workspace.audit import append_event
+
+    ws = _ws(request)
+    name = " ".join(body.name.split())
+    if not name or len(name) > APPROVER_MAX_LENGTH or not name.isprintable():
+        raise _error(422, "INVALID_OUTPUT", f"the approver name must be 1 to {APPROVER_MAX_LENGTH} printable characters")
+    if name.lower() in UNTRUSTED_OPERATOR_IDENTITIES:
+        raise _error(422, "APPROVAL_NOT_OPERATOR", f"{name!r} cannot stand for a person; type your own name")
+    before = _approver(ws)["name"]
+    if name == before:
+        return _approver(ws)
+    path = operator_context_path(ws)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"schema": "harness-operator-context-v1", "operator_identity": name, "set_at": _now(), "basis": APPROVER_BASIS}
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    append_event(
+        ws,
+        "SCREENING_APPROVER_SET",
+        f"Approver name set to {name!r} (a typed name, not a verified sign-in)",
+        agent="scholar-harness/console",
+        outputs=[path.relative_to(ws.resolve()).as_posix()],
+        parameters={"before": before, "after": name, "basis": APPROVER_BASIS},
+        refresh_index=False,
+    )
+    return _approver(ws)
+
+
 class PrepareBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     batch_size: int = 20

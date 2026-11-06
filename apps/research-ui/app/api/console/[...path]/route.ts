@@ -67,7 +67,7 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
 const READ_PROPOSAL = /^api\/v1\/screening\/records\/[A-Za-z0-9_-]+\/proposal$/;
 
 /** PUT targets: the screening settings only (journaled by the console). */
-const PUT_PATHS: ReadonlyArray<RegExp> = [/^api\/v1\/screening\/settings$/];
+const PUT_PATHS: ReadonlyArray<RegExp> = [/^api\/v1\/screening\/settings$/, /^api\/v1\/screening\/approver$/];
 
 /**
  * The console's long-lived SSE routes. They are GET-only (no allowlist
@@ -181,7 +181,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     return typedError(405, "CONSOLE_METHOD_REFUSED", "the console proxy accepts GET, HEAD, POST and PUT");
   }
   if (method === "PUT" && !PUT_PATHS.some((pattern) => pattern.test(path))) {
-    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings");
+    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings and the approver name");
   }
   // Reading a draft records a reveal (M1b-0), so this GET has an effect: a
   // browser request from another site (an <img> or a link) must not trigger it.

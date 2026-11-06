@@ -50,7 +50,10 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/workspaces(/open)?",
     )
 )
-PUT_PATHS: tuple[re.Pattern[str], ...] = (re.compile(r"api/v1/screening/settings"),)
+PUT_PATHS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"api/v1/screening/settings"),
+    re.compile(r"api/v1/screening/approver"),
+)
 #: The one GET with an effect: reading a draft records a reveal.
 READ_PROPOSAL = re.compile(r"api/v1/screening/records/[A-Za-z0-9_-]+/proposal")
 
