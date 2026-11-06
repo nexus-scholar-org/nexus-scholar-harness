@@ -107,6 +107,28 @@ describe("screening-home.not-prepared", () => {
   });
 });
 
+describe("screening-home.lede-follows-blinding", () => {
+  it("says the drafts are shown when the setting shows them (golden run)", async () => {
+    engine({ "/settings": { ...body("settings_default"), blinding: "show" } });
+    render(<ScreeningHome locale="en" />);
+    await screen.findByText("The agent drafts, you decide. Drafts are shown beside each record, before you decide.");
+    expect(screen.queryByText(/Drafts stay hidden/)).toBeNull();
+  });
+
+  it("says they stay hidden when they do", async () => {
+    engine({ "/settings": { ...body("settings_default"), blinding: "reveal_after_decision" } });
+    render(<ScreeningHome locale="en" />);
+    await screen.findByText("The agent drafts, you decide. Drafts stay hidden until you have decided each record.");
+  });
+});
+
+describe("states.approval-refusals-name-their-next-step", () => {
+  it("tells the researcher what to do for the two approval refusals of the golden run", () => {
+    expect(stateCopy("en", "OPERATOR_CONTEXT_MISSING").actionLabel).toBe("Save your name under Approver");
+    expect(stateCopy("en", "APPROVAL_CONTENT_CHANGED").actionLabel).toBe("Approve the last batch again, then publish");
+  });
+});
+
 describe("states.copy-for-every-code", () => {
   it("has a title, body, affects and action for every code in every locale", () => {
     for (const [code, entry] of Object.entries(STATES)) {

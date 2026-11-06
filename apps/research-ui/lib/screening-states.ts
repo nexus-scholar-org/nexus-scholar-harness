@@ -134,9 +134,27 @@ export const STATES: Record<string, StateEntry> = {
     role: "blocked",
     action: "none",
     copy: {
-      en: T("Not the operator", "Approval is recorded only for the local operator of this workspace.", "Approval", "Approve from this computer"),
-      fr: T("Pas l'opérateur", "L'approbation n'est enregistrée que pour l'opérateur local de cet espace.", "Approbation", "Approuver depuis cet ordinateur"),
-      ar: T("لست المشغّل", "لا يُسجَّل الاعتماد إلا للمشغّل المحلي لهذه المساحة.", "الاعتماد", "الاعتماد من هذا الحاسوب"),
+      en: T("Not accepted as the approver", "The engine records approval only under a person's name, from this computer. A name such as “unknown” does not count.", "Approval", "Type your own name under Approver"),
+      fr: T("Non accepté comme approbateur", "Le moteur n'enregistre une approbation que sous le nom d'une personne, depuis cet ordinateur. Un nom comme « unknown » ne compte pas.", "Approbation", "Saisir votre nom sous Approbateur"),
+      ar: T("غير مقبول بوصفه المعتمِد", "لا يسجّل المحرك الاعتماد إلا باسم شخص ومن هذا الحاسوب. اسم مثل «unknown» لا يُحتسب.", "الاعتماد", "اكتب اسمك تحت المعتمِد"),
+    },
+  },
+  OPERATOR_CONTEXT_MISSING: {
+    role: "blocked",
+    action: "publish",
+    copy: {
+      en: T("No approver name yet", "Approvals are recorded under the approver's name, and none is saved for this workspace.", "Approval", "Save your name under Approver"),
+      fr: T("Pas encore de nom d'approbateur", "Les approbations sont enregistrées sous le nom de l'approbateur, et aucun n'est enregistré pour cet espace.", "Approbation", "Enregistrer votre nom sous Approbateur"),
+      ar: T("لا يوجد اسم معتمِد بعد", "تُسجَّل الاعتمادات باسم المعتمِد، ولا يوجد اسم محفوظ لهذه المساحة.", "الاعتماد", "احفظ اسمك تحت المعتمِد"),
+    },
+  },
+  APPROVAL_CONTENT_CHANGED: {
+    role: "blocked",
+    action: "publish",
+    copy: {
+      en: T("The approval no longer matches", "What would be published differs from what was approved, usually because a decision changed after the last approval. Publishing cannot repair an approval.", "Publishing", "Approve the last batch again, then publish"),
+      fr: T("L'approbation ne correspond plus", "Ce qui serait publié diffère de ce qui a été approuvé, en général parce qu'une décision a changé après la dernière approbation. La publication ne peut pas réparer une approbation.", "Publication", "Approuver à nouveau le dernier lot, puis publier"),
+      ar: T("لم يعد الاعتماد مطابقًا", "ما سيُنشر يختلف عمّا اعتُمد، غالبًا لأن قرارًا تغيّر بعد آخر اعتماد. لا يمكن للنشر إصلاح الاعتماد.", "النشر", "اعتمد آخر دفعة من جديد ثم انشر"),
     },
   },
   PAIRING_CODE_INVALID: {
