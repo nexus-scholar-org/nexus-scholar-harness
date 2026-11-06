@@ -39,35 +39,34 @@ journals such as COMPAG and *Remote Sensing* publish PRISMA-ScR reviews.
 | 4 | Objectives | Part | The inception wizard writes the research questions into `protocol.json`. Their wording, framed as population–concept–context, is yours. |
 | 5 | Protocol and registration | Part | The app keeps the protocol (`protocol.json`), its hash (`protocol.sha256`) and an amendments log, so you can show the protocol was not changed silently. **You:** register on OSF before searching. The app writes no registration document, so you write that text from the protocol. |
 | 6 | Eligibility criteria | App | `SCREENING_CRITERIA.md` and the criteria in the protocol. Each exclusion carries its code (`EXC-n`, `FAILS-INC-n`). The rationale for each criterion is yours. |
-| 7 | Information sources | Part | Built-in search (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed) is not production; Discovery (M3) is a stretch milestone. **You:** search Scopus, Web of Science and IEEE Xplore (plus any others you choose) in their own interfaces, export RIS, and record the date each was last searched. **Gap:** see G1. |
+| 7 | Information sources | Part | Built-in search (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed) is not production; Discovery (M3) is a stretch milestone. **You:** search Scopus, Web of Science and IEEE Xplore (plus any others you choose) in their own interfaces, export RIS, and add one RIS file per database on the Import screen with its date searched and search string (M5b, G1 built). |
 | 8 | Search | You | Report the full search string for at least one database. Log the exact string, date and hit count for each database as you run it. The PRISMA-S search report is an M3 item and not built. |
 | 9 | Selection of sources of evidence | Part | Title/abstract screening is production: blinded human decisions, optional AI drafts with model and prompt hash recorded, per-batch approval, an audit journal, and a methods paragraph with an automation-use statement. **Gaps:** G2 (second reviewer, agreement, resolving disagreements) and G3 (full-text screening). |
 | 10 | Data charting process | Gap | Charting/extraction is parked. **You:** use a charting form in a spreadsheet, piloted on a few papers and checked by a second person on a sample. The CSV export of included records is the starting sheet. See G4. |
 | 11 | Data items | You | List the charted variables. The v03 `CHARTING_CODEBOOK.md` is a starting point, and needs re-validating against the new protocol. |
 | 12 | Critical appraisal (optional in ScR) | You | Risk of bias is parked. In a scoping review, state that you did no critical appraisal and why. |
 | 13 | Synthesis of results | You | Synthesis is parked. Describe how you will group and map the studies. |
-| 14 | Selection of sources (results, flow diagram) | Part | For the title/abstract stage the app gives identified, duplicates removed, screened, excluded by reason, unclear and included counts, plus a RIS/CSV export. **You:** draw the PRISMA flow diagram from those counts. **Gaps:** G1 (counts per database and a real duplicate count) and G3 (full-text counts and reasons). |
+| 14 | Selection of sources (results, flow diagram) | Part | For the title/abstract stage the app gives identified, duplicates removed, screened, excluded by reason, unclear and included counts, plus a RIS/CSV export. **You:** draw the PRISMA flow diagram from those counts. Since M5b the counts per database and the duplicates removed come from the import (G1). **Gap:** G3 (full-text counts and reasons). |
 | 15 | Characteristics of sources | You | From your charting sheet (G4). |
 | 16 | Critical appraisal within sources (optional) | You | Only if you do item 12. |
 | 17 | Results of individual sources | You | From your charting sheet. |
 | 18 | Synthesis of results | You | — |
 | 19 | Summary of evidence | You | — |
-| 20 | Limitations | You | Include single-reviewer screening (if G2 is not closed) and AI assistance, with its measured recall (see "AI use" below). |
+| 20 | Limitations | You | Include single-reviewer screening (if G2 is not closed) and AI assistance. Report no recall figure until it is measured against human labels (see "AI use" below). |
 | 21 | Conclusions | You | — |
 | 22 | Funding | You | — |
 
 ## Gaps, in the order they bite
 
-**G1. Importing several database exports (blocks items 7 and 14).**
-`nexus-scholar accept-corpus --ris` imports **one** RIS file (`src/scholar_harness/corpus_accept.py`, `import_ris`). It collapses only records whose stable ID repeats within that file. It refuses if `literature/verified.json` already exists. For a RIS corpus the PRISMA counts then report **0 duplicates removed** (`authority/review.py`, the counts are taken from search-harvest metadata, which a RIS import does not write).
+**G1. Importing several database exports. Built in M5b (2026-11-06), on branch `dev/m5b/corpus-import`, not merged yet.**
+The Import screen and `accept-corpus --ris LABEL=PATH` (repeatable) handle this:
+- one RIS file per database, kept unchanged in `literature/raw/ris/`;
+- a database exported in parts, added under the same name and summed;
+- the date searched and the search string, both optional, flagged "not stated" when missing;
+- duplicates removed across and within files by the snapshot's deduplicator;
+- counts per database and the duplicate count, carried into the PRISMA counts and the methods paragraph.
 
-A review with Scopus, Web of Science and IEEE exports needs:
-- several RIS files imported in one step;
-- the source of each record kept;
-- duplicates removed across files, using the search kit's `Deduplicator`;
-- counts per database plus the duplicate count, carried into the PRISMA counts and the methods paragraph.
-
-This must exist **before** `accept-corpus` runs on the real review, because the snapshot is frozen at acceptance. The workaround is to merge and deduplicate in Zotero, then import one file. That works, but the per-database and duplicate counts then live only in your notes, outside the audit trail.
+An end-to-end test runs two RIS files through publish and checks that the published PRISMA counts equal the preview. This test was added after an independent review found duplicates published as 0 (`full-review-2026-11-06.md`, S-P0-1). Until the branch is merged, the Zotero workaround still applies.
 
 **G2. Second reviewer (blocks item 9 at the level Q1 reviewers expect).**
 The app shows the second screener as PARKED, and Agreement measures only human versus AI.
@@ -88,13 +87,13 @@ Records marked Include or Unclear go on to full text. The app has no full-text s
 The workaround is a spreadsheet from the CSV export, with the counts kept by hand. This is the milestone after G2.
 
 **G4. Charting (items 10, 11, 15, 17).**
-Charting is parked. A spreadsheet works for the thesis. Building it into the app can wait until G1–G3 are done.
+Charting is parked. A spreadsheet works for the thesis. Building it into the app can wait until G2 and G3 are done.
 
 ## AI use (methods and declarations)
 
 - Screening drafts come over the MCP route (Claude, `screen-v1`, prompt hash recorded per draft). The methods paragraph states this.
 - Set blinding to **"hidden until you decide"** before screening. Otherwise the human-versus-AI agreement measures nothing, because only decisions made before the reveal count.
-- Measure the AI's recall before claiming it in the methods. That means M5-slim gate part 3: the full 1,644-record prompt gate, with the researcher's go-ahead. Even then, you make every decision yourself; the AI only drafts.
+- **Do not report a recall figure from the prompt gate.** An independent review (`full-review-2026-11-06.md`, S-P0-2) found its 1,644-record "gold set" was labelled by earlier AI runs and confirmed in bulk, not screened by humans. Gate part 3 would therefore measure agreement with earlier AI labels, not sensitivity. To state the AI's recall in the methods, it must first be measured on a sample that two humans screened independently (for example 300–500 records, with kappa reported). Until then, write that AI drafts were used and that you made every decision.
 - Elsevier and MDPI journals ask for a declaration of generative-AI use. The methods paragraph and `docs/data-flow.md` give its facts.
 
 ## Data availability (good already)
@@ -108,7 +107,7 @@ For an OSF supplement, the app already produces:
 ## Before the first search, in order
 
 1. Confirm scoping review (above).
-2. Build G1 (multi-file import with deduplication and per-source counts), or accept the Zotero workaround knowingly.
+2. Merge M5b (multi-file import with deduplication and per-source counts), or use the Zotero workaround knowingly.
 3. Agree the second-reviewer sample with Soumia Zertal and Fadhila Djenba, who appear in the v03 calibration records and journal, and build G2 or plan it in a spreadsheet.
 4. Back up the 49 gitignored files of `uav-crop-weed-v03` (mostly PDFs) before removing the old workspaces.
 5. Create the workspace with `nexus-scholar init` and run inception. Freeze the protocol and register it on OSF.
