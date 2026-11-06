@@ -4,6 +4,23 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-06 — The approver's name is set on the Publish screen (M5-slim)
+
+The researcher chose a field on the Publish screen over a command. Before,
+nothing in the app wrote `literature/screening/operator_context.json`, so the
+first approval of the golden run refused `OPERATOR_CONTEXT_MISSING` and the
+researcher wrote the file by hand. Now `GET`/`PUT /api/v1/screening/approver`
+read and write it (desktop only, in both browser allowlists), and every change
+is journaled `SCREENING_APPROVER_SET` with the name before and after. The
+Publish screen shows an Approver card above the batches; until a name is
+saved, the code and approve buttons are disabled and the card says why.
+
+What the name is, said plainly on the screen and in the contract: a name
+typed on this computer, not a verified sign-in (CON-02/03 stay open; real
+authentication is later work). Names the engine never trusts as a person
+("unknown", …) refuse `APPROVAL_NOT_OPERATOR`. Changing the name later does
+not rewrite approvals already made: each keeps the name it was made under.
+
 ## 2026-11-05 — The demonstration screens are removed; a new header and footer (M5-slim)
 
 At the researcher's request the stale demonstration screens are gone: the

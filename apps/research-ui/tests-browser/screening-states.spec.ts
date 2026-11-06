@@ -63,6 +63,7 @@ test("publish shows the PROJECTION_STALE card and keeps Publish disabled", async
     "/prisma/preview": PREVIEW_STALE,
     "/ui/batches": { ...BATCHES_STALE, batches: [{ ...BATCHES_STALE.batches[0], binding: undefined, coverage: "COMPLETE" }] },
     "/ui/batch/1/review": { shape: "ui07.review-state-v1", batch_index: 1, recommendation: { present: false }, resolution: { resolved: 3, total: 3, unresolved_rows: [] }, override: { superseded: false }, review: { present: true, approval_fingerprint: "sha256:x" }, deferral: { present: false }, missing: [] },
+    "/approver": { name: "Researcher", set_at: "2026-11-06T13:00:00Z", basis: "typed-name" },
   });
   await page.goto("/en/screening/publish");
   await expect(page.locator('[data-state="PROJECTION_STALE"]')).toContainText("A decisions file is out of date");

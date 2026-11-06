@@ -268,6 +268,21 @@ export function getPrismaPreview(origin: string, signal?: AbortSignal): Promise<
   return readJson<PrismaPreview>(`${BASE}/prisma/preview`, consoleBase(origin), signal);
 }
 
+/** The name approvals are recorded under: typed on this computer, not a verified sign-in. */
+export interface Approver {
+  name: string | null;
+  set_at: string | null;
+  basis: "typed-name";
+}
+
+export function getApprover(origin: string, signal?: AbortSignal): Promise<Approver> {
+  return readJson<Approver>(`${BASE}/approver`, consoleBase(origin), signal);
+}
+
+export function putApprover(origin: string, name: string, signal?: AbortSignal): Promise<Approver> {
+  return postJson<Approver>(`${BASE}/approver`, origin, { name }, signal, "PUT");
+}
+
 /** Stage approval for one batch. The code is printed in the engine's terminal, never returned. */
 export function beginApproval(origin: string, batchIndex: number, signal?: AbortSignal): Promise<PairingBegun> {
   return postJson<PairingBegun>(`${BASE}/actions/pairing/begin`, origin, { batch: batchIndex }, signal);

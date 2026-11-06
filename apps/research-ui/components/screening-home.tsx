@@ -23,6 +23,7 @@ const COPY = {
     titleDone: "All {total} records are decided.",
     titleEmpty: "Nothing to screen yet: prepare the batches first.",
     lede: "The agent drafts, you decide. Drafts stay hidden until you have decided each record.",
+    ledeShown: "The agent drafts, you decide. Drafts are shown beside each record, before you decide.",
     live: "Live data from this workspace's screening engine",
     exportLink: "Export and methods",
     openTriage: "Open triage · {n} need you",
@@ -69,6 +70,7 @@ const COPY = {
     titleDone: "Les {total} notices sont toutes décidées.",
     titleEmpty: "Rien à examiner pour l'instant : préparez d'abord les lots.",
     lede: "L'agent rédige, vous décidez. Les brouillons restent masqués jusqu'à votre décision sur chaque notice.",
+    ledeShown: "L'agent rédige, vous décidez. Les brouillons sont affichés à côté de chaque notice, avant votre décision.",
     live: "Données en direct du moteur de sélection de cet espace",
     exportLink: "Export et méthodes",
     openTriage: "Ouvrir le tri · {n} à traiter",
@@ -115,6 +117,7 @@ const COPY = {
     titleDone: "حُسمت السجلات الـ{total} كلها.",
     titleEmpty: "لا شيء للفرز بعد: حضّر الدفعات أولًا.",
     lede: "الوكيل يكتب المسودات وأنت تقرر. تبقى المسودات مخفية حتى تحسم كل سجل.",
+    ledeShown: "الوكيل يكتب المسودات وأنت تقرر. تُعرض المسودات بجانب كل سجل قبل أن تقرر.",
     live: "بيانات حية من محرك الفرز لهذه المساحة",
     exportLink: "التصدير والمنهجية",
     openTriage: "فتح المراجعة · {n} بانتظارك",
@@ -258,7 +261,7 @@ function HomeReady({
             ? t("titleDone", { total: n(summary.total) })
             : t("title", { decided: n(summary.decided), total: n(summary.total), needs: n(summary.needs_you) })}
         </h1>
-        <p className="mt-1 text-ink-muted">{t("lede")}</p>
+        <p className="mt-1 text-ink-muted">{settings.blinding === "show" ? t("ledeShown") : t("lede")}</p>
         <p className="mt-2 inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted">{t("live")}</p>
         <p className="mt-4">
           {stale ? (

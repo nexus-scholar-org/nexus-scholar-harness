@@ -17,7 +17,7 @@ import {
   type ReviewState,
   type ScreeningBatches,
 } from "@/lib/screening-api";
-import { beginApproval, getPrismaPreview, type PairingBegun, type PrismaPreview } from "@/lib/screening-v1";
+import { beginApproval, getApprover, getPrismaPreview, putApprover, type Approver, type PairingBegun, type PrismaPreview } from "@/lib/screening-v1";
 
 /**
  * Publish (spec 09): the PRISMA screening preview with its checks, one
@@ -77,6 +77,13 @@ const COPY = {
     publishBody: "Writes the included, excluded and full-text lists and the PRISMA report for the approved generation.",
     published: "Published generation {id}",
     toTriage: "Open triage",
+    approverTitle: "Approver",
+    approverBody: "Approvals are recorded under this name. It is a name typed on this computer, not a verified sign-in.",
+    approverCurrent: "Approvals are recorded as {name}.",
+    approverNone: "No name yet. Approving a batch needs your name first.",
+    approverLabel: "Your name",
+    approverSave: "Save name",
+    approverSaved: "Name saved.",
   },
   fr: {
     eyebrow: "Sélection · publication",
@@ -123,6 +130,13 @@ const COPY = {
     publishBody: "Écrit les listes d'inclusions, d'exclusions et de texte intégral ainsi que le rapport PRISMA de la génération approuvée.",
     published: "Génération publiée {id}",
     toTriage: "Ouvrir le tri",
+    approverTitle: "Approbateur",
+    approverBody: "Les approbations sont enregistrées sous ce nom. C'est un nom saisi sur cet ordinateur, pas une connexion vérifiée.",
+    approverCurrent: "Les approbations sont enregistrées au nom de {name}.",
+    approverNone: "Aucun nom pour l'instant. Approuver un lot exige d'abord votre nom.",
+    approverLabel: "Votre nom",
+    approverSave: "Enregistrer le nom",
+    approverSaved: "Nom enregistré.",
   },
   ar: {
     eyebrow: "الفرز · النشر",
@@ -169,6 +183,13 @@ const COPY = {
     publishBody: "يكتب قوائم المُدرجة والمستبعدة والنص الكامل وتقرير PRISMA للجيل المعتمد.",
     published: "نُشر الجيل {id}",
     toTriage: "فتح المراجعة",
+    approverTitle: "المعتمِد",
+    approverBody: "تُسجَّل الاعتمادات بهذا الاسم. إنه اسم مكتوب على هذا الحاسوب، وليس تسجيل دخول موثّقًا.",
+    approverCurrent: "تُسجَّل الاعتمادات باسم {name}.",
+    approverNone: "لا يوجد اسم بعد. يحتاج اعتماد أي دفعة إلى اسمك أولًا.",
+    approverLabel: "اسمك",
+    approverSave: "حفظ الاسم",
+    approverSaved: "حُفظ الاسم.",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 
@@ -191,7 +212,7 @@ function codeOf(error: unknown): { code: string; message: string } {
   return isScreeningApiError(error) ? { code: error.code, message: error.serverMessage } : { code: "ENGINE_UNREACHABLE", message: "" };
 }
 
-type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState>; current: boolean };
+type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState>; current: boolean; approver: Approver };
 
 export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: PublishCopyKey, values?: Record<string, string | number>) => fill(PUBLISH_COPY[locale][key], values), [locale]);
@@ -204,19 +225,22 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const [refusal, setRefusal] = useState<{ code: string; message: string } | null>(null);
   const [published, setPublished] = useState<PublishResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [approverDraft, setApproverDraft] = useState<string | null>(null);
+  const [approverSaved, setApproverSaved] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [preview, batches, current] = await Promise.all([
+      const [preview, batches, current, approver] = await Promise.all([
         getPrismaPreview(origin),
         getScreeningBatches(origin),
         // Spec 10, decision 3: the export link shows only while the publication is CURRENT.
         getPublicationStatus(origin).then((status) => status.status === "CURRENT", () => false),
+        getApprover(origin),
       ]);
       const reviews = Object.fromEntries(
         await Promise.all(batches.batches.map(async (b) => [b.batch_index, await getBatchReview(origin, b.batch_index)] as const)),
       );
-      setState({ status: "ready", data: { preview, batches, reviews, current } });
+      setState({ status: "ready", data: { preview, batches, reviews, current, approver } });
     } catch (error) {
       setState({ status: "error", ...codeOf(error) });
     }
@@ -242,7 +266,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const body = (() => {
     if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
-    const { preview, batches, reviews, current } = state.data;
+    const { preview, batches, reviews, current, approver } = state.data;
     const allPass = preview.checks.every((c) => c.ok);
     const allApproved = batches.batches.every((b) => reviews[b.batch_index]?.review.present);
     const reasons = Object.entries(preview.excluded.by_reason).sort(([a], [b]) => a.localeCompare(b));
@@ -350,6 +374,53 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           </div>
 
           <div className="w-full flex-[1_1_320px] space-y-6">
+            <section aria-labelledby="publish-approver" className="rounded-lg border border-rule bg-leaf p-5" data-approver>
+              <h2 id="publish-approver" className="font-semibold text-ink">
+                {t("approverTitle")}
+              </h2>
+              <p className="mt-1 text-sm text-ink-muted">{t("approverBody")}</p>
+              <p className="mt-3 text-sm text-ink" data-approver-state={approver.name ? "set" : "missing"}>
+                {approver.name ? t("approverCurrent", { name: approver.name }) : t("approverNone")}
+              </p>
+              <form
+                className="mt-3 space-y-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const name = (approverDraft ?? approver.name ?? "").trim();
+                  void act(async () => {
+                    setApproverSaved(false);
+                    await putApprover(origin, name);
+                    setApproverDraft(null);
+                    setApproverSaved(true);
+                  });
+                }}
+              >
+                <label className="block text-sm text-ink">
+                  {t("approverLabel")}
+                  <input
+                    type="text"
+                    autoComplete="name"
+                    dir="auto"
+                    maxLength={120}
+                    value={approverDraft ?? approver.name ?? ""}
+                    onChange={(e) => {
+                      setApproverDraft(e.target.value);
+                      setApproverSaved(false);
+                    }}
+                    className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+                  />
+                </label>
+                <Button type="submit" disabled={busy || !(approverDraft ?? approver.name ?? "").trim()}>
+                  {t("approverSave")}
+                </Button>
+                {approverSaved ? (
+                  <p role="status" className="text-xs text-include">
+                    {t("approverSaved")}
+                  </p>
+                ) : null}
+              </form>
+            </section>
+
             <section aria-labelledby="publish-batches" className="rounded-lg border border-rule bg-leaf p-5">
               <h2 id="publish-batches" className="font-semibold text-ink">
                 {t("batches")}
@@ -376,7 +447,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                       {(
                         <div className="mt-2 space-y-2">
                           <Button
-                            disabled={busy}
+                            disabled={busy || !approver.name}
                             onClick={() =>
                               void act(async () => {
                                 const staged = await beginApproval(origin, b.batch_index);
@@ -402,7 +473,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                             />
                           </label>
                           <Button
-                            disabled={busy || !(codes[b.batch_index] ?? "").trim()}
+                            disabled={busy || !approver.name || !(codes[b.batch_index] ?? "").trim()}
                             onClick={() =>
                               void act(async () => {
                                 const code = (codes[b.batch_index] ?? "").trim();

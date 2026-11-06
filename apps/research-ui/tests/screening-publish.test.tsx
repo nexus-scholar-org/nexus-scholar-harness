@@ -38,8 +38,9 @@ function review(approved: boolean) {
   };
 }
 
-function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; publication?: string } = {}) {
+function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; publication?: string; approver?: string | null } = {}) {
   let approved = options.approved ?? false;
+  let approver = options.approver === undefined ? "Researcher" : options.approver;
   const log: { method: string; path: string; body: unknown }[] = [];
   vi.stubGlobal(
     "fetch",
@@ -51,6 +52,10 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200, headers: { "content-type": "application/json" } });
       if (path === "/prisma/preview") return ok(options.preview ?? PREVIEW);
       if (path === "/ui/batches") return ok(BATCHES);
+      if (path === "/approver") {
+        if (method === "PUT") approver = (body as { name: string }).name;
+        return ok({ name: approver, set_at: approver ? "2026-11-06T13:00:00Z" : null, basis: "typed-name" });
+      }
       if (path === "/ui/batch/1/review") return ok(review(approved));
       if (path === "/actions/pairing/begin") return ok({ batch_index: 1, snapshot_fingerprint: "sha256:s", code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: "terminal" });
       if (path === "/actions/pairing/redeem") {
@@ -86,6 +91,34 @@ describe("publish.conflict-blocks", () => {
     render(<ScreeningPublish locale="en" />);
     await screen.findByText("PROJECTION_STALE");
     expect(screen.getByText("A decisions file is out of date", { selector: "h2" })).toBeInTheDocument();
+  });
+});
+
+describe("publish.approver", () => {
+  it("asks for the approver's name before any batch can be approved, then saves it", async () => {
+    // Golden run 2026-11-06: nothing set the name, so the first approval refused OPERATOR_CONTEXT_MISSING.
+    const log = engine({ approver: null });
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByText("No name yet. Approving a batch needs your name first.");
+    expect(screen.getByRole("button", { name: "Show a code in the terminal" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save name" })).toBeDisabled();
+    expect(screen.getByText(/not a verified sign-in/)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Mouadh Bekhouche" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await screen.findByText("Approvals are recorded as Mouadh Bekhouche.");
+    expect(log.find((l) => l.method === "PUT" && l.path === "/approver")?.body).toEqual({ name: "Mouadh Bekhouche" });
+    expect(screen.getByRole("status")).toHaveTextContent("Name saved.");
+    expect(screen.getByRole("button", { name: "Show a code in the terminal" })).toBeEnabled();
+  });
+
+  it("names the approver in every locale", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const key of ["approverTitle", "approverBody", "approverCurrent", "approverNone", "approverLabel", "approverSave", "approverSaved"] as const) {
+        expect(PUBLISH_COPY[locale][key], `${locale} ${key}`).toBeTruthy();
+      }
+      expect(PUBLISH_COPY[locale].approverCurrent, locale).toContain("{name}");
+    }
   });
 });
 
