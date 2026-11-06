@@ -337,6 +337,27 @@ def test_demo_full_supported_flow(tmp_path: Path) -> None:
     assert generation["operator_identity"] == OPERATOR
 
 
+def test_publish_after_approval_with_a_fails_inclusion_exclusion(tmp_path: Path) -> None:
+    """An exclusion that fails an inclusion criterion (`FAILS-INC-01`) publishes.
+
+    Approval and collect must compute byte-identical PRISMA content; the
+    approval side once counted such an exclusion as `UNSPECIFIED` while collect
+    counted it under its code, so every such screening refused with
+    APPROVAL_CONTENT_CHANGED (golden run, 2026-11-06).
+    """
+    workspace, studies = _scaffold(tmp_path)
+    _write_operator_context(workspace)
+    _recommend(workspace)
+    _write_decisions(workspace, studies, ["INCLUDE", "EXCLUDE"], reason_code="FAILS-INC-01")
+    _approve(workspace)
+
+    cmd_collect(workspace)
+
+    assert require_current_generation(workspace).status is GenerationStatus.CURRENT
+    report = json.loads((workspace / "literature" / "prisma_report.json").read_text("utf-8"))
+    assert report["exclusion_reasons_breakdown"] == {"FAILS-INC-01": 1}
+
+
 def test_worker_writes_only_recommendations_dir(tmp_path: Path) -> None:
     """AG04-01: the worker run adds exactly one file, inside recommendations/."""
     workspace, _ = _scaffold(tmp_path)
