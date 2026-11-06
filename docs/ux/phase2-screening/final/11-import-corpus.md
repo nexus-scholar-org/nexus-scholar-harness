@@ -32,8 +32,8 @@ Boards: none. The canvas has no import board; `Prepare` (D2, snapshot-missing st
 `unique_contributed` (how many studies exist only because of that database) is optional in the response; the screen shows the column only if the engine sends it (open question 6). The screen never computes a count in the browser.
 
 ## Data out
-- Add a database: `POST /api/v1/screening/corpus/sources` ✓ M5b (`console/api/screening_v1.py`). JSON `{label, file_name, content, searched_on?, query?}`; `content` is the file read as text in the browser; at most 50 MB per file (`limits.max_source_bytes` in `GET /corpus`). The engine parses it with the RIS importer, refuses a file with no records (`SOURCE_NOT_RIS`), copies it byte for byte to `literature/raw/ris/<slug>.ris` and returns 201 with the updated corpus state and preview. Because files travel as JSON text, a very large file is read in memory; the 50 MB limit is shown before upload.
-- Remove a staged database: `POST /api/v1/screening/corpus/sources/{slug}/remove` ✓ M5b (POST, because the browser allowlists serve no DELETE; `slug` comes from `GET /corpus`). Only before acceptance (`CORPUS_ALREADY_ACCEPTED` after). Returns the updated state. The engine deletes the copied file and the journal keeps its sha256 and record count (open question 7).
+- Add a database: `POST /api/v1/screening/corpus/sources` ✓ M5b (`console/api/screening_v1.py`). JSON `{label, file_name, content_base64, searched_on?, query?}`; `content_base64` is the file's bytes (not decoded as text, so a BOM or a legacy encoding is kept and the sha256 is of the researcher's file); at most 50 MB per file (`limits.max_source_bytes` in `GET /corpus`). The engine parses it with the RIS importer, refuses a file with no records (`SOURCE_NOT_RIS`), copies it byte for byte to `literature/raw/ris/<slug>.ris` and returns 201 with the updated corpus state and preview. Because files travel as JSON text, a very large file is read in memory; the 50 MB limit is shown before upload.
+- Remove a staged database: `POST /api/v1/screening/corpus/sources/{id}/remove` ✓ M5b (POST, because the browser allowlists serve no DELETE; `slug` comes from `GET /corpus`). Only before acceptance (`CORPUS_ALREADY_ACCEPTED` after). Returns the updated state. The engine deletes the copied file and the journal keeps its sha256 and record count (open question 7).
 - Accept: `POST /api/v1/screening/corpus/accept` ✓ M5b (replaces the planned M0 row). No body. Writes `verified.json` (one row per record, with `source_database`) and `literature/raw/provenance_manifest.json`, builds the Contract-v1 corpus snapshot (its deduplicator groups the records into studies), publishes it through the acceptance gate, and returns the `GET /corpus` body with `state: "ACCEPTED"` and `accepted:{artifact_id, accepted_at, records, studies, duplicates}`.
 - The UI never writes the workspace or the journal itself. Journal rows below are written by the engine.
 
@@ -53,7 +53,7 @@ The terminal path is the same engine: `nexus-scholar accept-corpus --ris Scopus=
 | :-- | :-- |
 | `GET /api/v1/screening/corpus` | ✓ M5b |
 | `POST /api/v1/screening/corpus/sources` | ✓ M5b |
-| `POST /api/v1/screening/corpus/sources/{slug}/remove` | ✓ M5b |
+| `POST /api/v1/screening/corpus/sources/{id}/remove` | ✓ M5b |
 | `POST /api/v1/screening/corpus/accept` | ✓ M5b |
 | `GET /api/v1/screening/summary` | ✓ M1a |
 | `GET /api/v1/workspace/meta` | ✓ `workspace.py:107` |
@@ -126,7 +126,7 @@ Vitest: `import.states.test.tsx` (each of the seven states renders: empty, stage
 Python (new): `tests/console/test_corpus_import_api.py` (state `EMPTY` then `STAGED` then `ACCEPTED`; two files with overlapping DOIs give the right per-source, total and duplicate counts; duplicates within one file are counted; `SOURCE_LABEL_TAKEN` on a repeated label including a case change; `SOURCE_NOT_RIS` on a text file and on an empty RIS, writing nothing; `SOURCE_TOO_LARGE` over 50 MB; `NOTHING_STAGED`; `CORPUS_ALREADY_ACCEPTED` on add, remove and a second accept with different files; accepting is idempotent for the same files; raw files are copied to `literature/raw/ris/` with matching sha256; the journal holds `CORPUS_SOURCE_STAGED`, `CORPUS_SOURCE_REMOVED` and `CORPUS_ACCEPTED` with the stated fields and a refused call journals nothing; the accepted snapshot passes the baseline drift check; every record keeps its source label; a phone token gets `TOKEN_SCOPE_REFUSED`; a non-loopback origin gets `ACTION_ORIGIN_REFUSED`), `tests/console/test_console_refusals.py` extended for the five new codes. Playwright: `screening/import.spec.ts` (import two RIS files of golden-uav-30 as two databases, check the counts, accept, land on 02 with Prepare enabled; refusal copy for each code; RTL pass), `screening/import.mobile.spec.ts` (WebKit mobile shows the badge and the desktop pointer only).
 
 ## Routes and refusal codes
-Routes (✓ M5b, contract §4): `GET /api/v1/screening/corpus`, `POST /api/v1/screening/corpus/sources`, `POST /api/v1/screening/corpus/sources/{slug}/remove`, `POST /api/v1/screening/corpus/accept`. Desktop only: a phone token gets `TOKEN_SCOPE_REFUSED` on all four.
+Routes (✓ M5b, contract §4): `GET /api/v1/screening/corpus`, `POST /api/v1/screening/corpus/sources`, `POST /api/v1/screening/corpus/sources/{id}/remove`, `POST /api/v1/screening/corpus/accept`. Desktop only: a phone token gets `TOKEN_SCOPE_REFUSED` on all four.
 
 Refusal codes (console set, outside Contract v1), from `AcceptCorpusRefused.code` in `corpus_accept.py`:
 | Code | When |

@@ -8,6 +8,8 @@ shapes, the refusal codes and the desktop-only scope.
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 from pathlib import Path
 
@@ -52,8 +54,12 @@ def _client(ws: Path, token: str = DESKTOP) -> TestClient:
     )
 
 
-def _stage(client: TestClient, label: str, content: str, **extra):
-    return client.post(f"{BASE}/sources", json={"label": label, "file_name": f"{label}.ris", "content": content, **extra})
+def _stage(client: TestClient, label: str, content: str | bytes, **extra):
+    raw = content.encode("utf-8") if isinstance(content, str) else content
+    return client.post(
+        f"{BASE}/sources",
+        json={"label": label, "file_name": f"{label}.ris", "content_base64": base64.b64encode(raw).decode("ascii"), **extra},
+    )
 
 
 def test_stage_preview_remove_and_accept(ws):
@@ -122,7 +128,7 @@ def test_accept_with_nothing_staged_and_remove_unknown(ws):
 
 
 def test_unknown_fields_are_refused(ws):
-    response = _client(ws).post(f"{BASE}/sources", json={"label": "S", "file_name": "s.ris", "content": SCOPUS, "path": "/etc/passwd"})
+    response = _client(ws).post(f"{BASE}/sources", json={"label": "S", "file_name": "s.ris", "content_base64": "", "path": "/etc/passwd"})
     assert response.status_code == 422
 
 
@@ -132,3 +138,19 @@ def test_a_phone_token_reaches_no_corpus_route(ws):
         assert response.status_code == 403
         assert response.json()["detail"]["code"] == "TOKEN_SCOPE_REFUSED"
     assert not (ws / "literature" / "raw").exists()
+
+
+def test_the_stored_copy_is_the_uploaded_bytes(ws):
+    """Review finding 4: a BOM or a non-UTF-8 export is kept exactly, and its sha256 is of those bytes."""
+    raw = b"\xef\xbb\xbfTY  - JOUR\r\nTI  - Caf\xe9 weeds\r\nPY  - 2024\r\nER  - \r\n"
+    body = _stage(_client(ws), "Web of Science", raw).json()
+    stored = ws / "literature" / "raw" / "ris" / f"{body['sources'][0]['id']}.ris"
+    assert stored.read_bytes() == raw
+    staged = json.loads((ws / "literature" / "raw" / "ris" / "sources.json").read_text(encoding="utf-8"))["sources"][0]
+    assert staged["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert body["sources"][0]["records"] == 1
+
+
+def test_content_that_is_not_base64_is_refused(ws):
+    response = _client(ws).post(f"{BASE}/sources", json={"label": "S", "file_name": "s.ris", "content_base64": "not base64!"})
+    assert (response.status_code, response.json()["detail"]["code"]) == (422, "SOURCE_NOT_RIS")

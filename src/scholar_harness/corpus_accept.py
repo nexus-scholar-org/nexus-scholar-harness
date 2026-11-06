@@ -27,7 +27,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -88,8 +88,11 @@ def _protocol_fingerprint(ws: Path) -> str:
     path = ws / "protocol.json"
     if not path.is_file():
         raise AcceptCorpusRefused(f"protocol.json not found in {ws}")
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return protocol_fingerprint(ResearchProtocol.model_validate(raw))
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        return protocol_fingerprint(ResearchProtocol.model_validate(raw))
+    except ValueError as exc:  # JSON and pydantic validation errors
+        raise AcceptCorpusRefused(f"protocol.json is not a valid protocol ({exc})", "PROTOCOL_INVALID") from exc
 
 
 def _stable_sci_id(document: Document, *, source: str, position: int) -> str:
@@ -193,13 +196,28 @@ def _write_sources(ws: Path, sources: list[dict[str, Any]]) -> None:
     tmp.replace(path)
 
 
+def _imported(ws: Path) -> bool:
+    """True when ``verified.json`` was written by this import (its manifest says so).
+
+    A discovery harvest also writes ``provenance_manifest.json`` (legacy
+    workspaces have one), so the file's presence alone proves nothing.
+    """
+    path = ws / MANIFEST_FILE
+    if not path.is_file():
+        return False
+    try:
+        return json.loads(path.read_text(encoding="utf-8")).get("schema") == IMPORT_MANIFEST_SCHEMA
+    except (OSError, ValueError, AttributeError):
+        return False
+
+
 def _refuse_if_frozen(ws: Path) -> None:
     if _accepted_snapshot(ws):
         raise AcceptCorpusRefused(
             "the corpus is already accepted; its sources can no longer change",
             "CORPUS_ALREADY_ACCEPTED",
         )
-    if (ws / "literature" / "verified.json").exists() and not (ws / MANIFEST_FILE).exists():
+    if (ws / "literature" / "verified.json").exists() and not _imported(ws):
         raise AcceptCorpusRefused(
             "literature/verified.json already exists (a corpus from discovery); "
             "remove it first to import database exports instead",
@@ -230,9 +248,13 @@ def stage_ris_source(
             "SOURCE_TOO_LARGE",
         )
     if searched_on is not None and searched_on != "":
-        if not _DATE_RE.match(searched_on):
+        try:
+            valid = bool(_DATE_RE.match(searched_on)) and date.fromisoformat(searched_on).isoformat() == searched_on
+        except ValueError:
+            valid = False
+        if not valid:
             raise AcceptCorpusRefused(
-                f"date searched {searched_on!r} must be YYYY-MM-DD", "SOURCE_DATE_INVALID"
+                f"date searched {searched_on!r} must be a real date, YYYY-MM-DD", "SOURCE_DATE_INVALID"
             )
     sources = staged_sources(ws)
     digest = hashlib.sha256(content).hexdigest()
@@ -420,7 +442,7 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         status["from_discovery"] = not sources
     else:
         verified = ws / "literature" / "verified.json"
-        status["from_discovery"] = verified.is_file() and not (ws / MANIFEST_FILE).exists()
+        status["from_discovery"] = verified.is_file() and not _imported(ws)
     return status
 
 
@@ -496,8 +518,14 @@ def accept_corpus(
     if ris:
         _refuse_if_frozen(ws)
         import_ris(ws, [r if isinstance(r, tuple) else (None, Path(r)) for r in ris])
-    if staged_sources(ws) and not _accepted_snapshot(ws):
-        _materialise_staged(ws)
+    if not _accepted_snapshot(ws):
+        if staged_sources(ws):
+            _materialise_staged(ws)
+        elif _imported(ws):
+            raise AcceptCorpusRefused(
+                "every database file was removed; add at least one before accepting",
+                "NOTHING_STAGED",
+            )
 
     verified = ws / "literature" / "verified.json"
     if not verified.is_file():

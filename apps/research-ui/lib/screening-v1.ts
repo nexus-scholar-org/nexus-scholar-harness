@@ -319,9 +319,18 @@ export interface Corpus {
 export interface CorpusSourceUpload {
   label: string;
   file_name: string;
-  content: string;
+  /** The file's bytes, base64: the engine stores exactly what the researcher chose. */
+  content_base64: string;
   searched_on?: string | null;
   query?: string | null;
+}
+
+/** Base64 of a file's bytes, without decoding them as text (BOMs and legacy encodings survive). */
+export async function fileToBase64(file: Blob): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary);
 }
 
 export function getCorpus(origin: string, signal?: AbortSignal): Promise<Corpus> {

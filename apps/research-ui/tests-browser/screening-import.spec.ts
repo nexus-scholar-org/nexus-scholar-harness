@@ -2,7 +2,9 @@ import { createRequire } from "node:module";
 
 import type { Page } from "@playwright/test";
 
-import { DESKTOP_VIEWPORT, MOBILE_VIEWPORT, expect, test } from "./helpers";
+import { join } from "node:path";
+
+import { DESKTOP_VIEWPORT, MOBILE_VIEWPORT, SCREENSHOT_DIR, expect, test } from "./helpers";
 
 /**
  * Import the corpus (spec 11) in a real browser. The console proxy is answered
@@ -151,3 +153,57 @@ for (const locale of ["en", "ar"] as const) {
     expect(result.passes).toContain("color-contrast");
   });
 }
+
+test.describe("committed screenshots", () => {
+  test.skip(({ colorScheme }) => colorScheme === "dark", "screenshots are taken in light only");
+  const STAGED: Source[] = [
+    { id: "scopus-0", label: "Scopus", file_name: "scopus-uav-weed-part1.ris", records: 1204, searched_on: "2026-11-06", query: 'TITLE-ABS-KEY(("UAV" OR drone*) AND weed* AND (detect* OR segment* OR map*))' },
+    { id: "scopus-1", label: "Scopus", file_name: "scopus-uav-weed-part2.ris", records: 311, searched_on: "2026-11-06", query: 'TITLE-ABS-KEY(("UAV" OR drone*) AND weed* AND (detect* OR segment* OR map*))' },
+    { id: "web-of-science-2", label: "Web of Science", file_name: "savedrecs.ris", records: 987, searched_on: null, query: null },
+  ];
+  const shot = (name: string) => join(SCREENSHOT_DIR, name);
+
+  test("1440-screening-import-empty.png", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await engine(page);
+    await page.goto("/en/screening/import");
+    await expect(page.locator("[data-import-form]")).toBeVisible();
+    await page.locator("[data-search-details] summary").click();
+    await page.screenshot({ path: shot("1440-screening-import-empty.png"), fullPage: true });
+  });
+
+  for (const locale of ["en", "ar"] as const) {
+    test(`1440-screening-import-staged${locale === "en" ? "" : "-ar"}.png`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 1100 });
+      await engine(page, { sources: STAGED });
+      await page.goto(`/${locale}/screening/import`);
+      await expect(page.locator("[data-import-counts]")).toBeVisible();
+      await page.screenshot({ path: shot(`1440-screening-import-staged${locale === "en" ? "" : "-ar"}.png`), fullPage: true });
+    });
+  }
+
+  test("1440-screening-import-confirm.png", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await engine(page, { sources: STAGED });
+    await page.goto("/en/screening/import");
+    await page.getByRole("button", { name: "Accept and freeze the corpus" }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await page.screenshot({ path: shot("1440-screening-import-confirm.png"), fullPage: true });
+  });
+
+  test("1440-screening-import-accepted.png", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await engine(page, { sources: STAGED, accepted: true });
+    await page.goto("/en/screening/import");
+    await expect(page.locator("[data-import-frozen]")).toBeVisible();
+    await page.screenshot({ path: shot("1440-screening-import-accepted.png"), fullPage: true });
+  });
+
+  test("375-screening-import.png", async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await engine(page, { sources: STAGED });
+    await page.goto("/en/screening/import");
+    await expect(page.locator("[data-phone-pointer]")).toBeVisible();
+    await page.screenshot({ path: shot("375-screening-import.png"), fullPage: true });
+  });
+});

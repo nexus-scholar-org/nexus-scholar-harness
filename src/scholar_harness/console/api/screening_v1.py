@@ -13,6 +13,8 @@ researcher has decided that study (`PROPOSAL_HIDDEN`).
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import unicodedata
 import uuid
@@ -490,10 +492,12 @@ def _corpus_error(exc: Any) -> HTTPException:
 
 
 class CorpusSourceBody(BaseModel):
+    """One export file, sent as base64 so the stored copy is the researcher's bytes."""
+
     model_config = ConfigDict(extra="forbid")
     label: str
     file_name: str
-    content: str
+    content_base64: str
     searched_on: str | None = None
     query: str | None = None
 
@@ -513,8 +517,12 @@ def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, An
 
     ws = _ws(request)
     try:
+        content = base64.b64decode(body.content_base64, validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise _error(422, "SOURCE_NOT_RIS", f"{body.file_name} did not arrive as base64 file content") from exc
+    try:
         stage_ris_source(
-            ws, body.label, body.content.encode("utf-8"),
+            ws, body.label, content,
             file_name=body.file_name, searched_on=body.searched_on, query=body.query,
         )
     except AcceptCorpusRefused as exc:

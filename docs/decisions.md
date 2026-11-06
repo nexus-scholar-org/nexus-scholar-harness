@@ -27,7 +27,7 @@ file and the counts read 0 duplicates.
   paper stay two records.
 - **Freezing.** Once a corpus is accepted, its sources are frozen
   (`CORPUS_ALREADY_ACCEPTED`), and the app offers no way to replace it.
-- **Routes.** `GET /corpus`, `POST /corpus/sources`, `POST /corpus/sources/{slug}/remove`
+- **Routes.** `GET /corpus`, `POST /corpus/sources`, `POST /corpus/sources/{id}/remove`
   and `POST /corpus/accept` replace the planned M0 `POST /corpus/accept` row. They are
   desktop only and in both browser allowlists.
 - **Methods paragraph.** It names each database with its count and date searched.

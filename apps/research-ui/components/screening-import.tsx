@@ -6,7 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
-import { acceptCorpus, addCorpusSource, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
+import { acceptCorpus, addCorpusSource, fileToBase64, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
 
 /**
  * Import the corpus (spec 11, M5b): one RIS export per file, labelled with its
@@ -49,6 +49,7 @@ const COPY = {
     stated: "Stated",
     notStated: "Not stated",
     remove: "Remove {file}",
+    removeShort: "Remove",
     total: "Total records identified",
     counts: "Counts for your PRISMA flow diagram",
     draft: "Preview · not frozen",
@@ -110,6 +111,7 @@ const COPY = {
     stated: "Indiqués",
     notStated: "Non indiqués",
     remove: "Retirer {file}",
+    removeShort: "Retirer",
     total: "Total des notices identifiées",
     counts: "Totaux pour votre diagramme de flux PRISMA",
     draft: "Aperçu · non figé",
@@ -171,6 +173,7 @@ const COPY = {
     stated: "مذكورة",
     notStated: "غير مذكورة",
     remove: "أزل {file}",
+    removeShort: "إزالة",
     total: "مجموع السجلات المحددة",
     counts: "أعداد مخطط تدفق PRISMA",
     draft: "معاينة · غير مجمّدة",
@@ -254,6 +257,14 @@ export function ScreeningImport({ locale }: Readonly<{ locale: Locale }>) {
         <p className="text-ink-muted" role="status">
           {t("loading")}
         </p>
+      ) : load.status === "error" && load.code === "TOKEN_SCOPE_REFUSED" ? (
+        <section className="rounded-lg border border-rule bg-leaf p-5" data-phone-pointer>
+          <h1 className="font-display text-[1.75rem] leading-[2.25rem] text-ink">{t("title")}</h1>
+          <p className="mt-2 text-ink">{t("phone")}</p>
+          <a className="mt-3 inline-flex min-h-11 items-center text-brand underline" href={stepHref(locale, "home", origin)}>
+            {t("phoneLink")}
+          </a>
+        </section>
       ) : load.status === "error" ? (
         <StateCard pageHeading locale={locale} code={load.code} message={load.message} consoleOrigin={origin} onRetry={() => void reload()} />
       ) : (
@@ -293,6 +304,16 @@ function ImportReady({
   const [confirming, setConfirming] = useState(false);
   const acceptRef = useRef<HTMLButtonElement>(null);
   const goBackRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const frozenRef = useRef<HTMLHeadingElement>(null);
+  const justAccepted = useRef(false);
+
+  useEffect(() => {
+    if (accepted && justAccepted.current) {
+      justAccepted.current = false;
+      frozenRef.current?.focus();
+    }
+  }, [accepted]);
 
   useEffect(() => {
     if (confirming) goBackRef.current?.focus();
@@ -355,16 +376,17 @@ function ImportReady({
           ) : null}
           {!accepted && !blockedByDiscovery ? (
             <AddForm
+              refusal={refusal?.code ?? null}
               corpus={corpus}
               busy={busy !== null}
               primary={corpus.sources.length === 0}
               t={t}
               onTooLarge={() => setRefusal({ code: "SOURCE_TOO_LARGE", message: "" })}
               onAdd={async (file, label, searchedOn, query) => {
-                const content = await file.text();
+                const content_base64 = await fileToBase64(file);
                 return act(
                   t("reading", { file: file.name }),
-                  () => addCorpusSource(origin, { label, file_name: file.name, content, searched_on: searchedOn || null, query: query || null }),
+                  () => addCorpusSource(origin, { label, file_name: file.name, content_base64, searched_on: searchedOn || null, query: query || null }),
                   t("added", { file: file.name, label }),
                 );
               }}
@@ -384,8 +406,8 @@ function ImportReady({
                   <tr className="text-ink-muted">
                     <th scope="col" className="py-1 text-start">{t("colDatabase")}</th>
                     <th scope="col" className="py-1 text-start">{t("colFiles")}</th>
-                    <th scope="col" className="py-1 text-end">{t("colRecords")}</th>
-                    <th scope="col" className="py-1 text-start">{t("colSearched")}</th>
+                    <th scope="col" className="py-1 pe-6 text-end">{t("colRecords")}</th>
+                    <th scope="col" className="whitespace-nowrap py-1 pe-4 text-start">{t("colSearched")}</th>
                     <th scope="col" className="py-1 text-start">{t("colDetails")}</th>
                   </tr>
                 </thead>
@@ -408,7 +430,7 @@ function ImportReady({
                     <th scope="row" colSpan={2} className="py-2 text-start">
                       {t("total")}
                     </th>
-                    <td className="py-2 text-end">{n(corpus.databases.reduce((sum, d) => sum + d.records, 0))}</td>
+                    <td className="py-2 pe-6 text-end tabular-nums">{n(counts.identified)}</td>
                     <td colSpan={2} />
                   </tr>
                 </tfoot>
@@ -469,7 +491,7 @@ function ImportReady({
           {accepted && corpus.accepted ? (
             <section aria-labelledby="import-frozen" className="rounded-lg border border-rule bg-leaf p-5" data-import-frozen>
               <DecisionBadge role="include">{t("frozen")}</DecisionBadge>
-              <h2 id="import-frozen" className="mt-2 font-semibold text-ink" tabIndex={-1}>
+              <h2 id="import-frozen" ref={frozenRef} className="mt-2 font-semibold text-ink" tabIndex={-1}>
                 {t("frozen")}
               </h2>
               {corpus.accepted.accepted_at ? (
@@ -500,10 +522,15 @@ function ImportReady({
                   aria-labelledby="import-confirm"
                   aria-describedby="import-confirm-body"
                   className="mt-4 rounded-md border border-brand p-4"
+                  aria-modal="true"
                   onKeyDown={(e) => {
                     if (e.key === "Escape") {
                       setConfirming(false);
                       acceptRef.current?.focus();
+                    } else if (e.key === "Tab") {
+                      // Two controls: Tab and Shift+Tab move between them and never leave.
+                      e.preventDefault();
+                      (document.activeElement === goBackRef.current ? confirmRef : goBackRef).current?.focus();
                     }
                   }}
                 >
@@ -524,10 +551,12 @@ function ImportReady({
                       {t("back")}
                     </Button>
                     <Button
+                      ref={confirmRef}
                       variant="primary"
                       disabled={busy !== null}
                       onClick={() => {
                         setConfirming(false);
+                        justAccepted.current = true;
                         void act(t("freezing"), () => acceptCorpus(origin), t("frozen"));
                       }}
                     >
@@ -580,22 +609,28 @@ function DatabaseRow({
       <td className="py-2">
         <ul className="space-y-1">
           {files.map((file) => (
-            <li key={file.id} className="flex flex-wrap items-center gap-2">
+            <li key={file.id} className="flex flex-wrap items-center gap-x-3">
               <DataCell>
                 <bdi dir="ltr">{file.file_name}</bdi>
               </DataCell>
-              <span className="text-ink-muted">{n(file.records)}</span>
+              <span className="text-ink-muted tabular-nums">{n(file.records)}</span>
               {removable ? (
-                <Button variant="quiet" disabled={busy} onClick={() => onRemove(file.id, file.file_name)}>
-                  {t("remove", { file: file.file_name })}
+                <Button
+                  variant="quiet"
+                  className="px-0 text-sm"
+                  aria-label={t("remove", { file: file.file_name })}
+                  disabled={busy}
+                  onClick={() => onRemove(file.id, file.file_name)}
+                >
+                  {t("removeShort")}
                 </Button>
               ) : null}
             </li>
           ))}
         </ul>
       </td>
-      <td className="py-2 text-end">{n(db.records)}</td>
-      <td className="py-2">{db.searched_on.length ? <bdi dir="ltr">{db.searched_on.join(", ")}</bdi> : <span className="text-unclear">{t("notStated")}</span>}</td>
+      <td className="py-2 pe-6 text-end tabular-nums">{n(db.records)}</td>
+      <td className="whitespace-nowrap py-2 pe-4">{db.searched_on.length ? <bdi dir="ltr">{db.searched_on.join(", ")}</bdi> : <span className="text-unclear">{t("notStated")}</span>}</td>
       <td className="py-2">
         {db.search_details_missing ? (
           <DecisionBadge role="unclear">{t("notStated")}</DecisionBadge>
@@ -608,6 +643,7 @@ function DatabaseRow({
 }
 
 function AddForm({
+  refusal,
   corpus,
   busy,
   primary,
@@ -615,6 +651,7 @@ function AddForm({
   onTooLarge,
   onAdd,
 }: Readonly<{
+  refusal: string | null;
   corpus: Corpus;
   busy: boolean;
   primary: boolean;
@@ -672,6 +709,7 @@ function AddForm({
             list="import-database-names"
             maxLength={corpus.limits.label_max_length}
             value={label}
+            aria-invalid={refusal === "SOURCE_LABEL_INVALID" ? true : undefined}
             aria-describedby="import-label-help"
             onChange={(e) => setLabel(e.target.value)}
             className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
@@ -685,7 +723,7 @@ function AddForm({
         <p id="import-label-help" className="text-xs text-ink-muted">
           {t("labelHelp")}
         </p>
-        <details className="rounded-md border border-rule p-3" data-search-details>
+        <details className="rounded-md border border-rule p-3" data-search-details open={refusal === "SOURCE_DATE_INVALID" ? true : undefined}>
           <summary className="cursor-pointer text-sm font-medium text-ink">{t("details")}</summary>
           <div className="mt-3 space-y-3">
             <label className="block text-sm text-ink">
@@ -693,6 +731,7 @@ function AddForm({
               <input
                 type="date"
                 value={searchedOn}
+                aria-invalid={refusal === "SOURCE_DATE_INVALID" ? true : undefined}
                 aria-describedby="import-date-help"
                 onChange={(e) => setSearchedOn(e.target.value)}
                 className="mt-1 block rounded-md border border-rule bg-paper p-2 text-ink"

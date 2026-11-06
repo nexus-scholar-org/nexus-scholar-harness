@@ -15,7 +15,7 @@ class RISImporter:
         current_record: dict[str, Any] = {}
         authors: list[Author] = []
 
-        with Path(filepath).open("r", encoding="utf-8", errors="replace") as f:
+        with Path(filepath).open("r", encoding="utf-8-sig", errors="replace") as f:
             for line in f:
                 line = line.strip()
                 if not line:

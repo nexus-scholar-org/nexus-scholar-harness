@@ -146,7 +146,9 @@ describe("import.add", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add this file" }));
     await screen.findByText("scopus-2.ris");
     const post = log.find((c) => c.method === "POST" && c.path === "/corpus/sources");
-    expect(post?.body).toEqual({ label: "Scopus", file_name: "scopus-1.ris", content: "TY  - JOUR\nTI  - A\nER  - \n", searched_on: null, query: null });
+    expect(post?.body).toEqual({
+      label: "Scopus", file_name: "scopus-1.ris", content_base64: btoa("TY  - JOUR\nTI  - A\nER  - \n"), searched_on: null, query: null,
+    });
   });
 
   it("stops a file over the limit in the browser without sending it", async () => {
@@ -158,6 +160,24 @@ describe("import.add", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add this file" }));
     await screen.findByText("SOURCE_TOO_LARGE");
     expect(log.some((c) => c.method === "POST")).toBe(false);
+  });
+
+  it("a phone token gets the desktop pointer, not a refusal", async () => {
+    engine({ "/corpus": refused(403, "TOKEN_SCOPE_REFUSED") });
+    render(<ScreeningImport locale="en" />);
+    expect(await screen.findByText("Importing is done on your desktop. Open this screen there to add your database files.")).toBeInTheDocument();
+    expect(screen.queryByText("TOKEN_SCOPE_REFUSED")).toBeNull();
+  });
+
+  it("marks the field a refusal names", async () => {
+    engine({ "/corpus": EMPTY, "POST /corpus/sources": refused(422, "SOURCE_LABEL_INVALID") });
+    render(<ScreeningImport locale="en" />);
+    await screen.findByText("No databases added yet.");
+    choose("a.ris", "TY  - JOUR\nER  - \n");
+    fireEvent.change(screen.getByLabelText("Database name (required)"), { target: { value: "x" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add this file" }));
+    await screen.findByText("SOURCE_LABEL_INVALID");
+    expect(screen.getByLabelText("Database name (required)")).toHaveAttribute("aria-invalid", "true");
   });
 
   it("shows the engine's refusal with its code", async () => {
@@ -186,8 +206,17 @@ describe("import.accept", () => {
     expect(log.some((c) => c.path === "/corpus/accept")).toBe(false);
 
     fireEvent.click(screen.getByRole("button", { name: "Accept and freeze the corpus" }));
-    fireEvent.click(screen.getByRole("button", { name: "Freeze the corpus" }));
+    const open = screen.getByRole("alertdialog");
+    const goBack = within(open).getByRole("button", { name: "Go back" });
+    const freeze = within(open).getByRole("button", { name: "Freeze the corpus" });
+    await waitFor(() => expect(goBack).toHaveFocus());
+    fireEvent.keyDown(open, { key: "Tab" });
+    expect(freeze).toHaveFocus();
+    fireEvent.keyDown(open, { key: "Tab", shiftKey: true });
+    expect(goBack).toHaveFocus();
+    fireEvent.click(freeze);
     await screen.findByRole("heading", { level: 1, name: "What was imported" });
+    await waitFor(() => expect(screen.getByRole("heading", { level: 2, name: "Corpus frozen" })).toHaveFocus());
     expect(screen.getByRole("link", { name: "Continue to Prepare" })).toHaveAttribute("href", "/en/screening/prepare");
     expect(screen.getByText("ART-corpus-0123456789abcdef")).toBeInTheDocument();
   });

@@ -228,6 +228,10 @@ def test_several_ris_exports_are_deduplicated_and_counted_per_database(tmp_path)
     cmd_prepare(ws, batch_size=20)
     batch = json.loads((ws / "literature" / "screening" / "batch_001.json").read_text(encoding="utf-8"))
     assert len(batch["papers"]) == 4
+    # Review finding 2: the Web of Science twin has no abstract; the study keeps Scopus's.
+    abstracts = {p["title"]: p.get("abstract") for p in batch["papers"]}
+    hyperspectral = next(v for k, v in abstracts.items() if k.lower().startswith("hyperspectral"))
+    assert hyperspectral == "Three."
 
     events = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
     imported = [e for e in events if e["action"] == "CORPUS_IMPORTED"]
@@ -269,6 +273,7 @@ def test_preview_matches_what_acceptance_builds(tmp_path):
         ("", WOS.encode(), {}, "SOURCE_LABEL_INVALID"),
         ("<script>", WOS.encode(), {}, "SOURCE_LABEL_INVALID"),
         ("IEEE", WOS.encode(), {"searched_on": "06/11/2026"}, "SOURCE_DATE_INVALID"),
+        ("IEEE", WOS.encode(), {"searched_on": "2026-13-45"}, "SOURCE_DATE_INVALID"),
     ],
 )
 def test_staging_refusals(tmp_path, label, content, kwargs, code):
@@ -369,3 +374,59 @@ def test_a_database_exported_in_parts_is_one_database_with_summed_counts(tmp_pat
     assert [(d["label"], d["records"], d["files"]) for d in manifest["databases"]] == [("Scopus", 6, 2)]
     events = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
     assert [e for e in events if e["action"] == "CORPUS_IMPORTED"][-1]["metrics"]["by_source"] == {"Scopus": 6}
+
+
+def test_a_discovery_corpus_with_a_harvest_manifest_is_never_replaced(tmp_path):
+    """Review finding 1: legacy discovery workspaces also carry provenance_manifest.json."""
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, corpus_status, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    records = _verified(ws)
+    raw = ws / "literature" / "raw"
+    raw.mkdir(parents=True)
+    (raw / "provenance_manifest.json").write_text(json.dumps({"total_raw_harvested": 5}), encoding="utf-8")
+    with pytest.raises(AcceptCorpusRefused) as caught:
+        stage_ris_source(ws, "Scopus", SCOPUS.encode(), file_name="scopus.ris")
+    assert caught.value.code == "VERIFIED_EXISTS"
+    assert corpus_status(ws)["from_discovery"] is True
+    assert json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8")) == records
+    assert json.loads((raw / "provenance_manifest.json").read_text(encoding="utf-8")) == {"total_raw_harvested": 5}
+
+
+def test_an_import_whose_files_were_all_removed_cannot_be_accepted(tmp_path):
+    """Review finding 9: a verified.json left by a refused acceptance is not accepted on its own."""
+    from scholar_harness.corpus_accept import (
+        AcceptCorpusRefused,
+        _materialise_staged,
+        accept_corpus,
+        remove_staged_source,
+        stage_ris_source,
+    )
+
+    ws = _workspace(tmp_path)
+    entry = stage_ris_source(ws, "Scopus", SCOPUS.encode(), file_name="scopus.ris")
+    _materialise_staged(ws)  # as an acceptance that the gate then refused would leave it
+    remove_staged_source(ws, entry["id"])
+    with pytest.raises(AcceptCorpusRefused) as caught:
+        accept_corpus(ws)
+    assert caught.value.code == "NOTHING_STAGED"
+
+
+def test_an_invalid_protocol_is_a_typed_refusal(tmp_path):
+    """Review finding 10: not an untyped 500."""
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, accept_corpus, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    stage_ris_source(ws, "Scopus", SCOPUS.encode(), file_name="scopus.ris")
+    (ws / "protocol.json").write_text(json.dumps({"not": "a protocol"}), encoding="utf-8")
+    with pytest.raises(AcceptCorpusRefused) as caught:
+        accept_corpus(ws)
+    assert caught.value.code == "PROTOCOL_INVALID"
+
+
+def test_a_byte_order_mark_does_not_lose_the_first_record(tmp_path):
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    ws = _workspace(tmp_path)
+    entry = stage_ris_source(ws, "Scopus", b"\xef\xbb\xbf" + SCOPUS.encode(), file_name="scopus.ris")
+    assert entry["records"] == 3

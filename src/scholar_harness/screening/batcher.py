@@ -251,10 +251,12 @@ def cmd_prepare(workspace_dir: Path, batch_size: int = 20, force: bool = False) 
     alias_to_doc = {}
     for study in corpus_env["data"]["studies"]:
         stu_id = study["study_id"]
-        for alias in study.get("alias_ids", []):
-            if alias in verified_lookup:
-                alias_to_doc[stu_id] = verified_lookup[alias]
-                break
+        # Duplicates across databases share a study: show the first record (in
+        # alias order) that has an abstract, so a database's bare copy never
+        # hides the abstract another database supplied.
+        rows = [verified_lookup[a] for a in study.get("alias_ids", []) if a in verified_lookup]
+        if rows:
+            alias_to_doc[stu_id] = next((r for r in rows if (r.get("abstract") or "").strip()), rows[0])
 
     candidates = [
         ScreeningCandidate(
