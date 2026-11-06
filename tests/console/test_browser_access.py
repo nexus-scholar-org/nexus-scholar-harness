@@ -126,3 +126,19 @@ def test_without_the_packaged_options_nothing_changes(ws, tmp_path):
     assert client.get("/en/").json()["detail"]["code"] == "TOKEN_REQUIRED"
     with pytest.raises(ValueError):
         create_app(ws, token=TOKEN, ui_dir=tmp_path)
+
+
+def test_pages_are_revalidated_and_hashed_assets_cached_for_good(ws, ui):
+    # A rebuilt app must reach the browser: with no Cache-Control a browser may
+    # reuse an old page for a tenth of its age (the golden run saw the previous
+    # build after a reinstall). Next's hashed assets never change content.
+    chunk = ui / "_next" / "static" / "chunks"
+    chunk.mkdir(parents=True)
+    (chunk / "abc123.js").write_text("// built", encoding="utf-8")
+    client = _browser(_app(ws, ui)[0])
+    page = client.get("/en/")
+    assert page.status_code == 200 and page.headers["cache-control"] == "no-cache"
+    again = client.get("/en/", headers={"if-none-match": page.headers["etag"]})
+    assert again.status_code == 304 and again.headers["cache-control"] == "no-cache"
+    asset = client.get("/_next/static/chunks/abc123.js")
+    assert asset.status_code == 200 and asset.headers["cache-control"] == "public, max-age=31536000, immutable"

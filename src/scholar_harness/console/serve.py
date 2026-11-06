@@ -86,6 +86,21 @@ def _host_name(header: str) -> str:
     return header.rsplit(":", 1)[0] if header.count(":") == 1 else header
 
 
+class _UIFiles(StaticFiles):
+    """The static UI, with cache headers that let a rebuilt app reach the browser.
+
+    Pages are revalidated on every load (``no-cache``: a 304 when unchanged);
+    without a header a browser may reuse an old page for a tenth of its age.
+    Next's ``_next/static`` files are content-hashed, so they never change.
+    """
+
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        hashed = path.replace("\\", "/").startswith("_next/static/")
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable" if hashed else "no-cache"
+        return response
+
+
 def create_app(
     workspace: str | Path | None,
     *,
@@ -246,7 +261,7 @@ def create_app(
             return RedirectResponse("/en/", status_code=307)
 
         not_found = ui_root / "404.html"
-        app.mount("/", StaticFiles(directory=ui_root, html=True), name="ui")
+        app.mount("/", _UIFiles(directory=ui_root, html=True), name="ui")
 
         @app.exception_handler(404)
         async def ui_not_found(request: Request, exc):  # noqa: ANN001
