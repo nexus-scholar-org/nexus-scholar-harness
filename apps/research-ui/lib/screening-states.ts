@@ -11,11 +11,13 @@ import type { DecisionRole } from "@/components/ui/base";
  * card because the screens must show it, and its role is `unclear`.
  */
 
-export type StateAction = "prepare" | "proposals" | "triage" | "publish" | "home" | "retry" | "reload" | "terminal" | "none";
+export type StateAction = "import" | "prepare" | "proposals" | "triage" | "publish" | "home" | "retry" | "reload" | "terminal" | "none";
 
 interface StateEntry {
   role: DecisionRole;
   action: StateAction;
+  /** A terminal command shown under the action, for people who prefer the terminal. */
+  command?: string;
   copy: Record<Locale, { title: string; body: string; affects: string; action: string }>;
 }
 
@@ -33,11 +35,94 @@ export const STATES: Record<string, StateEntry> = {
   },
   SNAPSHOT_NOT_ACCEPTED: {
     role: "blocked",
-    action: "terminal",
+    action: "import",
+    command: "nexus-scholar accept-corpus --ris Scopus=<file>.ris",
     copy: {
-      en: T("No accepted corpus", "Batches can be prepared only from an accepted corpus snapshot. Accept it from the terminal.", "Batch preparation only", "nexus-scholar accept-corpus"),
-      fr: T("Aucun corpus accepté", "Les lots ne peuvent être préparés qu'à partir d'un instantané de corpus accepté. Acceptez-le depuis le terminal.", "Préparation des lots uniquement", "nexus-scholar accept-corpus"),
-      ar: T("لا توجد مجموعة مقبولة", "لا تُحضَّر الدفعات إلا من لقطة مجموعة مقبولة. اقبلها من الطرفية.", "تحضير الدفعات فقط", "nexus-scholar accept-corpus"),
+      en: T("No accepted corpus", "Batches can be prepared only from an accepted corpus. Import your search results and accept them first.", "Batch preparation only", "Import the corpus"),
+      fr: T("Aucun corpus accepté", "Les lots ne peuvent être préparés qu'à partir d'un corpus accepté. Importez d'abord vos résultats de recherche et acceptez-les.", "Préparation des lots uniquement", "Importer le corpus"),
+      ar: T("لا توجد مجموعة مقبولة", "لا تُحضَّر الدفعات إلا من مجموعة مقبولة. استورد نتائج بحثك واقبلها أولًا.", "تحضير الدفعات فقط", "استيراد المجموعة"),
+    },
+  },
+  // Spec 11 (M5b): the corpus import refusals. Each affects the one file or step named.
+  SOURCE_NOT_RIS: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("No records in this file", "No RIS records were found in it. Export your results from the database as RIS (.ris or .txt) and add that file.", "This file only; nothing was added", "Choose another file"),
+      fr: T("Aucune notice dans ce fichier", "Aucune notice RIS n'y a été trouvée. Exportez vos résultats depuis la base au format RIS (.ris ou .txt) et ajoutez ce fichier.", "Ce fichier seulement ; rien n'a été ajouté", "Choisir un autre fichier"),
+      ar: T("لا سجلات في هذا الملف", "لم يُعثر فيه على سجلات RIS. صدّر نتائجك من قاعدة البيانات بصيغة RIS ‏(.ris أو .txt) ثم أضف ذلك الملف.", "هذا الملف فقط؛ لم يُضف شيء", "اختر ملفًا آخر"),
+    },
+  },
+  SOURCE_TOO_LARGE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("File too large", "Files are limited to 50 MB. Export the results in parts and add each part under the same database name; the parts are added up.", "This file only; nothing was added", "Export in parts"),
+      fr: T("Fichier trop volumineux", "Les fichiers sont limités à 50 Mo. Exportez les résultats en plusieurs parties et ajoutez chacune sous le même nom de base ; les parties sont additionnées.", "Ce fichier seulement ; rien n'a été ajouté", "Exporter en parties"),
+      ar: T("الملف كبير جدًا", "حجم الملف محدود بـ 50 ميغابايت. صدّر النتائج على أجزاء وأضف كل جزء تحت اسم قاعدة البيانات نفسه؛ تُجمع الأجزاء.", "هذا الملف فقط؛ لم يُضف شيء", "التصدير على أجزاء"),
+    },
+  },
+  SOURCE_DUPLICATE_FILE: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("This file is already added", "The same file is already in the list, so it was not added twice.", "This file only", "Choose another file"),
+      fr: T("Ce fichier est déjà ajouté", "Le même fichier figure déjà dans la liste ; il n'a pas été ajouté deux fois.", "Ce fichier seulement", "Choisir un autre fichier"),
+      ar: T("هذا الملف مضاف مسبقًا", "الملف نفسه موجود في القائمة، فلم يُضف مرتين.", "هذا الملف فقط", "اختر ملفًا آخر"),
+    },
+  },
+  SOURCE_LABEL_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Check the database name", "Use 1 to 40 letters, digits, spaces or . & ( ) + / - _.", "This file only; nothing was added", "Edit the name"),
+      fr: T("Vérifiez le nom de la base", "Utilisez de 1 à 40 lettres, chiffres, espaces ou . & ( ) + / - _.", "Ce fichier seulement ; rien n'a été ajouté", "Modifier le nom"),
+      ar: T("تحقق من اسم قاعدة البيانات", "استعمل من 1 إلى 40 حرفًا أو رقمًا أو مسافة أو . & ( ) + / - _.", "هذا الملف فقط؛ لم يُضف شيء", "عدّل الاسم"),
+    },
+  },
+  SOURCE_DATE_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Check the date searched", "The date must be a calendar date (year, month, day), or left empty.", "This file only; nothing was added", "Edit the date"),
+      fr: T("Vérifiez la date de recherche", "La date doit être une date du calendrier (année, mois, jour), ou rester vide.", "Ce fichier seulement ; rien n'a été ajouté", "Modifier la date"),
+      ar: T("تحقق من تاريخ البحث", "يجب أن يكون التاريخ تاريخًا تقويميًا (سنة، شهر، يوم) أو أن يُترك فارغًا.", "هذا الملف فقط؛ لم يُضف شيء", "عدّل التاريخ"),
+    },
+  },
+  SOURCE_NOT_FOUND: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("That file is no longer in the list", "It was removed already, perhaps from another tab.", "The list of files", "Reload"),
+      fr: T("Ce fichier n'est plus dans la liste", "Il a déjà été retiré, peut-être depuis un autre onglet.", "La liste des fichiers", "Recharger"),
+      ar: T("لم يعد هذا الملف في القائمة", "أُزيل مسبقًا، ربما من تبويب آخر.", "قائمة الملفات", "إعادة التحميل"),
+    },
+  },
+  VERIFIED_EXISTS: {
+    role: "blocked",
+    action: "prepare",
+    copy: {
+      en: T("This workspace already has a corpus", "Its records came from the app's own search (literature/verified.json). Database exports would replace them, so none can be added here.", "Importing database exports", "Go to Prepare"),
+      fr: T("Cet espace a déjà un corpus", "Ses notices viennent de la recherche de l'application (literature/verified.json). Des exports de bases les remplaceraient ; aucun ne peut donc être ajouté ici.", "L'import d'exports de bases", "Aller à Préparer"),
+      ar: T("لهذه المساحة مجموعة بالفعل", "جاءت سجلاتها من بحث التطبيق نفسه (literature/verified.json). ستحل محلها صادرات قواعد البيانات، لذا لا يمكن إضافة أي منها هنا.", "استيراد صادرات قواعد البيانات", "الذهاب إلى التحضير"),
+    },
+  },
+  CORPUS_ALREADY_ACCEPTED: {
+    role: "include",
+    action: "reload",
+    copy: {
+      en: T("The corpus is already frozen", "Databases can no longer be added or removed, because screening starts from this corpus.", "Adding, removing and accepting", "See what was imported"),
+      fr: T("Le corpus est déjà figé", "On ne peut plus ajouter ni retirer de base, car la sélection part de ce corpus.", "Ajout, retrait et acceptation", "Voir ce qui a été importé"),
+      ar: T("المجموعة مجمّدة بالفعل", "لم يعد ممكنًا إضافة قاعدة بيانات أو إزالتها، لأن الفرز يبدأ من هذه المجموعة.", "الإضافة والإزالة والقبول", "عرض ما استُورد"),
+    },
+  },
+  NOTHING_STAGED: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("Nothing to accept yet", "Add at least one database file before you accept.", "Accepting", "Reload"),
+      fr: T("Rien à accepter pour l'instant", "Ajoutez au moins un fichier de base avant d'accepter.", "L'acceptation", "Recharger"),
+      ar: T("لا شيء للقبول بعد", "أضف ملف قاعدة بيانات واحدًا على الأقل قبل القبول.", "القبول", "إعادة التحميل"),
     },
   },
   NOT_PREPARED: {
@@ -412,6 +497,7 @@ export interface StateCopy {
   body: string;
   affects: string;
   actionLabel: string;
+  command?: string;
 }
 
 const UNKNOWN: Record<Locale, { title: string; body: string }> = {
@@ -427,7 +513,7 @@ export function stateCopy(locale: Locale, code: string): StateCopy {
     return { code, known: false, role: "blocked", action: "none", title: UNKNOWN[locale].title, body: UNKNOWN[locale].body, affects: "", actionLabel: "" };
   }
   const c = entry.copy[locale];
-  return { code, known: true, role: entry.role, action: entry.action, title: c.title, body: c.body, affects: c.affects, actionLabel: c.action };
+  return { code, known: true, role: entry.role, action: entry.action, title: c.title, body: c.body, affects: c.affects, actionLabel: c.action, command: entry.command };
 }
 
 export const AFFECTS_LABEL: Record<Locale, string> = { en: "Affects:", fr: "Concerne :", ar: "يؤثر في:" };

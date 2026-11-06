@@ -1220,22 +1220,26 @@ def accept_corpus_command(
     workspace: Path = typer.Option(
         Path("."), "--workspace", "-w", help="Path to research workspace directory"
     ),
-    ris: Path | None = typer.Option(  # noqa: B008
+    ris: list[str] | None = typer.Option(  # noqa: B008
         None,
         "--ris",
-        help="Import a RIS export (Scopus, Web of Science, Zotero) into literature/verified.json first",
+        help=(
+            "A RIS export to import first, as LABEL=PATH (e.g. Scopus=scopus.ris) or PATH "
+            "(label = file name). Repeat once per database; duplicates across files are removed."
+        ),
     ),
 ):
     """Accept the workspace's corpus snapshot so screening can start.
 
-    Builds the Contract-v1 corpus snapshot from literature/verified.json (or a
-    RIS export) and publishes it through the acceptance gate. Run `prepare`
-    afterwards. Re-running on the same records is a no-op.
+    Builds the Contract-v1 corpus snapshot from literature/verified.json, or from
+    the database exports given with --ris (or staged in the app), and publishes it
+    through the acceptance gate. Run `prepare` afterwards. Re-running on the same
+    records is a no-op.
     """
-    from .corpus_accept import AcceptCorpusRefused, accept_corpus
+    from .corpus_accept import AcceptCorpusRefused, accept_corpus, parse_ris_option
 
     try:
-        result = accept_corpus(workspace, ris=ris)
+        result = accept_corpus(workspace, ris=[parse_ris_option(r) for r in ris or []])
     except AcceptCorpusRefused as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]", markup=True, soft_wrap=True)
         raise typer.Exit(1) from exc

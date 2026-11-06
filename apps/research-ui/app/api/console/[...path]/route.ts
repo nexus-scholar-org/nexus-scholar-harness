@@ -53,6 +53,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/decisions\/events$/,
   /^api\/v1\/screening\/decisions\/conflicts\/[A-Za-z0-9_-]+\/resolve$/,
   /^api\/v1\/screening\/prepare$/,
+  // M5b: the corpus import (stage a RIS export, remove one, accept). The console
+  // refuses once the corpus is accepted, and a phone token reaches none of them.
+  /^api\/v1\/screening\/corpus\/(sources|accept)$/,
+  /^api\/v1\/screening\/corpus\/sources\/[A-Za-z0-9_-]+\/remove$/,
   // M1b-2: agent runs and calibrations (contract §4). The console checks
   // consent, the key, the one-run lock and the cost ceiling; an estimate sends
   // nothing to a provider.

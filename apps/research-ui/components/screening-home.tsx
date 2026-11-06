@@ -6,7 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
-import { getConflicts, getSettings, getSummary, type Conflict, type Settings, type Summary } from "@/lib/screening-v1";
+import { getConflicts, getCorpus, getSettings, getSummary, type Conflict, type Corpus, type Settings, type Summary } from "@/lib/screening-v1";
 
 /**
  * Screening home (spec 01): how far screening is, what needs you, who screens,
@@ -63,6 +63,9 @@ const COPY = {
     modeEvery: "you see every record",
     modeAi: "AI-agreed exclusion (opt-in)",
     progressLabel: "{decided} of {total} records decided",
+    importCta: "Import your search results",
+    imported: "{records} records from {databases}, {duplicates} duplicates removed.",
+    importedLink: "What was imported",
   },
   fr: {
     eyebrow: "Sélection",
@@ -110,6 +113,9 @@ const COPY = {
     modeEvery: "vous voyez chaque notice",
     modeAi: "exclusion validée par l'IA (option)",
     progressLabel: "{decided} notices décidées sur {total}",
+    importCta: "Importer vos résultats de recherche",
+    imported: "{records} notices issues de {databases}, {duplicates} doublons retirés.",
+    importedLink: "Ce qui a été importé",
   },
   ar: {
     eyebrow: "الفرز",
@@ -157,6 +163,9 @@ const COPY = {
     modeEvery: "ترى كل سجل",
     modeAi: "استبعاد يوافق عليه الذكاء الاصطناعي (اختياري)",
     progressLabel: "حُسم {decided} من {total} سجلًا",
+    importCta: "استورد نتائج بحثك",
+    imported: "{records} سجلًا من {databases}، وأُزيل {duplicates} مكررًا.",
+    importedLink: "ما استُورد",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 
@@ -175,7 +184,7 @@ function consoleOrigin(): string {
   return new URLSearchParams(window.location.search).get("console") ?? "";
 }
 
-type Loaded = { summary: Summary; batches: ScreeningBatches; conflicts: Conflict[]; settings: Settings; published: boolean };
+type Loaded = { summary: Summary; batches: ScreeningBatches; conflicts: Conflict[]; settings: Settings; published: boolean; corpus: Corpus | null };
 
 export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: HomeCopyKey, values?: Record<string, string | number>) => fill(HOME_COPY[locale][key], values), [locale]);
@@ -186,7 +195,7 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
   const load = useCallback(async () => {
     setState({ status: "loading" });
     try {
-      const [summary, batches, conflicts, settings, published] = await Promise.all([
+      const [summary, batches, conflicts, settings, published, corpus] = await Promise.all([
         getSummary(origin),
         getScreeningBatches(origin),
         getConflicts(origin),
@@ -194,8 +203,11 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
         // The export link shows only while the publication is CURRENT (spec 10, decision 3);
         // a failed read of the status hides the link and nothing else.
         getPublicationStatus(origin).then((s) => s.status === "CURRENT", () => false),
+        // The import (spec 11): an entry until the corpus is accepted, then one
+        // line of what was brought in. A failed read hides both and nothing else.
+        getCorpus(origin).then((c): Corpus | null => c, () => null),
       ]);
-      setState({ status: "ready", data: { summary, batches, conflicts, settings, published } });
+      setState({ status: "ready", data: { summary, batches, conflicts, settings, published, corpus } });
     } catch (error) {
       setState({
         status: "error",
@@ -245,7 +257,9 @@ function HomeReady({
   t: (key: HomeCopyKey, values?: Record<string, string | number>) => string;
   n: (value: number) => string;
 }>) {
-  const { summary, batches, conflicts, settings, published } = data;
+  const { summary, batches, conflicts, settings, published, corpus } = data;
+  const importOpen = corpus !== null && corpus.state !== "ACCEPTED" && !corpus.from_discovery;
+  const imported = corpus?.state === "ACCEPTED" && corpus.accepted && corpus.databases.length > 0 ? corpus : null;
   const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
   const percent = summary.total > 0 ? Math.round((summary.decided / summary.total) * 100) : 0;
   const triage = stepHref(locale, "triage", origin);
@@ -264,7 +278,11 @@ function HomeReady({
         <p className="mt-1 text-ink-muted">{settings.blinding === "show" ? t("ledeShown") : t("lede")}</p>
         <p className="mt-2 inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted">{t("live")}</p>
         <p className="mt-4">
-          {stale ? (
+          {importOpen ? (
+            <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={stepHref(locale, "import", origin)} data-import-entry>
+              {t("importCta")}
+            </a>
+          ) : stale ? (
             <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={stepHref(locale, "prepare", origin)}>
               {t("seeChange")}
             </a>
@@ -280,6 +298,18 @@ function HomeReady({
             mode: settings.mode === "ai_agreed_exclusion" ? t("modeAi") : t("modeEvery"),
           })}
         </p>
+        {imported?.accepted ? (
+          <p className="mt-2 text-sm text-ink" data-imported-line>
+            {t("imported", {
+              records: n(imported.accepted.records),
+              databases: new Intl.ListFormat(locale, { type: "conjunction" }).format(imported.databases.map((d) => d.label)),
+              duplicates: n(imported.accepted.duplicates),
+            })}{" "}
+            <a className="text-brand underline" href={stepHref(locale, "import", origin)}>
+              {t("importedLink")}
+            </a>
+          </p>
+        ) : null}
         {published ? (
           <p className="mt-2">
             <a className="inline-flex min-h-11 items-center text-brand underline" href={exportHref(locale, origin)} data-export-link>
@@ -290,7 +320,7 @@ function HomeReady({
       </header>
 
       {stale ? <StateCard locale={locale} code="STALE_BINDING" consoleOrigin={origin} /> : null}
-      {batches.count === 0 ? <StateCard locale={locale} code="NOT_PREPARED" consoleOrigin={origin} /> : null}
+      {batches.count === 0 && !importOpen ? <StateCard locale={locale} code="NOT_PREPARED" consoleOrigin={origin} /> : null}
       {conflicts.length > 0 ? <StateCard locale={locale} code="conflict" consoleOrigin={origin} /> : null}
 
       <section aria-labelledby="home-progress" className="rounded-lg border border-rule bg-leaf p-5">

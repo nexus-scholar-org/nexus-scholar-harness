@@ -503,6 +503,35 @@ def build_methods(ws: Path) -> dict[str, Any]:
     figures: dict[str, Any] = {**figures_counts, "exclusion_reasons": reasons}
     sentences: list[str] = []
 
+    # 0. Databases (one RIS export per database, from accept-corpus or the Import screen)
+    manifest_path = Path("literature") / "raw" / "provenance_manifest.json"
+    if source(manifest_path):
+        try:
+            imported = json.loads((ws / manifest_path).read_text(encoding="utf-8")).get("sources") or []
+        except ValueError:
+            imported = []
+            caveats.append("provenance_manifest.json cannot be read.")
+        if imported:
+            from ..corpus_accept import databases
+
+            per_database = databases(imported)
+            parts = [
+                f"{d['label']} (n = {d['records']}"
+                + (f", searched {' and '.join(d['searched_on'])}" if d["searched_on"] else "")
+                + ")"
+                for d in per_database
+            ]
+            listed = parts[0] if len(parts) == 1 else f"{', '.join(parts[:-1])} and {parts[-1]}"
+            sentences.append(f"Records were identified from {listed}.")
+            figures["identified_by_source"] = [
+                {"label": d["label"], "records": d["records"], "searched_on": d["searched_on"]}
+                for d in per_database
+            ]
+            if any(not s.get("searched_on") for s in imported):
+                not_stated.append("Date searched: not recorded for every database.")
+            if any(not s.get("query") for s in imported):
+                not_stated.append("Search string: not recorded for every database.")
+
     # 1. PRISMA
     c = figures_counts
     reason_text = f" ({', '.join(f'{k}: {v}' for k, v in sorted(reasons.items()))})" if reasons else ""

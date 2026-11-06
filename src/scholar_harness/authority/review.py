@@ -796,16 +796,10 @@ def _compute_single_screener_content(
             if entry.get("reason_code"):
                 reason_codes[wsid] = str(entry["reason_code"])
 
-    manifest_raw = ws / "literature" / "raw" / "provenance_manifest.json"
-    total_identified = len(docs)
-    duplicates_removed = 0
-    if manifest_raw.exists():
-        try:
-            harvest = json.loads(manifest_raw.read_text(encoding="utf-8"))
-            total_identified = harvest.get("total_raw_harvested", len(docs))
-            duplicates_removed = max(0, total_identified - len(docs))
-        except (OSError, ValueError):
-            pass
+    from ..corpus_accept import prisma_identification
+
+    # One helper for collect and approval, so both hash the same counts.
+    total_identified, duplicates_removed = prisma_identification(ws, len(docs))
 
     inc_docs, exc_docs, conflicts, report = partition_screening_results(
         docs,

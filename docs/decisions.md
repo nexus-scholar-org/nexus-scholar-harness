@@ -4,6 +4,102 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-06 — Three kinds of parameter, and where each lives (proposed)
+
+The researcher raised it on 2026-11-06: values are encoded throughout the
+project, screening may not be specific to systematic reviews, and the stages
+may one day be composed by the researcher. A survey of the harness found
+about 35 module-level numeric constants, five `NEXUS_*` environment
+variables, and pydantic-settings classes in three kits. Most of the constants
+are floors or contract limits; the problem is not their number but that three
+kinds of value are mixed with no rule. The rule:
+
+1. **Invariants stay in code.** Security floors and contract limits: pairing
+   code length and lifetime, the launch code's two minutes, 200 events per
+   request, the 50 MB import cap, the approver name length. They are not
+   preferences; changing one is an architecture decision. They are listed
+   once, with their floor and the reason, in
+   `docs/architecture/DEVELOPER_COMPASS.md`, and nowhere else.
+2. **Method parameters live in the protocol.** Anything a reviewer could ask
+   "how did you …" about belongs in `protocol.json`, under a `method` block,
+   versioned and covered by the protocol hash, so the researcher signs it and
+   the methods paragraph reads it from the same place. Today these are in
+   code: the deduplication tiers (exact DOI, then fuzzy title at 0.97 with
+   first-author match and a year tolerance of ±1, `scholar_search/dedup.py`),
+   the screening rule table and its version (`screening-rules-v1`,
+   `screening/proposals.py`), the "any criterion not reported means Unclear"
+   policy, the default batch size (20), and the blinding default
+   (`reveal_after_decision`). The current values become the defaults a new
+   protocol is written with, so nothing changes for a workspace that says
+   nothing. A workspace that adopts the block gets a new protocol fingerprint,
+   like any amendment; existing workspaces keep theirs until re-inception.
+   Whether adding the block is a Contract v1 change is decided by
+   `generate_contract_baseline.py --check`, not by convenience: if the check
+   moves, stop and decide.
+3. **Operator preferences live in the workspace settings and the keychain.**
+   Provider, model, cost ceiling, queue order, advance-on-decide, theme,
+   workspaces root. They are journaled when they affect provenance (as
+   `SCREENING_SETTINGS_CHANGED` already is) and never hashed into the
+   protocol.
+
+Two consequences follow, both deferred until after M6-beta:
+
+- **Screening is not specific to systematic reviews.** Criteria come from the
+  protocol, decisions are events, the outcome is a rule table over
+  per-criterion answers; that holds for scoping and mapping studies, umbrella
+  and rapid reviews, dataset curation and abstract triage. What is specific is
+  the reporting layer (PRISMA counts, the flow-diagram boxes, the methods
+  paragraph), so reporting becomes a guideline chosen in the protocol
+  (`prisma-2020`, `prisma-scr`, `none`), keyed from the existing
+  `playbook_type`. The engine does not change.
+- **Composition comes from artifact types, not a workflow engine.** Every stage
+  is a step that declares the Contract v1 artifact types it consumes and
+  produces and refuses with a typed code when an input is missing; the order
+  falls out of the dependencies (import or discovery produce a corpus
+  snapshot; prepare consumes it; collect consumes decisions). No workflow
+  builder, no pipeline-spec runner, until a second workflow exists. The
+  legacy nine-stage coordinator (`pipeline/coordinator.py`) and the
+  pipeline-spec runner (`pipeline_executor.py`) are not that model and are
+  not extended.
+
+Not chosen: a settings framework for the harness (there are too few knobs to
+justify one), environment variables for method parameters (invisible to the
+protocol hash), and a per-screen configuration file (a preference that
+changes the science must be in the protocol).
+
+## 2026-11-06 — Several database exports in one corpus, deduplicated by the snapshot (M5b)
+
+The researcher asked for several RIS files with cross-database deduplication and a way to
+accept the corpus in the app. A PRISMA flow diagram needs the records identified per
+database and the duplicates removed. Before this change, `accept-corpus --ris` took one
+file and the counts read 0 duplicates.
+
+- **Staging.** Each export is staged with a database label under `literature/raw/ris/`, kept
+  byte for byte, and listed in `literature/raw/ris/sources.json`. A label may repeat (a
+  database exported in parts); its files are summed into one database for PRISMA. Each
+  file can carry a date searched and a search string, both optional. Staging and removal are journaled
+  (`CORPUS_SOURCE_STAGED`, `CORPUS_SOURCE_REMOVED`).
+- **Acceptance.** Acceptance writes one `verified.json` row per record, with
+  `source_database`. It also writes `literature/raw/provenance_manifest.json`
+  (`total_raw_harvested`, records per source), which the PRISMA counts already read.
+- **Deduplication.** Nothing is collapsed at import. The snapshot builder's existing
+  `Deduplicator` (DOI, then title, first author and year ±1) groups records into studies,
+  so duplicates removed = records − studies, within and across files.
+- **Contract.** The Contract-v1 snapshot schema is unchanged (`generate_contract_baseline.py
+  --check` passes). Record ids now include the source and position, so two copies of one
+  paper stay two records.
+- **Freezing.** Once a corpus is accepted, its sources are frozen
+  (`CORPUS_ALREADY_ACCEPTED`), and the app offers no way to replace it.
+- **Routes.** `GET /corpus`, `POST /corpus/sources`, `POST /corpus/sources/{id}/remove`
+  and `POST /corpus/accept` replace the planned M0 `POST /corpus/accept` row. They are
+  desktop only and in both browser allowlists.
+- **Methods paragraph.** It names each database with its count and date searched.
+
+Approved by the researcher on 2026-11-06, with three changes to the Import screen (spec 11):
+repeated labels are summed per database; the search details sit behind a "Search details"
+disclosure with a "not stated" flag; and the Import step stays in the steps bar until the
+corpus is accepted, after which Home shows one line of what was imported.
+
 ## 2026-11-06 — The approver's name is set on the Publish screen (M5-slim)
 
 The researcher chose a field on the Publish screen over a command. Before,

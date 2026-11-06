@@ -137,6 +137,10 @@ the nine 2026-10-09 inception/recon method findings remain open (INC report §4)
   different questions (gate cost; guideline conformance). Not superseded line by line,
   but their positive conclusions about protection should be read against §2 above.
 
+- [`prisma-scr-readiness.md`](prisma-scr-readiness.md) (2026-11-06): the PhD review's
+  PRISMA-ScR items against the app at `87d4467`, with the gaps to close before its first
+  search (multi-file RIS import and deduplication, second reviewer, full text, charting).
+
 ## 5. Limits
 
 No live provider, LLM or full Docling/GROBID run; no real workspace pipeline end to

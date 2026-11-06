@@ -220,3 +220,50 @@ def test_methods_writes_no_file_and_no_journal_row_and_is_repeatable(tmp_path, a
     first = _methods(ws)
     assert _methods(ws) == first
     assert _tree(ws) == before
+
+
+SCOPUS_RIS = 'TY  - JOUR\nAU  - Rossi, M.\nTI  - UAV weed mapping in maize\nPY  - 2024\nDO  - 10.1000/m5b-1\nER  - \nTY  - JOUR\nAU  - Chen, L.\nTI  - Drone crop scouting with deep learning\nPY  - 2022\nDO  - 10.1000/m5b-2\nER  - \nTY  - JOUR\nAU  - Diaz, A.\nTI  - Hyperspectral weed discrimination\nPY  - 2021\nER  - \n'
+WOS_RIS = 'TY  - JOUR\nAU  - Rossi, M.\nTI  - UAV Weed Mapping in Maize\nPY  - 2024\nDO  - https://doi.org/10.1000/M5B-1\nER  - \nTY  - JOUR\nAU  - Diaz, A.\nTI  - Hyperspectral weed discrimination.\nPY  - 2021\nER  - \nTY  - JOUR\nAU  - Okafor, N.\nTI  - Site-specific herbicide prescription maps\nPY  - 2023\nDO  - 10.1000/m5b-4\nER  - \n'
+
+
+def _imported_workspace(tmp_path: Path) -> Path:
+    """Two database exports (6 records, 2 duplicates) accepted and prepared, nothing decided."""
+    from scholar_harness.corpus_accept import accept_corpus, stage_ris_source
+    from scholar_harness.screening.batcher import cmd_prepare
+
+    ws = tmp_path / "ws"
+    (ws / "literature").mkdir(parents=True)
+    (ws / "audit").mkdir()
+    (ws / "audit" / "journal.jsonl").write_text("", encoding="utf-8")
+    (ws / "project.json").write_text(json.dumps({"project_id": "m5b", "registered_workspace_id": se.WS_ID}), encoding="utf-8")
+    (ws / "protocol.json").write_text(se.PROTOCOL.read_text(encoding="utf-8"), encoding="utf-8")
+    stage_ris_source(ws, "Scopus", SCOPUS_RIS.encode(), file_name="scopus.ris", searched_on="2026-11-06")
+    stage_ris_source(ws, "Web of Science", WOS_RIS.encode(), file_name="savedrecs.ris")
+    accept_corpus(ws)
+    cmd_prepare(ws, batch_size=20)
+    return ws
+
+
+def test_an_imported_corpus_publishes_the_snapshot_counts_and_names_its_databases(tmp_path):
+    """S-P0-1 (full review 2026-11-06): with one verified row per record, collect and
+    approval used to publish duplicates_removed = 0 for 6 records in 4 studies."""
+    ws = _imported_workspace(tmp_path)
+    studies = se._studies(ws)
+    assert len(studies) == 4
+    se._intake(ws, [se._event(ws, study, "INCLUDE") for study in studies])
+    publish(ws)
+
+    prisma = json.loads((ws / "literature" / "prisma_report.json").read_text(encoding="utf-8"))
+    preview = client_for(ws).get(f"{BASE}/prisma/preview").json()
+    assert (prisma["total_identified"], prisma["duplicates_removed"], prisma["records_screened"]) == (6, 2, 4)
+    assert (preview["identified"], preview["duplicates_removed"], preview["screened"]) == (6, 2, 4)
+
+    body = _methods(ws)
+    _assert_numbers_trace(body)
+    assert body["paragraph"].startswith(
+        "Records were identified from Scopus (n = 3, searched 2026-11-06) and Web of Science (n = 3). "
+        "6 records were identified; 2 duplicates were removed; 4 records were screened;"
+    )
+    assert [s["records"] for s in body["figures"]["identified_by_source"]] == [3, 3]
+    assert "Date searched: not recorded for every database." in body["not_stated"]
+    assert "provenance_manifest.json" in {s["name"] for s in body["sources"]}
