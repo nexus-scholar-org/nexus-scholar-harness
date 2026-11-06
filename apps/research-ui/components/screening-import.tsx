@@ -79,6 +79,7 @@ const COPY = {
     phone: "Importing is done on your desktop. Open this screen there to add your database files.",
     phoneLink: "Go to screening home",
     discovery: "This workspace's corpus came from the app's own search, not from database files.",
+    discoveryCounts: "{records} records, {duplicates} duplicates removed, {studies} studies to screen.",
   },
   fr: {
     eyebrow: "Sélection · Import",
@@ -141,6 +142,7 @@ const COPY = {
     phone: "L'import se fait sur votre ordinateur. Ouvrez cet écran sur celui-ci pour ajouter vos fichiers de bases.",
     phoneLink: "Aller à l'accueil de la sélection",
     discovery: "Le corpus de cet espace vient de la recherche de l'application, pas de fichiers de bases.",
+    discoveryCounts: "{records} notices, {duplicates} doublons retirés, {studies} études à examiner.",
   },
   ar: {
     eyebrow: "الفرز · الاستيراد",
@@ -203,6 +205,7 @@ const COPY = {
     phone: "يتم الاستيراد على حاسوبك. افتح هذه الشاشة هناك لإضافة ملفات قواعد البيانات.",
     phoneLink: "الذهاب إلى رئيسية الفرز",
     discovery: "جاءت مجموعة هذه المساحة من بحث التطبيق نفسه، لا من ملفات قواعد البيانات.",
+    discoveryCounts: "{records} سجلًا، وأُزيل {duplicates} مكررًا، و{studies} دراسة للفرز.",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 
@@ -393,6 +396,21 @@ function ImportReady({
             />
           ) : null}
 
+          {accepted && corpus.from_discovery && corpus.accepted ? (
+            <section aria-labelledby="import-discovery" className="rounded-lg border border-rule bg-leaf p-5" data-import-discovery>
+              <h2 id="import-discovery" className="font-semibold text-ink">
+                {t("discovery")}
+              </h2>
+              <p className="mt-2 text-sm text-ink">
+                {t("discoveryCounts", {
+                  records: n(corpus.accepted.records),
+                  duplicates: n(corpus.accepted.duplicates),
+                  studies: n(corpus.accepted.studies),
+                })}
+              </p>
+            </section>
+          ) : null}
+          {accepted && corpus.from_discovery ? null : (
           <section aria-labelledby="import-databases" className="rounded-lg border border-rule bg-leaf p-5" data-import-databases>
             <h2 id="import-databases" className="font-semibold text-ink">
               {t("databases")}
@@ -437,6 +455,7 @@ function ImportReady({
               </table>
             )}
           </section>
+          )}
 
           {corpus.databases.length > 0 ? (
             <section
