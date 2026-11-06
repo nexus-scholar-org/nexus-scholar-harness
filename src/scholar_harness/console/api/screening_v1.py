@@ -522,14 +522,14 @@ def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, An
     return corpus_status(ws)
 
 
-@router.post("/corpus/sources/{slug}/remove")
-def remove_corpus_source(slug: str, request: Request) -> dict[str, Any]:
-    """Drop a staged export before acceptance (journaled)."""
+@router.post("/corpus/sources/{source_id}/remove")
+def remove_corpus_source(source_id: str, request: Request) -> dict[str, Any]:
+    """Drop one staged export file before acceptance (journaled)."""
     from ...corpus_accept import AcceptCorpusRefused, corpus_status, remove_staged_source
 
     ws = _ws(request)
     try:
-        remove_staged_source(ws, slug)
+        remove_staged_source(ws, source_id)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
     return corpus_status(ws)

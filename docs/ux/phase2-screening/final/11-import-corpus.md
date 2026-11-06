@@ -1,4 +1,4 @@
-# 11 Import the corpus    Status: DRAFT | Phase 2 Screening (before Prepare) | Route `/screening/import` (write actions desktop only) | Milestone M5b (corpus import; engine and UI)
+# 11 Import the corpus    Status: FINAL | Phase 2 Screening (before Prepare) | Route `/screening/import` (write actions desktop only) | Milestone M5b (corpus import; engine and UI)
 
 Boards: none. The canvas has no import board; `Prepare` (D2, snapshot-missing state) only offers "Accept the Discovery corpus as a snapshot". This screen reuses the `Prepare` binding table, the `Publish` PRISMA card, the table, badge, EmptyState and state-card patterns and introduces no component. Contract: `docs/architecture/screening-api-contract.md` §4 (`POST /corpus/accept`), §7. PRISMA 2020 wording: the identification box ("Records identified from: Databases (n = …)"; "Records removed before screening: Duplicate records removed (n = …)"). Existing command being replaced as the only way in: `nexus-scholar accept-corpus --ris <one file>` (`src/scholar_harness/cli.py:1219`, `src/scholar_harness/corpus_accept.py:143`).
 
@@ -142,18 +142,20 @@ Refusal codes (console set, outside Contract v1), from `AcceptCorpusRefused.code
 | `CORPUS_ALREADY_ACCEPTED` | HTTP 409. Add, remove or accept after the corpus is frozen |
 | `NOTHING_STAGED` | HTTP 409. Accept with no staged source and no discovery corpus |
 
-## Decisions
-None recorded yet. Every point below is open.
+## Decisions (researcher, 2026-11-06)
+Defaults accepted, with three changes. Where this list and the text above differ, this list wins.
+1. **Search details are optional and hidden until needed.** Date searched and search string sit behind a closed "Search details" disclosure in the add form, not inline. A database whose files lack either shows a "not stated" flag in the table and on the counts card. The methods paragraph lists what is missing under "not stated". Nothing is required, and nothing is invented.
+2. **Search string:** one free-text box per file, shown verbatim in monospace (`dir="ltr"`).
+3. **RIS only** in M5b (`.ris`, `.txt`). Other formats are later.
+4. **Steps bar:** an unnumbered "Import" step before "1 Prepare", shown until the corpus is accepted. After acceptance the step goes away and Home shows one line, for example "30 records from Scopus and Web of Science, 2 duplicates removed", with a link "What was imported" to this screen (read-only).
+5. **Duplicates:** counts only. Reviewing duplicate groups by hand is a later screen.
+6. **No per-database "unique contributed" column.**
+7. **Removing a staged file** deletes its copy; the journal keeps its sha256 and record count.
+8. **Terminal:** `--ris LABEL=PATH` repeats (done).
+9. **Phone:** the "do this on your desktop" pointer only; the phone reads no corpus route.
+10. **A label may repeat.** A database exported in parts is added twice under the same label ("Scopus", "Scopus"). Its files are summed into one database row, because PRISMA counts per database and the split is an export artefact. The first spelling of a label is kept ("scopus" joins "Scopus"). Each file has its own `id` for removal. `SOURCE_LABEL_TAKEN` is withdrawn; the same file twice is still refused (`SOURCE_DUPLICATE_FILE`).
+
+**Superseded in the text above.** The table now has one row per database, summed, with its files listed under it, each with its own Remove control; "required, unique" labels are now "required, may repeat". `SOURCE_LABEL_TAKEN` is withdrawn. Remove uses `POST /corpus/sources/{id}/remove`, with the id from `GET /corpus` `sources[].id`. `GET /corpus` also returns `databases: [{label, records, files, searched_on: [dates], search_details_missing}]`, which is the row source for the table and the counts card. The "partial: file missing" state, the `a` shortcut and the drop zone are not in M5b: the file picker is the only way to add a file. The SOURCE_TOO_LARGE copy says to export in parts under the same database name.
 
 ## Open questions
-For the researcher. The spec stays DRAFT until each is answered.
-1. **Is "date searched" required?** PRISMA 2020 and PRISMA-S ask for the date each database was searched, and a methods section is weaker without it. Required makes the form stricter and blocks someone importing an old export whose date they do not know. Proposed default: optional in the form, with a visible reminder on the counts card ("Date searched is missing for {n} databases") and a non-blocking line in the future methods paragraph, so nothing is invented and nothing is blocked.
-2. **Search string: free text or structured per database?** Proposed default: one free-text field per database (copied verbatim from the database's search history), shown in a monospace box. A structured form (field tags, Boolean groups, limits) differs for every database and would need per-vendor design. Free text still satisfies PRISMA-S "full search strategy".
-3. **Non-RIS formats (CSV, BibTeX, nbib/MEDLINE) now or later?** PubMed's native export is nbib/MEDLINE, and Web of Science and Scopus also offer BibTeX/CSV, but RIS is available from all four named databases and is the only importer the engine has been checked on (`RISImporter`). Proposed default: RIS only in M5b, with the `SOURCE_NOT_RIS` copy naming the supported format, and a later milestone for the others.
-4. **Does Home get an "Import" step before "Prepare" in the steps bar?** The bar is now Home, 1 Prepare, 2 Agent proposals, 3 Triage, 4 Agreement, 5 Publish (01). Adding a step renumbers everything and the numbers appear in 01, 02, 08 and 09 copy. Alternative: Import is reached only from Home and the refusal card, shown on the bar as "Import" (unnumbered, shown only while nothing is accepted, afterwards a link on 01 and 02). Proposed default: the unnumbered, conditional form, so no existing number changes; this needs a one-line edit to 01.
-5. **Should the researcher see and review near-duplicates?** The deduplicator applies its rules automatically and the screen shows only the final counts. A review list of duplicate groups (what was merged) would help trust and is the only way to catch a wrong merge, but it is a separate screen and a manual-override rule that changes the corpus fingerprint. Proposed: not in M5b; list as follow-up. Is that acceptable for a review that must report "duplicates removed"?
-6. **Per-database "unique contributed" count.** Useful for reviewers (which database added what) but not required by PRISMA 2020. Should the engine compute and the table show it?
-7. **Removing a staged database after its file was copied.** As built: the copy is deleted, so `literature/raw/ris/` always matches the staged list, and the journal keeps the file's sha256 and record count. Alternative: keep it in a `removed/` folder. Which do you want?
-8. ~~**Terminal command.**~~ Answered by the engine change: `--ris LABEL=PATH` repeats, and the terminal and this screen share one engine.
-9. **Phone read-only view of the accepted counts.** Is it acceptable for the phone to read `GET /corpus` (counts only, no query text), or should the phone show only the badge and the pointer, as proposed?
-10. **Restricting the label.** The label is free text with suggestions. Should "Other" require a name of at least 2 characters, and should the same suggestion be allowed twice for split exports (Scopus 1, Scopus 2)? Proposed: yes to the second, since SOURCE_TOO_LARGE tells people to split.
+None.

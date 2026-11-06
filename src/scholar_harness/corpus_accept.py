@@ -136,8 +136,8 @@ def _verified_row(document: Document) -> dict[str, Any]:
     }
 
 
-def _parse_ris(path: Path, label: str) -> list[Document]:
-    """Every record of one RIS file, each kept apart with its source and position.
+def _parse_ris(path: Path, source_id: str) -> list[Document]:
+    """Every record of one RIS file, each kept apart with its file and position.
 
     Records are not collapsed here, not even exact repeats inside one file: the
     snapshot builder's deduplicator does that, so the duplicate count covers both.
@@ -145,8 +145,8 @@ def _parse_ris(path: Path, label: str) -> list[Document]:
     documents = []
     for position, document in enumerate(RISImporter().parse(path), start=1):
         document.provider = "ris"
-        document.provider_id = f"{label}#{position}"
-        document.workspace_id = _stable_sci_id(document, source=label, position=position)
+        document.provider_id = f"{source_id}#{position}"
+        document.workspace_id = _stable_sci_id(document, source=source_id, position=position)
         documents.append(document)
     return documents
 
@@ -237,21 +237,25 @@ def stage_ris_source(
     sources = staged_sources(ws)
     digest = hashlib.sha256(content).hexdigest()
     for existing in sources:
-        if existing["label"].casefold() == label.casefold() or _slug(existing["label"]) == _slug(label):
-            raise AcceptCorpusRefused(f"a source named {existing['label']!r} is already staged", "SOURCE_LABEL_TAKEN")
+        # A database exported in parts is staged once per part under one label;
+        # the first spelling of the label is kept so the parts add up together.
+        if existing["label"].casefold() == label.casefold():
+            label = existing["label"]
         if existing["sha256"] == digest:
             raise AcceptCorpusRefused(
                 f"{file_name} is the same file as {existing['label']} ({existing['file_name']})",
                 "SOURCE_DUPLICATE_FILE",
             )
-    stored = ws / RIS_DIR / f"{_slug(label)}.ris"
+    source_id = f"{_slug(label)}-{digest[:8]}"
+    stored = ws / RIS_DIR / f"{source_id}.ris"
     stored.parent.mkdir(parents=True, exist_ok=True)
     stored.write_bytes(content)
-    records = len(_parse_ris(stored, label))
+    records = len(_parse_ris(stored, source_id))
     if records == 0:
         stored.unlink()
         raise AcceptCorpusRefused(f"{file_name} contains no RIS records", "SOURCE_NOT_RIS")
     entry = {
+        "id": source_id,
         "label": label,
         "file_name": Path(file_name).name,
         "stored_as": stored.relative_to(ws).as_posix(),
@@ -267,21 +271,22 @@ def stage_ris_source(
         f"Staged {records} records from {label} ({entry['file_name']})",
         inputs=[entry["file_name"]],
         outputs=[entry["stored_as"], SOURCES_FILE.as_posix()],
-        parameters={"label": label, "searched_on": entry["searched_on"], "query": entry["query"]},
+        parameters={
+            "id": source_id, "label": label, "searched_on": entry["searched_on"], "query": entry["query"],
+        },
         metrics={"records": records, "sha256": digest},
     )
     return entry
 
 
-def remove_staged_source(workspace: Path | str, label: str) -> None:
-    """Drop one staged source before acceptance; its stored file goes too."""
+def remove_staged_source(workspace: Path | str, source_id: str) -> None:
+    """Drop one staged file (by its ``id``) before acceptance; its stored copy goes too."""
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
     sources = staged_sources(ws)
-    wanted = (label or "").strip()
-    keep = [s for s in sources if s["label"].casefold() != wanted.casefold() and _slug(s["label"]) != wanted]
+    keep = [s for s in sources if s["id"] != source_id]
     if len(keep) == len(sources):
-        raise AcceptCorpusRefused(f"no staged source is named {label!r}", "SOURCE_NOT_FOUND")
+        raise AcceptCorpusRefused(f"no staged file has the id {source_id!r}", "SOURCE_NOT_FOUND")
     gone = next(s for s in sources if s not in keep)
     (ws / gone["stored_as"]).unlink(missing_ok=True)
     _write_sources(ws, keep)
@@ -289,7 +294,7 @@ def remove_staged_source(workspace: Path | str, label: str) -> None:
         ws,
         "CORPUS_SOURCE_REMOVED",
         f"Removed the staged source {gone['label']} ({gone['file_name']})",
-        parameters={"label": gone["label"]},
+        parameters={"id": gone["id"], "label": gone["label"]},
         metrics={"records": gone["records"], "sha256": gone["sha256"]},
     )
 
@@ -298,8 +303,32 @@ def _staged_documents(ws: Path) -> tuple[list[dict[str, Any]], list[Document]]:
     sources = staged_sources(ws)
     documents: list[Document] = []
     for source in sources:
-        documents.extend(_parse_ris(ws / source["stored_as"], source["label"]))
+        documents.extend(_parse_ris(ws / source["stored_as"], source["id"]))
     return sources, documents
+
+
+def databases(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Staged files summed per database label, in the order the labels first appear.
+
+    PRISMA counts records per database; a database exported in parts is one row.
+    ``search_details_missing`` is true when any part lacks a date searched or a
+    search string, so the screen and the methods paragraph can say "not stated".
+    """
+    rows: dict[str, dict[str, Any]] = {}
+    for source in sources:
+        row = rows.setdefault(
+            source["label"],
+            {"label": source["label"], "records": 0, "files": 0, "searched_on": [], "search_details_missing": False},
+        )
+        row["records"] += int(source["records"])
+        row["files"] += 1
+        if source.get("searched_on") and source["searched_on"] not in row["searched_on"]:
+            row["searched_on"].append(source["searched_on"])
+        if not source.get("searched_on") or not source.get("query"):
+            row["search_details_missing"] = True
+    for row in rows.values():
+        row["searched_on"].sort()
+    return list(rows.values())
 
 
 def preview_staged(workspace: Path | str) -> dict[str, Any]:
@@ -312,7 +341,10 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
     sources, documents = _staged_documents(ws)
     unique = len(Deduplicator().deduplicate(copy.deepcopy(documents))) if documents else 0
     return {
-        "sources": [{k: s[k] for k in ("label", "file_name", "records", "searched_on", "query")} for s in sources],
+        "sources": [
+            {k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")} for s in sources
+        ],
+        "databases": databases(sources),
         "identified": len(documents),
         "duplicates": len(documents) - unique,
         "unique_studies": unique,
@@ -363,11 +395,12 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         if accepted:
             snapshot = max(accepted, key=lambda e: str(e.get("accepted_at") or ""))
     preview = preview_staged(ws)
-    sources = [{**s, "slug": _slug(s["label"])} for s in preview["sources"]]
+    sources = preview["sources"]
     status: dict[str, Any] = {
         "shape": "screening.corpus-v1",
         "state": "ACCEPTED" if snapshot else ("STAGED" if sources else "EMPTY"),
         "sources": sources,
+        "databases": preview["databases"],
         "preview": {k: preview[k] for k in ("identified", "duplicates", "unique_studies")},
         "accepted": None,
         "from_discovery": False,
@@ -398,30 +431,32 @@ def _materialise_staged(ws: Path) -> None:
         raise AcceptCorpusRefused("no database export is staged", "NOTHING_STAGED")
     verified = ws / "literature" / "verified.json"
     verified.parent.mkdir(parents=True, exist_ok=True)
+    label_of = {s["id"]: s["label"] for s in sources}
     rows = []
     for document in documents:
         row = _verified_row(document)
-        row["source_database"] = document.provider_id.rsplit("#", 1)[0]
+        row["source_database"] = label_of[document.provider_id.rsplit("#", 1)[0]]
         rows.append(row)
     verified.write_text(json.dumps(rows, indent=2), encoding="utf-8")
     manifest = {
         "schema": IMPORT_MANIFEST_SCHEMA,
         "total_raw_harvested": len(documents),
         "sources": [
-            {k: s[k] for k in ("label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")}
+            {k: s[k] for k in ("id", "label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")}
             for s in sources
         ],
+        "databases": databases(sources),
     }
     (ws / MANIFEST_FILE).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     append_event(
         ws,
         "CORPUS_IMPORTED",
-        f"Imported {len(documents)} records from {len(sources)} database export(s) "
-        "into literature/verified.json",
+        f"Imported {len(documents)} records from {len(sources)} export file(s) of "
+        f"{len(databases(sources))} database(s) into literature/verified.json",
         inputs=[s["stored_as"] for s in sources],
         outputs=["literature/verified.json", MANIFEST_FILE.as_posix()],
-        parameters={"format": "ris", "sources": [s["label"] for s in sources]},
-        metrics={"records": len(documents), "by_source": {s["label"]: s["records"] for s in sources}},
+        parameters={"format": "ris", "sources": [s["id"] for s in sources]},
+        metrics={"records": len(documents), "by_source": {d["label"]: d["records"] for d in databases(sources)}},
     )
 
 

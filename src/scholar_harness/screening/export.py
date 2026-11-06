@@ -512,20 +512,25 @@ def build_methods(ws: Path) -> dict[str, Any]:
             imported = []
             caveats.append("provenance_manifest.json cannot be read.")
         if imported:
+            from ..corpus_accept import databases
+
+            per_database = databases(imported)
             parts = [
-                f"{s['label']} (n = {int(s['records'])}"
-                + (f", searched {s['searched_on']}" if s.get("searched_on") else "")
+                f"{d['label']} (n = {d['records']}"
+                + (f", searched {' and '.join(d['searched_on'])}" if d["searched_on"] else "")
                 + ")"
-                for s in imported
+                for d in per_database
             ]
             listed = parts[0] if len(parts) == 1 else f"{', '.join(parts[:-1])} and {parts[-1]}"
             sentences.append(f"Records were identified from {listed}.")
             figures["identified_by_source"] = [
-                {"label": s["label"], "records": int(s["records"]), "searched_on": s.get("searched_on")}
-                for s in imported
+                {"label": d["label"], "records": d["records"], "searched_on": d["searched_on"]}
+                for d in per_database
             ]
             if any(not s.get("searched_on") for s in imported):
                 not_stated.append("Date searched: not recorded for every database.")
+            if any(not s.get("query") for s in imported):
+                not_stated.append("Search string: not recorded for every database.")
 
     # 1. PRISMA
     c = figures_counts

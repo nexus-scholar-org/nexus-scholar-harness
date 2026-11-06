@@ -66,14 +66,16 @@ def test_stage_preview_remove_and_accept(ws):
     assert first.status_code == 201, first.text
     staged = _stage(client, "Web of Science", WOS).json()
     assert staged["state"] == "STAGED"
-    assert [(s["label"], s["slug"], s["records"]) for s in staged["sources"]] == [
-        ("Scopus", "scopus", 2), ("Web of Science", "web-of-science", 2)
+    assert [(s["label"], s["records"]) for s in staged["sources"]] == [("Scopus", 2), ("Web of Science", 2)]
+    assert [s["id"].rsplit("-", 1)[0] for s in staged["sources"]] == ["scopus", "web-of-science"]
+    assert [(d["label"], d["records"], d["search_details_missing"]) for d in staged["databases"]] == [
+        ("Scopus", 2, False), ("Web of Science", 2, True)
     ]
     assert staged["preview"] == {"identified": 4, "duplicates": 1, "unique_studies": 3}
     assert not (ws / "literature" / "verified.json").exists()
 
-    assert _stage(client, "IEEE", "TY  - JOUR\nTI  - Extra\nER  - \n").status_code == 201
-    after = client.post(f"{BASE}/sources/ieee/remove").json()
+    extra = _stage(client, "IEEE", "TY  - JOUR\nTI  - Extra\nER  - \n").json()["sources"][-1]["id"]
+    after = client.post(f"{BASE}/sources/{extra}/remove").json()
     assert [s["label"] for s in after["sources"]] == ["Scopus", "Web of Science"]
 
     accepted = client.post(f"{BASE}/accept")
@@ -83,7 +85,8 @@ def test_stage_preview_remove_and_accept(ws):
     assert {k: body["accepted"][k] for k in ("records", "studies", "duplicates")} == {"records": 4, "studies": 3, "duplicates": 1}
     assert body["accepted"]["artifact_id"].startswith("ART-corpus-")
 
-    for response in (_stage(client, "PubMed", WOS), client.post(f"{BASE}/sources/scopus/remove"), client.post(f"{BASE}/accept")):
+    scopus_id = body["sources"][0]["id"]
+    for response in (_stage(client, "PubMed", WOS), client.post(f"{BASE}/sources/{scopus_id}/remove"), client.post(f"{BASE}/accept")):
         assert response.status_code == 409
         assert response.json()["detail"]["code"] == "CORPUS_ALREADY_ACCEPTED"
 
@@ -96,7 +99,6 @@ def test_stage_preview_remove_and_accept(ws):
 @pytest.mark.parametrize(
     ("label", "content", "extra", "status", "code"),
     [
-        ("Scopus", WOS, {}, 409, "SOURCE_LABEL_TAKEN"),
         ("Copy", SCOPUS, {}, 409, "SOURCE_DUPLICATE_FILE"),
         ("Notes", "not a RIS file\n", {}, 422, "SOURCE_NOT_RIS"),
         ("../etc", WOS, {}, 422, "SOURCE_LABEL_INVALID"),
@@ -115,7 +117,7 @@ def test_accept_with_nothing_staged_and_remove_unknown(ws):
     client = _client(ws)
     response = client.post(f"{BASE}/accept")
     assert (response.status_code, response.json()["detail"]["code"]) == (409, "NOTHING_STAGED")
-    response = client.post(f"{BASE}/sources/scopus/remove")
+    response = client.post(f"{BASE}/sources/scopus-00000000/remove")
     assert (response.status_code, response.json()["detail"]["code"]) == (404, "SOURCE_NOT_FOUND")
 
 

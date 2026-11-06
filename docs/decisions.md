@@ -4,7 +4,7 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-06 — Several database exports in one corpus, deduplicated by the snapshot (M5b, proposed)
+## 2026-11-06 — Several database exports in one corpus, deduplicated by the snapshot (M5b)
 
 The researcher asked for several RIS files with cross-database deduplication and a way to
 accept the corpus in the app. A PRISMA flow diagram needs the records identified per
@@ -12,8 +12,9 @@ database and the duplicates removed. Before this change, `accept-corpus --ris` t
 file and the counts read 0 duplicates.
 
 - **Staging.** Each export is staged with a database label under `literature/raw/ris/`, kept
-  byte for byte, and listed in `literature/raw/ris/sources.json`. The label is unique and
-  can carry a date searched and a search string. Staging and removal are journaled
+  byte for byte, and listed in `literature/raw/ris/sources.json`. A label may repeat (a
+  database exported in parts); its files are summed into one database for PRISMA. Each
+  file can carry a date searched and a search string, both optional. Staging and removal are journaled
   (`CORPUS_SOURCE_STAGED`, `CORPUS_SOURCE_REMOVED`).
 - **Acceptance.** Acceptance writes one `verified.json` row per record, with
   `source_database`. It also writes `literature/raw/provenance_manifest.json`
@@ -30,6 +31,11 @@ file and the counts read 0 duplicates.
   and `POST /corpus/accept` replace the planned M0 `POST /corpus/accept` row. They are
   desktop only and in both browser allowlists.
 - **Methods paragraph.** It names each database with its count and date searched.
+
+Approved by the researcher on 2026-11-06, with three changes to the Import screen (spec 11):
+repeated labels are summed per database; the search details sit behind a "Search details"
+disclosure with a "not stated" flag; and the Import step stays in the steps bar until the
+corpus is accepted, after which Home shows one line of what was imported.
 
 ## 2026-11-06 — The approver's name is set on the Publish screen (M5-slim)
 

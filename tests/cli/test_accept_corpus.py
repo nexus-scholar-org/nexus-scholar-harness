@@ -219,7 +219,9 @@ def test_several_ris_exports_are_deduplicated_and_counted_per_database(tmp_path)
     manifest = json.loads((ws / "literature" / "raw" / "provenance_manifest.json").read_text(encoding="utf-8"))
     assert manifest["total_raw_harvested"] == 6
     assert [(s["label"], s["records"]) for s in manifest["sources"]] == [("Scopus", 3), ("Web of Science", 3)]
-    assert (ws / "literature" / "raw" / "ris" / "scopus.ris").read_text(encoding="utf-8") == SCOPUS
+    stored = ws / "literature" / "raw" / "ris" / f"{manifest['sources'][0]['id']}.ris"
+    assert stored.read_text(encoding="utf-8") == SCOPUS
+    assert manifest["sources"][0]["id"].startswith("scopus-")
 
     snapshot = _corpus_entries(ws)
     assert len(snapshot) == 1
@@ -242,10 +244,15 @@ def test_preview_matches_what_acceptance_builds(tmp_path):
     stage_ris_source(ws, "Web of Science", wos.read_bytes(), file_name=wos.name)
     preview = preview_staged(ws)
     assert (preview["identified"], preview["duplicates"], preview["unique_studies"]) == (6, 2, 4)
-    assert preview["sources"][0] == {
+    first = dict(preview["sources"][0])
+    assert first.pop("id").startswith("scopus-")
+    assert first == {
         "label": "Scopus", "file_name": "scopus-export.ris", "records": 3,
         "searched_on": "2026-11-06", "query": "uav AND weed",
     }
+    assert [(d["label"], d["records"], d["search_details_missing"]) for d in preview["databases"]] == [
+        ("Scopus", 3, False), ("Web of Science", 3, True)
+    ]
     assert not (ws / "literature" / "verified.json").exists()  # a preview writes nothing
     result = accept_corpus(ws)
     assert (result.record_count, result.study_count) == (6, 4)
@@ -256,8 +263,7 @@ def test_preview_matches_what_acceptance_builds(tmp_path):
 @pytest.mark.parametrize(
     ("label", "content", "kwargs", "code"),
     [
-        ("Scopus", SCOPUS.encode(), {}, "SOURCE_LABEL_TAKEN"),
-        ("scopus", WOS.encode(), {}, "SOURCE_LABEL_TAKEN"),
+        ("Scopus", SCOPUS.encode(), {}, "SOURCE_DUPLICATE_FILE"),
         ("Copy", SCOPUS.encode(), {}, "SOURCE_DUPLICATE_FILE"),
         ("Notes", b"just some text\n", {}, "SOURCE_NOT_RIS"),
         ("", WOS.encode(), {}, "SOURCE_LABEL_INVALID"),
@@ -274,7 +280,8 @@ def test_staging_refusals(tmp_path, label, content, kwargs, code):
         stage_ris_source(ws, label, content, file_name="x.ris", **kwargs)
     assert caught.value.code == code
     assert [s["label"] for s in staged_sources(ws)] == ["Scopus"]
-    assert sorted(p.name for p in (ws / "literature" / "raw" / "ris").iterdir()) == ["scopus.ris", "sources.json"]
+    stored = sorted(p.name for p in (ws / "literature" / "raw" / "ris").iterdir())
+    assert len(stored) == 2 and stored[0].startswith("scopus-") and stored[1] == "sources.json"
 
 
 def test_a_large_file_is_refused(tmp_path, monkeypatch):
@@ -297,15 +304,18 @@ def test_sources_are_frozen_once_the_corpus_is_accepted(tmp_path):
     )
 
     ws = _workspace(tmp_path)
-    stage_ris_source(ws, "Scopus", SCOPUS.encode(), file_name="scopus.ris")
-    stage_ris_source(ws, "WoS", WOS.encode(), file_name="wos.ris")
-    remove_staged_source(ws, "wos")
+    scopus = stage_ris_source(ws, "Scopus", SCOPUS.encode(), file_name="scopus.ris")
+    wos = stage_ris_source(ws, "WoS", WOS.encode(), file_name="wos.ris")
+    remove_staged_source(ws, wos["id"])
     assert [s["label"] for s in staged_sources(ws)] == ["Scopus"]
-    assert not (ws / "literature" / "raw" / "ris" / "wos.ris").exists()
+    assert not (ws / wos["stored_as"]).exists()
+    with pytest.raises(AcceptCorpusRefused) as caught:
+        remove_staged_source(ws, wos["id"])
+    assert caught.value.code == "SOURCE_NOT_FOUND"
     accept_corpus(ws)
     for attempt in (
         lambda: stage_ris_source(ws, "WoS", WOS.encode(), file_name="wos.ris"),
-        lambda: remove_staged_source(ws, "Scopus"),
+        lambda: remove_staged_source(ws, scopus["id"]),
     ):
         with pytest.raises(AcceptCorpusRefused) as caught:
             attempt()
@@ -336,3 +346,26 @@ def test_ris_option_parsing(value, label, path):
     from scholar_harness.corpus_accept import parse_ris_option
 
     assert parse_ris_option(value) == (label, Path(path))
+
+
+def test_a_database_exported_in_parts_is_one_database_with_summed_counts(tmp_path):
+    """Researcher, 2026-11-06: a label may repeat; PRISMA counts are per database."""
+    from scholar_harness.corpus_accept import accept_corpus, preview_staged, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    part1 = stage_ris_source(ws, "Scopus", SCOPUS.encode(), file_name="scopus-1.ris", searched_on="2026-11-06", query="q")
+    part2 = stage_ris_source(ws, "scopus", WOS.encode(), file_name="scopus-2.ris", searched_on="2026-11-07", query="q")
+    assert part2["label"] == "Scopus"  # the first spelling is kept
+    assert part1["id"] != part2["id"]
+    preview = preview_staged(ws)
+    assert preview["databases"] == [{
+        "label": "Scopus", "records": 6, "files": 2,
+        "searched_on": ["2026-11-06", "2026-11-07"], "search_details_missing": False,
+    }]
+    accept_corpus(ws)
+    verified = json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))
+    assert {r["source_database"] for r in verified} == {"Scopus"}
+    manifest = json.loads((ws / "literature" / "raw" / "provenance_manifest.json").read_text(encoding="utf-8"))
+    assert [(d["label"], d["records"], d["files"]) for d in manifest["databases"]] == [("Scopus", 6, 2)]
+    events = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert [e for e in events if e["action"] == "CORPUS_IMPORTED"][-1]["metrics"]["by_source"] == {"Scopus": 6}
