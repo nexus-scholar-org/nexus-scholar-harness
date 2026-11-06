@@ -1,0 +1,30 @@
+{
+  "screening_run_id": "RUN-002cd51c9fd83205fbc965cfd62d0f7f",
+  "total_papers": 30,
+  "batch_size": 20,
+  "total_batches": 2,
+  "batches": [
+    {
+      "batch_index": 1,
+      "file": "batch_001.json",
+      "decisions_file": "batch_001_decisions.json",
+      "paper_count": 20,
+      "status": "DONE",
+      "decision_file_sha256": "sha256:06739334a18b370b121a686465bf0a41a4da5aeab017a4dcd1ac5b8870c72a29",
+      "decisions_artifact_id": "ART-e491a17d5bf2374410c2aca1b6f2139e",
+      "batch_artifact_id": "ART-d1aa3d5d913169951782f97fb3537485",
+      "batch_sha256": "sha256:5fabd7a5fa5e4db9e0715b12103a9c794d23ee7c8b5e54384d5bb2434bd14831"
+    },
+    {
+      "batch_index": 2,
+      "file": "batch_002.json",
+      "decisions_file": "batch_002_decisions.json",
+      "paper_count": 10,
+      "status": "DONE",
+      "decision_file_sha256": "sha256:a8676696801f690601f8b1f226c0e03d74fbdd01e488f2b9cdb95c67441bcf82",
+      "decisions_artifact_id": "ART-8b19fc9ba55b1cca7a2e535a1489b04e",
+      "batch_artifact_id": "ART-7900fec348dfbdb7b66aa5a262dea511",
+      "batch_sha256": "sha256:2007051a0081a709a1cb112c3db600c8eff06b33e56c2261a2a2f531724f6d0d"
+    }
+  ]
+}
