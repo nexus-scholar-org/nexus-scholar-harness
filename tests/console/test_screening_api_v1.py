@@ -329,7 +329,24 @@ def test_the_approver_name_is_set_on_the_desktop_and_journaled(client, ws, capsy
     capsys.readouterr()
 
 
-@pytest.mark.parametrize(("name", "code"), [("", "INVALID_OUTPUT"), ("x" * 121, "INVALID_OUTPUT"), ("Unknown", "APPROVAL_NOT_OPERATOR"), ("a\tb\x07", "INVALID_OUTPUT")])
+@pytest.mark.parametrize("name", ["مهدی‌زاده", "‏معاذ بخوش", "Zoë O'Brien-Núñez"])
+def test_an_approver_name_may_carry_joiners_and_direction_marks(client, name):
+    """Persian and Arabic keyboards insert ZWNJ and RLM; such a name is a real name (review P3)."""
+    response = client.put(f"{BASE}/approver", json={"name": name})
+    assert response.status_code == 200, response.text
+    assert response.json()["name"] == name
+
+
+@pytest.mark.parametrize(
+    ("name", "code"),
+    [
+        ("", "INVALID_OUTPUT"),
+        ("x" * 121, "INVALID_OUTPUT"),
+        ("Unknown", "APPROVAL_NOT_OPERATOR"),
+        ("a\tb\x07", "INVALID_OUTPUT"),
+        ("Alice‮ecilA", "INVALID_OUTPUT"),  # a direction override shows one name and stores another
+    ],
+)
 def test_an_approver_name_that_cannot_stand_for_a_person_is_refused(client, ws, name, code):
     response = client.put(f"{BASE}/approver", json={"name": name})
     assert response.status_code == 422 and response.json()["detail"]["code"] == code
@@ -361,6 +378,8 @@ def test_pairing_begin_for_an_event_batch_keeps_the_code_on_the_terminal(client,
         ("POST", f"{BASE}/actions/pairing/redeem", {"batch": 1, "code": "x"}),
         ("POST", f"{BASE}/actions/pairing/begin", {"batch": 1}),
         ("PUT", f"{BASE}/settings", {"blinding": "show"}),
+        ("PUT", f"{BASE}/approver", {"name": "Phone User"}),
+        ("GET", f"{BASE}/approver", None),
         ("POST", "/api/v1/jobs/start", {"action_id": "status"}),
         ("POST", "/api/v1/proposals/runs", {}),
     ],

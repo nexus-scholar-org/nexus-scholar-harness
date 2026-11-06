@@ -14,6 +14,7 @@ researcher has decided that study (`PROPOSAL_HIDDEN`).
 from __future__ import annotations
 
 import json
+import unicodedata
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -392,6 +393,19 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
 #: sign-in (CON-02/03). Stored in the operator context the approval reads.
 APPROVER_BASIS = "typed-name"
 APPROVER_MAX_LENGTH = 120
+#: Bidi embeddings, overrides and isolates: they can make a name display other
+#: than it is stored, so they are refused (the marks LRM/RLM and joiners are kept).
+_BIDI_CONTROLS = frozenset(chr(c) for c in (*range(0x202A, 0x202F), *range(0x2066, 0x206A)))
+
+
+def _valid_name_char(ch: str) -> bool:
+    """Letters, marks, punctuation, spaces; format characters such as ZWNJ/ZWJ
+    and LRM/RLM (Persian and Arabic keyboards insert them); never controls,
+    unassigned or private-use code points, or bidi overrides."""
+    category = unicodedata.category(ch)
+    if category == "Cf":
+        return ch not in _BIDI_CONTROLS
+    return not category.startswith("C")
 
 
 def _approver(ws: Path) -> dict[str, Any]:
@@ -435,8 +449,12 @@ def put_approver(body: ApproverBody, request: Request) -> dict[str, Any]:
 
     ws = _ws(request)
     name = " ".join(body.name.split())
-    if not name or len(name) > APPROVER_MAX_LENGTH or not name.isprintable():
-        raise _error(422, "INVALID_OUTPUT", f"the approver name must be 1 to {APPROVER_MAX_LENGTH} printable characters")
+    if not name or len(name) > APPROVER_MAX_LENGTH or not all(_valid_name_char(ch) for ch in name):
+        raise _error(
+            422,
+            "INVALID_OUTPUT",
+            f"the approver name must be 1 to {APPROVER_MAX_LENGTH} characters, without control or direction-override characters",
+        )
     if name.lower() in UNTRUSTED_OPERATOR_IDENTITIES:
         raise _error(422, "APPROVAL_NOT_OPERATOR", f"{name!r} cannot stand for a person; type your own name")
     before = _approver(ws)["name"]
