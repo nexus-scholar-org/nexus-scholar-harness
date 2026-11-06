@@ -1,0 +1,332 @@
+[
+  {
+    "workspace_id": "SCI-000740",
+    "title": "Training Weed Recognition Models for Integrated Weed Management in Precision Agriculture Through Advanced Remote Sensing Technologies",
+    "year": 2024,
+    "provider": "openalex",
+    "provider_id": "10.1109/metroagrifor63043.2024.10948819",
+    "external_ids": {
+      "doi": "10.1109/metroagrifor63043.2024.10948819"
+    },
+    "abstract": "In precision agriculture, efficient weed management is crucial to contrast the significant competitive impact of weeds on crops. This study explores the integration of advanced remote sensing technologies, specifically UAVs, for Site-Specific Weed Management (SSWM). Conducted in a soybean field, UAV surveys at varying altitudes (10 m, 12.5 m, 15 m, and 30 m) captured high-resolution images to train a deep-learning model for weed classification. Using ArcGIS Pro\u00a9 software, a U-Net based semantic segmentation model was developed and validated with expert-labeled data. The model, trained at 15 m, achieved an overall accuracy of 88.3% and demonstrated varying accuracies when applied to images from other altitudes. Results showed species-specific accuracies ranging from 56.3% to 94.1%, indicating that flight altitude significantly influences classification performance. The findings suggest the need for altitude-specific models for optimal weed identification. Despite current recognition algorithms' limitations, this study marks a pioneering effort to adapt pre-trained models across different imaging conditions. Future research should focus on refining these models to enhance their applicability and accuracy in diverse agricultural settings, ultimately contributing to more sustainable and precise weed management practices."
+  },
+  {
+    "workspace_id": "SCI-000563",
+    "title": "Effect of Hyperparameter Tuning on the Performance of YOLOv8 for Multi Crop Classification on UAV Images",
+    "year": 2024,
+    "provider": "openalex",
+    "provider_id": "10.3390/app14135708",
+    "external_ids": {
+      "doi": "10.3390/app14135708"
+    },
+    "abstract": "This study investigates the performance of YOLOv8, a Convolutional Neural Network (CNN) architecture, for multi-crop classification in a mixed farm with Unmanned Aerial Vehicle (UAV) imageries. Emphasizing hyperparameter optimization, specifically batch size, the study\u2019s primary objective is to refine the model\u2019s batch size for improved accuracy and efficiency in crop detection and classification. Using the Google Colaboratory platform, the YOLOv8 model was trained over various batch sizes (10, 20, 30, 40, 50, 60, 70, 80, and 90) to automatically identify the five different classes (sugarcane, banana trees, spinach, pepper, and weeds) present on the UAV images. The performance of the model was assessed using classification accuracy, precision, and recall with the aim of identifying the optimal batch size. The results indicate a substantial improvement in classifier performance from batch sizes of 10 up to 60, while significant dips and peaks were recorded at batch sizes 70 to 90. Based on the analysis of the obtained results, Batch size 60 emerged with the best overall performance for automatic crop detection and classification. Although the F1 score was moderate, the combination of high accuracy, precision, and recall makes it the most balanced option. However, Batch Size 80 also shows very high precision (98%) and balanced recall (84%), which is suitable if the primary focus is on achieving high precision. The findings demonstrate the robustness of YOLOv8 for automatic crop identification and classification in a mixed crop farm while highlighting the significant impact of tuning to the appropriate batch size on the model\u2019s overall performance."
+  },
+  {
+    "workspace_id": "SCI-000938",
+    "title": "Influence of Spatial Scale Effect on UAV Remote Sensing Accuracy in Identifying Chinese Cabbage (Brassica rapa subsp. Pekinensis) Plants",
+    "year": 2024,
+    "provider": "openalex",
+    "provider_id": "10.3390/agriculture14111871",
+    "external_ids": {
+      "doi": "10.3390/agriculture14111871"
+    },
+    "abstract": "The exploration of the impact of different spatial scales on the low-altitude remote sensing identification of Chinese cabbage (Brassica rapa subsp. Pekinensis) plants offers important theoretical reference value in balancing the accuracy of plant identification with work efficiency. This study focuses on Chinese cabbage plants during the rosette stage; RGB images were obtained by drones at different flight heights (20 m, 30 m, 40 m, 50 m, 60 m, and 70 m). Spectral sampling analysis was conducted on different ground backgrounds to assess their separability. Based on the four commonly used vegetation indices for crop recognition, the Excess Green Index (ExG), Red Green Ratio Index (RGRI), Green Leaf Index (GLI), and Excess Green Minus Excess Red Index (ExG-ExR), the optimal index was selected for extraction. Image processing methods such as frequency domain filtering, threshold segmentation, and morphological filtering were used to reduce the impact of weed and mulch noise on recognition accuracy. The recognition results were vectorized and combined with field data for the statistical verification of accuracy. The research results show that (1) the ExG can effectively distinguish between soil, mulch, and Chinese cabbage plants; (2) images of different spatial resolutions differ in the optimal type of frequency domain filtering and convolution kernel size, and the threshold segmentation effect also varies; (3) as the spatial resolution of the imagery decreases, the optimal window size for morphological filtering also decreases, accordingly; and (4) at a flight height of 30 m to 50 m, the recognition effect is the best, achieving a balance between recognition accuracy and coverage efficiency. The method proposed in this paper is beneficial for agricultural growers and managers in carrying out precision planting management and planting structure optimization analysis and can aid in the timely adjustment of planting density or layout to improve land use efficiency and optimize resource utilization."
+  },
+  {
+    "workspace_id": "SCI-000338",
+    "title": "SSMR-Net and Across Feature Mapping Attention are jointly applied to the UAV imagery semantic segmentation task of weeds in early-stage wheat fields",
+    "year": 2025,
+    "provider": "openalex",
+    "provider_id": "10.1016/j.atech.2025.101077",
+    "external_ids": {
+      "doi": "10.1016/j.atech.2025.101077"
+    },
+    "abstract": "Wheat is a critical global food crop, and its yield is significantly affected by various factors, including weeds, which can pose a major threat. Accurate identification and localization of weeds is essential for precision weeding in modern smart agriculture, with early prevention playing a key role. However, during the early growth stages, the challenge intensifies due to the significant variation in weed size, the abundance of small weeds, and the complexity of the field environment, all of which make segmentation more difficult. To address this challenge, this study combines Across Feature Mapped Attention (AFMA) with a proposed SSMR-Net model based on an improved U-Net architecture to improve weed identification. AFMA leveraged multilevel features from the original image to quantify the intrinsic relationships between large and small objects within the same category, compensating for the loss of high-level features in small target extraction and enhancing segmentation performance. SSMR-Net incorporated a multiscale feature structure by connecting the encoder and decoder with an Atrous Spatial Pyramid Pooling (ASPP) module with a small expansion rate, preserving the small target features during the information transfer and facilitating the multiscale feature extraction of weeds. The semantic differences between feature layers at the same depth were optimized through the upsampling and connection modules, whereas the encoder and decoder layers integrated an improved residual module. The skip mechanism further enabled SSMR-Net to capture features at various levels. This makes SSMR-Net maintain high segmentation performance in different complex scenarios. The combination of SSMR-Net and AFMA is more suitable for the UAV imagery semantic segmentation task of weeds in early-stage wheat fields. The experimental results demonstrated that the proposed SSMR-Net combined with AFMA achieved superior segmentation accuracy for weed and wheat identification on a custom-built wheat and weed dataset, outperforming existing models with a weed accuracy of 0.774, an IoU score of 0.696, and an mIoU of 0.865. This study presents a promising approach to precise weed identification and control in agriculture."
+  },
+  {
+    "workspace_id": "SCI-011028",
+    "title": "Testing Automated Complex for Assessing Agrotechnical Parameters of Agricultural Crops Based on Photographs Taken by an Unmanned Aerial Vehicle (UAV) in a Mock-Up of a Real Field",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.1109/dspa60853.2024.10510101",
+    "external_ids": {
+      "doi": "10.1109/dspa60853.2024.10510101"
+    },
+    "abstract": "The work is devoted to approbation of methods for assessing agrotechnical parameters of agricultural crops from UAV photos using neural networks on the developed laboratory bench with a real field layout. The laboratory bench is used to determine the number of corn mock-ups, weeds and the degree of weediness of a field plot based on YOLOv5 and YOLOv8 architectures. This laboratory bench allows to conduct research under controlled conditions and improve the efficiency of the complex."
+  },
+  {
+    "workspace_id": "SCI-000368",
+    "title": "HERSS-MAIZE 2024; High-rEsolution dRone dataset for Site-Specific weed wanagement in Maize (San Piero - Pisa, Tuscany, Italy)",
+    "year": 2024,
+    "provider": "openalex",
+    "provider_id": "10.82522/n1cq-bw62",
+    "external_ids": {
+      "doi": "10.82522/n1cq-bw62"
+    },
+    "abstract": "Weed management (WM) is recognised as one of the major challenges in modern agriculture, particularly within the framework of the Farm to Fork strategy, which aims to reduce pesticide use by 50% by 2030 while maintaining high crop productivity. Precision agriculture techniques, and especially Site-Specific Weed Management (SSWM), have emerged as promising approaches to achieve these goals by optimising post-emergence herbicide application according to the spatial distribution of weeds. The SSWM process is characterised by three fundamental phases. The weed detection (WD) process, the estimation of potential damage (PD), and the precision herbicide application (PHA) are supported by advanced sensing, imaging, and artificial intelligence (AI) methods. The HERSS-MAIZE dataset was collected over a maize experimental field measuring approximately 0.8 ha, located in San Piero (Pisa, Tuscany, Italy), during the crop's critical period of susceptibility to weed competition. A total of thirteen UAV surveys were conducted using two different drone platforms\u2014DJI MINI 3 PRO and DJI Mavic 3M\u2014to compare data quality and assess the feasibility of SSWM under varying technological conditions. All acquired images were ortho-rectified to produce 13 high-resolution orthomosaics, representing temporal variations in vegetation cover and weed development. The dataset also incorporates flight metadata, sensor characteristics, and georeferencing information, thereby facilitating integration into Geographic Information System (GIS) environments or utilisation in machine learning and deep learning workflows for weed detection and crop monitoring. The primary objective of the HERSS-MAIZE dataset is to provide a high-resolution, multi-temporal UAV-based resource for developing, validating, and benchmarking algorithms and methodologies for Weed Detection and Site-Specific Weed Management in maize. The incorporation of data from both professional and consumer-grade UAVs within the dataset facilitates research into scalable, cost-effective precision agriculture solutions that are aimed at reducing herbicide use and enhancing environmental sustainability. The objective of HERSS-MAIZE is to facilitate advancements in the following areas: AI-driven weed mapping, adaptive management zone delineation, and precision spraying strategies aligned with sustainable agricultural practices."
+  },
+  {
+    "workspace_id": "SCI-000307",
+    "title": "Field identification of weed species and glyphosate-resistant weeds using high resolution imagery in early growing season",
+    "year": 2020,
+    "provider": "openalex",
+    "provider_id": "10.1016/j.biosystemseng.2020.10.001",
+    "external_ids": {
+      "doi": "10.1016/j.biosystemseng.2020.10.001"
+    },
+    "abstract": "Accurate weed mapping in early growing season is an essential step in the site-specific weed management system. This study focuses on validating the potential application of high resolution multispectral and thermal UAS images in classification of weed species and glyphosate-resistant weeds at early phenological stages. A field experiment was conducted to evaluate supervised classification methods to identify three-weed species including waterhemp (Amaranthus rudis), kochia (Kochia scoparia), and ragweed (Ambrosia artemisiifolia L.). The accuracy of six classification algorithms namely Parallelepiped, Mahalanobis Distance, Maximum Likelihood, Spectral Angle Mapper, Support Vector Machine and Decision Tree implemented at pixel and object-based levels in weed species classification were evaluated. Thermal infrared imagery was also used to assess the canopy temperature variance within the weed species to identify the glyphosate-resistance status in detected weeds. The object-based algorithms developed with mosaicked imagery effectively classified weed species with the overall accuracy and Kappa coefficient values greater than 86% and 0.77, respectively. The lowest accuracy and Kappa coefficient (67% and 0.58) were observed for pixel-based Mahalanobis Distance algorithm. The canopy temperature-based classification of susceptible and resistant weeds resulted in the discrimination accuracies of 88%, 93% and 92% in glyphosate-resistant kochia, waterhemp and ragweed, respectively."
+  },
+  {
+    "workspace_id": "SCI-000006",
+    "title": "A novel semi-supervised framework for UAV based crop/weed classification",
+    "year": 2021,
+    "provider": "openalex",
+    "provider_id": "10.1371/journal.pone.0251008",
+    "external_ids": {
+      "doi": "10.1371/journal.pone.0251008"
+    },
+    "abstract": "Excessive use of agrochemicals for weed controlling infestation has serious agronomic and environmental repercussions associated. An appropriate amount of pesticide/ chemicals is essential for achieving the desired smart farming and precision agriculture (PA). In this regard, targeted weed control will be a critical component significantly helping in achieving the goal. A prerequisite for such control is a robust classification system that could accurately identify weed crops in a field. In this regard, Unmanned Aerial Vehicles (UAVs) can acquire high-resolution images providing detailed information for the distribution of weeds and offers a cost-efficient solution. Most of the established classification systems deploying UAV imagery are supervised, relying on image labels. However, this is a time-consuming and tedious task. In this study, the development of an optimized semi-supervised learning approach is proposed, offering a semi-supervised generative adversarial network for crops and weeds classification at early growth stage. The proposed algorithm consists of a generator that provides extra training data for the discriminator, which distinguishes weeds and crops using a small number of image labels. The proposed system was evaluated extensively on the Red Green Blue (RGB) images obtained by a quadcopter in two different croplands (pea and strawberry). The method achieved an average accuracy of 90% when 80% of training data was unlabeled. The proposed system was compared with several standards supervised learning classifiers and the results demonstrated that this technique could be applied for challenging tasks of crops and weeds classification, mainly when the labeled samples are small at less training time."
+  },
+  {
+    "workspace_id": "SCI-001678",
+    "title": "Determination of Olive Tree (Olea Europaea L.) Components from Unmanned Aerial Vehicle (Uav) Data with Local Extrema and Multiresolution Segmentation Algorithms",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.2139/ssrn.4102695",
+    "external_ids": {
+      "doi": "10.2139/ssrn.4102695"
+    },
+    "abstract": "In this study, it was aimed to determine the components such as the number of trees on an individual tree basis, crown borders, crown areas and heights of the trees in the olive grove by using unmanned aerial vehicle (UAV) evaluated within the scope of precision agriculture. The research was carried out in the olive grove of Akdeniz University Faculty of Agriculture. The study consists of the basic stages of obtaining images from UAV flights, processing and analysis of images. In the first stage of the study, autonomous flight was performed with the UAV and images of the area were obtained. In addition, at this stage, the number and height of olive trees in the area were determined by terrestrial measurements. In the second stage of the study, orthomosaic image, digital surface model (DSM) and digital terrain model (DTM) were produced by processing UAV images. At this stage, tree crown borders were determined by manual digitization over the orthomosaic image. Then, a canopy height model (CHM) was created in order to calculate the crown borders, number of trees and tree height values of olive trees semi-automatically. With the Gaussian filter and object-based image analysis applied to this model, tree crown borders, numbers and crown areas have been finalized. As a result of the evaluation of the semi-automatic findings and terrestrial measurements, 96.15% overall accuracy in the detection of trees in the olive grove, and over 80% accuracy in the determination of the tree crown borders, the producer (85.14%) and user (81.82%) accuracy values were obtained. In addition, high correlations were determined in the determination of tree crown area (r = 0.980) and heights (r = 0.918). According to these results, it has been revealed that the canopy components of the olive tree can be determined quite successfully from the semi-automatically calculated data from the unmanned aerial vehicles."
+  },
+  {
+    "workspace_id": "SCI-001032",
+    "title": "MegaWeeds dataset",
+    "year": 2023,
+    "provider": "openalex",
+    "provider_id": "10.5281/zenodo.8077194",
+    "external_ids": {
+      "doi": "10.5281/zenodo.8077194"
+    },
+    "abstract": "The MegaWeeds dataset consists of seven existing datasets: - WeedCrop dataset; Sudars, K., Jasko, J., Namatevs, I., Ozola, L., & Badaukis, N. (2020). Dataset of annotated food crops and weed images for robotic computer vision control. Data in Brief, 31, 105833. https://doi.org/https://doi.org/10.1016/j.dib.2020.105833 - Chicory dataset; Gallo, I., Rehman, A. U., Dehkord, R. H., Landro, N., La Grassa, R., & Boschetti, M. (2022). Weed detection by UAV 416a Image Dataset. https://universe.roboflow.com/chicory-crop-weeds-5m7vo/weed-detection-by-uav-416a/dataset/1 - Sesame dataset; Utsav, P., Raviraj, P., & Rayja, M. (2020). crop and weed detection data with bounding boxes. https://www.kaggle.com/datasets/ravirajsinh45/crop-and-weed-detection-data-with-bounding-boxes - Sugar beet dataset; Wangyongkun. (2020). sugarbeetsAndweeds. https://www.kaggle.com/datasets/wangyongkun/sugarbeetsandweeds - Weed-Detection-v2; Tandon, K. (2021, June). Weed_Detection_v2. https://www.kaggle.com/datasets/kushagratandon12/weed-detection-v2 - Maize dataset; Correa, J. M. L., D. And\u00fajar, M. Todeschini, J. Karouta, JM Begochea, & Ribeiro A. (2021). WeedMaize. Zenodo. https://doi.org/10.5281/ZENODO.5106795 - CottonWeedDet12 dataset; Dang, F., Chen, D., Lu, Y., & Li, Z. (2023). YOLOWeeds: A novel benchmark of YOLO object detectors for multi-class weed detection in cotton production systems. Computers and Electronics in Agriculture, 205, 107655. https://doi.org/https://doi.org/10.1016/j.compag.2023.107655 All the datasets contain open-field images from crops and weeds with annotations. The annotation files were converted to text files so it can be used in the YOLO model. All the datasets were combined into one big dataset with in total 19,317 images. The dataset is split into a training and validation set."
+  },
+  {
+    "workspace_id": "SCI-002546",
+    "title": "Unmanned Aerial Vehicle Surveillance using Multiple Inter-symbol Obfuscation scheme",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.1109/perea51218.2020.9339785",
+    "external_ids": {
+      "doi": "10.1109/perea51218.2020.9339785"
+    },
+    "abstract": "The popularity of Unmanned Aerial Vehicle is increasing day by day which enhances accessibility for civilian and military applications. Due to this the chances for exploitation becomes evident, these UAVs might be potentially used for criminals and terrorism activities like Enemy surveillance, bomb blast etc. The main motive of this paper is to design and develop a complete surveillance system which can be mounted on a domestic UAV in order to act against the dreadful enemy UAV. The legitimate UAV is able to track the movement of enemy ones with this system. In addition, MIO scheme is used for interrupt the enemy UAV communication links and sending messages to friendly drones. The proposed MIO (multiple inter-symbol obfuscation) scheme which utilizes a set of artificial noisy symbols (symbol key) to obfuscate the original data symbol. On the other hand, a legitimate receiver a friendly UAV can easily check the integrity of the symbol key and then reject the fake packets from the received packets. From the security point of view, without considering the initial key, this MIO scheme can achieve information-theoretic secrecy against the passive eavesdropping attack and computational secrecy against the fake packet injection attack. Moreover, the jamming strategy developed for track the suspicious UAV flight by utilizing parameters like angle of arrival and received signal strength of suspicious UAV signal."
+  },
+  {
+    "workspace_id": "SCI-003382",
+    "title": "ANALISIS PERBANDINGAN PEMANFAATAN PETA CITRA DESA MENGGUNAKAN GOOGLE EARTH DAN TEKNOLOGI DRONE UNMANNED AERIAL VEHICLE (UAV) (Studi Kasus di Desa Janti, Kecamatan Polanharjo, Kabupaten Klaten Jawa Tengah)",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.24895/sng.2020.0-0.1170",
+    "external_ids": {
+      "doi": "10.24895/sng.2020.0-0.1170"
+    },
+    "abstract": "Kegiatan ini merupakan kegiatan pengabdian masyarakat sekaligus kegiatan penelitian yang dilakukan di Desa Janti Kecamatan Polanharjo Kabupaten Klaten Provinsi Jawa Tengah. Adapun urgensi dari kegiatan ini yaitu karena Desa Janti masih memiliki ketertinggalan dalam aktualisasi data spasial yang diwujudkan dalam bentuk peta seperti batas administrasi. Adanya peta desa ini bermanfaat sebagai penegasan batas desa serta mampu memberikan informasi yang jelas dan memudahkan perencanaan desa yang matang oleh pejabat daerah di desa tersebut. Sedangkan kegiatan penelitian yang dilakukan adalah dengan membandingkan peta citra yang disajikan melalui sumber data yang diperoleh dari Google Earth serta data yang disajikan dalam pemotratan lagsung menggunakan teknologi Drone Unmanned Aerial Vehicle (UAV). Metode yang digunakan dalam kegiatan ini yaitu survei lapangan untuk mendapatkan data primer di daerah kajian dengan cara pemotretan langsung dengan menggunakan teknologi Drone UAV serta proses akuisi data menggunakan aplikasi Agisoft Metashape yang berguna untuk menggabungkan obyek sama yang tertera pada data potret yang diperoleh. Hasil dari kegiatan ini yaitu Peta Citra Batas Administrasi Desa Janti Kecamatan Polanharjo, Kabupaten Klaten dengan menngunakan Google Earth serta teknologi Drone UAV, serta perbandingan kualitas mutu antara keduanya. Harapannya dari kegiatan ini Desa Janti mampu mengatasi masalah ketertinggalan dalam aktualisasi data spasial serta perencanaan pembangunan Desa Janti mampu tepat dan terarah."
+  },
+  {
+    "workspace_id": "SCI-003479",
+    "title": "Site-Specific Weed and Nutrient Management",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.1201/9781003196846-6",
+    "external_ids": {
+      "doi": "10.1201/9781003196846-6"
+    },
+    "abstract": "Weed management practices were usually applied uniformly to the entire field just like the other management practices adopted for crop, soil and pest. Precision farming proposes so many effective set of tools, which can address these apprehensions and increase the efficiency of weed management. Different methods have been developed to scout and detect weeds so as to adopt control measures at the place of requirement. The knowledge on variable weed emergence patterns provides basics for site-specific management of weeds. The control systems in such modern devices have great control to adjust the changes as per the vehicle speed and regulate variable rates of chemical applications in accordance to the preplanned maps. A microprocessor in the sprayer consists of console and controller which uses the information on sprayer width and desired amount per unit area to work out the suitable flow rate for the current ground speed."
+  },
+  {
+    "workspace_id": "SCI-004128",
+    "title": "Combined effect of tillage and nutrient management practices on kharif maize (Zea mays L.) yield and chlorophyll content",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.22271/09746315.2022.v18.i2.1570",
+    "external_ids": {
+      "doi": "10.22271/09746315.2022.v18.i2.1570"
+    },
+    "abstract": "Our accustomed agricultural practices of tilling the soil continuously and excessive fertilizer applications caused not only decreased in organic carbon content and soil degradation but also disturbed environmental harmony. With this backdrop, current study was conducted at research farm, Dholi to determine the interactive effect of tillage and nutrient management practice under maize crop during kharif 2018 and 2019. The split-plot design was laid out with tillage as the main plot and nutrient management practice as sub-plot with 3 replications. The results showed significantly superior maize cob yield in PB (84.02 q ha -1 & 88.01 q ha -1 ) and 60% RDN+GSGN (81.96 & 85.17 q ha -1 ) over CT (64.48 & 72.71 q ha -1 ) and RDF (71.94 & 77.25 q ha -1 ) during 2018 and 2019. Similarly, higher chlorophyll content and nutrient content was also noticed with an interaction effect of PB and 60% RDN+GSGN. Based on the results, adoption of PB and 60% RDN+GSGN will help in the realization of better yield with maximum profit by way of reducing the input capital apart from improving soil health thereby sustaining natural resources for future generations."
+  },
+  {
+    "workspace_id": "SCI-000696",
+    "title": "Emerging UAV Solutions for Precision Crop Management",
+    "year": 2025,
+    "provider": "openalex",
+    "provider_id": "10.22214/ijraset.2025.75931",
+    "external_ids": {
+      "doi": "10.22214/ijraset.2025.75931"
+    },
+    "abstract": "The rapid advancement of Unmanned Aerial Vehicles (UAVs) has significantly transformed the landscape of precision agriculture. Through high-resolution imaging, real-time data acquisition, autonomous field inspection, and integration with IoT-based sensor networks, drones have become central to modern farm management. This review synthesizes ten research papers published between 2021 and 2025 that collectively examine UAV applications in sustainable agriculture, weed and disease detection, field mapping, environmental monitoring, communication systems, and low-cost smart farming systems. Across these studies, drones demonstrate significant advantages\u2014enhanced inspection accuracy, efficient resource allocation, improved sustainability, early detection of crop stress, and reduced labour requirements. At the same time, persisting challenges include battery limitations, weather dependence, high data-processing demands, fragmented data standardization, and limited usability for smallholder farmers. This report provides a comprehensive, extended analysis of UAV-based agricultural technologies, identifies strengths and limitations, highlights research gaps, and outlines future pathways for achieving fully autonomous, scalable smart farming ecosystems. The findings reveal a rapidly maturing domain that is poised to reshape global agriculture through aerial intelligence, digital integration, and data-driven agronomy."
+  },
+  {
+    "workspace_id": "SCI-010155",
+    "title": "MCNPX simulation and experimental validation of an unmanned aerial radiological system (UARS) for rapid qualitative identification of weak hotspots",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1016/j.jenvrad.2022.107105",
+    "external_ids": {
+      "doi": "10.1016/j.jenvrad.2022.107105"
+    },
+    "abstract": "Nuclear threats such as dirty bombs and illicit trafficking of radioactive sources are major concerns of humanity. Fast detection and accurate localization of radioactive material out of regulatory control (MORC) by autonomous and semi-autonomous monitoring systems like robots can help to reduce radiation exposure to the public and workers, and it will improve security and peace in the world. This study proposes an autonomous radiological monitoring system consisting of a 2-inch NaI detector coupled to a PM tube and mounted on a multi-rotor UAV to detect radioactive sources. First, an experimental scenario was modeled using the MCNPX Monte Carlo (MC) code. In this modeling, the gamma spectra in 15 detectors were recorded from the rays emitted simultaneously from the areas' sources. The total count under the spectrum was measured for each of the detectors at different heights. The experimental tests were also performed to detect the simultaneous effect of five low-level Co-60 and Cs-137 point sources on a soccer field. Next, the modeling results were compared with the experimental ones, which showed good agreement and the capability to use MC modeling to simulate different radiological scenarios. The experimental results also showed that at 50 cm, all radioactive sources were successfully detected in their actual location. By decreasing the flight height, the ability of the monitoring unmanned aerial to detect radioactive sources was increased significantly."
+  },
+  {
+    "workspace_id": "SCI-003868",
+    "title": "A Hybrid Large Neighborhood Search for Solving the Unmanned Aerial Vehicle Routing Problem with Multi-depot",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.1109/bdai52447.2021.9515289",
+    "external_ids": {
+      "doi": "10.1109/bdai52447.2021.9515289"
+    },
+    "abstract": "The Unmanned aerial vehicles (UAVs) are widely used for inspection tasks both in the military and civilian areas in which the route planning problem could be critical. The Unmanned Aerial Vehicle Routing Problem with Multi-depot (MDUAVRP) is a combination and extension of the Unmanned Aerial Vehicle Route Planning (UAVRP) and the Multi-depot Vehicle Routing Problem (MDVRP), which determines a set of the route visited by a fleet of UAV to perform a set of tasks. The objective of the MDUAVRP is to minimize the total flight cost. A novel hybrid heuristic approach is proposed aiming at this problem. Our proposal combines Adaptive Large Neighborhood Search (ALNS) and Variable Neighborhood Descent (VND) algorithm. The experimental results verify the effectiveness of the proposed algorithm."
+  },
+  {
+    "workspace_id": "SCI-010916",
+    "title": "\u1ee8ng d\u1ee5ng ph\u01b0\u01a1ng ph\u00e1p \u1ea3nh m\u00e1y bay kh\u00f4ng ng\u01b0\u1eddi l\u00e1i x\u00e2y d\u1ef1ng b\u1ea3n \u0111\u1ed3 2D v\u00e0 m\u00f4 h\u00ecnh hi\u1ec7n tr\u1ea1ng 3D ph\u1ee5c v\u1ee5 thi\u1ebft k\u1ebf quy ho\u1ea1ch",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.59382/pro.intl.con-ibst.2023.ses3-22",
+    "external_ids": {
+      "doi": "10.59382/pro.intl.con-ibst.2023.ses3-22"
+    },
+    "abstract": "The article presents the topographic survey work using unmanned aerial vehicle (UAV) images to build 2D maps and 3D current status models. This technology has been used in many areas of life, but in Vietnam in planning design, it has not been widely applied.. Planning architects still follow the traditional method of relying on the 2D basemap database plus input data collected from various sources and at the request of the Investor to analyze and design the plan.. The products created from the above inputs are 2D detailed design drawings and 3D design models. It will be difficult to avoid shortcomings and limitations that will affect quality and slow progress due to design adjustments.. The design and application of the results from UAV equipment such as 2D topographic maps, image maps, 3D current status models, digital elevation models (DEM), point cloud data, etc. will improve the quality of design and planning management, in addition to adding an approach to green, sustainable design, responding to climate change and natural disasters."
+  },
+  {
+    "workspace_id": "SCI-010657",
+    "title": "Unsupervised Generation of Labeled Training Images for Crop-Weed Segmentation in New Fields and on Different Robotic Platforms",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1109/lra.2023.3293356",
+    "external_ids": {
+      "doi": "10.1109/lra.2023.3293356"
+    },
+    "abstract": "Agricultural robots have the potential to improve the efficiency and sustainability of existing agricultural practices. Most autonomous agricultural robots rely on machine vision systems. Such systems, however, often perform worse in new fields or when the robotic platforms change. While we can alleviate the performance degradation by manually labeling more data obtained in the new setup, this procedure is labor and cost-intensive. Therefore, we propose an approach to improve the performance of machine vision systems for new fields and different robotic platforms without additional manual labeling. In an unsupervised manner, our approach can generate images and corresponding labels to train machine vision systems. We use StyleGAN2 to generate images that appear like they are from desired new field or robotic platform. Additionally, we propose a label refinement method to generate labels corresponding to the generated images. We show that our approach can improve the performance of the crop-weed segmentation task in new fields and on different robotic platforms without additional manual labeling."
+  },
+  {
+    "workspace_id": "SCI-001208",
+    "title": "Review of AI methods in precision agriculture",
+    "year": 2025,
+    "provider": "openalex",
+    "provider_id": "10.1051/e3sconf/202568000077",
+    "external_ids": {
+      "doi": "10.1051/e3sconf/202568000077"
+    },
+    "abstract": "This review analyzes the increasing adoption of Artificial Intelligence (AI) in precision agriculture, paying special attention to the advances in crop management brought by machine learning and deep learning technologies. From scouting to pest and disease detection, weeding, irrigation, and crop quality estimation, tasks traditionally plagued by human error and excessive manual work are now being addressed by AI solutions which are quicker, precise, and easily scalable. This review also examines the use of drones and sensors integrated with the Internet of Things and robotics, alongside real-time monitoring, predictive analytics, and automated decision-making, the foreseen and observable enhancements of AI in agriculture, particularly in reducing chemical use and improving efficiency alongside AI techniques such as Support Vector Machines, Random Forest, Convolutional Neural Networks, and Vision and Hybrid Transformers. Nonetheless, there are still significant challenges such as the high computational demands and limited availability of large high-quality datasets, the expense to smallholder farmers, and privacy concerns. We believe that AI specialists and agricultural scientists collaborating on affordable, reliable, and field-ready innovations would have the greatest impact on stimulating widespread adoption. In essence, the review reinforces the idea that AI technologies can boost the resiliency, productivity, and sustainability of agriculture."
+  },
+  {
+    "workspace_id": "SCI-009968",
+    "title": "An efficient online citrus counting system for large\u2010scale unstructured orchards based on the unmanned aerial vehicle",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1002/rob.22147",
+    "external_ids": {
+      "doi": "10.1002/rob.22147"
+    },
+    "abstract": "AbstractThe accurate detection and counting of fruits in natural environments are key steps for the early yield estimation of orchards and the realization of smart orchard production management. However, existing citrus counting algorithms have two primary limitations: the performance of counting algorithms needs to be improved, and their system operation efficiency is low in practical applications. Therefore, in this paper, we propose a novel end\u2010to\u2010end orchard fruit counting pipeline that can be used by multiple unmanned aerial vehicles (UAVs) in parallel to help overcome the above problems. First, to obtain on\u2010board camera images online, an innovative UAV live broadcast platform was developed for the orchard scene. Second, for this challenging specific scene, a detection network named Citrus\u2010YOLO was designed to detect fruits in the video stream in real\u2010time. Then, the DeepSort algorithm was used to assign a specific ID to each citrus fruit in the online UAV scene and track the fruits across video frames. Finally, a nonuniform distributed counter was proposed to correct the fruit count during the tracking process, and this can significantly reduce the counting errors caused by tracking failure. This is the first work to realize online and end\u2010to\u2010end counting in a field orchard environment. The experimental results show that the F1 score and mean absolute percentage error of the method are 89.07% and 12.75%, respectively, indicating that the system can quickly and accurately achieve fruit counting in large\u2010scale unstructured citrus orchards. Although our work is discussed in the context of fruit counting, it can be extended to the detection, tracking and counting of a variety of other objects of interest in UAV application scenarios"
+  },
+  {
+    "workspace_id": "SCI-004006",
+    "title": "Aerial Target Threat Estimation in Unmanned Aerial Vehicle Reconnaissance Based on Neural Network",
+    "year": 2022,
+    "provider": "crossref",
+    "provider_id": "10.1145/3556055.3556065",
+    "external_ids": {
+      "doi": "10.1145/3556055.3556065"
+    },
+    "abstract": "The application of unmanned aerial vehicle (UAV) is the inevitable trend of air combat. In the process of air combat, UAVs have many advantages in target reconnaissance and detection. In the course of UAV reconnaissance and detection, a new threat estimation method based on the extreme learning machine (ELM) neural network is proposed against the shortcomings of the existing methods. The air combat data is selected from the air combat maneuvering instrument (ACMI). The threat estimation model based on the ELM neural network is constructed, and the accuracy and computational complexity of the algorithm are analyzed by simulation. The results show that the method not only has high accuracy, but also has good efficiency, and can accurately and quickly perform target threat estimation during the UAV reconnaissance process."
+  },
+  {
+    "workspace_id": "SCI-009285",
+    "title": "Cone Detection of Abies sachalinensis Using a Convolutional Neural Network with Unmanned Aerial Vehicle (UAV) Images",
+    "year": 2021,
+    "provider": "crossref",
+    "provider_id": "10.4005/jjfs.103.372",
+    "external_ids": {
+      "doi": "10.4005/jjfs.103.372"
+    },
+    "abstract": "\u7121\u4eba\u822a\u7a7a\u6a5f\uff08UAV\uff09\u3092\u7528\u3044\u3066\u64ae\u5f71\u3057\u305f\u30c8\u30c9\u30de\u30c4\u306e\u6a39\u51a0\u304b\u3089\uff0c\u7573\u307f\u8fbc\u307f\u30cb\u30e5\u30fc\u30e9\u30eb\u30cd\u30c3\u30c8\u30ef\u30fc\u30af\u3092\u57fa\u306b\u3057\u305f\u753b\u50cf\u8a8d\u8b58\u30a2\u30eb\u30b4\u30ea\u30ba\u30e0\u3067\u3042\u308bYou Only Look Once\uff08YOLO\uff09v4\u3092\u7528\u3044\u3066\u7403\u679c\u3092\u691c\u51fa\u3059\u308b\u30e2\u30c7\u30eb\u3092\u69cb\u7bc9\u3057\uff0c\u305d\u306e\u7cbe\u5ea6\u3092\u691c\u8a3c\u3057\u305f\u3002356\u679a\uff0c\u5408\u8a086,138\u500b\u306e\u7403\u679c\u304c\u5199\u3063\u305f\u753b\u50cf\u3067\u5b66\u7fd2\u3092\u884c\u3044\uff0c\u69cb\u7bc9\u3057\u305f\u30e2\u30c7\u30eb\u309292\u679a\uff0c\u5408\u8a081,692\u500b\u306e\u7403\u679c\u304c\u5199\u3063\u305f\u691c\u8a3c\u7528\u753b\u50cf\u306b\u9069\u7528\u3057\u305f\u7d50\u679c\uff0c88.5\uff05\u306eaverage precision\uff08AP\uff09\u304c\u5f97\u3089\u308c\u305f\u3002\u4e00\u65b9\u3067\uff0c\u767d\u304f\u5186\u5f62\u306e\u5c0f\u578b\u7269\u4f53\u3092\u8aa4\u691c\u51fa\u3057\u305ffalse positive\u3084\uff0c\u5bc6\u96c6\u3057\u305f\u7403\u679c\u3092\u691c\u51fa\u3067\u304d\u306a\u304b\u3063\u305ffalse negative\u306e\u4e8b\u4f8b\u304c\u3042\u308a\uff0c\u3053\u308c\u3089\u306e\u89e3\u6c7a\u306f\u4eca\u5f8c\u306e\u8ab2\u984c\u3068\u8003\u3048\u3089\u308c\u305f\u3002YOLOv4\u3092\u7528\u3044\u3066UAV\u64ae\u5f71\u753b\u50cf\u304b\u3089\u30c8\u30c9\u30de\u30c4\u306e\u7403\u679c\u3092\u691c\u51fa\u3059\u308b\u3053\u3068\u306f\u53ef\u80fd\u3067\u3042\u308a\uff0c\u4eca\u5f8c\uff0c\u63a1\u7a2e\u5712\u3067\u7403\u679c\u3092\u751f\u7523\u3057\u305f\u500b\u4f53\u306e\u78ba\u8a8d\u306b\u6709\u7528\u3068\u671f\u5f85\u3055\u308c\u308b\u3002"
+  },
+  {
+    "workspace_id": "SCI-001710",
+    "title": "Enhanced weed\u2010crop competition effects on growth and seed production of herbicide\u2010resistant and herbicide\u2010susceptible annual sowthistle (Sonchus oleraceus)",
+    "year": 2020,
+    "provider": "crossref",
+    "provider_id": "10.1111/wbm.12197",
+    "external_ids": {
+      "doi": "10.1111/wbm.12197"
+    },
+    "abstract": "AbstractEnhanced crop competition could aid in the management of annual sowthistle (Sonchus oleraceus L.), a dominant weed of Australian cropping systems. A two\u2010year pot study was conducted to evaluate the effect of wheat (Triticum aestivum L.) planting densities (0, 82, and 164 wheat plants/m2) on growth and seed production of glyphosate\u2010resistant (GR) and glyphosate\u2010susceptible (GS) biotypes of annual sowthistle. Without competition, both biotypes produced a similar number of leaves and biomass, but the GS biotype produced 80% more seeds (46,050 per plant) than the GR biotype. In competition with 164 wheat plants/m2, the number of leaves in the GR and GS biotypes was reduced by 62 and 61%, respectively, in comparison with the no\u2010competition treatment, and similarly, weed biomass was reduced by 78 and 77%, respectively. Compared to no\u2010competition treatment, the seed production of GR and GS biotypes was reduced by 33 and 69%, respectively, when grown with 82 wheat plants/m2, but increasing wheat density from 82 to 164 plants/m2 reduced the number of seeds only in the GS biotype (81%). Both biotypes produced greater than 6,000 seeds per plant when grown in competition with 164 plants/m2, suggesting that increased crop density should be integrated with other weed management strategies for efficient control of annual sowthistle."
+  },
+  {
+    "workspace_id": "SCI-001107",
+    "title": "APPLICATION OF ARTIFICIAL INTELLIGENCE AND AUTOMATION TECHNOLOGIES IN MODERN AGRICULTURAL MACHINERY",
+    "year": 2026,
+    "provider": "openalex",
+    "provider_id": "10.5281/zenodo.23255982",
+    "external_ids": {
+      "doi": "10.5281/zenodo.23255982"
+    },
+    "abstract": "The rapid development of artificial intelligence (AI), robotics, computer vision, Internet of Things (IoT), satellite navigation, remote sensing, and autonomous control systems is transforming the design and operation of modern agricultural machinery. Agricultural machinery is increasingly evolving from conventional mechanical equipment into intelligent cyber-physical systems capable of sensing field conditions, processing large volumes of data, making operational decisions, and executing agricultural tasks with limited human intervention. This article examines the application of artificial intelligence and automation technologies in tractors, harvesters, sprayers, robotic platforms, unmanned aerial vehicles, and other agricultural machinery. The study is based on a systematic analysis of scientific publications, international institutional reports, and documented agricultural technology adoption data. Particular attention is given to autonomous navigation, machine vision, precision spraying, variable-rate application, crop monitoring, yield prediction, robotic weeding, harvesting, and safety systems. Evidence from the United States demonstrates substantial growth in precision-agriculture adoption: automated guidance systems were used on more than half of the acreage planted to several major crops, while in 2023 guidance autosteering was used by 52 percent of midsize farms and 70 percent of large-scale crop-producing farms. Scientific literature also demonstrates the growing role of machine learning in yield estimation, nitrogen management, disease detection, and robotic perception. However, high acquisition costs, inadequate rural connectivity, data governance issues, cybersecurity, technical complexity, and safety risks remain significant barriers. The study concludes that AI-enabled agricultural machinery can contribute to higher operational efficiency, more precise input application, reduced operator fatigue, improved resource management, and greater agricultural sustainability, provided that technological development is accompanied by appropriate infrastructure, human-capacity development, interoperability standards, and safety regulation."
+  },
+  {
+    "workspace_id": "SCI-006287",
+    "title": "Algorithm Design for Unmanned Aerial Vehicle Sprayer using Pulse Width Modulation for Precision Farming",
+    "year": 2024,
+    "provider": "crossref",
+    "provider_id": "10.1088/1755-1315/1359/1/012031",
+    "external_ids": {
+      "doi": "10.1088/1755-1315/1359/1/012031"
+    },
+    "abstract": "Abstract Fertilizer and pesticide are the common materials used in agriculture productions. Application of pesticide in open field cultivations using hand sprayer is thought for humans to be precise and causes the toxicity potential for operators. Unmanned aerial vehicles (UAVs) with the precision spraying system are important as a cutting-edge technology to cope with this problem. However, there are still limitations UAV based sprayer with ability to adapt with the doze precisely based on the recommendations. The purpose of this study was to develop the design of algorithms for UAV sprayer using PWM (Pulse Width Modulation). The accuracy of the spraying location and dose given is based on the treatment map. Artificial intelligence is used as a tool to translate land condition maps into treatment maps. The Kriging function in the smart map module in QGIS is used to produce a land conditions map into a treatment map with a grid size according to the working width of the sprayer. The result of this research is a smart spraying concept guided by a treatment map in Geo-Tiff format which has latitude, longitude and spray dose information stored in single band data."
+  },
+  {
+    "workspace_id": "SCI-013075",
+    "title": "Developing an Uncrewed Aerial Vehicle (UAV)-Based Prediction Model for the Rice Harvest Index Using Machine Learning",
+    "year": 2025,
+    "provider": "crossref",
+    "provider_id": "10.3390/agriculture15090971",
+    "external_ids": {
+      "doi": "10.3390/agriculture15090971"
+    },
+    "abstract": "(1) Background: The harvest index is important for measuring the correlation between grain yield and aboveground biomass. However, the harvest index can only be measured after a mature harvest. If it can be obtained in advance during the growth period, it will promote research on high harvest indices and variety breeding; (2) Methods: In this study, we proposed a method to predict the harvest index during the rice growth period based on uncrewed aerial vehicle (UAV) remote sensing technology. UAV obtained visible light and multispectral images of different varieties, and the data such as digital surface elevation, visible light reflectance, and multispectral reflectance were extracted after processing for correlation analysis. Additionally, characteristic variables significantly correlated with the harvest index were screened out; (3) Results: The results showed that TCARI (correlation coefficient \u22120.82), GRVI (correlation coefficient \u22120.74), MTCI (correlation coefficient 0.83), and TO (correlation coefficient \u22120.72) had a strong correlation with the harvest index. Based on the above characteristics, this study used a variety of machine learning algorithms to construct a harvest index prediction model. The results showed that the Stacking model performed best in predicting the harvest index (R2 reached 0.88) and had a high prediction accuracy. (4) Conclusions: Therefore, the harvest index can be accurately predicted during rice growth through UAV remote sensing images and machine learning technology. This study provides a new technical means for screening high harvest index in rice breeding, provides an important reference for crop management and variety improvement in precision agriculture, and has high application potential."
+  },
+  {
+    "workspace_id": "SCI-000993",
+    "title": "SugarViT -- Multi-objective Regression of UAV Images with Vision Transformers and Deep Label Distribution Learning Demonstrated on Disease Severity Prediction in Sugar Beet",
+    "year": 2023,
+    "provider": "openalex",
+    "provider_id": "10.48550/arxiv.2311.03076",
+    "external_ids": {
+      "doi": "10.48550/arxiv.2311.03076"
+    },
+    "abstract": "Remote sensing and artificial intelligence are pivotal technologies of precision agriculture nowadays. The efficient retrieval of large-scale field imagery combined with machine learning techniques shows success in various tasks like phenotyping, weeding, cropping, and disease control. This work will introduce a machine learning framework for automatized large-scale plant-specific trait annotation for the use case disease severity scoring for Cercospora Leaf Spot (CLS) in sugar beet. With concepts of Deep Label Distribution Learning (DLDL), special loss functions, and a tailored model architecture, we develop an efficient Vision Transformer based model for disease severity scoring called SugarViT. One novelty in this work is the combination of remote sensing data with environmental parameters of the experimental sites for disease severity prediction. Although the model is evaluated on this special use case, it is held as generic as possible to also be applicable to various image-based classification and regression tasks. With our framework, it is even possible to learn models on multi-objective problems as we show by a pretraining on environmental metadata."
+  },
+  {
+    "workspace_id": "SCI-010305",
+    "title": "Exploring consumers\u2019 environmental ethical preferences in the context of unmanned aerial vehicle utilization for plant protection",
+    "year": 2023,
+    "provider": "crossref",
+    "provider_id": "10.1038/s41598-023-30557-4",
+    "external_ids": {
+      "doi": "10.1038/s41598-023-30557-4"
+    },
+    "abstract": "AbstractThe use of unmanned aerial vehicles (UAVs) has increased agricultural productivity, achieved food security, and eased the pressure associated with environmental degradation and population growth. However, consumer sentiment remains unclear. The results show that pressures regarding food safety, production safety, and ecological safety have different degrees of positive impact on perceived benefits but no significant impact on perceived barriers. They strongly influence both perceived benefits to the adoption of UAV plant protection agricultural products. Perceived benefits demonstrated a mediating role between the three safety pressures and the adoption of UAVs. Lay beliefs showed a positive moderating effect on perceived benefits and obstacles to the adoption of UAV-based plant protection products. Based on these findings, this paper concludes that consumers are developing new consumer ethics that integrate concepts of food safety, safe production, and regional environmental protection with their acceptance of new technology, which is directly dependent on the combined effect of environmental and consumer ethics. To promote sustainable development, policies must be further optimized on this original basis."
+  },
+  {
+    "workspace_id": "SCI-000028",
+    "title": "Evaluating techniques for mapping island vegetation from unmanned aerial vehicle (UAV) images: Pixel classification, visual interpretation and machine learning approaches",
+    "year": 2020,
+    "provider": "openalex",
+    "provider_id": "10.1016/j.jag.2020.102085",
+    "external_ids": {
+      "doi": "10.1016/j.jag.2020.102085"
+    },
+    "abstract": "We evaluate three approaches to mapping vegetation using images collected by an unmanned aerial vehicle (UAV) to monitor rehabilitation activities in the Five Islands Nature Reserve, Wollongong (Australia). Between April 2017 and July 2018, four aerial surveys of Big Island were undertaken to map changes to island vegetation following helicopter herbicide sprays to eradicate weeds, including the creeper Coastal Morning Glory (Ipomoea cairica) and Kikuyu Grass (Cenchrus clandestinus). The spraying was followed by a large scale planting campaign to introduce native plants, such as tussocks of Spiny-headed Mat-rush (Lomandra longifolia). Three approaches to mapping vegetation were evaluated, including: (i) a pixel-based image classification algorithm applied to the composite spectral wavebands of the images collected, (ii) manual digitisation of vegetation directly from images based on visual interpretation, and (iii) the application of a machine learning algorithm, LeNet, based on a deep learning convolutional neural network (CNN) for detecting planted Lomandra tussocks. The uncertainty of each approach was assessed via comparison against an independently collected field dataset. Each of the vegetation mapping approaches had a comparable accuracy; for a selected weed management and planting area, the overall accuracies were 82 %, 91 % and 85 % respectively for the pixel based image classification, the visual interpretation / digitisation and the CNN machine learning algorithm. At the scale of the whole island, statistically significant differences in the performance of the three approaches to mapping Lomandra plants were detected via ANOVA. The manual digitisation took a longer time to perform than others. The three approaches resulted in markedly different vegetation maps characterised by different digital data formats, which offered fundamentally different types of information on vegetation character. We draw attention to the need to consider how different digital map products will be used for vegetation management (e.g. monitoring the health individual species or a broader profile of the community). Where individual plants are to be monitored over time, a feature-based approach that represents plants as vector points is appropriate. The CNN approach emerged as a promising technique in this regard as it leveraged spatial information from the UAV images within the architecture of the learning framework by enforcing a local connectivity pattern between neurons of adjacent layers to incorporate the spatial relationships between features that comprised the shape of the Lomandra tussocks detected."
+  }
+]

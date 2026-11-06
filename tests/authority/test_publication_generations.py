@@ -662,6 +662,32 @@ def test_crash_before_content_renames_leaves_nothing_current(
     assert require_current_generation(ws).status is GenerationStatus.CURRENT
 
 
+def test_a_write_error_while_staging_surfaces_as_itself(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed write before the manifest is staged raises that error, not UnboundLocalError.
+
+    The cleanup referenced the manifest tmp before it existed, which hid the
+    real cause (a too-long Windows path, golden run 2026-11-06).
+    """
+    ws = tmp_path / "ws"
+    (ws / "literature" / "screening").mkdir(parents=True)
+    (ws / "project.json").write_text(json.dumps({"project_id": "ws", "registered_workspace_id": WS_ID}))
+    (ws / "protocol.json").write_text(json.dumps(PROTOCOL_RAW))
+    content = _content()
+    snapshot, binding, record = _mint(content=content)
+    write_publication_approval(ws / "literature" / "screening", record, staged_at=NOW)
+
+    def _no_space(path: Path, text: str) -> None:
+        raise OSError("simulated write failure")
+
+    monkeypatch.setattr(generations, "_write_tmp_text", _no_space)
+    with pytest.raises(OSError, match="simulated write failure"):
+        _publish(ws, content, record, snapshot, binding)
+    assert not (ws / "literature" / "screening" / "generation.json").exists()
+    assert not (ws / "literature" / "screening" / COLLECT_LOCK_FILENAME).exists()
+
+
 def test_crash_between_content_and_generation_rename_is_not_current(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

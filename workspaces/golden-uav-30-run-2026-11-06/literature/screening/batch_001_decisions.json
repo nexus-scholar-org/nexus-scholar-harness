@@ -1,0 +1,841 @@
+{
+  "batch": 1,
+  "binding": {
+    "batch_id": "batch-0155a1305e8b3ba49a9ef77ca0570c06",
+    "batch_sha256": "sha256:5fabd7a5fa5e4db9e0715b12103a9c794d23ee7c8b5e54384d5bb2434bd14831",
+    "protocol_fingerprint": "sha256:f81e6c58aefb3159cb679ca87c4a83382dca199e0b02bb12ac409c15f8a4f755"
+  },
+  "decisions": [
+    {
+      "criteria": [
+        {
+          "answer": "not_reported",
+          "id": "INC-01"
+        },
+        {
+          "answer": "not_reported",
+          "id": "INC-02"
+        },
+        {
+          "answer": "not_reported",
+          "id": "INC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T00:45:54.510Z",
+      "decision": "INCLUDE",
+      "event_id": "01a1ae51-bbce-7c24-b0a7-ccc9d63f289e",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "INCLUDE (no note)",
+      "workspace_id": "STU-02fa6102f57ed511175b8aa001762e61"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "not_reported",
+          "id": "INC-01"
+        },
+        {
+          "answer": "not_reported",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:17:15.663Z",
+      "decision": "MAYBE",
+      "event_id": "01a1b0ca-af8f-722d-9f10-f3b8a85cb0ba",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "MAYBE (no note)",
+      "workspace_id": "STU-051927982c82f23bb86d2efa81bfb1ff"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "not_reported",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:15:50.990Z",
+      "decision": "MAYBE",
+      "event_id": "01a1b0c9-64ce-7c9e-81ae-fc435d801e32",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "MAYBE (no note)",
+      "workspace_id": "STU-0dbdb818fd4060d4e843c637a2661c04"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "yes",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:18:57.793Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0cc-3e81-7fcf-9f35-7b346dbc79cd",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "EXC-03",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "EXC-03",
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "workspace_id": "STU-10b7daa204b9eab1ffe895b4d35ff61b"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "yes",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:19:24.555Z",
+      "decision": "INCLUDE",
+      "event_id": "01a1b0cc-a70b-7cc0-b4f1-e8031e61fee7",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "INCLUDE (no note)",
+      "workspace_id": "STU-1452b49c849f63ae28267077a6cf3eef"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:20:42.303Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0cd-d6bf-7c4a-ba4e-a497f1524c64",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "FAILS-INC-01",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "FAILS-INC-01",
+      "workspace_id": "STU-1f46cfa269e4a4255182723f2f4f2f6d"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "yes",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:21:20.385Z",
+      "decision": "INCLUDE",
+      "event_id": "01a1b0ce-6b81-7b25-9936-7a6d31a6891f",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "INCLUDE (no note)",
+      "workspace_id": "STU-38cfc9222b2c4215a4bb2d1b7006a0da"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:23:32.337Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0d0-6ef1-7ebb-96e6-eaa9935f4adb",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "FAILS-INC-01",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "FAILS-INC-01",
+      "workspace_id": "STU-45eb38643c33edadbd9f4dc209b75a18"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "no",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:24:16.561Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0d1-1bb1-77a2-94b9-e3bce866e462",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "EXC-02",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "EXC-02",
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "workspace_id": "STU-4691b86989b7828e694190bbba8a291e"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "not_reported",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:43:15.564Z",
+      "decision": "MAYBE",
+      "event_id": "01a1b0e2-7ceb-7e7d-b713-b8cbc6ac9732",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "MAYBE (no note)",
+      "workspace_id": "STU-4704794d0bcf11843e39a8c80e7d8722"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:43:59.433Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0e3-2849-799c-a8cb-f4a9290ddf0f",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "EXC-02",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "EXC-02",
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "workspace_id": "STU-483c94b407ec6a3fc3a2f067ad6fe519"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:45:04.877Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0e4-27ed-7ff2-a650-b4573f4c2ba5",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "EXC-03",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "EXC-03",
+      "violated_exclusion_criteria": [
+        "EXC-03"
+      ],
+      "workspace_id": "STU-4b688a39e79c6a7457f0a5dba56f6f75"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "yes",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:45:32.785Z",
+      "decision": "INCLUDE",
+      "event_id": "01a1b0e4-94f1-7811-9cdb-3a80b206480a",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "INCLUDE (no note)",
+      "workspace_id": "STU-4ff07e32e4c25a9189b319ab76138936"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "not_reported",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:46:45.415Z",
+      "decision": "MAYBE",
+      "event_id": "01a1b0e5-b0a7-791f-85f9-31e9d1ee6951",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "MAYBE (no note)",
+      "workspace_id": "STU-56d6e989d3d3dca393baf4d135c0e8d4"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "yes",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:47:03.491Z",
+      "decision": "INCLUDE",
+      "event_id": "01a1b0e5-f743-73c3-8f1b-0a29aec18d9d",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "INCLUDE (no note)",
+      "workspace_id": "STU-5e64304a05efb9b109f2c41a15d07e97"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:47:45.671Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0e6-9c07-7ab7-8291-b63e7155ca45",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "FAILS-INC-01",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "FAILS-INC-01",
+      "workspace_id": "STU-60fc2fc0fc873443fc967765a9c360b2"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:48:26.857Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0e7-3ce9-79d7-93d4-39fb843f59e3",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "FAILS-INC-01",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "FAILS-INC-01",
+      "workspace_id": "STU-640adbb203c7bea37273d736f7c44863"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "no",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:49:02.015Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0e7-c63f-7a70-a1a5-99e0f7b30281",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "EXC-02",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "EXC-02",
+      "violated_exclusion_criteria": [
+        "EXC-02"
+      ],
+      "workspace_id": "STU-884944bfc57f35f6f773e9194126fb29"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "no",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "yes",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:49:34.123Z",
+      "decision": "EXCLUDE",
+      "event_id": "01a1b0e8-43ab-7ce0-8893-26c3090894ed",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "reason_code": "EXC-01",
+      "screener_id": "researcher:local",
+      "screening_reasoning": "EXC-01",
+      "violated_exclusion_criteria": [
+        "EXC-01"
+      ],
+      "workspace_id": "STU-8909b065b0a90b2a5392218bb3a9937d"
+    },
+    {
+      "criteria": [
+        {
+          "answer": "not_reported",
+          "id": "INC-01"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-02"
+        },
+        {
+          "answer": "yes",
+          "id": "INC-03"
+        },
+        {
+          "answer": "not_reported",
+          "id": "EXC-01"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-02"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-03"
+        },
+        {
+          "answer": "no",
+          "id": "EXC-04"
+        }
+      ],
+      "decided_at": "2026-11-06T12:50:10.451Z",
+      "decision": "MAYBE",
+      "event_id": "01a1b0e8-d193-717a-8498-fc0281a11098",
+      "method": "HUMAN",
+      "parent_decision_ids": [],
+      "screener_id": "researcher:local",
+      "screening_reasoning": "MAYBE (no note)",
+      "workspace_id": "STU-8a34cc29e17a42dbece8433456617bbc"
+    }
+  ],
+  "reviewed_by": "researcher:local",
+  "source": "decision-events",
+  "timestamp": "2026-11-06T12:50:10.451Z"
+}

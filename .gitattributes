@@ -8,3 +8,6 @@ tests/e2e/fixtures/e4_golden/** text eol=lf
 # platform so the byte comparison stays strict and platform-independent.
 src/scholar_harness/claims/schemas/*.json text eol=lf
 tests/fixtures/claim_citation/*.json text eol=lf
+# The 2026-11-06 golden run is kept as evidence: its files are hashed (generation, artifacts),
+# so store and check out their bytes exactly, with no line-ending conversion.
+workspaces/golden-uav-30-run-2026-11-06/** -text -whitespace

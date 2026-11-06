@@ -715,6 +715,7 @@ def _compute_single_screener_content(
     doc_by_wsid = {d.workspace_id: d for d in docs if d.workspace_id}
 
     all_decisions: list[ScreeningDecision] = []
+    reason_codes: dict[str, str] = {}
     for batch in manifest["batches"]:
         idx = batch["batch_index"]
         decisions_file = screening_dir / f"batch_{idx:03d}_decisions.json"
@@ -790,6 +791,10 @@ def _compute_single_screener_content(
                     doi=doc.external_ids.doi if doc else None,
                 )
             )
+            # Mirrors the collector: an exclusion that fails an inclusion
+            # criterion is counted under its code (FAILS-INC-n), not UNSPECIFIED.
+            if entry.get("reason_code"):
+                reason_codes[wsid] = str(entry["reason_code"])
 
     manifest_raw = ws / "literature" / "raw" / "provenance_manifest.json"
     total_identified = len(docs)
@@ -807,6 +812,7 @@ def _compute_single_screener_content(
         all_decisions,
         total_identified=total_identified,
         duplicates_removed=duplicates_removed,
+        reason_codes=reason_codes,
     )
     # Identical serialization to cmd_collect (same dumps args, same order).
     return {

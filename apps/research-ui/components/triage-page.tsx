@@ -33,6 +33,7 @@ import {
   compareAnswers,
   failedChecks,
   mayReadProposal,
+  proposalAnswersOpenFirst,
   reasonOptions,
   triageKey,
   isTextField,
@@ -787,14 +788,35 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 </p>
               ) : null}
               {visibleProposal!.cannot_decide ? <p className="text-unclear">{t("cannotDecide")}</p> : null}
-              {visibleProposal!.criteria
-                .filter((c) => c.evidence?.text)
-                .slice(0, 3)
-                .map((c) => (
-                  <EvidenceQuote key={c.id} source={c.id}>
-                    <bdi>{c.evidence!.text}</bdi>
-                  </EvidenceQuote>
-                ))}
+              {/* Every criterion with the agent's answer, open ones first: a quote alone does not say whether it supports or refutes */}
+              <section aria-labelledby="proposal-answers" className="space-y-2">
+                <p id="proposal-answers" className="text-xs font-semibold text-ink-muted">
+                  {t("agentAnswers")}
+                </p>
+                <ul className="space-y-2">
+                  {proposalAnswersOpenFirst(visibleProposal!.criteria).map((c) => (
+                    <li key={c.id} data-criterion={c.id} data-answer={c.answer} className="space-y-1">
+                      <p className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="font-mono text-ink-muted" dir="ltr">
+                          {c.id}
+                        </span>
+                        <span
+                          className={`rounded-sm border px-1.5 py-0.5 font-semibold ${c.answer === "not_reported" ? "border-unclear text-unclear" : "border-rule-strong text-ink"}`}
+                        >
+                          {t(ANSWER_KEY[c.answer])}
+                        </span>
+                      </p>
+                      {c.evidence?.text ? (
+                        <EvidenceQuote>
+                          <bdi>{c.evidence.text}</bdi>
+                        </EvidenceQuote>
+                      ) : (
+                        <p className="text-xs text-ink-muted">{t(c.answer === "not_reported" ? "recordSilent" : "noQuote")}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
               <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
                 <dt className="text-ink-muted">{t("model")}</dt>
                 <dd>

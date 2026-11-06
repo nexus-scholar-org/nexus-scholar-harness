@@ -855,6 +855,8 @@ def publish_generation(
 
         manifest_bytes = generation_file_bytes(candidate)
         staged: list[tuple[Path, Path]] = []
+        # Named before the try, so the cleanup never masks the real error.
+        generation_tmp = screening_dir / f"{GENERATION_FILENAME}.tmp"
         try:
             for name in PUBLICATION_OUTPUTS:
                 tmp = literature_dir / f"{name}.tmp"
@@ -877,7 +879,6 @@ def publish_generation(
                     )
                     _write_tmp(previous_tmp, previous_raw)
                     staged.append((previous_tmp, previous_history))
-            generation_tmp = screening_dir / f"{GENERATION_FILENAME}.tmp"
             _write_tmp(generation_tmp, manifest_bytes)
             # Commit order: contents, history, and the generation manifest LAST.
             for tmp, final in staged:
