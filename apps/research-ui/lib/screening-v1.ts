@@ -283,6 +283,63 @@ export function putApprover(origin: string, name: string, signal?: AbortSignal):
   return postJson<Approver>(`${BASE}/approver`, origin, { name }, signal, "PUT");
 }
 
+/**
+ * The corpus import (spec 11, M5b): one RIS export per file, labelled with its
+ * database. The engine counts everything, including the duplicates its
+ * deduplicator finds; this module only carries the numbers.
+ */
+export interface CorpusSource {
+  id: string;
+  label: string;
+  file_name: string;
+  records: number;
+  searched_on: string | null;
+  query: string | null;
+}
+
+export interface CorpusDatabase {
+  label: string;
+  records: number;
+  files: number;
+  searched_on: string[];
+  search_details_missing: boolean;
+}
+
+export interface Corpus {
+  shape: "screening.corpus-v1";
+  state: "EMPTY" | "STAGED" | "ACCEPTED";
+  sources: CorpusSource[];
+  databases: CorpusDatabase[];
+  preview: { identified: number; duplicates: number; unique_studies: number };
+  accepted: { artifact_id: string; accepted_at: string | null; records: number; studies: number; duplicates: number } | null;
+  from_discovery: boolean;
+  limits: { max_source_bytes: number; label_max_length: number };
+}
+
+export interface CorpusSourceUpload {
+  label: string;
+  file_name: string;
+  content: string;
+  searched_on?: string | null;
+  query?: string | null;
+}
+
+export function getCorpus(origin: string, signal?: AbortSignal): Promise<Corpus> {
+  return readJson<Corpus>(`${BASE}/corpus`, consoleBase(origin), signal);
+}
+
+export function addCorpusSource(origin: string, upload: CorpusSourceUpload, signal?: AbortSignal): Promise<Corpus> {
+  return postJson<Corpus>(`${BASE}/corpus/sources`, origin, upload, signal);
+}
+
+export function removeCorpusSource(origin: string, sourceId: string, signal?: AbortSignal): Promise<Corpus> {
+  return postJson<Corpus>(`${BASE}/corpus/sources/${encodeURIComponent(sourceId)}/remove`, origin, {}, signal);
+}
+
+export function acceptCorpus(origin: string, signal?: AbortSignal): Promise<Corpus> {
+  return postJson<Corpus>(`${BASE}/corpus/accept`, origin, {}, signal);
+}
+
 /** Stage approval for one batch. The code is printed in the engine's terminal, never returned. */
 export function beginApproval(origin: string, batchIndex: number, signal?: AbortSignal): Promise<PairingBegun> {
   return postJson<PairingBegun>(`${BASE}/actions/pairing/begin`, origin, { batch: batchIndex }, signal);

@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import type { Locale } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { AFFECTS_LABEL, stateCopy } from "@/lib/screening-states";
+import { getCorpus } from "@/lib/screening-v1";
 
 /**
  * One state card (spec 08): what happened, what it affects, one next step, and
@@ -10,7 +13,7 @@ import { AFFECTS_LABEL, stateCopy } from "@/lib/screening-states";
  * only cue: the badge names the state.
  */
 
-export type ScreeningStep = "home" | "prepare" | "proposals" | "triage" | "agreement" | "publish";
+export type ScreeningStep = "home" | "import" | "prepare" | "proposals" | "triage" | "agreement" | "publish";
 
 /** The new screening screens sit beside the legacy `/screening` page until M5-slim. */
 export function stepHref(locale: Locale, step: ScreeningStep, consoleOrigin = ""): string {
@@ -23,16 +26,36 @@ export function exportHref(locale: Locale, consoleOrigin = ""): string {
 }
 
 const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
-  en: { home: "Home", prepare: "1 Prepare", proposals: "2 Agent proposals", triage: "3 Triage", agreement: "4 Agreement", publish: "5 Publish" },
-  fr: { home: "Accueil", prepare: "1 Préparer", proposals: "2 Propositions de l'agent", triage: "3 Trier", agreement: "4 Accord", publish: "5 Publier" },
-  ar: { home: "الرئيسية", prepare: "1 التحضير", proposals: "2 مقترحات الوكيل", triage: "3 المراجعة", agreement: "4 الاتفاق", publish: "5 النشر" },
+  en: { home: "Home", import: "Import", prepare: "1 Prepare", proposals: "2 Agent proposals", triage: "3 Triage", agreement: "4 Agreement", publish: "5 Publish" },
+  fr: { home: "Accueil", import: "Importer", prepare: "1 Préparer", proposals: "2 Propositions de l'agent", triage: "3 Trier", agreement: "4 Accord", publish: "5 Publier" },
+  ar: { home: "الرئيسية", import: "الاستيراد", prepare: "1 التحضير", proposals: "2 مقترحات الوكيل", triage: "3 المراجعة", agreement: "4 الاتفاق", publish: "5 النشر" },
 };
 
 const STEPS_LABEL: Record<Locale, string> = { en: "Screening steps", fr: "Étapes de la sélection", ar: "خطوات الفرز" };
 /** The way back to the workspaces screen (spec 00, M5-slim). */
 const WORKSPACES_LABEL: Record<Locale, string> = { en: "All workspaces", fr: "Tous les espaces", ar: "كل مساحات العمل" };
 
+/**
+ * Import (spec 11) is a step, unnumbered, only until the corpus is accepted
+ * (researcher, 2026-11-06); afterwards Home links to what was imported. The bar
+ * asks the engine; a failed read (a phone, an old engine) leaves the step out.
+ */
+function useImportStep(consoleOrigin: string, current?: ScreeningStep): boolean {
+  const [open, setOpen] = useState(current === "import");
+  useEffect(() => {
+    if (current === "import") return;
+    const controller = new AbortController();
+    getCorpus(consoleOrigin, controller.signal).then(
+      (corpus) => setOpen(corpus.state !== "ACCEPTED"),
+      () => setOpen(false),
+    );
+    return () => controller.abort();
+  }, [consoleOrigin, current]);
+  return open;
+}
+
 export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly<{ locale: Locale; current?: ScreeningStep; consoleOrigin?: string }>) {
+  const showImport = useImportStep(consoleOrigin, current);
   return (
     <nav aria-label={STEPS_LABEL[locale]} className="mb-6">
       <ol className="flex flex-wrap gap-2 text-sm">
@@ -45,7 +68,7 @@ export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly
             {WORKSPACES_LABEL[locale]}
           </a>
         </li>
-        {(Object.keys(STEP_LABELS[locale]) as ScreeningStep[]).map((step) => (
+        {(Object.keys(STEP_LABELS[locale]) as ScreeningStep[]).filter((step) => step !== "import" || showImport).map((step) => (
           <li key={step}>
             <a
               href={stepHref(locale, step, consoleOrigin)}
@@ -83,7 +106,7 @@ export function StateCard({
   const state = stateCopy(locale, code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const href =
-    state.action === "prepare" || state.action === "proposals" || state.action === "triage" || state.action === "publish" || state.action === "home"
+    state.action === "import" || state.action === "prepare" || state.action === "proposals" || state.action === "triage" || state.action === "publish" || state.action === "home"
       ? stepHref(locale, state.action, consoleOrigin)
       : null;
   return (
@@ -121,6 +144,13 @@ export function StateCard({
           </a>
         ) : state.actionLabel ? (
           <p className="text-sm text-ink-muted">{state.actionLabel}</p>
+        ) : null}
+        {state.command ? (
+          <p className="mt-2">
+            <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr">
+              {command ?? state.command}
+            </code>
+          </p>
         ) : null}
       </div>
     </section>

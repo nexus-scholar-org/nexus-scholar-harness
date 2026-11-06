@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 
 /**
  * Foundation components of the brand design system (production plan §3, M0).
@@ -34,7 +34,7 @@ export function Button({
   className = "",
   type = "button",
   ...props
-}: Readonly<ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }>) {
+}: Readonly<ComponentPropsWithRef<"button"> & { variant?: ButtonVariant }>) {
   return (
     <button
       type={type}

@@ -45,7 +45,7 @@ function engine(job?: { state: string; error?: string | null }) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("prepare.snapshot-missing", () => {
-  it("confirms before preparing, then shows the refusal with the terminal step", async () => {
+  it("confirms before preparing, then shows the refusal with the Import link and the terminal step", async () => {
     const log = engine();
     render(<ScreeningPrepare locale="en" />);
     await screen.findByText("No batches yet.");
@@ -54,7 +54,8 @@ describe("prepare.snapshot-missing", () => {
     expect(screen.getByText("Prepare batches of 20 records?")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Prepare now" }));
     await screen.findByText("SNAPSHOT_NOT_ACCEPTED");
-    expect(screen.getByText("nexus-scholar accept-corpus")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Import the corpus" })).toHaveAttribute("href", "/en/screening/import");
+    expect(screen.getByText("nexus-scholar accept-corpus --ris Scopus=<file>.ris")).toBeInTheDocument();
     expect(log.find((l) => l.path === "/prepare")?.body).toEqual({ batch_size: 20 });
   });
 });
