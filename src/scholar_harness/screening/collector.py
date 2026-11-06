@@ -1178,16 +1178,9 @@ def cmd_collect(workspace_dir: Path) -> None:
         )
 
     # Look for raw provenance manifest to get exact total_identified and duplicates_removed
-    manifest_raw = lit_dir / "raw" / "provenance_manifest.json"
-    total_identified = len(docs)
-    duplicates_removed = 0
-    if manifest_raw.exists():
-        try:
-            m = json.loads(manifest_raw.read_text(encoding="utf-8"))
-            total_identified = m.get("total_raw_harvested", len(docs))
-            duplicates_removed = max(0, total_identified - len(docs))
-        except Exception:
-            pass
+    from ..corpus_accept import prisma_identification
+
+    total_identified, duplicates_removed = prisma_identification(lit_dir.parent, len(docs))
 
     # Partition
     inc_docs, exc_docs, conflicts, report = partition_screening_results(

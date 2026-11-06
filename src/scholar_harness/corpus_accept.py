@@ -319,6 +319,39 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
     }
 
 
+IMPORT_MANIFEST_SCHEMA = "nexus.corpus-import.v1"
+
+
+def prisma_identification(ws: Path, screened_docs: int) -> tuple[int, int]:
+    """``(total_identified, duplicates_removed)`` for the PRISMA counts.
+
+    Collect and approval both call this, so the two stay byte-identical. For a
+    corpus imported from database exports, ``verified.json`` holds every record
+    (duplicates included), so the counts come from the accepted snapshot:
+    identified = its records, duplicates = records - studies, the same numbers
+    as ``/prisma/preview`` and ``check_golden_workspace.py``. Otherwise the
+    discovery harvest manifest is read as before (or no duplicates are known).
+    """
+    manifest_path = ws / MANIFEST_FILE
+    manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            manifest = {}
+    if manifest.get("schema") == IMPORT_MANIFEST_SCHEMA:
+        registry = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8"))
+        corpora = sorted(
+            (e for e in registry.get("artifacts", {}).values() if e.get("artifact_type") == "corpus_snapshot"),
+            key=lambda e: str(e.get("accepted_at") or ""),
+        )
+        data = json.loads((ws / corpora[-1]["path"]).read_text(encoding="utf-8"))["data"]
+        records = len(data["record_to_study"])
+        return records, records - len(data["studies"])
+    total = manifest.get("total_raw_harvested", screened_docs) if manifest else screened_docs
+    return total, max(0, total - screened_docs)
+
+
 def corpus_status(workspace: Path | str) -> dict[str, Any]:
     """What the Import screen shows: ``EMPTY``, ``STAGED`` or ``ACCEPTED``, with counts."""
     ws = Path(workspace).resolve()
@@ -372,7 +405,7 @@ def _materialise_staged(ws: Path) -> None:
         rows.append(row)
     verified.write_text(json.dumps(rows, indent=2), encoding="utf-8")
     manifest = {
-        "schema": "nexus.corpus-import.v1",
+        "schema": IMPORT_MANIFEST_SCHEMA,
         "total_raw_harvested": len(documents),
         "sources": [
             {k: s[k] for k in ("label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")}

@@ -6,7 +6,7 @@ Why: gap G1 in [`prisma-scr-readiness.md`](../../assessment/prisma-scr-readiness
 ## Definition of done
 - [x] **Several RIS exports, one per database,** staged with a label (optional date searched and search string), kept byte for byte under `literature/raw/ris/`, journaled; `accept-corpus --ris LABEL=PATH` repeatable. Tests `tests/cli/test_accept_corpus.py` (multi-database, preview, refusals, frozen, option parsing).
 - [x] **Cross-database deduplication** by the snapshot's own `Deduplicator`; every record kept with `source_database`; `provenance_manifest.json` written, so PRISMA reads identified = records and duplicates removed = records − studies. Test: 6 records from 2 files → 4 studies; Prepare batches 4.
-- [x] **Methods paragraph** names each database with its count and date searched; `not_stated` lists a missing date. Test `tests/console/test_methods_api.py::test_databases_from_the_import_manifest_are_named_with_their_counts`.
+- [x] **Methods paragraph** names each database with its count and date searched; `not_stated` lists a missing date. Test `tests/console/test_methods_api.py::test_an_imported_corpus_publishes_the_snapshot_counts_and_names_its_databases` (two RIS files through accept, prepare, approve and publish; `prisma_report.json` equals `/prisma/preview`).
 - [x] **API:** `GET /corpus`, `POST /corpus/sources`, `POST /corpus/sources/{slug}/remove`, `POST /corpus/accept`, desktop only, in both browser allowlists; contract rows updated. Tests `tests/console/test_corpus_import_api.py`, `tests/console/test_browser_access.py`, `console-proxy.test.ts`.
 - [ ] **Import screen** (spec `docs/ux/phase2-screening/final/11-import-corpus.md`, DRAFT): needs the researcher's answers to its open questions, then FINAL, then the screen with vitest and Playwright checks (en/fr/ar, light/dark, phone pointer).
 - [ ] **Decision** `docs/decisions.md` 2026-11-06 "Several database exports in one corpus" confirmed by the researcher (written as proposed).
@@ -15,6 +15,7 @@ Why: gap G1 in [`prisma-scr-readiness.md`](../../assessment/prisma-scr-readiness
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| S-P0-1 ([full review 2026-11-06](../../assessment/full-review-2026-11-06.md), another session) | `tests/console/test_methods_api.py::test_an_imported_corpus_publishes_the_snapshot_counts_and_names_its_databases` | yes: published `(6, 0, 4)`, expected `(6, 2, 4)`. Collect and approval computed duplicates from `verified.json` rows, which now hold every record | yes: both call `corpus_accept.prisma_identification`, which takes the counts from the accepted snapshot for an imported corpus |
 | G1 (readiness checklist) | `test_several_ris_exports_are_deduplicated_and_counted_per_database` | not run on the old code; by construction it could not pass (`--ris` took one path, no manifest was written) | yes |
 
 ## Decisions
@@ -24,6 +25,7 @@ Why: gap G1 in [`prisma-scr-readiness.md`](../../assessment/prisma-scr-readiness
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
 | inner (engine + API) | working tree before the engine commit | `select_test_gate.py --changed main --stage inner`: `git diff --check`; `ruff check scripts/`; contract baseline `--check`; `tsc`; `vitest related route.ts`; `pytest -q -n auto` | all pass except `test_the_committed_fixtures_are_what_the_engine_produces` (the Prepare refusal message changed on purpose); fixtures regenerated, a one-line diff, then the contract fixture tests and both corpus test files pass. The first draft of the API tests had overwritten the existing `tests/console/test_corpus_api.py` (UI-07 paged reads); restored from `HEAD`, the new tests live in `test_corpus_import_api.py` | pytest about 20 min |
+| checkpoint (S-P0-1 fix) | working tree on `b43b99c` | `pytest tests/authority tests/console tests/cli tests/test_screening_events.py -n auto`; `pytest tests/test_golden_screening_sandbox.py`; the new test against the old counting code (`git apply -R`) | all pass; golden tests pass; old code fails as expected | about 6 min |
 
 ## Deferred
 - Non-RIS formats (CSV, BibTeX, PubMed nbib): spec 11 open question 3.
