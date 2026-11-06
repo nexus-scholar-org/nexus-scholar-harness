@@ -91,6 +91,11 @@ export function failedChecks(proposal: Proposal): string[] {
   return proposal.validators.filter((v) => !v.ok).map((v) => v.name);
 }
 
+/** The draft's answers, open ("not reported") ones first, otherwise in stored order. */
+export function proposalAnswersOpenFirst(criteria: Proposal["criteria"]): Proposal["criteria"] {
+  return [...criteria.filter((c) => c.answer === "not_reported"), ...criteria.filter((c) => c.answer !== "not_reported")];
+}
+
 /** Keys the triage map handles; none fire inside a text field (spec 03). */
 export type TriageKey = "include" | "exclude" | "unclear" | "skip" | "undo" | "next" | "down" | "up" | "yes" | "no" | "notReported" | "help";
 

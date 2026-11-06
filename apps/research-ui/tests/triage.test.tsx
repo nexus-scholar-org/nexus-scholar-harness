@@ -44,6 +44,7 @@ interface Engine {
   conflicts?: unknown[];
   criteria?: typeof CRITERIA;
   proposalDelay?: Promise<void>;
+  proposal?: typeof PROPOSAL;
 }
 
 let engine: Engine;
@@ -88,7 +89,7 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
     }
     if (!engine.proposals.has(study)) return Promise.resolve(json({ proposal: null }));
     engine.reveals.add(study);
-    return (engine.proposalDelay ?? Promise.resolve()).then(() => json({ proposal: PROPOSAL }));
+    return (engine.proposalDelay ?? Promise.resolve()).then(() => json({ proposal: engine.proposal ?? PROPOSAL }));
   }
   const record = path.match(/^\/records\/([^/]+)$/);
   if (record) {
@@ -167,6 +168,45 @@ describe("record-detail.draft-never-include-tint", () => {
     const aside = screen.getByTestId("proposal-aside");
     expect(aside.className).not.toMatch(/include/);
     expect(aside.querySelector('[data-role="include"]')).toBeNull();
+  });
+});
+
+describe("record-detail.draft-answers", () => {
+  it("lists every criterion with the agent's answer, open ones first, each quote under its answer", async () => {
+    engine.blinding = "show";
+    engine.proposal = {
+      ...PROPOSAL,
+      criteria: [
+        { id: "INC-01", answer: "no", evidence: { start: 0, end: 5, text: "drone" } },
+        { id: "INC-02", answer: "not_reported" } as (typeof PROPOSAL)["criteria"][number],
+        { id: "INC-03", answer: "yes", evidence: { start: 0, end: 5, text: "Published: 2023" } },
+        { id: "EXC-01", answer: "no", evidence: { start: 0, end: 5, text: "mounted on a UAV" } },
+        { id: "EXC-02", answer: "not_reported" } as (typeof PROPOSAL)["criteria"][number],
+      ],
+      derived_outcome: "MAYBE",
+      reason_code: null as unknown as string,
+    };
+    await ready();
+    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
+    const list = within(screen.getByTestId("proposal-aside")).getByRole("region", { name: "The agent's answer to each criterion" });
+    const items = within(list).getAllByRole("listitem");
+    // All five, not the first three quotes; the two open answers lead.
+    expect(items.map((li) => li.getAttribute("data-criterion"))).toEqual(["INC-02", "EXC-02", "INC-01", "INC-03", "EXC-01"]);
+    expect(items[0]).toHaveTextContent("Not reported");
+    expect(items[0]).toHaveTextContent("The record does not say either way.");
+    // A quote is read with its answer: a refuting quote says No.
+    expect(items[2]).toHaveTextContent("INC-01");
+    expect(within(items[2]).getByText("No", { exact: true })).toBeInTheDocument();
+    expect(within(items[2]).getByRole("blockquote")).toHaveTextContent("drone");
+    expect(within(items[3]).getByText("Yes", { exact: true })).toBeInTheDocument();
+  });
+
+  it("names the list and the answers in every locale", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const key of ["agentAnswers", "recordSilent", "noQuote"] as const) {
+        expect(tc(locale, key), `${locale} ${key}`).not.toBe("");
+      }
+    }
   });
 });
 
