@@ -476,6 +476,83 @@ def put_approver(body: ApproverBody, request: Request) -> dict[str, Any]:
     return _approver(ws)
 
 
+_CORPUS_STATUS = {
+    "SOURCE_LABEL_INVALID": 422,
+    "SOURCE_DATE_INVALID": 422,
+    "SOURCE_NOT_RIS": 422,
+    "SOURCE_TOO_LARGE": 413,
+    "SOURCE_NOT_FOUND": 404,
+}
+
+
+def _corpus_error(exc: Any) -> HTTPException:
+    return _error(_CORPUS_STATUS.get(exc.code, 409), exc.code, str(exc))
+
+
+class CorpusSourceBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    label: str
+    file_name: str
+    content: str
+    searched_on: str | None = None
+    query: str | None = None
+
+
+@router.get("/corpus")
+def get_corpus(request: Request) -> dict[str, Any]:
+    """The corpus import: staged database exports, the counts acceptance would give, or what was accepted."""
+    from ...corpus_accept import corpus_status
+
+    return corpus_status(_ws(request))
+
+
+@router.post("/corpus/sources", status_code=201)
+def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, Any]:
+    """Stage one database's RIS export (desktop only, journaled). Nothing is accepted yet."""
+    from ...corpus_accept import AcceptCorpusRefused, corpus_status, stage_ris_source
+
+    ws = _ws(request)
+    try:
+        stage_ris_source(
+            ws, body.label, body.content.encode("utf-8"),
+            file_name=body.file_name, searched_on=body.searched_on, query=body.query,
+        )
+    except AcceptCorpusRefused as exc:
+        raise _corpus_error(exc) from exc
+    return corpus_status(ws)
+
+
+@router.post("/corpus/sources/{slug}/remove")
+def remove_corpus_source(slug: str, request: Request) -> dict[str, Any]:
+    """Drop a staged export before acceptance (journaled)."""
+    from ...corpus_accept import AcceptCorpusRefused, corpus_status, remove_staged_source
+
+    ws = _ws(request)
+    try:
+        remove_staged_source(ws, slug)
+    except AcceptCorpusRefused as exc:
+        raise _corpus_error(exc) from exc
+    return corpus_status(ws)
+
+
+@router.post("/corpus/accept")
+def accept_corpus_route(request: Request) -> dict[str, Any]:
+    """Freeze the staged exports into the Contract-v1 corpus snapshot (the acceptance gate decides)."""
+    from ...corpus_accept import AcceptCorpusRefused, accept_corpus, corpus_status, staged_sources
+
+    ws = _ws(request)
+    status = corpus_status(ws)
+    if status["state"] == "ACCEPTED":
+        raise _error(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted")
+    if not staged_sources(ws) and not status["from_discovery"]:
+        raise _error(409, "NOTHING_STAGED", "add at least one database export first")
+    try:
+        accept_corpus(ws)
+    except AcceptCorpusRefused as exc:
+        raise _corpus_error(exc) from exc
+    return corpus_status(ws)
+
+
 class PrepareBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     batch_size: int = 20
@@ -491,7 +568,7 @@ async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
         for e in json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {}).values()
     )
     if not accepted:
-        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no accepted corpus snapshot; run `nexus-scholar accept-corpus`")
+        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no accepted corpus snapshot; import and accept the corpus first (Import, or `nexus-scholar accept-corpus`)")
     job = await request.app.state.job_runner.start("screen_prepare")
     return {"job_id": job.job_id}
 

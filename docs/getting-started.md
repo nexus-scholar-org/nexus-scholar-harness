@@ -95,12 +95,17 @@ Export your search results as **RIS** from Scopus, Web of Science, Zotero or
 another reference manager. Then, in a second terminal (leave the app running):
 
 ```bash
-nexus-scholar accept-corpus --workspace "<the workspace folder>" --ris "<your-file>.ris"
+nexus-scholar accept-corpus --workspace "<the workspace folder>" --ris "Scopus=<scopus-export>.ris" --ris "Web of Science=<wos-export>.ris"
 ```
 
-It reports how many records were accepted. The corpus is
-fingerprinted, and the step is recorded in the workspace's audit journal.
-Running it again on the same file changes nothing.
+Give one `--ris` per database, as `Label=file`. The label is the database name
+the methods paragraph and PRISMA counts will use. Duplicates within and across
+the files are found when the corpus is accepted (same DOI, or the same title,
+first author and year). The command reports the studies left to screen and the
+records they came from; the difference is the duplicates removed. Each file is
+copied into `literature/raw/ris/`, the corpus is fingerprinted, and every step is
+recorded in the workspace's audit journal. Once the corpus is accepted it is
+frozen: running the command again with `--ris` is refused and changes nothing.
 
 ## 7. Screen
 

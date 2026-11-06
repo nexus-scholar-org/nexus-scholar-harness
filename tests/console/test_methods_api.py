@@ -220,3 +220,30 @@ def test_methods_writes_no_file_and_no_journal_row_and_is_repeatable(tmp_path, a
     first = _methods(ws)
     assert _methods(ws) == first
     assert _tree(ws) == before
+
+
+def test_databases_from_the_import_manifest_are_named_with_their_counts(tmp_path):
+    ws = se._build(tmp_path)
+    raw = ws / "literature" / "raw"
+    raw.mkdir(parents=True, exist_ok=True)
+    (raw / "provenance_manifest.json").write_text(json.dumps({
+        "schema": "nexus.corpus-import.v1",
+        "total_raw_harvested": 5,
+        "sources": [
+            {"label": "Scopus", "file_name": "s.ris", "stored_as": "literature/raw/ris/scopus.ris",
+             "sha256": "0" * 64, "records": 3, "searched_on": "2026-11-06", "query": "uav AND weed"},
+            {"label": "Web of Science", "file_name": "w.ris", "stored_as": "literature/raw/ris/web-of-science.ris",
+             "sha256": "1" * 64, "records": 2, "searched_on": None, "query": None},
+        ],
+    }), encoding="utf-8")
+    decide(ws)
+    publish(ws)
+    body = _methods(ws)
+    _assert_numbers_trace(body)
+    assert body["paragraph"].startswith(
+        "Records were identified from Scopus (n = 3, searched 2026-11-06) and Web of Science (n = 2). "
+        "5 records were identified; 2 duplicates were removed; 3 records were screened;"
+    )
+    assert [s["records"] for s in body["figures"]["identified_by_source"]] == [3, 2]
+    assert "Date searched: not recorded for every database." in body["not_stated"]
+    assert "provenance_manifest.json" in {s["name"] for s in body["sources"]}
