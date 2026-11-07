@@ -174,6 +174,9 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const current = useRef<string | null>(null);
 
   const item = items.find((i) => i.study_id === selected) ?? null;
+  // The latest queue for key handlers that may run before the next render.
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   const loadQueue = useCallback(
     async (nextView: QueueView, append = false, from = 0) => {
@@ -290,10 +293,13 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   function move(step: number) {
-    if (!settings || items.length === 0) return;
-    const at = Math.max(0, items.findIndex((i) => i.study_id === selected));
-    const next = items[(at + step + items.length) % items.length];
-    void open(next.study_id, items, settings);
+    const list = itemsRef.current;
+    if (!settings || list.length === 0) return;
+    // From the record actually on screen (`current`), not this render's `selected`:
+    // a key pressed right after triage advanced must not move from the old record.
+    const at = Math.max(0, list.findIndex((i) => i.study_id === current.current));
+    const next = list[(at + step + list.length) % list.length];
+    void open(next.study_id, list, settings);
   }
 
   async function submit(outcome: Outcome, options: { reasonCode?: string | null; restore?: StoredEvent } = {}) {

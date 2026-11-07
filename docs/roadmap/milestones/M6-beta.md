@@ -29,11 +29,26 @@ Plan: a new §6 row is added to [`production-plan.md`](../production-plan.md) at
 
 ### B. Details on demand (new rule page 12, applied to 01, 03, 05, 09, 10)
 
-- [ ] **The rule.** Each screen shows what the researcher acts on; identifiers and proofs sit behind one "Details" disclosure per card, closed by default, keyboard-reachable, with a consistent label. Moved behind it: study ids, DOIs' raw form, protocol and batch fingerprints, generation ids and fingerprints, event ids, the "Recorded as you · HUMAN · time · protocol sha" line (the card keeps one word, "Saved", with the time on hover), run ids, prompt hashes, refusal codes (the plain sentence stays, the code moves into the disclosure), the batch file names on Home and Publish. Nothing is removed from the DOM, so the Playwright provenance checks still find it. Written as `12-details-disclosure.md` (FINAL) with the list per screen.
-- [ ] **Home (01).** The first screen is the next action and three numbers: need you, decided, included so far. Batches, "Who screens", the terminal block and the counts of drafts move below a fold or into Details. The raw `NOT_PREPARED` code leaves the card body. Vitest `home.compact.test.tsx`.
-- [ ] **Publish (09).** Checks shown as one line each with a pass mark; the fingerprint and the digests behind Details; the PRISMA preview keeps the numbers and the reasons table. Vitest `publish.details.test.tsx`.
-- [ ] **Export (10).** The generation fingerprint and the sources list behind Details; the paragraph first. Vitest `export.details.test.tsx`.
-- [ ] **Rendered axe** passes on every amended screen in en and ar, light and dark (`tests-browser/rendered-axe.spec.ts` extended).
+- [x] **The rule.** Done 2026-11-07: `12-details-disclosure.md` (FINAL). One `DETAILS_LABEL` (en/fr/ar) in `screening-state-card.tsx`. Every state card's typed code sits behind it, still in the DOM. Triage keeps the study id, the raw DOI, the provenance line, the draft's identifiers and refusal codes behind Details. Originally planned as: Each screen shows what the researcher acts on; identifiers and proofs sit behind one "Details" disclosure per card, closed by default, keyboard-reachable, with a consistent label. Moved behind it: study ids, DOIs' raw form, protocol and batch fingerprints, generation ids and fingerprints, event ids, the "Recorded as you · HUMAN · time · protocol sha" line (the card keeps one word, "Saved", with the time on hover), run ids, prompt hashes, refusal codes (the plain sentence stays, the code moves into the disclosure), the batch file names on Home and Publish. Nothing is removed from the DOM, so the Playwright provenance checks still find it. Written as `12-details-disclosure.md` (FINAL) with the list per screen.
+- [x] **Home (01).** Done 2026-11-07:
+  - first the one button and three tiles (Need you, Decided, Included so far);
+  - the agent-draft and conflicts tiles behind Details;
+  - batches read "Batch n", with the file name behind Details;
+  - the settings line moved below the cards;
+  - `NOT_PREPARED` sits inside the card's Details;
+  - after a later decision, "Published, n studies changed since" and "Publish again" replace the export link.
+
+  vitest `home.compact` (three tests). Originally planned as: The first screen is the next action and three numbers: need you, decided, included so far. Batches, "Who screens", the terminal block and the counts of drafts move below a fold or into Details. The raw `NOT_PREPARED` code leaves the card body. Vitest `home.compact.test.tsx`.
+- [x] **Publish (09).** Done 2026-11-07:
+  - each check is one line, a failing one keeps its count, and the passing details sit behind Details;
+  - after publishing the banner says "Published", with the id behind Details;
+  - batches read "batch n", with the file name behind Details;
+  - the stale notice gives the changed count, with `GENERATION_STALE` behind Details;
+  - the PRISMA card is unchanged.
+
+  vitest `publish.details` (two). Originally planned as: Checks shown as one line each with a pass mark; the fingerprint and the digests behind Details; the PRISMA preview keeps the numbers and the reasons table. Vitest `publish.details.test.tsx`.
+- [x] **Export (10).** Done 2026-11-07: the paragraph comes first, then the counts; the generation id, fingerprint and sources are in one Details. vitest `export.details`. Originally planned as: The generation fingerprint and the sources list behind Details; the paragraph first. Vitest `export.details.test.tsx`.
+- [x] **Rendered axe** Done 2026-11-07, run on each screen with an engine answering. Contrast passes in en and ar, light and dark, on: triage with the reason panel open (`triage-desktop.spec.ts`), the compact Home with the stale line and Publish with Details open and the stale notice (`screening-states.spec.ts`), and Export and Import (their own specs). The generic `rendered-axe.spec.ts` loads pages without an engine, so it sees only their error cards. Originally planned as: passes on every amended screen in en and ar, light and dark (`tests-browser/rendered-axe.spec.ts` extended).
 
 ### C. The trust breaks
 

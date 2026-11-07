@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
+import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import {
   getBatchReview,
@@ -76,6 +77,9 @@ const COPY = {
     publishGate: "Publish",
     publishBody: "Writes the included, excluded and full-text lists and the PRISMA report for the approved generation.",
     published: "Published generation {id}",
+    publishedPlain: "Published",
+    batchN: "batch {n}",
+    publishedStale: "Decisions changed after this was published ({n} studies). Approve and publish again.",
     toTriage: "Open triage",
     approverTitle: "Approver",
     approverBody: "Approvals are recorded under this name. It is a name typed on this computer, not a verified sign-in.",
@@ -129,6 +133,9 @@ const COPY = {
     publishGate: "Publication",
     publishBody: "Écrit les listes d'inclusions, d'exclusions et de texte intégral ainsi que le rapport PRISMA de la génération approuvée.",
     published: "Génération publiée {id}",
+    publishedPlain: "Publiée",
+    batchN: "lot {n}",
+    publishedStale: "Des décisions ont changé après la publication ({n} études). Approuvez et publiez de nouveau.",
     toTriage: "Ouvrir le tri",
     approverTitle: "Approbateur",
     approverBody: "Les approbations sont enregistrées sous ce nom. C'est un nom saisi sur cet ordinateur, pas une connexion vérifiée.",
@@ -182,6 +189,9 @@ const COPY = {
     publishGate: "النشر",
     publishBody: "يكتب قوائم المُدرجة والمستبعدة والنص الكامل وتقرير PRISMA للجيل المعتمد.",
     published: "نُشر الجيل {id}",
+    publishedPlain: "نُشر",
+    batchN: "الدفعة {n}",
+    publishedStale: "تغيّرت قرارات بعد النشر ({n} دراسة). اعتمد وانشر مجددًا.",
     toTriage: "فتح المراجعة",
     approverTitle: "المعتمِد",
     approverBody: "تُسجَّل الاعتمادات بهذا الاسم. إنه اسم مكتوب على هذا الحاسوب، وليس تسجيل دخول موثّقًا.",
@@ -212,7 +222,7 @@ function codeOf(error: unknown): { code: string; message: string } {
   return isScreeningApiError(error) ? { code: error.code, message: error.serverMessage } : { code: "ENGINE_UNREACHABLE", message: "" };
 }
 
-type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState>; current: boolean; approver: Approver };
+type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState>; current: boolean; staleChanged: number | null; approver: Approver };
 
 export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: PublishCopyKey, values?: Record<string, string | number>) => fill(PUBLISH_COPY[locale][key], values), [locale]);
@@ -230,17 +240,24 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
 
   const load = useCallback(async () => {
     try {
-      const [preview, batches, current, approver] = await Promise.all([
+      const [preview, batches, publication, approver] = await Promise.all([
         getPrismaPreview(origin),
         getScreeningBatches(origin),
         // Spec 10, decision 3: the export link shows only while the publication is CURRENT.
-        getPublicationStatus(origin).then((status) => status.status === "CURRENT", () => false),
+        getPublicationStatus(origin).then(
+          (status) => ({
+            current: status.status === "CURRENT",
+            // Published means current (M6-beta): STALE after a decision made since publishing.
+            staleChanged: status.status === "STALE" && typeof status.details?.changed === "number" ? (status.details.changed as number) : null,
+          }),
+          () => ({ current: false, staleChanged: null }),
+        ),
         getApprover(origin),
       ]);
       const reviews = Object.fromEntries(
         await Promise.all(batches.batches.map(async (b) => [b.batch_index, await getBatchReview(origin, b.batch_index)] as const)),
       );
-      setState({ status: "ready", data: { preview, batches, reviews, current, approver } });
+      setState({ status: "ready", data: { preview, batches, reviews, current: publication.current, staleChanged: publication.staleChanged, approver } });
     } catch (error) {
       setState({ status: "error", ...codeOf(error) });
     }
@@ -266,7 +283,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const body = (() => {
     if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
-    const { preview, batches, reviews, current, approver } = state.data;
+    const { preview, batches, reviews, current, staleChanged, approver } = state.data;
     const allPass = preview.checks.every((c) => c.ok);
     const allApproved = batches.batches.every((b) => reviews[b.batch_index]?.review.present);
     const reasons = Object.entries(preview.excluded.by_reason).sort(([a], [b]) => a.localeCompare(b));
@@ -288,9 +305,25 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
 
         {refusal ? <StateCard locale={locale} code={refusal.code} message={refusal.message} consoleOrigin={origin} /> : null}
         {published ? (
-          <p role="status" className="rounded-md bg-include-soft px-4 py-3 text-include">
-            {t("published", { id: published.generation_id })}
-          </p>
+          <div role="status" className="rounded-md bg-include-soft px-4 py-3 text-include" data-published>
+            <p>{t("publishedPlain")}</p>
+            <details className="mt-1 text-xs">
+              <summary className="cursor-pointer">{DETAILS_LABEL[locale]}</summary>
+              <DataCell>{published.generation_id}</DataCell>
+            </details>
+          </div>
+        ) : null}
+
+        {staleChanged !== null ? (
+          <div role="alert" className="rounded-md bg-unclear-soft px-4 py-3 text-ink" data-publication-stale>
+            <p>{t("publishedStale", { n: n(staleChanged) })}</p>
+            <details className="mt-1 text-xs text-ink-muted">
+              <summary className="cursor-pointer">{DETAILS_LABEL[locale]}</summary>
+              <span className="font-mono" dir="ltr">
+                GENERATION_STALE
+              </span>
+            </details>
+          </div>
         ) : null}
 
         <div className="flex flex-wrap gap-6">
@@ -354,13 +387,29 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                     <li key={c.name} className="flex flex-wrap items-center gap-2" data-check={c.name}>
                       <DecisionBadge role={c.ok ? "include" : "blocked"}>{c.ok ? t("pass") : t("fail")}</DecisionBadge>
                       <span className="text-ink">{key in PUBLISH_COPY[locale] ? t(key) : c.name}</span>
-                      <span className="text-xs text-ink-muted" dir="ltr">
-                        {c.detail}
-                      </span>
+                      {c.ok ? null : (
+                        <span className="text-xs text-ink-muted" dir="ltr">
+                          {c.detail}
+                        </span>
+                      )}
                     </li>
                   );
                 })}
               </ul>
+              {preview.checks.some((c) => c.ok && c.detail) ? (
+                <details className="mt-2 text-xs text-ink-muted" data-checks-details>
+                  <summary className="cursor-pointer">{DETAILS_LABEL[locale]}</summary>
+                  <ul className="mt-1 space-y-1">
+                    {preview.checks
+                      .filter((c) => c.ok && c.detail)
+                      .map((c) => (
+                        <li key={c.name} dir="ltr">
+                          {c.name}: {c.detail}
+                        </li>
+                      ))}
+                  </ul>
+                </details>
+              ) : null}
               {!preview.checks.find((c) => c.name === "projections_current")?.ok ? (
                 <div className="mt-3">
                   <StateCard locale={locale} code="PROJECTION_STALE" consoleOrigin={origin} />
@@ -429,12 +478,12 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
               <ul className="mt-4 space-y-4">
                 {batches.batches.map((b) => {
                   const review = reviews[b.batch_index];
-                  const label = b.batch_file.replace(/\.json$/, "");
+                  const label = t("batchN", { n: n(b.batch_index) });
                   const approved = review?.review.present === true;
                   return (
                     <li key={b.batch_index} className="border-t border-rule pt-3" data-batch={b.batch_index}>
                       <p className="flex flex-wrap items-center gap-2">
-                        <DataCell>{label}</DataCell>
+                        <span className="font-medium text-ink first-letter:uppercase">{label}</span>
                         {approved ? (
                           <DecisionBadge role="include">{t("approved")}</DecisionBadge>
                         ) : review?.deferral.present ? (
@@ -443,6 +492,10 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                           <DecisionBadge role="unclear">{t("notApproved")}</DecisionBadge>
                         )}
                       </p>
+                      <details className="mt-1 text-xs text-ink-muted">
+                        <summary className="cursor-pointer">{DETAILS_LABEL[locale]}</summary>
+                        <DataCell>{b.batch_file}</DataCell>
+                      </details>
                       {approved ? <p className="mt-1 text-xs text-ink-muted">{t("approvedNote")}</p> : null}
                       {(
                         <div className="mt-2 space-y-2">

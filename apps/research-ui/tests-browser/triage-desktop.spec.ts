@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+
 import type { Page, Route } from "@playwright/test";
 
 import { DESKTOP_VIEWPORT, expect, test } from "./helpers";
@@ -95,5 +97,30 @@ for (const width of [1440, 1024]) {
     await page.getByRole("button", { name: "Show the whole queue" }).click();
     await expect(page.getByRole("button", { name: "Hide the queue" })).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator("#triage-queue-list")).toContainText("Record number 10");
+  });
+}
+
+const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");
+
+async function axe(page: Page) {
+  await page.addScriptTag({ path: AXE_PATH });
+  return page.evaluate(async () => {
+    const run = (globalThis as unknown as { axe: { run: (ctx: Document) => Promise<{ violations: { id: string; nodes: { target: unknown }[] }[]; passes: { id: string }[] }> } }).axe;
+    const raw = await run.run(document);
+    return { violations: raw.violations.map((v) => `${v.id} ${JSON.stringify(v.nodes.map((n) => n.target))}`), passes: raw.passes.map((p) => p.id) };
+  });
+}
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale}: axe finds no violation on triage, with a reason panel open, contrast included`, async ({ page }) => {
+    await engine(page);
+    await page.goto(`/${locale}/screening/triage`);
+    await expect(page.locator("[data-position]")).toBeVisible();
+    await page.keyboard.press("2");
+    await page.keyboard.press("e");
+    await expect(page.locator("[data-reason]")).toBeVisible();
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    expect(result.passes).toContain("color-contrast");
   });
 }

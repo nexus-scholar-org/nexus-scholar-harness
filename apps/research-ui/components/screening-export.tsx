@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from "r
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
-import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
+import { DETAILS_LABEL, ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, isScreeningApiError, type PublicationStatus } from "@/lib/screening-api";
 import {
   DEFAULT_EXPORT_SETS,
@@ -382,10 +382,6 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
           <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">{t("title")}</h1>
           <p className="mt-1 max-w-3xl text-ink-muted">{t("lede")}</p>
           <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-ink-muted">{t("generation")}</span>
-            <span title={methods.generation_id}>
-              <DataCell>{shortId}</DataCell>
-            </span>
             <DecisionBadge role="include">{t("published")}</DecisionBadge>
           </p>
         </header>
@@ -402,6 +398,29 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
               <h2 id="methods-title" className="font-semibold text-ink">
                 {t("methods.title")}
               </h2>
+
+              <div className="mt-4 rounded-lg border border-dashed border-brand bg-brand-soft p-4">
+                <span id="methods-draft">
+                  <DecisionBadge role="unclear">{t("methods.draftBadge")}</DecisionBadge>
+                </span>
+                <p
+                  role="region"
+                  aria-labelledby="methods-title methods-draft"
+                  lang="en"
+                  dir="ltr"
+                  tabIndex={0}
+                  className="mt-3 text-[0.9375rem] leading-[1.5rem] text-ink select-text"
+                  data-paragraph
+                >
+                  {methods.paragraph}
+                </p>
+              </div>
+              <p className="mt-2 text-xs text-ink-muted">{t("methods.language")}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <Button onClick={() => void copy(methods.paragraph)} data-copy>
+                  {t("methods.copy")}
+                </Button>
+              </div>
 
               <table className="mt-4 w-full text-sm">
                 <caption className="pb-2 text-start text-xs text-ink-muted">{t("methods.counts")}</caption>
@@ -446,29 +465,6 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
                 </table>
               ) : null}
 
-              <div className="mt-5 rounded-lg border border-dashed border-brand bg-brand-soft p-4">
-                <span id="methods-draft">
-                  <DecisionBadge role="unclear">{t("methods.draftBadge")}</DecisionBadge>
-                </span>
-                <p
-                  role="region"
-                  aria-labelledby="methods-title methods-draft"
-                  lang="en"
-                  dir="ltr"
-                  tabIndex={0}
-                  className="mt-3 text-[0.9375rem] leading-[1.5rem] text-ink select-text"
-                  data-paragraph
-                >
-                  {methods.paragraph}
-                </p>
-              </div>
-              <p className="mt-2 text-xs text-ink-muted">{t("methods.language")}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <Button onClick={() => void copy(methods.paragraph)} data-copy>
-                  {t("methods.copy")}
-                </Button>
-              </div>
-
               {methods.not_stated.length > 0 ? (
                 <div className="mt-5">
                   <h3 className="text-sm font-semibold text-ink">{t("methods.notStated")}</h3>
@@ -490,8 +486,19 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
                 </div>
               ) : null}
 
-              <details className="mt-5 text-sm">
-                <summary className="cursor-pointer font-medium text-brand">{t("methods.sources")}</summary>
+              <details className="mt-5 text-sm" data-methods-details>
+                <summary className="cursor-pointer font-medium text-brand">{DETAILS_LABEL[locale]}</summary>
+                <p className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-ink-muted">{t("generation")}</span>
+                  <span title={methods.generation_id}>
+                    <DataCell>{shortId}</DataCell>
+                  </span>
+                </p>
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-ink-muted">{t("fingerprint")}</span>
+                  <DataCell>{methods.generation_fingerprint}</DataCell>
+                </p>
+                <h3 className="mt-3 text-sm font-semibold text-ink">{t("methods.sources")}</h3>
                 <table className="mt-2 w-full">
                   <thead>
                     <tr className="text-ink-muted">
@@ -565,9 +572,6 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
           </div>
         </div>
 
-        <p className="text-xs text-ink-muted">
-          {t("fingerprint")} <DataCell>{methods.generation_fingerprint}</DataCell>
-        </p>
       </div>
     );
   })();

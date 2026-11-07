@@ -274,3 +274,22 @@ describe("export.link", () => {
     expect(screen.queryByRole("link", { name: "Export and methods" })).toBeNull();
   });
 });
+
+describe("export.details (M6-beta, spec 10 amendment)", () => {
+  it("puts the paragraph before the counts, and the generation id, fingerprint and sources behind Details", async () => {
+    engine();
+    render(<ScreeningExport locale="en" />);
+    const paragraph = await waitFor(() => {
+      const el = document.querySelector("[data-paragraph]");
+      if (!el) throw new Error("not yet");
+      return el;
+    });
+    const counts = screen.getByText("PRISMA counts of the published screening").closest("table")!;
+    expect(paragraph.compareDocumentPosition(counts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const details = document.querySelector("[data-methods-details]") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(within(details).getByText("GEN-0123456789ab…")).toBeInTheDocument();
+    expect(within(details).getByText(METHODS.generation_fingerprint)).toBeInTheDocument();
+    expect(within(details).getByText("What this statement is based on")).toBeInTheDocument();
+  });
+});
