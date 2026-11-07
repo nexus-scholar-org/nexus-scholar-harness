@@ -1026,3 +1026,14 @@ def test_ui_loopback_cors_allows_get_only(tmp_path):
         },
     )
     assert "POST" not in pre.headers.get("access-control-allow-methods", "")
+
+
+def test_ui_audit_feed_skips_an_unparseable_journal_line(tmp_path):
+    """M6-beta (review T-P1-3): the skip path called an undefined `logger`, so one bad line made the feed a 500."""
+    ws = _make_ws(tmp_path)
+    journal = ws / "audit" / "journal.jsonl"
+    journal.parent.mkdir(parents=True, exist_ok=True)
+    with journal.open("a", encoding="utf-8") as f:
+        f.write("{not json\n")
+    response = TestClient(create_app(ws)).get("/api/v1/screening/ui/audit-feed")
+    assert response.status_code == 200, response.text

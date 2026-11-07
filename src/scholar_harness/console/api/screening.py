@@ -18,6 +18,7 @@ preserved, so a one-record browser draft cannot erase the rest of the batch.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import uuid
 from datetime import UTC, datetime
@@ -28,6 +29,8 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from .audit import log_event
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/screening", tags=["screening"])
 
