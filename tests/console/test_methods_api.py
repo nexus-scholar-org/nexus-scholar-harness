@@ -305,3 +305,60 @@ def test_mcp_drafts_name_the_route(tmp_path):
     assert "provider not recorded" not in body["paragraph"]
     assert "via the researcher's Claude session (MCP)" in body["paragraph"]
     assert not any(s.startswith("Provider of the") for s in body["not_stated"])
+
+
+def test_advance_setting_is_reported_only_when_drafts_were_skipped(tmp_path):
+    """Spec 10 decision (researcher, 2026-11-07): said only when 'move on at once' skipped drafts."""
+    ws = tmp_path / "evidence"
+    import shutil
+
+    from scholar_harness.screening.export import build_methods
+
+    shutil.copytree(EVIDENCE, ws)
+    assert "opened at once" not in build_methods(ws)["paragraph"]
+    row = {
+        "timestamp": "2026-11-05T00:00:00Z", "action": "SCREENING_SETTINGS_CHANGED", "agent": "test",
+        "parameters": {"before": {"advance_on_decide": "show_draft_then_next"}, "after": {"advance_on_decide": "next_at_once"}},
+    }
+    with (ws / "audit" / "journal.jsonl").open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row) + "\n")
+    body = build_methods(ws)
+    assert (
+        "For 29 records the next record opened at once after the decision, so the draft was not shown unless "
+        "the reviewer opened it from the record's details."
+    ) in body["paragraph"]
+    assert body["figures"]["decided_draft_skipped"] == 29
+    _assert_numbers_trace(body)
+
+
+def test_blind_and_visible_decisions_each_get_their_sentence(tmp_path):
+    """Spec 10 decision (researcher, 2026-11-07): both sentences when the two kinds mix."""
+    ws = se._build(tmp_path)
+    context = ev.load_context(ws)
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    studies = se._studies(ws)
+    proposals = [
+        pr.submit_proposal(
+            ws, study_id=s, title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+            protocol=protocol, protocol_fingerprint=context.protocol_fingerprint,
+            provenance={"task_version": "screen-v1", "model": MODEL, "driver": "mcp", "prompt_sha256": PROMPT},
+            created_at="2026-11-05T08:10:00Z",
+        )
+        for s in studies
+    ]
+    # Two decided blind (no draft in view), one with its draft visible.
+    first = [se._event(ws, s, "INCLUDE", decided_at="2026-11-05T09:00:00.000Z") for s in studies[:2]]
+    first.append(se._event(ws, studies[2], "INCLUDE", decided_at="2026-11-05T09:00:00.000Z",
+                           proposal_shown={"proposal_id": proposals[2]["proposal_id"], "revealed_after_decision": False}))
+    se._intake(ws, first, received_at="2026-11-05T09:00:05Z")
+    ev.record_reveal(ws, study_id=studies[0], screener_id=se.SCREENER, proposal_id=proposals[0]["proposal_id"],
+                     context=context, revealed_at="2026-11-05T09:30:00Z")
+    se._intake(
+        ws, [se._event(ws, studies[0], "EXCLUDE", supersedes=first[0]["event_id"], decided_at="2026-11-05T10:00:00.000Z")],
+        received_at="2026-11-05T10:00:05Z",
+    )
+    publish(ws)
+    body = _methods(ws)
+    assert "After seeing a draft, the reviewer changed 1 of 1 decisions." in body["paragraph"]
+    assert "1 decision was made with the draft visible; no blind comparison is reported." in body["paragraph"]
+    _assert_numbers_trace(body)

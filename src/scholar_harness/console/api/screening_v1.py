@@ -41,7 +41,11 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     # The order the queue is shown in (M5-slim, spec 10): a setting, so a
     # change is journaled and the methods paragraph can state the order used.
     "queue_order": "seeded",
+    # What triage does after a decision (M6-beta, decision 2026-11-07): show the
+    # record's draft and wait for N, or open the next record at once.
+    "advance_on_decide": "show_draft_then_next",
 }
+ADVANCE_MODES = ("show_draft_then_next", "next_at_once")
 QUEUE_ORDERS = ("seeded", "agent_uncertainty")
 VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided")
 
@@ -352,6 +356,7 @@ class SettingsBody(BaseModel):
     sample_audit_size: int | None = None
     screener_id: str | None = None
     queue_order: str | None = None
+    advance_on_decide: str | None = None
     confirm_ai_agreed_exclusion: bool = False
 
 
@@ -366,6 +371,8 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
     if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
         raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record or ai_agreed_exclusion")
+    if update.get("advance_on_decide") not in (None, *ADVANCE_MODES):
+        raise _error(422, "INVALID_OUTPUT", f"advance_on_decide must be one of {ADVANCE_MODES}")
     if update.get("queue_order") not in (None, *QUEUE_ORDERS):
         raise _error(422, "INVALID_OUTPUT", f"queue_order must be one of {QUEUE_ORDERS}")
     if update.get("mode") == "ai_agreed_exclusion" and current["mode"] != "ai_agreed_exclusion":

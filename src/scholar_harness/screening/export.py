@@ -77,6 +77,7 @@ DEFAULT_SETTINGS = {
     "mode": "human_sees_every_record",
     "sample_audit_size": None,
     "queue_order": "seeded",
+    "advance_on_decide": "show_draft_then_next",
 }
 ORDER_LABELS = {"seeded": "seeded random", "agent_uncertainty": "agent-uncertainty"}
 NO_ABSTRACT = "No abstract available."
@@ -710,9 +711,17 @@ def build_methods(ws: Path) -> dict[str, Any]:
             else:
                 blind.add(study)
         figures["decided_with_draft_visible"] = len(visible)
-        if visible and not blind:
+        if visible:
+            # Only decisions made before their reveal are a blind comparison.
+            blind_revealed = revealed & blind
+            if blind_revealed:
+                sentences.append(
+                    f"After seeing a draft, the reviewer changed {len(changed & blind)} of {len(blind_revealed)} decisions."
+                )
             sentences.append(
                 f"{len(visible)} decisions were made with the draft visible; no blind comparison is reported."
+                if len(visible) != 1
+                else "1 decision was made with the draft visible; no blind comparison is reported."
             )
         elif revealed:
             sentences.append(
@@ -726,6 +735,37 @@ def build_methods(ws: Path) -> dict[str, Any]:
                 "followed a draft was not tracked."
             )
             not_stated.append(f"Changes after a draft: not tracked for {len(untracked)} decisions changed before reveal tracking began.")
+
+    # 5b. Advance on decide: reported only when drafts were skipped.
+    if proposals:
+        history: list[tuple[datetime | None, Any]] = []
+        for row in rows:
+            after = (row.get("parameters") or {}).get("after") or {}
+            if "advance_on_decide" in after:
+                history.append((_time(row.get("timestamp")), after["advance_on_decide"]))
+        history.sort(key=lambda h: h[0] or datetime.min.replace(tzinfo=UTC))
+
+        def mode_at(when: datetime | None) -> Any:
+            value = DEFAULT_SETTINGS["advance_on_decide"]
+            for at, after in history:
+                if when is None or at is None or at <= when:
+                    value = after
+            return value
+
+        proposed_studies = {str(p["study_id"]) for p in proposals}
+        skipped = 0
+        for study, chain in events.items():
+            first = next((e for e in chain if not e.get("supersedes")), None)
+            if first is None or study not in proposed_studies:
+                continue
+            if mode_at(_time(first.get("received_at"))) == "next_at_once":
+                skipped += 1
+        figures["decided_draft_skipped"] = skipped
+        if skipped:
+            sentences.append(
+                f"For {skipped} records the next record opened at once after the decision, so the draft was not "
+                "shown unless the reviewer opened it from the record's details."
+            )
 
     # 6. AI-agreed exclusion
     on = "ai_agreed_exclusion"
