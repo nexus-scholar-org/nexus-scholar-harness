@@ -1,4 +1,4 @@
-# Nexus Scholar beta (1.1.0b1)
+# Nexus Scholar beta (1.1.0b2)
 
 Thank you for testing. This page says who the beta is for, how to install it,
 what it cannot do yet, and how to tell us what happened.
@@ -19,7 +19,7 @@ methods paragraph.
    uv tool install --prerelease allow nexus-scholar
    ```
 
-3. Check the version (it should print `nexus-scholar 1.1.0b1`):
+3. Check the version (it should print `nexus-scholar 1.1.0b2`):
 
    ```bash
    nexus-scholar --version
@@ -42,7 +42,6 @@ workspace, import your RIS files, prepare, screen, publish and export.
 - **Approval uses a code shown in the terminal.** Keep the terminal where the app runs in view.
 - **The approver is a typed name,** not a verified sign-in.
 - **AI drafts are optional and not validated.** Do not report a recall or accuracy figure for them.
-- **The screens are still being simplified.** Fewer clicks in triage, and details on demand, come in the next beta.
 
 ## Tell us what happened
 
