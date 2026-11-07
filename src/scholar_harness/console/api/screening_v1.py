@@ -566,10 +566,20 @@ class PrepareBody(BaseModel):
     batch_size: int = 20
 
 
+#: The batch sizes Prepare accepts (M6-beta, review U-1).
+BATCH_SIZE_MIN, BATCH_SIZE_MAX = 5, 100
+
+
 @router.post("/prepare", status_code=202)
 async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
     """Start the allowlisted `screen_prepare` job; refuses without an accepted corpus."""
     ws = _ws(request)
+    if not BATCH_SIZE_MIN <= body.batch_size <= BATCH_SIZE_MAX:
+        raise _error(
+            422,
+            refusals.BATCH_SIZE_INVALID,
+            f"batch size {body.batch_size} is outside {BATCH_SIZE_MIN} to {BATCH_SIZE_MAX}",
+        )
     registry = ws / "audit" / "artifact_registry.json"
     accepted = registry.is_file() and any(
         e.get("artifact_type") == "corpus_snapshot"
@@ -577,7 +587,7 @@ async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
     )
     if not accepted:
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no accepted corpus snapshot; import and accept the corpus first (Import, or `nexus-scholar accept-corpus`)")
-    job = await request.app.state.job_runner.start("screen_prepare")
+    job = await request.app.state.job_runner.start("screen_prepare", args=["--batch-size", str(body.batch_size)])
     return {"job_id": job.job_id}
 
 

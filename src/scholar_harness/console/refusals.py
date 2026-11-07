@@ -64,6 +64,22 @@ RESTART_UNSUPPORTED = "RESTART_UNSUPPORTED"
 #: The export and methods routes (M5-slim, spec 10) are re-exported from
 #: ``screening/export.py`` above.
 
+# --- the corpus import (M5b, spec 11) and Prepare (M6-beta) --------------------
+#: Raised as ``AcceptCorpusRefused.code`` in ``corpus_accept.py``.
+SOURCE_LABEL_INVALID = "SOURCE_LABEL_INVALID"
+SOURCE_DATE_INVALID = "SOURCE_DATE_INVALID"
+SOURCE_NOT_RIS = "SOURCE_NOT_RIS"
+SOURCE_TOO_LARGE = "SOURCE_TOO_LARGE"
+SOURCE_DUPLICATE_FILE = "SOURCE_DUPLICATE_FILE"
+SOURCE_NOT_FOUND = "SOURCE_NOT_FOUND"
+VERIFIED_EXISTS = "VERIFIED_EXISTS"
+CORPUS_ALREADY_ACCEPTED = "CORPUS_ALREADY_ACCEPTED"
+NOTHING_STAGED = "NOTHING_STAGED"
+PROTOCOL_INVALID = "PROTOCOL_INVALID"
+ACCEPT_CORPUS_REFUSED = "ACCEPT_CORPUS_REFUSED"
+#: Prepare's batch size outside the bounds the screen offers.
+BATCH_SIZE_INVALID = "BATCH_SIZE_INVALID"
+
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
@@ -104,6 +120,18 @@ CONTRACT_ADDED = frozenset(
         EXPORT_FORMAT_INVALID,
         EXPORT_SOURCE_MISMATCH,
         METHODS_SOURCE_MISSING,
+        SOURCE_LABEL_INVALID,
+        SOURCE_DATE_INVALID,
+        SOURCE_NOT_RIS,
+        SOURCE_TOO_LARGE,
+        SOURCE_DUPLICATE_FILE,
+        SOURCE_NOT_FOUND,
+        VERIFIED_EXISTS,
+        CORPUS_ALREADY_ACCEPTED,
+        NOTHING_STAGED,
+        PROTOCOL_INVALID,
+        ACCEPT_CORPUS_REFUSED,
+        BATCH_SIZE_INVALID,
     }
 )
 

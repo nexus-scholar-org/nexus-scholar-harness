@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import queue
 import signal
 import uuid
@@ -26,6 +27,14 @@ from ..api.pipelines import BUILTIN_TEMPLATES, store_path
 from .actions import Action, executable_argv, get_action, render_command
 
 logger = logging.getLogger(__name__)
+
+#: Environment variables a job never inherits: the console's own credentials.
+_WITHHELD_FROM_JOBS = ("NEXUS_CONSOLE_TOKEN",)
+
+
+def job_environment() -> dict[str, str]:
+    """This process's environment without the console's bearer token (M6-beta, T-P1-4)."""
+    return {k: v for k, v in os.environ.items() if k not in _WITHHELD_FROM_JOBS}
 
 JOB_RUN_DIR = ".harness-console"
 DEFAULT_TIMEOUT_S = 30 * 60
@@ -113,6 +122,7 @@ class JobRunner:
         query: str | None = None,
         workspace: str | None = None,
         pipeline_id: str | None = None,
+        args: list[str] | None = None,
     ) -> Job:
         """Create (queued) and spawn a job for the given action. Single-flight."""
         async with self._lock:
@@ -138,6 +148,9 @@ class JobRunner:
                 )
             else:
                 command = render_command(action, workspace=ws, query=query)
+            # Extra arguments come from the route, never from free text: they are
+            # appended as separate argv items (Prepare's `--batch-size`, M6-beta).
+            command = [*command, *(args or [])]
 
             job_id = f"job_{uuid.uuid4().hex[:8]}"
             job = Job(
@@ -168,6 +181,7 @@ class JobRunner:
         proc = await asyncio.create_subprocess_exec(
             *executable_argv(command),
             cwd=str(self.workspace),
+            env=job_environment(),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
         )

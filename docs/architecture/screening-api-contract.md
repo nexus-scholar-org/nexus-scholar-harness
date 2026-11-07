@@ -111,7 +111,7 @@ M = milestone; ✓ = route exists today.
 | `POST /corpus/sources` | stage one database's RIS export | `{label, file_name, content_base64, searched_on?, query?}` (extra fields refused; a label may repeat for a database exported in parts, and its files are summed per database) → 201 + the `GET /corpus` body; the file is kept under `literature/raw/ris/`; journaled `CORPUS_SOURCE_STAGED`. Refuses `SOURCE_LABEL_INVALID`, `SOURCE_DATE_INVALID` (not a real `YYYY-MM-DD` date), `SOURCE_NOT_RIS` (422; also content that is not base64), `SOURCE_TOO_LARGE` (413, 50 MB), `SOURCE_DUPLICATE_FILE`, `VERIFIED_EXISTS`, `CORPUS_ALREADY_ACCEPTED` (409) | desktop | M5b |
 | `POST /corpus/sources/{id}/remove` | drop a staged export file | → the `GET /corpus` body; journaled `CORPUS_SOURCE_REMOVED`; `SOURCE_NOT_FOUND` (404), `CORPUS_ALREADY_ACCEPTED` (409) | desktop | M5b |
 | `POST /corpus/accept` | UI for `nexus-scholar accept-corpus` | → the `GET /corpus` body, `state: "ACCEPTED"`; writes `verified.json` and `literature/raw/provenance_manifest.json`, then the acceptance gate publishes the snapshot (journaled). `NOTHING_STAGED` (also when every imported file was removed), `CORPUS_ALREADY_ACCEPTED`, `PROTOCOL_INVALID`, and `ACCEPT_CORPUS_REFUSED` when the acceptance gate refuses the snapshot (409, its issues in the message) | desktop | M5b |
-| `POST /prepare` | allowlisted prepare job | `{batch_size, shuffle_seed}` → `{job_id}`; refuses `SNAPSHOT_NOT_ACCEPTED` (proposed) | desktop | M1a |
+| `POST /prepare` | allowlisted prepare job | `{batch_size}` (5 to 100, default 20; passed to the job since M6-beta) → `{job_id}`; refuses `SNAPSHOT_NOT_ACCEPTED`, `BATCH_SIZE_INVALID` | desktop | M1a |
 | `POST /proposals/runs` | estimate, or start, an agent run | `{driver:"api", provider: "anthropic"\|"openai_compatible"\|"gemini", model, effort, base_url? (OpenAI-compatible), scope:{view: "needs_you"\|"no_proposal" \| study_ids}, consent?:{provider, accepted_at}, cost_ceiling_usd?, dry_run? (the first 20 records), estimate_only? (writes nothing)}` → `{run_id (null for an estimate), estimate:{records, tokens:{input_tokens, cache_read_tokens, cache_write_tokens, output_tokens}, assumptions, cost_usd, batch, prices_as_of, priced}}`. Refuses `CONSENT_REQUIRED`, `PROVIDER_KEY_MISSING`, `DRIVER_UNAVAILABLE`, `CEILING_NOT_PRICED`, `COST_CEILING_REACHED` (the estimate is above the ceiling), `RUN_ALREADY_ACTIVE`, `UNKNOWN_STUDY`, `INVALID_OUTPUT` (bad scope or consent) | desktop | M1b |
 | `POST /proposals/calibrations` | check the agent on your labels | `{study_ids, provider, model, effort, base_url?, cost_ceiling_usd?}` → `{run_id}`; the same refusals as a run; result `{include_recall, ci_low, missed_includes:[…]}`. **Advisory:** a missed include shows a warning and never blocks a run, because the researcher decides whether to trust it | desktop | M1b |
 | `GET /proposals/setup` | what the run screen needs before a run | → `{task:{task_version, prompt_sha256, model, effort}, providers:[{provider, key: "keychain"\|"environment"\|"none", consent}], data_flow, active_run, latest_run}`; names where a key is stored, never the key (M1b-2) | desktop | M1b |
@@ -179,6 +179,18 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `EXPORT_FORMAT_INVALID` | `/export` | HTTP 422: `format` is not `ris` or `csv`, or `set` names an unknown set (M5-slim) |
 | `EXPORT_SOURCE_MISMATCH` | `/export`, `/methods` | HTTP 409: a published file is missing or its digest differs from `generation.json`; nothing is exported (M5-slim) |
 | `METHODS_SOURCE_MISSING` | `/methods` | HTTP 409: `prisma_report.json`, which the paragraph cannot omit, is missing or lacks a count; missing optional sources are listed under `caveats` (M5-slim) |
+| `SOURCE_LABEL_INVALID` | `/corpus/sources` | HTTP 422: the database name is empty, too long or uses other characters (M5b) |
+| `SOURCE_DATE_INVALID` | `/corpus/sources` | HTTP 422: date searched is not a real `YYYY-MM-DD` date (M5b) |
+| `SOURCE_NOT_RIS` | `/corpus/sources` | HTTP 422: no RIS records in the file, or content that is not base64 (M5b) |
+| `SOURCE_TOO_LARGE` | `/corpus/sources` | HTTP 413: the file is over 50 MB (M5b) |
+| `SOURCE_DUPLICATE_FILE` | `/corpus/sources` | HTTP 409: the same file is already staged (M5b) |
+| `SOURCE_NOT_FOUND` | `/corpus/sources/{id}/remove` | HTTP 404: no staged file has that id (M5b) |
+| `VERIFIED_EXISTS` | `/corpus/sources` | HTTP 409: the corpus came from discovery; database exports would replace it (M5b) |
+| `CORPUS_ALREADY_ACCEPTED` | `/corpus/*` writes | HTTP 409: the corpus is frozen (M5b) |
+| `NOTHING_STAGED` | `/corpus/accept` | HTTP 409: no database file staged (M5b) |
+| `PROTOCOL_INVALID` | `/corpus/accept` | HTTP 409: `protocol.json` does not validate (M5b) |
+| `ACCEPT_CORPUS_REFUSED` | `/corpus/accept` | HTTP 409: the acceptance gate refused the snapshot; its issues in the message (M5b) |
+| `BATCH_SIZE_INVALID` | `/prepare` | HTTP 422: batch size outside 5 to 100 (M6-beta) |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 
 ## 8. Shared fixtures and tests

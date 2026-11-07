@@ -52,7 +52,7 @@ ACTIONS: list[Action] = [
     Action(
         "discovery",
         "Federated discovery",
-        'uv run scholar-search search "{q}"',
+        'uv run scholar-search search -- "{q}"',
         "nexus_discover",
         True,
     ),
@@ -131,7 +131,7 @@ ACTIONS: list[Action] = [
     Action(
         "synthesize",
         "Grounded synthesis",
-        'uv run scholar-rag synthesize "{q}" --rq-id RQ1 --output-claims {ws}/synthesis/claims.json',
+        'uv run scholar-rag synthesize --rq-id RQ1 --output-claims {ws}/synthesis/claims.json -- "{q}"',
         "nexus_rag_synthesize",
         True,
     ),
@@ -270,9 +270,11 @@ def executable_argv(command: list[str]) -> list[str]:
     job runs with the workspace as its folder. The screening script therefore
     runs as its module, with this process's own Python, which is the same
     interpreter in a checkout and in an installed app (golden run, 2026-11-05).
+    `-P` keeps the job's folder (the workspace) off `sys.path`, so a workspace
+    shared as a zip can never supply modules the job imports (M6-beta, T-P1-4).
     """
     if command[:3] == ["uv", "run", "python"] and len(command) > 3 and command[3].replace("\\", "/") == _AGENT_SCREEN_SCRIPT:
         import sys
 
-        return [sys.executable, "-m", _AGENT_SCREEN_MODULE, *command[4:]]
+        return [sys.executable, "-P", "-m", _AGENT_SCREEN_MODULE, *command[4:]]
     return command
