@@ -1,5 +1,5 @@
 # M6-beta Beta UX: fewer clicks, details on demand, four trust fixes
-Branch: `dev/m6/beta-ux` (from `main` after M5b merges) · Lane: **STANDARD** (UI and small engine fixes; escalate to RELEASE only if the currentness item below changes `require_current_generation`'s contract) · Status: PLANNED · Written: 2026-11-06 · Starts: when M5b (corpus import) is merged
+Branch: `dev/m6/beta-ux` (from `main` after M5b merges) · Lane: **STANDARD** (UI and small engine fixes; escalate to RELEASE only if the currentness item below changes `require_current_generation`'s contract) · Status: IN PROGRESS · Written: 2026-11-06 · Started: 2026-11-07 (M5b merged: PR #195, #196)
 
 Why: the researcher's direction on 2026-11-06. The product goes to beta testers next; the workspaces are not expected to carry the PhD review. Testers will spend almost all their time in triage, and the researcher's own run found "a lot of clicks and scrolling" and provenance everywhere. The [full review](../../assessment/full-review-2026-11-06.md) (sections 2 and 3) lists the defects; this milestone takes the ones a tester meets and leaves the rest parked. Source of the rule applied throughout: the brand book, "plain words first, raw value underneath", read as **the raw value is one disclosure away, never inline**.
 
@@ -63,12 +63,12 @@ Plan: a new §6 row is added to [`production-plan.md`](../production-plan.md) at
 | review T-P1-4 (job spawn imports from the workspace; token inherited) | `test_job_runner.py` two tests | | |
 | review T-P1-6 (version frozen at 1.0.0) | `test_build_mcpb.py` version read | | |
 
-## Decisions (to write at start)
-- "Details on demand": the rule, the list per screen, and that nothing leaves the DOM.
-- "Answer until decisive": the desktop checklist is no longer required in full; what is stored when a criterion is unanswered; why the contract does not change.
-- "Advance on decide" as a workspace setting reported in methods.
-- "Published means current": where `stale_projections` is checked and what the status reads.
-- The parked list above, named in the plan row.
+## Decisions (written at start, 2026-11-07, `docs/decisions.md`)
+- 2026-11-07 — Details on demand
+- 2026-11-07 — Answer until decisive
+- 2026-11-07 — Advance on decide, as a workspace setting
+- 2026-11-07 — Published means current
+- 2026-11-07 — The beta's parked list (with the researcher's order and the tag-after-version rule)
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
