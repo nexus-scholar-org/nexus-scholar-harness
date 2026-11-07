@@ -73,6 +73,7 @@ Plan: a new §6 row is added to [`production-plan.md`](../production-plan.md) at
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| checkpoint (engine half) | `e9ba86d` | `pytest -q -n auto` | 4394 passed, 15 skipped, 2 failed: two protocol-identity tests compared the producer version with a literal `1.0.0`. The producer version is the package version by design, so it moved with the bump; the tests now read the installed version, and both pass. Contract schema, baseline and two-study fixture `--check` current | about 20 min |
 
 ## Deferred
 - Everything under "Out" above. Each has its review id; none is forgotten, none blocks a tester.

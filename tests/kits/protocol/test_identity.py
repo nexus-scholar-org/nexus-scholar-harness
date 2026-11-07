@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import pathlib
 
@@ -41,7 +42,7 @@ def test_identity_adapter_from_pydantic_model() -> None:
     assert ident.protocol_fingerprint == canonical_fingerprint(protocol)
     assert ident.schema_version == "1.0.0"
     assert ident.producer.package == "scholar-protocol-kit"
-    assert ident.producer.version == "1.0.0"
+    assert ident.producer.version == importlib.metadata.version("nexus-scholar")  # the package version (M6-beta)
     assert len(ident.producer.commit) >= 7
     assert ident.canonical_bytes == canonical_json(protocol)
 
