@@ -714,6 +714,8 @@ def build_methods(ws: Path) -> dict[str, Any]:
         if visible:
             # Only decisions made before their reveal are a blind comparison.
             blind_revealed = revealed & blind
+            figures["revealed_blind_decisions"] = len(blind_revealed)
+            figures["changed_after_reveal_blind"] = len(changed & blind)
             if blind_revealed:
                 sentences.append(
                     f"After seeing a draft, the reviewer changed {len(changed & blind)} of {len(blind_revealed)} decisions."
@@ -753,12 +755,22 @@ def build_methods(ws: Path) -> dict[str, Any]:
             return value
 
         proposed_studies = {str(p["study_id"]) for p in proposals}
+        drafted_at: dict[str, datetime | None] = {}
+        for p in proposals:
+            created = _time(p.get("created_at"))
+            study = str(p["study_id"])
+            if study not in drafted_at or (created and (drafted_at[study] is None or created < drafted_at[study])):
+                drafted_at[study] = created
         skipped = 0
         for study, chain in events.items():
             first = next((e for e in chain if not e.get("supersedes")), None)
-            if first is None or study not in proposed_studies:
+            if first is None or study not in proposed_studies or study in visible:
                 continue
-            if mode_at(_time(first.get("received_at"))) == "next_at_once":
+            received = _time(first.get("received_at"))
+            drafted = drafted_at.get(study)
+            if received is None or drafted is None or drafted > received:
+                continue  # no draft existed when the record was decided
+            if mode_at(received) == "next_at_once":
                 skipped += 1
         figures["decided_draft_skipped"] = skipped
         if skipped:

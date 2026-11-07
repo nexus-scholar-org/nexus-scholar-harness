@@ -97,7 +97,10 @@ def _status(ws: Path, has_corpus: bool) -> str:
         from scholar_harness.authority.generations import GenerationStatus
         from scholar_harness.screening.currentness import screening_currentness
 
-        current = screening_currentness(ws).status is GenerationStatus.CURRENT
+        try:
+            current = screening_currentness(ws).status is GenerationStatus.CURRENT
+        except Exception:  # noqa: BLE001 - one unreadable workspace never breaks the list
+            current = False  # a publication that cannot be checked is not shown as current
         return "PUBLISHED" if current else "PUBLISHED_CHANGED"
     if screening.is_dir() and any(screening.glob("batch_[0-9][0-9][0-9].json")):
         return "SCREENING"

@@ -60,7 +60,7 @@ A screening reads "Published" only while the published generation still matches 
 decision files. The publication gate (`require_current_generation`, or one wrapper that
 `/ui/publication-status`, `/summary`, export and methods all call) also checks
 `stale_projections`. A decision recorded after publish makes every surface read
-`GENERATION_STALE`, naming the stale batches.
+`GENERATION_STALE`, naming the stale batches or the number of changed studies.
 
 Stored files and the Contract-v1 artifacts do not change; only the status that is read
 changes. If the change turns out to alter stored semantics, it stops as
