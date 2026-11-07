@@ -620,3 +620,20 @@ def test_published_prisma_counts_a_fails_inclusion_exclusion_by_its_reason(ws):
     report = json.loads((ws / "literature" / "prisma_report.json").read_text(encoding="utf-8"))
     assert report["exclusion_reasons_breakdown"] == {f"FAILS-{inclusion}": 1, "EXC-01": 1}
     assert "UNSPECIFIED" not in (ws / "literature" / "prisma_screening_report.md").read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("answer", ["yes", "no", "not_reported", None])
+def test_an_exclude_reason_must_not_contradict_the_events_own_answer(ws, answer):
+    """M6-beta (review S-P1-3): FAILS-INC-n with INC-n answered yes, or EXC-n with EXC-n
+    answered no, is refused REASON_CODE_INCONSISTENT; an absent or not_reported answer is not."""
+    context = ev.load_context(ws)
+    inc, exc = min(context.inclusion_ids), min(context.exclusion_ids)
+    studies = _studies(ws)
+    for i, (code, criterion, contradiction) in enumerate([(f"FAILS-{inc}", inc, "yes"), (exc, exc, "no")]):
+        criteria = [] if answer is None else [{"id": criterion, "answer": answer}]
+        event = _event(ws, studies[i], "EXCLUDE", reason_code=code, criteria=criteria)
+        result = ev.intake(ws, [event], token_scope="desktop", received_at="2026-11-07T10:00:00Z")[0]
+        if answer == contradiction:
+            assert result.refusal and result.refusal["code"] == "REASON_CODE_INCONSISTENT", result
+        else:
+            assert result.result == "accepted", result

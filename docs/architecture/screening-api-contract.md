@@ -158,6 +158,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `SNAPSHOT_NOT_ACCEPTED` | `/prepare` | no accepted corpus snapshot; run `accept-corpus` |
 | `UNKNOWN_STUDY` | events, records | `study_id` not in the bound corpus |
 | `REASON_CODE_INVALID` | events | EXCLUDE without a valid protocol reason code |
+| `REASON_CODE_INCONSISTENT` | events | EXCLUDE whose reason contradicts the event's own answer: `FAILS-INC-n` with INC-n answered yes, or `EXC-n` with EXC-n answered no (M6-beta) |
 | `TOKEN_SCOPE_REFUSED` | any | phone token used on a desktop-only route, or an expired token |
 | `CONSENT_REQUIRED` | `/proposals/runs` | no recorded consent for this provider |
 | `RUN_ALREADY_ACTIVE` | `/proposals/runs`, `/proposals/calibrations` | one agent run per workspace at a time |
@@ -211,7 +212,7 @@ A fixture change is a contract change and needs review by both tracks.
 2. Duplicate `event_id` → `duplicate`; same id with different content → `IDEMPOTENCY_CONFLICT`.
 3. Two differing non-superseding events → `conflict`; the study is excluded from the projection; collect refuses `BATCH_INCOMPLETE`.
 4. `GET /records/{id}/proposal` before a decision → `PROPOSAL_HIDDEN`.
-5. EXCLUDE without a reason code → `REASON_CODE_INVALID`.
+5. EXCLUDE without a reason code → `REASON_CODE_INVALID`. An EXCLUDE whose reason contradicts the event's own `criteria` answer for that criterion → `REASON_CODE_INCONSISTENT` (M6-beta); an absent or `not_reported` answer never contradicts.
 6. MAYBE passes finalize and is counted as "unclear to full text" in the PRISMA preview.
 7. A phone token on `/prepare`, `/proposals/runs` or publish → `TOKEN_SCOPE_REFUSED`. In M2, those routes are absent on the LAN sub-app.
 8. Every accepted batch of events writes exactly one journal row.
