@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import type { NextConfig } from "next";
 
 /**
@@ -26,8 +29,24 @@ import type { NextConfig } from "next";
  */
 const staticExport = process.env.NEXT_STATIC_EXPORT === "1";
 
+/**
+ * 3. The version the footer shows (M6-beta): read from the root
+ *    `pyproject.toml`, the one place it lives, at build time. The app is built
+ *    together with the wheel from the same commit, so the two always agree.
+ */
+function projectVersion(): string {
+  try {
+    const text = readFileSync(resolve(__dirname, "..", "..", "pyproject.toml"), "utf-8");
+    return /^version\s*=\s*"([^"]+)"/m.exec(text)?.[1] ?? "";
+  } catch {
+    return "";
+  }
+}
+const env = { NEXT_PUBLIC_NEXUS_VERSION: projectVersion() };
+
 const nextConfig: NextConfig = staticExport
   ? {
+      env,
       output: "export",
       distDir: process.env.NEXT_DIST_DIR ?? ".next-export",
       trailingSlash: true,
@@ -35,6 +54,7 @@ const nextConfig: NextConfig = staticExport
       images: { unoptimized: true },
     }
   : {
+      env,
       output: "standalone",
       distDir: process.env.NEXT_DIST_DIR ?? ".next",
       async redirects() {

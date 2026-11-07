@@ -238,3 +238,21 @@ describe("accessibility (jsdom + axe-core)", () => {
     expect(blockingViolations(results).map(describeViolation)).toEqual([]);
   });
 });
+
+describe("shell.version (M6-beta)", () => {
+  it("shows the version the app was built with in the footer, left-to-right", () => {
+    vi.stubEnv("NEXT_PUBLIC_NEXUS_VERSION", "1.1.0b1");
+    try {
+      render(
+        <AppShell locale="ar">
+          <p>content</p>
+        </AppShell>,
+      );
+      const version = within(screen.getByRole("contentinfo")).getByText("1.1.0b1");
+      expect(version).toHaveAttribute("dir", "ltr");
+    } finally {
+      vi.unstubAllEnvs();
+      cleanup();
+    }
+  });
+});

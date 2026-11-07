@@ -461,7 +461,17 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
                         <p className="font-medium text-ink">{item.title ?? t("untitled")}</p>
                         <p className="text-xs text-ink-muted"><bdi dir="ltr">{item.path}</bdi></p>
                       </td>
-                      <td className="p-3"><DecisionBadge role={status.role}>{t(status.key)}</DecisionBadge></td>
+                      <td className="p-3">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <DecisionBadge role={status.role}>{t(status.key)}</DecisionBadge>
+                          {/* A status chip, never a wrapped button (M6-beta, review U-3). */}
+                          {item.is_current ? (
+                            <span className="whitespace-nowrap rounded-sm border border-brand px-2 py-0.5 text-xs text-brand" data-open-now>
+                              {t("openNow")}
+                            </span>
+                          ) : null}
+                        </span>
+                      </td>
                       <td className="p-3 text-ink-muted">
                         {item.last_event?.at ? (
                           <><bdi dir="ltr">{item.last_event.at.slice(0, 16).replace("T", " ")}</bdi> · <bdi dir="ltr">{item.last_event.action}</bdi></>
@@ -469,7 +479,9 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
                       </td>
                       <td className="p-3">
                         {item.is_current ? (
-                          <span className="border border-rule px-2 py-0.5 text-xs text-ink">{t("openNow")}</span>
+                          <a className="inline-flex min-h-11 items-center whitespace-nowrap text-brand underline" href={`/${locale}/screening/home/`}>
+                            {t("busy.goHome")}
+                          </a>
                         ) : (
                           <Button disabled={busyNow} onClick={() => void open(item)}>
                             {t("cta.open")}

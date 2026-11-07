@@ -56,6 +56,11 @@ export function AppShell({
             <span className="font-display text-sm font-semibold text-ink">{translate(locale, "brand.productName")}</span>
             <span aria-hidden="true" className="hidden h-3 w-px bg-rule md:inline-block" />
             <span>{translate(locale, "footer.local")}</span>
+            {process.env.NEXT_PUBLIC_NEXUS_VERSION ? (
+              <span className="font-mono" dir="ltr" data-version>
+                {process.env.NEXT_PUBLIC_NEXUS_VERSION}
+              </span>
+            ) : null}
           </p>
           <p>{translate(locale, "footer.journal")}</p>
         </div>
