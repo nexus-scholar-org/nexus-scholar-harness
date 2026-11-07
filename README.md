@@ -2,7 +2,7 @@
 
 **A research workspace and toolkit for literature reviews, with source lineage and explicit researcher control over final evidence.**
 
-Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is a CLI/MCP toolkit; the connected researcher application is under development.
+Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is the **screening app** (beta). You import your database exports, screen titles and abstracts on your own computer, publish the screening with its PRISMA counts, and export the decisions and a draft methods paragraph. It comes with the CLI/MCP toolkit it is built on.
 
 [![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/nexus-scholar.svg)](https://pypi.org/project/nexus-scholar/)
@@ -15,31 +15,28 @@ The `nexus-scholar` package bundles the harness, eight scientific kits and an MC
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
-| Released CLI/MCP toolkit | Workspace setup and scientific tool access | Follow the versioned user guide and supported tool surfaces |
-| Development branch (`main`) | Evidence acceptance, screening integrity and protected publication work | May differ from the installed PyPI release; consult packet evidence |
-| Research UI | Screening, overview and workflow demonstrations | Mock-backed scaffold; not a connected production application |
-| Individual researcher application | Direct review of sources and recommendations | Product direction, not a completed desktop app or SaaS |
+| Screening app (`nexus-scholar ui`), beta | Workspaces, the import of RIS exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS only; see the [beta page](docs/beta/README.md) |
+| CLI/MCP toolkit | Workspace setup, the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces |
+| Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
+| Development branch (`main`) | The next beta | May differ from the installed release |
 
-The latest listed release is [v1.0.0](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.0.0). Later work on `main` is not a claim about that release's behavior.
+The latest release is the beta [v1.1.0b1](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b1) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
 
 ## Start a workspace
 
-**New here?** [Getting started](docs/getting-started.md) walks you from cloning the code to a published screening and an exported reference list.
+**New here?** [Getting started](docs/getting-started.md) walks you from installing to a published screening and an exported reference list in about 15 minutes. Beta testers: read the [beta page](docs/beta/README.md) first.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and inspect the command surface without checking out the repository:
-
-```sh
-uvx nexus-scholar --help
-```
-
-For repeated use:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the `--prerelease allow` is needed while it is in beta), and start the app:
 
 ```sh
-uv tool install nexus-scholar
-# Alternative: pip install nexus-scholar
+uv tool install --prerelease allow nexus-scholar
+nexus-scholar --version
+nexus-scholar ui
 ```
 
-Create a project and inspect its setup:
+`nexus-scholar --version` should print `nexus-scholar 1.1.0b1`. With pip, use `pip install --pre nexus-scholar`. The app opens in your browser on **Workspaces**; everything runs on your computer.
+
+From a terminal, create a project and inspect its setup:
 
 ```sh
 nexus-scholar init "UAV crop and weed mapping" --dir ./my-review --scaffold-only
@@ -64,11 +61,9 @@ For a crop/weed review, the intended first complete interaction is:
 5. Explicitly authorize final decisions and publish the current screening result.
 6. Export a screening record with reasons and provenance.
 
-This is the product target, not an end-to-end released demo. AG-04 is developing the worker/review interaction; real UI integration follows. Full-text charting, synthesis and scientific evaluation have separate readiness requirements.
+In the beta, steps 2 to 6 work end to end for title and abstract screening by one reviewer. Search is done in the databases themselves and their RIS exports are imported. The AI drafts are optional, hidden until you decide by default, and never decide for you. Full-text charting, synthesis and scientific evaluation have separate readiness requirements and are parked.
 
-**UI demonstration — mock data:** the existing screening layout illustrates the review direction. It does not demonstrate live data or protected approval.
-
-![Mock screening interface](apps/research-ui/screenshots/375-screening.png)
+![The Import screen: two databases, their records summed per database, and the counts for the PRISMA flow diagram (test data)](apps/research-ui/screenshots/1440-screening-import-staged.png)
 
 ## Evidence and researcher control
 
