@@ -68,6 +68,11 @@ def _flag_and_positional(rest: list[str]) -> tuple[list[str], int]:
     i = 0
     while i < len(rest):
         tok = rest[i]
+        if tok == "--":
+            # End of options: everything after it is positional (M6-beta puts
+            # a free-text query there so it can never be read as a flag).
+            positionals += len(rest) - i - 1
+            break
         if tok.startswith("-"):
             flags.append(tok)
             i += 1

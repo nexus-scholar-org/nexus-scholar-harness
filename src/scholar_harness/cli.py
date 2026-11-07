@@ -36,6 +36,23 @@ app = typer.Typer(
 console = Console(force_terminal=True, legacy_windows=False)
 
 
+def _print_version(value: bool) -> None:
+    if value:
+        from . import __version__
+
+        typer.echo(f"nexus-scholar {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def _main(
+    version: bool = typer.Option(  # noqa: B008
+        False, "--version", callback=_print_version, is_eager=True, help="Print the version and exit."
+    ),
+) -> None:
+    """Nexus Scholar Harness."""
+
+
 @app.command("status")
 def status(
     workspace: Path = typer.Option(

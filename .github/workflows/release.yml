@@ -2,7 +2,7 @@ name: nexus-scholar GitHub Release
 
 # P7.8: publish the source-bundling metapackage wheel as a GitHub Release on a
 # v* tag.  Uses only gh (preinstalled on runners) + built-in actions; the tag is
-# the release handle (the wheel stays fixed at 1.0.0 per hatchling).
+# the release handle, and it must equal v<project version> (M6-beta).
 #
 # Triggers:
 #   - push of a v* tag -> real release
@@ -39,6 +39,18 @@ jobs:
           cache: npm
           cache-dependency-path: apps/research-ui/package-lock.json
 
+      - name: Read the project version and check the tag
+        # M6-beta: the version lives in pyproject.toml only. A tag push must name
+        # exactly that version (v$VERSION), or nothing is built or published.
+        shell: bash
+        run: |
+          VERSION="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match the project version v$VERSION"
+            exit 1
+          fi
+
       - name: Build the app's static export
         # The wheel carries it as scholar_harness_data/ui (hatch_build.py);
         # NEXUS_WHEEL_REQUIRE_UI makes a missing export a build error.
@@ -55,7 +67,7 @@ jobs:
 
       - name: Build the Claude Desktop Extension (.mcpb)
         # M5-slim: scholar-agent for the researcher's own Claude, carrying the wheel.
-        run: uv run --no-project python scripts/build_mcpb.py --wheel dist/nexus_scholar-1.0.0-py3-none-any.whl
+        run: uv run --no-project python scripts/build_mcpb.py --wheel "dist/nexus_scholar-${VERSION}-py3-none-any.whl"
 
       - name: Create GitHub Release for the wheel
         shell: bash
@@ -65,9 +77,9 @@ jobs:
           set -euo pipefail
 
           DIST_DIR="$GITHUB_WORKSPACE/dist"
-          WHEEL="$DIST_DIR/nexus_scholar-1.0.0-py3-none-any.whl"
+          WHEEL="$DIST_DIR/nexus_scholar-${VERSION}-py3-none-any.whl"
           test -f "$WHEEL" || { echo "::error::wheel not found: $WHEEL"; exit 1; }
-          MCPB="$DIST_DIR/nexus-scholar-1.0.0.mcpb"
+          MCPB="$DIST_DIR/nexus-scholar-${VERSION}.mcpb"
           test -f "$MCPB" || { echo "::error::extension not found: $MCPB"; exit 1; }
 
           # Tag handling: on a tag push use the pushed tag (ref_name); on a
@@ -91,7 +103,10 @@ jobs:
 
           # A tag push and a manual dispatch can race through the guard above;
           # fall back to re-checking so the loser stays green.
-          if gh release create "$TAG" "$WHEEL" "$MCPB" \
+          # A version with a, b or rc in it is a pre-release on GitHub too.
+          PRERELEASE=""
+          case "$VERSION" in *a*|*b*|*rc*) PRERELEASE="--prerelease" ;; esac
+          if gh release create "$TAG" "$WHEEL" "$MCPB" $PRERELEASE \
             --target "$TARGET_SHA" \
             --title "nexus-scholar $TAG" \
             --generate-notes; then
